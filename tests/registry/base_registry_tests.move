@@ -1,5 +1,5 @@
 #[test_only]
-module suins::registry_tests {
+module suins::base_registry_tests {
     use sui::test_scenario::{Self, Scenario};
     use sui::url::Url;
     use suins::base_registry::{Self, AdminCap, Registry, RegistrationNFT};
@@ -36,7 +36,8 @@ module suins::registry_tests {
             let registry_test = test_scenario::borrow_mut(&mut registry_wrapper);
             let ctx = test_scenario::ctx(scenario);
 
-            assert!(base_registry::get_registry_len(registry_test) == 0, 0);
+            // registry has default records for `sui` and `move` TLD
+            assert!(base_registry::get_registry_len(registry_test) == 2, 0);
             base_registry::set_record(
                 &admin_cap,
                 registry_test,
@@ -47,7 +48,7 @@ module suins::registry_tests {
                 option::none<Url>(),
                 ctx
             );
-            assert!(base_registry::get_registry_len(registry_test) == 1, 0);
+            assert!(base_registry::get_registry_len(registry_test) == 3, 0);
 
             test_scenario::return_owned(scenario, admin_cap);
             test_scenario::return_shared(scenario, registry_wrapper);

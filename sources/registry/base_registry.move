@@ -10,8 +10,12 @@ module suins::base_registry {
     use std::option;
     use std::string::String;
 
+    friend suins::sui_registrar;
+
     // TODO: we don't have suins image atm, so temporarily use sui image instead
     const DEFAULT_URL: vector<u8> = b"ipfs://bafkreibngqhl3gaa7daob4i2vccziay2jjlp435cf66vhono7nrvww53ty";
+    const MOVE_BASE_NODE: vector<u8> = b"move";
+    const SUI_BASE_NODE: vector<u8> = b"sui";
 
     // errors in the range of 101..200 indicate Registry errors
     const EUnauthorized: u64 = 101;
@@ -72,14 +76,30 @@ module suins::base_registry {
     }
 
     fun init(ctx: &mut TxContext) {
+        let records = vec_map::empty();
+        let sui_record = Record {
+            node: string::utf8(b"sui"),
+            owner: tx_context::sender(ctx),
+            resolver: tx_context::sender(ctx),
+            ttl: MAX_TTL,
+        };
+        let move_record = Record {
+            node: string::utf8(b"move"),
+            owner: tx_context::sender(ctx),
+            resolver: tx_context::sender(ctx),
+            ttl: MAX_TTL,
+        };
+        vec_map::insert(&mut records, string::utf8(SUI_BASE_NODE), sui_record);
+        vec_map::insert(&mut records, string::utf8(MOVE_BASE_NODE), move_record);
+        let registry = Registry {
+            id: object::new(ctx),
+            records,
+        };
+
+        transfer::share_object(registry);
         transfer::transfer(AdminCap {
             id: object::new(ctx)
         }, tx_context::sender(ctx));
-
-        transfer::share_object(Registry {
-            id: object::new(ctx),
-            records: vec_map::empty(),
-        });
     }
 
     public fun owner(registry: &Registry, node: vector<u8>): address{
@@ -305,8 +325,53 @@ module suins::base_registry {
         vec_map::remove(&mut registry.records, &node)
     }
 
+    // ea.sui => ea: label, sui: node
+    // user.ea.sui => user: label, ea.sui: node
+    public(friend) fun setSubnodeOwner(
+        registry: &mut Registry,
+        owner: address,
+        node: string::String,
+        label: string::String,
+        ctx: &mut TxContext
+    ) {
+        string::append(&mut label, string::utf8(b"."));
+        string::append(&mut node, label);
+
+        if (vec_map::contains(&registry.records, &node)) {
+            let record = vec_map::get_mut(&mut registry.records, &node);
+            record.owner = owner;
+        } else {
+            let record = Record {
+                node,
+                owner,
+                resolver: @0x0,
+                ttl: DEFAULT_TTL,
+            };
+            vec_map::insert(&mut registry.records, node, record);
+            let recordNFT = RecordNFT {
+                id: object::new(ctx),
+                node,
+                owner,
+                resolver: @0x0,
+                ttl: DEFAULT_TTL,
+                name: string::utf8(DEFAULT_NAME),
+                url: url::new_unsafe_from_bytes(DEFAULT_URL),
+            };
+            transfer::transfer(recordNFT, owner);
+        };
+    }
+
+    public fun owner(registry: &Registry, node: vector<u8>, ctx: &TxContext): address {
+        let addr = vec_map::get(&registry.records, &string::utf8(node)).owner;
+        if (addr == tx_context::sender(ctx)) {
+            @0x0
+        } else {
+            addr
+        }
+    }
+
     #[test_only]
-    friend suins::registry_tests;
+    friend suins::base_registry_tests;
 
     #[test_only]
     public fun get_registry_len(registry: &Registry): u64 { vec_map::size(&registry.records) }
