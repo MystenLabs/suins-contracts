@@ -7,10 +7,6 @@ commands:
           name: Install sccache
           command: |
             cargo install sccache
-            # This configures Rust to use sccache.
-            echo 'export "RUSTC_WRAPPER"="sccache"' >> $BASH_ENV
-            # This is the maximum space sccache cache will use on disk.
-            echo 'export "SCCACHE_CACHE_SIZE"="1G"' >> $BASH_ENV
             sccache --version
   restore-sccache-cache:
     steps:
@@ -40,7 +36,7 @@ jobs:
       - run: git clone https://github.com/MystenLabs/sui.git --branch devnet
       - run: sudo apt install libclang-dev
       - run: 
-          command: cargo build --package sui --bin sui
+          command: RUSTC_WRAPPER=sccache cargo build --package sui --bin sui
           working_directory: ./sui
       - save-sccache-cache
       - run: ./sui/target/debug/sui move build
