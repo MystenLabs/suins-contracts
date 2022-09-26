@@ -1,8 +1,10 @@
 #[test_only]
 module suins::registry_tests {
     use sui::test_scenario::{Self, Scenario};
+    use sui::url::Url;
     use suins::base_registry::{Self, AdminCap, Registry, RecordNFT};
     use std::string;
+    use std::option;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -29,7 +31,16 @@ module suins::registry_tests {
             let ctx = test_scenario::ctx(scenario);
 
             assert!(base_registry::get_registry_len(registry_test) == 0, 0);
-            base_registry::mint(&admin_cap, registry_test, NODE, FIRST_USER_ADDRESS, FIRST_RESOLVER_ADDRESS, 10, ctx);
+            base_registry::set_record(
+                &admin_cap,
+                registry_test,
+                NODE,
+                FIRST_USER_ADDRESS,
+                FIRST_RESOLVER_ADDRESS,
+                10,
+                option::none<Url>(),
+                ctx
+            );
             assert!(base_registry::get_registry_len(registry_test) == 1, 0);
 
             test_scenario::return_owned(scenario, admin_cap);
@@ -39,7 +50,7 @@ module suins::registry_tests {
 
     // TODO: test for emitted events
     #[test]
-    fun test_mint() {
+    fun test_mint_new_record() {
         let scenario = init();
         mint_record(&mut scenario);
 
@@ -48,10 +59,10 @@ module suins::registry_tests {
             assert!(test_scenario::can_take_owned<RecordNFT>(&mut scenario), 0);
             let record = test_scenario::take_owned<RecordNFT>(&mut scenario);
 
-            assert!(base_registry::get_record_node(&record) == string::utf8(NODE), 0);
-            assert!(base_registry::get_record_owner(&record) == FIRST_USER_ADDRESS, 0);
-            assert!(base_registry::get_record_resolver(&record) == FIRST_RESOLVER_ADDRESS, 0);
-            assert!(base_registry::get_record_ttl(&record) == 10, 0);
+            assert!(base_registry::get_recordNFT_node(&record) == string::utf8(NODE), 0);
+            assert!(base_registry::get_recordNFT_owner(&record) == FIRST_USER_ADDRESS, 0);
+            assert!(base_registry::get_recordNFT_resolver(&record) == FIRST_RESOLVER_ADDRESS, 0);
+            assert!(base_registry::get_recordNFT_ttl(&record) == 10, 0);
 
             test_scenario::return_owned(&mut scenario, record);
         };
@@ -59,7 +70,55 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, &SECOND_USER_ADDRESS);
         {
             assert!(!test_scenario::can_take_owned<RecordNFT>(&mut scenario), 0);
-        }
+        };
+
+        test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_owned<AdminCap>(&mut scenario);
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry_test = test_scenario::borrow_mut(&mut registry_wrapper);
+            let ctx = test_scenario::ctx(&mut scenario);
+
+            assert!(base_registry::get_registry_len(registry_test) == 1, 0);
+            base_registry::set_record(
+                &admin_cap,
+                registry_test,
+                NODE,
+                SECOND_USER_ADDRESS,
+                SECOND_RESOLVER_ADDRESS,
+                20,
+                option::none<Url>(),
+                ctx
+            );
+            assert!(base_registry::get_registry_len(registry_test) == 1, 0);
+
+            test_scenario::return_owned(&mut scenario, admin_cap);
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+        };
+
+        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
+        {
+            assert!(test_scenario::can_take_owned<RecordNFT>(&mut scenario), 0);
+            let record = test_scenario::take_owned<RecordNFT>(&mut scenario);
+
+            assert!(base_registry::get_recordNFT_node(&record) == string::utf8(NODE), 0);
+            assert!(base_registry::get_recordNFT_owner(&record) == FIRST_USER_ADDRESS, 0);
+            assert!(base_registry::get_recordNFT_resolver(&record) == FIRST_RESOLVER_ADDRESS, 0);
+            assert!(base_registry::get_recordNFT_ttl(&record) == 10, 0);
+
+            test_scenario::return_owned(&mut scenario, record);
+
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry_test = test_scenario::borrow_mut(&mut registry_wrapper);
+            let (_, record) = base_registry::get_record_at_index(registry_test, 0);
+
+            assert!(base_registry::get_record_node(record) == string::utf8(NODE), 0);
+            assert!(base_registry::get_record_owner(record) == SECOND_USER_ADDRESS, 0);
+            assert!(base_registry::get_record_resolver(record) == SECOND_RESOLVER_ADDRESS, 0);
+            assert!(base_registry::get_record_ttl(record) == 20, 0);
+
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+        };
     }
 
     #[test]
@@ -77,9 +136,8 @@ module suins::registry_tests {
             let record = test_scenario::take_owned<RecordNFT>(&mut scenario);
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry_test = test_scenario::borrow_mut(&mut registry_wrapper);
-            let ctx = test_scenario::ctx(&mut scenario);
 
-            base_registry::setOwner(registry_test, record, SECOND_USER_ADDRESS, ctx);
+            base_registry::set_owner(registry_test, record, SECOND_USER_ADDRESS);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
@@ -94,10 +152,10 @@ module suins::registry_tests {
             assert!(test_scenario::can_take_owned<RecordNFT>(&mut scenario), 0);
             let record = test_scenario::take_owned<RecordNFT>(&mut scenario);
 
-            assert!(base_registry::get_record_node(&record) == string::utf8(NODE), 0);
-            assert!(base_registry::get_record_owner(&record) == SECOND_USER_ADDRESS, 0);
-            assert!(base_registry::get_record_resolver(&record) == FIRST_RESOLVER_ADDRESS, 0);
-            assert!(base_registry::get_record_ttl(&record) == 10, 0);
+            assert!(base_registry::get_recordNFT_node(&record) == string::utf8(NODE), 0);
+            assert!(base_registry::get_recordNFT_owner(&record) == SECOND_USER_ADDRESS, 0);
+            assert!(base_registry::get_recordNFT_resolver(&record) == FIRST_RESOLVER_ADDRESS, 0);
+            assert!(base_registry::get_recordNFT_ttl(&record) == 10, 0);
 
             test_scenario::return_owned(&mut scenario, record);
         };
@@ -110,17 +168,20 @@ module suins::registry_tests {
 
         test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
         {
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry_test = test_scenario::borrow_mut(&mut registry_wrapper);
             let record = test_scenario::take_owned<RecordNFT>(&mut scenario);
 
-            base_registry::setResolver(&mut record, SECOND_RESOLVER_ADDRESS);
+            base_registry::set_resolver(registry_test, &mut record, SECOND_RESOLVER_ADDRESS);
             test_scenario::return_owned<RecordNFT>(&mut scenario, record);
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
 
         test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
         {
             let record = test_scenario::take_owned<RecordNFT>(&mut scenario);
 
-            assert!(base_registry::get_record_resolver(&record) == SECOND_RESOLVER_ADDRESS, 0);
+            assert!(base_registry::get_recordNFT_resolver(&record) == SECOND_RESOLVER_ADDRESS, 0);
 
             test_scenario::return_owned(&mut scenario, record);
         };
@@ -133,17 +194,20 @@ module suins::registry_tests {
 
         test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
         {
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry_test = test_scenario::borrow_mut(&mut registry_wrapper);
             let record = test_scenario::take_owned<RecordNFT>(&mut scenario);
 
-            base_registry::setTTL(&mut record, 20);
+            base_registry::set_TTL(registry_test, &mut record, 20);
             test_scenario::return_owned<RecordNFT>(&mut scenario, record);
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
 
         test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
         {
             let record = test_scenario::take_owned<RecordNFT>(&mut scenario);
 
-            assert!(base_registry::get_record_ttl(&record) == 20, 0);
+            assert!(base_registry::get_recordNFT_ttl(&record) == 20, 0);
 
             test_scenario::return_owned(&mut scenario, record);
         };
