@@ -123,7 +123,6 @@ module suins::base_registry {
             option::some(resolver),
             option::some(ttl),
             url,
-            true,
             ctx
         );
         // TODO: transfer subnode NFT to new owner if result == 0, delete subnode NFT if result == 2
@@ -149,41 +148,43 @@ module suins::base_registry {
             option::some(resolver),
             option::some(ttl),
             url,
-            false,
             ctx
         );
         // TODO: transfer subnode NFT to new owner if result == true, delete subnode NFT if result == false
         set_resolver_and_TTL(registry, subnode, resolver, ttl);
     }
 
-    public entry fun set_owner(registry: &mut Registry, record_nft: RecordNFT, owner: address, ctx: &mut TxContext) {
-        let is_existed = set_owner_or_create_record(
-            registry,
-            record_nft.node,
-            owner,
-            option::none<address>(),
-            option::none<u64>(),
-            option::none<Url>(),
-            true,
-            ctx
-        );
-        if (is_existed) transfer::transfer(record_nft, owner)
-        else {
-            // if this NFT doesn't existed in Registry, this means it expired and we'll delete it
+    // need to take ownership of RecordNFT to be able to delete it
+    public entry fun set_owner(registry: &mut Registry, record_nft: RecordNFT, owner: address) {
+        if (!authorised(registry, &record_nft)) {
+            // this NFT is expired, so delete it
             let RecordNFT { id, node: _, url: _ } = record_nft;
             object::delete(id);
-        }
+            return
+        };
+
+        let record = vec_map::get_mut(&mut registry.records, &record_nft.node);
+        if (record.owner != owner) {
+            record.owner = owner;
+            event::emit(TransferEvent { node: record_nft.node, owner });
+        };
+        transfer::transfer(record_nft, owner)
     }
 
     public entry fun set_subnode_owner(
         registry: &mut Registry,
-        record_nft: &RecordNFT,
+        record_nft: RecordNFT,
         label: vector<u8>,
         owner: address,
         ctx: &mut TxContext,
     ) {
+        if (!authorised(registry, &record_nft)) {
+            // this NFT is expired, so delete it
+            let RecordNFT { id, node: _, url: _ } = record_nft;
+            object::delete(id);
+            return
+        };
         let subnode = make_subnode(label, record_nft.node);
-
         set_owner_or_create_record(
             registry,
             subnode,
@@ -191,27 +192,43 @@ module suins::base_registry {
             option::none<address>(),
             option::none<u64>(),
             option::none<Url>(),
-            false,
-            ctx
+            ctx,
         );
+        transfer::transfer(record_nft, tx_context::sender(ctx));
         // TODO: transfer subnode NFT to new owner if result == 0, delete subnode NFT if result == 2
         // if (result == 0) transfer::transfer(T, owner);
     }
 
-    public entry fun set_resolver(registry: &mut Registry, record_nft: &mut RecordNFT, resolver: address) {
+    public entry fun set_resolver(registry: &mut Registry, record_nft: RecordNFT, resolver: address, ctx: &mut TxContext) {
+        if (!authorised(registry, &record_nft)) {
+            // this NFT is expired, so delete it
+            let RecordNFT { id, node: _, url: _ } = record_nft;
+            object::delete(id);
+            return
+        };
+
         let record = vec_map::get_mut(&mut registry.records, &record_nft.node);
         if (record.resolver != resolver) {
             record.resolver = resolver;
             event::emit(NewResolverEvent { node: record.node, resolver });
         };
+        transfer::transfer(record_nft, tx_context::sender(ctx));
     }
 
-    public entry fun set_TTL(registry: &mut Registry, record_nft: &mut RecordNFT, ttl: u64) {
+    public entry fun set_TTL(registry: &mut Registry, record_nft: RecordNFT, ttl: u64, ctx: &mut TxContext) {
+        if (!authorised(registry, &record_nft)) {
+            // this NFT is expired, so delete it
+            let RecordNFT { id, node: _, url: _ } = record_nft;
+            object::delete(id);
+            return
+        };
+
         let record = vec_map::get_mut(&mut registry.records, &record_nft.node);
         if (record.ttl != ttl) {
             record.ttl = ttl;
             event::emit(NewTTLEvent { node: record.node, ttl });
         };
+        transfer::transfer(record_nft, tx_context::sender(ctx));
     }
 
     public fun owner(registry: &Registry, node: vector<u8>): address{
@@ -262,16 +279,11 @@ module suins::base_registry {
         resolver: Option<address>,
         ttl: Option<u64>,
         url: Option<Url>,
-        is_base_node: bool,
         ctx: &mut TxContext
     ): bool {
         if (vec_map::contains(&registry.records, &node)) {
             let record = vec_map::get_mut(&mut registry.records, &node);
-            if (record.owner != owner) {
-                record.owner = owner;
-                if (is_base_node) event::emit(TransferEvent { node, owner })
-                else event::emit(NewOwnerEvent { node, owner });
-            };
+            record.owner = owner;
             return true
         };
         // create a new NFT and sent to owner
@@ -328,6 +340,10 @@ module suins::base_registry {
         string::append(&mut subnode, string::utf8(b"."));
         string::append(&mut subnode, node);
         subnode
+    }
+
+    fun authorised(registry: &Registry, record_nft: &RecordNFT): bool {
+        vec_map::contains(&registry.records, &record_nft.node)
     }
 
     #[test_only]
