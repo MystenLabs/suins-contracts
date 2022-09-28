@@ -40,6 +40,7 @@ module suins::base_registry {
     }
 
     struct NewRecordEvent has copy, drop {
+        id: ID,
         node: String,
         owner: address,
         resolver: address,
@@ -47,7 +48,7 @@ module suins::base_registry {
     }
 
     // send to owner of a domain, not store in registry
-    struct RegistrationNFT has key {
+    struct RegistrationNFT has key, store {
         id: UID,
         // name and url fields have special meaning in sui explorer and extension
         // if url is a ipfs image, this image is showed on sui explorer and extension
@@ -81,28 +82,29 @@ module suins::base_registry {
         });
     }
 
-    public(friend) fun get_registry_len(registry: &Registry): u64 {
-        vec_map::size(&registry.records)
+    public fun owner(registry: &Registry, node: vector<u8>): address{
+        if (record_exists(registry, &string::utf8(node))) {
+            return vec_map::get(&registry.records, &string::utf8(node)).owner
+        };
+        @0x0
     }
 
-    public(friend) fun get_NFT_node(nft: &RegistrationNFT): String {
-        nft.name
+    public fun resolver(registry: &Registry, node: vector<u8>): address{
+        if (record_exists(registry, &string::utf8(node))) {
+            return vec_map::get(&registry.records, &string::utf8(node)).resolver
+        };
+        @0x0
     }
 
-    public(friend) fun get_record_node(record: &Record): String {
-        record.node
+    public fun ttl(registry: &Registry, node: vector<u8>): u64{
+        if (record_exists(registry, &string::utf8(node))) {
+            return vec_map::get(&registry.records, &string::utf8(node)).ttl
+        };
+        0
     }
 
-    public(friend) fun get_record_owner(record: &Record): address {
-        record.owner
-    }
-
-    public(friend) fun get_record_resolver(record: &Record): address {
-        record.resolver
-    }
-
-    public(friend) fun get_record_ttl(record: &Record): u64 {
-        record.ttl
+    public fun record_exists(registry: &Registry, node: &String): bool{
+        vec_map::contains(&registry.records, node)
     }
 
     // only registrar is allowed to call this
@@ -156,11 +158,9 @@ module suins::base_registry {
     }
 
     // need to take ownership of RecordNFT to be able to check and delete it
-    public entry fun set_owner(registry: &mut Registry, nft: RegistrationNFT, owner: address) {
+    public entry fun set_owner(registry: &mut Registry, nft: RegistrationNFT, owner: address, ctx: &mut TxContext) {
         if (!record_exists(registry, &nft.name)) {
-            // this NFT is expired, so delete it
-            let RegistrationNFT { id, name: _, url: _ } = nft;
-            object::delete(id);
+            transfer::transfer(nft, tx_context::sender(ctx));
             return
         };
 
@@ -174,17 +174,12 @@ module suins::base_registry {
 
     public entry fun set_subnode_owner(
         registry: &mut Registry,
-        nft: RegistrationNFT,
+        nft: &RegistrationNFT,
         label: vector<u8>,
         owner: address,
         ctx: &mut TxContext,
     ) {
-        if (!record_exists(registry, &nft.name)) {
-            // this NFT is expired, so delete it
-            let RegistrationNFT { id, name: _, url: _ } = nft;
-            object::delete(id);
-            return
-        };
+        assert!(record_exists(registry, &nft.name), EUnauthorized);
         let subnode = make_subnode(label, nft.name);
         set_owner_or_create_record(
             registry,
@@ -195,65 +190,27 @@ module suins::base_registry {
             option::none<Url>(),
             ctx,
         );
-        transfer::transfer(nft, tx_context::sender(ctx));
         // TODO: transfer subnode NFT to new owner if result == true
     }
 
-    public entry fun set_resolver(registry: &mut Registry, nft: RegistrationNFT, resolver: address, ctx: &mut TxContext) {
-        if (!record_exists(registry, &nft.name)) {
-            // this NFT is expired, so delete it
-            let RegistrationNFT { id, name: _, url: _ } = nft;
-            object::delete(id);
-            return
-        };
+    public entry fun set_resolver(registry: &mut Registry, nft: &RegistrationNFT, resolver: address) {
+        assert!(record_exists(registry, &nft.name), EUnauthorized);
 
         let record = vec_map::get_mut(&mut registry.records, &nft.name);
         if (record.resolver != resolver) {
             record.resolver = resolver;
             event::emit(NewResolverEvent { node: record.node, resolver });
         };
-        transfer::transfer(nft, tx_context::sender(ctx));
     }
 
-    public entry fun set_TTL(registry: &mut Registry, nft: RegistrationNFT, ttl: u64, ctx: &mut TxContext) {
-        if (!record_exists(registry, &nft.name)) {
-            // this NFT is expired, so delete it
-            let RegistrationNFT { id, name: _, url: _ } = nft;
-            object::delete(id);
-            return
-        };
+    public entry fun set_TTL(registry: &mut Registry, nft: &RegistrationNFT, ttl: u64) {
+        assert!(record_exists(registry, &nft.name), EUnauthorized);
 
         let record = vec_map::get_mut(&mut registry.records, &nft.name);
         if (record.ttl != ttl) {
             record.ttl = ttl;
             event::emit(NewTTLEvent { node: record.node, ttl });
         };
-        transfer::transfer(nft, tx_context::sender(ctx));
-    }
-
-    public fun owner(registry: &Registry, node: vector<u8>): address{
-        if (record_exists(registry, &string::utf8(node))) {
-            return vec_map::get(&registry.records, &string::utf8(node)).owner
-        };
-        @0x0
-    }
-
-    public fun resolver(registry: &Registry, node: vector<u8>): address{
-        if (record_exists(registry, &string::utf8(node))) {
-            return vec_map::get(&registry.records, &string::utf8(node)).resolver
-        };
-        @0x0
-    }
-
-    public fun ttl(registry: &Registry, node: vector<u8>): u64{
-        if (record_exists(registry, &string::utf8(node))) {
-            return vec_map::get(&registry.records, &string::utf8(node)).ttl
-        };
-        0
-    }
-
-    public fun record_exists(registry: &Registry, node: &String): bool{
-        vec_map::contains(&registry.records, node)
     }
 
     fun set_resolver_and_TTL(registry: &mut Registry, node: String, resolver: address, ttl: u64) {
@@ -271,7 +228,7 @@ module suins::base_registry {
     }
 
     // return value == true: node is in Registry, the NFT must be transfered to new owner if have one
-    // return value == false: the NFT is expiried and must be deleted if have one
+    // return value == false: the NFT is expired and must be deleted if have one
     fun set_owner_or_create_record(
         registry: &mut Registry,
         node: String,
@@ -316,23 +273,23 @@ module suins::base_registry {
             name: node,
             url,
         };
-
         let record = Record {
             node,
             owner,
             resolver,
             ttl,
-            nft_id: object::id(&nft)
+            nft_id: object::id(&nft),
         };
-        vec_map::insert(&mut registry.records, record.node, record);
 
-        transfer::transfer(nft, owner);
         event::emit(NewRecordEvent {
+            id: object::id(&nft),
             node,
             owner,
             resolver,
             ttl,
-        })
+        });
+        vec_map::insert(&mut registry.records, record.node, record);
+        transfer::transfer(nft, owner);
     }
 
     fun make_subnode(label: vector<u8>, node: String): String {
@@ -354,9 +311,26 @@ module suins::base_registry {
 
     #[test_only]
     friend suins::registry_tests;
+
+    #[test_only]
+    public fun get_registry_len(registry: &Registry): u64 { vec_map::size(&registry.records) }
+
+    #[test_only]
+    public fun get_NFT_node(nft: &RegistrationNFT): String { nft.name }
+
+    #[test_only]
+    public fun get_record_node(record: &Record): String { record.node }
+
+    #[test_only]
+    public fun get_record_owner(record: &Record): address { record.owner }
+
+    #[test_only]
+    public fun get_record_resolver(record: &Record): address { record.resolver }
+
+    #[test_only]
+    public fun get_record_ttl(record: &Record): u64 { record.ttl }
+
     #[test_only]
     /// Wrapper of module initializer for testing
-    public fun test_init(ctx: &mut TxContext) {
-        init(ctx)
-    }
+    public fun test_init(ctx: &mut TxContext) { init(ctx) }
 }
