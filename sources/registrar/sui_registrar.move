@@ -23,14 +23,6 @@ module suins::sui_registrar {
     const ESubnodeUnAvailable: u64 = 204;
     const ESubNodeExpired: u64 = 205;
 
-    struct ControllerAddedEvent has copy, drop {
-        controller: address
-    }
-
-    struct ControllerRemovedEvent has copy, drop {
-        controller: address
-    }
-
     struct NameRegisteredEvent has copy, drop {
         subnode: String,
         owner: address,
@@ -41,8 +33,10 @@ module suins::sui_registrar {
         expiry: u64,
         owner: address,
     }
+
     struct SuiRegistrar has key {
         id: UID,
+        // key is subnode
         expiries: vec_map::VecMap<String, RegistrationDetail>,
         controllers: vec_set::VecSet<address>,
     }
@@ -57,8 +51,8 @@ module suins::sui_registrar {
 
     public fun available(registrar: &SuiRegistrar, id: String, ctx: &TxContext): bool {
         if (record_exists(registrar, id)) {
-            let expired_at = vec_map::get(&registrar.expiries, &id).expiry;
-            return expired_at + (GRACE_PERIOD as u64) < tx_context::epoch(ctx)
+            let expiry = vec_map::get(&registrar.expiries, &id).expiry;
+            return expiry + (GRACE_PERIOD as u64) < tx_context::epoch(ctx)
         };
         true
     }
