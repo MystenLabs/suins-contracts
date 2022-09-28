@@ -14,8 +14,6 @@ module suins::registry_tests {
     const BASE_NODE: vector<u8> = b"sui";
     const SUB_NODE: vector<u8> = b"ea.sui";
 
-    const EUnauthorized: u64 = 101;
-
     fun init(): Scenario {
         let scenario = test_scenario::begin(&SUINS_ADDRESS);
         {
@@ -145,7 +143,7 @@ module suins::registry_tests {
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
             assert!(base_registry::get_registry_len(registry) == 1, 0);
-            base_registry::set_owner(registry, nft, SECOND_USER_ADDRESS,test_scenario::ctx(&mut scenario));
+            base_registry::set_owner(registry, nft, SECOND_USER_ADDRESS);
             assert!(base_registry::get_registry_len(registry) == 1, 0);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
@@ -174,7 +172,8 @@ module suins::registry_tests {
     }
 
     #[test]
-    fun test_set_owner_delete_nft_if_it_expired() {
+    #[expected_failure(abort_code = 101)]
+    fun test_set_owner_abort_if_nft_expired() {
         let scenario = init();
         mint_record(&mut scenario);
 
@@ -192,20 +191,10 @@ module suins::registry_tests {
             assert!(base_registry::get_registry_len(registry) == 1, 0);
 
             base_registry::delete_record_by_key(registry, string::utf8(BASE_NODE));
-            base_registry::set_owner(registry, nft, SECOND_USER_ADDRESS, test_scenario::ctx(&mut scenario));
+            base_registry::set_owner(registry, nft, SECOND_USER_ADDRESS);
 
             assert!(base_registry::get_registry_len(registry) == 0, 0);
             test_scenario::return_shared(&mut scenario, registry_wrapper);
-        };
-
-        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
-        {
-            assert!(test_scenario::can_take_owned<RegistrationNFT>(&mut scenario), 0);
-        };
-
-        test_scenario::next_tx(&mut scenario, &SECOND_USER_ADDRESS);
-        {
-            assert!(!test_scenario::can_take_owned<RegistrationNFT>(&mut scenario), 0);
         };
     }
 
@@ -263,7 +252,7 @@ module suins::registry_tests {
 
     #[test]
     #[expected_failure(abort_code = 101)]
-    fun test_set_subnode_owner_abort_if_it_expired() {
+    fun test_set_subnode_owner_abort_if_nft_expired() {
         let scenario = init();
         mint_record(&mut scenario);
 
@@ -295,7 +284,7 @@ module suins::registry_tests {
     }
 
     #[test]
-    fun test_set_subnode_owner_overwrite_value_if_it_exists() {
+    fun test_set_subnode_owner_overwrite_value_if_nft_exists() {
         let scenario = init();
         mint_record(&mut scenario);
 
@@ -416,7 +405,7 @@ module suins::registry_tests {
 
     #[test]
     #[expected_failure(abort_code = 101)]
-    fun test_set_resolver_delete_nft_if_it_expired() {
+    fun test_set_resolver_abort_if_nft_expired() {
         let scenario = init();
         mint_record(&mut scenario);
 
@@ -496,7 +485,7 @@ module suins::registry_tests {
 
     #[test]
     #[expected_failure(abort_code = 101)]
-    fun test_set_ttl_delete_nft_if_it_expired() {
+    fun test_set_ttl_abort_if_nft_expired() {
         let scenario = init();
         mint_record(&mut scenario);
 

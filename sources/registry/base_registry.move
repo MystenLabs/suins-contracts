@@ -158,12 +158,8 @@ module suins::base_registry {
     }
 
     // need to take ownership of RecordNFT to be able to check and delete it
-    public entry fun set_owner(registry: &mut Registry, nft: RegistrationNFT, owner: address, ctx: &mut TxContext) {
-        if (!record_exists(registry, &nft.name)) {
-            transfer::transfer(nft, tx_context::sender(ctx));
-            return
-        };
-
+    public entry fun set_owner(registry: &mut Registry, nft: RegistrationNFT, owner: address) {
+        assert!(record_exists(registry, &nft.name), EUnauthorized);
         let record = vec_map::get_mut(&mut registry.records, &nft.name);
         if (record.owner != owner) {
             record.owner = owner;
