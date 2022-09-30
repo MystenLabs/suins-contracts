@@ -216,7 +216,7 @@ module suins::base_registry_tests {
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
             assert!(base_registry::get_registry_len(registry) == 2, 0);
-            base_registry::set_subnode_owner(
+            base_registry::set_subnode_owner_by_nft_owner(
                 registry,
                 &nft,
                 b"ea",
@@ -270,7 +270,7 @@ module suins::base_registry_tests {
 
             base_registry::delete_record_by_key(registry, string::utf8(BASE_NODE));
             assert!(base_registry::get_registry_len(registry) == 1, 0);
-            base_registry::set_subnode_owner(
+            base_registry::set_subnode_owner_by_nft_owner(
                 registry,
                 &nft,
                 b"ea",
@@ -301,7 +301,7 @@ module suins::base_registry_tests {
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
             assert!(base_registry::get_registry_len(registry) == 2, 0);
-            base_registry::set_subnode_owner(
+            base_registry::set_subnode_owner_by_nft_owner(
                 registry,
                 &nft,
                 b"ea",
@@ -322,7 +322,7 @@ module suins::base_registry_tests {
 
             assert!(base_registry::get_registry_len(registry) == 3, 0);
             // after this call, the first user will have 2 NFTs
-            base_registry::set_subnode_owner(
+            base_registry::set_subnode_owner_by_nft_owner(
                 registry,
                 &nft,
                 b"ea",

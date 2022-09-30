@@ -3,6 +3,7 @@ module suins::sui_registrar_tests {
     use sui::test_scenario::{Self, Scenario};
     use suins::base_registry::{Self, RegistrationNFT, Registry};
     use suins::sui_registrar::{Self, SuiRegistrar};
+    use std::option;
     use std::string;
 
     const SUINS_ADDRESS: address = @0xA001;
@@ -34,10 +35,11 @@ module suins::sui_registrar_tests {
             let registrar_wrapper = test_scenario::take_shared<SuiRegistrar>(scenario);
             let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
 
+
             sui_registrar::register(
                 registrar,
                 registry,
-                &sui_tld_nft,
+                option::some(base_registry::get_NFT_node(&sui_tld_nft)),
                 b"eastagile",
                 FIRST_USER_ADDRESS,
                 365,
@@ -145,7 +147,7 @@ module suins::sui_registrar_tests {
             sui_registrar::register_only(
                 registrar,
                 registry,
-                &sui_tld_nft,
+                option::some(base_registry::get_NFT_node(&sui_tld_nft)),
                 b"eastagile",
                 FIRST_USER_ADDRESS,
                 365,

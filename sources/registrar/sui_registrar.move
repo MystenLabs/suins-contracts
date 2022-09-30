@@ -1,20 +1,17 @@
 module suins::sui_registrar {
     use sui::event;
-    use sui::object::{Self, UID};
+    use sui::object::{Self, ID, UID};
     use sui::transfer;
-    use sui::tx_context::TxContext;
+    use sui::tx_context::{Self, TxContext};
     use sui::vec_map::{Self};
     use sui::vec_set;
-    use suins::base_registry::{Registry, RegistrationNFT};
-    use sui::tx_context;
-    use std::string;
-    use std::option;
-    use suins::base_registry;
-    use std::string::String;
+    use suins::base_registry::{Self, Registry};
+    use std::string::{Self, String};
+    use std::option::{Self, Option};
 
     const BASE_NODE: vector<u8> = b"sui";
     // in terms of epoch
-    const GRACE_PERIOD: u8 = 3;
+    const GRACE_PERIOD: u8 = 90;
 
     // errors in the range of 201..300 indicate Registrar errors
     const EUnauthorized: u64 = 201;
@@ -24,7 +21,12 @@ module suins::sui_registrar {
     const ESubNodeExpired: u64 = 205;
 
     struct NameRegisteredEvent has copy, drop {
-        subnode: String,
+        id: Option<ID>,
+        resolver: Option<address>,
+        ttl: Option<u64>,
+        // full_node = sub_node + '.' + base_node, e.g, eastagile.sui
+        base_node: String,
+        sub_node: String,
         owner: address,
         expiry: u64,
     }
@@ -65,48 +67,49 @@ module suins::sui_registrar {
     }
 
     // nft: .sui NFT
+    // with the nft_name, owner of NFT is able to register third level domain,
+    // e.g. `nft_name: eastagile.sui, id: dn => dn.eastagile.sui`
+    // without the nft_name, only able to register second level domain, e.g. `dn.sui`
+    // nft_name must be gotten from RegistrationNFT
     public(friend) fun register(
         registrar: &mut SuiRegistrar,
         registry: &mut Registry,
-        nft: &RegistrationNFT,
+        nft_name: Option<String>,
         id: vector<u8>,
         owner: address,
         duration: u64,
         ctx: &mut TxContext
     ) {
-        register_(registrar, registry, nft, id, owner, duration, true, ctx);
+        register_(registrar, registry, nft_name, id, owner, duration, true, ctx);
     }
 
     // nft: .sui NFT
     public(friend) fun register_only(
         registrar: &mut SuiRegistrar,
         registry: &mut Registry,
-        nft: &RegistrationNFT,
+        nft_name: Option<String>,
         id: vector<u8>,
         owner: address,
         duration: u64,
         ctx: &mut TxContext
     ) {
-        register_(registrar, registry, nft, id, owner, duration, false, ctx);
+        register_(registrar, registry, nft_name, id, owner, duration, false, ctx);
     }
 
     fun register_(
         registrar: &mut SuiRegistrar,
         registry: &mut Registry,
-        nft: &RegistrationNFT,
+        nft_name: Option<String>,
         id: vector<u8>,
         owner: address,
         duration: u64,
         update_registry: bool,
         ctx: &mut TxContext
     ) {
-        // TODO: add later when implement controller
-        // assert!(only_controller(registrar, ctx), EOnlyController) ;
-
-        let subnode = string::try_utf8(id);
-        assert!(option::is_some(&subnode), ESubnodeInvalid);
-        let subnode = option::extract(&mut subnode);
-        assert!(available(registrar, subnode, ctx), ESubnodeUnAvailable);
+        let sub_node = string::try_utf8(id);
+        assert!(option::is_some(&sub_node), ESubnodeInvalid);
+        let sub_node = option::extract(&mut sub_node);
+        assert!(available(registrar, sub_node, ctx), ESubnodeUnAvailable);
         // Prevent future overflow
         // https://github.com/ensdomains/ens-contracts/blob/master/contracts/ethregistrar/BaseRegistrarImplementation.sol#L150
         // assert!(tx_context::epoch(ctx) + GRACE_PERIOD + duration > tx_context::epoch(ctx) + GRACE_PERIOD, 0);
@@ -115,18 +118,40 @@ module suins::sui_registrar {
             expiry: tx_context::epoch(ctx) + duration,
             owner,
         };
-        vec_map::insert(&mut registrar.expiries, subnode, detail);
-        if (update_registry) base_registry::set_subnode_owner(registry, nft, id, owner, ctx);
+        vec_map::insert(&mut registrar.expiries, sub_node, detail);
+
+        let base_node: String;
+        if (option::is_some(&nft_name)) base_node =  option::extract(&mut nft_name)
+        else base_node = string::utf8(BASE_NODE);
+
+        if (update_registry) {
+            let new_record_event = base_registry::set_subnode_owner(registry, base_node, id, owner, ctx);
+            if (option::is_some(&new_record_event)) {
+                // if set_subnode_owner create a new record, the caller need to emit an event by themselves
+                let event = option::extract(&mut new_record_event);
+                let (object_id, resolver, ttl) = base_registry::get_record_event_fields(&event);
+                event::emit(NameRegisteredEvent {
+                    id: option::some(object_id),
+                    resolver: option::some(resolver),
+                    ttl: option::some(ttl),
+                    base_node,
+                    sub_node,
+                    owner,
+                    expiry: tx_context::epoch(ctx) + duration,
+                });
+                return
+            }
+        };
 
         event::emit(NameRegisteredEvent {
-            subnode,
+            id: option::none<ID>(),
+            base_node,
+            sub_node,
             owner,
+            resolver: option::none<address>(),
+            ttl: option::none<u64>(),
             expiry: tx_context::epoch(ctx) + duration,
         })
-    }
-
-    fun only_controller(registrar: &SuiRegistrar, ctx: &TxContext): bool {
-        vec_set::contains(&registrar.controllers, &tx_context::sender(ctx))
     }
 
     public fun record_exists(registrar: &SuiRegistrar, id: String): bool {

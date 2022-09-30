@@ -122,6 +122,10 @@ module suins::base_registry {
 
     public fun get_NFT_node(nft: &RegistrationNFT): String { nft.name }
 
+    public fun get_record_event_fields(event: &NewRecordEvent): (ID, address, u64) {
+        (event.id, event.resolver, event.ttl)
+    }
+
     // only registrar is allowed to call this
     public(friend) fun set_record(
         _: & AdminCap,
@@ -143,7 +147,7 @@ module suins::base_registry {
             url,
             ctx
         );
-        // TODO: transfer node's NFT to new owner if result == true
+        // TODO: transfer node's NFT to new owner if result == option::none
         set_resolver_and_TTL(registry, node, resolver, ttl);
     }
 
@@ -168,8 +172,29 @@ module suins::base_registry {
             url,
             ctx
         );
-        // TODO: transfer subnode NFT to new owner if result == true
+        // TODO: transfer subnode NFT to new owner if result == option::none
         set_resolver_and_TTL(registry, subnode, resolver, ttl);
+    }
+
+    // this func won't emit an event if it create a new record, caller must take care of this by themselves
+    public(friend) fun set_subnode_owner(
+        registry: &mut Registry,
+        node: String,
+        label: vector<u8>,
+        owner: address,
+        ctx: &mut TxContext,
+    ): Option<NewRecordEvent> {
+        assert!(record_exists(registry, &node), EUnauthorized);
+        let subnode = make_subnode(label, node);
+        set_owner_or_create_record(
+            registry,
+            subnode,
+            owner,
+            option::none<address>(),
+            option::none<u64>(),
+            option::none<Url>(),
+            ctx,
+        )
     }
 
     // need to take ownership of RecordNFT to be able to check and delete it
@@ -183,25 +208,18 @@ module suins::base_registry {
         transfer::transfer(nft, owner)
     }
 
-    public entry fun set_subnode_owner(
+    public entry fun set_subnode_owner_by_nft_owner(
         registry: &mut Registry,
         nft: &RegistrationNFT,
         label: vector<u8>,
         owner: address,
         ctx: &mut TxContext,
     ) {
-        assert!(record_exists(registry, &nft.name), EUnauthorized);
-        let subnode = make_subnode(label, nft.name);
-        set_owner_or_create_record(
-            registry,
-            subnode,
-            owner,
-            option::none<address>(),
-            option::none<u64>(),
-            option::none<Url>(),
-            ctx,
-        );
-        // TODO: transfer subnode NFT to new owner if result == true
+        let new_record_event = set_subnode_owner(registry, nft.name, label, owner, ctx);
+        if (option::is_some(&new_record_event)) {
+            event::emit(option::extract(&mut new_record_event));
+        }
+        // TODO: transfer subnode NFT to new owner
     }
 
     public entry fun set_resolver(registry: &mut Registry, nft: &RegistrationNFT, resolver: address) {
@@ -238,8 +256,8 @@ module suins::base_registry {
         };
     }
 
-    // return value == true: node is in Registry, the NFT must be transfered to new owner if have one
-    // return value == false: the NFT is expired and must be deleted if have one
+    // return value == option::none: node is in Registry, the NFT must be transfered to new owner if have one
+    // return value == option::some: the NFT is expired and must be deleted if have one
     fun set_owner_or_create_record(
         registry: &mut Registry,
         node: String,
@@ -248,16 +266,16 @@ module suins::base_registry {
         ttl: Option<u64>,
         url: Option<Url>,
         ctx: &mut TxContext
-    ): bool {
+    ): Option<NewRecordEvent> {
         if (vec_map::contains(&registry.records, &node)) {
             let record = vec_map::get_mut(&mut registry.records, &node);
             record.owner = owner;
-            return true
+            return option::none()
         };
         if (option::is_none(&resolver)) option::fill(&mut resolver, @0x0);
         if (option::is_none(&ttl)) option::fill(&mut ttl, 0);
         if (option::is_none(&url)) option::fill(&mut url, url::new_unsafe_from_bytes(DEFAULT_URL));
-        new_record(
+        let new_record_event = new_record(
             registry,
             node,
             owner,
@@ -266,7 +284,7 @@ module suins::base_registry {
             option::extract(&mut url),
             ctx
         );
-        false
+        option::some(new_record_event)
     }
 
     fun new_record(
@@ -277,7 +295,7 @@ module suins::base_registry {
         ttl: u64,
         url: Url,
         ctx: &mut TxContext
-    ) {
+    ): NewRecordEvent {
         // create a new NFT and sent to owner
         let nft = RegistrationNFT {
             id: object::new(ctx),
@@ -291,16 +309,17 @@ module suins::base_registry {
             ttl,
             nft_id: object::id(&nft),
         };
+        vec_map::insert(&mut registry.records, record.node, record);
 
-        event::emit(NewRecordEvent {
+        let new_record_event = NewRecordEvent {
             id: object::id(&nft),
             node,
             owner,
             resolver,
             ttl,
-        });
-        vec_map::insert(&mut registry.records, record.node, record);
+        };
         transfer::transfer(nft, owner);
+        new_record_event
     }
 
     fun make_subnode(label: vector<u8>, node: String): String {
