@@ -16,17 +16,16 @@ module suins::sui_registrar {
     // errors in the range of 201..300 indicate Registrar errors
     const EUnauthorized: u64 = 201;
     const EOnlyController: u64 = 202;
-    const ESubnodeInvalid: u64 = 203;
-    const ESubnodeUnAvailable: u64 = 204;
-    const ESubNodeExpired: u64 = 205;
-
+    const EInvalidLabel: u64 = 203;
+    const ELabelUnAvailable: u64 = 204;
+    
     struct NameRegisteredEvent has copy, drop {
         id: Option<ID>,
         resolver: Option<address>,
         ttl: Option<u64>,
-        // full_node = sub_node + '.' + base_node, e.g, eastagile.sui
-        base_node: String,
-        sub_node: String,
+        // subnode = label + '.' + node, e.g, eastagile.sui
+        node: String,
+        label: String,
         owner: address,
         expiry: u64,
     }
@@ -51,65 +50,59 @@ module suins::sui_registrar {
         });
     }
 
-    public fun available(registrar: &SuiRegistrar, id: String, ctx: &TxContext): bool {
-        if (record_exists(registrar, id)) {
-            let expiry = vec_map::get(&registrar.expiries, &id).expiry;
+    public fun available(registrar: &SuiRegistrar, label: String, ctx: &TxContext): bool {
+        if (record_exists(registrar, label)) {
+            let expiry = vec_map::get(&registrar.expiries, &label).expiry;
             return expiry + (GRACE_PERIOD as u64) < tx_context::epoch(ctx)
         };
         true
     }
 
-    public fun name_expires(registrar: &SuiRegistrar, id: String): u64 {
-        if (record_exists(registrar, id)) {
-            return vec_map::get(&registrar.expiries, &id).expiry
+    public fun name_expires(registrar: &SuiRegistrar, label: String): u64 {
+        if (record_exists(registrar, label)) {
+            return vec_map::get(&registrar.expiries, &label).expiry
         };
         0
     }
 
     // nft: .sui NFT
-    // with the nft_name, owner of NFT is able to register third level domain,
-    // e.g. `nft_name: eastagile.sui, id: dn => dn.eastagile.sui`
-    // without the nft_name, only able to register second level domain, e.g. `dn.sui`
-    // nft_name must be gotten from RegistrationNFT
+    // label can be multiple levels, e.g. 'dn.eastagile' or 'eastagile'
     public(friend) fun register(
         registrar: &mut SuiRegistrar,
         registry: &mut Registry,
-        nft_name: Option<String>,
-        id: vector<u8>,
+        label: vector<u8>,
         owner: address,
         duration: u64,
         ctx: &mut TxContext
     ) {
-        register_(registrar, registry, nft_name, id, owner, duration, true, ctx);
+        register_internal(registrar, registry, label, owner, duration, true, ctx);
     }
 
     // nft: .sui NFT
     public(friend) fun register_only(
         registrar: &mut SuiRegistrar,
         registry: &mut Registry,
-        nft_name: Option<String>,
-        id: vector<u8>,
+        label: vector<u8>,
         owner: address,
         duration: u64,
         ctx: &mut TxContext
     ) {
-        register_(registrar, registry, nft_name, id, owner, duration, false, ctx);
+        register_internal(registrar, registry, label, owner, duration, false, ctx);
     }
 
-    fun register_(
+    fun register_internal(
         registrar: &mut SuiRegistrar,
         registry: &mut Registry,
-        nft_name: Option<String>,
-        id: vector<u8>,
+        label: vector<u8>,
         owner: address,
         duration: u64,
         update_registry: bool,
         ctx: &mut TxContext
     ) {
-        let sub_node = string::try_utf8(id);
-        assert!(option::is_some(&sub_node), ESubnodeInvalid);
-        let sub_node = option::extract(&mut sub_node);
-        assert!(available(registrar, sub_node, ctx), ESubnodeUnAvailable);
+        let label_string = string::try_utf8(label);
+        assert!(option::is_some(&label_string), EInvalidLabel);
+        let label_string = option::extract(&mut label_string);
+        assert!(available(registrar, label_string, ctx), ELabelUnAvailable);
         // Prevent future overflow
         // https://github.com/ensdomains/ens-contracts/blob/master/contracts/ethregistrar/BaseRegistrarImplementation.sol#L150
         // assert!(tx_context::epoch(ctx) + GRACE_PERIOD + duration > tx_context::epoch(ctx) + GRACE_PERIOD, 0);
@@ -118,14 +111,11 @@ module suins::sui_registrar {
             expiry: tx_context::epoch(ctx) + duration,
             owner,
         };
-        vec_map::insert(&mut registrar.expiries, sub_node, detail);
-
-        let base_node: String;
-        if (option::is_some(&nft_name)) base_node =  option::extract(&mut nft_name)
-        else base_node = string::utf8(BASE_NODE);
+        vec_map::insert(&mut registrar.expiries, label_string, detail);
 
         if (update_registry) {
-            let new_record_event = base_registry::set_subnode_owner(registry, base_node, id, owner, ctx);
+            let new_record_event =
+                base_registry::set_subnode_owner(registry, string::utf8(BASE_NODE), label, owner, ctx);
             if (option::is_some(&new_record_event)) {
                 // if set_subnode_owner create a new record, the caller need to emit an event by themselves
                 let event = option::extract(&mut new_record_event);
@@ -134,8 +124,8 @@ module suins::sui_registrar {
                     id: option::some(object_id),
                     resolver: option::some(resolver),
                     ttl: option::some(ttl),
-                    base_node,
-                    sub_node,
+                    node: string::utf8(BASE_NODE),
+                    label: label_string,
                     owner,
                     expiry: tx_context::epoch(ctx) + duration,
                 });
@@ -145,8 +135,8 @@ module suins::sui_registrar {
 
         event::emit(NameRegisteredEvent {
             id: option::none<ID>(),
-            base_node,
-            sub_node,
+            node: string::utf8(BASE_NODE),
+            label: label_string,
             owner,
             resolver: option::none<address>(),
             ttl: option::none<u64>(),
@@ -154,8 +144,8 @@ module suins::sui_registrar {
         })
     }
 
-    public fun record_exists(registrar: &SuiRegistrar, id: String): bool {
-        vec_map::contains(&registrar.expiries, &id)
+    public fun record_exists(registrar: &SuiRegistrar, label: String): bool {
+        vec_map::contains(&registrar.expiries, &label)
     }
 
     #[test_only]
