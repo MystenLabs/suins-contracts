@@ -4,7 +4,7 @@ module suins::base_registry {
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
     use sui::url::{Self, Url};
-    use sui::vec_map;
+    use sui::vec_map::{Self, VecMap};
     use std::option::{Self, Option};
     use std::string::{Self, String};
 
@@ -18,6 +18,7 @@ module suins::base_registry {
 
     // errors in the range of 101..200 indicate Registry errors
     const EUnauthorized: u64 = 101;
+    const ERecordNotExists: u64 = 102;
 
     // https://examples.sui.io/patterns/capability.html
     struct AdminCap has key { id: UID }
@@ -71,7 +72,7 @@ module suins::base_registry {
 
     struct Registry has key {
         id: UID,
-        records: vec_map::VecMap<String, Record>,
+        records: VecMap<String, Record>,
     }
 
     fun init(ctx: &mut TxContext) {
@@ -197,6 +198,16 @@ module suins::base_registry {
         )
     }
 
+    public(friend) fun set_resolver(registry: &mut Registry, node: String, resolver: address) {
+        assert!(record_exists(registry, &node), ERecordNotExists);
+
+        let record = vec_map::get_mut(&mut registry.records, &node);
+        if (record.resolver != resolver) {
+            record.resolver = resolver;
+            event::emit(NewResolverEvent { node: record.node, resolver });
+        };
+    }
+
     // need to take ownership of RecordNFT to be able to check and delete it
     public entry fun set_owner(registry: &mut Registry, nft: RegistrationNFT, owner: address) {
         assert!(record_exists(registry, &nft.name), EUnauthorized);
@@ -222,14 +233,8 @@ module suins::base_registry {
         // TODO: transfer subnode NFT to new owner
     }
 
-    public entry fun set_resolver(registry: &mut Registry, nft: &RegistrationNFT, resolver: address) {
-        assert!(record_exists(registry, &nft.name), EUnauthorized);
-
-        let record = vec_map::get_mut(&mut registry.records, &nft.name);
-        if (record.resolver != resolver) {
-            record.resolver = resolver;
-            event::emit(NewResolverEvent { node: record.node, resolver });
-        };
+    public entry fun set_resolver_by_nft_owner(registry: &mut Registry, nft: &RegistrationNFT, resolver: address) {
+        set_resolver(registry, nft.name, resolver)
     }
 
     public entry fun set_TTL(registry: &mut Registry, nft: &RegistrationNFT, ttl: u64) {
