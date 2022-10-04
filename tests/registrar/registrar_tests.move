@@ -291,8 +291,8 @@ module suins::sui_registrar_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 204)]
-    fun test_renew_abort_if_label_not_available() {
+    #[expected_failure(abort_code = 205)]
+    fun test_renew_abort_if_label_expired() {
         let scenario = init();
         register(&mut scenario);
         test_scenario::next_tx(&mut scenario, &FIRST_USER);
@@ -307,7 +307,7 @@ module suins::sui_registrar_tests {
             );
 
             assert!(sui_registrar::name_expires(registrar, string::utf8(FIRST_LABEL)) == 365, 0);
-            sui_registrar::renew(registrar, SECOND_LABEL, 100, &ctx);
+            sui_registrar::renew(registrar, FIRST_LABEL, 100, &ctx);
 
             test_scenario::return_shared(&mut scenario, registrar_wrapper);
         };

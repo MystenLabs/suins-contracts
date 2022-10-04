@@ -100,10 +100,10 @@ module suins::sui_registrar {
     }
 
     public(friend) fun renew(registrar: &mut SuiRegistrar, label: vector<u8>, duration: u64, ctx: &TxContext): u64 {
-        let label= string::utf8(label);
-        let expiry= name_expires(registrar, label);
-        assert!(expiry + (GRACE_PERIOD as u64) >= tx_context::epoch(ctx), ELabelUnAvailable);
+        let label = string::utf8(label);
+        let expiry = name_expires(registrar, label);
         assert!(expiry > 0, ELabelNotExists);
+        assert!(expiry + (GRACE_PERIOD as u64) >= tx_context::epoch(ctx), ELabelExpired);
 
         let detail = vec_map::get_mut(&mut registrar.expiries, &label);
         detail.expiry = detail.expiry + duration;
