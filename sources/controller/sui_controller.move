@@ -1,40 +1,70 @@
 module suins::sui_controller {
 
+    use sui::balance::{Self, Balance};
+    use sui::coin::{Self, Coin};
+    use sui::crypto::keccak256;
+    use sui::event;
     use sui::object::{Self, UID};
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
+    use sui::sui::SUI;
     use sui::vec_map::{Self, VecMap};
-    use sui::crypto::keccak256;
+    use suins::base_registry::Registry;
+    use suins::sui_registrar::{Self, SuiRegistrar};
+    use std::string::{Self, String};
     use std::bcs;
     use std::vector;
 
+
+    const MIN_COMMITMENT_AGE: u64 = 1;
+    const MAX_COMMITMENT_AGE: u64 = 3;
+    // in terms of days
+    const MIN_REGISTRATION_DURATION: u64 = 365;
+    const FEE: u64 = 1000;
+    const BASE_NODE: vector<u8> = b"sui";
+
     // errors in the range of 301..400 indicate Sui Controller errors
     const EInvalidResolverAddress: u64 = 301;
+    const ECommitmentNotExists: u64 = 302;
+    const ECommitmentNotValid: u64 = 303;
+    const ECommitmentTooOld: u64 = 304;
+    const ENotEnoughFee: u64 = 305;
+    const EInvalidDuration: u64 = 306;
+    const EInvalidAddr: u64 = 307;
+
+    struct NameRegisteredEvent has copy, drop {
+        node: String,
+        label: String,
+        owner: address,
+        cost: u64,
+        expiry: u64,
+    }
 
     struct SuiController has key {
         id: UID,
         commitments: VecMap<vector<u8>, u64>,
+        balance: Balance<SUI>,
     }
 
     fun init(ctx: &mut TxContext) {
         transfer::share_object(SuiController {
             id: object::new(ctx),
             commitments: vec_map::empty(),
+            balance: balance::zero(),
         });
     }
 
-    public entry fun make_commitment(
+    public entry fun make_commitment_and_commit(
         controller: &mut SuiController,
         label: vector<u8>,
         owner: address,
         secret: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        make_commitment_with_config(controller, label, owner, secret, @0x0, @0x0, ctx);
-
+        make_commitment_with_config_and_commit(controller, label, owner, secret, @0x0, @0x0, ctx);
     }
 
-    public entry fun make_commitment_with_config(
+    public entry fun make_commitment_with_config_and_commit(
         controller: &mut SuiController,
         label: vector<u8>,
         owner: address,
@@ -43,6 +73,101 @@ module suins::sui_controller {
         addr: address,
         ctx: &mut TxContext,
     ) {
+        let commitment = make_commitment(label, owner, secret, resolver, addr);
+        vec_map::insert(&mut controller.commitments, commitment, tx_context::epoch(ctx));
+    }
+
+    public entry fun register(
+        controller: &mut SuiController,
+        registrar: &mut SuiRegistrar,
+        registry: &mut Registry,
+        label: vector<u8>,
+        owner: address,
+        duration: u64,
+        secret: vector<u8>,
+        payment: &mut Coin<SUI>,
+        ctx: &mut TxContext,
+    ) {
+        assert!(coin::value(payment) >= FEE, ENotEnoughFee);
+        // TODO: duration in year only
+        register_with_config(
+            controller,
+            registrar,
+            registry,
+            label,
+            owner,
+            duration,
+            secret,
+            @0x0,
+            @0x0,
+            payment,
+            ctx
+        );
+    }
+
+
+    public entry fun register_with_config(
+        controller: &mut SuiController,
+        registrar: &mut SuiRegistrar,
+        registry: &mut Registry,
+        label: vector<u8>,
+        owner: address,
+        duration: u64,
+        secret: vector<u8>,
+        resolver: address,
+        addr: address,
+        payment: &mut Coin<SUI>,
+        ctx: &mut TxContext,
+    ) {
+        let commitment = make_commitment(label, owner, secret, resolver, addr);
+        consume_commitment(controller, label, duration, commitment, ctx);
+
+        if (resolver != @0x0) {
+            // sui_registrar::register(registrar, registry, label, owner, duration, ctx);
+        } else {
+            assert!(addr == @0x0, EInvalidAddr);
+            sui_registrar::register(registrar, registry, label, owner, duration, ctx);
+        };
+        event::emit(NameRegisteredEvent {
+            node: string::utf8(BASE_NODE),
+            label: string::utf8(label),
+            owner,
+            cost: FEE,
+            expiry: tx_context::epoch(ctx) + duration,
+        });
+        let coin_balance = coin::balance_mut(payment);
+        let paid = balance::split(coin_balance, FEE);
+        balance::join(&mut controller.balance, paid);
+    }
+
+    fun consume_commitment(
+        controller: &mut SuiController,
+        _label: vector<u8>,
+        duration: u64,
+        commitment: vector<u8>,
+        ctx: &TxContext,
+    ) {
+        assert!(vec_map::contains(&controller.commitments, &commitment), ECommitmentNotExists);
+        assert!(
+            *vec_map::get(&controller.commitments, &commitment) + MIN_COMMITMENT_AGE <= tx_context::epoch(ctx),
+            ECommitmentNotValid
+        );
+        assert!(
+            *vec_map::get(&controller.commitments, &commitment) + MAX_COMMITMENT_AGE > tx_context::epoch(ctx),
+            ECommitmentTooOld
+        );
+        // TODO: assert available
+        vec_map::remove(&mut controller.commitments, &commitment);
+        assert!(duration % 365 == 0, EInvalidDuration);
+    }
+
+    fun make_commitment(
+        label: vector<u8>,
+        owner: address,
+        secret: vector<u8>,
+        resolver: address,
+        addr: address,
+    ): vector<u8> {
         // TODO: only serialize input atm,
         // wait for https://github.com/move-language/move/pull/408 to be merged for encoding
         if (resolver == @0x0 && addr == @0x0) {
@@ -61,12 +186,11 @@ module suins::sui_controller {
             vector::append(&mut label, addr_bytes);
             vector::append(&mut label, secret);
         };
-        let commitment = keccak256(label);
-        vec_map::insert(&mut controller.commitments, commitment, tx_context::epoch(ctx));
+        keccak256(label)
     }
 
     #[test_only]
-    public fun len(controller: &SuiController): u64 {
+    public fun commitment_len(controller: &SuiController): u64 {
         vec_map::size(&controller.commitments)
     }
     #[test_only]

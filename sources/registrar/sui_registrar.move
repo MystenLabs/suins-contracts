@@ -10,6 +10,8 @@ module suins::sui_registrar {
     use std::string::{Self, String};
     use std::option::{Self, Option};
 
+    friend suins::sui_controller;
+
     const BASE_NODE: vector<u8> = b"sui";
     // in terms of epoch
     const GRACE_PERIOD: u8 = 90;
