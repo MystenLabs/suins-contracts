@@ -363,7 +363,7 @@ module suins::base_registry_tests {
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
             let nft = test_scenario::take_owned<RegistrationNFT>(&mut scenario);
 
-            base_registry::set_resolver(registry, &nft, SECOND_RESOLVER_ADDRESS);
+            base_registry::set_resolver_by_nft_owner(registry, &nft, SECOND_RESOLVER_ADDRESS);
             test_scenario::return_shared(&mut scenario, registry_wrapper);
             test_scenario::return_owned(&mut scenario, nft);
         };
@@ -386,7 +386,7 @@ module suins::base_registry_tests {
             let nft = test_scenario::take_owned<RegistrationNFT>(&mut scenario);
 
             assert!(base_registry::get_registry_len(registry) == 2, 0);
-            base_registry::set_resolver(registry, &nft, SECOND_RESOLVER_ADDRESS);
+            base_registry::set_resolver_by_nft_owner(registry, &nft, SECOND_RESOLVER_ADDRESS);
             assert!(base_registry::get_registry_len(registry) == 2, 0);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
@@ -405,7 +405,7 @@ module suins::base_registry_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 101)]
+    #[expected_failure(abort_code = 102)]
     fun test_set_resolver_abort_if_nft_expired() {
         let scenario = init();
         mint_record(&mut scenario);
@@ -424,7 +424,7 @@ module suins::base_registry_tests {
             assert!(base_registry::get_registry_len(registry) == 2, 0);
 
             base_registry::delete_record_by_key(registry, string::utf8(BASE_NODE));
-            base_registry::set_resolver(registry, &nft, SECOND_RESOLVER_ADDRESS);
+            base_registry::set_resolver_by_nft_owner(registry, &nft, SECOND_RESOLVER_ADDRESS);
 
             assert!(base_registry::get_registry_len(registry) == 1, 0);
             test_scenario::return_shared(&mut scenario, registry_wrapper);
