@@ -1,6 +1,6 @@
 module suins::sui_registrar {
     use sui::event;
-    use sui::object::{Self, ID, UID};
+    use sui::object::{Self, UID};
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
     use sui::vec_map::{Self, VecMap};
@@ -22,7 +22,7 @@ module suins::sui_registrar {
     const ELabelNotExists: u64 = 207;
 
     struct NameRegisteredEvent has copy, drop {
-        id: Option<ID>,
+        // id: Option<ID>,
         resolver: Option<address>,
         ttl: Option<u64>,
         // subnode = label + '.' + node, e.g, eastagile.sui
@@ -112,8 +112,8 @@ module suins::sui_registrar {
         detail.expiry
     }
 
-    public entry fun set_resolver(_: &AdminCap, registry: &mut Registry, resolver: address) {
-        base_registry::set_resolver(registry, string::utf8(BASE_NODE), resolver);
+    public entry fun set_resolver(_: &AdminCap, registry: &mut Registry, resolver: address, ctx: &mut TxContext) {
+        base_registry::set_resolver(registry, BASE_NODE, resolver, ctx);
     }
 
     public entry fun reclaim(
@@ -127,7 +127,7 @@ module suins::sui_registrar {
             is_approved_or_owner(registrar, string::utf8(label), ctx),
             EUnauthorized
         );
-        base_registry::set_subnode_owner(registry, string::utf8(BASE_NODE), label, owner, ctx);
+        base_registry::set_subnode_owner(registry, string::utf8(BASE_NODE), label, owner);
     }
 
     fun register_internal(
@@ -157,13 +157,12 @@ module suins::sui_registrar {
 
         if (update_registry) {
             let new_record_event =
-                base_registry::set_subnode_owner(registry, string::utf8(BASE_NODE), label, owner, ctx);
+                base_registry::set_subnode_owner(registry, string::utf8(BASE_NODE), label, owner);
             if (option::is_some(&new_record_event)) {
                 // if set_subnode_owner create a new record, the caller need to emit an event by themselves
                 let event = option::extract(&mut new_record_event);
-                let (object_id, resolver, ttl) = base_registry::get_record_event_fields(&event);
+                let (resolver, ttl) = base_registry::get_record_event_fields(&event);
                 event::emit(NameRegisteredEvent {
-                    id: option::some(object_id),
                     resolver: option::some(resolver),
                     ttl: option::some(ttl),
                     node: string::utf8(BASE_NODE),
@@ -176,7 +175,7 @@ module suins::sui_registrar {
         };
 
         event::emit(NameRegisteredEvent {
-            id: option::none<ID>(),
+            // id: option::none<ID>(),
             node: string::utf8(BASE_NODE),
             label: label_string,
             owner,
