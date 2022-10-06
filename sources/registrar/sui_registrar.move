@@ -1,14 +1,17 @@
 module suins::sui_registrar {
     use sui::event;
-    use sui::object::{Self, UID};
+    use sui::object::{Self, ID, UID};
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
+    use sui::url::{Self, Url};
     use sui::vec_map::{Self, VecMap};
     use sui::vec_set::{Self, VecSet};
     use suins::base_registry::{Self, Registry, AdminCap};
     use std::string::{Self, String};
     use std::option::{Self, Option};
 
+    // TODO: we don't have suins image atm, so temporarily use sui image instead
+    const DEFAULT_URL: vector<u8> = b"ipfs://bafkreibngqhl3gaa7daob4i2vccziay2jjlp435cf66vhono7nrvww53ty";
     const BASE_NODE: vector<u8> = b"sui";
     // in terms of epoch
     const GRACE_PERIOD: u8 = 90;
@@ -22,7 +25,7 @@ module suins::sui_registrar {
     const ELabelNotExists: u64 = 207;
 
     struct NameRegisteredEvent has copy, drop {
-        // id: Option<ID>,
+        nft_id: ID,
         resolver: Option<address>,
         ttl: Option<u64>,
         // subnode = label + '.' + node, e.g, eastagile.sui
@@ -35,6 +38,15 @@ module suins::sui_registrar {
     struct NameRenewedEvent has copy, drop {
         label: String,
         expiry: u64,
+    }
+
+    // send to owner of a domain, not store in registry
+    struct RegistrationNFT has key, store {
+        id: UID,
+        // name and url fields have special meaning in sui explorer and extension
+        // if url is a ipfs image, this image is showed on sui explorer and extension
+        name: String,
+        url: Url,
     }
 
     struct RegistrationDetail has store {
@@ -74,7 +86,6 @@ module suins::sui_registrar {
         0
     }
 
-    // nft: .sui NFT
     // label can be multiple levels, e.g. 'dn.eastagile' or 'eastagile'
     public(friend) fun register(
         registrar: &mut SuiRegistrar,
@@ -82,21 +93,22 @@ module suins::sui_registrar {
         label: vector<u8>,
         owner: address,
         duration: u64,
+        url: Option<Url>,
         ctx: &mut TxContext
     ) {
-        register_internal(registrar, registry, label, owner, duration, true, ctx);
+        register_internal(registrar, registry, label, owner, duration, true, url, ctx);
     }
 
-    // nft: .sui NFT
     public(friend) fun register_only(
         registrar: &mut SuiRegistrar,
         registry: &mut Registry,
         label: vector<u8>,
         owner: address,
         duration: u64,
+        url: Option<Url>,
         ctx: &mut TxContext
     ) {
-        register_internal(registrar, registry, label, owner, duration, false, ctx);
+        register_internal(registrar, registry, label, owner, duration, false, url, ctx);
     }
 
     public(friend) fun renew(registrar: &mut SuiRegistrar, label: vector<u8>, duration: u64, ctx: &TxContext): u64 {
@@ -130,6 +142,18 @@ module suins::sui_registrar {
         base_registry::set_subnode_owner(registry, string::utf8(BASE_NODE), label, owner);
     }
 
+    public entry fun reclaim_by_nft_owner(
+        registry: &mut Registry,
+        nft: &RegistrationNFT,
+        label: vector<u8>,
+        owner: address,
+    ) {
+        let base_node = string::utf8(BASE_NODE);
+        assert!(base_registry::make_subnode(label, base_node) == nft.name, EUnauthorized);
+        // TODO: check if nft is expired or not
+        base_registry::set_subnode_owner(registry, string::utf8(BASE_NODE), label, owner);
+    }
+
     fun register_internal(
         registrar: &mut SuiRegistrar,
         registry: &mut Registry,
@@ -137,6 +161,7 @@ module suins::sui_registrar {
         owner: address,
         duration: u64,
         update_registry: bool,
+        url: Option<Url>,
         ctx: &mut TxContext
     ) {
         let label_string = string::try_utf8(label);
@@ -155,6 +180,19 @@ module suins::sui_registrar {
         };
         vec_map::insert(&mut registrar.expiries, label_string, detail);
 
+        let name = label_string;
+        string::append(&mut name, string::utf8(b"."));
+        string::append(&mut name, string::utf8(BASE_NODE));
+        if (option::is_none(&url)) option::fill(&mut url, url::new_unsafe_from_bytes(DEFAULT_URL));
+
+        let nft = RegistrationNFT{
+            id: object::new(ctx),
+            name,
+            url: option::extract(&mut url),
+        };
+        let nft_id = object::uid_to_inner(&nft.id);
+        transfer::transfer(nft, owner);
+
         if (update_registry) {
             let new_record_event =
                 base_registry::set_subnode_owner(registry, string::utf8(BASE_NODE), label, owner);
@@ -163,6 +201,7 @@ module suins::sui_registrar {
                 let event = option::extract(&mut new_record_event);
                 let (resolver, ttl) = base_registry::get_record_event_fields(&event);
                 event::emit(NameRegisteredEvent {
+                    nft_id,
                     resolver: option::some(resolver),
                     ttl: option::some(ttl),
                     node: string::utf8(BASE_NODE),
@@ -175,7 +214,7 @@ module suins::sui_registrar {
         };
 
         event::emit(NameRegisteredEvent {
-            // id: option::none<ID>(),
+            nft_id,
             node: string::utf8(BASE_NODE),
             label: label_string,
             owner,
@@ -218,6 +257,12 @@ module suins::sui_registrar {
 
     #[test_only]
     friend suins::sui_registrar_tests;
+
+    #[test_only]
+    public fun get_nft_fields(nft: &RegistrationNFT): (String, Url) {
+        (nft.name, nft.url)
+    }
+
     #[test_only]
     /// Wrapper of module initializer for testing
     public fun test_init(ctx: &mut TxContext) {

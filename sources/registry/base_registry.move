@@ -4,15 +4,12 @@ module suins::base_registry {
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
     use sui::vec_map::{Self, VecMap};
+    use sui::vec_set::{Self, VecSet};
     use std::option::{Self, Option};
     use std::string::{Self, String};
-    use sui::vec_set::VecSet;
-    use sui::vec_set;
 
     friend suins::sui_registrar;
 
-    // TODO: we don't have suins image atm, so temporarily use sui image instead
-    // const DEFAULT_URL: vector<u8> = b"ipfs://bafkreibngqhl3gaa7daob4i2vccziay2jjlp435cf66vhono7nrvww53ty";
     const MOVE_BASE_NODE: vector<u8> = b"move";
     const SUI_BASE_NODE: vector<u8> = b"sui";
     const MAX_TTL: u64 = 0x100000;
@@ -30,7 +27,8 @@ module suins::base_registry {
     }
 
     struct NewOwnerEvent has copy, drop {
-        node: String,
+        base_node: String,
+        label: String,
         owner: address,
     }
 
@@ -56,15 +54,6 @@ module suins::base_registry {
         operator: address,
         approved: bool,
     }
-
-    // send to owner of a domain, not store in registry
-    // struct RegistrationNFT has key, store {
-    //     id: UID,
-    //     // name and url fields have special meaning in sui explorer and extension
-    //     // if url is a ipfs image, this image is showed on sui explorer and extension
-    //     name: String,
-    //     url: Url,
-    // }
 
     // objects of this type are stored in the registry's map
     struct Record has store, drop {
@@ -139,15 +128,16 @@ module suins::base_registry {
         false
     }
 
-    // only registrar is allowed to call this
-    public(friend) fun set_record(
-        _: & AdminCap,
+    public entry fun set_record(
         registry: &mut Registry,
         node: vector<u8>,
         owner: address,
         resolver: address,
         ttl: u64,
+        ctx: &mut TxContext,
     ) {
+        authorised(registry, node, ctx);
+
         let node = string::utf8(node);
         set_owner_or_create_record(
             registry,
@@ -159,16 +149,18 @@ module suins::base_registry {
         set_resolver_and_TTL(registry, node, resolver, ttl);
     }
 
-    public(friend) fun set_subnode_record(
-        _: & AdminCap,
+    public entry fun set_subnode_record(
         registry: &mut Registry,
-        node: String,
+        node: vector<u8>,
         label: vector<u8>,
         owner: address,
         resolver: address,
         ttl: u64,
+        ctx: &mut TxContext,
     ) {
-        let subnode = make_subnode(label, node);
+        authorised(registry, node, ctx);
+
+        let subnode = make_subnode(label, string::utf8(node));
         set_owner_or_create_record(
             registry,
             subnode,
@@ -186,7 +178,6 @@ module suins::base_registry {
         label: vector<u8>,
         owner: address,
     ): Option<NewRecordEvent> {
-        assert!(record_exists(registry, &node), EUnauthorized);
         let subnode = make_subnode(label, node);
         set_owner_or_create_record(
             registry,
@@ -197,8 +188,34 @@ module suins::base_registry {
         )
     }
 
-    public(friend) fun set_owner(registry: &mut Registry, node: String, owner: address) {
-        assert!(record_exists(registry, &node), EUnauthorized);
+    public(friend) fun make_subnode(label: vector<u8>, node: String): String {
+        let subnode = string::utf8(label);
+        string::append(&mut subnode, string::utf8(b"."));
+        string::append(&mut subnode, node);
+        subnode
+    }
+
+    public entry fun set_subnode_owner_by_base_node_owner(
+        registry: &mut Registry,
+        node: vector<u8>,
+        label: vector<u8>,
+        owner: address,
+        ctx: &mut TxContext,
+    ) {
+        authorised(registry, node, ctx);
+
+        set_subnode_owner(registry, string::utf8(node), label, owner);
+        event::emit(NewOwnerEvent {
+            base_node: string::utf8(node),
+            label: string::utf8(label),
+            owner,
+        })
+    }
+
+    public entry fun set_owner(registry: &mut Registry, node: vector<u8>, owner: address, ctx: &mut TxContext) {
+        authorised(registry, node, ctx);
+
+        let node = string::utf8(node);
         let record = vec_map::get_mut(&mut registry.records, &node);
         if (record.owner != owner) {
             record.owner = owner;
@@ -239,18 +256,6 @@ module suins::base_registry {
         }
     }
 
-    // public entry fun set_subnode_owner_by_base_node_owner(
-    //     registry: &mut Registry,
-    //     node: vector<u8>,
-    //     label: vector<u8>,
-    //     owner: address,
-    //     ctx: &mut TxContext,
-    // ) {
-    //     authorised(registry, node, ctx);
-    //     let new_record_event = set_subnode_owner(registry, string::utf8(node), label, owner);
-    //     if (option::is_some(&new_record_event)) event::emit(option::extract(&mut new_record_event));
-    // }
-
     public entry fun set_TTL(registry: &mut Registry, node: vector<u8>, ttl: u64, ctx: &mut TxContext) {
         authorised(registry, node, ctx);
 
@@ -269,9 +274,10 @@ module suins::base_registry {
             if (vec_map::contains(&registry.operators, &owner)) {
                 let operators = vec_map::get(&registry.operators, &owner);
                 if (vec_set::contains(operators, &sender)) return
-            }
+            };
+            abort EUnauthorized
         };
-        abort EUnauthorized
+        abort ERecordNotExists
     }
 
     fun set_resolver_and_TTL(registry: &mut Registry, node: String, resolver: address, ttl: u64) {
@@ -335,13 +341,6 @@ module suins::base_registry {
             resolver,
             ttl,
         }
-    }
-
-    fun make_subnode(label: vector<u8>, node: String): String {
-        let subnode = string::utf8(label);
-        string::append(&mut subnode, string::utf8(b"."));
-        string::append(&mut subnode, node);
-        subnode
     }
 
     #[test_only]
