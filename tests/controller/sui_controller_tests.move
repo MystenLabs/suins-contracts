@@ -9,13 +9,16 @@ module suins::sui_controller_tests {
     use suins::sui_registrar::{Self, SuiRegistrar};
     use suins::base_registry::{Self, Registry};
     use std::string;
+    use std::option;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
+    const SECOND_USER_ADDRESS: address = @0xB002;
     const FIRST_RESOLVER_ADDRESS: address = @0xC001;
     const FIRST_LABEL: vector<u8> = b"eastagile";
     const SECOND_LABEL: vector<u8> = b"suinameservice";
-    const SECRET: vector<u8> = b"oKz=QdYd)]ryKB%";
+    const FIRST_SECRET: vector<u8> = b"oKz=QdYd)]ryKB%";
+    const SECOND_SECRET: vector<u8> = b"=QdYd)]r";
 
     fun init(): Scenario {
         let scenario = test_scenario::begin(&SUINS_ADDRESS);
@@ -33,6 +36,8 @@ module suins::sui_controller_tests {
         {
             let controller_wrapper = test_scenario::take_shared<SuiController>(scenario);
             let controller = test_scenario::borrow_mut(&mut controller_wrapper);
+            let registrar_wrapper = test_scenario::take_shared<SuiRegistrar>(scenario);
+            let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
 
             assert!(sui_controller::commitment_len(controller) == 0, 0);
             let ctx = tx_context::new(
@@ -44,9 +49,10 @@ module suins::sui_controller_tests {
 
             sui_controller::make_commitment_with_config_and_commit(
                 controller,
+                registrar,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
-                SECRET,
+                FIRST_SECRET,
                 resolver,
                 addr,
                 &mut ctx,
@@ -54,6 +60,7 @@ module suins::sui_controller_tests {
             assert!(sui_controller::commitment_len(controller) == 1, 0);
 
             test_scenario::return_shared(scenario, controller_wrapper);
+            test_scenario::return_shared(scenario, registrar_wrapper);
         };
     }
 
@@ -101,18 +108,22 @@ module suins::sui_controller_tests {
         {
             let controller_wrapper = test_scenario::take_shared<SuiController>(&mut scenario);
             let controller = test_scenario::borrow_mut(&mut controller_wrapper);
+            let registrar_wrapper = test_scenario::take_shared<SuiRegistrar>(&mut scenario);
+            let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
 
             sui_controller::make_commitment_with_config_and_commit(
                 controller,
+                registrar,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
-                SECRET,
+                FIRST_SECRET,
                 @0x0,
                 @0x1,
                 test_scenario::ctx(&mut scenario),
             );
 
             test_scenario::return_shared(&mut scenario, controller_wrapper);
+            test_scenario::return_shared(&mut scenario, registrar_wrapper);
         };
     }
 
@@ -140,7 +151,7 @@ module suins::sui_controller_tests {
                 51,
                 0
             );
-            let coin = coin::mint_for_testing<SUI>(1001, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(20001, &mut ctx);
             assert!(!sui_registrar::record_exists(registrar, string::utf8(FIRST_LABEL)), 0);
 
             sui_controller::register(
@@ -150,12 +161,13 @@ module suins::sui_controller_tests {
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 365,
-                SECRET,
+                FIRST_SECRET,
                 &mut coin,
+                option::none(),
                 &mut ctx,
             );
 
-            assert!(coin::value(&coin) == 1, 0);
+            assert!(coin::value(&coin) == 10001, 0);
 
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(&mut scenario, controller_wrapper);
@@ -180,8 +192,8 @@ module suins::sui_controller_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 303)]
-    fun test_register_abort_if_called_too_early() {
+    #[expected_failure(abort_code = 302)]
+    fun test_register_abort_with_wrong_label() {
         let scenario = init();
         make_commitment(&mut scenario, @0x0, @0x0);
 
@@ -196,24 +208,27 @@ module suins::sui_controller_tests {
             let registry_wrapper =
                 test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
-            // simulate user call `register` in the same epoch as `make_commitment_and_commit`
+
+            // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                50,
+                51,
                 0
             );
-            let coin = coin::mint_for_testing<SUI>(10000, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(20001, &mut ctx);
+            assert!(!sui_registrar::record_exists(registrar, string::utf8(FIRST_LABEL)), 0);
 
             sui_controller::register(
                 controller,
                 registrar,
                 registry,
-                FIRST_LABEL,
+                SECOND_LABEL,
                 FIRST_USER_ADDRESS,
                 365,
-                SECRET,
+                FIRST_SECRET,
                 &mut coin,
+                option::none(),
                 &mut ctx,
             );
 
@@ -221,18 +236,163 @@ module suins::sui_controller_tests {
             test_scenario::return_shared(&mut scenario, controller_wrapper);
             test_scenario::return_shared(&mut scenario, registrar_wrapper);
             test_scenario::return_shared(&mut scenario, registry_wrapper);
+
         };
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 302)]
+    fun test_register_abort_with_wrong_secret() {
+        let scenario = init();
+        make_commitment(&mut scenario, @0x0, @0x0);
 
         test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
         {
-            let controller_wrapper = test_scenario::take_shared<SuiController>(&mut scenario);
+            let controller_wrapper =
+                test_scenario::take_shared<SuiController>(&mut scenario);
             let controller = test_scenario::borrow_mut(&mut controller_wrapper);
+            let registrar_wrapper =
+                test_scenario::take_shared<SuiRegistrar>(&mut scenario);
+            let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
+            let registry_wrapper =
+                test_scenario::take_shared<Registry>(&mut scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            assert!(sui_controller::commitment_len(controller) == 0, 0);
+            // simulate user wait for next epoch to call `register`
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                51,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(20001, &mut ctx);
+            assert!(!sui_registrar::record_exists(registrar, string::utf8(FIRST_LABEL)), 0);
 
+            sui_controller::register(
+                controller,
+                registrar,
+                registry,
+                SECOND_LABEL,
+                FIRST_USER_ADDRESS,
+                365,
+                SECOND_SECRET,
+                &mut coin,
+                option::none(),
+                &mut ctx,
+            );
+
+            coin::destroy_for_testing(coin);
             test_scenario::return_shared(&mut scenario, controller_wrapper);
+            test_scenario::return_shared(&mut scenario, registrar_wrapper);
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+
         };
     }
+
+    #[test]
+    #[expected_failure(abort_code = 302)]
+    fun test_register_abort_with_wrong_owner() {
+        let scenario = init();
+        make_commitment(&mut scenario, @0x0, @0x0);
+
+        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
+        {
+            let controller_wrapper =
+                test_scenario::take_shared<SuiController>(&mut scenario);
+            let controller = test_scenario::borrow_mut(&mut controller_wrapper);
+            let registrar_wrapper =
+                test_scenario::take_shared<SuiRegistrar>(&mut scenario);
+            let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
+            let registry_wrapper =
+                test_scenario::take_shared<Registry>(&mut scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+
+            // simulate user wait for next epoch to call `register`
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                51,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(20001, &mut ctx);
+            assert!(!sui_registrar::record_exists(registrar, string::utf8(FIRST_LABEL)), 0);
+
+            sui_controller::register(
+                controller,
+                registrar,
+                registry,
+                SECOND_LABEL,
+                SECOND_USER_ADDRESS,
+                365,
+                SECOND_SECRET,
+                &mut coin,
+                option::none(),
+                &mut ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(&mut scenario, controller_wrapper);
+            test_scenario::return_shared(&mut scenario, registrar_wrapper);
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+
+        };
+    }
+
+    // #[test]
+    // #[expected_failure(abort_code = 303)]
+    // fun test_register_abort_if_called_too_early() {
+    //     let scenario = init();
+    //     make_commitment(&mut scenario, @0x0, @0x0);
+    //
+    //     test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
+    //     {
+    //         let controller_wrapper =
+    //             test_scenario::take_shared<SuiController>(&mut scenario);
+    //         let controller = test_scenario::borrow_mut(&mut controller_wrapper);
+    //         let registrar_wrapper =
+    //             test_scenario::take_shared<SuiRegistrar>(&mut scenario);
+    //         let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
+    //         let registry_wrapper =
+    //             test_scenario::take_shared<Registry>(&mut scenario);
+    //         let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+    //         // simulate user call `register` in the same epoch as `make_commitment_and_commit`
+    //         let ctx = tx_context::new(
+    //             @0x0,
+    //             x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+    //             50,
+    //             0
+    //         );
+    //         let coin = coin::mint_for_testing<SUI>(10000, &mut ctx);
+    //
+    //         sui_controller::register(
+    //             controller,
+    //             registrar,
+    //             registry,
+    //             FIRST_LABEL,
+    //             FIRST_USER_ADDRESS,
+    //             365,
+    //             option::none(),
+    //             SECRET,
+    //             &mut coin,
+    //             &mut ctx,
+    //         );
+    //
+    //         coin::destroy_for_testing(coin);
+    //         test_scenario::return_shared(&mut scenario, controller_wrapper);
+    //         test_scenario::return_shared(&mut scenario, registrar_wrapper);
+    //         test_scenario::return_shared(&mut scenario, registry_wrapper);
+    //     };
+    //
+    //     test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
+    //     {
+    //         let controller_wrapper = test_scenario::take_shared<SuiController>(&mut scenario);
+    //         let controller = test_scenario::borrow_mut(&mut controller_wrapper);
+    //
+    //         assert!(sui_controller::commitment_len(controller) == 0, 0);
+    //
+    //         test_scenario::return_shared(&mut scenario, controller_wrapper);
+    //     };
+    // }
 
     #[test]
     #[expected_failure(abort_code = 304)]
@@ -258,7 +418,7 @@ module suins::sui_controller_tests {
                 600,
                 0
             );
-            let coin = coin::mint_for_testing<SUI>(1000, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(20000, &mut ctx);
 
             sui_controller::register(
                 controller,
@@ -267,8 +427,9 @@ module suins::sui_controller_tests {
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 365,
-                SECRET,
+                FIRST_SECRET,
                 &mut coin,
+                option::none(),
                 &mut ctx,
             );
 
@@ -323,8 +484,9 @@ module suins::sui_controller_tests {
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 365,
-                SECRET,
+                FIRST_SECRET,
                 &mut coin,
+                option::none(),
                 &mut ctx,
             );
 
@@ -359,7 +521,7 @@ module suins::sui_controller_tests {
                 51,
                 0
             );
-            let coin = coin::mint_for_testing<SUI>(1001, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(10001, &mut ctx);
             assert!(!sui_registrar::record_exists(registrar, string::utf8(FIRST_LABEL)), 0);
 
             sui_controller::register_with_config(
@@ -369,10 +531,11 @@ module suins::sui_controller_tests {
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 365,
-                SECRET,
+                FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 @0x0,
                 &mut coin,
+                option::none(),
                 &mut ctx,
             );
 

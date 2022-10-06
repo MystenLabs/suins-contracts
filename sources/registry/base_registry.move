@@ -9,6 +9,7 @@ module suins::base_registry {
     use std::string::{Self, String};
 
     friend suins::sui_registrar;
+    friend suins::sui_controller;
 
     const MOVE_BASE_NODE: vector<u8> = b"move";
     const SUI_BASE_NODE: vector<u8> = b"sui";
@@ -21,12 +22,12 @@ module suins::base_registry {
     // https://examples.sui.io/patterns/capability.html
     struct AdminCap has key { id: UID }
 
-    struct TransferEvent has copy, drop {
+    struct NewOwnerEvent has copy, drop {
         node: String,
         owner: address,
     }
 
-    struct NewOwnerEvent has copy, drop {
+    struct NewSubnodeOwnerEvent has copy, drop {
         base_node: String,
         label: String,
         owner: address,
@@ -114,10 +115,6 @@ module suins::base_registry {
         vec_map::contains(&registry.records, node)
     }
 
-    public fun get_record_event_fields(event: &NewRecordEvent): (address, u64) {
-        (event.resolver, event.ttl)
-    }
-
     public fun is_approval_for_all(registry: &mut Registry, operator: address, ctx: &mut TxContext): bool {
         let sender = tx_context::sender(ctx);
         if (vec_map::contains(&registry.operators, &sender)) {
@@ -146,7 +143,11 @@ module suins::base_registry {
             option::some(resolver),
             option::some(ttl),
         );
-        set_resolver_and_TTL(registry, node, resolver, ttl);
+        event::emit(NewRecordEvent { node, owner, resolver, ttl });
+
+        let record = vec_map::get_mut(&mut registry.records, &node);
+        record.resolver = resolver;
+        record.ttl = ttl;
     }
 
     public entry fun set_subnode_record(
@@ -161,41 +162,11 @@ module suins::base_registry {
         authorised(registry, node, ctx);
 
         let subnode = make_subnode(label, string::utf8(node));
-        set_owner_or_create_record(
-            registry,
-            subnode,
-            owner,
-            option::some(resolver),
-            option::some(ttl),
-        );
-        set_resolver_and_TTL(registry, subnode, resolver, ttl);
+        set_node_record_internal(registry, subnode, owner, resolver, ttl);
+        event::emit(NewRecordEvent { node: subnode, owner, resolver, ttl });
     }
 
-    // this func won't emit an event if it create a new record, caller must take care of this by themselves
-    public(friend) fun set_subnode_owner(
-        registry: &mut Registry,
-        node: String,
-        label: vector<u8>,
-        owner: address,
-    ): Option<NewRecordEvent> {
-        let subnode = make_subnode(label, node);
-        set_owner_or_create_record(
-            registry,
-            subnode,
-            owner,
-            option::none<address>(),
-            option::none<u64>(),
-        )
-    }
-
-    public(friend) fun make_subnode(label: vector<u8>, node: String): String {
-        let subnode = string::utf8(label);
-        string::append(&mut subnode, string::utf8(b"."));
-        string::append(&mut subnode, node);
-        subnode
-    }
-
-    public entry fun set_subnode_owner_by_base_node_owner(
+    public entry fun set_subnode_owner(
         registry: &mut Registry,
         node: vector<u8>,
         label: vector<u8>,
@@ -204,12 +175,7 @@ module suins::base_registry {
     ) {
         authorised(registry, node, ctx);
 
-        set_subnode_owner(registry, string::utf8(node), label, owner);
-        event::emit(NewOwnerEvent {
-            base_node: string::utf8(node),
-            label: string::utf8(label),
-            owner,
-        })
+        set_subnode_owner_internal(registry, node, label, owner)
     }
 
     public entry fun set_owner(registry: &mut Registry, node: vector<u8>, owner: address, ctx: &mut TxContext) {
@@ -217,20 +183,16 @@ module suins::base_registry {
 
         let node = string::utf8(node);
         let record = vec_map::get_mut(&mut registry.records, &node);
-        if (record.owner != owner) {
-            record.owner = owner;
-            event::emit(TransferEvent { node, owner });
-        };
+        record.owner = owner;
+        event::emit(NewOwnerEvent { node, owner });
     }
 
     public entry fun set_resolver(registry: &mut Registry, node: vector<u8>, resolver: address, ctx: &mut TxContext) {
         authorised(registry, node, ctx);
 
         let record = vec_map::get_mut(&mut registry.records, &string::utf8(node));
-        if (record.resolver != resolver) {
-            record.resolver = resolver;
-            event::emit(NewResolverEvent { node: record.node, resolver });
-        };
+        record.resolver = resolver;
+        event::emit(NewResolverEvent { node: record.node, resolver });
     }
 
     public entry fun set_approval_for_all(registry: &mut Registry, operator: address, approved: bool, ctx: &mut TxContext) {
@@ -260,10 +222,58 @@ module suins::base_registry {
         authorised(registry, node, ctx);
 
         let record = vec_map::get_mut(&mut registry.records, &string::utf8(node));
-        if (record.ttl != ttl) {
-            record.ttl = ttl;
-            event::emit(NewTTLEvent { node: record.node, ttl });
-        };
+        record.ttl = ttl;
+        event::emit(NewTTLEvent { node: record.node, ttl });
+    }
+
+    public(friend) fun make_subnode(label: vector<u8>, node: String): String {
+        let subnode = string::utf8(label);
+        string::append_utf8(&mut subnode, b".");
+        string::append(&mut subnode, node);
+        subnode
+    }
+
+    // this func is meant to be call by registrar, no need to check for owner
+    public(friend) fun set_node_record_internal(
+        registry: &mut Registry,
+        node: String,
+        owner: address,
+        resolver: address,
+        ttl: u64,
+    ) {
+        set_owner_or_create_record(
+            registry,
+            node,
+            owner,
+            option::some(resolver),
+            option::some(ttl),
+        );
+
+        let record = vec_map::get_mut(&mut registry.records, &node);
+        record.resolver = resolver;
+        record.ttl = ttl;
+    }
+
+    // this func is meant to be call by registrar, no need to check for owner
+    public(friend) fun set_subnode_owner_internal(
+        registry: &mut Registry,
+        node: vector<u8>,
+        label: vector<u8>,
+        owner: address,
+    ) {
+        let subnode = make_subnode(label, string::utf8(node));
+        set_owner_or_create_record(
+            registry,
+            subnode,
+            owner,
+            option::none<address>(),
+            option::none<u64>(),
+        );
+        event::emit(NewSubnodeOwnerEvent {
+            base_node: string::utf8(node),
+            label: string::utf8(label),
+            owner,
+        });
     }
 
     fun authorised(registry: &Registry, node: vector<u8>, ctx: &TxContext) {
@@ -291,30 +301,27 @@ module suins::base_registry {
         };
     }
 
-    // return value == option::none: node is in Registry
-    // return value == option::some: node isn't in Registry
     fun set_owner_or_create_record(
         registry: &mut Registry,
         node: String,
         owner: address,
         resolver: Option<address>,
         ttl: Option<u64>,
-    ): Option<NewRecordEvent> {
+    ) {
         if (vec_map::contains(&registry.records, &node)) {
             let record = vec_map::get_mut(&mut registry.records, &node);
             record.owner = owner;
-            return option::none()
+            return
         };
         if (option::is_none(&resolver)) option::fill(&mut resolver, @0x0);
         if (option::is_none(&ttl)) option::fill(&mut ttl, 0);
-        let new_record_event = new_record(
+        new_record(
             registry,
             node,
             owner,
             option::extract(&mut resolver),
             option::extract(&mut ttl),
         );
-        option::some(new_record_event)
     }
 
     fun new_record(
@@ -323,7 +330,7 @@ module suins::base_registry {
         owner: address,
         resolver: address,
         ttl: u64,
-    ): NewRecordEvent {
+    ) {
         let record = Record {
             node,
             owner,
@@ -331,13 +338,6 @@ module suins::base_registry {
             ttl,
         };
         vec_map::insert(&mut registry.records, record.node, record);
-
-        NewRecordEvent {
-            node,
-            owner,
-            resolver,
-            ttl,
-        }
     }
 
     #[test_only]

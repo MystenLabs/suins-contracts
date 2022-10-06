@@ -7,6 +7,7 @@ module suins::sui_controller {
     use sui::object::{Self, UID};
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
+    use sui::url;
     use sui::sui::SUI;
     use sui::vec_map::{Self, VecMap};
     use suins::base_registry::Registry;
@@ -14,13 +15,14 @@ module suins::sui_controller {
     use std::string::{Self, String};
     use std::bcs;
     use std::vector;
+    use std::option;
+    use std::option::Option;
 
-
-    const MIN_COMMITMENT_AGE: u64 = 1;
+    const MIN_COMMITMENT_AGE: u64 = 0;
     const MAX_COMMITMENT_AGE: u64 = 3;
     // in terms of days
     const MIN_REGISTRATION_DURATION: u64 = 365;
-    const FEE: u64 = 1000;
+    const FEE: u64 = 10000;
     const BASE_NODE: vector<u8> = b"sui";
 
     // errors in the range of 301..400 indicate Sui Controller errors
@@ -31,6 +33,7 @@ module suins::sui_controller {
     const ENotEnoughFee: u64 = 305;
     const EInvalidDuration: u64 = 306;
     const EInvalidAddr: u64 = 307;
+    const ELabelUnAvailable: u64 = 308;
 
     struct NameRegisteredEvent has copy, drop {
         node: String,
@@ -54,18 +57,28 @@ module suins::sui_controller {
         });
     }
 
+    public fun valid(name: String): bool {
+        string::length(&name) > 6
+    }
+
+    public fun available(registrar: &SuiRegistrar, label: String, ctx: &TxContext): bool {
+        valid(label) && sui_registrar::available(registrar, label, ctx)
+    }
+
     public entry fun make_commitment_and_commit(
         controller: &mut SuiController,
+        registrar: &SuiRegistrar,
         label: vector<u8>,
         owner: address,
         secret: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        make_commitment_with_config_and_commit(controller, label, owner, secret, @0x0, @0x0, ctx);
+        make_commitment_with_config_and_commit(controller, registrar, label, owner, secret, @0x0, @0x0, ctx);
     }
 
     public entry fun make_commitment_with_config_and_commit(
         controller: &mut SuiController,
+        registrar: &SuiRegistrar,
         label: vector<u8>,
         owner: address,
         secret: vector<u8>,
@@ -73,6 +86,7 @@ module suins::sui_controller {
         addr: address,
         ctx: &mut TxContext,
     ) {
+        assert!(available(registrar, string::utf8(label), ctx), ELabelUnAvailable);
         let commitment = make_commitment(label, owner, secret, resolver, addr);
         vec_map::insert(&mut controller.commitments, commitment, tx_context::epoch(ctx));
     }
@@ -86,6 +100,7 @@ module suins::sui_controller {
         duration: u64,
         secret: vector<u8>,
         payment: &mut Coin<SUI>,
+        url: Option<vector<u8>>,
         ctx: &mut TxContext,
     ) {
         assert!(coin::value(payment) >= FEE, ENotEnoughFee);
@@ -101,10 +116,10 @@ module suins::sui_controller {
             @0x0,
             @0x0,
             payment,
+            url,
             ctx
         );
     }
-
 
     public entry fun register_with_config(
         controller: &mut SuiController,
@@ -117,16 +132,22 @@ module suins::sui_controller {
         resolver: address,
         addr: address,
         payment: &mut Coin<SUI>,
+        url_bytes: Option<vector<u8>>,
         ctx: &mut TxContext,
     ) {
         let commitment = make_commitment(label, owner, secret, resolver, addr);
-        consume_commitment(controller, label, duration, commitment, ctx);
+        consume_commitment(controller, registrar, label, duration, commitment, ctx);
 
+        let url =
+            if (option::is_some(&url_bytes))
+                option::some(url::new_unsafe_from_bytes(option::extract(&mut url_bytes)))
+            else option::none();
         if (resolver != @0x0) {
-            // sui_registrar::register(registrar, registry, label, owner, duration, ctx);
+            sui_registrar::register(registrar, registry, label, owner, duration, resolver, url, ctx);
+            // TODO: configure resolver
         } else {
             assert!(addr == @0x0, EInvalidAddr);
-            sui_registrar::register(registrar, registry, label, owner, duration, ctx);
+            sui_registrar::register(registrar, registry, label, owner, duration, resolver, url, ctx);
         };
         event::emit(NameRegisteredEvent {
             node: string::utf8(BASE_NODE),
@@ -142,7 +163,8 @@ module suins::sui_controller {
 
     fun consume_commitment(
         controller: &mut SuiController,
-        _label: vector<u8>,
+        registrar: &SuiRegistrar,
+        label: vector<u8>,
         duration: u64,
         commitment: vector<u8>,
         ctx: &TxContext,
@@ -156,7 +178,7 @@ module suins::sui_controller {
             *vec_map::get(&controller.commitments, &commitment) + MAX_COMMITMENT_AGE > tx_context::epoch(ctx),
             ECommitmentTooOld
         );
-        // TODO: assert available
+        assert!(available(registrar, string::utf8(label), ctx), ELabelUnAvailable);
         vec_map::remove(&mut controller.commitments, &commitment);
         assert!(duration % 365 == 0, EInvalidDuration);
     }
