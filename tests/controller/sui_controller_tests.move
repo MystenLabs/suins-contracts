@@ -9,7 +9,6 @@ module suins::sui_controller_tests {
     use suins::sui_registrar::{Self, SuiRegistrar};
     use suins::base_registry::{Self, Registry};
     use std::string;
-    use std::option;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -18,7 +17,7 @@ module suins::sui_controller_tests {
     const FIRST_LABEL: vector<u8> = b"eastagile";
     const SECOND_LABEL: vector<u8> = b"suinameservice";
     const FIRST_SECRET: vector<u8> = b"oKz=QdYd)]ryKB%";
-    const SECOND_SECRET: vector<u8> = b"=QdYd)]r";
+    const SECOND_SECRET: vector<u8> = b"a9f8d4a8daeda2f35f02";
 
     fun init(): Scenario {
         let scenario = test_scenario::begin(&SUINS_ADDRESS);
@@ -31,14 +30,12 @@ module suins::sui_controller_tests {
         scenario
     }
 
-    fun make_commitment(scenario: &mut Scenario, resolver: address, addr: address) {
+    fun make_commitment(scenario: &mut Scenario) {
         test_scenario::next_tx(scenario, &FIRST_USER_ADDRESS);
         {
             let controller_wrapper = test_scenario::take_shared<SuiController>(scenario);
             let controller = test_scenario::borrow_mut(&mut controller_wrapper);
             let registrar_wrapper = test_scenario::take_shared<SuiRegistrar>(scenario);
-            let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
-
             assert!(sui_controller::commitment_len(controller) == 0, 0);
             let ctx = tx_context::new(
                 @0x0,
@@ -47,14 +44,10 @@ module suins::sui_controller_tests {
                 0
             );
 
-            sui_controller::make_commitment_with_config_and_commit(
+            let commitment = sui_controller::test_make_commitment(FIRST_LABEL, FIRST_USER_ADDRESS, FIRST_SECRET);
+            sui_controller::make_commitment_and_commit(
                 controller,
-                registrar,
-                FIRST_LABEL,
-                FIRST_USER_ADDRESS,
-                FIRST_SECRET,
-                resolver,
-                addr,
+                commitment,
                 &mut ctx,
             );
             assert!(sui_controller::commitment_len(controller) == 1, 0);
@@ -77,7 +70,7 @@ module suins::sui_controller_tests {
 
             test_scenario::return_shared(&mut scenario, controller_wrapper);
         };
-        make_commitment(&mut scenario, @0x0, @0x0);
+        make_commitment(&mut scenario);
         test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
         {
             let controller_wrapper = test_scenario::take_shared<SuiController>(&mut scenario);
@@ -90,47 +83,9 @@ module suins::sui_controller_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 301)]
-    fun test_make_commitment_with_config_abort_if_only_resolver_zero() {
-        let scenario = init();
-
-        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
-        {
-            let controller_wrapper = test_scenario::take_shared<SuiController>(&mut scenario);
-            let controller = test_scenario::borrow_mut(&mut controller_wrapper);
-
-            assert!(sui_controller::commitment_len(controller) == 0, 0);
-
-            test_scenario::return_shared(&mut scenario, controller_wrapper);
-        };
-
-        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
-        {
-            let controller_wrapper = test_scenario::take_shared<SuiController>(&mut scenario);
-            let controller = test_scenario::borrow_mut(&mut controller_wrapper);
-            let registrar_wrapper = test_scenario::take_shared<SuiRegistrar>(&mut scenario);
-            let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
-
-            sui_controller::make_commitment_with_config_and_commit(
-                controller,
-                registrar,
-                FIRST_LABEL,
-                FIRST_USER_ADDRESS,
-                FIRST_SECRET,
-                @0x0,
-                @0x1,
-                test_scenario::ctx(&mut scenario),
-            );
-
-            test_scenario::return_shared(&mut scenario, controller_wrapper);
-            test_scenario::return_shared(&mut scenario, registrar_wrapper);
-        };
-    }
-
-    #[test]
     fun test_register() {
         let scenario = init();
-        make_commitment(&mut scenario, @0x0, @0x0);
+        make_commitment(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
         {
@@ -163,7 +118,6 @@ module suins::sui_controller_tests {
                 365,
                 FIRST_SECRET,
                 &mut coin,
-                option::none(),
                 &mut ctx,
             );
 
@@ -195,7 +149,7 @@ module suins::sui_controller_tests {
     #[expected_failure(abort_code = 302)]
     fun test_register_abort_with_wrong_label() {
         let scenario = init();
-        make_commitment(&mut scenario, @0x0, @0x0);
+        make_commitment(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
         {
@@ -228,7 +182,6 @@ module suins::sui_controller_tests {
                 365,
                 FIRST_SECRET,
                 &mut coin,
-                option::none(),
                 &mut ctx,
             );
 
@@ -244,7 +197,7 @@ module suins::sui_controller_tests {
     #[expected_failure(abort_code = 302)]
     fun test_register_abort_with_wrong_secret() {
         let scenario = init();
-        make_commitment(&mut scenario, @0x0, @0x0);
+        make_commitment(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
         {
@@ -277,7 +230,6 @@ module suins::sui_controller_tests {
                 365,
                 SECOND_SECRET,
                 &mut coin,
-                option::none(),
                 &mut ctx,
             );
 
@@ -293,7 +245,7 @@ module suins::sui_controller_tests {
     #[expected_failure(abort_code = 302)]
     fun test_register_abort_with_wrong_owner() {
         let scenario = init();
-        make_commitment(&mut scenario, @0x0, @0x0);
+        make_commitment(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
         {
@@ -324,9 +276,8 @@ module suins::sui_controller_tests {
                 SECOND_LABEL,
                 SECOND_USER_ADDRESS,
                 365,
-                SECOND_SECRET,
+                FIRST_SECRET,
                 &mut coin,
-                option::none(),
                 &mut ctx,
             );
 
@@ -398,7 +349,7 @@ module suins::sui_controller_tests {
     #[expected_failure(abort_code = 304)]
     fun test_register_abort_if_called_too_late() {
         let scenario = init();
-        make_commitment(&mut scenario, @0x0, @0x0);
+        make_commitment(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
         {
@@ -429,7 +380,6 @@ module suins::sui_controller_tests {
                 365,
                 FIRST_SECRET,
                 &mut coin,
-                option::none(),
                 &mut ctx,
             );
 
@@ -454,7 +404,7 @@ module suins::sui_controller_tests {
     #[expected_failure(abort_code = 305)]
     fun test_register_abort_if_not_enough_fee() {
         let scenario = init();
-        make_commitment(&mut scenario, @0x0, @0x0);
+        make_commitment(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
         {
@@ -486,7 +436,6 @@ module suins::sui_controller_tests {
                 365,
                 FIRST_SECRET,
                 &mut coin,
-                option::none(),
                 &mut ctx,
             );
 
@@ -500,7 +449,7 @@ module suins::sui_controller_tests {
     #[test]
     fun register_with_config() {
         let scenario = init();
-        make_commitment(&mut scenario, FIRST_RESOLVER_ADDRESS, @0x0);
+        make_commitment(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
         {
@@ -535,7 +484,6 @@ module suins::sui_controller_tests {
                 FIRST_RESOLVER_ADDRESS,
                 @0x0,
                 &mut coin,
-                option::none(),
                 &mut ctx,
             );
 

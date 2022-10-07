@@ -7,7 +7,6 @@ module suins::sui_controller {
     use sui::object::{Self, UID};
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
-    use sui::url;
     use sui::sui::SUI;
     use sui::vec_map::{Self, VecMap};
     use suins::base_registry::Registry;
@@ -16,7 +15,6 @@ module suins::sui_controller {
     use std::bcs;
     use std::vector;
     use std::option;
-    use std::option::Option;
 
     const MIN_COMMITMENT_AGE: u64 = 0;
     const MAX_COMMITMENT_AGE: u64 = 3;
@@ -34,6 +32,7 @@ module suins::sui_controller {
     const EInvalidDuration: u64 = 306;
     const EInvalidAddr: u64 = 307;
     const ELabelUnAvailable: u64 = 308;
+    const EUnauthorized: u64 = 309;
 
     struct NameRegisteredEvent has copy, drop {
         node: String,
@@ -64,30 +63,12 @@ module suins::sui_controller {
     public fun available(registrar: &SuiRegistrar, label: String, ctx: &TxContext): bool {
         valid(label) && sui_registrar::available(registrar, label, ctx)
     }
-
+    
     public entry fun make_commitment_and_commit(
         controller: &mut SuiController,
-        registrar: &SuiRegistrar,
-        label: vector<u8>,
-        owner: address,
-        secret: vector<u8>,
+        commitment: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        make_commitment_with_config_and_commit(controller, registrar, label, owner, secret, @0x0, @0x0, ctx);
-    }
-
-    public entry fun make_commitment_with_config_and_commit(
-        controller: &mut SuiController,
-        registrar: &SuiRegistrar,
-        label: vector<u8>,
-        owner: address,
-        secret: vector<u8>,
-        resolver: address,
-        addr: address,
-        ctx: &mut TxContext,
-    ) {
-        assert!(available(registrar, string::utf8(label), ctx), ELabelUnAvailable);
-        let commitment = make_commitment(label, owner, secret, resolver, addr);
         vec_map::insert(&mut controller.commitments, commitment, tx_context::epoch(ctx));
     }
 
@@ -100,7 +81,6 @@ module suins::sui_controller {
         duration: u64,
         secret: vector<u8>,
         payment: &mut Coin<SUI>,
-        url: Option<vector<u8>>,
         ctx: &mut TxContext,
     ) {
         assert!(coin::value(payment) >= FEE, ENotEnoughFee);
@@ -116,7 +96,6 @@ module suins::sui_controller {
             @0x0,
             @0x0,
             payment,
-            url,
             ctx
         );
     }
@@ -132,22 +111,17 @@ module suins::sui_controller {
         resolver: address,
         addr: address,
         payment: &mut Coin<SUI>,
-        url_bytes: Option<vector<u8>>,
         ctx: &mut TxContext,
     ) {
-        let commitment = make_commitment(label, owner, secret, resolver, addr);
+        let commitment = make_commitment(label, owner, secret);
         consume_commitment(controller, registrar, label, duration, commitment, ctx);
 
-        let url =
-            if (option::is_some(&url_bytes))
-                option::some(url::new_unsafe_from_bytes(option::extract(&mut url_bytes)))
-            else option::none();
         if (resolver != @0x0) {
-            sui_registrar::register(registrar, registry, label, owner, duration, resolver, url, ctx);
+            sui_registrar::register(registrar, registry, label, owner, duration, resolver, option::none(), ctx);
             // TODO: configure resolver
         } else {
             assert!(addr == @0x0, EInvalidAddr);
-            sui_registrar::register(registrar, registry, label, owner, duration, resolver, url, ctx);
+            sui_registrar::register(registrar, registry, label, owner, duration, resolver, option::none(), ctx);
         };
         event::emit(NameRegisteredEvent {
             node: string::utf8(BASE_NODE),
@@ -183,32 +157,18 @@ module suins::sui_controller {
         assert!(duration % 365 == 0, EInvalidDuration);
     }
 
-    fun make_commitment(
-        label: vector<u8>,
-        owner: address,
-        secret: vector<u8>,
-        resolver: address,
-        addr: address,
-    ): vector<u8> {
+    fun make_commitment(label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
         // TODO: only serialize input atm,
         // wait for https://github.com/move-language/move/pull/408 to be merged for encoding
-        if (resolver == @0x0 && addr == @0x0) {
-            let owner_bytes = bcs::to_bytes(&owner);
-            vector::append(&mut label, owner_bytes);
-            vector::append(&mut label, secret);
-        } else {
-            assert!(resolver != @0x0, EInvalidResolverAddress);
-
-            let owner_bytes = bcs::to_bytes(&owner);
-            let resolver_bytes = bcs::to_bytes(&resolver);
-            let addr_bytes = bcs::to_bytes(&addr);
-
-            vector::append(&mut label, owner_bytes);
-            vector::append(&mut label, resolver_bytes);
-            vector::append(&mut label, addr_bytes);
-            vector::append(&mut label, secret);
-        };
+        let owner_bytes = bcs::to_bytes(&owner);
+        vector::append(&mut label, owner_bytes);
+        vector::append(&mut label, secret);
         keccak256(label)
+    }
+
+    #[test_only]
+    public fun test_make_commitment(label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
+        make_commitment(label, owner, secret)
     }
 
     #[test_only]
