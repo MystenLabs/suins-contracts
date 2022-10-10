@@ -5,7 +5,6 @@ module suins::sui_registrar_tests {
     use sui::url;
     use suins::base_registry::{Self, Registry};
     use suins::sui_registrar::{Self, SuiRegistrar, RegistrationNFT};
-    use std::option;
     use std::string;
     use std::vector;
 
@@ -46,7 +45,7 @@ module suins::sui_registrar_tests {
                 FIRST_LABEL,
                 FIRST_USER,
                 365,
-                option::none(),
+                url::new_unsafe_from_bytes(DEFAULT_URL),
                 test_scenario::ctx(scenario)
             );
             test_scenario::return_shared(scenario, registry_wrapper);
@@ -147,7 +146,7 @@ module suins::sui_registrar_tests {
                 invalid_label,
                 FIRST_USER,
                 365,
-                option::none(),
+                url::new_unsafe_from_bytes(DEFAULT_URL),
                 test_scenario::ctx(&mut scenario)
             );
 
@@ -173,7 +172,7 @@ module suins::sui_registrar_tests {
                 FIRST_LABEL,
                 FIRST_USER,
                 0,
-                option::none(),
+                url::new_unsafe_from_bytes(DEFAULT_URL),
                 test_scenario::ctx(&mut scenario)
             );
 
@@ -210,7 +209,7 @@ module suins::sui_registrar_tests {
                 b"eastagile",
                 FIRST_USER,
                 365,
-                option::none(),
+                url::new_unsafe_from_bytes(DEFAULT_URL),
                 test_scenario::ctx(&mut scenario)
             );
             test_scenario::return_shared(&mut scenario, registry_wrapper);
@@ -329,14 +328,14 @@ module suins::sui_registrar_tests {
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
 
-        test_scenario::next_tx(&mut scenario, &FIRST_USER);
+        test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
         {
             let registrar_wrapper = test_scenario::take_shared<SuiRegistrar>(&mut scenario);
             let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            sui_registrar::reclaim(registrar, registry, FIRST_LABEL, SECOND_USER, test_scenario::ctx(&mut scenario));
+            sui_registrar::reclaim(registrar, registry, FIRST_LABEL, BASE_NODE, SECOND_USER, test_scenario::ctx(&mut scenario));
 
             test_scenario::return_shared(&mut scenario, registrar_wrapper);
             test_scenario::return_shared(&mut scenario, registry_wrapper);
@@ -353,14 +352,14 @@ module suins::sui_registrar_tests {
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
 
-        test_scenario::next_tx(&mut scenario, &FIRST_USER);
+        test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
         {
             let registrar_wrapper = test_scenario::take_shared<SuiRegistrar>(&mut scenario);
             let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            sui_registrar::reclaim(registrar, registry, FIRST_LABEL, FIRST_USER, test_scenario::ctx(&mut scenario));
+            sui_registrar::reclaim(registrar, registry, FIRST_LABEL, BASE_NODE, FIRST_USER, test_scenario::ctx(&mut scenario));
 
             test_scenario::return_shared(&mut scenario, registrar_wrapper);
             test_scenario::return_shared(&mut scenario, registry_wrapper);
@@ -391,7 +390,7 @@ module suins::sui_registrar_tests {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            sui_registrar::reclaim(registrar, registry, FIRST_LABEL, SECOND_USER, test_scenario::ctx(&mut scenario));
+            sui_registrar::reclaim(registrar, registry, FIRST_LABEL, BASE_NODE, SECOND_USER, test_scenario::ctx(&mut scenario));
 
             test_scenario::return_shared(&mut scenario, registrar_wrapper);
             test_scenario::return_shared(&mut scenario, registry_wrapper);

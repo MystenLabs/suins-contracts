@@ -93,24 +93,24 @@ module suins::base_registry {
         if (record_exists(registry, &string::utf8(node))) {
             return vec_map::get(&registry.records, &string::utf8(node)).owner
         };
-        @0x0
+        abort ERecordNotExists
     }
 
-    public fun resolver(registry: &Registry, node: vector<u8>): address{
+    public fun resolver(registry: &Registry, node: vector<u8>): address {
         if (record_exists(registry, &string::utf8(node))) {
             return vec_map::get(&registry.records, &string::utf8(node)).resolver
         };
-        @0x0
+        abort ERecordNotExists
     }
 
-    public fun ttl(registry: &Registry, node: vector<u8>): u64{
+    public fun ttl(registry: &Registry, node: vector<u8>): u64 {
         if (record_exists(registry, &string::utf8(node))) {
             return vec_map::get(&registry.records, &string::utf8(node)).ttl
         };
-        0
+        abort ERecordNotExists
     }
 
-    public fun record_exists(registry: &Registry, node: &String): bool{
+    public fun record_exists(registry: &Registry, node: &String): bool {
         vec_map::contains(&registry.records, node)
     }
 
@@ -268,16 +268,13 @@ module suins::base_registry {
 
     fun authorised(registry: &Registry, node: vector<u8>, ctx: &TxContext) {
         let owner = owner(registry, node);
-        if (owner != @0x0) {
-            let sender = tx_context::sender(ctx);
-            if (sender == owner) return;
-            if (vec_map::contains(&registry.operators, &owner)) {
-                let operators = vec_map::get(&registry.operators, &owner);
-                if (vec_set::contains(operators, &sender)) return
-            };
-            abort EUnauthorized
+        let sender = tx_context::sender(ctx);
+        if (sender == owner) return;
+        if (vec_map::contains(&registry.operators, &owner)) {
+            let operators = vec_map::get(&registry.operators, &owner);
+            if (vec_set::contains(operators, &sender)) return
         };
-        abort ERecordNotExists
+        abort EUnauthorized
     }
 
     fun set_resolver_and_TTL(registry: &mut Registry, node: String, resolver: address, ttl: u64) {

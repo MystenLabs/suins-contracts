@@ -3,15 +3,13 @@ module suins::sui_registrar {
     use sui::object::{Self, ID, UID};
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
-    use sui::url::{Self, Url};
+    use sui::url::Url;
     use sui::vec_map::{Self, VecMap};
     use sui::vec_set::{Self, VecSet};
     use suins::base_registry::{Self, Registry, AdminCap};
     use std::string::{Self, String};
     use std::option::{Self, Option};
 
-    // TODO: we don't have suins image atm, so temporarily use sui image instead
-    const DEFAULT_URL: vector<u8> = b"ipfs://bafkreibngqhl3gaa7daob4i2vccziay2jjlp435cf66vhono7nrvww53ty";
     const BASE_NODE: vector<u8> = b"sui";
     // in terms of epoch
     const GRACE_PERIOD: u8 = 90;
@@ -51,7 +49,6 @@ module suins::sui_registrar {
 
     struct RegistrationDetail has store {
         expiry: u64,
-        owner: address,
         approval: Option<address>,
     }
 
@@ -93,7 +90,7 @@ module suins::sui_registrar {
         label: vector<u8>,
         owner: address,
         duration: u64,
-        url: Option<Url>,
+        url: Url,
         ctx: &mut TxContext
     ) {
         register_internal(registrar, registry, label, owner, duration, true, url, ctx);
@@ -105,7 +102,7 @@ module suins::sui_registrar {
         label: vector<u8>,
         owner: address,
         duration: u64,
-        url: Option<Url>,
+        url: Url,
         ctx: &mut TxContext
     ) {
         register_internal(registrar, registry, label, owner, duration, false, url, ctx);
@@ -132,11 +129,12 @@ module suins::sui_registrar {
         registrar: &SuiRegistrar,
         registry: &mut Registry,
         label: vector<u8>,
+        base_node: vector<u8>,
         owner: address,
         ctx: &mut TxContext
     ) {
         assert!(
-            is_approved_or_owner(registrar, string::utf8(label), ctx),
+            is_approved_or_owner(registrar, registry, label, base_node, ctx),
             EUnauthorized
         );
         base_registry::set_subnode_owner(registry, string::utf8(BASE_NODE), label, owner);
@@ -161,7 +159,7 @@ module suins::sui_registrar {
         owner: address,
         duration: u64,
         update_registry: bool,
-        url: Option<Url>,
+        url: Url,
         ctx: &mut TxContext
     ) {
         let label_string = string::try_utf8(label);
@@ -175,7 +173,6 @@ module suins::sui_registrar {
 
         let detail = RegistrationDetail {
             expiry: tx_context::epoch(ctx) + duration,
-            owner,
             approval: option::none(),
         };
         vec_map::insert(&mut registrar.expiries, label_string, detail);
@@ -183,12 +180,11 @@ module suins::sui_registrar {
         let name = label_string;
         string::append(&mut name, string::utf8(b"."));
         string::append(&mut name, string::utf8(BASE_NODE));
-        if (option::is_none(&url)) option::fill(&mut url, url::new_unsafe_from_bytes(DEFAULT_URL));
 
         let nft = RegistrationNFT{
             id: object::new(ctx),
             name,
-            url: option::extract(&mut url),
+            url,
         };
         let nft_id = object::uid_to_inner(&nft.id);
         transfer::transfer(nft, owner);
@@ -228,11 +224,6 @@ module suins::sui_registrar {
         vec_map::contains(&registrar.expiries, &label)
     }
 
-    public fun owner_of(registrar: &SuiRegistrar, label: String, ctx: &TxContext): address {
-        assert!(name_expires(registrar, label) > tx_context::epoch(ctx), ELabelExpired);
-        vec_map::get(&registrar.expiries, &label).owner
-    }
-
     fun get_approved(registrar: &SuiRegistrar, label: String): address {
         let approval = vec_map::get(&registrar.expiries, &label).approval;
         if (option::is_some(&approval)) option::extract(&mut approval)
@@ -247,11 +238,17 @@ module suins::sui_registrar {
         false
     }
 
-    fun is_approved_or_owner(registrar: &SuiRegistrar, label: String, ctx: &TxContext): bool {
-        let owner = owner_of(registrar, label, ctx);
+    fun is_approved_or_owner(
+        registrar: &SuiRegistrar,
+        registry: &Registry,
+        label: vector<u8>,
+        base_node: vector<u8>,
+        ctx: &TxContext,
+    ): bool {
+        let owner = base_registry::owner(registry, base_node);
         let spender = tx_context::sender(ctx);
         spender == owner ||
-            spender == get_approved(registrar, label) ||
+            spender == get_approved(registrar, string::utf8(label)) ||
             is_approved_for_all(registrar, owner, spender)
     }
 
