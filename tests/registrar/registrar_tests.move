@@ -1,10 +1,11 @@
 #[test_only]
 module suins::sui_registrar_tests {
     use sui::test_scenario::{Self, Scenario};
-    use suins::base_registry::{Self, RegistrationNFT, Registry};
-    use suins::sui_registrar::{Self, SuiRegistrar};
-    use std::string;
     use sui::tx_context;
+    use sui::url;
+    use suins::base_registry::{Self, Registry};
+    use suins::sui_registrar::{Self, SuiRegistrar, RegistrationNFT};
+    use std::string;
     use std::vector;
 
     const SUINS_ADDRESS: address = @0xA001;
@@ -16,6 +17,7 @@ module suins::sui_registrar_tests {
     const SUB_NODE: vector<u8> = b"eastagile.sui";
     const FIRST_LABEL: vector<u8> = b"eastagile";
     const SECOND_LABEL: vector<u8> = b"ea";
+    const DEFAULT_URL: vector<u8> = b"ipfs://bafkreibngqhl3gaa7daob4i2vccziay2jjlp435cf66vhono7nrvww53ty";
 
     fun init(): Scenario {
         let scenario = test_scenario::begin(&SUINS_ADDRESS);
@@ -30,8 +32,6 @@ module suins::sui_registrar_tests {
     fun register(scenario: &mut Scenario) {
         test_scenario::next_tx(scenario, &SUINS_ADDRESS);
         {
-            assert!(test_scenario::can_take_owned<RegistrationNFT>(scenario), 0);
-            let sui_tld_nft = test_scenario::take_owned<RegistrationNFT>(scenario);
             let registry_wrapper = test_scenario::take_shared<Registry>(scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
@@ -45,11 +45,22 @@ module suins::sui_registrar_tests {
                 FIRST_LABEL,
                 FIRST_USER,
                 365,
+                url::new_unsafe_from_bytes(DEFAULT_URL),
                 test_scenario::ctx(scenario)
             );
             test_scenario::return_shared(scenario, registry_wrapper);
             test_scenario::return_shared(scenario, registrar_wrapper);
-            test_scenario::return_owned(scenario, sui_tld_nft);
+        };
+
+        test_scenario::next_tx(scenario, &FIRST_USER);
+        {
+            assert!(test_scenario::can_take_owned<RegistrationNFT>(scenario), 0);
+            let nft = test_scenario::take_owned<RegistrationNFT>(scenario);
+            let (name, url) = sui_registrar::get_nft_fields(&nft);
+            assert!(name == string::utf8(SUB_NODE), 0);
+            assert!(url == url::new_unsafe_from_bytes(DEFAULT_URL), 0);
+
+            test_scenario::return_owned(scenario, nft);
         };
     }
 
@@ -62,8 +73,7 @@ module suins::sui_registrar_tests {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            assert!(!test_scenario::can_take_owned<RegistrationNFT>(&mut scenario), 0);
-            assert!(base_registry::get_registry_len(registry) == 1, 0);
+            assert!(base_registry::get_records_len(registry) == 1, 0);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
@@ -72,13 +82,9 @@ module suins::sui_registrar_tests {
 
         test_scenario::next_tx(&mut scenario, &FIRST_USER);
         {
-            assert!(test_scenario::can_take_owned<RegistrationNFT>(&mut scenario), 0);
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
-            let nft = test_scenario::take_owned<RegistrationNFT>(&mut scenario);
-
-            assert!(base_registry::get_NFT_node(&nft) == string::utf8(SUB_NODE), 0);
-            assert!(base_registry::get_registry_len(registry) == 2, 0);
+            assert!(base_registry::get_records_len(registry) == 2, 0);
 
             // index 0 is .sui
             let (_, record) = base_registry::get_record_at_index(registry, 1);
@@ -87,7 +93,6 @@ module suins::sui_registrar_tests {
             assert!(base_registry::get_record_ttl(record) == 0, 0);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
-            test_scenario::return_owned(&mut scenario, nft);
         };
 
         // test `available` function
@@ -127,7 +132,6 @@ module suins::sui_registrar_tests {
         let scenario = init();
         test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
         {
-            let sui_tld_nft = test_scenario::take_owned<RegistrationNFT>(&mut scenario);
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
             let registrar_wrapper = test_scenario::take_shared<SuiRegistrar>(&mut scenario);
@@ -142,12 +146,12 @@ module suins::sui_registrar_tests {
                 invalid_label,
                 FIRST_USER,
                 365,
+                url::new_unsafe_from_bytes(DEFAULT_URL),
                 test_scenario::ctx(&mut scenario)
             );
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
             test_scenario::return_shared(&mut scenario, registrar_wrapper);
-            test_scenario::return_owned(&mut scenario, sui_tld_nft);
         };
     }
 
@@ -157,7 +161,6 @@ module suins::sui_registrar_tests {
         let scenario = init();
         test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
         {
-            let sui_tld_nft = test_scenario::take_owned<RegistrationNFT>(&mut scenario);
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
             let registrar_wrapper = test_scenario::take_shared<SuiRegistrar>(&mut scenario);
@@ -169,12 +172,12 @@ module suins::sui_registrar_tests {
                 FIRST_LABEL,
                 FIRST_USER,
                 0,
+                url::new_unsafe_from_bytes(DEFAULT_URL),
                 test_scenario::ctx(&mut scenario)
             );
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
             test_scenario::return_shared(&mut scenario, registrar_wrapper);
-            test_scenario::return_owned(&mut scenario, sui_tld_nft);
         };
     }
 
@@ -187,16 +190,13 @@ module suins::sui_registrar_tests {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            assert!(!test_scenario::can_take_owned<RegistrationNFT>(&mut scenario), 0);
-            assert!(base_registry::get_registry_len(registry) == 1, 0);
+            assert!(base_registry::get_records_len(registry) == 1, 0);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
 
         test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
         {
-            assert!(test_scenario::can_take_owned<RegistrationNFT>(&mut scenario), 0);
-            let sui_tld_nft = test_scenario::take_owned<RegistrationNFT>(&mut scenario);
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
@@ -209,20 +209,19 @@ module suins::sui_registrar_tests {
                 b"eastagile",
                 FIRST_USER,
                 365,
+                url::new_unsafe_from_bytes(DEFAULT_URL),
                 test_scenario::ctx(&mut scenario)
             );
             test_scenario::return_shared(&mut scenario, registry_wrapper);
             test_scenario::return_shared(&mut scenario, registrar_wrapper);
-            test_scenario::return_owned(&mut scenario, sui_tld_nft);
         };
 
         test_scenario::next_tx(&mut scenario, &FIRST_USER);
         {
-            assert!(!test_scenario::can_take_owned<RegistrationNFT>(&mut scenario), 0);
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            assert!(base_registry::get_registry_len(registry) == 1, 0);
+            assert!(base_registry::get_records_len(registry) == 1, 0);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
@@ -329,14 +328,14 @@ module suins::sui_registrar_tests {
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
 
-        test_scenario::next_tx(&mut scenario, &FIRST_USER);
+        test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
         {
             let registrar_wrapper = test_scenario::take_shared<SuiRegistrar>(&mut scenario);
             let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            sui_registrar::reclaim(registrar, registry, FIRST_LABEL, SECOND_USER, test_scenario::ctx(&mut scenario));
+            sui_registrar::reclaim(registrar, registry, FIRST_LABEL, BASE_NODE, SECOND_USER, test_scenario::ctx(&mut scenario));
 
             test_scenario::return_shared(&mut scenario, registrar_wrapper);
             test_scenario::return_shared(&mut scenario, registry_wrapper);
@@ -353,14 +352,14 @@ module suins::sui_registrar_tests {
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
 
-        test_scenario::next_tx(&mut scenario, &FIRST_USER);
+        test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
         {
             let registrar_wrapper = test_scenario::take_shared<SuiRegistrar>(&mut scenario);
             let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            sui_registrar::reclaim(registrar, registry, FIRST_LABEL, FIRST_USER, test_scenario::ctx(&mut scenario));
+            sui_registrar::reclaim(registrar, registry, FIRST_LABEL, BASE_NODE, FIRST_USER, test_scenario::ctx(&mut scenario));
 
             test_scenario::return_shared(&mut scenario, registrar_wrapper);
             test_scenario::return_shared(&mut scenario, registry_wrapper);
@@ -391,9 +390,55 @@ module suins::sui_registrar_tests {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            sui_registrar::reclaim(registrar, registry, FIRST_LABEL, SECOND_USER, test_scenario::ctx(&mut scenario));
+            sui_registrar::reclaim(registrar, registry, FIRST_LABEL, BASE_NODE, SECOND_USER, test_scenario::ctx(&mut scenario));
 
             test_scenario::return_shared(&mut scenario, registrar_wrapper);
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+        };
+    }
+
+    #[test]
+    fun test_reclaim_by_nft_owner() {
+        let scenario = init();
+        register(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, &FIRST_USER);
+        {
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let nft = test_scenario::take_owned<RegistrationNFT>(&mut scenario);
+            sui_registrar::reclaim_by_nft_owner(registry, &nft, FIRST_LABEL, SECOND_USER);
+
+            test_scenario::return_owned(&mut scenario, nft);
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+        };
+
+        test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
+        {
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+
+            let owner = base_registry::owner(registry, SUB_NODE);
+            assert!(SECOND_USER == owner, 0);
+
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+        };
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 201)]
+    fun test_reclaim_by_nft_owner_abort_if_unauthorised() {
+        let scenario = init();
+        register(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, &FIRST_USER);
+        {
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let nft = test_scenario::take_owned<RegistrationNFT>(&mut scenario);
+            sui_registrar::reclaim_by_nft_owner(registry, &nft, SECOND_LABEL, SECOND_USER);
+
+            test_scenario::return_owned(&mut scenario, nft);
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
     }
