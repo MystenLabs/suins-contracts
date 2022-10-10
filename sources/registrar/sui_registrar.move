@@ -113,7 +113,7 @@ module suins::sui_registrar {
         owner: address,
         duration: u64,
         resolver: address,
-        url: Option<Url>,
+        url: Url,
         ctx: &mut TxContext
     ) {
         let nft_id = register_internal(registrar, registry, label, owner, duration, resolver, false, url, ctx);
@@ -201,7 +201,7 @@ module suins::sui_registrar {
         let nft = RegistrationNFT {
             id: object::new(ctx),
             name: subnode,
-            url: option::extract(&mut url),
+            url,
         };
         let nft_id = object::uid_to_inner(&nft.id);
         transfer::transfer(nft, owner);
