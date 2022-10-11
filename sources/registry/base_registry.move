@@ -282,23 +282,9 @@ module suins::base_registry {
         if (sender == owner) return;
         if (vec_map::contains(&registry.operators, &owner)) {
             let operators = vec_map::get(&registry.operators, &owner);
-            if (vec_set::contains(operators, &sender)) return
+            if (vec_set::contains(operators, &sender)) return;
         };
         abort EUnauthorized
-    }
-
-    fun set_resolver_and_TTL(registry: &mut Registry, node: String, resolver: address, ttl: u64) {
-        let record = vec_map::get_mut(&mut registry.records, &node);
-
-        if (record.resolver != resolver) {
-            record.resolver = resolver;
-            event::emit(NewResolverEvent { node, resolver });
-        };
-
-        if (record.ttl != ttl) {
-            record.ttl = ttl;
-            event::emit(NewTTLEvent { node, ttl });
-        };
     }
 
     fun set_owner_or_create_record(
