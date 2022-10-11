@@ -84,6 +84,8 @@ module suins::sui_registrar {
         0
     }
 
+    // TODO: add an entry fun for domain owner to register a subdomain
+
     // label can be multiple levels, e.g. 'dn.eastagile' or 'eastagile'
     public(friend) fun register(
         registrar: &mut SuiRegistrar,

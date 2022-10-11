@@ -144,6 +144,7 @@ module suins::sui_controller {
         );
     }
 
+    // anyone can register a domain at any level
     public entry fun register_with_config(
         controller: &mut SuiController,
         registrar: &mut SuiRegistrar,
