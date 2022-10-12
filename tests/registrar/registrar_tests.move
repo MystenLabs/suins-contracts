@@ -45,6 +45,7 @@ module suins::sui_registrar_tests {
                 FIRST_LABEL,
                 FIRST_USER,
                 365,
+                FIRST_RESOLVER,
                 url::new_unsafe_from_bytes(DEFAULT_URL),
                 test_scenario::ctx(scenario)
             );
@@ -89,7 +90,7 @@ module suins::sui_registrar_tests {
             // index 0 is .sui
             let (_, record) = base_registry::get_record_at_index(registry, 1);
             assert!(base_registry::get_record_owner(record) == FIRST_USER, 0);
-            assert!(base_registry::get_record_resolver(record) == @0x0, 0);
+            assert!(base_registry::get_record_resolver(record) == FIRST_RESOLVER, 0);
             assert!(base_registry::get_record_ttl(record) == 0, 0);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
@@ -146,6 +147,7 @@ module suins::sui_registrar_tests {
                 invalid_label,
                 FIRST_USER,
                 365,
+                FIRST_RESOLVER,
                 url::new_unsafe_from_bytes(DEFAULT_URL),
                 test_scenario::ctx(&mut scenario)
             );
@@ -172,6 +174,7 @@ module suins::sui_registrar_tests {
                 FIRST_LABEL,
                 FIRST_USER,
                 0,
+                FIRST_RESOLVER,
                 url::new_unsafe_from_bytes(DEFAULT_URL),
                 test_scenario::ctx(&mut scenario)
             );
@@ -209,6 +212,7 @@ module suins::sui_registrar_tests {
                 b"eastagile",
                 FIRST_USER,
                 365,
+                FIRST_RESOLVER,
                 url::new_unsafe_from_bytes(DEFAULT_URL),
                 test_scenario::ctx(&mut scenario)
             );

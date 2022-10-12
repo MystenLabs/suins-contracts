@@ -257,7 +257,7 @@ module suins::base_registry_tests {
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
             assert!(base_registry::get_records_len(registry) == 1, 0);
-            base_registry::set_subnode_owner_by_base_node_owner(
+            base_registry::set_subnode_owner(
                 registry,
                 FIRST_BASE_NODE,
                 b"ea",
@@ -292,7 +292,7 @@ module suins::base_registry_tests {
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
             assert!(base_registry::get_records_len(registry) == 1, 0);
-            base_registry::set_subnode_owner_by_base_node_owner(
+            base_registry::set_subnode_owner(
                 registry,
                 FIRST_BASE_NODE,
                 b"ea",
@@ -327,7 +327,7 @@ module suins::base_registry_tests {
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
             assert!(base_registry::get_records_len(registry) == 1, 0);
-            base_registry::set_subnode_owner_by_base_node_owner(
+            base_registry::set_subnode_owner(
                 registry,
                 SECOND_BASE_NODE,
                 b"ea",
@@ -352,7 +352,7 @@ module suins::base_registry_tests {
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
             assert!(base_registry::get_records_len(registry) == 1, 0);
-            base_registry::set_subnode_owner_by_base_node_owner(
+            base_registry::set_subnode_owner(
                 registry,
                 FIRST_BASE_NODE,
                 b"ea",
@@ -376,7 +376,7 @@ module suins::base_registry_tests {
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
             assert!(base_registry::get_records_len(registry) == 1, 0);
-            base_registry::set_subnode_owner_by_base_node_owner(
+            base_registry::set_subnode_owner(
                 registry,
                 FIRST_BASE_NODE,
                 b"ea",
@@ -394,7 +394,7 @@ module suins::base_registry_tests {
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
             assert!(base_registry::get_records_len(registry) == 2, 0);
-            base_registry::set_subnode_owner_by_base_node_owner(
+            base_registry::set_subnode_owner(
                 registry,
                 FIRST_BASE_NODE,
                 b"ea",
