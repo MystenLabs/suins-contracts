@@ -16,12 +16,10 @@ module suins::sui_controller {
     use std::vector;
     use sui::url;
 
-    const MIN_COMMITMENT_AGE: u64 = 1;
+    // TODO: remove later when timestamp is introduced
+    // const MIN_COMMITMENT_AGE: u64 = 0;
     const MAX_COMMITMENT_AGE: u64 = 3;
-    // in terms of days
-    const MIN_REGISTRATION_DURATION: u64 = 365;
-    const REGISTER_FEE: u64 = 10000;
-    const RENEW_FEE: u64 = 5000;
+    const REGISTRATION_FEE_PER_YEAR: u64 = 888;
     const BASE_NODE: vector<u8> = b"sui";
 
     // errors in the range of 301..400 indicate Sui Controller errors
@@ -35,6 +33,7 @@ module suins::sui_controller {
     const ELabelUnAvailable: u64 = 308;
     const EUnauthorized: u64 = 309;
     const ENoProfits: u64 = 310;
+    const EInvalidLabel: u64 = 311;
 
     struct NameRegisteredEvent has copy, drop {
         node: String,
@@ -81,18 +80,21 @@ module suins::sui_controller {
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext,
     ) {
-        assert!(coin::value(payment) >= RENEW_FEE, ENotEnoughFee);
+        let no_year = duration / 365;
+        if ((duration % 365) > 0) no_year = no_year + 1;
+        let renew_fee = REGISTRATION_FEE_PER_YEAR * no_year;
+        assert!(coin::value(payment) >= renew_fee, ENotEnoughFee);
 
         sui_registrar::renew(registrar, label, duration, ctx);
 
         let coin_balance = coin::balance_mut(payment);
-        let paid = balance::split(coin_balance, RENEW_FEE);
+        let paid = balance::split(coin_balance, renew_fee);
         balance::join(&mut controller.balance, paid);
 
         event::emit(NameRenewedEvent {
             node: string::utf8(BASE_NODE),
             label: string::utf8(label),
-            cost: RENEW_FEE,
+            cost: renew_fee,
             expiry: duration,
         })
     }
@@ -125,7 +127,6 @@ module suins::sui_controller {
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext,
     ) {
-        assert!(coin::value(payment) >= REGISTER_FEE, ENotEnoughFee);
         // TODO: duration in year only
         register_with_config(
             controller,
@@ -157,8 +158,15 @@ module suins::sui_controller {
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext,
     ) {
+        if (!is_label_valid(string::utf8(label))) abort EInvalidLabel;
+
+        let no_year = duration / 365;
+        if ((duration % 365) > 0) no_year = no_year + 1;
+        let registration_fee = REGISTRATION_FEE_PER_YEAR * no_year;
+        assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
+
         let commitment = make_commitment(label, owner, secret);
-        consume_commitment(controller, registrar, label, duration, commitment, ctx);
+        consume_commitment(controller, registrar, label, commitment, ctx);
 
         if (resolver != @0x0) {
             sui_registrar::register(registrar, registry, label, owner, duration, resolver, url::new_unsafe_from_bytes(url), ctx);
@@ -171,11 +179,11 @@ module suins::sui_controller {
             node: string::utf8(BASE_NODE),
             label: string::utf8(label),
             owner,
-            cost: REGISTER_FEE,
+            cost: registration_fee,
             expiry: tx_context::epoch(ctx) + duration,
         });
         let coin_balance = coin::balance_mut(payment);
-        let paid = balance::split(coin_balance, REGISTER_FEE);
+        let paid = balance::split(coin_balance, registration_fee);
         balance::join(&mut controller.balance, paid);
     }
 
@@ -183,27 +191,30 @@ module suins::sui_controller {
         controller: &mut SuiController,
         registrar: &SuiRegistrar,
         label: vector<u8>,
-        duration: u64,
         commitment: vector<u8>,
         ctx: &TxContext,
     ) {
         assert!(vec_map::contains(&controller.commitments, &commitment), ECommitmentNotExists);
-        assert!(
-            *vec_map::get(&controller.commitments, &commitment) + MIN_COMMITMENT_AGE <= tx_context::epoch(ctx),
-            ECommitmentNotValid
-        );
+        // TODO: remove later when timestamp is introduced
+        // assert!(
+        //     *vec_map::get(&controller.commitments, &commitment) + MIN_COMMITMENT_AGE <= tx_context::epoch(ctx),
+        //     ECommitmentNotValid
+        // );
         assert!(
             *vec_map::get(&controller.commitments, &commitment) + MAX_COMMITMENT_AGE > tx_context::epoch(ctx),
             ECommitmentTooOld
         );
         assert!(available(registrar, string::utf8(label), ctx), ELabelUnAvailable);
         vec_map::remove(&mut controller.commitments, &commitment);
-        assert!(duration % 365 == 0, EInvalidDuration);
+    }
+
+    fun is_label_valid(label: String): bool {
+        // valid label cannot contain '.'
+        // TODO: check for UTF8 characters that look the same as '.'
+        string::index_of(&label, &string::utf8(b".")) == string::length(&label)
     }
 
     fun make_commitment(label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
-        // TODO: only serialize input atm,
-        // wait for https://github.com/move-language/move/pull/408 to be merged for encoding
         let owner_bytes = bcs::to_bytes(&owner);
         vector::append(&mut label, owner_bytes);
         vector::append(&mut label, secret);
