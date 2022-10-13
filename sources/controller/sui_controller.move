@@ -2,7 +2,7 @@ module suins::sui_controller {
 
     use sui::balance::{Self, Balance};
     use sui::coin::{Self, Coin};
-    use sui::crypto::keccak256;
+    use sui::ecdsa::keccak256;
     use sui::event;
     use sui::object::{Self, UID};
     use sui::transfer;
@@ -218,7 +218,7 @@ module suins::sui_controller {
         let owner_bytes = bcs::to_bytes(&owner);
         vector::append(&mut label, owner_bytes);
         vector::append(&mut label, secret);
-        keccak256(label)
+        keccak256(&label)
     }
 
     #[test_only]
