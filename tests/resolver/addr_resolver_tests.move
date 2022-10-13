@@ -7,6 +7,7 @@ module suins::addr_resolver_tests {
     use suins::base_registry::Registry;
     use suins::addr_resolver::AddrResolver;
     use suins::base_registry;
+    use std::string;
 
     const SUINS_ADDRESS: address = @0xA001;
     const SUI_NODE: vector<u8> = b"sui";
@@ -156,6 +157,240 @@ module suins::addr_resolver_tests {
             let resolver = test_scenario::borrow_mut(&mut resolver_wrapper);
 
             addr_resolver::set_addr(resolver, registry, SUI_NODE, SECOND_USER_ADDRESS, test_scenario::ctx(&mut scenario));
+
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+            test_scenario::return_shared(&mut scenario, resolver_wrapper);
+        };
+    }
+
+    #[test]
+    fun test_set_authorisation() {
+        let scenario = init();
+
+        test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
+        {
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let resolver_wrapper = test_scenario::take_shared<AddrResolver>(&mut scenario);
+            let resolver = test_scenario::borrow_mut(&mut resolver_wrapper);
+
+            addr_resolver::set_authorisation(
+                resolver,
+                registry,
+                SUI_NODE,
+                FIRST_USER_ADDRESS,
+                true,
+                test_scenario::ctx(&mut scenario)
+            );
+
+            assert!(addr_resolver::is_authorised(resolver, string::utf8(SUI_NODE), FIRST_USER_ADDRESS), 0);
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+            test_scenario::return_shared(&mut scenario, resolver_wrapper);
+        };
+
+        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
+        {
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let resolver_wrapper = test_scenario::take_shared<AddrResolver>(&mut scenario);
+            let resolver = test_scenario::borrow_mut(&mut resolver_wrapper);
+
+            addr_resolver::set_addr(resolver, registry, SUI_NODE, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
+
+            assert!(addr_resolver::is_authorised(resolver, string::utf8(SUI_NODE), FIRST_USER_ADDRESS), 0);
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+            test_scenario::return_shared(&mut scenario, resolver_wrapper);
+        };
+    }
+
+    #[test]
+    fun test_remove_authorisation() {
+        let scenario = init();
+
+        test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
+        {
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let resolver_wrapper = test_scenario::take_shared<AddrResolver>(&mut scenario);
+            let resolver = test_scenario::borrow_mut(&mut resolver_wrapper);
+
+            addr_resolver::set_authorisation(
+                resolver,
+                registry,
+                SUI_NODE,
+                FIRST_USER_ADDRESS,
+                true,
+                test_scenario::ctx(&mut scenario)
+            );
+
+            assert!(addr_resolver::is_authorised(resolver, string::utf8(SUI_NODE), FIRST_USER_ADDRESS), 0);
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+            test_scenario::return_shared(&mut scenario, resolver_wrapper);
+        };
+
+        test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
+        {
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let resolver_wrapper = test_scenario::take_shared<AddrResolver>(&mut scenario);
+            let resolver = test_scenario::borrow_mut(&mut resolver_wrapper);
+
+            assert!(addr_resolver::is_authorised(resolver, string::utf8(SUI_NODE), FIRST_USER_ADDRESS), 0);
+
+            addr_resolver::set_authorisation(
+                resolver,
+                registry,
+                SUI_NODE,
+                FIRST_USER_ADDRESS,
+                false,
+                test_scenario::ctx(&mut scenario)
+            );
+
+            assert!(!addr_resolver::is_authorised(resolver, string::utf8(SUI_NODE), FIRST_USER_ADDRESS), 0);
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+            test_scenario::return_shared(&mut scenario, resolver_wrapper);
+        };
+    }
+
+    #[test]
+    fun test_add_then_remove_authorisation() {
+        let scenario = init();
+
+        test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
+        {
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let resolver_wrapper = test_scenario::take_shared<AddrResolver>(&mut scenario);
+            let resolver = test_scenario::borrow_mut(&mut resolver_wrapper);
+
+            addr_resolver::set_authorisation(
+                resolver,
+                registry,
+                SUI_NODE,
+                FIRST_USER_ADDRESS,
+                true,
+                test_scenario::ctx(&mut scenario)
+            );
+
+            assert!(addr_resolver::is_authorised(resolver, string::utf8(SUI_NODE), FIRST_USER_ADDRESS), 0);
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+            test_scenario::return_shared(&mut scenario, resolver_wrapper);
+        };
+
+        test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
+        {
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let resolver_wrapper = test_scenario::take_shared<AddrResolver>(&mut scenario);
+            let resolver = test_scenario::borrow_mut(&mut resolver_wrapper);
+
+            addr_resolver::set_authorisation(
+                resolver,
+                registry,
+                SUI_NODE,
+                FIRST_USER_ADDRESS,
+                false,
+                test_scenario::ctx(&mut scenario)
+            );
+
+            assert!(!addr_resolver::is_authorised(resolver, string::utf8(SUI_NODE), FIRST_USER_ADDRESS), 0);
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+            test_scenario::return_shared(&mut scenario, resolver_wrapper);
+        };
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 1)]
+    fun test_remove_non_existed_authorisation_abort() {
+        let scenario = init();
+
+        test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
+        {
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let resolver_wrapper = test_scenario::take_shared<AddrResolver>(&mut scenario);
+            let resolver = test_scenario::borrow_mut(&mut resolver_wrapper);
+
+            addr_resolver::set_authorisation(
+                resolver,
+                registry,
+                SUI_NODE,
+                FIRST_USER_ADDRESS,
+                false,
+                test_scenario::ctx(&mut scenario)
+            );
+
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+            test_scenario::return_shared(&mut scenario, resolver_wrapper);
+        };
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 0)]
+    fun test_add_existed_authorisation_abort() {
+        let scenario = init();
+
+        test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
+        {
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let resolver_wrapper = test_scenario::take_shared<AddrResolver>(&mut scenario);
+            let resolver = test_scenario::borrow_mut(&mut resolver_wrapper);
+
+            addr_resolver::set_authorisation(
+                resolver,
+                registry,
+                SUI_NODE,
+                FIRST_USER_ADDRESS,
+                true,
+                test_scenario::ctx(&mut scenario)
+            );
+
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+            test_scenario::return_shared(&mut scenario, resolver_wrapper);
+        };
+
+        test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
+        {
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let resolver_wrapper = test_scenario::take_shared<AddrResolver>(&mut scenario);
+            let resolver = test_scenario::borrow_mut(&mut resolver_wrapper);
+
+            addr_resolver::set_authorisation(
+                resolver,
+                registry,
+                SUI_NODE,
+                FIRST_USER_ADDRESS,
+                true,
+                test_scenario::ctx(&mut scenario)
+            );
+
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+            test_scenario::return_shared(&mut scenario, resolver_wrapper);
+        };
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 401)]
+    fun test_set_authorisation_if_unauthorised() {
+        let scenario = init();
+
+        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
+        {
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let resolver_wrapper = test_scenario::take_shared<AddrResolver>(&mut scenario);
+            let resolver = test_scenario::borrow_mut(&mut resolver_wrapper);
+
+            addr_resolver::set_authorisation(
+                resolver,
+                registry,
+                SUI_NODE,
+                FIRST_USER_ADDRESS,
+                true,
+                test_scenario::ctx(&mut scenario)
+            );
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
             test_scenario::return_shared(&mut scenario, resolver_wrapper);
