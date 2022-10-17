@@ -1,11 +1,15 @@
 module suins::reverse_registrar {
 
+    use std::bcs;
     use sui::event;
     use sui::object::{Self, UID};
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
-    use sui::vec_map::{Self, VecMap};
+    use std::vector;
     use suins::base_registry::{Self, Registry, AdminCap};
+    use std::string;
+
+    const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
 
     // errors in the range of 501..600 indicate Address Resolver errors
     const EUnauthorized: u64 = 101;
@@ -23,15 +27,12 @@ module suins::reverse_registrar {
     struct ReverseRegistrar has key {
         id: UID,
         default_resolver: address,
-        // map from user address to resolver address
-        records: VecMap<address, address>,
     }
 
     fun init(ctx: &mut TxContext) {
         transfer::share_object(ReverseRegistrar {
             id: object::new(ctx),
             default_resolver: tx_context::sender(ctx),
-            records: vec_map::empty(),
         });
     }
 
@@ -41,34 +42,33 @@ module suins::reverse_registrar {
         event::emit(DefaultResolverChangedEvent { resolver })
     }
 
-    public entry fun claim(registrar: &mut ReverseRegistrar, registry: &mut Registry, ctx: &mut TxContext) {
-        let resolver = *&registrar.default_resolver;
-        claim_for_addr(registrar, registry, tx_context::sender(ctx), resolver, ctx)
+    public entry fun claim(registrar: &mut ReverseRegistrar, registry: &mut Registry, owner: address, ctx: &mut TxContext) {
+        claim_for_addr(registry, tx_context::sender(ctx), owner, *&registrar.default_resolver, ctx)
     }
 
     public entry fun claim_with_resolver(
-        registrar: &mut ReverseRegistrar,
         registry: &mut Registry,
+        owner: address,
         resolver: address,
         ctx: &mut TxContext
     ) {
-        claim_for_addr(registrar, registry, tx_context::sender(ctx), resolver, ctx)
+        claim_for_addr(registry, tx_context::sender(ctx), owner, resolver, ctx)
     }
 
     public entry fun claim_for_addr(
-        registrar: &mut ReverseRegistrar,
         registry: &mut Registry,
         addr: address,
+        owner: address,
         resolver: address,
         ctx: &mut TxContext
     ) {
         assert!(resolver != @0x0, EInvalidResolver);
         authorised(registry, addr, ctx);
 
-        if (vec_map::contains(&registrar.records, &addr)) {
-            vec_map::remove(&mut registrar.records, &addr);
-        };
-        vec_map::insert(&mut registrar.records, addr, resolver);
+        let label = address_to_string(addr);
+        let subnode = base_registry::make_subnode(label, string::utf8(ADDR_REVERSE_BASE_NODE));
+        base_registry::set_subnode_record_internal(registry, subnode, owner, resolver, 0);
+
         event::emit(ReverseClaimedEvent { addr, resolver })
     }
 
@@ -77,19 +77,44 @@ module suins::reverse_registrar {
         if (sender != addr && !base_registry::is_approval_for_all(registry, sender, addr)) abort EUnauthorized;
     }
 
+    fun address_to_string(addr: address): vector<u8> {
+        let bytes = bcs::to_bytes(&addr);
+        let len = vector::length(&bytes);
+        let index = 0;
+        let result: vector<u8> = vector[];
+
+        while(index < len) {
+            let byte = *vector::borrow(&bytes, index);
+
+            let first: u8 = (byte >> 4) & 0xF;
+            // a in HEX == 10 in DECIMAL
+            // 'a' in CHAR  == 97 in DECIMAL
+            // 8 in HEX == 8 in DECIMAL
+            // '8' in CHAR  == 56 in DECIMAL
+            if (first > 9) first = first + 87
+            else first = first + 48;
+
+            let second: u8 = byte & 0xF;
+            if (second > 9) second = second + 87
+            else second = second + 48;
+
+            vector::push_back(&mut result, first);
+            vector::push_back(&mut result, second);
+
+            index = index + 1;
+        };
+
+        result
+    }
+
     #[test_only]
-    public fun get_records_len(registrar: &ReverseRegistrar): u64 {
-        vec_map::size(&registrar.records)
+    public fun address_to_string_helper(addr: address): string::String {
+        string::utf8(address_to_string(addr))
     }
 
     #[test_only]
     public fun get_default_resolver(registrar: &ReverseRegistrar): address {
         registrar.default_resolver
-    }
-
-    #[test_only]
-    public fun get_record_at_index(registrar: &ReverseRegistrar, index: u64): (&address, &address) {
-        vec_map::get_entry_by_idx(&registrar.records, index)
     }
 
     #[test_only]

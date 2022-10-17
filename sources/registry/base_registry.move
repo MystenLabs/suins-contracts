@@ -170,8 +170,18 @@ module suins::base_registry {
         authorised(registry, node, ctx);
 
         let subnode = make_subnode(label, string::utf8(node));
-        set_node_record_internal(registry, subnode, owner, resolver, ttl);
+        set_subnode_record_internal(registry, subnode, owner, resolver, ttl);
         event::emit(NewRecordEvent { node: subnode, owner, resolver, ttl });
+    }
+
+    public(friend) fun set_subnode_record_internal(
+        registry: &mut Registry,
+        subnode: String,
+        owner: address,
+        resolver: address,
+        ttl: u64,
+    ) {
+        set_node_record_internal(registry, subnode, owner, resolver, ttl);
     }
 
     public entry fun set_subnode_owner(
