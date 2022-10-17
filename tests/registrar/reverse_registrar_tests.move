@@ -379,19 +379,4 @@ module suins::reverse_registrar_tests {
             test_scenario::return_owned(&mut scenario, admin_cap);
         };
     }
-
-    #[test]
-    fun test_address_to_string() {
-        let scenario = init();
-
-        test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
-        {
-            let str = reverse_registrar::address_to_string_helper(@0xaa27befb8f8b35ad71c30cdcd55fab7c9310f87e);
-            assert!(str == string::utf8(b"aa27befb8f8b35ad71c30cdcd55fab7c9310f87e"), 0);
-            let str = reverse_registrar::address_to_string_helper(@0xc9310f87e);
-            assert!(str == string::utf8(b"0000000000000000000000000000000c9310f87e"), 0);
-            let str = reverse_registrar::address_to_string_helper(@0xABCDEF);
-            assert!(str == string::utf8(b"0000000000000000000000000000000000abcdef"), 0);
-        };
-    }
 }

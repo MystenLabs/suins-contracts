@@ -11,6 +11,7 @@ module suins::base_registry {
     friend suins::sui_registrar;
     friend suins::reverse_registrar;
     friend suins::sui_controller;
+    friend suins::name_resolver;
 
     const MOVE_BASE_NODE: vector<u8> = b"move";
     const SUI_BASE_NODE: vector<u8> = b"sui";
@@ -360,6 +361,8 @@ module suins::base_registry {
 
     #[test_only]
     friend suins::base_registry_tests;
+    #[test_only]
+    friend suins::name_resolver_tests;
 
     #[test_only]
     public fun get_record_at_index(registry: &Registry, index: u64): (&String, &Record) {
@@ -380,6 +383,11 @@ module suins::base_registry {
 
     #[test_only]
     public fun get_record_ttl(record: &Record): u64 { record.ttl }
+
+    #[test_only]
+    public fun new_record_test(registry: &mut Registry, node: String, owner: address) {
+        new_record(registry, node, owner, @0x0, 0);
+    }
 
     #[test_only]
     /// Wrapper of module initializer for testing

@@ -34,8 +34,7 @@ module suins::addr_resolver_tests {
             let resolver_wrapper = test_scenario::take_shared<AddrResolver>(&mut scenario);
             let resolver = test_scenario::borrow_mut(&mut resolver_wrapper);
 
-            let addr = addr_resolver::addr(resolver, SUI_NODE);
-            assert!(addr == FIRST_USER_ADDRESS, 0);
+            addr_resolver::addr(resolver, SUI_NODE);
 
             test_scenario::return_shared(&mut scenario, resolver_wrapper);
         };

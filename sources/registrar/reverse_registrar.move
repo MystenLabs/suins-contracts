@@ -1,13 +1,12 @@
 module suins::reverse_registrar {
 
-    use std::bcs;
     use sui::event;
     use sui::object::{Self, UID};
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
-    use std::vector;
     use suins::base_registry::{Self, Registry, AdminCap};
     use std::string;
+    use suins::converter;
 
     const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
 
@@ -65,7 +64,7 @@ module suins::reverse_registrar {
         assert!(resolver != @0x0, EInvalidResolver);
         authorised(registry, addr, ctx);
 
-        let label = address_to_string(addr);
+        let label = converter::address_to_string(addr);
         let subnode = base_registry::make_subnode(label, string::utf8(ADDR_REVERSE_BASE_NODE));
         base_registry::set_subnode_record_internal(registry, subnode, owner, resolver, 0);
 
@@ -75,41 +74,6 @@ module suins::reverse_registrar {
     fun authorised(registry: &Registry, addr: address, ctx: &TxContext) {
         let sender = tx_context::sender(ctx);
         if (sender != addr && !base_registry::is_approval_for_all(registry, sender, addr)) abort EUnauthorized;
-    }
-
-    fun address_to_string(addr: address): vector<u8> {
-        let bytes = bcs::to_bytes(&addr);
-        let len = vector::length(&bytes);
-        let index = 0;
-        let result: vector<u8> = vector[];
-
-        while(index < len) {
-            let byte = *vector::borrow(&bytes, index);
-
-            let first: u8 = (byte >> 4) & 0xF;
-            // a in HEX == 10 in DECIMAL
-            // 'a' in CHAR  == 97 in DECIMAL
-            // 8 in HEX == 8 in DECIMAL
-            // '8' in CHAR  == 56 in DECIMAL
-            if (first > 9) first = first + 87
-            else first = first + 48;
-
-            let second: u8 = byte & 0xF;
-            if (second > 9) second = second + 87
-            else second = second + 48;
-
-            vector::push_back(&mut result, first);
-            vector::push_back(&mut result, second);
-
-            index = index + 1;
-        };
-
-        result
-    }
-
-    #[test_only]
-    public fun address_to_string_helper(addr: address): string::String {
-        string::utf8(address_to_string(addr))
     }
 
     #[test_only]
