@@ -5,10 +5,9 @@ module suins::sui_registrar {
     use sui::tx_context::{Self, TxContext};
     use sui::url::Url;
     use sui::vec_map::{Self, VecMap};
-    use sui::vec_set::{Self, VecSet};
     use suins::base_registry::{Self, Registry, AdminCap};
     use std::string::{Self, String};
-    use std::option::{Self, Option};
+    use std::option;
 
     friend suins::sui_controller;
 
@@ -17,7 +16,6 @@ module suins::sui_registrar {
     const GRACE_PERIOD: u8 = 90;
 
     // errors in the range of 201..300 indicate Registrar errors
-    const EUnauthorized: u64 = 201;
     const EInvalidLabel: u64 = 203;
     const ELabelUnAvailable: u64 = 204;
     const ELabelExpired: u64 = 205;
@@ -27,7 +25,6 @@ module suins::sui_registrar {
     struct NameRegisteredEvent has copy, drop {
         nft_id: ID,
         resolver: address,
-        // subnode = label + '.' + node, e.g, eastagile.sui
         node: String,
         label: String,
         owner: address,
@@ -37,6 +34,11 @@ module suins::sui_registrar {
     struct NameRenewedEvent has copy, drop {
         label: String,
         expiry: u64,
+    }
+
+    struct NameReclaimedEvent has copy, drop {
+        node: String,
+        owner: address,
     }
 
     // send to owner of a domain, not store in registry
@@ -50,21 +52,18 @@ module suins::sui_registrar {
 
     struct RegistrationDetail has store {
         expiry: u64,
-        approval: Option<address>,
     }
 
     struct SuiRegistrar has key {
         id: UID,
         // key is label, e.g. 'eastagile', 'dn.eastagile'
         expiries: VecMap<String, RegistrationDetail>,
-        operators: VecMap<address, VecSet<address>>,
     }
 
     fun init(ctx: &mut TxContext) {
         transfer::share_object(SuiRegistrar {
             id: object::new(ctx),
             expiries: vec_map::empty(),
-            operators: vec_map::empty(),
         });
     }
 
@@ -146,31 +145,35 @@ module suins::sui_registrar {
         base_registry::set_resolver(registry, BASE_NODE, resolver, ctx);
     }
 
+    // check for expiry
     public entry fun reclaim(
-        registrar: &SuiRegistrar,
         registry: &mut Registry,
         label: vector<u8>,
         base_node: vector<u8>,
         owner: address,
         ctx: &mut TxContext
     ) {
-        assert!(
-            is_approved_or_owner(registrar, registry, label, base_node, ctx),
-            EUnauthorized
-        );
-        base_registry::set_subnode_owner_internal(registry, BASE_NODE, label, owner);
+        base_registry::authorised(registry, base_node, ctx);
+
+        let node = base_registry::make_node(label, string::utf8(BASE_NODE));
+        base_registry::set_owner_internal(registry, node, owner);
+        event::emit(NameReclaimedEvent {
+            node: string::utf8(base_node),
+            owner,
+        })
     }
 
     public entry fun reclaim_by_nft_owner(
         registry: &mut Registry,
         nft: &RegistrationNFT,
-        label: vector<u8>,
         owner: address,
     ) {
-        let base_node = string::utf8(BASE_NODE);
-        assert!(base_registry::make_subnode(label, base_node) == nft.name, EUnauthorized);
         // TODO: check if nft is expired or not
-        base_registry::set_subnode_owner_internal(registry, BASE_NODE, label, owner);
+        base_registry::set_owner_internal(registry, nft.name, owner);
+        event::emit(NameReclaimedEvent {
+            node: nft.name,
+            owner,
+        })
     }
 
     fun register_internal(
@@ -192,23 +195,22 @@ module suins::sui_registrar {
 
         let detail = RegistrationDetail {
             expiry: tx_context::epoch(ctx) + duration,
-            approval: option::none(),
         };
         vec_map::insert(&mut registrar.expiries, label, detail);
 
-        let subnode = label;
-        string::append_utf8(&mut subnode, b".");
-        string::append_utf8(&mut subnode, BASE_NODE);
+        let node = label;
+        string::append_utf8(&mut node, b".");
+        string::append_utf8(&mut node, BASE_NODE);
 
         let nft = RegistrationNFT {
             id: object::new(ctx),
-            name: subnode,
+            name: node,
             url,
         };
         let nft_id = object::uid_to_inner(&nft.id);
         transfer::transfer(nft, owner);
 
-        if (update_registry) base_registry::set_node_record_internal(registry, subnode, owner, resolver, 0);
+        if (update_registry) base_registry::set_node_record_internal(registry, node, owner, resolver, 0);
         nft_id
     }
 
@@ -216,32 +218,10 @@ module suins::sui_registrar {
         vec_map::contains(&registrar.expiries, &label)
     }
 
-    fun get_approved(registrar: &SuiRegistrar, label: String): address {
-        let approval = vec_map::get(&registrar.expiries, &label).approval;
-        if (option::is_some(&approval)) option::extract(&mut approval)
-        else @0x0
-    }
-
-    fun is_approved_for_all(registrar: &SuiRegistrar, owner: address, operator: address): bool {
-        if (vec_map::contains(&registrar.operators, &owner)) {
-            let operators = vec_map::get(&registrar.operators, &owner);
-            return vec_set::contains(operators, &operator)
-        };
-        false
-    }
-
-    fun is_approved_or_owner(
-        registrar: &SuiRegistrar,
-        registry: &Registry,
-        label: vector<u8>,
-        base_node: vector<u8>,
-        ctx: &TxContext,
-    ): bool {
+    fun is_owner(registry: &Registry, base_node: vector<u8>, ctx: &TxContext): bool {
         let owner = base_registry::owner(registry, base_node);
         let spender = tx_context::sender(ctx);
-        spender == owner ||
-            spender == get_approved(registrar, string::utf8(label)) ||
-            is_approved_for_all(registrar, owner, spender)
+        spender == owner
     }
 
     #[test_only]

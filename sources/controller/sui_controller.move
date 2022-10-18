@@ -31,7 +31,6 @@ module suins::sui_controller {
     const EInvalidDuration: u64 = 306;
     const EInvalidAddr: u64 = 307;
     const ELabelUnAvailable: u64 = 308;
-    const EUnauthorized: u64 = 309;
     const ENoProfits: u64 = 310;
     const EInvalidLabel: u64 = 311;
 
