@@ -9,10 +9,13 @@ module suins::base_registry {
     use std::string::{Self, String};
 
     friend suins::sui_registrar;
+    friend suins::reverse_registrar;
     friend suins::sui_controller;
+    friend suins::name_resolver;
 
     const MOVE_BASE_NODE: vector<u8> = b"move";
     const SUI_BASE_NODE: vector<u8> = b"sui";
+    const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
     const MAX_TTL: u64 = 0x100000;
 
     // errors in the range of 101..200 indicate Registry errors
@@ -84,6 +87,13 @@ module suins::base_registry {
             @0x0,
             MAX_TTL,
         );
+        new_record(
+            &mut registry,
+            string::utf8(ADDR_REVERSE_BASE_NODE),
+            tx_context::sender(ctx),
+            @0x0,
+            MAX_TTL,
+        );
         transfer::share_object(registry);
         transfer::transfer(AdminCap {
             id: object::new(ctx)
@@ -115,11 +125,10 @@ module suins::base_registry {
         vec_map::contains(&registry.records, node)
     }
 
-    public fun is_approval_for_all(registry: &mut Registry, operator: address, ctx: &mut TxContext): bool {
-        let sender = tx_context::sender(ctx);
-        if (vec_map::contains(&registry.operators, &sender)) {
+    public fun is_approval_for_all(registry: &Registry, operator: address, owner: address): bool {
+        if (vec_map::contains(&registry.operators, &owner)) {
             let operators =
-                vec_map::get_mut(&mut registry.operators, &sender);
+                vec_map::get(&registry.operators, &owner);
             if (vec_set::contains(operators, &operator)) return true;
         };
         false
@@ -162,8 +171,18 @@ module suins::base_registry {
         authorised(registry, node, ctx);
 
         let subnode = make_subnode(label, string::utf8(node));
-        set_node_record_internal(registry, subnode, owner, resolver, ttl);
+        set_subnode_record_internal(registry, subnode, owner, resolver, ttl);
         event::emit(NewRecordEvent { node: subnode, owner, resolver, ttl });
+    }
+
+    public(friend) fun set_subnode_record_internal(
+        registry: &mut Registry,
+        subnode: String,
+        owner: address,
+        resolver: address,
+        ttl: u64,
+    ) {
+        set_node_record_internal(registry, subnode, owner, resolver, ttl);
     }
 
     public entry fun set_subnode_owner(
@@ -328,6 +347,8 @@ module suins::base_registry {
 
     #[test_only]
     friend suins::base_registry_tests;
+    #[test_only]
+    friend suins::name_resolver_tests;
 
     #[test_only]
     public fun get_record_at_index(registry: &Registry, index: u64): (&String, &Record) {
@@ -348,6 +369,11 @@ module suins::base_registry {
 
     #[test_only]
     public fun get_record_ttl(record: &Record): u64 { record.ttl }
+
+    #[test_only]
+    public fun new_record_test(registry: &mut Registry, node: String, owner: address) {
+        new_record(registry, node, owner, @0x0, 0);
+    }
 
     #[test_only]
     /// Wrapper of module initializer for testing
