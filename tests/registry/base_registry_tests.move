@@ -168,6 +168,7 @@ module suins::base_registry_tests {
         let scenario = init();
         mint_record(&mut scenario);
         set_operator(&mut scenario);
+
         test_scenario::next_tx(&mut scenario, &SECOND_USER_ADDRESS);
         {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
@@ -851,6 +852,77 @@ module suins::base_registry_tests {
                 ),
                 0,
             );
+
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+        };
+
+        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
+        {
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+
+            base_registry::set_approval_for_all(
+                registry,
+                SECOND_USER_ADDRESS,
+                false,
+                test_scenario::ctx(&mut scenario),
+            );
+            assert!(
+                !base_registry::is_approval_for_all(
+                    registry,
+                    SECOND_USER_ADDRESS,
+                    test_scenario::ctx(&mut scenario)
+                ),
+                0,
+            );
+
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+        };
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 102)]
+    fun test_get_resolver_abort_if_node_not_exists() {
+        let scenario = init();
+
+        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
+        {
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+
+            let _ = base_registry::resolver(registry, SECOND_BASE_NODE);
+
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+        };
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 102)]
+    fun test_get_owner_abort_if_node_not_exists() {
+        let scenario = init();
+
+        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
+        {
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+
+            let _ = base_registry::owner(registry, SECOND_BASE_NODE);
+
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+        };
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 102)]
+    fun test_get_ttl_abort_if_node_not_exists() {
+        let scenario = init();
+
+        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
+        {
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+
+            let _ = base_registry::ttl(registry, SECOND_BASE_NODE);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
