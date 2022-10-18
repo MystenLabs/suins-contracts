@@ -3,7 +3,7 @@ module suins::sui_registrar_tests {
     use sui::test_scenario::{Self, Scenario};
     use sui::tx_context;
     use sui::url;
-    use suins::base_registry::{Self, Registry, AdminCap};
+    use suins::base_registry::{Self, Registry};
     use suins::sui_registrar::{Self, SuiRegistrar, RegistrationNFT};
     use std::string;
     use std::vector;
@@ -102,11 +102,11 @@ module suins::sui_registrar_tests {
             let registrar_wrapper = test_scenario::take_shared<SuiRegistrar>(&mut scenario);
             let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
 
-            let subnode = string::utf8(b"eastagile");
-            assert!(!sui_registrar::available(registrar, subnode, test_scenario::ctx(&mut scenario)), 0);
+            let label = string::utf8(b"eastagile");
+            assert!(!sui_registrar::available(registrar, label, test_scenario::ctx(&mut scenario)), 0);
 
-            let subnode = string::utf8(b"ea");
-            assert!(sui_registrar::available(registrar, subnode, test_scenario::ctx(&mut scenario)), 0);
+            let label = string::utf8(b"ea");
+            assert!(sui_registrar::available(registrar, label, test_scenario::ctx(&mut scenario)), 0);
 
             test_scenario::return_shared(&mut scenario, registrar_wrapper);
         };
@@ -117,11 +117,11 @@ module suins::sui_registrar_tests {
             let registrar_wrapper = test_scenario::take_shared<SuiRegistrar>(&mut scenario);
             let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
 
-            let subnode = string::utf8(b"eastagile");
-            assert!(sui_registrar::name_expires(registrar, subnode) == 365, 0);
+            let label = string::utf8(b"eastagile");
+            assert!(sui_registrar::name_expires(registrar, label) == 365, 0);
 
-            let subnode = string::utf8(b"ea");
-            assert!(sui_registrar::name_expires(registrar, subnode) == 0, 0);
+            let label = string::utf8(b"ea");
+            assert!(sui_registrar::name_expires(registrar, label) == 0, 0);
 
             test_scenario::return_shared(&mut scenario, registrar_wrapper);
         };
@@ -285,11 +285,11 @@ module suins::sui_registrar_tests {
             let registrar_wrapper = test_scenario::take_shared<SuiRegistrar>(&mut scenario);
             let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
 
-            let subnode = string::utf8(b"eastagile");
-            assert!(!sui_registrar::available(registrar, subnode, test_scenario::ctx(&mut scenario)), 0);
+            let label = string::utf8(b"eastagile");
+            assert!(!sui_registrar::available(registrar, label, test_scenario::ctx(&mut scenario)), 0);
 
-            let subnode = string::utf8(b"ea");
-            assert!(sui_registrar::available(registrar, subnode, test_scenario::ctx(&mut scenario)), 0);
+            let label = string::utf8(b"ea");
+            assert!(sui_registrar::available(registrar, label, test_scenario::ctx(&mut scenario)), 0);
 
             test_scenario::return_shared(&mut scenario, registrar_wrapper);
         };
@@ -300,11 +300,11 @@ module suins::sui_registrar_tests {
             let registrar_wrapper = test_scenario::take_shared<SuiRegistrar>(&mut scenario);
             let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
 
-            let subnode = string::utf8(b"eastagile");
-            assert!(sui_registrar::name_expires(registrar, subnode) == 365, 0);
+            let label = string::utf8(b"eastagile");
+            assert!(sui_registrar::name_expires(registrar, label) == 365, 0);
 
-            let subnode = string::utf8(b"ea");
-            assert!(sui_registrar::name_expires(registrar, subnode) == 0, 0);
+            let label = string::utf8(b"ea");
+            assert!(sui_registrar::name_expires(registrar, label) == 0, 0);
 
             test_scenario::return_shared(&mut scenario, registrar_wrapper);
         };
@@ -383,14 +383,11 @@ module suins::sui_registrar_tests {
 
         test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
         {
-            let registrar_wrapper = test_scenario::take_shared<SuiRegistrar>(&mut scenario);
-            let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            sui_registrar::reclaim(registrar, registry, FIRST_LABEL, BASE_NODE, SECOND_USER, test_scenario::ctx(&mut scenario));
+            sui_registrar::reclaim(registry, FIRST_LABEL, BASE_NODE, SECOND_USER, test_scenario::ctx(&mut scenario));
 
-            test_scenario::return_shared(&mut scenario, registrar_wrapper);
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
 
@@ -407,14 +404,11 @@ module suins::sui_registrar_tests {
 
         test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
         {
-            let registrar_wrapper = test_scenario::take_shared<SuiRegistrar>(&mut scenario);
-            let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            sui_registrar::reclaim(registrar, registry, FIRST_LABEL, BASE_NODE, FIRST_USER, test_scenario::ctx(&mut scenario));
+            sui_registrar::reclaim(registry, FIRST_LABEL, BASE_NODE, FIRST_USER, test_scenario::ctx(&mut scenario));
 
-            test_scenario::return_shared(&mut scenario, registrar_wrapper);
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
 
@@ -431,21 +425,18 @@ module suins::sui_registrar_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 201)]
+    #[expected_failure(abort_code = 101)]
     fun test_reclaim_abort_caller_is_unauthorized() {
         let scenario = init();
         register(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, &SECOND_USER);
         {
-            let registrar_wrapper = test_scenario::take_shared<SuiRegistrar>(&mut scenario);
-            let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            sui_registrar::reclaim(registrar, registry, FIRST_LABEL, BASE_NODE, SECOND_USER, test_scenario::ctx(&mut scenario));
+            sui_registrar::reclaim(registry, FIRST_LABEL, BASE_NODE, SECOND_USER, test_scenario::ctx(&mut scenario));
 
-            test_scenario::return_shared(&mut scenario, registrar_wrapper);
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
     }
@@ -460,7 +451,7 @@ module suins::sui_registrar_tests {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
             let nft = test_scenario::take_owned<RegistrationNFT>(&mut scenario);
-            sui_registrar::reclaim_by_nft_owner(registry, &nft, FIRST_LABEL, SECOND_USER);
+            sui_registrar::reclaim_by_nft_owner(registry, &nft, SECOND_USER);
 
             test_scenario::return_owned(&mut scenario, nft);
             test_scenario::return_shared(&mut scenario, registry_wrapper);
@@ -473,62 +464,6 @@ module suins::sui_registrar_tests {
 
             let owner = base_registry::owner(registry, SUB_NODE);
             assert!(SECOND_USER == owner, 0);
-
-            test_scenario::return_shared(&mut scenario, registry_wrapper);
-        };
-    }
-
-    #[test]
-    #[expected_failure(abort_code = 201)]
-    fun test_reclaim_by_nft_owner_abort_if_unauthorised() {
-        let scenario = init();
-        register(&mut scenario);
-
-        test_scenario::next_tx(&mut scenario, &FIRST_USER);
-        {
-            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
-            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
-            let nft = test_scenario::take_owned<RegistrationNFT>(&mut scenario);
-            sui_registrar::reclaim_by_nft_owner(registry, &nft, SECOND_LABEL, SECOND_USER);
-
-            test_scenario::return_owned(&mut scenario, nft);
-            test_scenario::return_shared(&mut scenario, registry_wrapper);
-        };
-    }
-
-    #[test]
-    fun test_set_base_node_resolver() {
-        let scenario = init();
-        register(&mut scenario);
-
-        test_scenario::next_tx(&mut scenario, &FIRST_USER);
-        {
-            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
-            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
-
-            assert!(base_registry::resolver(registry, BASE_NODE) == @0x0, 0);
-
-            test_scenario::return_shared(&mut scenario, registry_wrapper);
-        };
-
-        test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
-        {
-            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
-            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
-            let admin_cap = test_scenario::take_owned<AdminCap>(&mut scenario);
-
-            sui_registrar::set_resolver(&admin_cap, registry, FIRST_RESOLVER, test_scenario::ctx(&mut scenario));
-
-            test_scenario::return_owned(&mut scenario, admin_cap);
-            test_scenario::return_shared(&mut scenario, registry_wrapper);
-        };
-
-        test_scenario::next_tx(&mut scenario, &FIRST_USER);
-        {
-            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
-            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
-
-            assert!(base_registry::resolver(registry, BASE_NODE) == FIRST_RESOLVER, 0);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };

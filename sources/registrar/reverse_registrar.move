@@ -11,7 +11,6 @@ module suins::reverse_registrar {
     const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
 
     // errors in the range of 501..600 indicate Address Resolver errors
-    const EUnauthorized: u64 = 101;
     const EInvalidResolver: u64 = 501;
 
     struct ReverseClaimedEvent has copy, drop {
@@ -42,7 +41,7 @@ module suins::reverse_registrar {
     }
 
     public entry fun claim(registrar: &mut ReverseRegistrar, registry: &mut Registry, owner: address, ctx: &mut TxContext) {
-        claim_for_addr(registry, tx_context::sender(ctx), owner, *&registrar.default_resolver, ctx)
+        claim_with_resolver(registry, owner, *&registrar.default_resolver, ctx)
     }
 
     public entry fun claim_with_resolver(
@@ -51,29 +50,14 @@ module suins::reverse_registrar {
         resolver: address,
         ctx: &mut TxContext
     ) {
-        claim_for_addr(registry, tx_context::sender(ctx), owner, resolver, ctx)
-    }
-
-    public entry fun claim_for_addr(
-        registry: &mut Registry,
-        addr: address,
-        owner: address,
-        resolver: address,
-        ctx: &mut TxContext
-    ) {
         assert!(resolver != @0x0, EInvalidResolver);
-        authorised(registry, addr, ctx);
 
+        let addr = tx_context::sender(ctx);
         let label = converter::address_to_string(addr);
-        let subnode = base_registry::make_subnode(label, string::utf8(ADDR_REVERSE_BASE_NODE));
-        base_registry::set_subnode_record_internal(registry, subnode, owner, resolver, 0);
+        let node = base_registry::make_node(label, string::utf8(ADDR_REVERSE_BASE_NODE));
+        base_registry::set_node_record_internal(registry, node, owner, resolver, 0);
 
         event::emit(ReverseClaimedEvent { addr, resolver })
-    }
-
-    fun authorised(registry: &Registry, addr: address, ctx: &TxContext) {
-        let sender = tx_context::sender(ctx);
-        if (sender != addr && !base_registry::is_approval_for_all(registry, sender, addr)) abort EUnauthorized;
     }
 
     #[test_only]
