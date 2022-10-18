@@ -1,5 +1,8 @@
 /build
 /release
 
-sui.log.*
 .idea/
+
+sui.log.*
+.trace
+.coverage_map.mvcov
