@@ -7,9 +7,9 @@ module suins::base_registry {
     use std::option::{Self, Option};
     use std::string::{Self, String};
 
-    friend suins::sui_registrar;
+    friend suins::base_registrar;
     friend suins::reverse_registrar;
-    friend suins::sui_controller;
+    friend suins::base_controller;
     friend suins::name_resolver;
     friend suins::addr_resolver;
 
@@ -76,6 +76,13 @@ module suins::base_registry {
         new_record(
             &mut registry,
             string::utf8(ADDR_REVERSE_BASE_NODE),
+            tx_context::sender(ctx),
+            @0x0,
+            MAX_TTL,
+        );
+        new_record(
+            &mut registry,
+            string::utf8(MOVE_BASE_NODE),
             tx_context::sender(ctx),
             @0x0,
             MAX_TTL,
@@ -257,7 +264,7 @@ module suins::base_registry {
         );
     }
 
-    fun new_record(
+    public(friend) fun new_record(
         registry: &mut Registry,
         node: String,
         owner: address,

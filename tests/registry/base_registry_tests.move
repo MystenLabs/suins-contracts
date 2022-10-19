@@ -29,7 +29,7 @@ module suins::base_registry_tests {
             let registry_test = test_scenario::borrow_mut(&mut registry_wrapper);
 
             // registry has default records for `sui` and `move` TLD
-            assert!(base_registry::get_records_len(registry_test) == 2, 0);
+            assert!(base_registry::get_records_len(registry_test) == 3, 0);
             base_registry::set_record(
                 registry_test,
                 FIRST_BASE_NODE,
@@ -39,7 +39,7 @@ module suins::base_registry_tests {
                 test_scenario::ctx(scenario),
             );
             // override the existing record
-            assert!(base_registry::get_records_len(registry_test) == 2, 0);
+            assert!(base_registry::get_records_len(registry_test) == 3, 0);
 
             test_scenario::return_shared(scenario, registry_wrapper);
         };
@@ -68,7 +68,7 @@ module suins::base_registry_tests {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry_test = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            assert!(base_registry::get_records_len(registry_test) == 2, 0);
+            assert!(base_registry::get_records_len(registry_test) == 3, 0);
             base_registry::set_record(
                 registry_test,
                 FIRST_BASE_NODE,
@@ -77,7 +77,7 @@ module suins::base_registry_tests {
                 20,
                 test_scenario::ctx(&mut scenario),
             );
-            assert!(base_registry::get_records_len(registry_test) == 2, 0);
+            assert!(base_registry::get_records_len(registry_test) == 3, 0);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
@@ -107,14 +107,14 @@ module suins::base_registry_tests {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            assert!(base_registry::get_records_len(registry) == 2, 0);
+            assert!(base_registry::get_records_len(registry) == 3, 0);
             base_registry::set_owner(
                 registry,
                 FIRST_BASE_NODE,
                 SECOND_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
-            assert!(base_registry::get_records_len(registry) == 2, 0);
+            assert!(base_registry::get_records_len(registry) == 3, 0);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
@@ -141,7 +141,7 @@ module suins::base_registry_tests {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            assert!(base_registry::get_records_len(registry) == 2, 0);
+            assert!(base_registry::get_records_len(registry) == 3, 0);
 
             base_registry::set_owner(
                 registry,
@@ -150,7 +150,7 @@ module suins::base_registry_tests {
                 test_scenario::ctx(&mut scenario),
             );
 
-            assert!(base_registry::get_records_len(registry) == 0, 0);
+            assert!(base_registry::get_records_len(registry) == 1, 0);
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
     }
@@ -166,7 +166,7 @@ module suins::base_registry_tests {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            assert!(base_registry::get_records_len(registry) == 2, 0);
+            assert!(base_registry::get_records_len(registry) == 3, 0);
 
             base_registry::set_owner(
                 registry,
@@ -175,7 +175,7 @@ module suins::base_registry_tests {
                 test_scenario::ctx(&mut scenario),
             );
 
-            assert!(base_registry::get_records_len(registry) == 2, 0);
+            assert!(base_registry::get_records_len(registry) == 3, 0);
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
     }
@@ -190,7 +190,7 @@ module suins::base_registry_tests {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            assert!(base_registry::get_records_len(registry) == 2, 0);
+            assert!(base_registry::get_records_len(registry) == 3, 0);
             base_registry::set_subnode_owner(
                 registry,
                 FIRST_BASE_NODE,
@@ -198,7 +198,7 @@ module suins::base_registry_tests {
                 SECOND_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
-            assert!(base_registry::get_records_len(registry) == 3, 0);
+            assert!(base_registry::get_records_len(registry) == 4, 0);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
@@ -225,7 +225,7 @@ module suins::base_registry_tests {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            assert!(base_registry::get_records_len(registry) == 2, 0);
+            assert!(base_registry::get_records_len(registry) == 3, 0);
             base_registry::set_subnode_owner(
                 registry,
                 SECOND_BASE_NODE,
@@ -233,7 +233,7 @@ module suins::base_registry_tests {
                 SECOND_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario)
             );
-            assert!(base_registry::get_records_len(registry) == 2, 0);
+            assert!(base_registry::get_records_len(registry) == 3, 0);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
@@ -250,7 +250,7 @@ module suins::base_registry_tests {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            assert!(base_registry::get_records_len(registry) == 2, 0);
+            assert!(base_registry::get_records_len(registry) == 3, 0);
             base_registry::set_subnode_owner(
                 registry,
                 FIRST_BASE_NODE,
@@ -258,7 +258,7 @@ module suins::base_registry_tests {
                 SECOND_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario)
             );
-            assert!(base_registry::get_records_len(registry) == 2, 0);
+            assert!(base_registry::get_records_len(registry) == 3, 0);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
@@ -274,7 +274,7 @@ module suins::base_registry_tests {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            assert!(base_registry::get_records_len(registry) == 2, 0);
+            assert!(base_registry::get_records_len(registry) == 3, 0);
             base_registry::set_subnode_owner(
                 registry,
                 FIRST_BASE_NODE,
@@ -282,7 +282,7 @@ module suins::base_registry_tests {
                 SECOND_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario)
             );
-            assert!(base_registry::get_records_len(registry) == 3, 0);
+            assert!(base_registry::get_records_len(registry) == 4, 0);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
@@ -292,7 +292,7 @@ module suins::base_registry_tests {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            assert!(base_registry::get_records_len(registry) == 3, 0);
+            assert!(base_registry::get_records_len(registry) == 4, 0);
             base_registry::set_subnode_owner(
                 registry,
                 FIRST_BASE_NODE,
@@ -300,7 +300,7 @@ module suins::base_registry_tests {
                 FIRST_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario)
             );
-            assert!(base_registry::get_records_len(registry) == 3, 0);
+            assert!(base_registry::get_records_len(registry) == 4, 0);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
@@ -309,7 +309,7 @@ module suins::base_registry_tests {
         {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
-            let (_, record) = base_registry::get_record_at_index(registry, 2);
+            let (_, record) = base_registry::get_record_at_index(registry, 3);
             assert!(base_registry::get_record_node(record) == string::utf8(SUB_NODE), 0);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
@@ -351,14 +351,14 @@ module suins::base_registry_tests {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            assert!(base_registry::get_records_len(registry) == 2, 0);
+            assert!(base_registry::get_records_len(registry) == 3, 0);
             base_registry::set_resolver(
                 registry,
                 FIRST_BASE_NODE,
                 SECOND_RESOLVER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
-            assert!(base_registry::get_records_len(registry) == 2, 0);
+            assert!(base_registry::get_records_len(registry) == 3, 0);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
@@ -406,7 +406,7 @@ module suins::base_registry_tests {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            assert!(base_registry::get_records_len(registry) == 2, 0);
+            assert!(base_registry::get_records_len(registry) == 3, 0);
 
             base_registry::set_resolver(
                 registry,
@@ -415,7 +415,7 @@ module suins::base_registry_tests {
                 test_scenario::ctx(&mut scenario),
             );
 
-            assert!(base_registry::get_records_len(registry) == 1, 0);
+            assert!(base_registry::get_records_len(registry) == 2, 0);
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
     }
@@ -450,9 +450,9 @@ module suins::base_registry_tests {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            assert!(base_registry::get_records_len(registry) == 2, 0);
+            assert!(base_registry::get_records_len(registry) == 3, 0);
             base_registry::set_TTL(registry, FIRST_BASE_NODE, 20, test_scenario::ctx(&mut scenario));
-            assert!(base_registry::get_records_len(registry) == 2, 0);
+            assert!(base_registry::get_records_len(registry) == 3, 0);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
@@ -495,9 +495,9 @@ module suins::base_registry_tests {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            assert!(base_registry::get_records_len(registry) == 2, 0);
+            assert!(base_registry::get_records_len(registry) == 3, 0);
             base_registry::set_TTL(registry, SECOND_BASE_NODE, 20, test_scenario::ctx(&mut scenario));
-            assert!(base_registry::get_records_len(registry) == 1, 0);
+            assert!(base_registry::get_records_len(registry) == 2, 0);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
@@ -513,7 +513,7 @@ module suins::base_registry_tests {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            assert!(base_registry::get_records_len(registry) == 2, 0);
+            assert!(base_registry::get_records_len(registry) == 3, 0);
             base_registry::set_subnode_record(
                 registry,
                 FIRST_BASE_NODE,
@@ -523,7 +523,7 @@ module suins::base_registry_tests {
                 20,
                 test_scenario::ctx(&mut scenario),
             );
-            assert!(base_registry::get_records_len(registry) == 3, 0);
+            assert!(base_registry::get_records_len(registry) == 4, 0);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
@@ -545,7 +545,7 @@ module suins::base_registry_tests {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
 
-            assert!(base_registry::get_records_len(registry) == 3, 0);
+            assert!(base_registry::get_records_len(registry) == 4, 0);
             base_registry::set_subnode_record(
                 registry,
                 FIRST_BASE_NODE,
@@ -555,7 +555,7 @@ module suins::base_registry_tests {
                 10,
                 test_scenario::ctx(&mut scenario),
             );
-            assert!(base_registry::get_records_len(registry) == 3, 0);
+            assert!(base_registry::get_records_len(registry) == 4, 0);
 
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };

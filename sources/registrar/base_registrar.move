@@ -1,4 +1,4 @@
-module suins::sui_registrar {
+module suins::base_registrar {
     use sui::event;
     use sui::object::{Self, ID, UID};
     use sui::transfer;
@@ -8,28 +8,26 @@ module suins::sui_registrar {
     use suins::base_registry::{Self, Registry, AdminCap};
     use std::string::{Self, String};
     use std::option;
+    use suins::ipfs_images;
+    use suins::ipfs_images::IpfsImages;
+    use std::vector;
 
-    friend suins::sui_controller;
+    friend suins::base_controller;
 
-    const BASE_NODE: vector<u8> = b"sui";
     // in terms of epoch
     const GRACE_PERIOD: u8 = 90;
+    const MAX_TTL: u64 = 0x100000;
+    const MOVE_BASE_NODE: vector<u8> = b"move";
+    const SUI_BASE_NODE: vector<u8> = b"sui";
 
+    const EUnauthorized: u64 = 101;
     // errors in the range of 201..300 indicate Registrar errors
     const EInvalidLabel: u64 = 203;
     const ELabelUnAvailable: u64 = 204;
     const ELabelExpired: u64 = 205;
     const EInvalidDuration: u64 = 206;
     const ELabelNotExists: u64 = 207;
-
-    struct NameRegisteredEvent has copy, drop {
-        nft_id: ID,
-        resolver: address,
-        node: String,
-        label: String,
-        owner: address,
-        expiry: u64,
-    }
+    const ETLDExists: u64 = 208;
 
     struct NameRenewedEvent has copy, drop {
         label: String,
@@ -52,22 +50,80 @@ module suins::sui_registrar {
 
     struct RegistrationDetail has store {
         expiry: u64,
+        owner: address,
     }
-
-    struct SuiRegistrar has key {
+    
+    struct BaseRegistrar has key {
         id: UID,
+        base_node: String,
+        // base_node represented in byte array
+        base_node_bytes: vector<u8>,
         // key is label, e.g. 'eastagile', 'dn.eastagile'
         expiries: VecMap<String, RegistrationDetail>,
     }
 
-    fun init(ctx: &mut TxContext) {
-        transfer::share_object(SuiRegistrar {
+    // list of all TLD managed by this registrar
+    struct TLDsList has key {
+        id: UID,
+        tlds: vector<String>,
+    }
+
+    public entry fun new_tld(
+        _: &AdminCap,
+        tlds_list: &mut TLDsList,
+        registry: &mut Registry,
+        tld: vector<u8>,
+        ctx: &mut TxContext,
+    ) {
+        let tld_str = string::utf8(tld);
+        let len = vector::length(&tlds_list.tlds);
+        let index = 0;
+        while(index < len) {
+            let existed_tld = vector::borrow(&tlds_list.tlds, index);
+            assert!(*existed_tld != tld_str, ETLDExists);
+            index = index + 1;
+        };
+
+        vector::push_back(&mut tlds_list.tlds, tld_str);
+        base_registry::new_record(
+            registry,
+            tld_str,
+            tx_context::sender(ctx),
+            @0x0,
+            MAX_TTL,
+        );
+        transfer::share_object(BaseRegistrar {
             id: object::new(ctx),
             expiries: vec_map::empty(),
+            base_node: tld_str,
+            base_node_bytes: tld,
         });
     }
 
-    public fun available(registrar: &SuiRegistrar, label: String, ctx: &TxContext): bool {
+    fun init(ctx: &mut TxContext) {
+        transfer::share_object(BaseRegistrar {
+            id: object::new(ctx),
+            expiries: vec_map::empty(),
+            base_node: string::utf8(SUI_BASE_NODE),
+            base_node_bytes: SUI_BASE_NODE,
+        });
+        transfer::share_object(BaseRegistrar {
+            id: object::new(ctx),
+            expiries: vec_map::empty(),
+            base_node: string::utf8(MOVE_BASE_NODE),
+            base_node_bytes: MOVE_BASE_NODE,
+        });
+
+        let tlds = vector::empty<String>();
+        vector::push_back(&mut tlds, string::utf8(SUI_BASE_NODE));
+        vector::push_back(&mut tlds, string::utf8(MOVE_BASE_NODE));
+        transfer::share_object(TLDsList {
+            id: object::new(ctx),
+            tlds,
+        });
+    }
+
+    public fun available(registrar: &BaseRegistrar, label: String, ctx: &TxContext): bool {
         let expiry = name_expires(registrar, label);
         if (expiry != 0 ) {
             return expiry + (GRACE_PERIOD as u64) < tx_context::epoch(ctx)
@@ -75,7 +131,7 @@ module suins::sui_registrar {
         true
     }
 
-    public fun name_expires(registrar: &SuiRegistrar, label: String): u64 {
+    public fun name_expires(registrar: &BaseRegistrar, label: String): u64 {
         if (record_exists(registrar, label)) {
             // TODO: can return whole RegistrationDetail to not look up again
             return vec_map::get(&registrar.expiries, &label).expiry
@@ -87,48 +143,27 @@ module suins::sui_registrar {
 
     // label can be multiple levels, e.g. 'dn.eastagile' or 'eastagile'
     public(friend) fun register(
-        registrar: &mut SuiRegistrar,
+        registrar: &mut BaseRegistrar,
         registry: &mut Registry,
+        images: &IpfsImages,
         label: vector<u8>,
         owner: address,
         duration: u64,
         resolver: address,
-        url: Url,
         ctx: &mut TxContext
-    ) {
-        let nft_id = register_internal(registrar, registry, label, owner, duration, resolver, true, url, ctx);
-        event::emit(NameRegisteredEvent {
-            nft_id,
-            resolver,
-            node: string::utf8(BASE_NODE),
-            label: string::utf8(label),
-            owner,
-            expiry: tx_context::epoch(ctx) + duration,
-        })
+    ): ID {
+        register_internal(registrar, registry, images, label, owner, duration, resolver, true, ctx)
     }
 
-    public(friend) fun register_only(
-        registrar: &mut SuiRegistrar,
-        registry: &mut Registry,
-        label: vector<u8>,
-        owner: address,
-        duration: u64,
-        resolver: address,
-        url: Url,
-        ctx: &mut TxContext
-    ) {
-        let nft_id = register_internal(registrar, registry, label, owner, duration, resolver, false, url, ctx);
-        event::emit(NameRegisteredEvent {
-            nft_id,
-            resolver,
-            node: string::utf8(BASE_NODE),
-            label: string::utf8(label),
-            owner,
-            expiry: tx_context::epoch(ctx) + duration,
-        })
+    public(friend) fun get_base_node(registrar: &BaseRegistrar): String {
+        registrar.base_node
     }
 
-    public(friend) fun renew(registrar: &mut SuiRegistrar, label: vector<u8>, duration: u64, ctx: &TxContext): u64 {
+    public(friend) fun get_base_node_bytes(registrar: &BaseRegistrar): vector<u8> {
+        registrar.base_node_bytes
+    }
+
+    public(friend) fun renew(registrar: &mut BaseRegistrar, label: vector<u8>, duration: u64, ctx: &TxContext): u64 {
         let label = string::utf8(label);
         let expiry = name_expires(registrar, label);
         assert!(expiry > 0, ELabelNotExists);
@@ -141,24 +176,27 @@ module suins::sui_registrar {
         detail.expiry
     }
 
-    public entry fun set_resolver(_: &AdminCap, registry: &mut Registry, resolver: address, ctx: &mut TxContext) {
-        base_registry::set_resolver(registry, BASE_NODE, resolver, ctx);
+    public entry fun set_resolver(_: &AdminCap, registrar: &BaseRegistrar, registry: &mut Registry, resolver: address, ctx: &mut TxContext) {
+        base_registry::set_resolver(registry, *string::bytes(&registrar.base_node), resolver, ctx);
     }
 
-    // check for expiry
     public entry fun reclaim(
+        registrar: &BaseRegistrar,
         registry: &mut Registry,
         label: vector<u8>,
-        base_node: vector<u8>,
         owner: address,
         ctx: &mut TxContext
     ) {
-        base_registry::authorised(registry, base_node, ctx);
+        let label_str = string::utf8(label);
+        if (!vec_map::contains(&registrar.expiries, &label_str)) abort ELabelNotExists;
+        let registration = vec_map::get(&registrar.expiries, &label_str);
+        if (registration.expiry < tx_context::epoch(ctx)) abort ELabelExpired;
+        if (registration.owner != tx_context::sender(ctx)) abort EUnauthorized;
 
-        let node = base_registry::make_node(label, string::utf8(BASE_NODE));
+        let node = base_registry::make_node(label, string::utf8(registrar.base_node_bytes));
         base_registry::set_owner_internal(registry, node, owner);
         event::emit(NameReclaimedEvent {
-            node: string::utf8(base_node),
+            node: registrar.base_node,
             owner,
         })
     }
@@ -177,14 +215,14 @@ module suins::sui_registrar {
     }
 
     fun register_internal(
-        registrar: &mut SuiRegistrar,
+        registrar: &mut BaseRegistrar,
         registry: &mut Registry,
+        images: &IpfsImages,
         label: vector<u8>,
         owner: address,
         duration: u64,
         resolver: address,
         update_registry: bool,
-        url: Url,
         ctx: &mut TxContext
     ): ID {
         let label = string::try_utf8(label);
@@ -193,14 +231,16 @@ module suins::sui_registrar {
         assert!(available(registrar, label, ctx), ELabelUnAvailable);
         assert!(duration > 0, EInvalidDuration);
 
+        let url = ipfs_images::get_url(images, duration);
         let detail = RegistrationDetail {
             expiry: tx_context::epoch(ctx) + duration,
+            owner,
         };
         vec_map::insert(&mut registrar.expiries, label, detail);
 
         let node = label;
         string::append_utf8(&mut node, b".");
-        string::append_utf8(&mut node, BASE_NODE);
+        string::append(&mut node, registrar.base_node);
 
         let nft = RegistrationNFT {
             id: object::new(ctx),
@@ -214,7 +254,7 @@ module suins::sui_registrar {
         nft_id
     }
 
-    public fun record_exists(registrar: &SuiRegistrar, label: String): bool {
+    public fun record_exists(registrar: &BaseRegistrar, label: String): bool {
         vec_map::contains(&registrar.expiries, &label)
     }
 
@@ -225,11 +265,26 @@ module suins::sui_registrar {
     }
 
     #[test_only]
-    friend suins::sui_registrar_tests;
+    friend suins::base_registrar_tests;
 
     #[test_only]
     public fun get_nft_fields(nft: &RegistrationNFT): (String, Url) {
         (nft.name, nft.url)
+    }
+
+    #[test_only]
+    public fun get_tlds(tlds: &TLDsList): &vector<String> {
+        &tlds.tlds
+    }
+
+    #[test_only]
+    public fun get_registrar(registrar: &BaseRegistrar): (&String, &vector<u8>, &VecMap<String, RegistrationDetail>) {
+        (&registrar.base_node, &registrar.base_node_bytes, &registrar.expiries)
+    }
+
+    #[test_only]
+    public fun get_registration_detail(detail: &RegistrationDetail): (&address, &u64) {
+        (&detail.owner, &detail.expiry)
     }
 
     #[test_only]
