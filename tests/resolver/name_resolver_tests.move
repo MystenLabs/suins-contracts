@@ -24,6 +24,35 @@ module suins::name_resolver_tests {
         scenario
     }
 
+    fun set_name(scenario: &mut Scenario) {
+        test_scenario::next_tx(scenario, &FIRST_USER_ADDRESS);
+        {
+            let registry_wrapper = test_scenario::take_shared<Registry>(scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+
+            let node = base_registry::make_node(
+                converter::address_to_string(FIRST_USER_ADDRESS),
+                string::utf8(ADDR_REVERSE_BASE_NODE),
+            );
+            base_registry::new_record_test(registry, node, FIRST_USER_ADDRESS);
+
+            test_scenario::return_shared(scenario, registry_wrapper);
+        };
+
+        test_scenario::next_tx(scenario, &FIRST_USER_ADDRESS);
+        {
+            let registry_wrapper = test_scenario::take_shared<Registry>(scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let resolver_wrapper = test_scenario::take_shared<NameResolver>( scenario);
+            let resolver = test_scenario::borrow_mut(&mut resolver_wrapper);
+
+            name_resolver::set_name(resolver, registry, FIRST_USER_ADDRESS, FIRST_NAME, test_scenario::ctx(scenario));
+
+            test_scenario::return_shared(scenario, registry_wrapper);
+            test_scenario::return_shared(scenario, resolver_wrapper);
+        };
+    }
+
     #[test]
     #[expected_failure(abort_code = 1)]
     fun test_get_name_abort_if_addr_not_exists() {
@@ -43,33 +72,7 @@ module suins::name_resolver_tests {
     #[test]
     fun test_set_name() {
         let scenario = init();
-
-        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
-        {
-            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
-            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
-
-            let node = base_registry::make_node(
-                converter::address_to_string(FIRST_USER_ADDRESS),
-                string::utf8(ADDR_REVERSE_BASE_NODE),
-            );
-            base_registry::new_record_test(registry, node, FIRST_USER_ADDRESS);
-
-            test_scenario::return_shared(&mut scenario, registry_wrapper);
-        };
-
-        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
-        {
-            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
-            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
-            let resolver_wrapper = test_scenario::take_shared<NameResolver>(&mut scenario);
-            let resolver = test_scenario::borrow_mut(&mut resolver_wrapper);
-
-            name_resolver::set_name(resolver, registry, FIRST_USER_ADDRESS, FIRST_NAME, test_scenario::ctx(&mut scenario));
-
-            test_scenario::return_shared(&mut scenario, registry_wrapper);
-            test_scenario::return_shared(&mut scenario, resolver_wrapper);
-        };
+        set_name(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
         {
@@ -84,20 +87,71 @@ module suins::name_resolver_tests {
     }
 
     #[test]
-    fun test_set_name_override_value_if_exists() {
+    #[expected_failure(abort_code = 1)]
+    fun test_unset_name() {
         let scenario = init();
+        set_name(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
         {
             let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
             let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let resolver_wrapper = test_scenario::take_shared<NameResolver>(&mut scenario);
+            let resolver = test_scenario::borrow_mut(&mut resolver_wrapper);
 
-            let node = base_registry::make_node(
-                converter::address_to_string(FIRST_USER_ADDRESS),
-                string::utf8(ADDR_REVERSE_BASE_NODE),
-            );
-            base_registry::new_record_test(registry, node, FIRST_USER_ADDRESS);
+            name_resolver::unset(resolver, registry, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
 
+            test_scenario::return_shared(&mut scenario, resolver_wrapper);
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+        };
+
+        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
+        {
+            let resolver_wrapper = test_scenario::take_shared<NameResolver>(&mut scenario);
+            let resolver = test_scenario::borrow_mut(&mut resolver_wrapper);
+
+            name_resolver::name(resolver, FIRST_USER_ADDRESS);
+
+            test_scenario::return_shared(&mut scenario, resolver_wrapper);
+        };
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 101)]
+    fun test_unset_name_abort_if_unauthorized() {
+        let scenario = init();
+        set_name(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, &SECOND_USER_ADDRESS);
+        {
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let resolver_wrapper = test_scenario::take_shared<NameResolver>(&mut scenario);
+            let resolver = test_scenario::borrow_mut(&mut resolver_wrapper);
+
+            name_resolver::unset(resolver, registry, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
+
+            test_scenario::return_shared(&mut scenario, resolver_wrapper);
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
+        };
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 1)]
+    fun test_unset_name_abort_if_name_not_exists() {
+        let scenario = init();
+        set_name(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
+        {
+            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
+            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let resolver_wrapper = test_scenario::take_shared<NameResolver>(&mut scenario);
+            let resolver = test_scenario::borrow_mut(&mut resolver_wrapper);
+
+            name_resolver::unset(resolver, registry, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
+
+            test_scenario::return_shared(&mut scenario, resolver_wrapper);
             test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
 
@@ -108,11 +162,17 @@ module suins::name_resolver_tests {
             let resolver_wrapper = test_scenario::take_shared<NameResolver>(&mut scenario);
             let resolver = test_scenario::borrow_mut(&mut resolver_wrapper);
 
-            name_resolver::set_name(resolver, registry, FIRST_USER_ADDRESS, FIRST_NAME, test_scenario::ctx(&mut scenario));
+            name_resolver::unset(resolver, registry, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
 
-            test_scenario::return_shared(&mut scenario, registry_wrapper);
             test_scenario::return_shared(&mut scenario, resolver_wrapper);
+            test_scenario::return_shared(&mut scenario, registry_wrapper);
         };
+    }
+
+    #[test]
+    fun test_set_name_override_value_if_exists() {
+        let scenario = init();
+        set_name(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
         {

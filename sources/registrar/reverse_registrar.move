@@ -10,9 +10,6 @@ module suins::reverse_registrar {
 
     const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
 
-    // errors in the range of 501..600 indicate Address Resolver errors
-    const EInvalidResolver: u64 = 501;
-
     struct ReverseClaimedEvent has copy, drop {
         addr: address,
         resolver: address,
@@ -24,24 +21,24 @@ module suins::reverse_registrar {
 
     struct ReverseRegistrar has key {
         id: UID,
-        default_resolver: address,
+        default_name_resolver: address,
     }
 
     fun init(ctx: &mut TxContext) {
         transfer::share_object(ReverseRegistrar {
             id: object::new(ctx),
-            default_resolver: tx_context::sender(ctx),
+            // cannot get the ID of name_resolver in `init`, admin need to update this by calling `set_default_resolver`
+            default_name_resolver: @0x0,
         });
     }
 
     public entry fun set_default_resolver(_: &AdminCap, registrar: &mut ReverseRegistrar, resolver: address) {
-        assert!(resolver != @0x0, EInvalidResolver);
-        registrar.default_resolver = resolver;
+        registrar.default_name_resolver = resolver;
         event::emit(DefaultResolverChangedEvent { resolver })
     }
 
     public entry fun claim(registrar: &mut ReverseRegistrar, registry: &mut Registry, owner: address, ctx: &mut TxContext) {
-        claim_with_resolver(registry, owner, *&registrar.default_resolver, ctx)
+        claim_with_resolver(registry, owner, *&registrar.default_name_resolver, ctx)
     }
 
     public entry fun claim_with_resolver(
@@ -50,8 +47,6 @@ module suins::reverse_registrar {
         resolver: address,
         ctx: &mut TxContext
     ) {
-        assert!(resolver != @0x0, EInvalidResolver);
-
         let addr = tx_context::sender(ctx);
         let label = converter::address_to_string(addr);
         let node = base_registry::make_node(label, string::utf8(ADDR_REVERSE_BASE_NODE));
@@ -62,7 +57,7 @@ module suins::reverse_registrar {
 
     #[test_only]
     public fun get_default_resolver(registrar: &ReverseRegistrar): address {
-        registrar.default_resolver
+        registrar.default_name_resolver
     }
 
     #[test_only]
