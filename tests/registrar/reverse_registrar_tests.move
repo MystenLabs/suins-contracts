@@ -5,6 +5,7 @@ module suins::reverse_registrar_tests {
     use suins::base_registry::{Self, Registry, AdminCap};
     use suins::reverse_registrar::{Self, ReverseRegistrar};
     use std::string;
+    use suins::base_registrar::{Self, TLDsList};
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -15,11 +16,25 @@ module suins::reverse_registrar_tests {
     const SECOND_NODE: vector<u8> = b"000000000000000000000000000000000000b002.addr.reverse";
 
     fun init(): Scenario {
-        let scenario = test_scenario::begin(&SUINS_ADDRESS);
+        let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
             base_registry::test_init(ctx);
             reverse_registrar::test_init(ctx);
+            base_registrar::test_init(ctx);
+        };
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+
+            base_registrar::new_tld(&admin_cap, &mut tlds_list, &mut registry, b"sui", test_scenario::ctx(&mut scenario));
+            base_registrar::new_tld(&admin_cap, &mut tlds_list, &mut registry, b"addr.reverse", test_scenario::ctx(&mut scenario));
+            base_registrar::new_tld(&admin_cap, &mut tlds_list, &mut registry, b"move", test_scenario::ctx(&mut scenario));
+            test_scenario::return_shared(tlds_list);
+            test_scenario::return_shared(registry);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
         scenario
     }
@@ -28,168 +43,156 @@ module suins::reverse_registrar_tests {
     fun test_claim_with_resolver() {
         let scenario = init();
 
-        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
-            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
-            assert!(base_registry::get_records_len(registry) == 3, 0);
+            assert!(base_registry::get_records_len(&registry) == 3, 0);
 
-            test_scenario::return_shared(&mut scenario, registry_wrapper);
+            test_scenario::return_shared(registry);
         };
 
-        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
-            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             reverse_registrar::claim_with_resolver(
-                registry,
+                &mut registry,
                 FIRST_USER_ADDRESS,
                 FIRST_RESOLVER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
 
-            test_scenario::return_shared(&mut scenario, registry_wrapper);
+            test_scenario::return_shared(registry);
         };
 
-        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
-            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
-            assert!(base_registry::get_records_len(registry) == 4, 0);
-            let (node, record) = base_registry::get_record_at_index(registry, 3);
+            assert!(base_registry::get_records_len(&registry) == 4, 0);
+            let (node, record) = base_registry::get_record_at_index(&registry, 3);
             assert!(node == &string::utf8(FIRST_NODE), 0);
-            assert!(base_registry::get_record_node(record) == string::utf8(FIRST_NODE), 0);
             assert!(base_registry::get_record_ttl(record) == 0, 0);
             assert!(base_registry::get_record_resolver(record) == FIRST_RESOLVER_ADDRESS, 0);
             assert!(base_registry::get_record_owner(record) == FIRST_USER_ADDRESS, 0);
 
-            test_scenario::return_shared(&mut scenario, registry_wrapper);
+            test_scenario::return_shared(registry);
         };
 
-        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
-            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             reverse_registrar::claim_with_resolver(
-                registry,
+                &mut registry,
                 SECOND_USER_ADDRESS,
                 SECOND_RESOLVER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
 
-            test_scenario::return_shared(&mut scenario, registry_wrapper);
+            test_scenario::return_shared(registry);
         };
 
-        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
-            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
-            assert!(base_registry::get_records_len(registry) == 4, 0);
-            let (node, record) = base_registry::get_record_at_index(registry, 3);
+            assert!(base_registry::get_records_len(&registry) == 4, 0);
+            let (node, record) = base_registry::get_record_at_index(&registry, 3);
             assert!(node == &string::utf8(FIRST_NODE), 0);
-            assert!(base_registry::get_record_node(record) == string::utf8(FIRST_NODE), 0);
             assert!(base_registry::get_record_ttl(record) == 0, 0);
             assert!(base_registry::get_record_resolver(record) == SECOND_RESOLVER_ADDRESS, 0);
             assert!(base_registry::get_record_owner(record) == SECOND_USER_ADDRESS, 0);
 
-            test_scenario::return_shared(&mut scenario, registry_wrapper);
+            test_scenario::return_shared(registry);
         };
+        test_scenario::end(scenario);
     }
 
     #[test]
     fun test_claim() {
         let scenario = init();
 
-        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
-            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
-            assert!(base_registry::get_records_len(registry) == 3, 0);
+            assert!(base_registry::get_records_len(&registry) == 3, 0);
 
-            test_scenario::return_shared(&mut scenario, registry_wrapper);
+            test_scenario::return_shared(registry);
         };
 
-        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
-            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
-            let registrar_wrapper = test_scenario::take_shared<ReverseRegistrar>(&mut scenario);
-            let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let registrar = test_scenario::take_shared<ReverseRegistrar>(&mut scenario);
 
             reverse_registrar::claim(
-                registrar,
-                registry,
+                &mut registrar,
+                &mut registry,
                 FIRST_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
 
-            test_scenario::return_shared(&mut scenario, registry_wrapper);
-            test_scenario::return_shared(&mut scenario, registrar_wrapper);
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(registrar);
         };
 
-        test_scenario::next_tx(&mut scenario, &FIRST_USER_ADDRESS);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry_wrapper = test_scenario::take_shared<Registry>(&mut scenario);
-            let registry = test_scenario::borrow_mut(&mut registry_wrapper);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
-            assert!(base_registry::get_records_len(registry) == 4, 0);
-            let (node, record) = base_registry::get_record_at_index(registry, 3);
+            assert!(base_registry::get_records_len(&registry) == 4, 0);
+            let (node, record) = base_registry::get_record_at_index(&registry, 3);
             assert!(node == &string::utf8(FIRST_NODE), 0);
-            assert!(base_registry::get_record_node(record) == string::utf8(FIRST_NODE), 0);
             assert!(base_registry::get_record_ttl(record) == 0, 0);
             assert!(base_registry::get_record_resolver(record) == @0x0, 0);
             assert!(base_registry::get_record_owner(record) == FIRST_USER_ADDRESS, 0);
 
-            test_scenario::return_shared(&mut scenario, registry_wrapper);
+            test_scenario::return_shared(registry);
         };
+        test_scenario::end(scenario);
     }
 
     #[test]
     fun test_set_default_resolver() {
         let scenario = init();
 
-        test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let registrar_wrapper = test_scenario::take_shared<ReverseRegistrar>(&mut scenario);
-            let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
+            let registrar = test_scenario::take_shared<ReverseRegistrar>(&mut scenario);
 
-            let default_resolver = reverse_registrar::get_default_resolver(registrar);
+            let default_resolver = reverse_registrar::get_default_resolver(&registrar);
             assert!(default_resolver == @0x0, 0);
 
-            test_scenario::return_shared(&mut scenario, registrar_wrapper);
+            test_scenario::return_shared(registrar);
         };
 
-        test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let registrar_wrapper = test_scenario::take_shared<ReverseRegistrar>(&mut scenario);
-            let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
-            let admin_cap = test_scenario::take_owned<AdminCap>(&mut scenario);
+            let registrar = test_scenario::take_shared<ReverseRegistrar>(&mut scenario);
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
 
             reverse_registrar::set_default_resolver(
                 &admin_cap,
-                registrar,
+                &mut registrar,
                 FIRST_RESOLVER_ADDRESS,
             );
 
-            test_scenario::return_shared(&mut scenario, registrar_wrapper);
-            test_scenario::return_owned(&mut scenario, admin_cap);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
 
-        test_scenario::next_tx(&mut scenario, &SUINS_ADDRESS);
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let registrar_wrapper = test_scenario::take_shared<ReverseRegistrar>(&mut scenario);
-            let registrar = test_scenario::borrow_mut(&mut registrar_wrapper);
+            let registrar = test_scenario::take_shared<ReverseRegistrar>(&mut scenario);
 
-            let default_resolver = reverse_registrar::get_default_resolver(registrar);
+            let default_resolver = reverse_registrar::get_default_resolver(&registrar);
             assert!(default_resolver == FIRST_RESOLVER_ADDRESS, 0);
 
-            test_scenario::return_shared(&mut scenario, registrar_wrapper);
-        };
+            test_scenario::return_shared(registrar);
+       };
+        test_scenario::end(scenario);
     }
 }

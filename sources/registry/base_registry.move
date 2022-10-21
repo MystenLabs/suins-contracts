@@ -13,9 +13,6 @@ module suins::base_registry {
     friend suins::name_resolver;
     friend suins::addr_resolver;
 
-    const MOVE_BASE_NODE: vector<u8> = b"move";
-    const SUI_BASE_NODE: vector<u8> = b"sui";
-    const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
     const MAX_TTL: u64 = 0x100000;
 
     // errors in the range of 101..200 indicate Registry errors
@@ -49,7 +46,6 @@ module suins::base_registry {
 
     // objects of this type are stored in the registry's map
     struct Record has store, drop {
-        node: String,
         owner: address,
         resolver: address,
         ttl: u64,
@@ -61,33 +57,10 @@ module suins::base_registry {
     }
 
     fun init(ctx: &mut TxContext) {
-        let registry = Registry {
+        transfer::share_object(Registry {
             id: object::new(ctx),
             records: vec_map::empty(),
-        };
-        // insert .sui TLD nodes
-        new_record(
-            &mut registry,
-            string::utf8(SUI_BASE_NODE),
-            tx_context::sender(ctx),
-            @0x0,
-            MAX_TTL,
-        );
-        new_record(
-            &mut registry,
-            string::utf8(ADDR_REVERSE_BASE_NODE),
-            tx_context::sender(ctx),
-            @0x0,
-            MAX_TTL,
-        );
-        new_record(
-            &mut registry,
-            string::utf8(MOVE_BASE_NODE),
-            tx_context::sender(ctx),
-            @0x0,
-            MAX_TTL,
-        );
-        transfer::share_object(registry);
+        });
         transfer::transfer(AdminCap {
             id: object::new(ctx)
         }, tx_context::sender(ctx));
@@ -190,17 +163,19 @@ module suins::base_registry {
     public entry fun set_resolver(registry: &mut Registry, node: vector<u8>, resolver: address, ctx: &mut TxContext) {
         authorised(registry, node, ctx);
 
-        let record = vec_map::get_mut(&mut registry.records, &string::utf8(node));
+        let node = string::utf8(node);
+        let record = vec_map::get_mut(&mut registry.records, &node);
         record.resolver = resolver;
-        event::emit(NewResolverEvent { node: record.node, resolver });
+        event::emit(NewResolverEvent { node, resolver });
     }
 
     public entry fun set_TTL(registry: &mut Registry, node: vector<u8>, ttl: u64, ctx: &mut TxContext) {
         authorised(registry, node, ctx);
 
-        let record = vec_map::get_mut(&mut registry.records, &string::utf8(node));
+        let node = string::utf8(node);
+        let record = vec_map::get_mut(&mut registry.records, &node);
         record.ttl = ttl;
-        event::emit(NewTTLEvent { node: record.node, ttl });
+        event::emit(NewTTLEvent { node, ttl });
     }
 
     public(friend) fun set_owner_internal(registry: &mut Registry, node: String, owner: address) {
@@ -272,12 +247,11 @@ module suins::base_registry {
         ttl: u64,
     ) {
         let record = Record {
-            node,
             owner,
             resolver,
             ttl,
         };
-        vec_map::insert(&mut registry.records, record.node, record);
+        vec_map::insert(&mut registry.records, node, record);
     }
 
     #[test_only]
@@ -292,9 +266,6 @@ module suins::base_registry {
     
     #[test_only]
     public fun get_records_len(registry: &Registry): u64 { vec_map::size(&registry.records) }
-
-    #[test_only]
-    public fun get_record_node(record: &Record): String { record.node }
 
     #[test_only]
     public fun get_record_owner(record: &Record): address { record.owner }
