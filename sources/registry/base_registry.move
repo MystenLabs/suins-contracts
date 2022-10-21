@@ -49,7 +49,6 @@ module suins::base_registry {
 
     // objects of this type are stored in the registry's map
     struct Record has store, drop {
-        node: String,
         owner: address,
         resolver: address,
         ttl: u64,
@@ -190,17 +189,19 @@ module suins::base_registry {
     public entry fun set_resolver(registry: &mut Registry, node: vector<u8>, resolver: address, ctx: &mut TxContext) {
         authorised(registry, node, ctx);
 
-        let record = vec_map::get_mut(&mut registry.records, &string::utf8(node));
+        let node = string::utf8(node);
+        let record = vec_map::get_mut(&mut registry.records, &node);
         record.resolver = resolver;
-        event::emit(NewResolverEvent { node: record.node, resolver });
+        event::emit(NewResolverEvent { node, resolver });
     }
 
     public entry fun set_TTL(registry: &mut Registry, node: vector<u8>, ttl: u64, ctx: &mut TxContext) {
         authorised(registry, node, ctx);
 
-        let record = vec_map::get_mut(&mut registry.records, &string::utf8(node));
+        let node = string::utf8(node);
+        let record = vec_map::get_mut(&mut registry.records, &node);
         record.ttl = ttl;
-        event::emit(NewTTLEvent { node: record.node, ttl });
+        event::emit(NewTTLEvent { node, ttl });
     }
 
     public(friend) fun set_owner_internal(registry: &mut Registry, node: String, owner: address) {
@@ -272,12 +273,11 @@ module suins::base_registry {
         ttl: u64,
     ) {
         let record = Record {
-            node,
             owner,
             resolver,
             ttl,
         };
-        vec_map::insert(&mut registry.records, record.node, record);
+        vec_map::insert(&mut registry.records, node, record);
     }
 
     #[test_only]
@@ -292,9 +292,6 @@ module suins::base_registry {
     
     #[test_only]
     public fun get_records_len(registry: &Registry): u64 { vec_map::size(&registry.records) }
-
-    #[test_only]
-    public fun get_record_node(record: &Record): String { record.node }
 
     #[test_only]
     public fun get_record_owner(record: &Record): address { record.owner }
