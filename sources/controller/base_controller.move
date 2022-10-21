@@ -14,7 +14,7 @@ module suins::base_controller {
     use std::string::{Self, String};
     use std::bcs;
     use std::vector;
-    use suins::ipfs_images::IpfsImages;
+    use suins::configuration::Configuration;
 
     // TODO: remove later when timestamp is introduced
     // const MIN_COMMITMENT_AGE: u64 = 0;
@@ -126,7 +126,7 @@ module suins::base_controller {
         controller: &mut BaseController,
         registrar: &mut BaseRegistrar,
         registry: &mut Registry,
-        images: &IpfsImages,
+        config: &Configuration,
         label: vector<u8>,
         owner: address,
         duration: u64,
@@ -140,7 +140,7 @@ module suins::base_controller {
             controller,
             registrar,
             registry,
-            images,
+            config,
             label,
             owner,
             duration,
@@ -156,7 +156,7 @@ module suins::base_controller {
         controller: &mut BaseController,
         registrar: &mut BaseRegistrar,
         registry: &mut Registry,
-        images: &IpfsImages,
+        config: &Configuration,
         label: vector<u8>,
         owner: address,
         duration: u64,
@@ -175,7 +175,7 @@ module suins::base_controller {
         let commitment = make_commitment(registrar, label, owner, secret);
         consume_commitment(controller, registrar, label, commitment, ctx);
 
-        let nft_id = base_registrar::register(registrar, registry, images, label, owner, duration, resolver, ctx);
+        let nft_id = base_registrar::register(registrar, registry, config, label, owner, duration, resolver, ctx);
         // TODO: configure resolver
 
         event::emit(NameRegisteredEvent {

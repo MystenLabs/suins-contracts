@@ -13,9 +13,6 @@ module suins::base_registry {
     friend suins::name_resolver;
     friend suins::addr_resolver;
 
-    const MOVE_BASE_NODE: vector<u8> = b"move";
-    const SUI_BASE_NODE: vector<u8> = b"sui";
-    const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
     const MAX_TTL: u64 = 0x100000;
 
     // errors in the range of 101..200 indicate Registry errors
@@ -60,33 +57,10 @@ module suins::base_registry {
     }
 
     fun init(ctx: &mut TxContext) {
-        let registry = Registry {
+        transfer::share_object(Registry {
             id: object::new(ctx),
             records: vec_map::empty(),
-        };
-        // insert .sui TLD nodes
-        new_record(
-            &mut registry,
-            string::utf8(SUI_BASE_NODE),
-            tx_context::sender(ctx),
-            @0x0,
-            MAX_TTL,
-        );
-        new_record(
-            &mut registry,
-            string::utf8(ADDR_REVERSE_BASE_NODE),
-            tx_context::sender(ctx),
-            @0x0,
-            MAX_TTL,
-        );
-        new_record(
-            &mut registry,
-            string::utf8(MOVE_BASE_NODE),
-            tx_context::sender(ctx),
-            @0x0,
-            MAX_TTL,
-        );
-        transfer::share_object(registry);
+        });
         transfer::transfer(AdminCap {
             id: object::new(ctx)
         }, tx_context::sender(ctx));

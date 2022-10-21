@@ -6,10 +6,10 @@ module suins::base_controller_tests {
     use sui::tx_context;
     use sui::sui::SUI;
     use suins::base_controller::{Self, BaseController};
-    use suins::base_registrar::{Self, BaseRegistrar};
+    use suins::base_registrar::{Self, BaseRegistrar, TLDsList};
     use suins::base_registry::{Self, Registry, AdminCap};
     use std::string;
-    use suins::ipfs_images::{Self, IpfsImages};
+    use suins::configuration::{Self, Configuration};
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -30,7 +30,20 @@ module suins::base_controller_tests {
             base_registry::test_init(ctx);
             base_registrar::test_init(ctx);
             base_controller::test_init(ctx);
-            ipfs_images::test_init(ctx);
+            configuration::test_init(ctx);
+        };
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+
+            base_registrar::new_tld(&admin_cap, &mut tlds_list, &mut registry, b"sui", test_scenario::ctx(&mut scenario));
+            base_registrar::new_tld(&admin_cap, &mut tlds_list, &mut registry, b"addr.reverse", test_scenario::ctx(&mut scenario));
+            base_registrar::new_tld(&admin_cap, &mut tlds_list, &mut registry, b"move", test_scenario::ctx(&mut scenario));
+            test_scenario::return_shared(tlds_list);
+            test_scenario::return_shared(registry);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
         scenario
     }
@@ -75,7 +88,7 @@ module suins::base_controller_tests {
             let registry =
                 test_scenario::take_shared<Registry>(scenario);
             let image =
-                test_scenario::take_shared<IpfsImages>(scenario);
+                test_scenario::take_shared<Configuration>(scenario);
 
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
@@ -148,7 +161,7 @@ module suins::base_controller_tests {
             let registry =
                 test_scenario::take_shared<Registry>(&mut scenario);
             let image =
-                test_scenario::take_shared<IpfsImages>(&mut scenario);
+                test_scenario::take_shared<Configuration>(&mut scenario);
 
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
@@ -214,7 +227,7 @@ module suins::base_controller_tests {
             let registry =
                 test_scenario::take_shared<Registry>(&mut scenario);
             let image =
-                test_scenario::take_shared<IpfsImages>(&mut scenario);
+                test_scenario::take_shared<Configuration>(&mut scenario);
 
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
@@ -265,7 +278,7 @@ module suins::base_controller_tests {
             let registry =
                 test_scenario::take_shared<Registry>(&mut scenario);
             let image =
-                test_scenario::take_shared<IpfsImages>(&mut scenario);
+                test_scenario::take_shared<Configuration>(&mut scenario);
 
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
@@ -315,7 +328,7 @@ module suins::base_controller_tests {
             let registry =
                 test_scenario::take_shared<Registry>(&mut scenario);
             let image =
-                test_scenario::take_shared<IpfsImages>(&mut scenario);
+                test_scenario::take_shared<Configuration>(&mut scenario);
 
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
@@ -366,7 +379,7 @@ module suins::base_controller_tests {
             let registry =
                 test_scenario::take_shared<Registry>(&mut scenario);
             let image =
-                test_scenario::take_shared<IpfsImages>(&mut scenario);
+                test_scenario::take_shared<Configuration>(&mut scenario);
 
             // simulate user call `register` in the same epoch as `make_commitment_and_commit`
             let ctx = tx_context::new(
@@ -425,7 +438,7 @@ module suins::base_controller_tests {
             let registry =
                 test_scenario::take_shared<Registry>(&mut scenario);
             let image =
-                test_scenario::take_shared<IpfsImages>(&mut scenario);
+                test_scenario::take_shared<Configuration>(&mut scenario);
 
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
@@ -474,7 +487,7 @@ module suins::base_controller_tests {
             let registry =
                 test_scenario::take_shared<Registry>(&mut scenario);
             let image =
-                test_scenario::take_shared<IpfsImages>(&mut scenario);
+                test_scenario::take_shared<Configuration>(&mut scenario);
 
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
@@ -516,7 +529,7 @@ module suins::base_controller_tests {
             let registry =
                 test_scenario::take_shared<Registry>(&mut scenario);
             let image =
-                test_scenario::take_shared<IpfsImages>(&mut scenario);
+                test_scenario::take_shared<Configuration>(&mut scenario);
 
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
@@ -564,7 +577,7 @@ module suins::base_controller_tests {
             let registry =
                 test_scenario::take_shared<Registry>(&mut scenario);
             let image =
-                test_scenario::take_shared<IpfsImages>(&mut scenario);
+                test_scenario::take_shared<Configuration>(&mut scenario);
 
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
@@ -705,7 +718,7 @@ module suins::base_controller_tests {
             let registry =
                 test_scenario::take_shared<Registry>(&mut scenario);
             let image =
-                test_scenario::take_shared<IpfsImages>(&mut scenario);
+                test_scenario::take_shared<Configuration>(&mut scenario);
 
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(

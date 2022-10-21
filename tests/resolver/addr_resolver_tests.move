@@ -3,10 +3,9 @@ module suins::addr_resolver_tests {
 
     use sui::test_scenario::Scenario;
     use sui::test_scenario;
-    use suins::addr_resolver;
-    use suins::base_registry::Registry;
-    use suins::addr_resolver::AddrResolver;
-    use suins::base_registry;
+    use suins::base_registry::{Self, Registry, AdminCap};
+    use suins::addr_resolver::{Self, AddrResolver};
+    use suins::base_registrar::{Self, TLDsList};
 
     const SUINS_ADDRESS: address = @0xA001;
     const SUI_NODE: vector<u8> = b"sui";
@@ -18,7 +17,21 @@ module suins::addr_resolver_tests {
         {
             let ctx = test_scenario::ctx(&mut scenario);
             base_registry::test_init(ctx);
+            base_registrar::test_init(ctx);
             addr_resolver::test_init(ctx);
+        };
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+
+            base_registrar::new_tld(&admin_cap, &mut tlds_list, &mut registry, b"sui", test_scenario::ctx(&mut scenario));
+            base_registrar::new_tld(&admin_cap, &mut tlds_list, &mut registry, b"addr.reverse", test_scenario::ctx(&mut scenario));
+            base_registrar::new_tld(&admin_cap, &mut tlds_list, &mut registry, b"move", test_scenario::ctx(&mut scenario));
+            test_scenario::return_shared(tlds_list);
+            test_scenario::return_shared(registry);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
         scenario
     }

@@ -5,6 +5,7 @@ module suins::reverse_registrar_tests {
     use suins::base_registry::{Self, Registry, AdminCap};
     use suins::reverse_registrar::{Self, ReverseRegistrar};
     use std::string;
+    use suins::base_registrar::{Self, TLDsList};
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -20,6 +21,20 @@ module suins::reverse_registrar_tests {
             let ctx = test_scenario::ctx(&mut scenario);
             base_registry::test_init(ctx);
             reverse_registrar::test_init(ctx);
+            base_registrar::test_init(ctx);
+        };
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+
+            base_registrar::new_tld(&admin_cap, &mut tlds_list, &mut registry, b"sui", test_scenario::ctx(&mut scenario));
+            base_registrar::new_tld(&admin_cap, &mut tlds_list, &mut registry, b"addr.reverse", test_scenario::ctx(&mut scenario));
+            base_registrar::new_tld(&admin_cap, &mut tlds_list, &mut registry, b"move", test_scenario::ctx(&mut scenario));
+            test_scenario::return_shared(tlds_list);
+            test_scenario::return_shared(registry);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
         scenario
     }
