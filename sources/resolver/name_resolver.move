@@ -16,6 +16,10 @@ module suins::name_resolver {
         name: String,
     }
 
+    struct NameRemovedEvent has copy, drop {
+        addr: address,
+    }
+
     struct NameResolver has key {
         id: UID,
         names: VecMap<address, String>,
@@ -53,6 +57,20 @@ module suins::name_resolver {
         };
 
         event::emit(NameChangedEvent { addr, name });
+    }
+
+    public entry fun unset(
+        resolver: &mut NameResolver,
+        registry: &Registry,
+        addr: address,
+        ctx: &mut TxContext
+    ) {
+        let label = converter::address_to_string(addr);
+        let node = base_registry::make_node(label, string::utf8(ADDR_REVERSE_BASE_NODE));
+        base_registry::authorised(registry, *string::bytes(&node), ctx);
+
+        vec_map::remove(&mut resolver.names, &addr);
+        event::emit(NameRemovedEvent { addr });
     }
 
     #[test_only]

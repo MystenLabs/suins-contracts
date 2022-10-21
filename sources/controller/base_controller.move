@@ -1,26 +1,25 @@
-module suins::sui_controller {
+module suins::base_controller {
 
     use sui::balance::{Self, Balance};
     use sui::coin::{Self, Coin};
     use sui::ecdsa::keccak256;
     use sui::event;
-    use sui::object::{Self, UID};
+    use sui::object::{Self, UID, ID};
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
     use sui::sui::SUI;
     use sui::vec_map::{Self, VecMap};
     use suins::base_registry::{Registry, AdminCap};
-    use suins::sui_registrar::{Self, SuiRegistrar};
+    use suins::base_registrar::{Self, BaseRegistrar};
     use std::string::{Self, String};
     use std::bcs;
     use std::vector;
-    use sui::url;
+    use suins::configuration::Configuration;
 
     // TODO: remove later when timestamp is introduced
     // const MIN_COMMITMENT_AGE: u64 = 0;
     const MAX_COMMITMENT_AGE: u64 = 3;
     const REGISTRATION_FEE_PER_YEAR: u64 = 888;
-    const BASE_NODE: vector<u8> = b"sui";
 
     // errors in the range of 301..400 indicate Sui Controller errors
     const EInvalidResolverAddress: u64 = 301;
@@ -29,7 +28,6 @@ module suins::sui_controller {
     const ECommitmentTooOld: u64 = 304;
     const ENotEnoughFee: u64 = 305;
     const EInvalidDuration: u64 = 306;
-    const EInvalidAddr: u64 = 307;
     const ELabelUnAvailable: u64 = 308;
     const ENoProfits: u64 = 310;
     const EInvalidLabel: u64 = 311;
@@ -40,6 +38,12 @@ module suins::sui_controller {
         owner: address,
         cost: u64,
         expiry: u64,
+        nft_id: ID,
+        resolver: address,
+    }
+
+    struct DefaultResolverChangedEvent has copy, drop {
+        resolver: address,
     }
 
     struct NameRenewedEvent has copy, drop {
@@ -49,31 +53,35 @@ module suins::sui_controller {
         expiry: u64,
     }
 
-    struct SuiController has key {
+    struct BaseController has key {
         id: UID,
         commitments: VecMap<vector<u8>, u64>,
         balance: Balance<SUI>,
+        default_addr_resolver: address,
     }
 
     fun init(ctx: &mut TxContext) {
-        transfer::share_object(SuiController {
+        transfer::share_object(BaseController {
             id: object::new(ctx),
             commitments: vec_map::empty(),
             balance: balance::zero(),
+            // cannot get the ID of name_resolver in `init`, admin need to update this by calling `set_default_resolver`
+            default_addr_resolver: @0x0,
         });
     }
 
-    public fun valid(name: String): bool {
-        string::length(&name) > 6
+    public fun available(registrar: &BaseRegistrar, label: String, ctx: &TxContext): bool {
+        base_registrar::available(registrar, label, ctx)
     }
 
-    public fun available(registrar: &SuiRegistrar, label: String, ctx: &TxContext): bool {
-        valid(label) && sui_registrar::available(registrar, label, ctx)
+    public entry fun set_default_resolver(_: &AdminCap, controller: &mut BaseController, resolver: address) {
+        controller.default_addr_resolver = resolver;
+        event::emit(DefaultResolverChangedEvent { resolver })
     }
 
     public entry fun renew(
-        controller: &mut SuiController,
-        registrar: &mut SuiRegistrar,
+        controller: &mut BaseController,
+        registrar: &mut BaseRegistrar,
         label: vector<u8>,
         duration: u64,
         payment: &mut Coin<SUI>,
@@ -84,21 +92,21 @@ module suins::sui_controller {
         let renew_fee = REGISTRATION_FEE_PER_YEAR * no_year;
         assert!(coin::value(payment) >= renew_fee, ENotEnoughFee);
 
-        sui_registrar::renew(registrar, label, duration, ctx);
+        base_registrar::renew(registrar, label, duration, ctx);
 
         let coin_balance = coin::balance_mut(payment);
         let paid = balance::split(coin_balance, renew_fee);
         balance::join(&mut controller.balance, paid);
 
         event::emit(NameRenewedEvent {
-            node: string::utf8(BASE_NODE),
+            node: base_registrar::get_base_node(registrar),
             label: string::utf8(label),
             cost: renew_fee,
             expiry: duration,
         })
     }
 
-    public entry fun withdraw(_: &AdminCap, controller: &mut SuiController, ctx: &mut TxContext) {
+    public entry fun withdraw(_: &AdminCap, controller: &mut BaseController, ctx: &mut TxContext) {
         let amount = balance::value(&controller.balance);
         assert!(amount > 0, ENoProfits);
 
@@ -107,7 +115,7 @@ module suins::sui_controller {
     }
 
     public entry fun make_commitment_and_commit(
-        controller: &mut SuiController,
+        controller: &mut BaseController,
         commitment: vector<u8>,
         ctx: &mut TxContext,
     ) {
@@ -115,46 +123,45 @@ module suins::sui_controller {
     }
 
     public entry fun register(
-        controller: &mut SuiController,
-        registrar: &mut SuiRegistrar,
+        controller: &mut BaseController,
+        registrar: &mut BaseRegistrar,
         registry: &mut Registry,
+        config: &Configuration,
         label: vector<u8>,
         owner: address,
         duration: u64,
         secret: vector<u8>,
-        url: vector<u8>,
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext,
     ) {
+        let resolver = controller.default_addr_resolver;
         // TODO: duration in year only
         register_with_config(
             controller,
             registrar,
             registry,
+            config,
             label,
             owner,
             duration,
             secret,
-            @0x0,
-            @0x0,
-            url,
+            resolver,
             payment,
-            ctx
+            ctx,
         );
     }
 
     // anyone can register a domain at any level
     public entry fun register_with_config(
-        controller: &mut SuiController,
-        registrar: &mut SuiRegistrar,
+        controller: &mut BaseController,
+        registrar: &mut BaseRegistrar,
         registry: &mut Registry,
+        config: &Configuration,
         label: vector<u8>,
         owner: address,
         duration: u64,
         secret: vector<u8>,
         resolver: address,
-        addr: address,
-        url: vector<u8>,
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext,
     ) {
@@ -165,22 +172,20 @@ module suins::sui_controller {
         let registration_fee = REGISTRATION_FEE_PER_YEAR * no_year;
         assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
 
-        let commitment = make_commitment(label, owner, secret);
+        let commitment = make_commitment(registrar, label, owner, secret);
         consume_commitment(controller, registrar, label, commitment, ctx);
 
-        if (resolver != @0x0) {
-            sui_registrar::register(registrar, registry, label, owner, duration, resolver, url::new_unsafe_from_bytes(url), ctx);
-            // TODO: configure resolver
-        } else {
-            assert!(addr == @0x0, EInvalidAddr);
-            sui_registrar::register(registrar, registry, label, owner, duration, resolver, url::new_unsafe_from_bytes(url), ctx);
-        };
+        let nft_id = base_registrar::register(registrar, registry, config, label, owner, duration, resolver, ctx);
+        // TODO: configure resolver
+
         event::emit(NameRegisteredEvent {
-            node: string::utf8(BASE_NODE),
+            node: base_registrar::get_base_node(registrar),
             label: string::utf8(label),
             owner,
             cost: registration_fee,
             expiry: tx_context::epoch(ctx) + duration,
+            nft_id,
+            resolver,
         });
         let coin_balance = coin::balance_mut(payment);
         let paid = balance::split(coin_balance, registration_fee);
@@ -188,8 +193,8 @@ module suins::sui_controller {
     }
 
     fun consume_commitment(
-        controller: &mut SuiController,
-        registrar: &SuiRegistrar,
+        controller: &mut BaseController,
+        registrar: &BaseRegistrar,
         label: vector<u8>,
         commitment: vector<u8>,
         ctx: &TxContext,
@@ -214,25 +219,29 @@ module suins::sui_controller {
         string::index_of(&label, &string::utf8(b".")) == string::length(&label)
     }
 
-    fun make_commitment(label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
+    fun make_commitment(registrar: &BaseRegistrar, label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
+        let node = label;
+        vector::append(&mut node, b".");
+        vector::append(&mut node, base_registrar::get_base_node_bytes(registrar));
+
         let owner_bytes = bcs::to_bytes(&owner);
-        vector::append(&mut label, owner_bytes);
-        vector::append(&mut label, secret);
-        keccak256(&label)
+        vector::append(&mut node, owner_bytes);
+        vector::append(&mut node, secret);
+        keccak256(&node)
     }
 
     #[test_only]
-    public fun test_make_commitment(label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
-        make_commitment(label, owner, secret)
+    public fun test_make_commitment(registrar: &BaseRegistrar, label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
+        make_commitment(registrar, label, owner, secret)
     }
 
     #[test_only]
-    public fun balance(controller: &SuiController): u64 {
+    public fun balance(controller: &BaseController): u64 {
         balance::value(&controller.balance)
     }
 
     #[test_only]
-    public fun commitment_len(controller: &SuiController): u64 {
+    public fun commitment_len(controller: &BaseController): u64 {
         vec_map::size(&controller.commitments)
     }
     #[test_only]
