@@ -31,13 +31,11 @@ module suins::base_registrar_tests {
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
-            base_registrar::new_tld(&admin_cap, &mut tlds_list, &mut registry, b"sui", test_scenario::ctx(&mut scenario));
-            base_registrar::new_tld(&admin_cap, &mut tlds_list, &mut registry, b"addr.reverse", test_scenario::ctx(&mut scenario));
-            base_registrar::new_tld(&admin_cap, &mut tlds_list, &mut registry, b"move", test_scenario::ctx(&mut scenario));
+            base_registrar::new_tld(&admin_cap, &mut tlds_list, b"sui", test_scenario::ctx(&mut scenario));
+            base_registrar::new_tld(&admin_cap, &mut tlds_list, b"addr.reverse", test_scenario::ctx(&mut scenario));
+            base_registrar::new_tld(&admin_cap, &mut tlds_list, b"move", test_scenario::ctx(&mut scenario));
             test_scenario::return_shared(tlds_list);
-            test_scenario::return_shared(registry);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
         scenario
@@ -84,7 +82,7 @@ module suins::base_registrar_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
-            assert!(base_registry::get_records_len(&registry) == 3, 0);
+            assert!(base_registry::get_records_len(&registry) == 0, 0);
 
             test_scenario::return_shared(registry);
         };
@@ -94,10 +92,10 @@ module suins::base_registrar_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            assert!(base_registry::get_records_len(&registry) == 4, 0);
+            assert!(base_registry::get_records_len(&registry) == 1, 0);
 
             // index 0 is .sui
-            let (_, record) = base_registry::get_record_at_index(&registry, 3);
+            let (_, record) = base_registry::get_record_at_index(&registry, 0);
             assert!(base_registry::get_record_owner(record) == FIRST_USER, 0);
             assert!(base_registry::get_record_resolver(record) == FIRST_RESOLVER, 0);
             assert!(base_registry::get_record_ttl(record) == 0, 0);
@@ -437,7 +435,7 @@ module suins::base_registrar_tests {
 
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
-            assert!(base_registry::get_records_len(&registry) == 3, 0);
+            assert!(base_registry::get_records_len(&registry) == 0, 0);
 
             test_scenario::return_shared(tlds_list);
             test_scenario::return_shared(registry);
@@ -447,18 +445,14 @@ module suins::base_registrar_tests {
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-
             base_registrar::new_tld(
                 &admin_cap,
                 &mut tlds_list,
-                &mut registry,
                 b"com",
                 test_scenario::ctx(&mut scenario)
             );
 
             test_scenario::return_to_sender(&mut scenario, admin_cap);
-            test_scenario::return_shared(registry);
             test_scenario::return_shared(tlds_list);
         };
 
@@ -479,13 +473,7 @@ module suins::base_registrar_tests {
             assert!(vec_map::size(expiries) == 0, 0);
 
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-
-            assert!(base_registry::get_records_len(&registry) == 4, 0);
-            let (node, record) = base_registry::get_record_at_index(&registry, 3);
-            assert!(node == &string::utf8(b"com"), 0);
-            assert!(base_registry::get_record_owner(record) == SUINS_ADDRESS, 0);
-            assert!(base_registry::get_record_ttl(record) == 0x100000, 0);
-            assert!(base_registry::get_record_resolver(record) == @0x0, 0);
+            assert!(base_registry::get_records_len(&registry) == 0, 0);
 
             test_scenario::return_shared(tlds_list);
             test_scenario::return_shared(com_registrar);
@@ -542,19 +530,16 @@ module suins::base_registrar_tests {
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             base_registrar::new_tld(
                 &admin_cap,
                 &mut tlds_list,
-                &mut registry,
                 b"move",
                 test_scenario::ctx(&mut scenario)
             );
 
             test_scenario::return_to_sender(&mut scenario, admin_cap);
             test_scenario::return_shared(tlds_list);
-            test_scenario::return_shared(registry);
         };
         test_scenario::end(scenario);
     }

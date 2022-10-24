@@ -6,9 +6,10 @@ module suins::addr_resolver_tests {
     use suins::base_registry::{Self, Registry, AdminCap};
     use suins::addr_resolver::{Self, AddrResolver};
     use suins::base_registrar::{Self, TLDsList};
+    use suins::base_registry_tests;
 
     const SUINS_ADDRESS: address = @0xA001;
-    const SUI_NODE: vector<u8> = b"sui";
+    const FIRST_SUB_NODE: vector<u8> = b"eastagile.sui";
     const FIRST_USER_ADDRESS: address = @0xB001;
     const SECOND_USER_ADDRESS: address = @0xB002;
 
@@ -24,13 +25,12 @@ module suins::addr_resolver_tests {
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
-            base_registrar::new_tld(&admin_cap, &mut tlds_list, &mut registry, b"sui", test_scenario::ctx(&mut scenario));
-            base_registrar::new_tld(&admin_cap, &mut tlds_list, &mut registry, b"addr.reverse", test_scenario::ctx(&mut scenario));
-            base_registrar::new_tld(&admin_cap, &mut tlds_list, &mut registry, b"move", test_scenario::ctx(&mut scenario));
+            base_registrar::new_tld(&admin_cap, &mut tlds_list, b"sui", test_scenario::ctx(&mut scenario));
+            base_registrar::new_tld(&admin_cap, &mut tlds_list, b"addr.reverse", test_scenario::ctx(&mut scenario));
+            base_registrar::new_tld(&admin_cap, &mut tlds_list, b"move", test_scenario::ctx(&mut scenario));
+
             test_scenario::return_shared(tlds_list);
-            test_scenario::return_shared(registry);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
         scenario
@@ -44,9 +44,7 @@ module suins::addr_resolver_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let resolver = test_scenario::take_shared<AddrResolver>(&mut scenario);
-
-            addr_resolver::addr(&resolver, SUI_NODE);
-
+            addr_resolver::addr(&resolver, FIRST_SUB_NODE);
             test_scenario::return_shared(resolver);
         };
         test_scenario::end(scenario);
@@ -55,13 +53,14 @@ module suins::addr_resolver_tests {
     #[test]
     fun test_set_addr() {
         let scenario = init();
+        base_registry_tests::mint_record(&mut scenario);
 
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let resolver = test_scenario::take_shared<AddrResolver>(&mut scenario);
             
-            addr_resolver::set_addr(&mut resolver, &registry, SUI_NODE, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
+            addr_resolver::set_addr(&mut resolver, &registry, FIRST_SUB_NODE, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
 
             test_scenario::return_shared(registry);
             test_scenario::return_shared(resolver);
@@ -70,7 +69,7 @@ module suins::addr_resolver_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let resolver = test_scenario::take_shared<AddrResolver>(&mut scenario);
-            let addr = addr_resolver::addr(&resolver, SUI_NODE);
+            let addr = addr_resolver::addr(&resolver, FIRST_SUB_NODE);
 
             assert!(addr == FIRST_USER_ADDRESS, 0);
 
@@ -82,24 +81,23 @@ module suins::addr_resolver_tests {
     #[test]
     fun test_set_addr_override_value_if_exists() {
         let scenario = init();
+        base_registry_tests::mint_record(&mut scenario);
 
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let resolver = test_scenario::take_shared<AddrResolver>(&mut scenario);
-
-            addr_resolver::set_addr(&mut resolver, &registry, SUI_NODE, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
-
+            addr_resolver::set_addr(&mut resolver, &registry, FIRST_SUB_NODE, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
             test_scenario::return_shared(registry);
             test_scenario::return_shared(resolver);
         };
 
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let resolver = test_scenario::take_shared<AddrResolver>(&mut scenario);
 
-            addr_resolver::set_addr(&mut resolver, &registry, SUI_NODE, SECOND_USER_ADDRESS, test_scenario::ctx(&mut scenario));
+            addr_resolver::set_addr(&mut resolver, &registry, FIRST_SUB_NODE, SECOND_USER_ADDRESS, test_scenario::ctx(&mut scenario));
 
             test_scenario::return_shared(registry);
             test_scenario::return_shared(resolver);
@@ -110,7 +108,7 @@ module suins::addr_resolver_tests {
             let resolver = test_scenario::take_shared<AddrResolver>(&mut scenario);
             
 
-            let addr = addr_resolver::addr(&resolver, SUI_NODE);
+            let addr = addr_resolver::addr(&resolver, FIRST_SUB_NODE);
             assert!(addr == SECOND_USER_ADDRESS, 0);
 
             test_scenario::return_shared(resolver);
@@ -122,13 +120,14 @@ module suins::addr_resolver_tests {
     #[expected_failure(abort_code = 101)]
     fun test_set_addr_abort_if_unauthorized() {
         let scenario = init();
+        base_registry_tests::mint_record(&mut scenario);
 
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let resolver = test_scenario::take_shared<AddrResolver>(&mut scenario);
 
-            addr_resolver::set_addr(&mut resolver, &registry, SUI_NODE, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
+            addr_resolver::set_addr(&mut resolver, &registry, FIRST_SUB_NODE, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
 
             test_scenario::return_shared(registry);
             test_scenario::return_shared(resolver);
@@ -140,13 +139,14 @@ module suins::addr_resolver_tests {
     #[expected_failure(abort_code = 101)]
     fun test_resolved_address_not_allowed_to_set_new_addr() {
         let scenario = init();
+        base_registry_tests::mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let resolver = test_scenario::take_shared<AddrResolver>(&mut scenario);
 
-            addr_resolver::set_addr(&mut resolver, &registry, SUI_NODE, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
+            addr_resolver::set_addr(&mut resolver, &registry, FIRST_SUB_NODE, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
 
             test_scenario::return_shared(registry);
             test_scenario::return_shared(resolver);
@@ -159,7 +159,7 @@ module suins::addr_resolver_tests {
             let resolver = test_scenario::take_shared<AddrResolver>(&mut scenario);
             
 
-            addr_resolver::set_addr(&mut resolver, &registry, SUI_NODE, SECOND_USER_ADDRESS, test_scenario::ctx(&mut scenario));
+            addr_resolver::set_addr(&mut resolver, &registry, FIRST_SUB_NODE, SECOND_USER_ADDRESS, test_scenario::ctx(&mut scenario));
 
             test_scenario::return_shared(registry);
             test_scenario::return_shared(resolver);

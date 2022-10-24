@@ -128,7 +128,7 @@ module suins::base_registry {
         authorised(registry, node, ctx);
 
         let subnode = make_node(label, string::utf8(node));
-        set_node_record_internal(registry, subnode, owner, resolver, ttl);
+        set_record_internal(registry, subnode, owner, resolver, ttl);
         event::emit(NewRecordEvent { node: subnode, owner, resolver, ttl });
     }
 
@@ -191,7 +191,7 @@ module suins::base_registry {
     }
 
     // this func is meant to be call by registrar, no need to check for owner
-    public(friend) fun set_node_record_internal(
+    public(friend) fun set_record_internal(
         registry: &mut Registry,
         node: String,
         owner: address,
