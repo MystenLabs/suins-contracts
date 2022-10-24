@@ -10,8 +10,7 @@ module suins::base_registry {
     friend suins::base_registrar;
     friend suins::reverse_registrar;
     friend suins::base_controller;
-    friend suins::name_resolver;
-    friend suins::addr_resolver;
+    friend suins::base_resolver;
 
     const MAX_TTL: u64 = 0x100000;
 
@@ -91,6 +90,7 @@ module suins::base_registry {
         vec_map::contains(&registry.records, node)
     }
 
+    // TODO: consider removing this
     public entry fun set_record(
         registry: &mut Registry,
         node: vector<u8>,
@@ -116,6 +116,7 @@ module suins::base_registry {
         record.ttl = ttl;
     }
 
+    // TODO: consider removing this
     public entry fun set_subnode_record(
         registry: &mut Registry,
         node: vector<u8>,
@@ -257,7 +258,7 @@ module suins::base_registry {
     #[test_only]
     friend suins::base_registry_tests;
     #[test_only]
-    friend suins::name_resolver_tests;
+    friend suins::base_resolver_tests;
 
     #[test_only]
     public fun get_record_at_index(registry: &Registry, index: u64): (&String, &Record) {

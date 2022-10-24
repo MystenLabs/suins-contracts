@@ -5,7 +5,7 @@ module suins::base_registry_tests {
     use suins::base_registrar::{Self, TLDsList};
     use std::string;
 
-    friend suins::addr_resolver_tests;
+    friend suins::base_resolver_tests;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
