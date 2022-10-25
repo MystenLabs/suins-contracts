@@ -181,10 +181,25 @@ module suins::base_registry_tests {
         let scenario = init();
         mint_record(&mut scenario);
 
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             assert!(base_registry::get_records_len(&registry) == 1, 0);
+            base_registry::set_record_internal(
+                &mut registry,
+                string::utf8(THIRD_SUB_NODE),
+                FIRST_USER_ADDRESS,
+                FIRST_RESOLVER_ADDRESS,
+                10,
+            );
+            assert!(base_registry::get_records_len(&registry) == 2, 0);
+            test_scenario::return_shared(registry);
+        };
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            assert!(base_registry::get_records_len(&registry) == 2, 0);
             base_registry::set_subnode_owner(
                 &mut registry,
                 FIRST_SUB_NODE,
@@ -228,6 +243,27 @@ module suins::base_registry_tests {
     }
 
     #[test]
+    #[expected_failure(abort_code = 1)]
+    fun test_set_subnode_owner_abort_if_subnode_not_exists() {
+        let scenario = init();
+        mint_record(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            base_registry::set_subnode_owner(
+                &mut registry,
+                FIRST_SUB_NODE,
+                b"ea",
+                SECOND_USER_ADDRESS,
+                test_scenario::ctx(&mut scenario)
+            );
+            test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
     #[expected_failure(abort_code = 101)]
     fun test_set_subnode_owner_abort_if_unauthorised() {
         let scenario = init();
@@ -255,11 +291,27 @@ module suins::base_registry_tests {
         let scenario = init();
         mint_record(&mut scenario);
 
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             assert!(base_registry::get_records_len(&registry) == 1, 0);
+            base_registry::set_record_internal(
+                &mut registry,
+                string::utf8(THIRD_SUB_NODE),
+                FIRST_USER_ADDRESS,
+                FIRST_RESOLVER_ADDRESS,
+                10,
+            );
+            assert!(base_registry::get_records_len(&registry) == 2, 0);
+            test_scenario::return_shared(registry);
+        };
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+
+            assert!(base_registry::get_records_len(&registry) == 2, 0);
             base_registry::set_subnode_owner(
                 &mut registry,
                 FIRST_SUB_NODE,
@@ -275,25 +327,8 @@ module suins::base_registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-
-            assert!(base_registry::get_records_len(&registry) == 2, 0);
-            base_registry::set_subnode_owner(
-                &mut registry,
-                FIRST_SUB_NODE,
-                b"ea",
-                FIRST_USER_ADDRESS,
-                test_scenario::ctx(&mut scenario)
-            );
-            assert!(base_registry::get_records_len(&registry) == 2, 0);
-
-            test_scenario::return_shared(registry);
-        };
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let (_, record) = base_registry::get_record_at_index(&registry, 0);
-            assert!(base_registry::get_record_owner(record) == FIRST_USER_ADDRESS, 0);
+            let (_, record) = base_registry::get_record_at_index(&registry, 1);
+            assert!(base_registry::get_record_owner(record) == SECOND_USER_ADDRESS, 0);
 
             test_scenario::return_shared(registry);
         };
@@ -457,123 +492,6 @@ module suins::base_registry_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             base_registry::set_TTL(&mut registry, SECOND_SUB_NODE, 20, test_scenario::ctx(&mut scenario));
-            test_scenario::return_shared(registry);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test]
-    fun test_set_subnode_record() {
-        let scenario = init();
-        mint_record(&mut scenario);
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
-            base_registry::set_subnode_record(
-                &mut registry,
-                FIRST_SUB_NODE,
-                b"ea",
-                SECOND_USER_ADDRESS,
-                SECOND_RESOLVER_ADDRESS,
-                20,
-                test_scenario::ctx(&mut scenario),
-            );
-            assert!(base_registry::get_records_len(&registry) == 2, 0);
-
-            test_scenario::return_shared(registry);
-        };
-
-        test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
-        {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-
-            assert!(base_registry::owner(&registry, THIRD_SUB_NODE) == SECOND_USER_ADDRESS, 0);
-            assert!(base_registry::resolver(&registry, THIRD_SUB_NODE) == SECOND_RESOLVER_ADDRESS, 0);
-            assert!(base_registry::ttl(&registry, THIRD_SUB_NODE) == 20, 0);
-
-            test_scenario::return_shared(registry);
-        };
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-
-            assert!(base_registry::get_records_len(&registry) == 2, 0);
-            base_registry::set_subnode_record(
-                &mut registry,
-                FIRST_SUB_NODE,
-                b"ea",
-                FIRST_USER_ADDRESS,
-                FIRST_RESOLVER_ADDRESS,
-                10,
-                test_scenario::ctx(&mut scenario),
-            );
-            assert!(base_registry::get_records_len(&registry) == 2, 0);
-
-            test_scenario::return_shared(registry);
-        };
-
-        test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
-        {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-
-            assert!(base_registry::owner(&registry, FIRST_SUB_NODE) == FIRST_USER_ADDRESS, 0);
-            assert!(base_registry::resolver(&registry, FIRST_SUB_NODE) == FIRST_RESOLVER_ADDRESS, 0);
-            assert!(base_registry::ttl(&registry, FIRST_SUB_NODE) == 10, 0);
-
-            test_scenario::return_shared(registry);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test]
-    #[expected_failure(abort_code = 101)]
-    fun test_set_subnode_record_if_unauthorised() {
-        let scenario = init();
-        mint_record(&mut scenario);
-
-        test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
-        {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-
-            base_registry::set_subnode_record(
-                &mut registry,
-                FIRST_SUB_NODE,
-                b"ea",
-                SECOND_USER_ADDRESS,
-                SECOND_RESOLVER_ADDRESS,
-                20,
-                test_scenario::ctx(&mut scenario),
-            );
-
-            test_scenario::return_shared(registry);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test]
-    #[expected_failure(abort_code = 102)]
-    fun test_set_subnode_record_if_node_not_exists() {
-        let scenario = init();
-        mint_record(&mut scenario);
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-
-            base_registry::set_subnode_record(
-                &mut registry,
-                SECOND_SUB_NODE,
-                b"ea",
-                SECOND_USER_ADDRESS,
-                SECOND_RESOLVER_ADDRESS,
-                20,
-                test_scenario::ctx(&mut scenario),
-            );
-
             test_scenario::return_shared(registry);
         };
         test_scenario::end(scenario);
