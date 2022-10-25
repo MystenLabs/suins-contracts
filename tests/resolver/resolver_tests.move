@@ -1,5 +1,5 @@
 #[test_only]
-module suins::base_resolver_tests {
+module suins::resolver_tests {
 
     use sui::test_scenario::{Self, Scenario};
     use suins::base_registry::{Self, Registry};

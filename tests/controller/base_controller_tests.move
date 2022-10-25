@@ -15,13 +15,15 @@ module suins::base_controller_tests {
     const FIRST_USER_ADDRESS: address = @0xB001;
     const SECOND_USER_ADDRESS: address = @0xB002;
     const FIRST_RESOLVER_ADDRESS: address = @0xC001;
-    const FIRST_LABEL: vector<u8> = b"eastagile";
+    const FIRST_LABEL: vector<u8> = b"eastagile-123";
     const SECOND_LABEL: vector<u8> = b"suinameservice";
     const FIRST_SECRET: vector<u8> = b"oKz=QdYd)]ryKB%";
     const SECOND_SECRET: vector<u8> = b"a9f8d4a8daeda2f35f02";
     const FIRST_INVALID_LABEL: vector<u8> = b"east.agile";
     const SECOND_INVALID_LABEL: vector<u8> = b"ea";
-    const DEFAULT_URL: vector<u8> = b"ipfs://bafkreibngqhl3gaa7daob4i2vccziay2jjlp435cf66vhono7nrvww53ty";
+    const THIRD_INVALID_LABEL: vector<u8> = b"zkaoxpcbarubhtxkunajudxezneyczueajbggrynkwbepxjqjxrigrtgglhfjpax";
+    const FOURTH_INVALID_LABEL: vector<u8> = b"-eastagile";
+    const FIFTH_INVALID_LABEL: vector<u8> = b"east/?agile";
 
     fun init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
@@ -569,14 +571,12 @@ module suins::base_controller_tests {
         {
             let controller =
                 test_scenario::take_shared<BaseController>(&mut scenario);
-            
             let registrar =
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry =
                 test_scenario::take_shared<Registry>(&mut scenario);
             let image =
                 test_scenario::take_shared<Configuration>(&mut scenario);
-
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
@@ -653,6 +653,174 @@ module suins::base_controller_tests {
 
             test_scenario::return_to_sender(&mut scenario, coin);
         };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 311)]
+    fun test_register_with_config_abort_with_too_short_label() {
+        let scenario = init();
+        make_commitment(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller =
+                test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar =
+                test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry =
+                test_scenario::take_shared<Registry>(&mut scenario);
+            let image =
+                test_scenario::take_shared<Configuration>(&mut scenario);
+            let coin = coin::mint_for_testing<SUI>(10001, test_scenario::ctx(&mut scenario));
+
+            base_controller::register_with_config(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &image,
+                SECOND_INVALID_LABEL,
+                FIRST_USER_ADDRESS,
+                366,
+                FIRST_SECRET,
+                FIRST_RESOLVER_ADDRESS,
+                &mut coin,
+                test_scenario::ctx(&mut scenario),
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(image);
+            test_scenario::return_shared(registry);
+        };
+
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 311)]
+    fun test_register_with_config_abort_with_too_long_label() {
+        let scenario = init();
+        make_commitment(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller =
+                test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar =
+                test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry =
+                test_scenario::take_shared<Registry>(&mut scenario);
+            let image =
+                test_scenario::take_shared<Configuration>(&mut scenario);
+            let coin = coin::mint_for_testing<SUI>(10001, test_scenario::ctx(&mut scenario));
+
+            base_controller::register_with_config(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &image,
+                THIRD_INVALID_LABEL,
+                FIRST_USER_ADDRESS,
+                366,
+                FIRST_SECRET,
+                FIRST_RESOLVER_ADDRESS,
+                &mut coin,
+                test_scenario::ctx(&mut scenario),
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(image);
+            test_scenario::return_shared(registry);
+        };
+
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 311)]
+    fun test_register_with_config_abort_if_label_starts_with_hyphen() {
+        let scenario = init();
+        make_commitment(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller =
+                test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar =
+                test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry =
+                test_scenario::take_shared<Registry>(&mut scenario);
+            let image =
+                test_scenario::take_shared<Configuration>(&mut scenario);
+            let coin = coin::mint_for_testing<SUI>(10001, test_scenario::ctx(&mut scenario));
+
+            base_controller::register_with_config(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &image,
+                FOURTH_INVALID_LABEL,
+                FIRST_USER_ADDRESS,
+                366,
+                FIRST_SECRET,
+                FIRST_RESOLVER_ADDRESS,
+                &mut coin,
+                test_scenario::ctx(&mut scenario),
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(image);
+            test_scenario::return_shared(registry);
+        };
+
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 311)]
+    fun test_register_with_config_abort_with_invalid_label() {
+        let scenario = init();
+        make_commitment(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller =
+                test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar =
+                test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry =
+                test_scenario::take_shared<Registry>(&mut scenario);
+            let image =
+                test_scenario::take_shared<Configuration>(&mut scenario);
+            let coin = coin::mint_for_testing<SUI>(10001, test_scenario::ctx(&mut scenario));
+
+            base_controller::register_with_config(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &image,
+                FIFTH_INVALID_LABEL,
+                FIRST_USER_ADDRESS,
+                366,
+                FIRST_SECRET,
+                FIRST_RESOLVER_ADDRESS,
+                &mut coin,
+                test_scenario::ctx(&mut scenario),
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(image);
+            test_scenario::return_shared(registry);
+        };
+
         test_scenario::end(scenario);
     }
 
@@ -882,6 +1050,37 @@ module suins::base_controller_tests {
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_set_default_resolver() {
+        let scenario = init();
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let resolver = base_controller::get_default_resolver(&controller);
+            assert!(resolver == @0x0, 0);
+            test_scenario::return_shared(controller);
+        };
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            base_controller::set_default_resolver(&admin_cap, &mut controller, FIRST_RESOLVER_ADDRESS);
+            test_scenario::return_shared(controller);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
+        };
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let resolver = base_controller::get_default_resolver(&controller);
+            assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
+            test_scenario::return_shared(controller);
         };
         test_scenario::end(scenario);
     }

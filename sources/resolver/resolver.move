@@ -1,4 +1,4 @@
-module suins::base_resolver {
+module suins::resolver {
 
     use sui::event;
     use sui::object::{Self, UID};

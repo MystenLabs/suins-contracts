@@ -5,7 +5,7 @@ module suins::base_registry_tests {
     use suins::base_registrar::{Self, TLDsList};
     use std::string;
 
-    friend suins::base_resolver_tests;
+    friend suins::resolver_tests;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -492,6 +492,62 @@ module suins::base_registry_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             base_registry::set_TTL(&mut registry, SECOND_SUB_NODE, 20, test_scenario::ctx(&mut scenario));
+            test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_get_resolver() {
+        let scenario = init();
+        mint_record(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = base_registry::resolver(&registry, FIRST_SUB_NODE);
+            assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
+            test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 102)]
+    fun test_get_resolver_if_node_not_exists() {
+        let scenario = init();
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            base_registry::resolver(&registry, FIRST_SUB_NODE);
+            test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_get_ttl() {
+        let scenario = init();
+        mint_record(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let ttl = base_registry::ttl(&registry, FIRST_SUB_NODE);
+            assert!(ttl == 10, 0);
+            test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 102)]
+    fun test_get_ttl_if_node_not_exists() {
+        let scenario = init();
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            base_registry::ttl(&registry, FIRST_SUB_NODE);
             test_scenario::return_shared(registry);
         };
         test_scenario::end(scenario);

@@ -219,7 +219,9 @@ module suins::base_controller {
         let label_bytes = string::bytes(&label);
         let len = string::length(&label);
         // check if label is ASCII
-        assert!(vector::length(label_bytes) == len, EInvalidLabel);
+        // can fail fast if `string::length` returns the length in characters
+        // assert!(vector::length(label_bytes) == len, EInvalidLabel);
+
         assert!(2 < len && len < 64, EInvalidLabel);
 
         let index = 0;
@@ -260,6 +262,12 @@ module suins::base_controller {
     public fun commitment_len(controller: &BaseController): u64 {
         vec_map::size(&controller.commitments)
     }
+
+    #[test_only]
+    public fun get_default_resolver(controller: &BaseController): address {
+        controller.default_addr_resolver
+    }
+
     #[test_only]
     /// Wrapper of module initializer for testing
     public fun test_init(ctx: &mut TxContext) { init(ctx) }
