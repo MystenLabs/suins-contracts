@@ -15,7 +15,6 @@ module suins::base_registry {
 
     // errors in the range of 101..200 indicate Registry errors
     const EUnauthorized: u64 = 101;
-    const ERecordNotExists: u64 = 102;
 
     // https://examples.sui.io/patterns/capability.html
     struct AdminCap has key { id: UID }
@@ -65,28 +64,15 @@ module suins::base_registry {
     }
 
     public fun owner(registry: &Registry, node: vector<u8>): address {
-        if (record_exists(registry, &string::utf8(node))) {
-            return vec_map::get(&registry.records, &string::utf8(node)).owner
-        };
-        abort ERecordNotExists
+        vec_map::get(&registry.records, &string::utf8(node)).owner
     }
 
     public fun resolver(registry: &Registry, node: vector<u8>): address {
-        if (record_exists(registry, &string::utf8(node))) {
-            return vec_map::get(&registry.records, &string::utf8(node)).resolver
-        };
-        abort ERecordNotExists
+        vec_map::get(&registry.records, &string::utf8(node)).resolver
     }
 
     public fun ttl(registry: &Registry, node: vector<u8>): u64 {
-        if (record_exists(registry, &string::utf8(node))) {
-            return vec_map::get(&registry.records, &string::utf8(node)).ttl
-        };
-        abort ERecordNotExists
-    }
-
-    public fun record_exists(registry: &Registry, node: &String): bool {
-        vec_map::contains(&registry.records, node)
+        vec_map::get(&registry.records, &string::utf8(node)).ttl
     }
 
     public entry fun set_subnode_owner(
@@ -167,7 +153,7 @@ module suins::base_registry {
         if (tx_context::sender(ctx) != owner) abort EUnauthorized;
     }
 
-    public(friend) fun new_record(
+    fun new_record(
         registry: &mut Registry,
         node: String,
         owner: address,

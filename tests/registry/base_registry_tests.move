@@ -134,7 +134,7 @@ module suins::base_registry_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 102)]
+    #[expected_failure(abort_code = 1)]
     fun test_set_owner_abort_if_node_not_exists() {
         let scenario = init();
         mint_record(&mut scenario);
@@ -222,7 +222,7 @@ module suins::base_registry_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 102)]
+    #[expected_failure(abort_code = 1)]
     fun test_set_subnode_owner_abort_if_node_not_exists() {
         let scenario = init();
         mint_record(&mut scenario);
@@ -406,7 +406,7 @@ module suins::base_registry_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 102)]
+    #[expected_failure(abort_code = 1)]
     fun test_set_resolver_abort_if_node_not_exists() {
         let scenario = init();
         mint_record(&mut scenario);
@@ -483,7 +483,7 @@ module suins::base_registry_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 102)]
+    #[expected_failure(abort_code = 1)]
     fun test_set_ttl_abort_if_node_not_exists() {
         let scenario = init();
         mint_record(&mut scenario);
@@ -513,7 +513,7 @@ module suins::base_registry_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 102)]
+    #[expected_failure(abort_code = 1)]
     fun test_get_resolver_if_node_not_exists() {
         let scenario = init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -541,7 +541,7 @@ module suins::base_registry_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 102)]
+    #[expected_failure(abort_code = 1)]
     fun test_get_ttl_if_node_not_exists() {
         let scenario = init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);

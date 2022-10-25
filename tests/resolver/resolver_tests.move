@@ -187,7 +187,7 @@ module suins::resolver_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 102)]
+    #[expected_failure(abort_code = 1)]
     fun test_set_name_abort_if_addr_not_exists_in_registry() {
         let scenario = init();
 
