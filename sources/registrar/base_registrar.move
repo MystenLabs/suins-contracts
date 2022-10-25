@@ -70,7 +70,6 @@ module suins::base_registrar {
     public entry fun new_tld(
         _: &AdminCap,
         tlds_list: &mut TLDsList,
-        registry: &mut Registry,
         tld: vector<u8>,
         ctx: &mut TxContext,
     ) {
@@ -84,13 +83,6 @@ module suins::base_registrar {
         };
 
         vector::push_back(&mut tlds_list.tlds, tld_str);
-        base_registry::new_record(
-            registry,
-            tld_str,
-            tx_context::sender(ctx),
-            @0x0,
-            MAX_TTL,
-        );
         transfer::share_object(BaseRegistrar {
             id: object::new(ctx),
             expiries: vec_map::empty(),
@@ -223,7 +215,7 @@ module suins::base_registrar {
         let nft_id = object::uid_to_inner(&nft.id);
         transfer::transfer(nft, owner);
 
-        if (update_registry) base_registry::set_node_record_internal(registry, node, owner, resolver, 0);
+        if (update_registry) base_registry::set_record_internal(registry, node, owner, resolver, 0);
         nft_id
     }
 

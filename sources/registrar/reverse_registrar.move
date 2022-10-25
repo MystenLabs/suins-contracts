@@ -50,7 +50,7 @@ module suins::reverse_registrar {
         let addr = tx_context::sender(ctx);
         let label = converter::address_to_string(addr);
         let node = base_registry::make_node(label, string::utf8(ADDR_REVERSE_BASE_NODE));
-        base_registry::set_node_record_internal(registry, node, owner, resolver, 0);
+        base_registry::set_record_internal(registry, node, owner, resolver, 0);
 
         event::emit(ReverseClaimedEvent { addr, resolver })
     }

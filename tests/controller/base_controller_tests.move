@@ -36,13 +36,11 @@ module suins::base_controller_tests {
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
-            base_registrar::new_tld(&admin_cap, &mut tlds_list, &mut registry, b"sui", test_scenario::ctx(&mut scenario));
-            base_registrar::new_tld(&admin_cap, &mut tlds_list, &mut registry, b"addr.reverse", test_scenario::ctx(&mut scenario));
-            base_registrar::new_tld(&admin_cap, &mut tlds_list, &mut registry, b"move", test_scenario::ctx(&mut scenario));
+            base_registrar::new_tld(&admin_cap, &mut tlds_list,b"sui", test_scenario::ctx(&mut scenario));
+            base_registrar::new_tld(&admin_cap, &mut tlds_list,b"addr.reverse", test_scenario::ctx(&mut scenario));
+            base_registrar::new_tld(&admin_cap, &mut tlds_list,b"move", test_scenario::ctx(&mut scenario));
             test_scenario::return_shared(tlds_list);
-            test_scenario::return_shared(registry);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
         scenario
