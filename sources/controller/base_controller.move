@@ -218,9 +218,6 @@ module suins::base_controller {
     fun check_valid(label: String) {
         let label_bytes = string::bytes(&label);
         let len = string::length(&label);
-        // check if label is ASCII
-        // can fail fast if `string::length` returns the length in characters
-        // assert!(vector::length(label_bytes) == len, EInvalidLabel);
 
         assert!(2 < len && len < 64, EInvalidLabel);
 
