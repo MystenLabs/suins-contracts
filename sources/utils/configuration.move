@@ -7,34 +7,46 @@ module suins::configuration {
     use sui::transfer;
     use sui::object;
     use sui::url::{Self, Url};
+    use sui::event;
+    use suins::base_registry::AdminCap;
 
     friend suins::base_registrar;
+
+    struct NetworkFirstDayChangedEvent has copy, drop {
+        new_day: u64,
+    }
 
     struct Configuration has key {
         id: UID,
         // key is the day number of the end-of-year day counted from 01/01/2022, e.g., 2022 is day 365, 2023 is day 730
         ipfs_urls: VecMap<u64, vector<u8>>,
-        // day number counts from 01/01/2022, 01/01/2022 is day 1,
+        // day number when the network is deployed, counts from 01/01/2022, 01/01/2022 is day 1,
         // help to detect leap year
-        contract_deployed_day: u64,
+        network_first_day: u64,
     }
 
     fun init(ctx: &mut TxContext) {
         let ipfs_urls = vec_map::empty<u64, vector<u8>>();
         vec_map::insert(&mut ipfs_urls, 365, b"ipfs://QmfWrgbTZqwzqsvdeNc3NKacggMuTaN83sQ8V7Bs2nXKRD");
         vec_map::insert(&mut ipfs_urls, 730, b"ipfs://QmZsHKQk9FbQZYCy7rMYn1z6m9Raa183dNhpGCRm3fX71s");
-        vec_map::insert(&mut ipfs_urls, 1095, b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2");
+        vec_map::insert(&mut ipfs_urls, 1096, b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2");
         vec_map::insert(&mut ipfs_urls, 1461, b"ipfs://QmaWNLR6C3QsSHcPwNoFA59DPXCKdx1t8hmyyKRqBbjYB3");
         vec_map::insert(&mut ipfs_urls, 1826, b"ipfs://QmRF7kbi4igtGcX6enEuthQRhvQZejc7ZKBhMimFJtTS8D");
+        vec_map::insert(&mut ipfs_urls, 2191, b"ipfs://QmfG5ngyNak9Baxg39whWUFnm5i52p64hgBWqfKJfUKjWr");
         transfer::share_object(Configuration {
             id: object::new(ctx),
             ipfs_urls,
-            contract_deployed_day: 291,
+            network_first_day: 0,
         });
     }
 
+    public entry fun set_network_first_day(_: &AdminCap, configuration: &mut Configuration, new_day: u64) {
+        configuration.network_first_day = new_day;
+        event::emit(NetworkFirstDayChangedEvent { new_day })
+    }
+
     public(friend) fun get_url(config: &Configuration, duration: u64): Url {
-        let date = config.contract_deployed_day + duration;
+        let date = config.network_first_day + duration;
         let len = vec_map::size(&config.ipfs_urls);
         let index = 0;
         while(index < len) {
