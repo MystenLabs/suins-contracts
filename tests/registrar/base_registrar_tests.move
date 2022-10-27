@@ -2,12 +2,12 @@
 module suins::base_registrar_tests {
     use sui::test_scenario::{Self, Scenario};
     use sui::tx_context;
+    use sui::vec_map;
     use suins::base_registry::{Self, Registry, AdminCap};
     use suins::base_registrar::{Self, BaseRegistrar, RegistrationNFT, TLDsList};
+    use suins::configuration::{Self, Configuration};
     use std::string;
     use std::vector;
-    use suins::configuration::{Self, Configuration};
-    use sui::vec_map;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER: address = @0xB001;
@@ -194,7 +194,7 @@ module suins::base_registrar_tests {
 
     #[test]
     #[expected_failure(abort_code = 206)]
-    fun test_register_abort_if_label_unavailable() {
+    fun test_register_abort_with_invalid_duration() {
         let scenario = init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
@@ -219,10 +219,24 @@ module suins::base_registrar_tests {
         };
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 204)]
+    fun test_register_abort_if_label_unavailable() {
+        let scenario = init();
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let image = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                0,
+                0,
+            );
 
             base_registrar::register(
                 &mut registrar,
@@ -230,14 +244,42 @@ module suins::base_registrar_tests {
                 &image,
                 FIRST_LABEL,
                 FIRST_USER,
-                0,
+                365,
                 FIRST_RESOLVER,
-                test_scenario::ctx(&mut scenario)
+                &mut ctx,
             );
 
             test_scenario::return_shared(registry);
-            test_scenario::return_shared(image);
             test_scenario::return_shared(registrar);
+            test_scenario::return_shared(image);
+        };
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let image = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                10,
+                0,
+            );
+
+            base_registrar::register(
+                &mut registrar,
+                &mut registry,
+                &image,
+                FIRST_LABEL,
+                FIRST_USER,
+                365,
+                FIRST_RESOLVER,
+                &mut ctx,
+            );
+
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(image);
         };
         test_scenario::end(scenario);
     }
@@ -524,6 +566,29 @@ module suins::base_registrar_tests {
     #[test]
     #[expected_failure(abort_code = 208)]
     fun test_new_tld_abort_with_duplicated_tld() {
+        let scenario = init();
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+
+            base_registrar::new_tld(
+                &admin_cap,
+                &mut tlds_list,
+                b"move",
+                test_scenario::ctx(&mut scenario)
+            );
+
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
+            test_scenario::return_shared(tlds_list);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 208)]
+    fun test_admin_set() {
         let scenario = init();
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);

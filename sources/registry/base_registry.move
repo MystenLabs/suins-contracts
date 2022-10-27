@@ -4,19 +4,17 @@ module suins::base_registry {
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
     use sui::vec_map::{Self, VecMap};
-    use std::option::{Self, Option};
     use std::string::{Self, String};
 
     friend suins::base_registrar;
     friend suins::reverse_registrar;
     friend suins::base_controller;
-    friend suins::base_resolver;
+    friend suins::resolver;
 
     const MAX_TTL: u64 = 0x100000;
 
     // errors in the range of 101..200 indicate Registry errors
     const EUnauthorized: u64 = 101;
-    const ERecordNotExists: u64 = 102;
 
     // https://examples.sui.io/patterns/capability.html
     struct AdminCap has key { id: UID }
@@ -66,71 +64,15 @@ module suins::base_registry {
     }
 
     public fun owner(registry: &Registry, node: vector<u8>): address {
-        if (record_exists(registry, &string::utf8(node))) {
-            return vec_map::get(&registry.records, &string::utf8(node)).owner
-        };
-        abort ERecordNotExists
+        vec_map::get(&registry.records, &string::utf8(node)).owner
     }
 
     public fun resolver(registry: &Registry, node: vector<u8>): address {
-        if (record_exists(registry, &string::utf8(node))) {
-            return vec_map::get(&registry.records, &string::utf8(node)).resolver
-        };
-        abort ERecordNotExists
+        vec_map::get(&registry.records, &string::utf8(node)).resolver
     }
 
     public fun ttl(registry: &Registry, node: vector<u8>): u64 {
-        if (record_exists(registry, &string::utf8(node))) {
-            return vec_map::get(&registry.records, &string::utf8(node)).ttl
-        };
-        abort ERecordNotExists
-    }
-
-    public fun record_exists(registry: &Registry, node: &String): bool {
-        vec_map::contains(&registry.records, node)
-    }
-
-    // TODO: consider removing this
-    public entry fun set_record(
-        registry: &mut Registry,
-        node: vector<u8>,
-        owner: address,
-        resolver: address,
-        ttl: u64,
-        ctx: &mut TxContext,
-    ) {
-        authorised(registry, node, ctx);
-
-        let node = string::utf8(node);
-        set_owner_or_create_record(
-            registry,
-            node,
-            owner,
-            option::some(resolver),
-            option::some(ttl),
-        );
-        event::emit(NewRecordEvent { node, owner, resolver, ttl });
-
-        let record = vec_map::get_mut(&mut registry.records, &node);
-        record.resolver = resolver;
-        record.ttl = ttl;
-    }
-
-    // TODO: consider removing this
-    public entry fun set_subnode_record(
-        registry: &mut Registry,
-        node: vector<u8>,
-        label: vector<u8>,
-        owner: address,
-        resolver: address,
-        ttl: u64,
-        ctx: &mut TxContext,
-    ) {
-        authorised(registry, node, ctx);
-
-        let subnode = make_node(label, string::utf8(node));
-        set_record_internal(registry, subnode, owner, resolver, ttl);
-        event::emit(NewRecordEvent { node: subnode, owner, resolver, ttl });
+        vec_map::get(&registry.records, &string::utf8(node)).ttl
     }
 
     public entry fun set_subnode_owner(
@@ -140,16 +82,11 @@ module suins::base_registry {
         owner: address,
         ctx: &mut TxContext,
     ) {
+        // required both node and subnode to exist
         authorised(registry, node, ctx);
 
         let node = make_node(label, string::utf8(node));
-        set_owner_or_create_record(
-            registry,
-            node,
-            owner,
-            option::none<address>(),
-            option::none<u64>(),
-        );
+        set_owner_internal(registry, node, owner);
         event::emit(NewOwnerEvent { node, owner });
     }
 
@@ -199,15 +136,14 @@ module suins::base_registry {
         resolver: address,
         ttl: u64,
     ) {
-        set_owner_or_create_record(
-            registry,
-            node,
-            owner,
-            option::some(resolver),
-            option::some(ttl),
-        );
-
-        let record = vec_map::get_mut(&mut registry.records, &node);
+        let record = if (vec_map::contains(&registry.records, &node)) {
+            let record = vec_map::get_mut(&mut registry.records, &node);
+            record.owner = owner;
+            record
+        } else {
+            new_record(registry, node, owner, resolver, ttl);
+            vec_map::get_mut(&mut registry.records, &node)
+        };
         record.resolver = resolver;
         record.ttl = ttl;
     }
@@ -217,30 +153,7 @@ module suins::base_registry {
         if (tx_context::sender(ctx) != owner) abort EUnauthorized;
     }
 
-    fun set_owner_or_create_record(
-        registry: &mut Registry,
-        node: String,
-        owner: address,
-        resolver: Option<address>,
-        ttl: Option<u64>,
-    ) {
-        if (vec_map::contains(&registry.records, &node)) {
-            let record = vec_map::get_mut(&mut registry.records, &node);
-            record.owner = owner;
-            return
-        };
-        if (option::is_none(&resolver)) option::fill(&mut resolver, @0x0);
-        if (option::is_none(&ttl)) option::fill(&mut ttl, 0);
-        new_record(
-            registry,
-            node,
-            owner,
-            option::extract(&mut resolver),
-            option::extract(&mut ttl),
-        );
-    }
-
-    public(friend) fun new_record(
+    fun new_record(
         registry: &mut Registry,
         node: String,
         owner: address,
@@ -258,7 +171,7 @@ module suins::base_registry {
     #[test_only]
     friend suins::base_registry_tests;
     #[test_only]
-    friend suins::base_resolver_tests;
+    friend suins::resolver_tests;
 
     #[test_only]
     public fun get_record_at_index(registry: &Registry, index: u64): (&String, &Record) {

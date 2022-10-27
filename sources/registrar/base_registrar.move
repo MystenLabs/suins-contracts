@@ -5,12 +5,11 @@ module suins::base_registrar {
     use sui::tx_context::{Self, TxContext};
     use sui::url::Url;
     use sui::vec_map::{Self, VecMap};
-    use suins::base_registry::{Self, Registry, AdminCap};
     use std::string::{Self, String};
     use std::option;
-    use suins::configuration;
-    use suins::configuration::Configuration;
     use std::vector;
+    use suins::base_registry::{Self, Registry, AdminCap};
+    use suins::configuration::{Self, Configuration};
 
     friend suins::base_controller;
 
@@ -127,7 +126,33 @@ module suins::base_registrar {
         resolver: address,
         ctx: &mut TxContext
     ): ID {
-        register_internal(registrar, registry, config, label, owner, duration, resolver, true, ctx)
+        let label = string::try_utf8(label);
+        assert!(option::is_some(&label), EInvalidLabel);
+        let label = option::extract(&mut label);
+        assert!(available(registrar, label, ctx), ELabelUnAvailable);
+        assert!(duration > 0, EInvalidDuration);
+
+        let url = configuration::get_url(config, duration, tx_context::epoch(ctx));
+        let detail = RegistrationDetail {
+            expiry: tx_context::epoch(ctx) + duration,
+            owner,
+        };
+        vec_map::insert(&mut registrar.expiries, label, detail);
+
+        let node = label;
+        string::append_utf8(&mut node, b".");
+        string::append(&mut node, registrar.base_node);
+
+        let nft = RegistrationNFT {
+            id: object::new(ctx),
+            name: node,
+            url,
+        };
+        let nft_id = object::uid_to_inner(&nft.id);
+        transfer::transfer(nft, owner);
+        base_registry::set_record_internal(registry, node, owner, resolver, 0);
+
+        nft_id
     }
 
     public(friend) fun get_base_node(registrar: &BaseRegistrar): String {
@@ -149,10 +174,6 @@ module suins::base_registrar {
 
         event::emit(NameRenewedEvent { label, expiry: detail.expiry });
         detail.expiry
-    }
-
-    public entry fun set_resolver(_: &AdminCap, registrar: &BaseRegistrar, registry: &mut Registry, resolver: address, ctx: &mut TxContext) {
-        base_registry::set_resolver(registry, *string::bytes(&registrar.base_node), resolver, ctx);
     }
 
     public entry fun reclaim_by_nft_owner(
@@ -179,54 +200,8 @@ module suins::base_registrar {
         })
     }
 
-    fun register_internal(
-        registrar: &mut BaseRegistrar,
-        registry: &mut Registry,
-        config: &Configuration,
-        label: vector<u8>,
-        owner: address,
-        duration: u64,
-        resolver: address,
-        update_registry: bool,
-        ctx: &mut TxContext
-    ): ID {
-        let label = string::try_utf8(label);
-        assert!(option::is_some(&label), EInvalidLabel);
-        let label = option::extract(&mut label);
-        assert!(available(registrar, label, ctx), ELabelUnAvailable);
-        assert!(duration > 0, EInvalidDuration);
-
-        let url = configuration::get_url(config, duration);
-        let detail = RegistrationDetail {
-            expiry: tx_context::epoch(ctx) + duration,
-            owner,
-        };
-        vec_map::insert(&mut registrar.expiries, label, detail);
-
-        let node = label;
-        string::append_utf8(&mut node, b".");
-        string::append(&mut node, registrar.base_node);
-
-        let nft = RegistrationNFT {
-            id: object::new(ctx),
-            name: node,
-            url,
-        };
-        let nft_id = object::uid_to_inner(&nft.id);
-        transfer::transfer(nft, owner);
-
-        if (update_registry) base_registry::set_record_internal(registry, node, owner, resolver, 0);
-        nft_id
-    }
-
     public fun record_exists(registrar: &BaseRegistrar, label: String): bool {
         vec_map::contains(&registrar.expiries, &label)
-    }
-
-    fun is_owner(registry: &Registry, base_node: vector<u8>, ctx: &TxContext): bool {
-        let owner = base_registry::owner(registry, base_node);
-        let spender = tx_context::sender(ctx);
-        spender == owner
     }
 
     #[test_only]

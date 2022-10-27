@@ -4,7 +4,7 @@ module suins::converter {
     use std::vector;
 
     friend suins::reverse_registrar;
-    friend suins::base_resolver;
+    friend suins::resolver;
 
     public(friend) fun address_to_string(addr: address): vector<u8> {
         let bytes = bcs::to_bytes(&addr);
@@ -39,5 +39,5 @@ module suins::converter {
     #[test_only]
     friend suins::converter_tests;
     #[test_only]
-    friend suins::base_resolver_tests;
+    friend suins::resolver_tests;
 }
