@@ -17,7 +17,7 @@ module suins::base_registry {
     const EUnauthorized: u64 = 101;
 
     // https://examples.sui.io/patterns/capability.html
-    struct AdminCap has key { id: UID }
+    struct AdminCap has key, store { id: UID }
 
     struct NewOwnerEvent has copy, drop {
         node: String,
