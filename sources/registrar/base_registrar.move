@@ -132,7 +132,7 @@ module suins::base_registrar {
         assert!(available(registrar, label, ctx), ELabelUnAvailable);
         assert!(duration > 0, EInvalidDuration);
 
-        let url = configuration::get_url(config, duration);
+        let url = configuration::get_url(config, duration, tx_context::epoch(ctx));
         let detail = RegistrationDetail {
             expiry: tx_context::epoch(ctx) + duration,
             owner,

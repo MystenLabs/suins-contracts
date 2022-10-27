@@ -45,13 +45,14 @@ module suins::configuration {
         event::emit(NetworkFirstDayChangedEvent { new_day })
     }
 
-    public(friend) fun get_url(config: &Configuration, duration: u64): Url {
-        let date = config.network_first_day + duration;
+    public(friend) fun get_url(config: &Configuration, duration: u64, current_epoch: u64): Url {
+        // duration cannot be less than 0
+        let day = config.network_first_day + current_epoch + duration;
         let len = vec_map::size(&config.ipfs_urls);
         let index = 0;
         while(index < len) {
             let (key, value) = vec_map::get_entry_by_idx(&config.ipfs_urls, index);
-            if (date < *key) {
+            if (day <= *key) {
                 return url::new_unsafe_from_bytes(*value)
             };
             index = index + 1;
@@ -61,6 +62,11 @@ module suins::configuration {
 
     #[test_only]
     friend suins::configuration_tests;
+
+    #[test_only]
+    public fun set_network_first_day_test(configuration: &mut Configuration, new_day: u64) {
+        configuration.network_first_day = new_day;
+    }
 
     #[test_only]
     /// Wrapper of module initializer for testing
