@@ -19,7 +19,7 @@ module suins::base_controller {
     // TODO: remove later when timestamp is introduced
     // const MIN_COMMITMENT_AGE: u64 = 0;
     const MAX_COMMITMENT_AGE: u64 = 3;
-    const REGISTRATION_FEE_PER_YEAR: u64 = 8;
+    const REGISTRATION_FEE_PER_YEAR: u64 = 8000000;
 
     // errors in the range of 301..400 indicate Sui Controller errors
     const EInvalidResolverAddress: u64 = 301;
@@ -89,7 +89,7 @@ module suins::base_controller {
     ) {
         let no_year = duration / 365;
         if ((duration % 365) > 0) no_year = no_year + 1;
-        let renew_fee = REGISTRATION_FEE_PER_YEAR * no_year;
+        let renew_fee = 8 * no_year;
         assert!(coin::value(payment) >= renew_fee, ENotEnoughFee);
 
         base_registrar::renew(registrar, label, duration, ctx);
@@ -131,7 +131,7 @@ module suins::base_controller {
         owner: address,
         duration: u64,
         secret: vector<u8>,
-        payment: &mut Coin<SUI>,
+        payment: vector<Coin<SUI>>,
         ctx: &mut TxContext,
     ) {
         let resolver = controller.default_addr_resolver;
@@ -151,6 +151,22 @@ module suins::base_controller {
         );
     }
 
+    fun charge_fee(controller: &mut BaseController, payments: vector<Coin<SUI>>, fee: u64, ctx: &mut TxContext,) {
+        let len = vector::length(&payments);
+        let index = 1;
+        let coin = vector::pop_back(&mut payments);
+        while(index < len) {
+            coin::join(&mut coin, vector::pop_back(&mut payments));
+            index = index + 1;
+        };
+        vector::destroy_empty(payments);
+        assert!(coin::value(&coin) >= fee, ENotEnoughFee);
+        let coin_balance = coin::balance_mut(&mut coin);
+        let paid = balance::split(coin_balance, fee);
+        balance::join(&mut controller.balance, paid);
+
+        transfer::transfer(coin, tx_context::sender(ctx));
+    }
     // anyone can register a domain at any level
     public entry fun register_with_config(
         controller: &mut BaseController,
@@ -162,7 +178,7 @@ module suins::base_controller {
         duration: u64,
         secret: vector<u8>,
         resolver: address,
-        payment: &mut Coin<SUI>,
+        payments: vector<Coin<SUI>>,
         ctx: &mut TxContext,
     ) {
         check_valid(string::utf8(label));
@@ -170,7 +186,7 @@ module suins::base_controller {
         let no_year = duration / 365;
         if ((duration % 365) > 0) no_year = no_year + 1;
         let registration_fee = REGISTRATION_FEE_PER_YEAR * no_year;
-        assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
+        charge_fee(controller, payments, registration_fee, ctx);
 
         let commitment = make_commitment(registrar, label, owner, secret);
         consume_commitment(controller, registrar, label, commitment, ctx);
@@ -187,9 +203,6 @@ module suins::base_controller {
             nft_id,
             resolver,
         });
-        let coin_balance = coin::balance_mut(payment);
-        let paid = balance::split(coin_balance, registration_fee);
-        balance::join(&mut controller.balance, paid);
     }
 
     fun consume_commitment(
