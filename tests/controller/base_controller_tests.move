@@ -99,7 +99,7 @@ module suins::base_controller_tests {
                 0
             );
             let coins = vector::empty();
-            let coin = coin::mint_for_testing<SUI>(10001, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(1000000, &mut ctx);
             vector::push_back(&mut coins, coin);
             assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
 
@@ -161,7 +161,7 @@ module suins::base_controller_tests {
                 test_scenario::take_shared<Configuration>(&mut scenario);
 
             let coins = vector::empty();
-            let coin = coin::mint_for_testing<SUI>(20001, test_scenario::ctx(&mut scenario));
+            let coin = coin::mint_for_testing<SUI>(2000001, test_scenario::ctx(&mut scenario));
             vector::push_back(&mut coins, coin);
             assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
 
@@ -191,7 +191,7 @@ module suins::base_controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let coin = test_scenario::take_from_sender<Coin<SUI>>(&mut scenario);
 
-            assert!(coin::value(&coin) == 20001 - 8 * 2, 0);
+            assert!(coin::value(&coin) == 1, 0);
             assert!(base_controller::commitment_len(&controller) == 0, 0);
             assert!(base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
 
@@ -227,7 +227,7 @@ module suins::base_controller_tests {
                 0
             );
             let coins = vector::empty();
-            let coin = coin::mint_for_testing<SUI>(20001, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(2000001, &mut ctx);
             vector::push_back(&mut coins, coin);
             assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
 
@@ -278,7 +278,7 @@ module suins::base_controller_tests {
                 0
             );
             let coins = vector::empty();
-            let coin = coin::mint_for_testing<SUI>(20001, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
             vector::push_back(&mut coins, coin);
             assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
 
@@ -328,7 +328,7 @@ module suins::base_controller_tests {
                 0
             );
             let coins = vector::empty();
-            let coin = coin::mint_for_testing<SUI>(20001, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(2000000, &mut ctx);
             vector::push_back(&mut coins, coin);
             assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
 
@@ -380,7 +380,7 @@ module suins::base_controller_tests {
                 0
             );
             let coins = vector::empty();
-            let coin = coin::mint_for_testing<SUI>(20000, test_scenario::ctx(&mut scenario));
+            let coin = coin::mint_for_testing<SUI>(2000000, test_scenario::ctx(&mut scenario));
             vector::push_back(&mut coins, coin);
 
             base_controller::register(
@@ -486,7 +486,7 @@ module suins::base_controller_tests {
                 0
             );
             let coins = vector::empty();
-            let coin = coin::mint_for_testing<SUI>(20001, test_scenario::ctx(&mut scenario));
+            let coin = coin::mint_for_testing<SUI>(2000001, test_scenario::ctx(&mut scenario));
             vector::push_back(&mut coins, coin);
 
             base_controller::register(
@@ -529,7 +529,7 @@ module suins::base_controller_tests {
                 0
             );
             let coins = vector::empty();
-            let coin = coin::mint_for_testing<SUI>(20001, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(2000001, &mut ctx);
             vector::push_back(&mut coins, coin);
 
             base_controller::register(
@@ -569,7 +569,7 @@ module suins::base_controller_tests {
             let image =
                 test_scenario::take_shared<Configuration>(&mut scenario);
             let coins = vector::empty();
-            let coin = coin::mint_for_testing<SUI>(10001, test_scenario::ctx(&mut scenario));
+            let coin = coin::mint_for_testing<SUI>(2000001, test_scenario::ctx(&mut scenario));
             vector::push_back(&mut coins, coin);
             assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
 
@@ -599,10 +599,9 @@ module suins::base_controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let coin = test_scenario::take_from_sender<Coin<SUI>>(&mut scenario);
 
-            assert!(coin::value(&coin) == 10001 - 8 * 2, 0);
+            assert!(coin::value(&coin) == 1, 0);
             assert!(base_controller::commitment_len(&controller) == 0, 0);
             assert!(base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
-
 
             test_scenario::return_to_sender(&mut scenario, coin);
             test_scenario::return_shared(controller);
@@ -619,7 +618,7 @@ module suins::base_controller_tests {
         {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            assert!(base_controller::balance(&controller) == 8 * 2, 0);
+            assert!(base_controller::balance(&controller) == 2000000, 0);
 
             base_controller::withdraw(&admin_cap, &mut controller, test_scenario::ctx(&mut scenario));
 
@@ -632,7 +631,7 @@ module suins::base_controller_tests {
         {
             assert!(test_scenario::has_most_recent_for_sender<Coin<SUI>>(&mut scenario), 0);
             let coin = test_scenario::take_from_sender<Coin<SUI>>(&mut scenario);
-            assert!(coin::value(&coin) == 8 * 2, 0);
+            assert!(coin::value(&coin) == 2000000, 0);
             test_scenario::return_to_sender(&mut scenario, coin);
         };
         test_scenario::end(scenario);
@@ -914,24 +913,30 @@ module suins::base_controller_tests {
             
             let registrar =
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
-            let ctx = test_scenario::ctx(&mut scenario);
-            let coin = coin::mint_for_testing<SUI>(10001, ctx);
-            assert!(base_registrar::name_expires(&registrar, string::utf8(FIRST_LABEL)) == 416, 0);
+            let coins = vector::empty();
+            let coin = coin::mint_for_testing<SUI>(2000001, test_scenario::ctx(&mut scenario));
+            vector::push_back(&mut coins, coin);
 
+            assert!(base_registrar::name_expires(&registrar, string::utf8(FIRST_LABEL)) == 416, 0);
             base_controller::renew(
                 &mut controller,
                 &mut registrar,
                 FIRST_LABEL,
                 366,
-                &mut coin,
-                ctx,
+                coins,
+                test_scenario::ctx(&mut scenario),
             );
 
-            assert!(coin::value(&coin) == 10001 - 8 * 2, 0);
             assert!(base_registrar::name_expires(&registrar, string::utf8(FIRST_LABEL)) == 782, 0);
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
+        };
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let coin = test_scenario::take_from_sender<Coin<SUI>>(&mut scenario);
+            assert!(coin::value(&coin) == 1, 0);
+            test_scenario::return_to_sender(&mut scenario, coin);
         };
         test_scenario::end(scenario);
     }
@@ -948,8 +953,10 @@ module suins::base_controller_tests {
             
             let registrar =
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
-            let ctx = test_scenario::ctx(&mut scenario);
-            let coin = coin::mint_for_testing<SUI>(10001, ctx);
+            let coins = vector::empty();
+            let coin = coin::mint_for_testing<SUI>(1000000, test_scenario::ctx(&mut scenario));
+            vector::push_back(&mut coins, coin);
+
             assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
 
             base_controller::renew(
@@ -957,10 +964,9 @@ module suins::base_controller_tests {
                 &mut registrar,
                 FIRST_LABEL,
                 365,
-                &mut coin,
-                ctx,
+                coins,
+                test_scenario::ctx(&mut scenario),
             );
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
         };
@@ -979,24 +985,24 @@ module suins::base_controller_tests {
                 test_scenario::take_shared<BaseController>(&mut scenario);
             let registrar =
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let coins = vector::empty();
+            let coin = coin::mint_for_testing<SUI>(1000001, test_scenario::ctx(&mut scenario));
+            vector::push_back(&mut coins, coin);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                1051,
-                0
+                1000,
+                0,
             );
-            let coin = coin::mint_for_testing<SUI>(10001, &mut ctx);
 
             base_controller::renew(
                 &mut controller,
                 &mut registrar,
                 FIRST_LABEL,
                 365,
-                &mut coin,
+                coins,
                 &mut ctx,
             );
-
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
         };
@@ -1015,8 +1021,9 @@ module suins::base_controller_tests {
             
             let registrar =
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
-            let ctx = test_scenario::ctx(&mut scenario);
-            let coin = coin::mint_for_testing<SUI>(4, ctx);
+            let coins = vector::empty();
+            let coin = coin::mint_for_testing<SUI>(1, test_scenario::ctx(&mut scenario));
+            vector::push_back(&mut coins, coin);
             assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
 
             base_controller::renew(
@@ -1024,10 +1031,9 @@ module suins::base_controller_tests {
                 &mut registrar,
                 FIRST_LABEL,
                 365,
-                &mut coin,
-                ctx,
+                coins,
+                test_scenario::ctx(&mut scenario),
             );
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
         };
