@@ -1109,6 +1109,7 @@ module suins::base_controller_tests {
             test_scenario::return_shared(registrar);
         };
 
+        // outdated commitment
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
@@ -1116,7 +1117,29 @@ module suins::base_controller_tests {
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                50,
+                47,
+                0
+            );
+
+            let commitment = base_controller::test_make_commitment(&registrar, FIRST_LABEL, SECOND_USER_ADDRESS, FIRST_SECRET);
+            base_controller::make_commitment_and_commit(
+                &mut controller,
+                commitment,
+                &mut ctx,
+            );
+            assert!(base_controller::commitment_len(&controller) == 2, 0);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+        };
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                48,
                 0
             );
 
@@ -1126,7 +1149,7 @@ module suins::base_controller_tests {
                 commitment,
                 &mut ctx,
             );
-            assert!(base_controller::commitment_len(&controller) == 2, 0);
+            assert!(base_controller::commitment_len(&controller) == 3, 0);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
         };
@@ -1147,7 +1170,7 @@ module suins::base_controller_tests {
                 commitment,
                 &mut ctx,
             );
-            assert!(base_controller::commitment_len(&controller) == 3, 0);
+            assert!(base_controller::commitment_len(&controller) == 4, 0);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
         };
@@ -1170,7 +1193,7 @@ module suins::base_controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(20001, &mut ctx);
-            assert!(base_controller::commitment_len(&controller) == 3, 0);
+            assert!(base_controller::commitment_len(&controller) == 4, 0);
             base_controller::register(
                 &mut controller,
                 &mut registrar,
