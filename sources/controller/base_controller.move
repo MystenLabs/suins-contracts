@@ -126,7 +126,7 @@ module suins::base_controller {
         owner: address,
         duration: u64,
         secret: vector<u8>,
-        payment: vector<Coin<SUI>>,
+        payments: vector<Coin<SUI>>,
         ctx: &mut TxContext,
     ) {
         let resolver = controller.default_addr_resolver;
@@ -141,7 +141,7 @@ module suins::base_controller {
             duration,
             secret,
             resolver,
-            payment,
+            payments,
             ctx,
         );
     }
