@@ -1,4 +1,4 @@
-module suins::base_controller {
+module suins::controller {
 
     use sui::balance::{Self, Balance};
     use sui::coin::{Self, Coin};
@@ -70,10 +70,6 @@ module suins::base_controller {
         });
     }
 
-    public fun available(registrar: &BaseRegistrar, label: String, ctx: &TxContext): bool {
-        base_registrar::available(registrar, label, ctx)
-    }
-
     public entry fun set_default_resolver(_: &AdminCap, controller: &mut BaseController, resolver: address) {
         controller.default_addr_resolver = resolver;
         event::emit(DefaultResolverChangedEvent { resolver })
@@ -119,6 +115,7 @@ module suins::base_controller {
         commitment: vector<u8>,
         ctx: &mut TxContext,
     ) {
+        remove_outdated_commitment(controller, ctx);
         vec_map::insert(&mut controller.commitments, commitment, tx_context::epoch(ctx));
     }
 
@@ -187,7 +184,6 @@ module suins::base_controller {
             nft_id,
             resolver,
         });
-        remove_outdated_commitment(controller, ctx);
         let coin_balance = coin::balance_mut(payment);
         let paid = balance::split(coin_balance, registration_fee);
         balance::join(&mut controller.balance, paid);
@@ -225,7 +221,7 @@ module suins::base_controller {
             *vec_map::get(&controller.commitments, &commitment) + MAX_COMMITMENT_AGE >= tx_context::epoch(ctx),
             ECommitmentTooOld
         );
-        assert!(available(registrar, string::utf8(label), ctx), ELabelUnAvailable);
+        assert!(base_registrar::available(registrar, string::utf8(label), ctx), ELabelUnAvailable);
         vec_map::remove(&mut controller.commitments, &commitment);
     }
 
