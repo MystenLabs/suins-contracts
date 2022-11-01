@@ -631,7 +631,7 @@ module suins::controller_tests {
             
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
 
-            assert!(base_controller::balance(&controller) == 2000000, 0);
+            assert!(controller::balance(&controller) == 2000000, 0);
 
             controller::withdraw(&admin_cap, &mut controller, test_scenario::ctx(&mut scenario));
 
@@ -1192,7 +1192,7 @@ module suins::controller_tests {
                 51,
                 0
             );
-            let coin = coin::mint_for_testing<SUI>(20001, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(2000001, &mut ctx);
             assert!(controller::commitment_len(&controller) == 2, 0);
             controller::register(
                 &mut controller,

@@ -190,17 +190,15 @@ module suins::controller {
     }
 
     fun remove_outdated_commitment(controller: &mut BaseController, ctx: &mut TxContext) {
-        // based on the fact that `vec_map` is a wrapper of `vector` and every `vec_map::insert` is actually `vector::push_back`,
-        // we know that commitments will be in ascending order of `epoch created at`,
-        // so this loop stops as soon as it find the first not-yet-outdated commitment
-        // TODO: need to update logic once `vec_map` implementation is changed
+        // TODO: need to update logic when timestamp is introduced
         let len = vec_map::size(&controller.commitments);
-        while (len > 0) {
-            let (_, created_at) = vec_map::get_entry_by_idx(&controller.commitments, 0);
+        let index = 0;
+        while (index < len && len > 0 ) {
+            let (_, created_at) = vec_map::get_entry_by_idx(&controller.commitments, index);
             if (*created_at + MAX_COMMITMENT_AGE < tx_context::epoch(ctx)) {
-                vec_map::remove_entry_by_idx(&mut controller.commitments, 0);
+                vec_map::remove_entry_by_idx(&mut controller.commitments, index);
                 len = len - 1;
-            } else return;
+            } else index = index + 1;
         };
     }
 
