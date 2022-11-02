@@ -97,7 +97,7 @@ module suins::base_controller_tests {
                 51,
                 0
             );
-            let coin = coin::mint_for_testing<SUI>(10001, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
             assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
 
             base_controller::register_with_config(
@@ -170,7 +170,7 @@ module suins::base_controller_tests {
                 51,
                 0
             );
-            let coin = coin::mint_for_testing<SUI>(20001, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(2000000, &mut ctx);
             assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
 
             base_controller::register(
@@ -186,7 +186,7 @@ module suins::base_controller_tests {
                 &mut ctx,
             );
 
-            assert!(coin::value(&coin) == 20001 - 8 * 2, 0);
+            assert!(coin::value(&coin) == 0, 0);
 
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
@@ -236,7 +236,7 @@ module suins::base_controller_tests {
                 51,
                 0
             );
-            let coin = coin::mint_for_testing<SUI>(20001, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
             assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
 
             base_controller::register(
@@ -287,7 +287,7 @@ module suins::base_controller_tests {
                 51,
                 0
             );
-            let coin = coin::mint_for_testing<SUI>(20001, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
             assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
 
             base_controller::register(
@@ -337,7 +337,7 @@ module suins::base_controller_tests {
                 51,
                 0
             );
-            let coin = coin::mint_for_testing<SUI>(20001, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
             assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
 
             base_controller::register(
@@ -388,7 +388,7 @@ module suins::base_controller_tests {
                 600,
                 0
             );
-            let coin = coin::mint_for_testing<SUI>(20000, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(1000000, &mut ctx);
 
             base_controller::register(
                 &mut controller,
@@ -496,7 +496,7 @@ module suins::base_controller_tests {
                 51,
                 0
             );
-            let coin = coin::mint_for_testing<SUI>(20001, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
 
             base_controller::register(
                 &mut controller,
@@ -538,7 +538,7 @@ module suins::base_controller_tests {
                 51,
                 0
             );
-            let coin = coin::mint_for_testing<SUI>(20001, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
 
             base_controller::register(
                 &mut controller,
@@ -584,7 +584,7 @@ module suins::base_controller_tests {
                 51,
                 0
             );
-            let coin = coin::mint_for_testing<SUI>(10001, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(2000001, &mut ctx);
             assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
 
             base_controller::register_with_config(
@@ -601,7 +601,7 @@ module suins::base_controller_tests {
                 &mut ctx,
             );
 
-            assert!(coin::value(&coin) == 10001 - 8 * 2, 0);
+            assert!(coin::value(&coin) == 1, 0);
 
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
@@ -635,7 +635,7 @@ module suins::base_controller_tests {
             
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
 
-            assert!(base_controller::balance(&controller) == 8 * 2, 0);
+            assert!(base_controller::balance(&controller) == 2000000, 0);
 
             base_controller::withdraw(&admin_cap, &mut controller, test_scenario::ctx(&mut scenario));
 
@@ -649,7 +649,7 @@ module suins::base_controller_tests {
             assert!(test_scenario::has_most_recent_for_sender<Coin<SUI>>(&mut scenario), 0);
             let coin = test_scenario::take_from_sender<Coin<SUI>>(&mut scenario);
 
-            assert!(coin::value(&coin) == 8 * 2, 0);
+            assert!(coin::value(&coin) == 2000000, 0);
 
             test_scenario::return_to_sender(&mut scenario, coin);
         };
@@ -931,7 +931,7 @@ module suins::base_controller_tests {
             let registrar =
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let ctx = test_scenario::ctx(&mut scenario);
-            let coin = coin::mint_for_testing<SUI>(10001, ctx);
+            let coin = coin::mint_for_testing<SUI>(2000001, ctx);
             assert!(base_registrar::name_expires(&registrar, string::utf8(FIRST_LABEL)) == 416, 0);
 
             base_controller::renew(
@@ -943,7 +943,7 @@ module suins::base_controller_tests {
                 ctx,
             );
 
-            assert!(coin::value(&coin) == 10001 - 8 * 2, 0);
+            assert!(coin::value(&coin) == 1, 0);
             assert!(base_registrar::name_expires(&registrar, string::utf8(FIRST_LABEL)) == 782, 0);
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
@@ -965,7 +965,7 @@ module suins::base_controller_tests {
             let registrar =
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let ctx = test_scenario::ctx(&mut scenario);
-            let coin = coin::mint_for_testing<SUI>(10001, ctx);
+            let coin = coin::mint_for_testing<SUI>(1000001, ctx);
             assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
 
             base_controller::renew(
@@ -1004,7 +1004,7 @@ module suins::base_controller_tests {
                 0
             );
 
-            let coin = coin::mint_for_testing<SUI>(10001, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(10000001, &mut ctx);
 
             base_controller::renew(
                 &mut controller,

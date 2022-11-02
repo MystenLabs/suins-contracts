@@ -19,7 +19,7 @@ module suins::base_controller {
     // TODO: remove later when timestamp is introduced
     // const MIN_COMMITMENT_AGE: u64 = 0;
     const MAX_COMMITMENT_AGE: u64 = 3;
-    const REGISTRATION_FEE_PER_YEAR: u64 = 8;
+    const REGISTRATION_FEE_PER_YEAR: u64 = 1000000;
 
     // errors in the range of 301..400 indicate Sui Controller errors
     const EInvalidResolverAddress: u64 = 301;
