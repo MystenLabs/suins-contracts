@@ -8,7 +8,7 @@ module suins::base_registry {
 
     friend suins::base_registrar;
     friend suins::reverse_registrar;
-    friend suins::base_controller;
+    friend suins::controller;
     friend suins::resolver;
 
     const MAX_TTL: u64 = 0x100000;

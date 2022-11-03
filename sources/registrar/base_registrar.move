@@ -11,7 +11,7 @@ module suins::base_registrar {
     use suins::base_registry::{Self, Registry, AdminCap};
     use suins::configuration::{Self, Configuration};
 
-    friend suins::base_controller;
+    friend suins::controller;
 
     // in terms of epoch
     const GRACE_PERIOD: u8 = 90;
@@ -48,7 +48,6 @@ module suins::base_registrar {
 
     struct RegistrationDetail has store {
         expiry: u64,
-        owner: address,
     }
     
     struct BaseRegistrar has key {
@@ -133,10 +132,7 @@ module suins::base_registrar {
         assert!(duration > 0, EInvalidDuration);
 
         let url = configuration::get_url(config, duration, tx_context::epoch(ctx));
-        let detail = RegistrationDetail {
-            expiry: tx_context::epoch(ctx) + duration,
-            owner,
-        };
+        let detail = RegistrationDetail { expiry: tx_context::epoch(ctx) + duration };
         vec_map::insert(&mut registrar.expiries, label, detail);
 
         let node = label;
@@ -223,8 +219,8 @@ module suins::base_registrar {
     }
 
     #[test_only]
-    public fun get_registration_detail(detail: &RegistrationDetail): (&address, &u64) {
-        (&detail.owner, &detail.expiry)
+    public fun get_registration_detail(detail: &RegistrationDetail): u64 {
+        detail.expiry
     }
 
     #[test_only]

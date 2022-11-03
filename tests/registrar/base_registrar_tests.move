@@ -554,9 +554,8 @@ module suins::base_registrar_tests {
             let (key, value) = vec_map::get_entry_by_idx(expiries, 0);
             assert!(key == &string::utf8(FIRST_LABEL), 0);
 
-            let (owner, expiry) = base_registrar::get_registration_detail(value);
-            assert!(owner == &FIRST_USER, 0);
-            assert!(expiry == &365, 0);
+            let expiry = base_registrar::get_registration_detail(value);
+            assert!(expiry == 365, 0);
 
             test_scenario::return_shared(com_registrar);
         };

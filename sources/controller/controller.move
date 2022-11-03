@@ -1,4 +1,4 @@
-module suins::base_controller {
+module suins::controller {
 
     use sui::balance::{Self, Balance};
     use sui::coin::{Self, Coin};
@@ -70,10 +70,6 @@ module suins::base_controller {
         });
     }
 
-    public fun available(registrar: &BaseRegistrar, label: String, ctx: &TxContext): bool {
-        base_registrar::available(registrar, label, ctx)
-    }
-
     public entry fun set_default_resolver(_: &AdminCap, controller: &mut BaseController, resolver: address) {
         controller.default_addr_resolver = resolver;
         event::emit(DefaultResolverChangedEvent { resolver })
@@ -119,6 +115,7 @@ module suins::base_controller {
         commitment: vector<u8>,
         ctx: &mut TxContext,
     ) {
+        remove_outdated_commitment(controller, ctx);
         vec_map::insert(&mut controller.commitments, commitment, tx_context::epoch(ctx));
     }
 
@@ -192,6 +189,19 @@ module suins::base_controller {
         balance::join(&mut controller.balance, paid);
     }
 
+    fun remove_outdated_commitment(controller: &mut BaseController, ctx: &mut TxContext) {
+        // TODO: need to update logic when timestamp is introduced
+        let len = vec_map::size(&controller.commitments);
+        let index = 0;
+        while (index < len && len > 0 ) {
+            let (_, created_at) = vec_map::get_entry_by_idx(&controller.commitments, index);
+            if (*created_at + MAX_COMMITMENT_AGE < tx_context::epoch(ctx)) {
+                vec_map::remove_entry_by_idx(&mut controller.commitments, index);
+                len = len - 1;
+            } else index = index + 1;
+        };
+    }
+
     fun consume_commitment(
         controller: &mut BaseController,
         registrar: &BaseRegistrar,
@@ -206,10 +216,10 @@ module suins::base_controller {
         //     ECommitmentNotValid
         // );
         assert!(
-            *vec_map::get(&controller.commitments, &commitment) + MAX_COMMITMENT_AGE > tx_context::epoch(ctx),
+            *vec_map::get(&controller.commitments, &commitment) + MAX_COMMITMENT_AGE >= tx_context::epoch(ctx),
             ECommitmentTooOld
         );
-        assert!(available(registrar, string::utf8(label), ctx), ELabelUnAvailable);
+        assert!(base_registrar::available(registrar, string::utf8(label), ctx), ELabelUnAvailable);
         vec_map::remove(&mut controller.commitments, &commitment);
     }
 
@@ -218,7 +228,6 @@ module suins::base_controller {
     fun check_valid(label: String) {
         let label_bytes = string::bytes(&label);
         let len = string::length(&label);
-
         assert!(2 < len && len < 64, EInvalidLabel);
 
         let index = 0;
