@@ -2,7 +2,7 @@
 module suins::base_registrar_tests {
     use sui::test_scenario::{Self, Scenario};
     use sui::tx_context;
-    use sui::vec_map;
+    use sui::table;
     use suins::base_registry::{Self, Registry, AdminCap};
     use suins::base_registrar::{Self, BaseRegistrar, RegistrationNFT, TLDsList};
     use suins::configuration::{Self, Configuration};
@@ -512,7 +512,7 @@ module suins::base_registrar_tests {
                 base_registrar::get_registrar(&com_registrar);
             assert!(base_node == &string::utf8(b"com"), 0);
             assert!(base_node_bytes == &b"com", 0);
-            assert!(vec_map::size(expiries) == 0, 0);
+            assert!(table::length(expiries) == 0, 0);
 
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             assert!(base_registry::get_records_len(&registry) == 0, 0);
@@ -550,12 +550,11 @@ module suins::base_registrar_tests {
             let com_registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
 
             let (_, _, expiries) = base_registrar::get_registrar(&com_registrar);
-            assert!(vec_map::size(expiries) == 1, 0);
-            let (key, value) = vec_map::get_entry_by_idx(expiries, 0);
-            assert!(key == &string::utf8(FIRST_LABEL), 0);
-
-            let expiry = base_registrar::get_registration_detail(value);
-            assert!(expiry == 365, 0);
+            assert!(table::length(expiries) == 1, 0);
+            let value = table::borrow(expiries, string::utf8(FIRST_LABEL));
+            let (owner, expiry) = base_registrar::get_registration_detail(value);
+            assert!(owner == &FIRST_USER, 0);
+            assert!(expiry == &365, 0);
 
             test_scenario::return_shared(com_registrar);
         };
