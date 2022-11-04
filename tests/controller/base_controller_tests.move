@@ -110,11 +110,10 @@ module suins::base_controller_tests {
                 365,
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
-                &mut coin,
+                coin,
                 &mut ctx,
             );
 
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(image);
             test_scenario::return_shared(registrar);
@@ -138,9 +137,7 @@ module suins::base_controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
-            
             assert!(base_controller::commitment_len(&controller) == 1, 0);
-
             test_scenario::return_shared(controller);
         };
         test_scenario::end(scenario);
@@ -182,13 +179,10 @@ module suins::base_controller_tests {
                 FIRST_USER_ADDRESS,
                 370,
                 FIRST_SECRET,
-                &mut coin,
+                coin,
                 &mut ctx,
             );
 
-            assert!(coin::value(&coin) == 0, 0);
-
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(image);
@@ -199,9 +193,12 @@ module suins::base_controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
-            
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
-
+            // TODO: test remaining coin
+            // let coin = test_scenario::take_from_sender<Coin<SUI>>(&mut scenario);
+            //
+            // assert!(coin::value(&coin) == 0, 0);
+            // test_scenario::return_to_sender(&mut scenario, coin);
             assert!(base_controller::commitment_len(&controller) == 0, 0);
             assert!(base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
 
@@ -248,11 +245,10 @@ module suins::base_controller_tests {
                 FIRST_USER_ADDRESS,
                 365,
                 FIRST_SECRET,
-                &mut coin,
+                coin,
                 &mut ctx,
             );
 
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(registry);
@@ -299,11 +295,10 @@ module suins::base_controller_tests {
                 FIRST_USER_ADDRESS,
                 365,
                 SECOND_SECRET,
-                &mut coin,
+                coin,
                 &mut ctx,
             );
 
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(registry);
@@ -349,11 +344,10 @@ module suins::base_controller_tests {
                 SECOND_USER_ADDRESS,
                 365,
                 FIRST_SECRET,
-                &mut coin,
+                coin,
                 &mut ctx,
             );
 
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(image);
@@ -399,11 +393,10 @@ module suins::base_controller_tests {
                 FIRST_USER_ADDRESS,
                 365,
                 FIRST_SECRET,
-                &mut coin,
+                coin,
                 &mut ctx,
             );
 
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(registry);
@@ -458,11 +451,10 @@ module suins::base_controller_tests {
                 FIRST_USER_ADDRESS,
                 365,
                 FIRST_SECRET,
-                &mut coin,
+                coin,
                 &mut ctx,
             );
 
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(image);
@@ -507,11 +499,10 @@ module suins::base_controller_tests {
                 FIRST_USER_ADDRESS,
                 365,
                 FIRST_SECRET,
-                &mut coin,
+                coin,
                 &mut ctx,
             );
 
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(registry);
@@ -549,11 +540,10 @@ module suins::base_controller_tests {
                 FIRST_USER_ADDRESS,
                 365,
                 FIRST_SECRET,
-                &mut coin,
+                coin,
                 &mut ctx,
             );
 
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(registry);
@@ -597,13 +587,9 @@ module suins::base_controller_tests {
                 366,
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
-                &mut coin,
+                coin,
                 &mut ctx,
             );
-
-            assert!(coin::value(&coin) == 1, 0);
-
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(image);
@@ -613,8 +599,12 @@ module suins::base_controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
-            
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+
+            // TODO: test remaining coin
+            // let coin = test_scenario::take_from_sender<Coin<SUI>>(&mut scenario);
+            // assert!(coin::value(&coin) == 1, 0);
+            // test_scenario::return_to_sender(&mut scenario, coin);
 
             assert!(base_controller::commitment_len(&controller) == 0, 0);
             assert!(base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
@@ -648,9 +638,7 @@ module suins::base_controller_tests {
         {
             assert!(test_scenario::has_most_recent_for_sender<Coin<SUI>>(&mut scenario), 0);
             let coin = test_scenario::take_from_sender<Coin<SUI>>(&mut scenario);
-
             assert!(coin::value(&coin) == 2000000, 0);
-
             test_scenario::return_to_sender(&mut scenario, coin);
         };
         test_scenario::end(scenario);
@@ -684,11 +672,10 @@ module suins::base_controller_tests {
                 366,
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
-                &mut coin,
+                coin,
                 test_scenario::ctx(&mut scenario),
             );
 
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(image);
@@ -726,11 +713,10 @@ module suins::base_controller_tests {
                 366,
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
-                &mut coin,
+                coin,
                 test_scenario::ctx(&mut scenario),
             );
 
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(image);
@@ -768,11 +754,10 @@ module suins::base_controller_tests {
                 366,
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
-                &mut coin,
+                coin,
                 test_scenario::ctx(&mut scenario),
             );
 
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(image);
@@ -810,11 +795,10 @@ module suins::base_controller_tests {
                 366,
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
-                &mut coin,
+                coin,
                 test_scenario::ctx(&mut scenario),
             );
 
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(image);
@@ -905,11 +889,10 @@ module suins::base_controller_tests {
                 366,
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
-                &mut coin,
+                coin,
                 &mut ctx,
             );
 
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(image);
@@ -927,7 +910,6 @@ module suins::base_controller_tests {
         {
             let controller =
                 test_scenario::take_shared<BaseController>(&mut scenario);
-            
             let registrar =
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let ctx = test_scenario::ctx(&mut scenario);
@@ -939,15 +921,21 @@ module suins::base_controller_tests {
                 &mut registrar,
                 FIRST_LABEL,
                 366,
-                &mut coin,
+                coin,
                 ctx,
             );
 
-            assert!(coin::value(&coin) == 1, 0);
             assert!(base_registrar::name_expires(&registrar, string::utf8(FIRST_LABEL)) == 782, 0);
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
+        };
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let coin = test_scenario::take_from_sender<Coin<SUI>>(&mut scenario);
+
+            assert!(coin::value(&coin) == 1, 0);
+            test_scenario::return_to_sender(&mut scenario, coin);
         };
         test_scenario::end(scenario);
     }
@@ -973,11 +961,10 @@ module suins::base_controller_tests {
                 &mut registrar,
                 FIRST_LABEL,
                 365,
-                &mut coin,
+                coin,
                 ctx,
             );
 
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
         };
@@ -1011,11 +998,10 @@ module suins::base_controller_tests {
                 &mut registrar,
                 FIRST_LABEL,
                 365,
-                &mut coin,
+                coin,
                 &mut ctx,
             );
 
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
         };
@@ -1043,11 +1029,10 @@ module suins::base_controller_tests {
                 &mut registrar,
                 FIRST_LABEL,
                 365,
-                &mut coin,
+                coin,
                 ctx,
             );
 
-            coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
         };

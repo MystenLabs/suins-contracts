@@ -84,19 +84,20 @@ module suins::base_controller {
         registrar: &mut BaseRegistrar,
         label: vector<u8>,
         duration: u64,
-        payment: &mut Coin<SUI>,
+        payment: Coin<SUI>,
         ctx: &mut TxContext,
     ) {
         let no_year = duration / 365;
         if ((duration % 365) > 0) no_year = no_year + 1;
         let renew_fee = REGISTRATION_FEE_PER_YEAR * no_year;
-        assert!(coin::value(payment) >= renew_fee, ENotEnoughFee);
+        assert!(coin::value(&payment) >= renew_fee, ENotEnoughFee);
 
         base_registrar::renew(registrar, label, duration, ctx);
 
-        let coin_balance = coin::balance_mut(payment);
+        let coin_balance = coin::balance_mut(&mut payment);
         let paid = balance::split(coin_balance, renew_fee);
         balance::join(&mut controller.balance, paid);
+        transfer::transfer(payment, tx_context::sender(ctx));
 
         event::emit(NameRenewedEvent {
             node: base_registrar::get_base_node(registrar),
@@ -131,7 +132,7 @@ module suins::base_controller {
         owner: address,
         duration: u64,
         secret: vector<u8>,
-        payment: &mut Coin<SUI>,
+        payment: Coin<SUI>,
         ctx: &mut TxContext,
     ) {
         let resolver = controller.default_addr_resolver;
@@ -162,7 +163,7 @@ module suins::base_controller {
         duration: u64,
         secret: vector<u8>,
         resolver: address,
-        payment: &mut Coin<SUI>,
+        payment: Coin<SUI>,
         ctx: &mut TxContext,
     ) {
         check_valid(string::utf8(label));
@@ -170,7 +171,7 @@ module suins::base_controller {
         let no_year = duration / 365;
         if ((duration % 365) > 0) no_year = no_year + 1;
         let registration_fee = REGISTRATION_FEE_PER_YEAR * no_year;
-        assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
+        assert!(coin::value(&payment) >= registration_fee, ENotEnoughFee);
 
         let commitment = make_commitment(registrar, label, owner, secret);
         consume_commitment(controller, registrar, label, commitment, ctx);
@@ -187,9 +188,10 @@ module suins::base_controller {
             nft_id,
             resolver,
         });
-        let coin_balance = coin::balance_mut(payment);
+        let coin_balance = coin::balance_mut(&mut payment);
         let paid = balance::split(coin_balance, registration_fee);
         balance::join(&mut controller.balance, paid);
+        transfer::transfer(payment, tx_context::sender(ctx));
     }
 
     fun consume_commitment(
