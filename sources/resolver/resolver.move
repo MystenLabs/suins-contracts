@@ -14,6 +14,7 @@ module suins::resolver {
     const NAME: vector<u8> = b"name";
     const ADDR: vector<u8> = b"addr";
     const AVATAR: vector<u8> = b"avatar";
+    const CONTENT_HASH: vector<u8> = b"contenthash";
 
     struct NameChangedEvent has copy, drop {
         addr: address,
@@ -27,6 +28,11 @@ module suins::resolver {
     struct AvatarChangedEvent has copy, drop {
         node: String,
         avatar: String,
+    }
+
+    struct ContenthashChangedEvent has copy, drop {
+        node: String,
+        contenthash: String,
     }
 
     struct AddrChangedEvent has copy, drop {
@@ -45,6 +51,7 @@ module suins::resolver {
         bag::add(&mut resolvers, utf8(ADDR), table::new<String, address>(ctx));
         bag::add(&mut resolvers, utf8(NAME), table::new<address, String>(ctx));
         bag::add(&mut resolvers, utf8(AVATAR), table::new<String, String>(ctx));
+        bag::add(&mut resolvers, utf8(CONTENT_HASH), table::new<String, String>(ctx));
         transfer::share_object(BaseResolver {
             id: object::new(ctx),
             resolvers,
@@ -64,6 +71,34 @@ module suins::resolver {
     public fun addr(base_resolver: &BaseResolver, node: vector<u8>): address {
         let addrs = bag::borrow(&base_resolver.resolvers, utf8(ADDR));
         *table::borrow<String, address>(addrs, utf8(node))
+    }
+
+    public fun contenthash(base_resolver: &BaseResolver, node: vector<u8>): String {
+        let hashes = bag::borrow(&base_resolver.resolvers, utf8(CONTENT_HASH));
+        *table::borrow<String, String>(hashes, utf8(node))
+    }
+
+    public entry fun set_contenthash(
+        base_resolver: &mut BaseResolver,
+        registry: &Registry,
+        node: vector<u8>,
+        hash: vector<u8>,
+        ctx: &mut TxContext
+    ) {
+        base_registry::authorised(registry, node, ctx);
+
+        let node = utf8(node);
+        let new_hash = utf8(hash);
+        let hashes = bag::borrow_mut(&mut base_resolver.resolvers, utf8(CONTENT_HASH));
+
+        if (table::contains(hashes, node)) {
+            let current_contenthash = table::borrow_mut<String, String>(hashes, node);
+            *current_contenthash = new_hash;
+        } else {
+            table::add(hashes, node, new_hash);
+        };
+
+        event::emit(ContenthashChangedEvent { node, contenthash: new_hash });
     }
 
     public entry fun set_name(
