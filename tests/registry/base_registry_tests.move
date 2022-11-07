@@ -3,7 +3,7 @@ module suins::base_registry_tests {
     use sui::test_scenario::{Self, Scenario};
     use suins::base_registry::{Self, Registry, AdminCap};
     use suins::base_registrar::{Self, TLDsList};
-    use std::string;
+    use std::string::utf8;
 
     friend suins::resolver_tests;
 
@@ -48,7 +48,7 @@ module suins::base_registry_tests {
             assert!(base_registry::get_records_len(&registry) == 0, 0);
             base_registry::set_record_internal(
                 &mut registry,
-                string::utf8(FIRST_SUB_NODE),
+                utf8(FIRST_SUB_NODE),
                 FIRST_USER_ADDRESS,
                 FIRST_RESOLVER_ADDRESS,
                 10,
@@ -82,7 +82,7 @@ module suins::base_registry_tests {
             assert!(base_registry::get_records_len(&registry) == 1, 0);
             base_registry::set_record_internal(
                 &mut registry,
-                string::utf8(FIRST_SUB_NODE),
+                utf8(FIRST_SUB_NODE),
                 SECOND_USER_ADDRESS,
                 SECOND_RESOLVER_ADDRESS,
                 20,
@@ -94,7 +94,7 @@ module suins::base_registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let (_, record) = base_registry::get_record_at_index(&registry, 0);
+            let record = base_registry::get_record_by_key(&registry, utf8(FIRST_SUB_NODE));
 
             assert!(base_registry::get_record_owner(record) == SECOND_USER_ADDRESS, 0);
             assert!(base_registry::get_record_resolver(record) == SECOND_RESOLVER_ADDRESS, 0);
@@ -187,7 +187,7 @@ module suins::base_registry_tests {
             assert!(base_registry::get_records_len(&registry) == 1, 0);
             base_registry::set_record_internal(
                 &mut registry,
-                string::utf8(THIRD_SUB_NODE),
+                utf8(THIRD_SUB_NODE),
                 FIRST_USER_ADDRESS,
                 FIRST_RESOLVER_ADDRESS,
                 10,
@@ -298,7 +298,7 @@ module suins::base_registry_tests {
             assert!(base_registry::get_records_len(&registry) == 1, 0);
             base_registry::set_record_internal(
                 &mut registry,
-                string::utf8(THIRD_SUB_NODE),
+                utf8(THIRD_SUB_NODE),
                 FIRST_USER_ADDRESS,
                 FIRST_RESOLVER_ADDRESS,
                 10,
@@ -327,7 +327,7 @@ module suins::base_registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let (_, record) = base_registry::get_record_at_index(&registry, 1);
+            let record = base_registry::get_record_by_key(&registry, utf8(THIRD_SUB_NODE));
             assert!(base_registry::get_record_owner(record) == SECOND_USER_ADDRESS, 0);
 
             test_scenario::return_shared(registry);

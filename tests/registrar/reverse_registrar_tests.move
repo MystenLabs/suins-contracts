@@ -4,8 +4,8 @@ module suins::reverse_registrar_tests {
     use sui::test_scenario::{Self, Scenario};
     use suins::base_registry::{Self, Registry, AdminCap};
     use suins::reverse_registrar::{Self, ReverseRegistrar};
-    use std::string;
     use suins::base_registrar::{Self, TLDsList};
+    use std::string::utf8;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -40,27 +40,22 @@ module suins::reverse_registrar_tests {
     #[test]
     fun test_claim_with_resolver() {
         let scenario = init();
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-
             assert!(base_registry::get_records_len(&registry) == 0, 0);
-
             test_scenario::return_shared(registry);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-
             reverse_registrar::claim_with_resolver(
                 &mut registry,
                 FIRST_USER_ADDRESS,
                 FIRST_RESOLVER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
-
             test_scenario::return_shared(registry);
         };
 
@@ -69,8 +64,7 @@ module suins::reverse_registrar_tests {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             assert!(base_registry::get_records_len(&registry) == 1, 0);
-            let (node, record) = base_registry::get_record_at_index(&registry, 0);
-            assert!(node == &string::utf8(FIRST_NODE), 0);
+            let record = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
             assert!(base_registry::get_record_ttl(record) == 0, 0);
             assert!(base_registry::get_record_resolver(record) == FIRST_RESOLVER_ADDRESS, 0);
             assert!(base_registry::get_record_owner(record) == FIRST_USER_ADDRESS, 0);
@@ -81,14 +75,12 @@ module suins::reverse_registrar_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-
             reverse_registrar::claim_with_resolver(
                 &mut registry,
                 SECOND_USER_ADDRESS,
                 SECOND_RESOLVER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
-
             test_scenario::return_shared(registry);
         };
 
@@ -97,8 +89,7 @@ module suins::reverse_registrar_tests {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             assert!(base_registry::get_records_len(&registry) == 1, 0);
-            let (node, record) = base_registry::get_record_at_index(&registry, 0);
-            assert!(node == &string::utf8(FIRST_NODE), 0);
+            let record = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
             assert!(base_registry::get_record_ttl(record) == 0, 0);
             assert!(base_registry::get_record_resolver(record) == SECOND_RESOLVER_ADDRESS, 0);
             assert!(base_registry::get_record_owner(record) == SECOND_USER_ADDRESS, 0);
@@ -115,9 +106,7 @@ module suins::reverse_registrar_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-
             assert!(base_registry::get_records_len(&registry) == 0, 0);
-
             test_scenario::return_shared(registry);
         };
 
@@ -140,10 +129,8 @@ module suins::reverse_registrar_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-
             assert!(base_registry::get_records_len(&registry) == 1, 0);
-            let (node, record) = base_registry::get_record_at_index(&registry, 0);
-            assert!(node == &string::utf8(FIRST_NODE), 0);
+            let record = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
             assert!(base_registry::get_record_ttl(record) == 0, 0);
             assert!(base_registry::get_record_resolver(record) == @0x0, 0);
             assert!(base_registry::get_record_owner(record) == FIRST_USER_ADDRESS, 0);

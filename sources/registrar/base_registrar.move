@@ -132,10 +132,7 @@ module suins::base_registrar {
         assert!(duration > 0, EInvalidDuration);
 
         let url = configuration::get_url(config, duration, tx_context::epoch(ctx));
-        let detail = RegistrationDetail {
-            expiry: tx_context::epoch(ctx) + duration,
-            owner,
-        };
+        let detail = RegistrationDetail { expiry: tx_context::epoch(ctx) + duration };
         table::add(&mut registrar.expiries, label, detail);
         let node = label;
         string::append_utf8(&mut node, b".");

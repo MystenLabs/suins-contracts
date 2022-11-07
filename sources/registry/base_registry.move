@@ -2,8 +2,8 @@ module suins::base_registry {
     use sui::event;
     use sui::object::{Self, UID};
     use sui::transfer;
+    use sui::table::{Self, Table};
     use sui::tx_context::{Self, TxContext};
-    use sui::vec_map::{Self, VecMap};
     use std::string::{Self, String};
 
     friend suins::base_registrar;
@@ -50,13 +50,13 @@ module suins::base_registry {
 
     struct Registry has key {
         id: UID,
-        records: VecMap<String, Record>,
+        records: Table<String, Record>,
     }
 
     fun init(ctx: &mut TxContext) {
         transfer::share_object(Registry {
             id: object::new(ctx),
-            records: vec_map::empty(),
+            records: table::new(ctx),
         });
         transfer::transfer(AdminCap {
             id: object::new(ctx)
@@ -64,15 +64,15 @@ module suins::base_registry {
     }
 
     public fun owner(registry: &Registry, node: vector<u8>): address {
-        vec_map::get(&registry.records, &string::utf8(node)).owner
+        table::borrow(&registry.records, string::utf8(node)).owner
     }
 
     public fun resolver(registry: &Registry, node: vector<u8>): address {
-        vec_map::get(&registry.records, &string::utf8(node)).resolver
+        table::borrow(&registry.records, string::utf8(node)).resolver
     }
 
     public fun ttl(registry: &Registry, node: vector<u8>): u64 {
-        vec_map::get(&registry.records, &string::utf8(node)).ttl
+        table::borrow(&registry.records, string::utf8(node)).ttl
     }
 
     public entry fun set_subnode_owner(
@@ -102,7 +102,7 @@ module suins::base_registry {
         authorised(registry, node, ctx);
 
         let node = string::utf8(node);
-        let record = vec_map::get_mut(&mut registry.records, &node);
+        let record = table::borrow_mut(&mut registry.records, node);
         record.resolver = resolver;
         event::emit(NewResolverEvent { node, resolver });
     }
@@ -111,13 +111,13 @@ module suins::base_registry {
         authorised(registry, node, ctx);
 
         let node = string::utf8(node);
-        let record = vec_map::get_mut(&mut registry.records, &node);
+        let record = table::borrow_mut(&mut registry.records, node);
         record.ttl = ttl;
         event::emit(NewTTLEvent { node, ttl });
     }
 
     public(friend) fun set_owner_internal(registry: &mut Registry, node: String, owner: address) {
-        let record = vec_map::get_mut(&mut registry.records, &node);
+        let record = table::borrow_mut(&mut registry.records, node);
         record.owner = owner;
     }
 
@@ -136,13 +136,13 @@ module suins::base_registry {
         resolver: address,
         ttl: u64,
     ) {
-        let record = if (vec_map::contains(&registry.records, &node)) {
-            let record = vec_map::get_mut(&mut registry.records, &node);
+        let record = if (table::contains(&registry.records, node)) {
+            let record = table::borrow_mut(&mut registry.records, node);
             record.owner = owner;
             record
         } else {
             new_record(registry, node, owner, resolver, ttl);
-            vec_map::get_mut(&mut registry.records, &node)
+            table::borrow_mut(&mut registry.records, node)
         };
         record.resolver = resolver;
         record.ttl = ttl;
@@ -165,7 +165,7 @@ module suins::base_registry {
             resolver,
             ttl,
         };
-        vec_map::insert(&mut registry.records, node, record);
+        table::add(&mut registry.records, node, record)
     }
 
     #[test_only]
@@ -174,12 +174,12 @@ module suins::base_registry {
     friend suins::resolver_tests;
 
     #[test_only]
-    public fun get_record_at_index(registry: &Registry, index: u64): (&String, &Record) {
-        vec_map::get_entry_by_idx(&registry.records, index)
+    public fun get_record_by_key(registry: &Registry, key: String): &Record {
+        table::borrow(&registry.records, key)
     }
     
     #[test_only]
-    public fun get_records_len(registry: &Registry): u64 { vec_map::size(&registry.records) }
+    public fun get_records_len(registry: &Registry): u64 { table::length(&registry.records) }
 
     #[test_only]
     public fun get_record_owner(record: &Record): address { record.owner }
