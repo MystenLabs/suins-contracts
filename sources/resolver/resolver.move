@@ -5,10 +5,10 @@ module suins::resolver {
     use sui::object::{Self, UID};
     use sui::transfer;
     use sui::tx_context::TxContext;
-    use sui::vec_map::{Self, VecMap};
     use suins::base_registry::{Self, Registry};
     use suins::converter;
     use std::string::{Self, String, utf8};
+    use sui::table;
 
     const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
     const NAME: vector<u8> = b"name";
@@ -42,9 +42,9 @@ module suins::resolver {
 
     fun init(ctx: &mut TxContext) {
         let resolvers = bag::new(ctx);
-        bag::add(&mut resolvers, utf8(ADDR), vec_map::empty<String, address>());
-        bag::add(&mut resolvers, utf8(NAME), vec_map::empty<address, String>());
-        bag::add(&mut resolvers, utf8(AVATAR), vec_map::empty<String, String>());
+        bag::add(&mut resolvers, utf8(ADDR), table::new<String, address>(ctx));
+        bag::add(&mut resolvers, utf8(NAME), table::new<address, String>(ctx));
+        bag::add(&mut resolvers, utf8(AVATAR), table::new<String, String>(ctx));
         transfer::share_object(BaseResolver {
             id: object::new(ctx),
             resolvers,
@@ -53,17 +53,17 @@ module suins::resolver {
 
     public fun name(name_resolver: &BaseResolver, addr: address): String {
         let names = bag::borrow(&name_resolver.resolvers, utf8(NAME));
-        *vec_map::get(names, &addr)
+        *table::borrow<address, String>(names, addr)
     }
 
     public fun avatar(base_resolver: &BaseResolver, node: vector<u8>): String {
         let avatars = bag::borrow(&base_resolver.resolvers, utf8(AVATAR));
-        *vec_map::get(avatars, &utf8(node))
+        *table::borrow<String, String>(avatars, utf8(node))
     }
 
     public fun addr(base_resolver: &BaseResolver, node: vector<u8>): address {
-        let addrs = bag::borrow<String, VecMap<String, address>>(&base_resolver.resolvers, utf8(ADDR));
-        *vec_map::get(addrs, &utf8(node))
+        let addrs = bag::borrow(&base_resolver.resolvers, utf8(ADDR));
+        *table::borrow<String, address>(addrs, utf8(node))
     }
 
     public entry fun set_name(
@@ -79,11 +79,11 @@ module suins::resolver {
 
         let new_name = utf8(new_name);
         let names = bag::borrow_mut(&mut base_resolver.resolvers, utf8(NAME));
-        if (vec_map::contains(names, &addr)) {
-            let current_name = vec_map::get_mut(names, &addr);
+        if (table::contains(names, addr)) {
+            let current_name = table::borrow_mut<address, String>(names, addr);
             *current_name = new_name;
         } else {
-            vec_map::insert(names, addr, new_name);
+            table::add(names, addr, new_name);
         };
 
         event::emit(NameChangedEvent { addr, name: new_name });
@@ -99,8 +99,8 @@ module suins::resolver {
         let node = base_registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
         base_registry::authorised(registry, *string::bytes(&node), ctx);
 
-        let names = bag::borrow_mut<String, VecMap<address, String>>(&mut base_resolver.resolvers, utf8(NAME));
-        vec_map::remove(names, &addr);
+        let names = bag::borrow_mut(&mut base_resolver.resolvers, utf8(NAME));
+        table::remove<address, String>(names, addr);
         event::emit(NameRemovedEvent { addr });
     }
 
@@ -117,11 +117,11 @@ module suins::resolver {
         let node = utf8(node);
         let new_avatar = utf8(new_avatar);
         let avatars = bag::borrow_mut(&mut base_resolver.resolvers, utf8(AVATAR));
-        if (vec_map::contains(avatars, &node)) {
-            let current_avatar = vec_map::get_mut(avatars, &node);
+        if (table::contains(avatars, node)) {
+            let current_avatar = table::borrow_mut<String, String>(avatars, node);
             *current_avatar = new_avatar;
         } else {
-            vec_map::insert(avatars, node, new_avatar);
+            table::add(avatars, node, new_avatar);
         };
 
         event::emit(AvatarChangedEvent { node, avatar: new_avatar });
@@ -138,11 +138,11 @@ module suins::resolver {
 
         let node = utf8(node);
         let addresses = bag::borrow_mut(&mut base_resolver.resolvers, utf8(ADDR));
-        if (vec_map::contains(addresses, &node)) {
-            let current_addr = vec_map::get_mut(addresses, &node);
+        if (table::contains(addresses, node)) {
+            let current_addr = table::borrow_mut<String, address>(addresses, node);
             *current_addr = new_addr;
         } else {
-            vec_map::insert(addresses, node, new_addr);
+            table::add(addresses, node, new_addr);
         };
 
         event::emit(AddrChangedEvent { node, addr: new_addr });

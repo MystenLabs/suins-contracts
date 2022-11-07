@@ -96,9 +96,7 @@ module suins::resolver_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-
             resolver::unset_name(&mut resolver, &registry, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
-
             test_scenario::return_shared(resolver);
             test_scenario::return_shared(registry);
         };
@@ -170,9 +168,13 @@ module suins::resolver_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-
-            resolver::set_name(&mut resolver, &registry, FIRST_USER_ADDRESS, SECOND_NAME, test_scenario::ctx(&mut scenario));
-
+            resolver::set_name(
+                &mut resolver,
+                &registry,
+                FIRST_USER_ADDRESS,
+                SECOND_NAME,
+                test_scenario::ctx(&mut scenario)
+            );
             test_scenario::return_shared(registry);
             test_scenario::return_shared(resolver);
         };
