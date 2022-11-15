@@ -52,7 +52,7 @@ module suins::resolver {
     }
 
     fun init(ctx: &mut TxContext) {
-        // each `record` look like:
+        // each `record` looks like:
         // ```
         // "suins.sui": {
         //   "name": "suins.sui",
@@ -65,7 +65,7 @@ module suins::resolver {
         // ```
         transfer::share_object(BaseResolver {
             id: object::new(ctx),
-            records: table::new(ctx),
+            records: table::new<String, Bag>(ctx),
         });
     }
 
