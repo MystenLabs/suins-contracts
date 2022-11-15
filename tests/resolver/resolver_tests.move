@@ -338,7 +338,7 @@ module suins::resolver_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::set_avatar(
+            resolver::set_text(
                 &mut resolver,
                 &registry,
                 FIRST_SUB_NODE,
@@ -398,7 +398,7 @@ module suins::resolver_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::set_avatar(
+            resolver::set_text(
                 &mut resolver,
                 &registry,
                 FIRST_SUB_NODE,
@@ -429,7 +429,7 @@ module suins::resolver_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::set_avatar(
+            resolver::set_text(
                 &mut resolver,
                 &registry,
                 FIRST_SUB_NODE,
