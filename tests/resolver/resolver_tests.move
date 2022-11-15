@@ -5,7 +5,6 @@ module suins::resolver_tests {
     use suins::base_registry::{Self, Registry};
     use suins::resolver::{Self, BaseResolver};
     use suins::converter;
-    use std::string;
     use suins::base_registrar;
     use suins::base_registry_tests;
     use std::string::utf8;
@@ -40,7 +39,7 @@ module suins::resolver_tests {
 
             let node = base_registry::make_node(
                 converter::address_to_string(FIRST_USER_ADDRESS),
-                string::utf8(ADDR_REVERSE_BASE_NODE),
+                utf8(ADDR_REVERSE_BASE_NODE),
             );
             base_registry::new_record_test(&mut registry, node, FIRST_USER_ADDRESS);
 
@@ -82,7 +81,7 @@ module suins::resolver_tests {
         {
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             let name= resolver::name(&resolver, FIRST_USER_ADDRESS);
-            assert!(name == string::utf8(FIRST_NAME), 0);
+            assert!(name == utf8(FIRST_NAME), 0);
             test_scenario::return_shared(resolver);
         };
         test_scenario::end(scenario);
@@ -186,7 +185,7 @@ module suins::resolver_tests {
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
 
             let name = resolver::name(&resolver, FIRST_USER_ADDRESS);
-            assert!(name == string::utf8(SECOND_NAME), 0);
+            assert!(name == utf8(SECOND_NAME), 0);
 
             test_scenario::return_shared(resolver);
         };
@@ -222,7 +221,7 @@ module suins::resolver_tests {
 
             let node = base_registry::make_node(
                 converter::address_to_string(FIRST_USER_ADDRESS),
-                string::utf8(ADDR_REVERSE_BASE_NODE),
+                utf8(ADDR_REVERSE_BASE_NODE),
             );
             base_registry::new_record_test(&mut registry, node, FIRST_USER_ADDRESS);
 
@@ -342,6 +341,7 @@ module suins::resolver_tests {
                 &mut resolver,
                 &registry,
                 FIRST_SUB_NODE,
+                AVATAR,
                 FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
             );
@@ -402,6 +402,7 @@ module suins::resolver_tests {
                 &mut resolver,
                 &registry,
                 FIRST_SUB_NODE,
+                AVATAR,
                 FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
             );
@@ -412,8 +413,8 @@ module suins::resolver_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            let text = resolver::avatar(&resolver, FIRST_SUB_NODE);
-            assert!(text == string::utf8(FIRST_AVATAR), 0);
+            let text = resolver::text(&resolver, FIRST_SUB_NODE, AVATAR);
+            assert!(text == utf8(FIRST_AVATAR), 0);
             test_scenario::return_shared(resolver);
         };
         test_scenario::end(scenario);
@@ -433,6 +434,7 @@ module suins::resolver_tests {
                 &mut resolver,
                 &registry,
                 FIRST_SUB_NODE,
+                AVATAR,
                 FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
             );
@@ -443,7 +445,7 @@ module suins::resolver_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::avatar(&resolver, SECOND_SUB_NODE);
+            resolver::text(&resolver, SECOND_SUB_NODE, AVATAR);
             test_scenario::return_shared(resolver);
         };
         test_scenario::end(scenario);
@@ -532,6 +534,61 @@ module suins::resolver_tests {
         {
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::contenthash(&resolver, FIRST_SUB_NODE);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 401)]
+    fun test_set_text_record_abort_if_wrong_key() {
+        let scenario = init();
+        base_registry_tests::mint_record(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_text(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                b"wrongkey",
+                FIRST_AVATAR,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 1)]
+    fun test_get_text_abort_if_wrong_key() {
+        let scenario = init();
+        base_registry_tests::mint_record(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_text(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                AVATAR,
+                FIRST_AVATAR,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::text(&resolver, FIRST_SUB_NODE, b"wrongkey");
             test_scenario::return_shared(resolver);
         };
         test_scenario::end(scenario);

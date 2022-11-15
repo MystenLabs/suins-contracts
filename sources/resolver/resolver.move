@@ -17,6 +17,7 @@ module suins::resolver {
     const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
     const NAME: vector<u8> = b"name";
     const ADDR: vector<u8> = b"addr";
+    const TEXT: vector<u8> = b"text";
     const AVATAR: vector<u8> = b"avatar";
     const CONTENT_HASH: vector<u8> = b"contenthash";
 
@@ -51,13 +52,17 @@ module suins::resolver {
     }
 
     fun init(ctx: &mut TxContext) {
-        // {
-        //  "name":"ky.sui",
-        //  "addr":"0x2",
-        //  "records": {
-        //  "avatar_object_id": "0x03"
-        //  }
+        // each `record` look like:
+        // ```
+        // "suins.sui": {
+        //   "name": "suins.sui",
+        //   "addr": "0x2",
+        //   "contenthash": "ipfs://QmfWrgbTZqwzqsvdeNc3NKacggMuTaN83sQ8V7Bs2nXKRD",
+        //   "text": {
+        //     "avatar": "0x03"
+        //   }
         // }
+        // ```
         transfer::share_object(BaseResolver {
             id: object::new(ctx),
             records: table::new(ctx),
@@ -70,9 +75,10 @@ module suins::resolver {
         *bag::borrow<String, String>(record, utf8(NAME))
     }
 
-    public fun avatar(base_resolver: &BaseResolver, node: vector<u8>): String {
+    public fun text(base_resolver: &BaseResolver, node: vector<u8>, key: vector<u8>): String {
         let record = table::borrow(&base_resolver.records, utf8(node));
-        *bag::borrow<String, String>(record, utf8(AVATAR))
+        let text_record = bag::borrow<String, Bag>(record, utf8(TEXT));
+        *bag::borrow<String, String>(text_record, utf8(key))
     }
 
     public fun addr(base_resolver: &BaseResolver, node: vector<u8>): address {
@@ -161,22 +167,25 @@ module suins::resolver {
         new_value: vector<u8>,
         ctx: &mut TxContext
     ) {
-        // assert!(is_text_record_key(key), EInvalidTextRecordKey);
+        assert!(is_text_record_key(key), EInvalidTextRecordKey);
         base_registry::authorised(registry, node, ctx);
 
         let node = utf8(node);
-        let new_avatar = utf8(new_value);
+        let new_value = utf8(new_value);
         if (table::contains(&base_resolver.records, node)) {
             let record = table::borrow_mut<String, Bag>(&mut base_resolver.records, node);
-            let current_avatar = bag::borrow_mut<String, String>(record, utf8(AVATAR));
-            *current_avatar = new_avatar;
+            let current_value = bag::borrow_mut<String, String>(record, utf8(key));
+            *current_value = new_value;
         } else {
+            let text_record = bag::new(ctx);
+            bag::add<String, String>(&mut text_record, utf8(key), new_value);
+
             let new_record = bag::new(ctx);
-            bag::add<String, String>(&mut new_record, utf8(AVATAR), new_avatar);
+            bag::add<String, Bag>(&mut new_record, utf8(TEXT), text_record);
             table::add(&mut base_resolver.records, node, new_record);
         };
 
-        event::emit(AvatarChangedEvent { node, avatar: new_avatar });
+        event::emit(AvatarChangedEvent { node, avatar: new_value });
     }
 
     fun is_text_record_key(key: vector<u8>): bool { key == AVATAR }
