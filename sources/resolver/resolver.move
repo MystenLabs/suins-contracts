@@ -68,6 +68,11 @@ module suins::resolver {
         *vec_map::get(addrs, &utf8(node))
     }
 
+    public fun contenthash(base_resolver: &BaseResolver, node: vector<u8>): String {
+        let hashes = bag::borrow(&base_resolver.resolvers, utf8(CONTENTHASH));
+        *vec_map::get(hashes, &utf8(node))
+    }
+
     public entry fun set_name(
         base_resolver: &mut BaseResolver,
         registry: &Registry,
