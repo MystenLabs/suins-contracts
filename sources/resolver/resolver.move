@@ -30,6 +30,11 @@ module suins::resolver {
         avatar: String,
     }
 
+    struct ContenthashChangedEvent has copy, drop {
+        node: String,
+        contenthash: String,
+    }
+
     struct AddrChangedEvent has copy, drop {
         node: String,
         addr: address,
@@ -146,13 +151,15 @@ module suins::resolver {
 
         let node = utf8(node);
         let new_contenthash = utf8(new_contenthash);
-        let avatars = bag::borrow_mut(&mut base_resolver.resolvers, utf8(CONTENTHASH));
-        if (vec_map::contains(avatars, &node)) {
-            let current_contenthash = vec_map::get_mut(avatars, &node);
+        let hashes = bag::borrow_mut(&mut base_resolver.resolvers, utf8(CONTENTHASH));
+        if (vec_map::contains(hashes, &node)) {
+            let current_contenthash = vec_map::get_mut(hashes, &node);
             *current_contenthash = new_contenthash;
         } else {
-            vec_map::insert(avatars, node, new_contenthash);
+            vec_map::insert(hashes, node, new_contenthash);
         };
+
+        event::emit(ContenthashChangedEvent { node, contenthash: new_contenthash });
     }
 
     public entry fun set_addr(
