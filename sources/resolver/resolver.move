@@ -14,6 +14,7 @@ module suins::resolver {
     const NAME: vector<u8> = b"name";
     const ADDR: vector<u8> = b"addr";
     const AVATAR: vector<u8> = b"avatar";
+    const CONTENTHASH: vector<u8> = b"contenthash";
 
     struct NameChangedEvent has copy, drop {
         addr: address,
@@ -27,6 +28,11 @@ module suins::resolver {
     struct AvatarChangedEvent has copy, drop {
         node: String,
         avatar: String,
+    }
+
+    struct ContenthashChangedEvent has copy, drop {
+        node: String,
+        contenthash: String,
     }
 
     struct AddrChangedEvent has copy, drop {
@@ -45,6 +51,7 @@ module suins::resolver {
         bag::add(&mut resolvers, utf8(ADDR), vec_map::empty<String, address>());
         bag::add(&mut resolvers, utf8(NAME), vec_map::empty<address, String>());
         bag::add(&mut resolvers, utf8(AVATAR), vec_map::empty<String, String>());
+        bag::add(&mut resolvers, utf8(CONTENTHASH), vec_map::empty<String, String>());
         transfer::share_object(BaseResolver {
             id: object::new(ctx),
             resolvers,
@@ -64,6 +71,11 @@ module suins::resolver {
     public fun addr(base_resolver: &BaseResolver, node: vector<u8>): address {
         let addrs = bag::borrow<String, VecMap<String, address>>(&base_resolver.resolvers, utf8(ADDR));
         *vec_map::get(addrs, &utf8(node))
+    }
+
+    public fun contenthash(base_resolver: &BaseResolver, node: vector<u8>): String {
+        let hashes = bag::borrow(&base_resolver.resolvers, utf8(CONTENTHASH));
+        *vec_map::get(hashes, &utf8(node))
     }
 
     public entry fun set_name(
@@ -125,6 +137,29 @@ module suins::resolver {
         };
 
         event::emit(AvatarChangedEvent { node, avatar: new_avatar });
+    }
+
+    // only allow set avatar for domain atm
+    public entry fun set_contenthash(
+        base_resolver: &mut BaseResolver,
+        registry: &Registry,
+        node: vector<u8>,
+        new_contenthash: vector<u8>,
+        ctx: &mut TxContext
+    ) {
+        base_registry::authorised(registry, node, ctx);
+
+        let node = utf8(node);
+        let new_contenthash = utf8(new_contenthash);
+        let hashes = bag::borrow_mut(&mut base_resolver.resolvers, utf8(CONTENTHASH));
+        if (vec_map::contains(hashes, &node)) {
+            let current_contenthash = vec_map::get_mut(hashes, &node);
+            *current_contenthash = new_contenthash;
+        } else {
+            vec_map::insert(hashes, node, new_contenthash);
+        };
+
+        event::emit(ContenthashChangedEvent { node, contenthash: new_contenthash });
     }
 
     public entry fun set_addr(
