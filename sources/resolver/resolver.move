@@ -11,9 +11,6 @@ module suins::resolver {
     use sui::table;
     use sui::table::Table;
 
-    // errors in the range of 401..500 indicate Resolver errors
-    const EInvalidTextRecordKey: u64 = 401;
-
     const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
     const NAME: vector<u8> = b"name";
     const ADDR: vector<u8> = b"addr";
@@ -28,6 +25,12 @@ module suins::resolver {
 
     struct NameRemovedEvent has copy, drop {
         addr: address,
+    }
+
+    struct TextRecordChangedEvent has copy, drop {
+        node: String,
+        key: String,
+        value: String
     }
 
     struct AvatarChangedEvent has copy, drop {
@@ -55,7 +58,6 @@ module suins::resolver {
         // each `record` looks like:
         // ```
         // "suins.sui": {
-        //   "name": "suins.sui",
         //   "addr": "0x2",
         //   "contenthash": "ipfs://QmfWrgbTZqwzqsvdeNc3NKacggMuTaN83sQ8V7Bs2nXKRD",
         //   "text": {
@@ -167,28 +169,26 @@ module suins::resolver {
         new_value: vector<u8>,
         ctx: &mut TxContext
     ) {
-        assert!(is_text_record_key(key), EInvalidTextRecordKey);
         base_registry::authorised(registry, node, ctx);
 
         let node = utf8(node);
         let new_value = utf8(new_value);
+        let key = utf8(key);
         if (table::contains(&base_resolver.records, node)) {
             let record = table::borrow_mut<String, Bag>(&mut base_resolver.records, node);
-            let current_value = bag::borrow_mut<String, String>(record, utf8(key));
+            let current_value = bag::borrow_mut<String, String>(record, key);
             *current_value = new_value;
         } else {
             let text_record = bag::new(ctx);
-            bag::add<String, String>(&mut text_record, utf8(key), new_value);
+            bag::add<String, String>(&mut text_record, key, new_value);
 
             let new_record = bag::new(ctx);
             bag::add<String, Bag>(&mut new_record, utf8(TEXT), text_record);
             table::add(&mut base_resolver.records, node, new_record);
         };
 
-        event::emit(AvatarChangedEvent { node, avatar: new_value });
+        event::emit(TextRecordChangedEvent { node, key, value: new_value });
     }
-
-    fun is_text_record_key(key: vector<u8>): bool { key == AVATAR }
 
     public entry fun set_addr(
         base_resolver: &mut BaseResolver,
@@ -215,5 +215,11 @@ module suins::resolver {
 
     #[test_only]
     /// Wrapper of module initializer for testing
-    public fun test_init(ctx: &mut TxContext) { init(ctx) }
+    public fun test_init(ctx: &mut TxContext) {
+        // mimic logic in `init`
+        transfer::share_object(BaseResolver {
+            id: object::new(ctx),
+            records: table::new<String, Bag>(ctx),
+        });
+    }
 }
