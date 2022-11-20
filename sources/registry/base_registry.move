@@ -197,5 +197,14 @@ module suins::base_registry {
 
     #[test_only]
     /// Wrapper of module initializer for testing
-    public fun test_init(ctx: &mut TxContext) { init(ctx) }
+    public fun test_init(ctx: &mut TxContext) {
+        // mimic logic in `init`
+        transfer::share_object(Registry {
+            id: object::new(ctx),
+            records: table::new(ctx),
+        });
+        transfer::transfer(AdminCap {
+            id: object::new(ctx)
+        }, tx_context::sender(ctx));
+    }
 }

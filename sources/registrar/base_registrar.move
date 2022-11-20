@@ -230,6 +230,10 @@ module suins::base_registrar {
     #[test_only]
     /// Wrapper of module initializer for testing
     public fun test_init(ctx: &mut TxContext) {
-        init(ctx)
+        // mimic logic in `init`
+        transfer::share_object(TLDsList {
+            id: object::new(ctx),
+            tlds: vector::empty<String>(),
+        });
     }
 }

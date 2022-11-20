@@ -62,5 +62,11 @@ module suins::reverse_registrar {
 
     #[test_only]
     /// Wrapper of module initializer for testing
-    public fun test_init(ctx: &mut TxContext) { init(ctx) }
+    public fun test_init(ctx: &mut TxContext) {
+        transfer::share_object(ReverseRegistrar {
+            id: object::new(ctx),
+            // cannot get the ID of name_resolver in `init`, admin need to update this by calling `set_default_resolver`
+            default_name_resolver: @0x0,
+        });
+    }
 }
