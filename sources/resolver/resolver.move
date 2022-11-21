@@ -9,10 +9,12 @@ module suins::resolver {
     use suins::converter;
     use std::string::{Self, String, utf8};
     use sui::table;
+    use sui::table::Table;
 
     const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
     const NAME: vector<u8> = b"name";
     const ADDR: vector<u8> = b"addr";
+    const TEXT: vector<u8> = b"text";
     const AVATAR: vector<u8> = b"avatar";
     const CONTENT_HASH: vector<u8> = b"contenthash";
 
@@ -23,6 +25,12 @@ module suins::resolver {
 
     struct NameRemovedEvent has copy, drop {
         addr: address,
+    }
+
+    struct TextRecordChangedEvent has copy, drop {
+        node: String,
+        key: String,
+        value: String
     }
 
     struct AvatarChangedEvent has copy, drop {
@@ -43,39 +51,46 @@ module suins::resolver {
     // this share object is used by many type of resolver, e.g., text resolver, addr resolver,...
     struct BaseResolver has key {
         id: UID,
-        resolvers: Bag,
+        records: Table<String, Bag>,
     }
 
     fun init(ctx: &mut TxContext) {
-        let resolvers = bag::new(ctx);
-        bag::add(&mut resolvers, utf8(ADDR), table::new<String, address>(ctx));
-        bag::add(&mut resolvers, utf8(NAME), table::new<address, String>(ctx));
-        bag::add(&mut resolvers, utf8(AVATAR), table::new<String, String>(ctx));
-        bag::add(&mut resolvers, utf8(CONTENT_HASH), table::new<String, String>(ctx));
+        // each `record` looks like:
+        // ```
+        // "suins.sui": {
+        //   "addr": "0x2",
+        //   "contenthash": "ipfs://QmfWrgbTZqwzqsvdeNc3NKacggMuTaN83sQ8V7Bs2nXKRD",
+        //   "text": {
+        //     "avatar": "0x03"
+        //   }
+        // }
+        // ```
         transfer::share_object(BaseResolver {
             id: object::new(ctx),
-            resolvers,
+            records: table::new<String, Bag>(ctx),
         });
     }
 
-    public fun name(name_resolver: &BaseResolver, addr: address): String {
-        let names = bag::borrow(&name_resolver.resolvers, utf8(NAME));
-        *table::borrow<address, String>(names, addr)
+    public fun name(base_resolver: &BaseResolver, addr: address): String {
+        let addr_str = utf8(converter::address_to_string(addr));
+        let record = table::borrow(&base_resolver.records, addr_str);
+        *bag::borrow<String, String>(record, utf8(NAME))
     }
 
-    public fun avatar(base_resolver: &BaseResolver, node: vector<u8>): String {
-        let avatars = bag::borrow(&base_resolver.resolvers, utf8(AVATAR));
-        *table::borrow<String, String>(avatars, utf8(node))
+    public fun text(base_resolver: &BaseResolver, node: vector<u8>, key: vector<u8>): String {
+        let record = table::borrow(&base_resolver.records, utf8(node));
+        let text_record = bag::borrow<String, Bag>(record, utf8(TEXT));
+        *bag::borrow<String, String>(text_record, utf8(key))
     }
 
     public fun addr(base_resolver: &BaseResolver, node: vector<u8>): address {
-        let addrs = bag::borrow(&base_resolver.resolvers, utf8(ADDR));
-        *table::borrow<String, address>(addrs, utf8(node))
+        let record = table::borrow(&base_resolver.records, utf8(node));
+        *bag::borrow<String, address>(record, utf8(ADDR))
     }
 
     public fun contenthash(base_resolver: &BaseResolver, node: vector<u8>): String {
-        let hashes = bag::borrow(&base_resolver.resolvers, utf8(CONTENT_HASH));
-        *table::borrow<String, String>(hashes, utf8(node))
+        let record = table::borrow(&base_resolver.records, utf8(node));
+        *bag::borrow<String, String>(record, utf8(CONTENT_HASH))
     }
 
     public entry fun set_contenthash(
@@ -89,13 +104,15 @@ module suins::resolver {
 
         let node = utf8(node);
         let new_hash = utf8(hash);
-        let hashes = bag::borrow_mut(&mut base_resolver.resolvers, utf8(CONTENT_HASH));
 
-        if (table::contains(hashes, node)) {
-            let current_contenthash = table::borrow_mut<String, String>(hashes, node);
+        if (table::contains(&base_resolver.records, node)) {
+            let record = table::borrow_mut<String, Bag>(&mut base_resolver.records, node);
+            let current_contenthash = bag::borrow_mut<String, String>(record, utf8(CONTENT_HASH));
             *current_contenthash = new_hash;
         } else {
-            table::add(hashes, node, new_hash);
+            let new_record = bag::new(ctx);
+            bag::add<String, String>(&mut new_record, utf8(CONTENT_HASH), new_hash);
+            table::add(&mut base_resolver.records, node, new_record);
         };
 
         event::emit(ContenthashChangedEvent { node, contenthash: new_hash });
@@ -113,12 +130,15 @@ module suins::resolver {
         base_registry::authorised(registry, *string::bytes(&node), ctx);
 
         let new_name = utf8(new_name);
-        let names = bag::borrow_mut(&mut base_resolver.resolvers, utf8(NAME));
-        if (table::contains(names, addr)) {
-            let current_name = table::borrow_mut<address, String>(names, addr);
+        let addr_str = utf8(converter::address_to_string(addr));
+        if (table::contains(&base_resolver.records, addr_str)) {
+            let record = table::borrow_mut<String, Bag>(&mut base_resolver.records, addr_str);
+            let current_name = bag::borrow_mut<String, String>(record, utf8(NAME));
             *current_name = new_name;
         } else {
-            table::add(names, addr, new_name);
+            let new_record = bag::new(ctx);
+            bag::add<String, String>(&mut new_record, utf8(NAME), new_name);
+            table::add(&mut base_resolver.records, addr_str, new_record);
         };
 
         event::emit(NameChangedEvent { addr, name: new_name });
@@ -134,32 +154,40 @@ module suins::resolver {
         let node = base_registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
         base_registry::authorised(registry, *string::bytes(&node), ctx);
 
-        let names = bag::borrow_mut(&mut base_resolver.resolvers, utf8(NAME));
-        table::remove<address, String>(names, addr);
+        let addr_str = utf8(converter::address_to_string(addr));
+        let record = table::borrow_mut<String, Bag>(&mut base_resolver.records, addr_str);
+        bag::remove<String, String>(record, addr_str);
         event::emit(NameRemovedEvent { addr });
     }
 
     // only allow set avatar for domain atm
-    public entry fun set_avatar(
+    public entry fun set_text(
         base_resolver: &mut BaseResolver,
         registry: &Registry,
         node: vector<u8>,
-        new_avatar: vector<u8>,
+        key: vector<u8>,
+        new_value: vector<u8>,
         ctx: &mut TxContext
     ) {
         base_registry::authorised(registry, node, ctx);
 
         let node = utf8(node);
-        let new_avatar = utf8(new_avatar);
-        let avatars = bag::borrow_mut(&mut base_resolver.resolvers, utf8(AVATAR));
-        if (table::contains(avatars, node)) {
-            let current_avatar = table::borrow_mut<String, String>(avatars, node);
-            *current_avatar = new_avatar;
+        let new_value = utf8(new_value);
+        let key = utf8(key);
+        if (table::contains(&base_resolver.records, node)) {
+            let record = table::borrow_mut<String, Bag>(&mut base_resolver.records, node);
+            let current_value = bag::borrow_mut<String, String>(record, key);
+            *current_value = new_value;
         } else {
-            table::add(avatars, node, new_avatar);
+            let text_record = bag::new(ctx);
+            bag::add<String, String>(&mut text_record, key, new_value);
+
+            let new_record = bag::new(ctx);
+            bag::add<String, Bag>(&mut new_record, utf8(TEXT), text_record);
+            table::add(&mut base_resolver.records, node, new_record);
         };
 
-        event::emit(AvatarChangedEvent { node, avatar: new_avatar });
+        event::emit(TextRecordChangedEvent { node, key, value: new_value });
     }
 
     public entry fun set_addr(
@@ -172,12 +200,14 @@ module suins::resolver {
         base_registry::authorised(registry, node, ctx);
 
         let node = utf8(node);
-        let addresses = bag::borrow_mut(&mut base_resolver.resolvers, utf8(ADDR));
-        if (table::contains(addresses, node)) {
-            let current_addr = table::borrow_mut<String, address>(addresses, node);
+        if (table::contains(&mut base_resolver.records, node)) {
+            let record = table::borrow_mut<String, Bag>(&mut base_resolver.records, node);
+            let current_addr = bag::borrow_mut<String, address>(record, utf8(ADDR));
             *current_addr = new_addr;
         } else {
-            table::add(addresses, node, new_addr);
+            let new_record = bag::new(ctx);
+            bag::add<String, address>(&mut new_record, utf8(ADDR), new_addr);
+            table::add(&mut base_resolver.records, node, new_record);
         };
 
         event::emit(AddrChangedEvent { node, addr: new_addr });
@@ -185,5 +215,11 @@ module suins::resolver {
 
     #[test_only]
     /// Wrapper of module initializer for testing
-    public fun test_init(ctx: &mut TxContext) { init(ctx) }
+    public fun test_init(ctx: &mut TxContext) {
+        // mimic logic in `init`
+        transfer::share_object(BaseResolver {
+            id: object::new(ctx),
+            records: table::new<String, Bag>(ctx),
+        });
+    }
 }

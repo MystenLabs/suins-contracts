@@ -276,5 +276,13 @@ module suins::controller {
 
     #[test_only]
     /// Wrapper of module initializer for testing
-    public fun test_init(ctx: &mut TxContext) { init(ctx) }
+    public fun test_init(ctx: &mut TxContext) {
+        transfer::share_object(BaseController {
+            id: object::new(ctx),
+            commitments: vec_map::empty(),
+            balance: balance::zero(),
+            // cannot get the ID of name_resolver in `init`, admin need to update this by calling `set_default_resolver`
+            default_addr_resolver: @0x0,
+        });
+    }
 }

@@ -16,7 +16,7 @@ module suins::base_registry_tests {
     const SECOND_SUB_NODE: vector<u8> = b"secondsuitest.sui";
     const THIRD_SUB_NODE: vector<u8> = b"ea.eastagile.sui";
 
-    fun init(): Scenario {
+    fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
@@ -62,7 +62,7 @@ module suins::base_registry_tests {
     // TODO: test for emitted events
     #[test]
     fun test_set_record_internal() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -107,7 +107,7 @@ module suins::base_registry_tests {
 
     #[test]
     fun test_set_owner() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -136,7 +136,7 @@ module suins::base_registry_tests {
     #[test]
     #[expected_failure(abort_code = 1)]
     fun test_set_owner_abort_if_node_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -159,7 +159,7 @@ module suins::base_registry_tests {
     #[test]
     #[expected_failure(abort_code = 101)]
     fun test_set_owner_abort_if_unauthorised() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
@@ -178,7 +178,7 @@ module suins::base_registry_tests {
 
     #[test]
     fun test_set_subnode_owner() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -224,7 +224,7 @@ module suins::base_registry_tests {
     #[test]
     #[expected_failure(abort_code = 1)]
     fun test_set_subnode_owner_abort_if_node_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -245,7 +245,7 @@ module suins::base_registry_tests {
     #[test]
     #[expected_failure(abort_code = 1)]
     fun test_set_subnode_owner_abort_if_subnode_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -266,7 +266,7 @@ module suins::base_registry_tests {
     #[test]
     #[expected_failure(abort_code = 101)]
     fun test_set_subnode_owner_abort_if_unauthorised() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
@@ -288,7 +288,7 @@ module suins::base_registry_tests {
 
     #[test]
     fun test_set_subnode_owner_overwrite_value_if_node_exists() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -337,7 +337,7 @@ module suins::base_registry_tests {
 
     #[test]
     fun test_set_resolver() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -388,7 +388,7 @@ module suins::base_registry_tests {
     #[test]
     #[expected_failure(abort_code = 101)]
     fun test_set_resolver_abort_if_unauthorised() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
@@ -408,7 +408,7 @@ module suins::base_registry_tests {
     #[test]
     #[expected_failure(abort_code = 1)]
     fun test_set_resolver_abort_if_node_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -432,7 +432,7 @@ module suins::base_registry_tests {
 
     #[test]
     fun test_set_ttl() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -469,7 +469,7 @@ module suins::base_registry_tests {
     #[test]
     #[expected_failure(abort_code = 101)]
     fun test_set_ttl_abort_if_unauthorised() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
@@ -485,7 +485,7 @@ module suins::base_registry_tests {
     #[test]
     #[expected_failure(abort_code = 1)]
     fun test_set_ttl_abort_if_node_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -499,7 +499,7 @@ module suins::base_registry_tests {
 
     #[test]
     fun test_get_resolver() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -515,7 +515,7 @@ module suins::base_registry_tests {
     #[test]
     #[expected_failure(abort_code = 1)]
     fun test_get_resolver_if_node_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
@@ -527,7 +527,7 @@ module suins::base_registry_tests {
 
     #[test]
     fun test_get_ttl() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -543,7 +543,7 @@ module suins::base_registry_tests {
     #[test]
     #[expected_failure(abort_code = 1)]
     fun test_get_ttl_if_node_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
