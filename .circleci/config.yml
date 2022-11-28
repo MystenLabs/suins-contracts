@@ -34,6 +34,7 @@ jobs:
       - setup-sccache
       - restore-sccache-cache
       - run: git clone https://github.com/MystenLabs/sui.git --branch devnet
+      - run: sudo apt update
       - run: sudo apt install libclang-dev
       - run: 
           command: RUSTC_WRAPPER=sccache cargo build --package sui --bin sui
