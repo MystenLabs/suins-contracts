@@ -28,7 +28,7 @@ commands:
 jobs:
   build-and-test:
     docker:
-      - image: cimg/rust:1.63.0
+      - image: cimg/rust:1.65.0
     steps:
       - checkout
       - setup-sccache
