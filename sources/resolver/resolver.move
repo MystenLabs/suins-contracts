@@ -35,6 +35,10 @@ module suins::resolver {
         contenthash: String,
     }
 
+    struct ContenthashRemovedEvent has copy, drop {
+        node: String,
+    }
+
     struct AddrChangedEvent has copy, drop {
         node: String,
         addr: address,
@@ -59,12 +63,12 @@ module suins::resolver {
     }
 
     public fun name(name_resolver: &BaseResolver, addr: address): String {
-        let names = bag::borrow(&name_resolver.resolvers, utf8(NAME));
+        let names = bag::borrow<String, VecMap<address, String>>(&name_resolver.resolvers, utf8(NAME));
         *vec_map::get(names, &addr)
     }
 
     public fun avatar(base_resolver: &BaseResolver, node: vector<u8>): String {
-        let avatars = bag::borrow(&base_resolver.resolvers, utf8(AVATAR));
+        let avatars = bag::borrow<String, VecMap<String, String>>(&base_resolver.resolvers, utf8(AVATAR));
         *vec_map::get(avatars, &utf8(node))
     }
 
@@ -74,7 +78,7 @@ module suins::resolver {
     }
 
     public fun contenthash(base_resolver: &BaseResolver, node: vector<u8>): String {
-        let hashes = bag::borrow(&base_resolver.resolvers, utf8(CONTENTHASH));
+        let hashes = bag::borrow<String, VecMap<String, String>>(&base_resolver.resolvers, utf8(CONTENTHASH));
         *vec_map::get(hashes, &utf8(node))
     }
 
@@ -90,7 +94,7 @@ module suins::resolver {
         base_registry::authorised(registry, *string::bytes(&node), ctx);
 
         let new_name = utf8(new_name);
-        let names = bag::borrow_mut(&mut base_resolver.resolvers, utf8(NAME));
+        let names = bag::borrow_mut<String, VecMap<address, String>>(&mut base_resolver.resolvers, utf8(NAME));
         if (vec_map::contains(names, &addr)) {
             let current_name = vec_map::get_mut(names, &addr);
             *current_name = new_name;
@@ -128,7 +132,7 @@ module suins::resolver {
 
         let node = utf8(node);
         let new_avatar = utf8(new_avatar);
-        let avatars = bag::borrow_mut(&mut base_resolver.resolvers, utf8(AVATAR));
+        let avatars = bag::borrow_mut<String, VecMap<String, String>>(&mut base_resolver.resolvers, utf8(AVATAR));
         if (vec_map::contains(avatars, &node)) {
             let current_avatar = vec_map::get_mut(avatars, &node);
             *current_avatar = new_avatar;
@@ -139,7 +143,6 @@ module suins::resolver {
         event::emit(AvatarChangedEvent { node, avatar: new_avatar });
     }
 
-    // only allow set avatar for domain atm
     public entry fun set_contenthash(
         base_resolver: &mut BaseResolver,
         registry: &Registry,
@@ -151,7 +154,7 @@ module suins::resolver {
 
         let node = utf8(node);
         let new_contenthash = utf8(new_contenthash);
-        let hashes = bag::borrow_mut(&mut base_resolver.resolvers, utf8(CONTENTHASH));
+        let hashes = bag::borrow_mut<String, VecMap<String, String>>(&mut base_resolver.resolvers, utf8(CONTENTHASH));
         if (vec_map::contains(hashes, &node)) {
             let current_contenthash = vec_map::get_mut(hashes, &node);
             *current_contenthash = new_contenthash;
@@ -160,6 +163,20 @@ module suins::resolver {
         };
 
         event::emit(ContenthashChangedEvent { node, contenthash: new_contenthash });
+    }
+
+    public entry fun unset_contenthash(
+        base_resolver: &mut BaseResolver,
+        registry: &Registry,
+        node: vector<u8>,
+        ctx: &mut TxContext
+    ) {
+        base_registry::authorised(registry, node, ctx);
+
+        let node = utf8(node);
+        let hashes = bag::borrow_mut<String, VecMap<String, String>>(&mut base_resolver.resolvers, utf8(CONTENTHASH));
+        vec_map::remove(hashes, &node);
+        event::emit(ContenthashRemovedEvent { node });
     }
 
     public entry fun set_addr(
@@ -172,7 +189,7 @@ module suins::resolver {
         base_registry::authorised(registry, node, ctx);
 
         let node = utf8(node);
-        let addresses = bag::borrow_mut(&mut base_resolver.resolvers, utf8(ADDR));
+        let addresses = bag::borrow_mut<String, VecMap<String, address>>(&mut base_resolver.resolvers, utf8(ADDR));
         if (vec_map::contains(addresses, &node)) {
             let current_addr = vec_map::get_mut(addresses, &node);
             *current_addr = new_addr;
@@ -181,6 +198,12 @@ module suins::resolver {
         };
 
         event::emit(AddrChangedEvent { node, addr: new_addr });
+    }
+
+    #[test_only]
+    public fun is_contenthash_existed(base_resolver: &BaseResolver, node: vector<u8>): bool {
+        let hashes = bag::borrow<String, VecMap<String, String>>(&base_resolver.resolvers, utf8(CONTENTHASH));
+        vec_map::contains(hashes, &utf8(node))
     }
 
     #[test_only]
