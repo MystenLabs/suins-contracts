@@ -9,8 +9,12 @@ module suins::configuration {
     use sui::url::{Self, Url};
     use sui::event;
     use suins::base_registry::AdminCap;
+    use std::ascii;
 
     friend suins::base_registrar;
+
+    // errors in the range of 301..400 indicate Sui Configuration errors
+    const EInvalidDiscount: u64 = 401;
 
     struct NetworkFirstDayChangedEvent has copy, drop {
         new_day: u64,
@@ -23,6 +27,7 @@ module suins::configuration {
         // day number when the network is deployed, counts from 01/01/2022, 01/01/2022 is day 1,
         // help to detect leap year
         network_first_day: u64,
+        referral_codes: VecMap<ascii::String, u8>,
     }
 
     fun init(ctx: &mut TxContext) {
@@ -37,12 +42,25 @@ module suins::configuration {
             id: object::new(ctx),
             ipfs_urls,
             network_first_day: 0,
+            referral_codes: vec_map::empty(),
         });
     }
 
-    public entry fun set_network_first_day(_: &AdminCap, configuration: &mut Configuration, new_day: u64) {
-        configuration.network_first_day = new_day;
+    public entry fun set_network_first_day(_: &AdminCap, config: &mut Configuration, new_day: u64) {
+        config.network_first_day = new_day;
         event::emit(NetworkFirstDayChangedEvent { new_day })
+    }
+
+    // discount in percentage, e.g. discount = 10 means 10%;
+    public entry fun new_referral_code(_: &AdminCap, config: &mut Configuration, code: vector<u8>, discount: u8) {
+        assert!(0 < discount && discount <= 100, EInvalidDiscount);
+        let code = ascii::string(code);
+        if (vec_map::contains(&config.referral_codes, &code)) {
+            let current_discount = vec_map::get_mut(&mut config.referral_codes, &code);
+            *current_discount = discount;
+        } else {
+            vec_map::insert(&mut config.referral_codes, code, discount);
+        }
     }
 
     public(friend) fun get_url(config: &Configuration, duration: u64, current_epoch: u64): Url {
@@ -64,8 +82,8 @@ module suins::configuration {
     friend suins::configuration_tests;
 
     #[test_only]
-    public fun set_network_first_day_test(configuration: &mut Configuration, new_day: u64) {
-        configuration.network_first_day = new_day;
+    public(friend) fun get_referral_code(config: &Configuration, code: vector<u8>): u8 {
+        *vec_map::get(&config.referral_codes, &ascii::string(code))
     }
 
     #[test_only]
@@ -82,6 +100,7 @@ module suins::configuration {
             id: object::new(ctx),
             ipfs_urls,
             network_first_day: 0,
+            referral_codes: vec_map::empty(),
         });
     }
 }
