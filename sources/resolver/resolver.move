@@ -185,5 +185,15 @@ module suins::resolver {
 
     #[test_only]
     /// Wrapper of module initializer for testing
-    public fun test_init(ctx: &mut TxContext) { init(ctx) }
+    public fun test_init(ctx: &mut TxContext) {
+        let resolvers = bag::new(ctx);
+        bag::add(&mut resolvers, utf8(ADDR), vec_map::empty<String, address>());
+        bag::add(&mut resolvers, utf8(NAME), vec_map::empty<address, String>());
+        bag::add(&mut resolvers, utf8(AVATAR), vec_map::empty<String, String>());
+        bag::add(&mut resolvers, utf8(CONTENTHASH), vec_map::empty<String, String>());
+        transfer::share_object(BaseResolver {
+            id: object::new(ctx),
+            resolvers,
+        });
+    }
 }

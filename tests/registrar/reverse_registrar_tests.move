@@ -15,7 +15,7 @@ module suins::reverse_registrar_tests {
     const FIRST_NODE: vector<u8> = b"000000000000000000000000000000000000b001.addr.reverse";
     const SECOND_NODE: vector<u8> = b"000000000000000000000000000000000000b002.addr.reverse";
 
-    fun init(): Scenario {
+    fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
@@ -39,7 +39,7 @@ module suins::reverse_registrar_tests {
 
     #[test]
     fun test_claim_with_resolver() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -110,7 +110,7 @@ module suins::reverse_registrar_tests {
 
     #[test]
     fun test_claim() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -155,7 +155,7 @@ module suins::reverse_registrar_tests {
 
     #[test]
     fun test_set_default_resolver() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {

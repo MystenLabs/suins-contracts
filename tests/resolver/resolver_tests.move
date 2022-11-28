@@ -22,7 +22,8 @@ module suins::resolver_tests {
     const FIRST_CONTENTHASH: vector<u8> = b"QmfWrgbTZqwzqsvdeNc3NKacggMuTaN83sQ8V7Bs2nXKRD";
     const AVATAR: vector<u8> = b"avatar";
     const ADDR: vector<u8> = b"addr";
-    fun init(): Scenario {
+
+    fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
@@ -62,7 +63,7 @@ module suins::resolver_tests {
     #[test]
     #[expected_failure(abort_code = 1)]
     fun test_get_name_abort_if_addr_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -75,7 +76,7 @@ module suins::resolver_tests {
 
     #[test]
     fun test_set_name() {
-        let scenario = init();
+        let scenario = test_init();
         set_name(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -91,7 +92,7 @@ module suins::resolver_tests {
     #[test]
     #[expected_failure(abort_code = 1)]
     fun test_unset_name() {
-        let scenario = init();
+        let scenario = test_init();
         set_name(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -117,7 +118,7 @@ module suins::resolver_tests {
     #[test]
     #[expected_failure(abort_code = 101)]
     fun test_unset_name_abort_if_unauthorized() {
-        let scenario = init();
+        let scenario = test_init();
         set_name(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
@@ -134,7 +135,7 @@ module suins::resolver_tests {
     #[test]
     #[expected_failure(abort_code = 1)]
     fun test_unset_name_abort_if_name_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
         set_name(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -163,7 +164,7 @@ module suins::resolver_tests {
 
     #[test]
     fun test_set_name_override_value_if_exists() {
-        let scenario = init();
+        let scenario = test_init();
         set_name(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -192,7 +193,7 @@ module suins::resolver_tests {
     #[test]
     #[expected_failure(abort_code = 1)]
     fun test_set_name_abort_if_addr_not_exists_in_registry() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -210,7 +211,7 @@ module suins::resolver_tests {
     #[test]
     #[expected_failure(abort_code = 101)]
     fun test_set_name_abort_if_unauthorized() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -237,7 +238,7 @@ module suins::resolver_tests {
     #[test]
     #[expected_failure(abort_code = 1)]
     fun test_get_addr_abort_if_node_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
@@ -249,7 +250,7 @@ module suins::resolver_tests {
 
     #[test]
     fun test_set_addr() {
-        let scenario = init();
+        let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -279,7 +280,7 @@ module suins::resolver_tests {
 
     #[test]
     fun test_set_addr_override_value_if_exists() {
-        let scenario = init();
+        let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -325,7 +326,7 @@ module suins::resolver_tests {
     #[test]
     #[expected_failure(abort_code = 101)]
     fun test_set_addr_abort_if_unauthorized() {
-        let scenario = init();
+        let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -348,7 +349,7 @@ module suins::resolver_tests {
     #[test]
     #[expected_failure(abort_code = 101)]
     fun test_resolved_address_not_allowed_to_set_new_addr() {
-        let scenario = init();
+        let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -385,7 +386,7 @@ module suins::resolver_tests {
 
     #[test]
     fun test_set_avatar() {
-        let scenario = init();
+        let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -416,7 +417,7 @@ module suins::resolver_tests {
     #[test]
     #[expected_failure(abort_code = 1)]
     fun test_get_avatar_abort_with_wrong_node() {
-        let scenario = init();
+        let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -445,7 +446,7 @@ module suins::resolver_tests {
 
     #[test]
     fun test_set_contenthash() {
-        let scenario = init();
+        let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -476,7 +477,7 @@ module suins::resolver_tests {
     #[test]
     #[expected_failure(abort_code = 1)]
     fun test_get_contenthash_abort_with_wrong_node() {
-        let scenario = init();
+        let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -506,7 +507,7 @@ module suins::resolver_tests {
     #[test]
     #[expected_failure(abort_code = 101)]
     fun test_set_avatar_abort_if_unauthorized() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -536,7 +537,7 @@ module suins::resolver_tests {
     #[test]
     #[expected_failure(abort_code = 101)]
     fun test_set_contenthash_abort_if_unauthorized() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -566,7 +567,7 @@ module suins::resolver_tests {
     #[test]
     #[expected_failure(abort_code = 1)]
     fun test_set_contenthash_abort_if_node_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
@@ -588,7 +589,7 @@ module suins::resolver_tests {
     #[test]
     #[expected_failure(abort_code = 1)]
     fun test_set_avatar_abort_if_node_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
