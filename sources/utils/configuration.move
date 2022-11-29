@@ -12,8 +12,9 @@ module suins::configuration {
     use std::ascii;
 
     friend suins::base_registrar;
+    friend suins::helper;
 
-    // errors in the range of 301..400 indicate Sui Configuration errors
+    // errors in the range of 401..500 indicate Sui Configuration errors
     const EInvalidDiscount: u64 = 401;
 
     struct NetworkFirstDayChangedEvent has copy, drop {
@@ -61,6 +62,10 @@ module suins::configuration {
         } else {
             vec_map::insert(&mut config.referral_codes, code, discount);
         }
+    }
+
+    public(friend) fun getInvalidDiscountError(): u64 {
+        EInvalidDiscount
     }
 
     public(friend) fun get_url(config: &Configuration, duration: u64, current_epoch: u64): Url {
