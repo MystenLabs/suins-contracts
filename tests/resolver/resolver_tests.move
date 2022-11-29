@@ -18,7 +18,9 @@ module suins::resolver_tests {
     const FIRST_SUB_NODE: vector<u8> = b"eastagile.sui";
     const SECOND_SUB_NODE: vector<u8> = b"suins.sui";
     const FIRST_AVATAR: vector<u8> = b"QmfWrgbTZqwzqsvdeNc3NKacggMuTaN83sQ8V7Bs2nXKRD";
+    const SECOND_AVATAR: vector<u8> = b"Qme7ss3ARVgxv6rXqVPiikMJ8u2NLgmgszg13pYrDKEoiu";
     const FIRST_CONTENTHASH: vector<u8> = b"QmfWrgbTZqwzqsvdeNc3NKacggMuTaN83sQ8V7Bs2nXKRD";
+    const SECOND_CONTENTHASH: vector<u8> = b"Qme7ss3ARVgxv6rXqVPiikMJ8u2NLgmgszg13pYrDKEoiu";
     const AVATAR: vector<u8> = b"avatar";
     const ADDR: vector<u8> = b"addr";
 
@@ -713,6 +715,106 @@ module suins::resolver_tests {
             test_scenario::return_shared(resolver);
         };
 
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_set_contenthash_override_value_if_exists() {
+        let scenario = test_init();
+        base_registry_tests::mint_record(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_contenthash(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                FIRST_CONTENTHASH,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            let text = resolver::contenthash(&resolver, FIRST_SUB_NODE);
+            assert!(text == utf8(FIRST_CONTENTHASH), 0);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_contenthash(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                SECOND_CONTENTHASH,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            let text = resolver::contenthash(&resolver, FIRST_SUB_NODE);
+            assert!(text == utf8(SECOND_CONTENTHASH), 0);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_set_avatar_override_value_if_exists() {
+        let scenario = test_init();
+        base_registry_tests::mint_record(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_avatar(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                FIRST_AVATAR,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            let text = resolver::avatar(&resolver, FIRST_SUB_NODE);
+            assert!(text == utf8(FIRST_AVATAR), 0);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_avatar(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                SECOND_AVATAR,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            let text = resolver::avatar(&resolver, FIRST_SUB_NODE);
+            assert!(text == utf8(SECOND_AVATAR), 0);
+            test_scenario::return_shared(resolver);
+        };
         test_scenario::end(scenario);
     }
 }

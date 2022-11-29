@@ -3,7 +3,7 @@ module suins::helper {
     use std::bcs;
     use std::vector;
     use suins::configuration::getInvalidDiscountError;
-    
+
     friend suins::reverse_registrar;
     friend suins::resolver;
 
@@ -43,7 +43,7 @@ module suins::helper {
         assert!(discount > 0 && discount < 100, getInvalidDiscountError());
 
         let remaining_percent = 100 - discount;
-        // we split the original_fee into 2 parts and calculate seperately:
+        // we split the original_fee into 2 parts and calculate them seperately:
         //  - part 1 = original_fee - part 2
         //  - part 2 = last_two_decimal_digits
         let first_remaining_fee = 0;
