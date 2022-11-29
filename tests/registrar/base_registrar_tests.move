@@ -18,7 +18,7 @@ module suins::base_registrar_tests {
     const FIRST_LABEL: vector<u8> = b"eastagile";
     const SECOND_LABEL: vector<u8> = b"ea";
 
-    fun init(): Scenario {
+    fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
@@ -76,7 +76,7 @@ module suins::base_registrar_tests {
 
     #[test]
     fun test_register() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
@@ -136,7 +136,7 @@ module suins::base_registrar_tests {
     #[test]
     #[expected_failure(abort_code = 203)]
     fun test_register_abort_with_invalid_utf8_label() {
-        let scenario = init();
+        let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
@@ -167,7 +167,7 @@ module suins::base_registrar_tests {
     #[test]
     #[expected_failure(abort_code = 206)]
     fun test_register_abort_with_zero_duration() {
-        let scenario = init();
+        let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
@@ -195,7 +195,7 @@ module suins::base_registrar_tests {
     #[test]
     #[expected_failure(abort_code = 206)]
     fun test_register_abort_with_invalid_duration() {
-        let scenario = init();
+        let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
@@ -225,7 +225,7 @@ module suins::base_registrar_tests {
     #[test]
     #[expected_failure(abort_code = 204)]
     fun test_register_abort_if_label_unavailable() {
-        let scenario = init();
+        let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
@@ -286,7 +286,7 @@ module suins::base_registrar_tests {
 
     #[test]
     fun test_renew() {
-        let scenario = init();
+        let scenario = test_init();
         register(&mut scenario);
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
@@ -304,7 +304,7 @@ module suins::base_registrar_tests {
     #[test]
     #[expected_failure(abort_code = 207)]
     fun test_renew_abort_if_label_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
         register(&mut scenario);
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
@@ -319,7 +319,7 @@ module suins::base_registrar_tests {
     #[test]
     #[expected_failure(abort_code = 205)]
     fun test_renew_abort_if_label_expired() {
-        let scenario = init();
+        let scenario = test_init();
         register(&mut scenario);
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
@@ -341,7 +341,7 @@ module suins::base_registrar_tests {
 
     #[test]
     fun test_reclaim_by_nft_owner() {
-        let scenario = init();
+        let scenario = test_init();
         register(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER);
@@ -378,7 +378,7 @@ module suins::base_registrar_tests {
     #[test]
     #[expected_failure(abort_code = 209)]
     fun test_reclaim_by_nft_owner_abort_with_wrong_base_node() {
-        let scenario = init();
+        let scenario = test_init();
         register(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER);
@@ -407,7 +407,7 @@ module suins::base_registrar_tests {
     #[test]
     #[expected_failure(abort_code = 207)]
     fun test_reclaim_by_nft_owner_abort_if_label_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
         register(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER);
@@ -435,7 +435,7 @@ module suins::base_registrar_tests {
     #[test]
     #[expected_failure(abort_code = 205)]
     fun test_reclaim_by_nft_owner_abort_if_label_expired() {
-        let scenario = init();
+        let scenario = test_init();
         register(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER);
@@ -466,7 +466,7 @@ module suins::base_registrar_tests {
 
     #[test]
     fun test_new_tld() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
@@ -565,7 +565,7 @@ module suins::base_registrar_tests {
     #[test]
     #[expected_failure(abort_code = 208)]
     fun test_new_tld_abort_with_duplicated_tld() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
@@ -588,7 +588,7 @@ module suins::base_registrar_tests {
     #[test]
     #[expected_failure(abort_code = 208)]
     fun test_admin_set() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {

@@ -28,12 +28,13 @@ commands:
 jobs:
   build-and-test:
     docker:
-      - image: cimg/rust:1.63.0
+      - image: cimg/rust:1.65.0
     steps:
       - checkout
       - setup-sccache
       - restore-sccache-cache
       - run: git clone https://github.com/MystenLabs/sui.git --branch devnet
+      - run: sudo apt update
       - run: sudo apt install libclang-dev
       - run: 
           command: RUSTC_WRAPPER=sccache cargo build --package sui --bin sui

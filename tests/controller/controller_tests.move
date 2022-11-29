@@ -25,7 +25,7 @@ module suins::controller_tests {
     const FOURTH_INVALID_LABEL: vector<u8> = b"-eastagile";
     const FIFTH_INVALID_LABEL: vector<u8> = b"east/?agile";
 
-    fun init(): Scenario {
+    fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
@@ -124,7 +124,7 @@ module suins::controller_tests {
 
     #[test]
     fun test_make_commitment() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -144,7 +144,7 @@ module suins::controller_tests {
 
     #[test]
     fun test_register() {
-        let scenario = init();
+        let scenario = test_init();
         make_commitment(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -210,7 +210,7 @@ module suins::controller_tests {
     #[test]
     #[expected_failure(abort_code = 302)]
     fun test_register_abort_with_wrong_label() {
-        let scenario = init();
+        let scenario = test_init();
         make_commitment(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -261,7 +261,7 @@ module suins::controller_tests {
     #[test]
     #[expected_failure(abort_code = 302)]
     fun test_register_abort_with_wrong_secret() {
-        let scenario = init();
+        let scenario = test_init();
         make_commitment(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -311,7 +311,7 @@ module suins::controller_tests {
     #[test]
     #[expected_failure(abort_code = 302)]
     fun test_register_abort_with_wrong_owner() {
-        let scenario = init();
+        let scenario = test_init();
         make_commitment(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -362,7 +362,7 @@ module suins::controller_tests {
     #[test]
     #[expected_failure(abort_code = 304)]
     fun test_register_abort_if_called_too_late() {
-        let scenario = init();
+        let scenario = test_init();
         make_commitment(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -421,7 +421,7 @@ module suins::controller_tests {
     #[test]
     #[expected_failure(abort_code = 305)]
     fun test_register_abort_if_not_enough_fee() {
-        let scenario = init();
+        let scenario = test_init();
         make_commitment(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -470,7 +470,7 @@ module suins::controller_tests {
     #[test]
     #[expected_failure(abort_code = 308)]
     fun test_register_abort_if_label_was_registered() {
-        let scenario = init();
+        let scenario = test_init();
         make_commitment(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -560,7 +560,7 @@ module suins::controller_tests {
 
     #[test]
     fun test_register_with_config() {
-        let scenario = init();
+        let scenario = test_init();
         make_commitment(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -655,7 +655,7 @@ module suins::controller_tests {
     #[test]
     #[expected_failure(abort_code = 311)]
     fun test_register_with_config_abort_with_too_short_label() {
-        let scenario = init();
+        let scenario = test_init();
         make_commitment(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -697,7 +697,7 @@ module suins::controller_tests {
     #[test]
     #[expected_failure(abort_code = 311)]
     fun test_register_with_config_abort_with_too_long_label() {
-        let scenario = init();
+        let scenario = test_init();
         make_commitment(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -739,7 +739,7 @@ module suins::controller_tests {
     #[test]
     #[expected_failure(abort_code = 311)]
     fun test_register_with_config_abort_if_label_starts_with_hyphen() {
-        let scenario = init();
+        let scenario = test_init();
         make_commitment(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -781,7 +781,7 @@ module suins::controller_tests {
     #[test]
     #[expected_failure(abort_code = 311)]
     fun test_register_with_config_abort_with_invalid_label() {
-        let scenario = init();
+        let scenario = test_init();
         make_commitment(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -823,7 +823,7 @@ module suins::controller_tests {
     #[test]
     #[expected_failure(abort_code = 310)]
     fun test_withdraw_abort_if_no_profits() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
@@ -842,7 +842,7 @@ module suins::controller_tests {
     #[test]
     #[expected_failure(abort_code = 311)]
     fun test_register_abort_if_label_is_invalid() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -916,7 +916,7 @@ module suins::controller_tests {
 
     #[test]
     fun test_renew() {
-        let scenario = init();
+        let scenario = test_init();
         register(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -951,7 +951,7 @@ module suins::controller_tests {
     #[test]
     #[expected_failure(abort_code = 207)]
     fun test_renew_abort_if_label_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -983,7 +983,7 @@ module suins::controller_tests {
     #[test]
     #[expected_failure(abort_code = 205)]
     fun test_renew_abort_if_label_expired() {
-        let scenario = init();
+        let scenario = test_init();
         register(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -1021,7 +1021,7 @@ module suins::controller_tests {
     #[test]
     #[expected_failure(abort_code = 305)]
     fun test_renew_abort_if_not_enough_fee() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -1052,7 +1052,7 @@ module suins::controller_tests {
 
     #[test]
     fun test_set_default_resolver() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
@@ -1083,7 +1083,7 @@ module suins::controller_tests {
 
     #[test]
     fun test_remove_outdated_commitment() {
-        let scenario = init();
+        let scenario = test_init();
 
         // outdated commitment
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
