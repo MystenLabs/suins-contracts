@@ -14,12 +14,14 @@ module suins::controller {
     use std::string::{Self, String};
     use std::bcs;
     use std::vector;
+    use std::option::{Self, Option, is_none};
     use suins::configuration::Configuration;
+    use suins::configuration;
 
     // TODO: remove later when timestamp is introduced
     // const MIN_COMMITMENT_AGE: u64 = 0;
     const MAX_COMMITMENT_AGE: u64 = 3;
-    const REGISTRATION_FEE_PER_YEAR: u64 = 1000000;
+    const FEE_PER_YEAR: u64 = 1000000;
 
     // errors in the range of 301..400 indicate Sui Controller errors
     const EInvalidResolverAddress: u64 = 301;
@@ -31,6 +33,7 @@ module suins::controller {
     const ELabelUnAvailable: u64 = 308;
     const ENoProfits: u64 = 310;
     const EInvalidLabel: u64 = 311;
+    const EReferralCodeNotExists: u64 = 312;
 
     struct NameRegisteredEvent has copy, drop {
         node: String,
@@ -50,7 +53,7 @@ module suins::controller {
         node: String,
         label: String,
         cost: u64,
-        expiry: u64,
+        duration: u64,
     }
 
     struct BaseController has key {
@@ -79,16 +82,13 @@ module suins::controller {
         controller: &mut BaseController,
         registrar: &mut BaseRegistrar,
         label: vector<u8>,
-        duration: u64,
+        no_year: u64,
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext,
     ) {
-        let no_year = duration / 365;
-        if ((duration % 365) > 0) no_year = no_year + 1;
-        let renew_fee = REGISTRATION_FEE_PER_YEAR * no_year;
+        let renew_fee = FEE_PER_YEAR * no_year;
         assert!(coin::value(payment) >= renew_fee, ENotEnoughFee);
-
-        base_registrar::renew(registrar, label, duration, ctx);
+        base_registrar::renew(registrar, label, no_year * 365, ctx);
 
         let coin_balance = coin::balance_mut(payment);
         let paid = balance::split(coin_balance, renew_fee);
@@ -98,7 +98,7 @@ module suins::controller {
             node: base_registrar::get_base_node(registrar),
             label: string::utf8(label),
             cost: renew_fee,
-            expiry: duration,
+            duration: no_year * 365,
         })
     }
 
@@ -119,6 +119,7 @@ module suins::controller {
         vec_map::insert(&mut controller.commitments, commitment, tx_context::epoch(ctx));
     }
 
+    // duration in years
     public entry fun register(
         controller: &mut BaseController,
         registrar: &mut BaseRegistrar,
@@ -126,29 +127,40 @@ module suins::controller {
         config: &Configuration,
         label: vector<u8>,
         owner: address,
-        duration: u64,
+        no_year: u64,
         secret: vector<u8>,
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext,
     ) {
         let resolver = controller.default_addr_resolver;
-        // TODO: duration in year only
-        register_with_config(
-            controller,
-            registrar,
-            registry,
-            config,
-            label,
-            owner,
-            duration,
-            secret,
-            resolver,
-            payment,
-            ctx,
-        );
+        // TODO: duration in year only, currently in number of days
+        register_internal(controller, registrar, registry, config, label, owner, no_year, secret, resolver, payment, option::none(), ctx);
+    }
+
+    // duration in years
+    public entry fun register_with_referral_code(
+        controller: &mut BaseController,
+        registrar: &mut BaseRegistrar,
+        registry: &mut Registry,
+        config: &Configuration,
+        label: vector<u8>,
+        owner: address,
+        no_year: u64,
+        secret: vector<u8>,
+        payment: &mut Coin<SUI>,
+        referral_code: vector<u8>,
+        ctx: &mut TxContext,
+    ) {
+
+        let resolver = controller.default_addr_resolver;
+        register_internal(controller, registrar, registry, config, label, owner, no_year, secret, resolver, payment, option::some(referral_code), ctx);
     }
 
     // anyone can register a domain at any level
+    // duration in years
+    /**
+     * @param {Code} resolver - address of custom resolver
+     */
     public entry fun register_with_config(
         controller: &mut BaseController,
         registrar: &mut BaseRegistrar,
@@ -156,31 +168,86 @@ module suins::controller {
         config: &Configuration,
         label: vector<u8>,
         owner: address,
-        duration: u64,
+        no_year: u64,
         secret: vector<u8>,
         resolver: address,
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext,
     ) {
-        check_valid(string::utf8(label));
+        register_internal(controller, registrar, registry, config, label, owner, no_year, secret, resolver, payment, option::none(), ctx);
+    }
 
-        let no_year = duration / 365;
-        if ((duration % 365) > 0) no_year = no_year + 1;
-        let registration_fee = REGISTRATION_FEE_PER_YEAR * no_year;
+    // anyone can register a domain at any level
+    // duration in years
+    public entry fun register_with_config_and_referral_code(
+        controller: &mut BaseController,
+        registrar: &mut BaseRegistrar,
+        registry: &mut Registry,
+        config: &Configuration,
+        label: vector<u8>,
+        owner: address,
+        no_year: u64,
+        secret: vector<u8>,
+        resolver: address,
+        payment: &mut Coin<SUI>,
+        referral_code: vector<u8>,
+        ctx: &mut TxContext,
+    ) {
+        register_internal(controller, registrar, registry, config, label, owner, no_year, secret, resolver, payment, option::some(referral_code), ctx);
+    }
+
+    fun apply_referral_code(
+        config: &Configuration,
+        payment: &mut Coin<SUI>,
+        original_fee: u64,
+        referral_code: vector<u8>,
+        ctx: &mut TxContext
+    ): u64 {
+        let referral_value = configuration::get_referral_code(config, referral_code);
+        if (is_none(&referral_value)) abort EReferralCodeNotExists;
+        let referral_value = option::extract(&mut referral_value);
+        let rate = configuration::get_referral_rate(&referral_value);
+        let partner = configuration::get_referral_partner(&referral_value);
+
+        let payback = (original_fee / 100)  * (rate as u64);
+        let coin = coin::split(payment, payback, ctx);
+        transfer::transfer(coin, partner);
+
+        original_fee - payback
+    }
+
+    fun register_internal(
+        controller: &mut BaseController,
+        registrar: &mut BaseRegistrar,
+        registry: &mut Registry,
+        config: &Configuration,
+        label: vector<u8>,
+        owner: address,
+        no_year: u64,
+        secret: vector<u8>,
+        resolver: address,
+        payment: &mut Coin<SUI>,
+        referral_code: Option<vector<u8>>,
+        ctx: &mut TxContext,
+    ) {
+        check_valid(string::utf8(label));
+        let registration_fee = FEE_PER_YEAR * no_year;
         assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
 
+        if (option::is_some(&referral_code)) {
+            registration_fee = apply_referral_code(config, payment, registration_fee, option::extract(&mut referral_code), ctx);
+        };
         let commitment = make_commitment(registrar, label, owner, secret);
+
         consume_commitment(controller, registrar, label, commitment, ctx);
 
-        let nft_id = base_registrar::register(registrar, registry, config, label, owner, duration, resolver, ctx);
-        // TODO: configure resolver
-
+        let nft_id = base_registrar::register(registrar, registry, config, label, owner, no_year * 365, resolver, ctx);
         event::emit(NameRegisteredEvent {
             node: base_registrar::get_base_node(registrar),
             label: string::utf8(label),
             owner,
             cost: registration_fee,
-            expiry: tx_context::epoch(ctx) + duration,
+            expiry: tx_context::epoch(ctx) + no_year * 365,
             nft_id,
             resolver,
         });
@@ -272,6 +339,17 @@ module suins::controller {
     #[test_only]
     public fun get_default_resolver(controller: &BaseController): address {
         controller.default_addr_resolver
+    }
+
+    #[test_only]
+    public fun apply_referral_code_test(
+        config: &Configuration,
+        payment: &mut Coin<SUI>,
+        original_fee: u64,
+        referral_code: vector<u8>,
+        ctx: &mut TxContext
+    ): u64 {
+        apply_referral_code(config, payment, original_fee, referral_code, ctx)
     }
 
     #[test_only]
