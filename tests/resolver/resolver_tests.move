@@ -600,36 +600,6 @@ module suins::resolver_tests {
     }
 
     #[test]
-    fun test_set_contenthash() {
-        let scenario = test_init();
-        base_registry_tests::mint_record(&mut scenario);
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::set_contenthash(
-                &mut resolver,
-                &registry,
-                FIRST_SUB_NODE,
-                FIRST_CONTENTHASH,
-                test_scenario::ctx(&mut scenario),
-            );
-            test_scenario::return_shared(registry);
-            test_scenario::return_shared(resolver);
-        };
-
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
-        {
-            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            let text = resolver::contenthash(&resolver, FIRST_SUB_NODE);
-            assert!(text == utf8(FIRST_CONTENTHASH), 0);
-            test_scenario::return_shared(resolver);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test]
     #[expected_failure(abort_code = 1)]
     fun test_get_contenthash_abort_with_wrong_node() {
         let scenario = test_init();
@@ -676,63 +646,12 @@ module suins::resolver_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::set_avatar(
+            resolver::set_text(
                 &mut resolver,
                 &registry,
                 FIRST_SUB_NODE,
-                FIRST_CONTENTHASH,
-                test_scenario::ctx(&mut scenario),
-            );
-            test_scenario::return_shared(registry);
-            test_scenario::return_shared(resolver);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test]
-    #[expected_failure(abort_code = 101)]
-    fun test_set_contenthash_abort_if_unauthorized() {
-        let scenario = test_init();
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let node = utf8(FIRST_SUB_NODE);
-            base_registry::new_record_test(&mut registry, node, FIRST_USER_ADDRESS);
-            test_scenario::return_shared(registry);
-        };
-
-        test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
-        {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::set_contenthash(
-                &mut resolver,
-                &registry,
-                FIRST_SUB_NODE,
-                FIRST_CONTENTHASH,
-                test_scenario::ctx(&mut scenario),
-            );
-            test_scenario::return_shared(registry);
-            test_scenario::return_shared(resolver);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test]
-    #[expected_failure(abort_code = 1)]
-    fun test_set_contenthash_abort_if_node_not_exists() {
-        let scenario = test_init();
-
-        test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
-        {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::set_contenthash(
-                &mut resolver,
-                &registry,
-                FIRST_SUB_NODE,
-                FIRST_CONTENTHASH,
+                AVATAR,
+                FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
             );
             test_scenario::return_shared(registry);
@@ -750,11 +669,12 @@ module suins::resolver_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::set_avatar(
+            resolver::set_text(
                 &mut resolver,
                 &registry,
                 FIRST_SUB_NODE,
-                FIRST_CONTENTHASH,
+                AVATAR,
+                FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
             );
             test_scenario::return_shared(registry);

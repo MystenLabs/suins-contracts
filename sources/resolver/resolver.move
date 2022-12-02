@@ -8,8 +8,7 @@ module suins::resolver {
     use suins::base_registry::{Self, Registry};
     use suins::converter;
     use std::string::{Self, String, utf8};
-    use sui::table;
-    use sui::table::Table;
+    use sui::table::{Self, Table};
 
     const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
     const NAME: vector<u8> = b"name";
@@ -32,12 +31,7 @@ module suins::resolver {
         key: String,
         value: String
     }
-
-    struct AvatarChangedEvent has copy, drop {
-        node: String,
-        avatar: String,
-    }
-
+    
     struct ContenthashChangedEvent has copy, drop {
         node: String,
         contenthash: String,
@@ -94,7 +88,7 @@ module suins::resolver {
 
     public fun contenthash(base_resolver: &BaseResolver, node: vector<u8>): String {
         let record = table::borrow(&base_resolver.records, utf8(node));
-        *bag::borrow<String, String>(record, utf8(CONTENT_HASH))
+        *bag::borrow<String, String>(record, utf8(CONTENTHASH))
     }
 
     public entry fun set_contenthash(
@@ -111,20 +105,29 @@ module suins::resolver {
 
         if (table::contains(&base_resolver.records, node)) {
             let record = table::borrow_mut<String, Bag>(&mut base_resolver.records, node);
-            let current_contenthash = bag::borrow_mut<String, String>(record, utf8(CONTENT_HASH));
+            let current_contenthash = bag::borrow_mut<String, String>(record, utf8(CONTENTHASH));
             *current_contenthash = new_hash;
         } else {
             let new_record = bag::new(ctx);
-            bag::add<String, String>(&mut new_record, utf8(CONTENT_HASH), new_hash);
+            bag::add<String, String>(&mut new_record, utf8(CONTENTHASH), new_hash);
             table::add(&mut base_resolver.records, node, new_record);
         };
 
         event::emit(ContenthashChangedEvent { node, contenthash: new_hash });
     }
 
-    public fun contenthash(base_resolver: &BaseResolver, node: vector<u8>): String {
-        let hashes = bag::borrow<String, VecMap<String, String>>(&base_resolver.resolvers, utf8(CONTENTHASH));
-        *vec_map::get(hashes, &utf8(node))
+    public entry fun unset_contenthash(
+        base_resolver: &mut BaseResolver,
+        registry: &Registry,
+        node: vector<u8>,
+        ctx: &mut TxContext
+    ) {
+        base_registry::authorised(registry, node, ctx);
+
+        let node = utf8(node);
+        let record = table::borrow_mut<String, Bag>(&mut base_resolver.records, node);
+        bag::remove<String, String>(record, utf8(CONTENTHASH));
+        event::emit(ContenthashRemovedEvent { node });
     }
 
     public entry fun set_name(
@@ -169,7 +172,6 @@ module suins::resolver {
         event::emit(NameRemovedEvent { addr });
     }
 
-    // only allow set avatar for domain atm
     public entry fun set_text(
         base_resolver: &mut BaseResolver,
         registry: &Registry,
@@ -199,42 +201,6 @@ module suins::resolver {
         event::emit(TextRecordChangedEvent { node, key, value: new_value });
     }
 
-    public entry fun set_contenthash(
-        base_resolver: &mut BaseResolver,
-        registry: &Registry,
-        node: vector<u8>,
-        new_contenthash: vector<u8>,
-        ctx: &mut TxContext
-    ) {
-        base_registry::authorised(registry, node, ctx);
-
-        let node = utf8(node);
-        let new_contenthash = utf8(new_contenthash);
-        let hashes = bag::borrow_mut<String, VecMap<String, String>>(&mut base_resolver.resolvers, utf8(CONTENTHASH));
-        if (vec_map::contains(hashes, &node)) {
-            let current_contenthash = vec_map::get_mut(hashes, &node);
-            *current_contenthash = new_contenthash;
-        } else {
-            vec_map::insert(hashes, node, new_contenthash);
-        };
-
-        event::emit(ContenthashChangedEvent { node, contenthash: new_contenthash });
-    }
-
-    public entry fun unset_contenthash(
-        base_resolver: &mut BaseResolver,
-        registry: &Registry,
-        node: vector<u8>,
-        ctx: &mut TxContext
-    ) {
-        base_registry::authorised(registry, node, ctx);
-
-        let node = utf8(node);
-        let hashes = bag::borrow_mut<String, VecMap<String, String>>(&mut base_resolver.resolvers, utf8(CONTENTHASH));
-        vec_map::remove(hashes, &node);
-        event::emit(ContenthashRemovedEvent { node });
-    }
-
     public entry fun set_addr(
         base_resolver: &mut BaseResolver,
         registry: &Registry,
@@ -260,8 +226,8 @@ module suins::resolver {
 
     #[test_only]
     public fun is_contenthash_existed(base_resolver: &BaseResolver, node: vector<u8>): bool {
-        let hashes = bag::borrow<String, VecMap<String, String>>(&base_resolver.resolvers, utf8(CONTENTHASH));
-        vec_map::contains(hashes, &utf8(node))
+        let record = table::borrow(&base_resolver.records, utf8(node));
+        bag::contains_with_type<String, String>(record, utf8(CONTENTHASH))
     }
 
     #[test_only]
