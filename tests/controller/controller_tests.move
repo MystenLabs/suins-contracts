@@ -1294,9 +1294,9 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == 3600000, 0);
             coin::destroy_for_testing(coin);
 
-            let coin = coin::mint_for_testing<SUI>(18446744073709551610, &mut ctx);
-            controller::apply_referral_code_test(&config, &mut coin, 18446744073709551610, REFERRAL_CODE, &mut ctx);
-            assert!(coin::value(&coin) == 16602069666338596450, 0);
+            let coin = coin::mint_for_testing<SUI>(909, &mut ctx);
+            controller::apply_referral_code_test(&config, &mut coin, 909, REFERRAL_CODE, &mut ctx);
+            assert!(coin::value(&coin) == 810, 0);
             coin::destroy_for_testing(coin);
 
             test_scenario::return_shared(config);
