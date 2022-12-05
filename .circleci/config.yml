@@ -10,7 +10,7 @@ jobs:
       - run: sudo apt update
       - run: sudo apt install libclang-dev
       - run: 
-          command: RUSTC_WRAPPER=sccache cargo build --package sui --bin sui
+          command: cargo build --package sui --bin sui
           working_directory: ./sui
       - run: ./sui/target/debug/sui move build
       - run: ./sui/target/debug/sui move test --coverage
