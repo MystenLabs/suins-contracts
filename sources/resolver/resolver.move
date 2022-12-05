@@ -77,8 +77,8 @@ module suins::resolver {
 
     public fun text(base_resolver: &BaseResolver, node: vector<u8>, key: vector<u8>): String {
         let record = table::borrow(&base_resolver.records, utf8(node));
-        let text_record = bag::borrow<String, Bag>(record, utf8(TEXT));
-        *bag::borrow<String, String>(text_record, utf8(key))
+        let text_record: &Table<String, String> = bag::borrow(record, utf8(TEXT));
+        *table::borrow(text_record, utf8(key))
     }
 
     public fun addr(base_resolver: &BaseResolver, node: vector<u8>): address {
@@ -99,15 +99,21 @@ module suins::resolver {
         ctx: &mut TxContext
     ) {
         base_registry::authorised(registry, node, ctx);
-
         let node = utf8(node);
         let new_hash = utf8(hash);
 
         if (table::contains(&base_resolver.records, node)) {
-            let record = table::borrow_mut<String, Bag>(&mut base_resolver.records, node);
-            let current_contenthash = bag::borrow_mut<String, String>(record, utf8(CONTENTHASH));
-            *current_contenthash = new_hash;
+            let record = table::borrow_mut(&mut base_resolver.records, node);
+            if (bag::contains_with_type<String, String>(record, utf8(CONTENTHASH))) {
+                // `node` and `contenthash` exist
+                let current_contenthash = bag::borrow_mut<String, String>(record, utf8(CONTENTHASH));
+                *current_contenthash = new_hash;
+            } else {
+                // `node` exists but `contenthash` doesn't
+                bag::add<String, String>(record, utf8(CONTENTHASH), new_hash);
+            }
         } else {
+            // `node` not exist
             let new_record = bag::new(ctx);
             bag::add<String, String>(&mut new_record, utf8(CONTENTHASH), new_hash);
             table::add(&mut base_resolver.records, node, new_record);
@@ -125,7 +131,7 @@ module suins::resolver {
         base_registry::authorised(registry, node, ctx);
 
         let node = utf8(node);
-        let record = table::borrow_mut<String, Bag>(&mut base_resolver.records, node);
+        let record = table::borrow_mut(&mut base_resolver.records, node);
         bag::remove<String, String>(record, utf8(CONTENTHASH));
         event::emit(ContenthashRemovedEvent { node });
     }
@@ -140,14 +146,21 @@ module suins::resolver {
         let label = converter::address_to_string(addr);
         let node = base_registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
         base_registry::authorised(registry, *string::bytes(&node), ctx);
-
         let new_name = utf8(new_name);
         let addr_str = utf8(converter::address_to_string(addr));
+
         if (table::contains(&base_resolver.records, addr_str)) {
-            let record = table::borrow_mut<String, Bag>(&mut base_resolver.records, addr_str);
-            let current_name = bag::borrow_mut<String, String>(record, utf8(NAME));
-            *current_name = new_name;
+            let record = table::borrow_mut(&mut base_resolver.records, addr_str);
+            if (bag::contains_with_type<String, String>(record, utf8(NAME))) {
+                // `node` and `name` exist
+                let current_name = bag::borrow_mut<String, String>(record, utf8(NAME));
+                *current_name = new_name;
+            } else {
+                // `node` exists but `name` doesn't
+                bag::add<String, String>(record, utf8(NAME), new_name);
+            }
         } else {
+            // `node` not exist
             let new_record = bag::new(ctx);
             bag::add<String, String>(&mut new_record, utf8(NAME), new_name);
             table::add(&mut base_resolver.records, addr_str, new_record);
@@ -167,7 +180,7 @@ module suins::resolver {
         base_registry::authorised(registry, *string::bytes(&node), ctx);
 
         let addr_str = utf8(converter::address_to_string(addr));
-        let record = table::borrow_mut<String, Bag>(&mut base_resolver.records, addr_str);
+        let record = table::borrow_mut(&mut base_resolver.records, addr_str);
         bag::remove<String, String>(record, addr_str);
         event::emit(NameRemovedEvent { addr });
     }
@@ -181,20 +194,35 @@ module suins::resolver {
         ctx: &mut TxContext
     ) {
         base_registry::authorised(registry, node, ctx);
-
         let node = utf8(node);
         let new_value = utf8(new_value);
         let key = utf8(key);
+
         if (table::contains(&base_resolver.records, node)) {
-            let record = table::borrow_mut<String, Bag>(&mut base_resolver.records, node);
-            let current_value = bag::borrow_mut<String, String>(record, key);
-            *current_value = new_value;
+            let record = table::borrow_mut(&mut base_resolver.records, node);
+            if (bag::contains_with_type<String, Table<String, String>>(record, utf8(TEXT))) {
+                let text_record: &mut Table<String, String> = bag::borrow_mut(record, utf8(TEXT));
+                if (table::contains(text_record, *&key)) {
+                    // `node`, `text` and `key` exist
+                    let current_value = table::borrow_mut(text_record, key);
+                    *current_value = new_value;
+                } else {
+                    // `node`, `text` exists but `key` doesn't
+                    table::add(text_record, key, new_value);
+                }
+            } else {
+                // `text` not exists
+                let text_record: Table<String, String> = table::new(ctx);
+                table::add(&mut text_record, key, new_value);
+                bag::add(record, utf8(TEXT), text_record);
+            }
         } else {
-            let text_record = bag::new(ctx);
-            bag::add<String, String>(&mut text_record, key, new_value);
+            // `node` not exist
+            let text_record: Table<String, String> = table::new(ctx);
+            table::add(&mut text_record, key, new_value);
 
             let new_record = bag::new(ctx);
-            bag::add<String, Bag>(&mut new_record, utf8(TEXT), text_record);
+            bag::add(&mut new_record, utf8(TEXT), text_record);
             table::add(&mut base_resolver.records, node, new_record);
         };
 
@@ -209,12 +237,17 @@ module suins::resolver {
         ctx: &mut TxContext
     ) {
         base_registry::authorised(registry, node, ctx);
-
         let node = utf8(node);
-        if (table::contains(&mut base_resolver.records, node)) {
-            let record = table::borrow_mut<String, Bag>(&mut base_resolver.records, node);
-            let current_addr = bag::borrow_mut<String, address>(record, utf8(ADDR));
-            *current_addr = new_addr;
+
+        if (table::contains(&base_resolver.records, node)) {
+            let record = table::borrow_mut(&mut base_resolver.records, node);
+            if (bag::contains_with_type<String, address>(record, utf8(ADDR))) {
+                let current_addr = bag::borrow_mut<String, address>(record, utf8(ADDR));
+                *current_addr = new_addr;
+            } else {
+                // `node` exists but `key` doesn't
+                bag::add<String, address>(record, utf8(ADDR), new_addr);
+            }
         } else {
             let new_record = bag::new(ctx);
             bag::add<String, address>(&mut new_record, utf8(ADDR), new_addr);

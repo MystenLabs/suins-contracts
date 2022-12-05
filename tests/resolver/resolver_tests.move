@@ -38,13 +38,11 @@ module suins::resolver_tests {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(scenario);
-
             let node = base_registry::make_node(
                 converter::address_to_string(FIRST_USER_ADDRESS),
                 utf8(ADDR_REVERSE_BASE_NODE),
             );
             base_registry::new_record_test(&mut registry, node, FIRST_USER_ADDRESS);
-
             test_scenario::return_shared(registry);
         };
 
@@ -52,9 +50,7 @@ module suins::resolver_tests {
         {
             let registry = test_scenario::take_shared<Registry>(scenario);
             let resolver = test_scenario::take_shared<BaseResolver>( scenario);
-
             resolver::set_name(&mut resolver, &registry, FIRST_USER_ADDRESS, FIRST_NAME, test_scenario::ctx(scenario));
-
             test_scenario::return_shared(registry);
             test_scenario::return_shared(resolver);
         };
@@ -327,7 +323,7 @@ module suins::resolver_tests {
 
     #[test]
     #[expected_failure(abort_code = 101)]
-    fun test_set_addr_abort_if_unauthorized() {
+    fun test_set_avatar_abort_if_unauthorized() {
         let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
 
@@ -630,37 +626,6 @@ module suins::resolver_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 101)]
-    fun test_set_avatar_abort_if_unauthorized() {
-        let scenario = test_init();
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let node = utf8(FIRST_SUB_NODE);
-            base_registry::new_record_test(&mut registry, node, FIRST_USER_ADDRESS);
-            test_scenario::return_shared(registry);
-        };
-
-        test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
-        {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::set_text(
-                &mut resolver,
-                &registry,
-                FIRST_SUB_NODE,
-                AVATAR,
-                FIRST_AVATAR,
-                test_scenario::ctx(&mut scenario),
-            );
-            test_scenario::return_shared(registry);
-            test_scenario::return_shared(resolver);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test]
     #[expected_failure(abort_code = 1)]
     fun test_set_avatar_abort_if_node_not_exists() {
         let scenario = test_init();
@@ -789,6 +754,146 @@ module suins::resolver_tests {
             test_scenario::return_shared(resolver);
         };
 
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_set_contenthash_if_node_exists_but_contenthash_field_not() {
+        let scenario = test_init();
+        base_registry_tests::mint_record(&mut scenario);
+
+        // create `FIRST_SUB_NODE` record
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_addr(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                FIRST_USER_ADDRESS,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_contenthash(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                FIRST_CONTENT_HASH,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            let hash = resolver::contenthash(&resolver, FIRST_SUB_NODE);
+            assert!(hash == utf8(FIRST_CONTENT_HASH), 0);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_set_avatar_if_node_exists_but_text_field_not() {
+        let scenario = test_init();
+        base_registry_tests::mint_record(&mut scenario);
+
+        // create `FIRST_SUB_NODE` record
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_addr(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                FIRST_USER_ADDRESS,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_text(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                AVATAR,
+                FIRST_AVATAR,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            let text = resolver::text(&resolver, FIRST_SUB_NODE, AVATAR);
+            assert!(text == utf8(FIRST_AVATAR), 0);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_set_addr_if_node_exists_but_addr_field_not() {
+        let scenario = test_init();
+        base_registry_tests::mint_record(&mut scenario);
+
+        // create `FIRST_SUB_NODE` record
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_text(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                AVATAR,
+                FIRST_AVATAR,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_addr(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                FIRST_USER_ADDRESS,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            let addr = resolver::addr(&resolver, FIRST_SUB_NODE);
+            assert!(addr == FIRST_USER_ADDRESS, 0);
+            test_scenario::return_shared(resolver);
+        };
         test_scenario::end(scenario);
     }
 }

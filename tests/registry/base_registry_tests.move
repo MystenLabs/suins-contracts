@@ -44,7 +44,6 @@ module suins::base_registry_tests {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(scenario);
-
             assert!(base_registry::get_records_len(&registry) == 0, 0);
             base_registry::set_record_internal(
                 &mut registry,
@@ -54,7 +53,6 @@ module suins::base_registry_tests {
                 10,
             );
             assert!(base_registry::get_records_len(&registry) == 1, 0);
-
             test_scenario::return_shared(registry);
         };
     }
