@@ -12,6 +12,7 @@ module suins::configuration {
     use std::ascii;
     use std::option;
     use std::option::Option;
+    use std::vector;
 
     friend suins::base_registrar;
     friend suins::controller;
@@ -67,12 +68,30 @@ module suins::configuration {
         config.network_first_day = new_day;
         event::emit(NetworkFirstDayChangedEvent { new_day })
     }
+    fun validate_referral_code(code: &vector<u8>) {
+        // Referral code starts with 2 specific letters: RF, followed by 4 digits each 0-9
+        assert!(vector::length(code) == 6, EInvalidReferralCode);
+        // code is ASCII, 1 byte = 1 character
+        let byte = *vector::borrow(code, 0);
+        // assert if first_character == 'R'
+        assert!(byte == 82, EInvalidReferralCode);
+        byte = *vector::borrow(code, 1);
+        // assert if second_character == 'F'
+        assert!(byte == 70, EInvalidReferralCode);
 
+        let i = 2;
+        while (i < 6) {
+            byte = *vector::borrow(code, i);
+            assert!(48 <= byte && byte <= 57, EInvalidReferralCode);
+            i = i + 1;
+        };
+    }
     // discount in percentage, e.g. discount = 10 means 10%;
     public entry fun new_referral_code(_: &AdminCap, config: &mut Configuration, code: vector<u8>, rate: u8, partner: address) {
         assert!(0 < rate && rate <= 100, EInvalidRate);
+        validate_referral_code(&code);
         let code = ascii::string(code);
-        assert!(ascii::all_characters_printable(&code), EInvalidReferralCode);
+
         let new_value = ReferralValue { rate, partner };
         if (vec_map::contains(&config.referral_codes, &code)) {
             let current_value = vec_map::get_mut(&mut config.referral_codes, &code);

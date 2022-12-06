@@ -27,7 +27,7 @@ module suins::controller_tests {
     const THIRD_INVALID_LABEL: vector<u8> = b"zkaoxpcbarubhtxkunajudxezneyczueajbggrynkwbepxjqjxrigrtgglhfjpax";
     const FOURTH_INVALID_LABEL: vector<u8> = b"-eastagile";
     const FIFTH_INVALID_LABEL: vector<u8> = b"east/?agile";
-    const REFERRAL_CODE: vector<u8> = b"X43kS8";
+    const REFERRAL_CODE: vector<u8> = b"RF5678";
 
     fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
