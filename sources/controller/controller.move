@@ -43,6 +43,7 @@ module suins::controller {
         expiry: u64,
         nft_id: ID,
         resolver: address,
+        partner: Option<address>,
     }
 
     struct DefaultResolverChangedEvent has copy, drop {
@@ -197,13 +198,14 @@ module suins::controller {
         register_internal(controller, registrar, registry, config, label, owner, no_years, secret, resolver, payment, option::some(referral_code), ctx);
     }
 
+    // returns remaining_fee and partner address
     fun apply_referral_code(
         config: &Configuration,
         payment: &mut Coin<SUI>,
         original_fee: u64,
         referral_code: vector<u8>,
         ctx: &mut TxContext
-    ): u64 {
+    ): (u64, address) {
         let referral_value = configuration::get_referral_code(config, referral_code);
         if (is_none(&referral_value)) abort EReferralCodeNotExists;
         let referral_value = option::extract(&mut referral_value);
@@ -215,7 +217,7 @@ module suins::controller {
         let coin = coin::split(payment, payback, ctx);
         transfer::transfer(coin, partner);
 
-        remaining_fee
+        (remaining_fee, partner)
     }
 
     fun register_internal(
@@ -235,27 +237,32 @@ module suins::controller {
         check_valid(string::utf8(label));
         let registration_fee = FEE_PER_YEAR * no_years;
         assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
+        let partner = option::none<address>();
 
         if (option::is_some(&referral_code)) {
-            registration_fee = apply_referral_code(config, payment, registration_fee, option::extract(&mut referral_code), ctx);
+            let (remaining_fee, partner_addr) = apply_referral_code(config, payment, registration_fee, option::extract(&mut referral_code), ctx);
+            partner = option::some(partner_addr);
+            registration_fee = remaining_fee;
         };
         let commitment = make_commitment(registrar, label, owner, secret);
         consume_commitment(controller, registrar, label, commitment, ctx);
 
         let duration = no_years * 365;
         let nft_id = base_registrar::register(registrar, registry, config, label, owner, duration, resolver, ctx);
+        let coin_balance = coin::balance_mut(payment);
+        let paid = balance::split(coin_balance, registration_fee);
+        balance::join(&mut controller.balance, paid);
+
         event::emit(NameRegisteredEvent {
             node: base_registrar::get_base_node(registrar),
             label: string::utf8(label),
             owner,
-            cost: registration_fee,
+            cost: FEE_PER_YEAR * no_years,
             expiry: tx_context::epoch(ctx) + duration,
             nft_id,
             resolver,
+            partner,
         });
-        let coin_balance = coin::balance_mut(payment);
-        let paid = balance::split(coin_balance, registration_fee);
-        balance::join(&mut controller.balance, paid);
     }
 
     fun remove_outdated_commitment(controller: &mut BaseController, ctx: &mut TxContext) {
@@ -351,7 +358,8 @@ module suins::controller {
         referral_code: vector<u8>,
         ctx: &mut TxContext
     ): u64 {
-        apply_referral_code(config, payment, original_fee, referral_code, ctx)
+        let (remaining_fee, _) = apply_referral_code(config, payment, original_fee, referral_code, ctx);
+        remaining_fee
     }
 
     #[test_only]
