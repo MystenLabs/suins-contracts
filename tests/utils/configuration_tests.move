@@ -9,9 +9,9 @@ module suins::configuration_tests {
     use std::option;
 
     const SUINS_ADDRESS: address = @0xA001;
-    const VALID_CODE: vector<u8> = b"RF1234";
-    const FIRST_INVALID_CODE: vector<u8> = b"thisisacode";
-    const SECOND_INVALID_CODE: vector<u8> = b"123456";
+    const FIRST_CODE: vector<u8> = b"ThisIsCode1";
+    const FIRST_INVALID_CODE: vector<u8> = vector[1, 2];
+    const SECOND_INVALID_CODE: vector<u8> = vector[150];
     const FIRST_RATE: u8 = 10;
     const SECOND_RATE: u8 = 20;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -68,7 +68,7 @@ module suins::configuration_tests {
             configuration::new_referral_code(
                 &admin_cap,
                 &mut config,
-                VALID_CODE,
+                FIRST_CODE,
                 FIRST_RATE,
                 FIRST_USER_ADDRESS,
             );
@@ -78,7 +78,7 @@ module suins::configuration_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let referral_value = option::extract(&mut configuration::get_referral_code(&config, VALID_CODE));
+            let referral_value = option::extract(&mut configuration::get_referral_code(&config, FIRST_CODE));
             assert!(configuration::get_referral_rate(&referral_value) == FIRST_RATE, 0);
             assert!(configuration::get_referral_partner(&referral_value) == FIRST_USER_ADDRESS, 0);
             test_scenario::return_shared(config);
@@ -91,7 +91,7 @@ module suins::configuration_tests {
             configuration::new_referral_code(
                 &admin_cap,
                 &mut config,
-                VALID_CODE,
+                FIRST_CODE,
                 SECOND_RATE,
                 SECOND_USER_ADDRESS,
             );
@@ -102,7 +102,7 @@ module suins::configuration_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let referral_value = option::extract(&mut configuration::get_referral_code(&config, VALID_CODE));
+            let referral_value = option::extract(&mut configuration::get_referral_code(&config, FIRST_CODE));
             assert!(configuration::get_referral_rate(&referral_value) == SECOND_RATE, 0);
             assert!(configuration::get_referral_partner(&referral_value) == SECOND_USER_ADDRESS, 0);
 
@@ -116,7 +116,7 @@ module suins::configuration_tests {
             configuration::remove_referral_code(
                 &admin_cap,
                 &mut config,
-                VALID_CODE,
+                FIRST_CODE,
             );
             test_scenario::return_to_sender(&mut scenario, admin_cap);
             test_scenario::return_shared(config);
@@ -125,7 +125,7 @@ module suins::configuration_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            assert!(option::is_none(&mut configuration::get_referral_code(&config, VALID_CODE)), 0);
+            assert!(option::is_none(&mut configuration::get_referral_code(&config, FIRST_CODE)), 0);
             test_scenario::return_shared(config);
         };
         test_scenario::end(scenario);
@@ -143,7 +143,7 @@ module suins::configuration_tests {
             configuration::new_referral_code(
                 &admin_cap,
                 &mut config,
-                VALID_CODE,
+                FIRST_CODE,
                 101,
                 FIRST_USER_ADDRESS
             );
@@ -165,7 +165,7 @@ module suins::configuration_tests {
             configuration::new_referral_code(
                 &admin_cap,
                 &mut config,
-                VALID_CODE,
+                FIRST_CODE,
                 0,
                 FIRST_USER_ADDRESS
             );
@@ -197,7 +197,7 @@ module suins::configuration_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = 402)]
+    #[expected_failure(abort_code = 0x10000)]
     fun test_set_new_referral_code_abort_with_invalid_ascii_string() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -228,7 +228,7 @@ module suins::configuration_tests {
             configuration::remove_referral_code(
                 &admin_cap,
                 &mut config,
-                VALID_CODE,
+                FIRST_CODE,
             );
             test_scenario::return_to_sender(&mut scenario, admin_cap);
             test_scenario::return_shared(config);
