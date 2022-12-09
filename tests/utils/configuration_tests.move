@@ -4,8 +4,10 @@ module suins::configuration_tests {
     use sui::test_scenario;
     use sui::url;
     use sui::test_scenario::Scenario;
+    use sui::vec_map;
     use suins::configuration::{Self, Configuration};
     use suins::base_registry::{Self, AdminCap};
+    use std::ascii;
     use std::option;
 
     const SUINS_ADDRESS: address = @0xA001;
@@ -131,8 +133,7 @@ module suins::configuration_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 401)]
+    #[test, expected_failure(abort_code = configuration::EInvalidRate)]
     fun test_new_referral_code_abort_if_discount_greater_than_100() {
         let scenario = test_init();
 
@@ -153,8 +154,7 @@ module suins::configuration_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 401)]
+    #[test, expected_failure(abort_code = configuration::EInvalidRate)]
     fun test_new_referral_code_abort_with_zero_discount() {
         let scenario = test_init();
 
@@ -175,8 +175,7 @@ module suins::configuration_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 402)]
+    #[test, expected_failure(abort_code = configuration::EInvalidReferralCode)]
     fun test_set_new_referral_code_abort_with_unprintable_string() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -196,8 +195,7 @@ module suins::configuration_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 0x10000)]
+    #[test, expected_failure(abort_code = ascii::EINVALID_ASCII_CHARACTER)]
     fun test_set_new_referral_code_abort_with_invalid_ascii_string() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -217,8 +215,7 @@ module suins::configuration_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_remove_referral_code_abort_if_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);

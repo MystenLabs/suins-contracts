@@ -1,6 +1,8 @@
 #[test_only]
 module suins::base_registry_tests {
+
     use sui::test_scenario::{Self, Scenario};
+    use sui::vec_map;
     use suins::base_registry::{Self, Registry, AdminCap};
     use suins::base_registrar::{Self, TLDsList};
     use std::string;
@@ -133,8 +135,7 @@ module suins::base_registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_set_owner_abort_if_node_not_exists() {
         let scenario = test_init();
         mint_record(&mut scenario);
@@ -156,8 +157,7 @@ module suins::base_registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_set_owner_abort_if_unauthorised() {
         let scenario = test_init();
         mint_record(&mut scenario);
@@ -221,8 +221,7 @@ module suins::base_registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_set_subnode_owner_abort_if_node_not_exists() {
         let scenario = test_init();
         mint_record(&mut scenario);
@@ -242,8 +241,7 @@ module suins::base_registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_set_subnode_owner_abort_if_subnode_not_exists() {
         let scenario = test_init();
         mint_record(&mut scenario);
@@ -263,8 +261,7 @@ module suins::base_registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_set_subnode_owner_abort_if_unauthorised() {
         let scenario = test_init();
         mint_record(&mut scenario);
@@ -385,8 +382,7 @@ module suins::base_registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_set_resolver_abort_if_unauthorised() {
         let scenario = test_init();
         mint_record(&mut scenario);
@@ -405,8 +401,7 @@ module suins::base_registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_set_resolver_abort_if_node_not_exists() {
         let scenario = test_init();
         mint_record(&mut scenario);
@@ -466,8 +461,7 @@ module suins::base_registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_set_ttl_abort_if_unauthorised() {
         let scenario = test_init();
         mint_record(&mut scenario);
@@ -482,8 +476,7 @@ module suins::base_registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_set_ttl_abort_if_node_not_exists() {
         let scenario = test_init();
         mint_record(&mut scenario);
@@ -512,8 +505,7 @@ module suins::base_registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_get_resolver_if_node_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -540,8 +532,7 @@ module suins::base_registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_get_ttl_if_node_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);

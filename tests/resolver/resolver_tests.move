@@ -2,6 +2,7 @@
 module suins::resolver_tests {
 
     use sui::test_scenario::{Self, Scenario};
+    use sui::vec_map;
     use suins::base_registry::{Self, Registry};
     use suins::resolver::{Self, BaseResolver};
     use suins::helper;
@@ -61,8 +62,7 @@ module suins::resolver_tests {
         };
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_get_name_abort_if_addr_not_exists() {
         let scenario = test_init();
 
@@ -90,8 +90,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_unset_name() {
         let scenario = test_init();
         set_name(&mut scenario);
@@ -116,8 +115,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_unset_name_abort_if_unauthorized() {
         let scenario = test_init();
         set_name(&mut scenario);
@@ -133,8 +131,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_unset_name_abort_if_name_not_exists() {
         let scenario = test_init();
         set_name(&mut scenario);
@@ -191,8 +188,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_set_name_abort_if_addr_not_exists_in_registry() {
         let scenario = test_init();
 
@@ -209,8 +205,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_set_name_abort_if_unauthorized() {
         let scenario = test_init();
 
@@ -236,8 +231,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_get_addr_abort_if_node_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -324,8 +318,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_set_addr_abort_if_unauthorized() {
         let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
@@ -347,8 +340,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_resolved_address_not_allowed_to_set_new_addr() {
         let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
@@ -415,8 +407,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_get_avatar_abort_with_wrong_node() {
         let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
@@ -475,8 +466,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_get_contenthash_abort_with_wrong_node() {
         let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
@@ -505,8 +495,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_set_avatar_abort_if_unauthorized() {
         let scenario = test_init();
 
@@ -535,8 +524,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_set_contenthash_abort_if_unauthorized() {
         let scenario = test_init();
 
@@ -565,8 +553,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_set_contenthash_abort_if_node_not_exists() {
         let scenario = test_init();
 
@@ -587,8 +574,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_set_avatar_abort_if_node_not_exists() {
         let scenario = test_init();
 
@@ -659,8 +645,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_unset_contenthash_abort_if_node_not_exists() {
         let scenario = test_init();
 
@@ -680,8 +665,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_unset_contenthash_abort_if_unauthorized() {
         let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
