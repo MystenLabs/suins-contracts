@@ -207,8 +207,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 302)]
+    #[test, expected_failure(abort_code = controller::ECommitmentNotExists)]
     fun test_register_abort_with_wrong_label() {
         let scenario = test_init();
         make_commitment(&mut scenario);
@@ -258,8 +257,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 302)]
+    #[test, expected_failure(abort_code = controller::ECommitmentNotExists)]
     fun test_register_abort_with_wrong_secret() {
         let scenario = test_init();
         make_commitment(&mut scenario);
@@ -308,8 +306,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 302)]
+    #[test, expected_failure(abort_code = controller::ECommitmentNotExists)]
     fun test_register_abort_with_wrong_owner() {
         let scenario = test_init();
         make_commitment(&mut scenario);
@@ -359,8 +356,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 304)]
+    #[test, expected_failure(abort_code = controller::ECommitmentTooOld)]
     fun test_register_abort_if_called_too_late() {
         let scenario = test_init();
         make_commitment(&mut scenario);
@@ -418,8 +414,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 305)]
+    #[test, expected_failure(abort_code = controller::ENotEnoughFee)]
     fun test_register_abort_if_not_enough_fee() {
         let scenario = test_init();
         make_commitment(&mut scenario);
@@ -467,8 +462,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 308)]
+    #[test, expected_failure(abort_code = controller::ELabelUnAvailable)]
     fun test_register_abort_if_label_was_registered() {
         let scenario = test_init();
         make_commitment(&mut scenario);
@@ -652,8 +646,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 311)]
+    #[test, expected_failure(abort_code = controller::EInvalidLabel)]
     fun test_register_with_config_abort_with_too_short_label() {
         let scenario = test_init();
         make_commitment(&mut scenario);
@@ -694,8 +687,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 311)]
+    #[test, expected_failure(abort_code = controller::EInvalidLabel)]
     fun test_register_with_config_abort_with_too_long_label() {
         let scenario = test_init();
         make_commitment(&mut scenario);
@@ -736,8 +728,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 311)]
+    #[test, expected_failure(abort_code = controller::EInvalidLabel)]
     fun test_register_with_config_abort_if_label_starts_with_hyphen() {
         let scenario = test_init();
         make_commitment(&mut scenario);
@@ -778,8 +769,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 311)]
+    #[test, expected_failure(abort_code = controller::EInvalidLabel)]
     fun test_register_with_config_abort_with_invalid_label() {
         let scenario = test_init();
         make_commitment(&mut scenario);
@@ -820,8 +810,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 310)]
+    #[test, expected_failure(abort_code = controller::ENoProfits)]
     fun test_withdraw_abort_if_no_profits() {
         let scenario = test_init();
 
@@ -839,8 +828,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 311)]
+    #[test, expected_failure(abort_code = controller::EInvalidLabel)]
     fun test_register_abort_if_label_is_invalid() {
         let scenario = test_init();
 
@@ -948,8 +936,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 207)]
+    #[test, expected_failure(abort_code = base_registrar::ELabelNotExists)]
     fun test_renew_abort_if_label_not_exists() {
         let scenario = test_init();
 
@@ -980,8 +967,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 205)]
+    #[test, expected_failure(abort_code = base_registrar::ELabelExpired)]
     fun test_renew_abort_if_label_expired() {
         let scenario = test_init();
         register(&mut scenario);
@@ -1018,8 +1004,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 305)]
+    #[test, expected_failure(abort_code = controller::ENotEnoughFee)]
     fun test_renew_abort_if_not_enough_fee() {
         let scenario = test_init();
 
