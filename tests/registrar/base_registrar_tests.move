@@ -123,8 +123,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 203)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidLabel)]
     fun test_register_abort_with_invalid_utf8_label() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -154,8 +153,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 206)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidDuration)]
     fun test_register_abort_with_zero_duration() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -182,8 +180,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 206)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidDuration)]
     fun test_register_abort_with_invalid_duration() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -212,8 +209,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 204)]
+    #[test, expected_failure(abort_code = base_registrar::ELabelUnAvailable)]
     fun test_register_abort_if_label_unavailable() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -291,8 +287,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 207)]
+    #[test, expected_failure(abort_code = base_registrar::ELabelNotExists)]
     fun test_renew_abort_if_label_not_exists() {
         let scenario = test_init();
         register(&mut scenario);
@@ -306,8 +301,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 205)]
+    #[test, expected_failure(abort_code = base_registrar::ELabelExpired)]
     fun test_renew_abort_if_label_expired() {
         let scenario = test_init();
         register(&mut scenario);
@@ -365,8 +359,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 209)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidBaseNode)]
     fun test_reclaim_by_nft_owner_abort_with_wrong_base_node() {
         let scenario = test_init();
         register(&mut scenario);
@@ -394,8 +387,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 207)]
+    #[test, expected_failure(abort_code = base_registrar::ELabelNotExists)]
     fun test_reclaim_by_nft_owner_abort_if_label_not_exists() {
         let scenario = test_init();
         register(&mut scenario);
@@ -422,8 +414,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 205)]
+    #[test, expected_failure(abort_code = base_registrar::ELabelExpired)]
     fun test_reclaim_by_nft_owner_abort_if_label_expired() {
         let scenario = test_init();
         register(&mut scenario);
@@ -549,8 +540,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 208)]
+    #[test, expected_failure(abort_code = base_registrar::ETLDExists)]
     fun test_new_tld_abort_with_duplicated_tld() {
         let scenario = test_init();
 
@@ -572,8 +562,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 208)]
+    #[test, expected_failure(abort_code = base_registrar::ETLDExists)]
     fun test_admin_set() {
         let scenario = test_init();
 
