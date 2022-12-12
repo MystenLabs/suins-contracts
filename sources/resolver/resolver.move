@@ -7,7 +7,7 @@ module suins::resolver {
     use sui::tx_context::TxContext;
     use sui::vec_map::{Self, VecMap};
     use suins::base_registry::{Self, Registry};
-    use suins::converter;
+    use suins::helper;
     use std::string::{Self, String, utf8};
 
     const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
@@ -89,7 +89,7 @@ module suins::resolver {
         new_name: vector<u8>,
         ctx: &mut TxContext
     ) {
-        let label = converter::address_to_string(addr);
+        let label = helper::address_to_string(addr);
         let node = base_registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
         base_registry::authorised(registry, *string::bytes(&node), ctx);
 
@@ -111,7 +111,7 @@ module suins::resolver {
         addr: address,
         ctx: &mut TxContext
     ) {
-        let label = converter::address_to_string(addr);
+        let label = helper::address_to_string(addr);
         let node = base_registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
         base_registry::authorised(registry, *string::bytes(&node), ctx);
 

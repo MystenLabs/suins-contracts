@@ -10,6 +10,8 @@ module suins::controller_tests {
     use suins::base_registry::{Self, Registry, AdminCap};
     use std::string;
     use suins::configuration::{Self, Configuration};
+    use std::option::Option;
+    use std::option;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -17,6 +19,7 @@ module suins::controller_tests {
     const FIRST_RESOLVER_ADDRESS: address = @0xC001;
     const FIRST_LABEL: vector<u8> = b"eastagile-123";
     const SECOND_LABEL: vector<u8> = b"suinameservice";
+    const THIRD_LABEL: vector<u8> = b"thirdsuinameservice";
     const FIRST_SECRET: vector<u8> = b"oKz=QdYd)]ryKB%";
     const SECOND_SECRET: vector<u8> = b"a9f8d4a8daeda2f35f02";
     const FIRST_INVALID_LABEL: vector<u8> = b"east.agile";
@@ -24,6 +27,7 @@ module suins::controller_tests {
     const THIRD_INVALID_LABEL: vector<u8> = b"zkaoxpcbarubhtxkunajudxezneyczueajbggrynkwbepxjqjxrigrtgglhfjpax";
     const FOURTH_INVALID_LABEL: vector<u8> = b"-eastagile";
     const FIFTH_INVALID_LABEL: vector<u8> = b"east/?agile";
+    const REFERRAL_CODE: vector<u8> = b"X43kS8";
 
     fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
@@ -38,45 +42,45 @@ module suins::controller_tests {
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
-
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
             base_registrar::new_tld(&admin_cap, &mut tlds_list,b"sui", test_scenario::ctx(&mut scenario));
             base_registrar::new_tld(&admin_cap, &mut tlds_list,b"addr.reverse", test_scenario::ctx(&mut scenario));
             base_registrar::new_tld(&admin_cap, &mut tlds_list,b"move", test_scenario::ctx(&mut scenario));
+            configuration::new_referral_code(&admin_cap, &mut config, REFERRAL_CODE, 10, FIRST_USER_ADDRESS);
             test_scenario::return_shared(tlds_list);
+            test_scenario::return_shared(config);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
         scenario
     }
 
-    fun make_commitment(scenario: &mut Scenario) {
+    fun make_commitment(scenario: &mut Scenario, label: Option<vector<u8>>) {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let controller = test_scenario::take_shared<BaseController>(scenario);
             let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
-
-            assert!(controller::commitment_len(&controller) == 0, 0);
+            let no_of_commitments = controller::commitment_len(&controller);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 50,
                 0
             );
-
-            let commitment = controller::test_make_commitment(&registrar, FIRST_LABEL, FIRST_USER_ADDRESS, FIRST_SECRET);
+            if (option::is_none(&label)) label = option::some(FIRST_LABEL);
+            let commitment = controller::test_make_commitment(&registrar, option::extract(&mut label), FIRST_USER_ADDRESS, FIRST_SECRET);
             controller::make_commitment_and_commit(
                 &mut controller,
                 commitment,
                 &mut ctx,
             );
-            assert!(controller::commitment_len(&controller) == 1, 0);
-
+            assert!(controller::commitment_len(&controller) - no_of_commitments == 1, 0);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
         };
     }
 
     fun register(scenario: &mut Scenario) {
-        make_commitment(scenario);
+        make_commitment(scenario, option::none());
 
         // register
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
@@ -89,7 +93,6 @@ module suins::controller_tests {
                 test_scenario::take_shared<Registry>(scenario);
             let image =
                 test_scenario::take_shared<Configuration>(scenario);
-
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
@@ -107,13 +110,13 @@ module suins::controller_tests {
                 &image,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
-                365,
+                1,
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
                 &mut ctx,
             );
-
+            assert!(coin::value(&coin) == 1, 0);
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(image);
@@ -132,7 +135,7 @@ module suins::controller_tests {
             assert!(controller::commitment_len(&controller) == 0, 0);
             test_scenario::return_shared(controller);
         };
-        make_commitment(&mut scenario);
+        make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
@@ -145,13 +148,12 @@ module suins::controller_tests {
     #[test]
     fun test_register() {
         let scenario = test_init();
-        make_commitment(&mut scenario);
+        make_commitment(&mut scenario, option::none());
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let controller =
                 test_scenario::take_shared<BaseController>(&mut scenario);
-            
             let registrar =
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry =
@@ -166,7 +168,7 @@ module suins::controller_tests {
                 51,
                 0
             );
-            let coin = coin::mint_for_testing<SUI>(2000000, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
             assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
 
             controller::register(
@@ -176,14 +178,13 @@ module suins::controller_tests {
                 &image,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
-                370,
+                2,
                 FIRST_SECRET,
                 &mut coin,
                 &mut ctx,
             );
 
-            assert!(coin::value(&coin) == 0, 0);
-
+            assert!(coin::value(&coin) == 1000000, 0);
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
@@ -195,29 +196,24 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
-            
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
-
             assert!(controller::commitment_len(&controller) == 0, 0);
             assert!(base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
-
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
         };
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 302)]
+    #[test, expected_failure(abort_code = controller::ECommitmentNotExists)]
     fun test_register_abort_with_wrong_label() {
         let scenario = test_init();
-        make_commitment(&mut scenario);
+        make_commitment(&mut scenario, option::none());
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let controller =
                 test_scenario::take_shared<BaseController>(&mut scenario);
-            
             let registrar =
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry =
@@ -242,7 +238,7 @@ module suins::controller_tests {
                 &image,
                 SECOND_LABEL,
                 FIRST_USER_ADDRESS,
-                365,
+                1,
                 FIRST_SECRET,
                 &mut coin,
                 &mut ctx,
@@ -258,17 +254,15 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 302)]
+    #[test, expected_failure(abort_code = controller::ECommitmentNotExists)]
     fun test_register_abort_with_wrong_secret() {
         let scenario = test_init();
-        make_commitment(&mut scenario);
+        make_commitment(&mut scenario, option::none());
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let controller =
                 test_scenario::take_shared<BaseController>(&mut scenario);
-            
             let registrar =
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry =
@@ -293,7 +287,7 @@ module suins::controller_tests {
                 &image,
                 SECOND_LABEL,
                 FIRST_USER_ADDRESS,
-                365,
+                1,
                 SECOND_SECRET,
                 &mut coin,
                 &mut ctx,
@@ -308,24 +302,21 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 302)]
+    #[test, expected_failure(abort_code = controller::ECommitmentNotExists)]
     fun test_register_abort_with_wrong_owner() {
         let scenario = test_init();
-        make_commitment(&mut scenario);
+        make_commitment(&mut scenario, option::none());
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let controller =
                 test_scenario::take_shared<BaseController>(&mut scenario);
-            
             let registrar =
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry =
                 test_scenario::take_shared<Registry>(&mut scenario);
             let image =
                 test_scenario::take_shared<Configuration>(&mut scenario);
-
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
@@ -343,7 +334,7 @@ module suins::controller_tests {
                 &image,
                 SECOND_LABEL,
                 SECOND_USER_ADDRESS,
-                365,
+                1,
                 FIRST_SECRET,
                 &mut coin,
                 &mut ctx,
@@ -354,22 +345,19 @@ module suins::controller_tests {
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(image);
             test_scenario::return_shared(registry);
-
         };
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 304)]
+    #[test, expected_failure(abort_code = controller::ECommitmentTooOld)]
     fun test_register_abort_if_called_too_late() {
         let scenario = test_init();
-        make_commitment(&mut scenario);
+        make_commitment(&mut scenario, option::none());
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let controller =
                 test_scenario::take_shared<BaseController>(&mut scenario);
-            
             let registrar =
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry =
@@ -393,7 +381,7 @@ module suins::controller_tests {
                 &image,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
-                365,
+                1,
                 FIRST_SECRET,
                 &mut coin,
                 &mut ctx,
@@ -409,26 +397,21 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
-            
-
             assert!(controller::commitment_len(&controller) == 0, 0);
-
             test_scenario::return_shared(controller);
         };
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 305)]
+    #[test, expected_failure(abort_code = controller::ENotEnoughFee)]
     fun test_register_abort_if_not_enough_fee() {
         let scenario = test_init();
-        make_commitment(&mut scenario);
+        make_commitment(&mut scenario, option::none());
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let controller =
                 test_scenario::take_shared<BaseController>(&mut scenario);
-            
             let registrar =
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry =
@@ -452,7 +435,7 @@ module suins::controller_tests {
                 &image,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
-                365,
+                1,
                 FIRST_SECRET,
                 &mut coin,
                 &mut ctx,
@@ -467,17 +450,15 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 308)]
+    #[test, expected_failure(abort_code = controller::ELabelUnAvailable)]
     fun test_register_abort_if_label_was_registered() {
         let scenario = test_init();
-        make_commitment(&mut scenario);
+        make_commitment(&mut scenario, option::none());
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let controller =
                 test_scenario::take_shared<BaseController>(&mut scenario);
-            
             let registrar =
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry =
@@ -501,7 +482,7 @@ module suins::controller_tests {
                 &image,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
-                365,
+                1,
                 FIRST_SECRET,
                 &mut coin,
                 &mut ctx,
@@ -514,12 +495,11 @@ module suins::controller_tests {
             test_scenario::return_shared(image);
         };
 
-        make_commitment(&mut scenario);
+        make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let controller =
                 test_scenario::take_shared<BaseController>(&mut scenario);
-            
             let registrar =
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry =
@@ -543,7 +523,7 @@ module suins::controller_tests {
                 &image,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
-                365,
+                1,
                 FIRST_SECRET,
                 &mut coin,
                 &mut ctx,
@@ -561,7 +541,7 @@ module suins::controller_tests {
     #[test]
     fun test_register_with_config() {
         let scenario = test_init();
-        make_commitment(&mut scenario);
+        make_commitment(&mut scenario, option::none());
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -580,9 +560,8 @@ module suins::controller_tests {
                 51,
                 0
             );
-            let coin = coin::mint_for_testing<SUI>(2000001, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(4000001, &mut ctx);
             assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
-
             controller::register_with_config(
                 &mut controller,
                 &mut registrar,
@@ -590,15 +569,13 @@ module suins::controller_tests {
                 &image,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
-                366,
+                2,
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
                 &mut ctx,
             );
-
-            assert!(coin::value(&coin) == 1, 0);
-
+            assert!(coin::value(&coin) == 2000001, 0);
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
@@ -609,12 +586,9 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
-            
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
-
             assert!(controller::commitment_len(&controller) == 0, 0);
             assert!(base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
-
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
         };
@@ -628,13 +602,9 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
-            
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-
             assert!(controller::balance(&controller) == 2000000, 0);
-
             controller::withdraw(&admin_cap, &mut controller, test_scenario::ctx(&mut scenario));
-
             assert!(controller::balance(&controller) == 0, 0);
             test_scenario::return_shared(controller);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
@@ -644,19 +614,16 @@ module suins::controller_tests {
         {
             assert!(test_scenario::has_most_recent_for_sender<Coin<SUI>>(&mut scenario), 0);
             let coin = test_scenario::take_from_sender<Coin<SUI>>(&mut scenario);
-
             assert!(coin::value(&coin) == 2000000, 0);
-
             test_scenario::return_to_sender(&mut scenario, coin);
         };
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 311)]
+    #[test, expected_failure(abort_code = controller::EInvalidLabel)]
     fun test_register_with_config_abort_with_too_short_label() {
         let scenario = test_init();
-        make_commitment(&mut scenario);
+        make_commitment(&mut scenario, option::none());
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -677,13 +644,12 @@ module suins::controller_tests {
                 &image,
                 SECOND_INVALID_LABEL,
                 FIRST_USER_ADDRESS,
-                366,
+                2,
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
                 test_scenario::ctx(&mut scenario),
             );
-
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
@@ -694,11 +660,10 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 311)]
+    #[test, expected_failure(abort_code = controller::EInvalidLabel)]
     fun test_register_with_config_abort_with_too_long_label() {
         let scenario = test_init();
-        make_commitment(&mut scenario);
+        make_commitment(&mut scenario, option::none());
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -719,7 +684,7 @@ module suins::controller_tests {
                 &image,
                 THIRD_INVALID_LABEL,
                 FIRST_USER_ADDRESS,
-                366,
+                2,
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
@@ -736,11 +701,10 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 311)]
+    #[test, expected_failure(abort_code = controller::EInvalidLabel)]
     fun test_register_with_config_abort_if_label_starts_with_hyphen() {
         let scenario = test_init();
-        make_commitment(&mut scenario);
+        make_commitment(&mut scenario, option::none());
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -761,7 +725,7 @@ module suins::controller_tests {
                 &image,
                 FOURTH_INVALID_LABEL,
                 FIRST_USER_ADDRESS,
-                366,
+                2,
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
@@ -778,11 +742,10 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 311)]
+    #[test, expected_failure(abort_code = controller::EInvalidLabel)]
     fun test_register_with_config_abort_with_invalid_label() {
         let scenario = test_init();
-        make_commitment(&mut scenario);
+        make_commitment(&mut scenario, option::none());
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -803,7 +766,7 @@ module suins::controller_tests {
                 &image,
                 FIFTH_INVALID_LABEL,
                 FIRST_USER_ADDRESS,
-                366,
+                2,
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
@@ -820,36 +783,29 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 310)]
+    #[test, expected_failure(abort_code = controller::ENoProfits)]
     fun test_withdraw_abort_if_no_profits() {
         let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
-            
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-
             controller::withdraw(&admin_cap, &mut controller, test_scenario::ctx(&mut scenario));
-
             test_scenario::return_shared(controller);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 311)]
+    #[test, expected_failure(abort_code = controller::EInvalidLabel)]
     fun test_register_abort_if_label_is_invalid() {
         let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
-            
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
-
             assert!(controller::commitment_len(&controller) == 0, 0);
             let ctx = tx_context::new(
                 @0x0,
@@ -874,7 +830,6 @@ module suins::controller_tests {
         {
             let controller =
                 test_scenario::take_shared<BaseController>(&mut scenario);
-            
             let registrar =
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry =
@@ -898,13 +853,12 @@ module suins::controller_tests {
                 &image,
                 FIRST_INVALID_LABEL,
                 FIRST_USER_ADDRESS,
-                366,
+                2,
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
                 &mut ctx,
             );
-
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
@@ -923,7 +877,6 @@ module suins::controller_tests {
         {
             let controller =
                 test_scenario::take_shared<BaseController>(&mut scenario);
-            
             let registrar =
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let ctx = test_scenario::ctx(&mut scenario);
@@ -934,13 +887,13 @@ module suins::controller_tests {
                 &mut controller,
                 &mut registrar,
                 FIRST_LABEL,
-                366,
+                2,
                 &mut coin,
                 ctx,
             );
 
             assert!(coin::value(&coin) == 1, 0);
-            assert!(base_registrar::name_expires(&registrar, string::utf8(FIRST_LABEL)) == 782, 0);
+            assert!(base_registrar::name_expires(&registrar, string::utf8(FIRST_LABEL)) == 1146, 0);
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
@@ -948,8 +901,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 207)]
+    #[test, expected_failure(abort_code = base_registrar::ELabelNotExists)]
     fun test_renew_abort_if_label_not_exists() {
         let scenario = test_init();
 
@@ -957,7 +909,6 @@ module suins::controller_tests {
         {
             let controller =
                 test_scenario::take_shared<BaseController>(&mut scenario);
-            
             let registrar =
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let ctx = test_scenario::ctx(&mut scenario);
@@ -968,7 +919,7 @@ module suins::controller_tests {
                 &mut controller,
                 &mut registrar,
                 FIRST_LABEL,
-                365,
+                1,
                 &mut coin,
                 ctx,
             );
@@ -980,8 +931,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 205)]
+    #[test, expected_failure(abort_code = base_registrar::ELabelExpired)]
     fun test_renew_abort_if_label_expired() {
         let scenario = test_init();
         register(&mut scenario);
@@ -999,18 +949,15 @@ module suins::controller_tests {
                 1051,
                 0
             );
-
             let coin = coin::mint_for_testing<SUI>(10000001, &mut ctx);
-
             controller::renew(
                 &mut controller,
                 &mut registrar,
                 FIRST_LABEL,
-                365,
+                1,
                 &mut coin,
                 &mut ctx,
             );
-
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
@@ -1018,8 +965,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 305)]
+    #[test, expected_failure(abort_code = controller::ENotEnoughFee)]
     fun test_renew_abort_if_not_enough_fee() {
         let scenario = test_init();
 
@@ -1038,7 +984,7 @@ module suins::controller_tests {
                 &mut controller,
                 &mut registrar,
                 FIRST_LABEL,
-                365,
+                1,
                 &mut coin,
                 ctx,
             );
@@ -1201,17 +1147,144 @@ module suins::controller_tests {
                 &image,
                 SECOND_LABEL,
                 FIRST_USER_ADDRESS,
-                370,
+                2,
                 FIRST_SECRET,
                 &mut coin,
                 &mut ctx,
             );
+            assert!(coin::value(&coin) == 1, 0);
             assert!(controller::commitment_len(&controller) == 1, 0);
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(image);
             test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_register_with_referral_code() {
+        let scenario = test_init();
+        make_commitment(&mut scenario, option::none());
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller =
+                test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar =
+                test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry =
+                test_scenario::take_shared<Registry>(&mut scenario);
+            let image =
+                test_scenario::take_shared<Configuration>(&mut scenario);
+
+            // simulate user wait for next epoch to call `register`
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                51,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
+            controller::register_with_referral_code(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &image,
+                FIRST_LABEL,
+                FIRST_USER_ADDRESS,
+                2,
+                FIRST_SECRET,
+                &mut coin,
+                REFERRAL_CODE,
+                &mut ctx,
+            );
+            assert!(coin::value(&coin) == 1000000, 0);
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(image);
+            test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_register_with_config_referral_code() {
+        let scenario = test_init();
+        make_commitment(&mut scenario, option::none());
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller =
+                test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar =
+                test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry =
+                test_scenario::take_shared<Registry>(&mut scenario);
+            let image =
+                test_scenario::take_shared<Configuration>(&mut scenario);
+            // simulate user wait for next epoch to call `register`
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                51,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(4000000, &mut ctx);
+            assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
+            controller::register_with_config_and_referral_code(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &image,
+                FIRST_LABEL,
+                FIRST_USER_ADDRESS,
+                2,
+                FIRST_SECRET,
+                FIRST_RESOLVER_ADDRESS,
+                &mut coin,
+                REFERRAL_CODE,
+                &mut ctx,
+            );
+            assert!(coin::value(&coin) == 2000000, 0);
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(image);
+            test_scenario::return_shared(registry);
+
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_apply_discount() {
+        let scenario = test_init();
+        test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
+        {
+            let config =
+                test_scenario::take_shared<Configuration>(&mut scenario);
+            // simulate user wait for next epoch to call `register`
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                51,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(4000000, &mut ctx);
+            controller::apply_referral_code_test(&config, &mut coin,4000000, REFERRAL_CODE, &mut ctx);
+            assert!(coin::value(&coin) == 3600000, 0);
+            coin::destroy_for_testing(coin);
+
+            let coin = coin::mint_for_testing<SUI>(909, &mut ctx);
+            controller::apply_referral_code_test(&config, &mut coin, 909, REFERRAL_CODE, &mut ctx);
+            assert!(coin::value(&coin) == 810, 0);
+            coin::destroy_for_testing(coin);
+
+            test_scenario::return_shared(config);
         };
         test_scenario::end(scenario);
     }

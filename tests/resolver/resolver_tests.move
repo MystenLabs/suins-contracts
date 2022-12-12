@@ -2,9 +2,10 @@
 module suins::resolver_tests {
 
     use sui::test_scenario::{Self, Scenario};
+    use sui::vec_map;
     use suins::base_registry::{Self, Registry};
     use suins::resolver::{Self, BaseResolver};
-    use suins::converter;
+    use suins::helper;
     use suins::base_registrar;
     use suins::base_registry_tests;
     use std::string::utf8;
@@ -18,7 +19,9 @@ module suins::resolver_tests {
     const FIRST_SUB_NODE: vector<u8> = b"eastagile.sui";
     const SECOND_SUB_NODE: vector<u8> = b"suins.sui";
     const FIRST_AVATAR: vector<u8> = b"QmfWrgbTZqwzqsvdeNc3NKacggMuTaN83sQ8V7Bs2nXKRD";
+    const SECOND_AVATAR: vector<u8> = b"Qme7ss3ARVgxv6rXqVPiikMJ8u2NLgmgszg13pYrDKEoiu";
     const FIRST_CONTENTHASH: vector<u8> = b"QmfWrgbTZqwzqsvdeNc3NKacggMuTaN83sQ8V7Bs2nXKRD";
+    const SECOND_CONTENTHASH: vector<u8> = b"Qme7ss3ARVgxv6rXqVPiikMJ8u2NLgmgszg13pYrDKEoiu";
     const AVATAR: vector<u8> = b"avatar";
     const ADDR: vector<u8> = b"addr";
 
@@ -39,7 +42,7 @@ module suins::resolver_tests {
             let registry = test_scenario::take_shared<Registry>(scenario);
 
             let node = base_registry::make_node(
-                converter::address_to_string(FIRST_USER_ADDRESS),
+                helper::address_to_string(FIRST_USER_ADDRESS),
                 utf8(ADDR_REVERSE_BASE_NODE),
             );
             base_registry::new_record_test(&mut registry, node, FIRST_USER_ADDRESS);
@@ -59,8 +62,7 @@ module suins::resolver_tests {
         };
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_get_name_abort_if_addr_not_exists() {
         let scenario = test_init();
 
@@ -88,8 +90,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_unset_name() {
         let scenario = test_init();
         set_name(&mut scenario);
@@ -114,8 +115,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_unset_name_abort_if_unauthorized() {
         let scenario = test_init();
         set_name(&mut scenario);
@@ -131,8 +131,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_unset_name_abort_if_name_not_exists() {
         let scenario = test_init();
         set_name(&mut scenario);
@@ -189,8 +188,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_set_name_abort_if_addr_not_exists_in_registry() {
         let scenario = test_init();
 
@@ -207,8 +205,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_set_name_abort_if_unauthorized() {
         let scenario = test_init();
 
@@ -216,7 +213,7 @@ module suins::resolver_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let node = base_registry::make_node(
-                converter::address_to_string(FIRST_USER_ADDRESS),
+                helper::address_to_string(FIRST_USER_ADDRESS),
                 utf8(ADDR_REVERSE_BASE_NODE),
             );
             base_registry::new_record_test(&mut registry, node, FIRST_USER_ADDRESS);
@@ -234,8 +231,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_get_addr_abort_if_node_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -322,8 +318,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_set_addr_abort_if_unauthorized() {
         let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
@@ -345,8 +340,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_resolved_address_not_allowed_to_set_new_addr() {
         let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
@@ -413,8 +407,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_get_avatar_abort_with_wrong_node() {
         let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
@@ -473,8 +466,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_get_contenthash_abort_with_wrong_node() {
         let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
@@ -503,8 +495,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_set_avatar_abort_if_unauthorized() {
         let scenario = test_init();
 
@@ -533,8 +524,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_set_contenthash_abort_if_unauthorized() {
         let scenario = test_init();
 
@@ -563,8 +553,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_set_contenthash_abort_if_node_not_exists() {
         let scenario = test_init();
 
@@ -585,8 +574,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_set_avatar_abort_if_node_not_exists() {
         let scenario = test_init();
 
@@ -657,8 +645,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_unset_contenthash_abort_if_node_not_exists() {
         let scenario = test_init();
 
@@ -678,8 +665,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_unset_contenthash_abort_if_unauthorized() {
         let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
@@ -713,6 +699,106 @@ module suins::resolver_tests {
             test_scenario::return_shared(resolver);
         };
 
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_set_contenthash_override_value_if_exists() {
+        let scenario = test_init();
+        base_registry_tests::mint_record(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_contenthash(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                FIRST_CONTENTHASH,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            let text = resolver::contenthash(&resolver, FIRST_SUB_NODE);
+            assert!(text == utf8(FIRST_CONTENTHASH), 0);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_contenthash(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                SECOND_CONTENTHASH,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            let text = resolver::contenthash(&resolver, FIRST_SUB_NODE);
+            assert!(text == utf8(SECOND_CONTENTHASH), 0);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_set_avatar_override_value_if_exists() {
+        let scenario = test_init();
+        base_registry_tests::mint_record(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_avatar(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                FIRST_AVATAR,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            let text = resolver::avatar(&resolver, FIRST_SUB_NODE);
+            assert!(text == utf8(FIRST_AVATAR), 0);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_avatar(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                SECOND_AVATAR,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            let text = resolver::avatar(&resolver, FIRST_SUB_NODE);
+            assert!(text == utf8(SECOND_AVATAR), 0);
+            test_scenario::return_shared(resolver);
+        };
         test_scenario::end(scenario);
     }
 }
