@@ -5,10 +5,11 @@ module suins::resolver_tests {
     use sui::dynamic_field;
     use suins::base_registry::{Self, Registry};
     use suins::resolver::{Self, BaseResolver};
-    use suins::converter;
     use suins::base_registrar;
     use suins::base_registry_tests;
     use std::string::utf8;
+    use suins::helper;
+
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_NAME: vector<u8> = b"sui";
     const SECOND_NAME: vector<u8> = b"move";
@@ -39,7 +40,7 @@ module suins::resolver_tests {
         {
             let registry = test_scenario::take_shared<Registry>(scenario);
             let node = base_registry::make_node(
-                converter::address_to_string(FIRST_USER_ADDRESS),
+                helper::address_to_string(FIRST_USER_ADDRESS),
                 utf8(ADDR_REVERSE_BASE_NODE),
             );
             base_registry::new_record_test(&mut registry, node, FIRST_USER_ADDRESS);
@@ -209,7 +210,7 @@ module suins::resolver_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let node = base_registry::make_node(
-                converter::address_to_string(FIRST_USER_ADDRESS),
+                helper::address_to_string(FIRST_USER_ADDRESS),
                 utf8(ADDR_REVERSE_BASE_NODE),
             );
             base_registry::new_record_test(&mut registry, node, FIRST_USER_ADDRESS);

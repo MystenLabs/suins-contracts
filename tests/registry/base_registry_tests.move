@@ -1,5 +1,6 @@
 #[test_only]
 module suins::base_registry_tests {
+
     use sui::test_scenario::{Self, Scenario};
     use sui::dynamic_field;
     use suins::base_registry::{Self, Registry, AdminCap};
