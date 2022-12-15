@@ -6,3 +6,5 @@
 sui.log.*
 .trace
 .coverage_map.mvcov
+
+**/.env
