@@ -20,10 +20,10 @@ copy_wallet_creds() {
     echo "Setup client successfully"
 }
 
-get_contract_addresses() {
+find_contract_addresses_from_docs_repo() {
     git clone --single-branch --branch "main" https://github.com/kyphan1/docs.git
-    CONFIGURATION_RE="^- Configuration object: \[0x([0-9a-fA-F]+)\]\(https://explorer.devnet.sui.io/objects/0x([0-9a-fA-F]+)\)$"
     PACKAGE_RE="^- Package address: \[0x([0-9a-fA-F]+)\]\(https://explorer.devnet.sui.io/objects/0x([0-9a-fA-F]+)\)$"
+    CONFIGURATION_RE="^- Configuration object: \[0x([0-9a-fA-F]+)\]\(https://explorer.devnet.sui.io/objects/0x([0-9a-fA-F]+)\)$"
 
     while read -r line
     do
@@ -47,8 +47,16 @@ get_contract_addresses() {
     fi
     done < docs/README.md
 
-    echo "PACKAGE ADDRESS: $PACKAGE_ADDR"
-    echo "CONFIGURATION OBJECT: $CONFIGURATION_ADDR"
+    find_admin_cap_address
+}
+
+find_contract_addresses_from_env() {
+    PACKAGE_ADDR=$1
+    CONFIGURATION_ADDR=$2
+    find_admin_cap_address
+}
+
+find_admin_cap_address() {
     NFTs=$(
       curl --location --request POST 'https://fullnode.devnet.sui.io:443' \
       --header 'Content-Type: application/json' \
@@ -63,6 +71,8 @@ get_contract_addresses() {
       echo "$NFTs" | jq -r \
         '.result[] | select(.type=="'"$PACKAGE_ADDR"'::base_registry::AdminCap") | .objectId'
     )
+    echo "PACKAGE ADDRESS: $PACKAGE_ADDR"
+    echo "CONFIGURATION OBJECT: $CONFIGURATION_ADDR"
     echo "ADMIN_CAP OBJECT: $ADMIN_CAP"
 }
 

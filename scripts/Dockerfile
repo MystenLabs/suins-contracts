@@ -1,7 +1,7 @@
 FROM rust:latest
 
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -y install --no-install-recommends jq vim 
+    && apt-get -y install --no-install-recommends jq
 
 COPY functions.sh /
 COPY entrypoint.sh /
