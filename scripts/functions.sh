@@ -21,7 +21,7 @@ copy_wallet_creds() {
 }
 
 find_contract_addresses_from_docs_repo() {
-    git clone --single-branch --branch "main" https://github.com/kyphan1/docs.git
+    git clone --single-branch --branch "main" https://github.com/SuiNSdapp/docs.git
     PACKAGE_RE="^- Package address: \[0x([0-9a-fA-F]+)\]\(https://explorer.devnet.sui.io/objects/0x([0-9a-fA-F]+)\)$"
     CONFIGURATION_RE="^- Configuration object: \[0x([0-9a-fA-F]+)\]\(https://explorer.devnet.sui.io/objects/0x([0-9a-fA-F]+)\)$"
 
