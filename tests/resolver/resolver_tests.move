@@ -2,12 +2,13 @@
 module suins::resolver_tests {
 
     use sui::test_scenario::{Self, Scenario};
+    use sui::vec_map;
     use suins::base_registry::{Self, Registry};
     use suins::resolver::{Self, NameResolver, BaseResolver};
     use suins::converter;
-    use std::string;
     use suins::base_registrar;
     use suins::base_registry_tests;
+    use std::string;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_NAME: vector<u8> = b"sui";
@@ -54,8 +55,7 @@ module suins::resolver_tests {
         };
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_get_name_abort_if_addr_not_exists() {
         let scenario = init();
 
@@ -83,8 +83,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_unset_name() {
         let scenario = init();
         set_name(&mut scenario);
@@ -109,8 +108,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_unset_name_abort_if_unauthorized() {
         let scenario = init();
         set_name(&mut scenario);
@@ -128,8 +126,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_unset_name_abort_if_name_not_exists() {
         let scenario = init();
         set_name(&mut scenario);
@@ -186,8 +183,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_set_name_abort_if_addr_not_exists_in_registry() {
         let scenario = init();
 
@@ -204,8 +200,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_set_name_abort_if_unauthorized() {
         let scenario = init();
 
@@ -233,8 +228,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 1)]
+    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
     fun test_get_addr_abort_if_node_not_exists() {
         let scenario = init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -309,8 +303,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_set_addr_abort_if_unauthorized() {
         let scenario = init();
         base_registry_tests::mint_record(&mut scenario);
@@ -326,8 +319,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    #[expected_failure(abort_code = 101)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_resolved_address_not_allowed_to_set_new_addr() {
         let scenario = init();
         base_registry_tests::mint_record(&mut scenario);
