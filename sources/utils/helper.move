@@ -2,12 +2,16 @@ module suins::helper {
 
     use std::bcs;
     use std::vector;
+    use std::string;
 
     friend suins::reverse_registrar;
     friend suins::resolver;
     friend suins::controller;
+    friend suins::configuration;
+    friend suins::remove_later;
 
     const REGISTRATION_FEE_PER_YEAR: u64 = 1000000;
+    const EInvalidNumber: u64 = 601;
 
     public(friend) fun address_to_string(addr: address): vector<u8> {
         let bytes = bcs::to_bytes(&addr);
@@ -36,6 +40,26 @@ module suins::helper {
             index = index + 1;
         };
 
+        result
+    }
+
+    public(friend) fun string_to_number(str: string::String): u64 {
+        let bytes = string::bytes(&str);
+        // count from 1 because Move doesn't have negative number atm
+        let index = vector::length(bytes);
+        let result: u64 = 0;
+        let base = 1;
+
+        while (index > 0) {
+            let byte = *vector::borrow(bytes, index - 1);
+            if (!(byte >= 0x30 && byte <= 0x39)) { // 0-9
+                abort EInvalidNumber
+            };
+            result = result + ((byte as u64) - 0x30) * base;
+            // avoid overflow if input is MAX_U64
+            if (index != 1) base = base * 10;
+            index = index - 1;
+        };
         result
     }
 
