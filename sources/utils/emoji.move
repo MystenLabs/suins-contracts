@@ -1531,4 +1531,5070 @@ module suins::emoji {
 
         emojis
     }
+
+    public(friend) fun two_character_skin_tone_emojis(): vector<vector<u8>> {
+        let emojis: vector<vector<u8>> = vector[];
+
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 139, 240, 159, 143, 189] // 1f44b_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 139, 240, 159, 143, 188] // 1f44b_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 139, 240, 159, 143, 190] // 1f44b_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 139, 240, 159, 143, 191] // 1f44b_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 154, 240, 159, 143, 187] // 1f91a_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 154, 240, 159, 143, 188] // 1f91a_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 154, 240, 159, 143, 189] // 1f91a_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 154, 240, 159, 143, 190] // 1f91a_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 154, 240, 159, 143, 191] // 1f91a_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 150, 144, 240, 159, 143, 187] // 1f590_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 150, 144, 240, 159, 143, 188] // 1f590_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 150, 144, 240, 159, 143, 189] // 1f590_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 150, 144, 240, 159, 143, 190] // 1f590_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 150, 144, 240, 159, 143, 191] // 1f590_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 156, 139, 240, 159, 143, 187] // 270b_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 156, 139, 240, 159, 143, 188] // 270b_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 139, 240, 159, 143, 187] // 1f44b_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 156, 139, 240, 159, 143, 189] // 270b_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 156, 139, 240, 159, 143, 190] // 270b_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 156, 139, 240, 159, 143, 191] // 270b_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 150, 150, 240, 159, 143, 187] // 1f596_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 150, 150, 240, 159, 143, 188] // 1f596_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 150, 150, 240, 159, 143, 189] // 1f596_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 150, 150, 240, 159, 143, 190] // 1f596_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 150, 150, 240, 159, 143, 191] // 1f596_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 188] // 1faf1_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 190] // 1faf1_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 191] // 1faf1_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 178, 240, 159, 143, 187] // 1faf2_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 178, 240, 159, 143, 188] // 1faf2_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 178, 240, 159, 143, 189] // 1faf2_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 178, 240, 159, 143, 190] // 1faf2_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 178, 240, 159, 143, 191] // 1faf2_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 179, 240, 159, 143, 187] // 1faf3_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 179, 240, 159, 143, 188] // 1faf3_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 179, 240, 159, 143, 189] // 1faf3_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 179, 240, 159, 143, 190] // 1faf3_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 179, 240, 159, 143, 191] // 1faf3_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 180, 240, 159, 143, 187] // 1faf4_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 180, 240, 159, 143, 188] // 1faf4_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 180, 240, 159, 143, 189] // 1faf4_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 180, 240, 159, 143, 190] // 1faf4_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 180, 240, 159, 143, 191] // 1faf4_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 187] // 1faf1_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 189] // 1faf1_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 183, 240, 159, 143, 187] // 1faf7_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 183, 240, 159, 143, 188] // 1faf7_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 183, 240, 159, 143, 189] // 1faf7_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 183, 240, 159, 143, 190] // 1faf7_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 183, 240, 159, 143, 191] // 1faf7_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 184, 240, 159, 143, 187] // 1faf8_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 184, 240, 159, 143, 188] // 1faf8_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 184, 240, 159, 143, 189] // 1faf8_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 184, 240, 159, 143, 190] // 1faf8_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 184, 240, 159, 143, 191] // 1faf8_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 140, 240, 159, 143, 187] // 1f44c_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 140, 240, 159, 143, 190] // 1f44c_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 140, 240, 159, 143, 191] // 1f44c_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 140, 240, 159, 143, 187] // 1f90c_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 140, 240, 159, 143, 188] // 1f44c_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 140, 240, 159, 143, 188] // 1f90c_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 140, 240, 159, 143, 189] // 1f90c_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 140, 240, 159, 143, 190] // 1f90c_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 140, 240, 159, 143, 191] // 1f90c_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 143, 240, 159, 143, 187] // 1f90f_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 143, 240, 159, 143, 188] // 1f90f_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 140, 240, 159, 143, 189] // 1f44c_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 143, 240, 159, 143, 189] // 1f90f_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 143, 240, 159, 143, 190] // 1f90f_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 143, 240, 159, 143, 191] // 1f90f_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 156, 140, 240, 159, 143, 187] // 270c_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 156, 140, 240, 159, 143, 188] // 270c_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 156, 140, 240, 159, 143, 189] // 270c_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 156, 140, 240, 159, 143, 191] // 270c_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 158, 240, 159, 143, 187] // 1f91e_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 156, 140, 240, 159, 143, 190] // 270c_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 158, 240, 159, 143, 188] // 1f91e_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 158, 240, 159, 143, 190] // 1f91e_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 158, 240, 159, 143, 191] // 1f91e_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 176, 240, 159, 143, 187] // 1faf0_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 176, 240, 159, 143, 188] // 1faf0_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 176, 240, 159, 143, 189] // 1faf0_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 176, 240, 159, 143, 191] // 1faf0_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 159, 240, 159, 143, 187] // 1f91f_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 159, 240, 159, 143, 189] // 1f91f_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 159, 240, 159, 143, 190] // 1f91f_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 159, 240, 159, 143, 191] // 1f91f_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 152, 240, 159, 143, 187] // 1f918_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 152, 240, 159, 143, 188] // 1f918_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 152, 240, 159, 143, 189] // 1f918_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 152, 240, 159, 143, 190] // 1f918_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 152, 240, 159, 143, 191] // 1f918_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 153, 240, 159, 143, 187] // 1f919_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 159, 240, 159, 143, 188] // 1f91f_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 153, 240, 159, 143, 189] // 1f919_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 153, 240, 159, 143, 190] // 1f919_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 153, 240, 159, 143, 191] // 1f919_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 136, 240, 159, 143, 187] // 1f448_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 136, 240, 159, 143, 188] // 1f448_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 136, 240, 159, 143, 189] // 1f448_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 136, 240, 159, 143, 190] // 1f448_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 136, 240, 159, 143, 191] // 1f448_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 137, 240, 159, 143, 187] // 1f449_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 137, 240, 159, 143, 188] // 1f449_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 137, 240, 159, 143, 189] // 1f449_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 137, 240, 159, 143, 190] // 1f449_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 137, 240, 159, 143, 191] // 1f449_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 134, 240, 159, 143, 187] // 1f446_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 158, 240, 159, 143, 189] // 1f91e_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 134, 240, 159, 143, 189] // 1f446_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 134, 240, 159, 143, 190] // 1f446_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 134, 240, 159, 143, 191] // 1f446_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 150, 149, 240, 159, 143, 187] // 1f595_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 150, 149, 240, 159, 143, 188] // 1f595_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 150, 149, 240, 159, 143, 189] // 1f595_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 150, 149, 240, 159, 143, 190] // 1f595_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 150, 149, 240, 159, 143, 191] // 1f595_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 135, 240, 159, 143, 187] // 1f447_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 135, 240, 159, 143, 188] // 1f447_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 135, 240, 159, 143, 189] // 1f447_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 135, 240, 159, 143, 190] // 1f447_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 135, 240, 159, 143, 191] // 1f447_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 152, 157, 240, 159, 143, 187] // 261d_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 176, 240, 159, 143, 190] // 1faf0_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 153, 240, 159, 143, 188] // 1f919_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 134, 240, 159, 143, 188] // 1f446_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 152, 157, 240, 159, 143, 188] // 261d_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 152, 157, 240, 159, 143, 189] // 261d_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 152, 157, 240, 159, 143, 190] // 261d_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 152, 157, 240, 159, 143, 191] // 261d_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 181, 240, 159, 143, 187] // 1faf5_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 181, 240, 159, 143, 188] // 1faf5_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 141, 240, 159, 143, 187] // 1f44d_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 141, 240, 159, 143, 188] // 1f44d_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 141, 240, 159, 143, 189] // 1f44d_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 141, 240, 159, 143, 190] // 1f44d_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 141, 240, 159, 143, 191] // 1f44d_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 142, 240, 159, 143, 187] // 1f44e_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 142, 240, 159, 143, 188] // 1f44e_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 142, 240, 159, 143, 189] // 1f44e_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 181, 240, 159, 143, 190] // 1faf5_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 142, 240, 159, 143, 191] // 1f44e_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 156, 138, 240, 159, 143, 187] // 270a_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 156, 138, 240, 159, 143, 188] // 270a_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 156, 138, 240, 159, 143, 189] // 270a_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 156, 138, 240, 159, 143, 190] // 270a_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 156, 138, 240, 159, 143, 191] // 270a_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 181, 240, 159, 143, 189] // 1faf5_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 138, 240, 159, 143, 188] // 1f44a_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 138, 240, 159, 143, 189] // 1f44a_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 138, 240, 159, 143, 190] // 1f44a_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 138, 240, 159, 143, 191] // 1f44a_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 181, 240, 159, 143, 191] // 1faf5_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 155, 240, 159, 143, 188] // 1f91b_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 155, 240, 159, 143, 189] // 1f91b_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 155, 240, 159, 143, 190] // 1f91b_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 155, 240, 159, 143, 191] // 1f91b_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 142, 240, 159, 143, 190] // 1f44e_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 156, 240, 159, 143, 188] // 1f91c_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 156, 240, 159, 143, 189] // 1f91c_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 156, 240, 159, 143, 190] // 1f91c_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 156, 240, 159, 143, 191] // 1f91c_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 143, 240, 159, 143, 187] // 1f44f_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 143, 240, 159, 143, 188] // 1f44f_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 143, 240, 159, 143, 189] // 1f44f_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 143, 240, 159, 143, 190] // 1f44f_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 143, 240, 159, 143, 191] // 1f44f_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 140, 240, 159, 143, 187] // 1f64c_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 140, 240, 159, 143, 188] // 1f64c_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 156, 240, 159, 143, 187] // 1f91c_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 140, 240, 159, 143, 190] // 1f64c_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 140, 240, 159, 143, 191] // 1f64c_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 182, 240, 159, 143, 187] // 1faf6_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 182, 240, 159, 143, 188] // 1faf6_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 138, 240, 159, 143, 187] // 1f44a_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 182, 240, 159, 143, 190] // 1faf6_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 182, 240, 159, 143, 191] // 1faf6_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 144, 240, 159, 143, 187] // 1f450_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 144, 240, 159, 143, 188] // 1f450_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 155, 240, 159, 143, 187] // 1f91b_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 144, 240, 159, 143, 190] // 1f450_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 144, 240, 159, 143, 191] // 1f450_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 178, 240, 159, 143, 187] // 1f932_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 178, 240, 159, 143, 188] // 1f932_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 178, 240, 159, 143, 189] // 1f932_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 178, 240, 159, 143, 190] // 1f932_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 178, 240, 159, 143, 191] // 1f932_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 140, 240, 159, 143, 189] // 1f64c_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 157, 240, 159, 143, 188] // 1f91d_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 182, 240, 159, 143, 189] // 1faf6_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 157, 240, 159, 143, 189] // 1f91d_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 157, 240, 159, 143, 190] // 1f91d_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 157, 240, 159, 143, 191] // 1f91d_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 143, 240, 159, 143, 187] // 1f64f_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 143, 240, 159, 143, 188] // 1f64f_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 157, 240, 159, 143, 187] // 1f91d_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 143, 240, 159, 143, 190] // 1f64f_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 156, 141, 240, 159, 143, 187] // 270d_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 156, 141, 240, 159, 143, 188] // 270d_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 143, 240, 159, 143, 191] // 1f64f_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 156, 141, 240, 159, 143, 190] // 270d_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 156, 141, 240, 159, 143, 191] // 270d_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 133, 240, 159, 143, 187] // 1f485_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 133, 240, 159, 143, 188] // 1f485_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 133, 240, 159, 143, 189] // 1f485_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 133, 240, 159, 143, 190] // 1f485_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 133, 240, 159, 143, 191] // 1f485_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 179, 240, 159, 143, 187] // 1f933_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 179, 240, 159, 143, 188] // 1f933_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 179, 240, 159, 143, 189] // 1f933_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 179, 240, 159, 143, 190] // 1f933_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 143, 240, 159, 143, 189] // 1f64f_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 170, 240, 159, 143, 187] // 1f4aa_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 170, 240, 159, 143, 188] // 1f4aa_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 170, 240, 159, 143, 189] // 1f4aa_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 170, 240, 159, 143, 190] // 1f4aa_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 170, 240, 159, 143, 191] // 1f4aa_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 181, 240, 159, 143, 187] // 1f9b5_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 144, 240, 159, 143, 189] // 1f450_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 156, 141, 240, 159, 143, 189] // 270d_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 181, 240, 159, 143, 191] // 1f9b5_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 182, 240, 159, 143, 187] // 1f9b6_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 181, 240, 159, 143, 190] // 1f9b5_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 182, 240, 159, 143, 188] // 1f9b6_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 182, 240, 159, 143, 189] // 1f9b6_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 182, 240, 159, 143, 190] // 1f9b6_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 182, 240, 159, 143, 191] // 1f9b6_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 130, 240, 159, 143, 187] // 1f442_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 130, 240, 159, 143, 188] // 1f442_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 130, 240, 159, 143, 189] // 1f442_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 130, 240, 159, 143, 190] // 1f442_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 181, 240, 159, 143, 189] // 1f9b5_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 187, 240, 159, 143, 187] // 1f9bb_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 187, 240, 159, 143, 188] // 1f9bb_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 187, 240, 159, 143, 189] // 1f9bb_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 187, 240, 159, 143, 190] // 1f9bb_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 187, 240, 159, 143, 191] // 1f9bb_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 131, 240, 159, 143, 187] // 1f443_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 131, 240, 159, 143, 188] // 1f443_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 131, 240, 159, 143, 189] // 1f443_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 131, 240, 159, 143, 191] // 1f443_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 182, 240, 159, 143, 187] // 1f476_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 131, 240, 159, 143, 190] // 1f443_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 182, 240, 159, 143, 188] // 1f476_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 182, 240, 159, 143, 189] // 1f476_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 182, 240, 159, 143, 190] // 1f476_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 182, 240, 159, 143, 191] // 1f476_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 146, 240, 159, 143, 187] // 1f9d2_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 146, 240, 159, 143, 189] // 1f9d2_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 146, 240, 159, 143, 190] // 1f9d2_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 146, 240, 159, 143, 188] // 1f9d2_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 146, 240, 159, 143, 191] // 1f9d2_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 166, 240, 159, 143, 187] // 1f466_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 166, 240, 159, 143, 188] // 1f466_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 130, 240, 159, 143, 191] // 1f442_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 166, 240, 159, 143, 190] // 1f466_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 166, 240, 159, 143, 191] // 1f466_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 167, 240, 159, 143, 187] // 1f467_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 167, 240, 159, 143, 188] // 1f467_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 167, 240, 159, 143, 189] // 1f467_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 166, 240, 159, 143, 189] // 1f466_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 167, 240, 159, 143, 191] // 1f467_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 179, 240, 159, 143, 191] // 1f933_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189] // 1f9d1_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190] // 1f9d1_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191] // 1f9d1_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 177, 240, 159, 143, 187] // 1f471_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 177, 240, 159, 143, 188] // 1f471_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 177, 240, 159, 143, 189] // 1f471_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188] // 1f9d1_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 177, 240, 159, 143, 190] // 1f471_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 177, 240, 159, 143, 191] // 1f471_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187] // 1f9d1_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189] // 1f468_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190] // 1f468_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188] // 1f468_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 181, 240, 159, 143, 188] // 1f9b5_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 148, 240, 159, 143, 187] // 1f9d4_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 148, 240, 159, 143, 188] // 1f9d4_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 148, 240, 159, 143, 189] // 1f9d4_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191] // 1f468_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 148, 240, 159, 143, 191] // 1f9d4_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187] // 1f469_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188] // 1f469_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187] // 1f468_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190] // 1f469_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191] // 1f469_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 147, 240, 159, 143, 187] // 1f9d3_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 148, 240, 159, 143, 190] // 1f9d4_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 147, 240, 159, 143, 189] // 1f9d3_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 147, 240, 159, 143, 190] // 1f9d3_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 147, 240, 159, 143, 191] // 1f9d3_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 180, 240, 159, 143, 187] // 1f474_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 180, 240, 159, 143, 188] // 1f474_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 180, 240, 159, 143, 189] // 1f474_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 180, 240, 159, 143, 190] // 1f474_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 180, 240, 159, 143, 191] // 1f474_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 181, 240, 159, 143, 187] // 1f475_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 181, 240, 159, 143, 188] // 1f475_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 181, 240, 159, 143, 189] // 1f475_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 181, 240, 159, 143, 190] // 1f475_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 181, 240, 159, 143, 191] // 1f475_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 141, 240, 159, 143, 187] // 1f64d_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 141, 240, 159, 143, 188] // 1f64d_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 141, 240, 159, 143, 189] // 1f64d_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 141, 240, 159, 143, 190] // 1f64d_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 147, 240, 159, 143, 188] // 1f9d3_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 142, 240, 159, 143, 187] // 1f64e_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 142, 240, 159, 143, 188] // 1f64e_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 142, 240, 159, 143, 189] // 1f64e_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 142, 240, 159, 143, 190] // 1f64e_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 142, 240, 159, 143, 191] // 1f64e_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 133, 240, 159, 143, 187] // 1f645_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 133, 240, 159, 143, 188] // 1f645_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 133, 240, 159, 143, 189] // 1f645_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 133, 240, 159, 143, 190] // 1f645_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 133, 240, 159, 143, 191] // 1f645_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 134, 240, 159, 143, 187] // 1f646_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 134, 240, 159, 143, 188] // 1f646_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 134, 240, 159, 143, 190] // 1f646_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 134, 240, 159, 143, 191] // 1f646_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 134, 240, 159, 143, 189] // 1f646_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 129, 240, 159, 143, 187] // 1f481_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 129, 240, 159, 143, 188] // 1f481_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 141, 240, 159, 143, 191] // 1f64d_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 129, 240, 159, 143, 190] // 1f481_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 129, 240, 159, 143, 191] // 1f481_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 139, 240, 159, 143, 187] // 1f64b_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 139, 240, 159, 143, 188] // 1f64b_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 139, 240, 159, 143, 189] // 1f64b_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 139, 240, 159, 143, 190] // 1f64b_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 139, 240, 159, 143, 191] // 1f64b_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 143, 240, 159, 143, 187] // 1f9cf_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 143, 240, 159, 143, 188] // 1f9cf_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 143, 240, 159, 143, 190] // 1f9cf_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 135, 240, 159, 143, 187] // 1f647_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 135, 240, 159, 143, 188] // 1f647_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 143, 240, 159, 143, 189] // 1f9cf_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 143, 240, 159, 143, 191] // 1f9cf_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 135, 240, 159, 143, 189] // 1f647_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 135, 240, 159, 143, 190] // 1f647_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 135, 240, 159, 143, 191] // 1f647_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 166, 240, 159, 143, 188] // 1f926_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 166, 240, 159, 143, 187] // 1f926_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 166, 240, 159, 143, 189] // 1f926_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 166, 240, 159, 143, 190] // 1f926_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 166, 240, 159, 143, 191] // 1f926_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 183, 240, 159, 143, 187] // 1f937_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 183, 240, 159, 143, 188] // 1f937_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 183, 240, 159, 143, 189] // 1f937_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 183, 240, 159, 143, 190] // 1f937_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 183, 240, 159, 143, 191] // 1f937_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 174, 240, 159, 143, 187] // 1f46e_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 174, 240, 159, 143, 188] // 1f46e_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 174, 240, 159, 143, 189] // 1f46e_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 174, 240, 159, 143, 190] // 1f46e_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 174, 240, 159, 143, 191] // 1f46e_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 181, 240, 159, 143, 188] // 1f575_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 181, 240, 159, 143, 187] // 1f575_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 181, 240, 159, 143, 190] // 1f575_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 181, 240, 159, 143, 189] // 1f575_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 181, 240, 159, 143, 191] // 1f575_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 130, 240, 159, 143, 187] // 1f482_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 130, 240, 159, 143, 188] // 1f482_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 130, 240, 159, 143, 189] // 1f482_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 130, 240, 159, 143, 190] // 1f482_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 130, 240, 159, 143, 191] // 1f482_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 165, 183, 240, 159, 143, 187] // 1f977_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 165, 183, 240, 159, 143, 188] // 1f977_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 165, 183, 240, 159, 143, 189] // 1f977_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 165, 183, 240, 159, 143, 190] // 1f977_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 165, 183, 240, 159, 143, 191] // 1f977_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 183, 240, 159, 143, 187] // 1f477_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 183, 240, 159, 143, 188] // 1f477_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 183, 240, 159, 143, 189] // 1f477_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 183, 240, 159, 143, 190] // 1f477_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 183, 240, 159, 143, 191] // 1f477_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 129, 240, 159, 143, 189] // 1f481_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 133, 240, 159, 143, 188] // 1fac5_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 133, 240, 159, 143, 189] // 1fac5_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 133, 240, 159, 143, 190] // 1fac5_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 133, 240, 159, 143, 191] // 1fac5_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 167, 240, 159, 143, 190] // 1f467_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 180, 240, 159, 143, 188] // 1f934_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 180, 240, 159, 143, 189] // 1f934_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 180, 240, 159, 143, 190] // 1f934_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 180, 240, 159, 143, 191] // 1f934_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 184, 240, 159, 143, 187] // 1f478_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 184, 240, 159, 143, 188] // 1f478_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 184, 240, 159, 143, 189] // 1f478_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189] // 1f469_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 133, 240, 159, 143, 187] // 1fac5_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 180, 240, 159, 143, 187] // 1f934_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 184, 240, 159, 143, 190] // 1f478_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 184, 240, 159, 143, 191] // 1f478_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 179, 240, 159, 143, 187] // 1f473_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 179, 240, 159, 143, 190] // 1f473_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 179, 240, 159, 143, 191] // 1f473_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 178, 240, 159, 143, 188] // 1f472_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 178, 240, 159, 143, 189] // 1f472_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 178, 240, 159, 143, 190] // 1f472_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 178, 240, 159, 143, 191] // 1f472_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 149, 240, 159, 143, 187] // 1f9d5_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 149, 240, 159, 143, 188] // 1f9d5_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 149, 240, 159, 143, 189] // 1f9d5_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 149, 240, 159, 143, 190] // 1f9d5_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 149, 240, 159, 143, 191] // 1f9d5_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 181, 240, 159, 143, 187] // 1f935_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 181, 240, 159, 143, 188] // 1f935_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 181, 240, 159, 143, 189] // 1f935_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 181, 240, 159, 143, 190] // 1f935_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 181, 240, 159, 143, 191] // 1f935_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 176, 240, 159, 143, 187] // 1f470_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 176, 240, 159, 143, 188] // 1f470_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 176, 240, 159, 143, 190] // 1f470_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 176, 240, 159, 143, 189] // 1f470_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 176, 240, 159, 143, 191] // 1f470_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 176, 240, 159, 143, 188] // 1f930_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 179, 240, 159, 143, 189] // 1f473_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 179, 240, 159, 143, 188] // 1f473_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 178, 240, 159, 143, 187] // 1f472_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 176, 240, 159, 143, 187] // 1f930_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 176, 240, 159, 143, 189] // 1f930_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 176, 240, 159, 143, 190] // 1f930_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 131, 240, 159, 143, 188] // 1fac3_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 131, 240, 159, 143, 189] // 1fac3_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 131, 240, 159, 143, 190] // 1fac3_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 131, 240, 159, 143, 191] // 1fac3_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 132, 240, 159, 143, 188] // 1fac4_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 132, 240, 159, 143, 189] // 1fac4_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 132, 240, 159, 143, 190] // 1fac4_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 132, 240, 159, 143, 191] // 1fac4_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 177, 240, 159, 143, 187] // 1f931_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 177, 240, 159, 143, 188] // 1f931_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 177, 240, 159, 143, 189] // 1f931_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 177, 240, 159, 143, 190] // 1f931_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 177, 240, 159, 143, 191] // 1f931_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 188, 240, 159, 143, 187] // 1f47c_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 188, 240, 159, 143, 188] // 1f47c_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 188, 240, 159, 143, 189] // 1f47c_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 188, 240, 159, 143, 190] // 1f47c_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 188, 240, 159, 143, 191] // 1f47c_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 142, 133, 240, 159, 143, 187] // 1f385_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 142, 133, 240, 159, 143, 188] // 1f385_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 142, 133, 240, 159, 143, 189] // 1f385_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 142, 133, 240, 159, 143, 190] // 1f385_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 142, 133, 240, 159, 143, 191] // 1f385_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 182, 240, 159, 143, 187] // 1f936_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 182, 240, 159, 143, 188] // 1f936_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 182, 240, 159, 143, 189] // 1f936_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 182, 240, 159, 143, 190] // 1f936_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 182, 240, 159, 143, 191] // 1f936_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 184, 240, 159, 143, 187] // 1f9b8_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 184, 240, 159, 143, 188] // 1f9b8_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 184, 240, 159, 143, 189] // 1f9b8_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 184, 240, 159, 143, 190] // 1f9b8_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 184, 240, 159, 143, 191] // 1f9b8_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 185, 240, 159, 143, 187] // 1f9b9_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 185, 240, 159, 143, 188] // 1f9b9_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 185, 240, 159, 143, 189] // 1f9b9_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 185, 240, 159, 143, 190] // 1f9b9_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 185, 240, 159, 143, 191] // 1f9b9_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 153, 240, 159, 143, 187] // 1f9d9_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 153, 240, 159, 143, 189] // 1f9d9_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 153, 240, 159, 143, 188] // 1f9d9_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 153, 240, 159, 143, 191] // 1f9d9_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 154, 240, 159, 143, 187] // 1f9da_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 154, 240, 159, 143, 188] // 1f9da_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 154, 240, 159, 143, 189] // 1f9da_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 153, 240, 159, 143, 190] // 1f9d9_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 154, 240, 159, 143, 190] // 1f9da_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 154, 240, 159, 143, 191] // 1f9da_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 155, 240, 159, 143, 187] // 1f9db_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 155, 240, 159, 143, 188] // 1f9db_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 155, 240, 159, 143, 189] // 1f9db_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 155, 240, 159, 143, 190] // 1f9db_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 155, 240, 159, 143, 191] // 1f9db_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 156, 240, 159, 143, 187] // 1f9dc_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 156, 240, 159, 143, 188] // 1f9dc_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 156, 240, 159, 143, 189] // 1f9dc_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 156, 240, 159, 143, 190] // 1f9dc_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 156, 240, 159, 143, 191] // 1f9dc_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 157, 240, 159, 143, 187] // 1f9dd_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 157, 240, 159, 143, 188] // 1f9dd_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 157, 240, 159, 143, 189] // 1f9dd_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 157, 240, 159, 143, 190] // 1f9dd_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 157, 240, 159, 143, 191] // 1f9dd_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 134, 240, 159, 143, 187] // 1f486_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 134, 240, 159, 143, 188] // 1f486_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 134, 240, 159, 143, 189] // 1f486_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 134, 240, 159, 143, 190] // 1f486_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 134, 240, 159, 143, 191] // 1f486_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 135, 240, 159, 143, 187] // 1f487_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 135, 240, 159, 143, 188] // 1f487_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 135, 240, 159, 143, 189] // 1f487_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 135, 240, 159, 143, 191] // 1f487_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 182, 240, 159, 143, 188] // 1f6b6_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 182, 240, 159, 143, 187] // 1f6b6_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 182, 240, 159, 143, 189] // 1f6b6_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 182, 240, 159, 143, 191] // 1f6b6_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 182, 240, 159, 143, 190] // 1f6b6_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 141, 240, 159, 143, 187] // 1f9cd_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 131, 240, 159, 143, 187] // 1fac3_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 141, 240, 159, 143, 189] // 1f9cd_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 176, 240, 159, 143, 191] // 1f930_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 141, 240, 159, 143, 190] // 1f9cd_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 141, 240, 159, 143, 191] // 1f9cd_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 142, 240, 159, 143, 187] // 1f9ce_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 142, 240, 159, 143, 189] // 1f9ce_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 132, 240, 159, 143, 187] // 1fac4_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 142, 240, 159, 143, 191] // 1f9ce_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 131, 240, 159, 143, 187] // 1f3c3_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 131, 240, 159, 143, 188] // 1f3c3_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 131, 240, 159, 143, 189] // 1f3c3_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 131, 240, 159, 143, 190] // 1f3c3_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 131, 240, 159, 143, 191] // 1f3c3_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 131, 240, 159, 143, 187] // 1f483_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 131, 240, 159, 143, 188] // 1f483_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 131, 240, 159, 143, 189] // 1f483_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 131, 240, 159, 143, 190] // 1f483_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 131, 240, 159, 143, 191] // 1f483_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 186, 240, 159, 143, 187] // 1f57a_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 186, 240, 159, 143, 188] // 1f57a_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 186, 240, 159, 143, 189] // 1f57a_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 186, 240, 159, 143, 190] // 1f57a_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 186, 240, 159, 143, 191] // 1f57a_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 180, 240, 159, 143, 187] // 1f574_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 180, 240, 159, 143, 188] // 1f574_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 180, 240, 159, 143, 189] // 1f574_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 180, 240, 159, 143, 190] // 1f574_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 180, 240, 159, 143, 191] // 1f574_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 150, 240, 159, 143, 187] // 1f9d6_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 150, 240, 159, 143, 188] // 1f9d6_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 150, 240, 159, 143, 189] // 1f9d6_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 150, 240, 159, 143, 190] // 1f9d6_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 150, 240, 159, 143, 191] // 1f9d6_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 151, 240, 159, 143, 187] // 1f9d7_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 151, 240, 159, 143, 188] // 1f9d7_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 151, 240, 159, 143, 189] // 1f9d7_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 151, 240, 159, 143, 190] // 1f9d7_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 151, 240, 159, 143, 191] // 1f9d7_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 135, 240, 159, 143, 187] // 1f3c7_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 135, 240, 159, 143, 188] // 1f3c7_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 135, 240, 159, 143, 189] // 1f3c7_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 135, 240, 159, 143, 190] // 1f3c7_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 135, 240, 159, 143, 191] // 1f3c7_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 130, 240, 159, 143, 187] // 1f3c2_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 130, 240, 159, 143, 188] // 1f3c2_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 130, 240, 159, 143, 189] // 1f3c2_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 130, 240, 159, 143, 190] // 1f3c2_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 130, 240, 159, 143, 191] // 1f3c2_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 140, 240, 159, 143, 187] // 1f3cc_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 140, 240, 159, 143, 188] // 1f3cc_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 140, 240, 159, 143, 189] // 1f3cc_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 140, 240, 159, 143, 190] // 1f3cc_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 140, 240, 159, 143, 191] // 1f3cc_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 132, 240, 159, 143, 187] // 1f3c4_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 132, 240, 159, 143, 188] // 1f3c4_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 132, 240, 159, 143, 189] // 1f3c4_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 132, 240, 159, 143, 190] // 1f3c4_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 132, 240, 159, 143, 191] // 1f3c4_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 163, 240, 159, 143, 187] // 1f6a3_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 163, 240, 159, 143, 188] // 1f6a3_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 163, 240, 159, 143, 189] // 1f6a3_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 163, 240, 159, 143, 190] // 1f6a3_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 163, 240, 159, 143, 191] // 1f6a3_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 138, 240, 159, 143, 187] // 1f3ca_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 138, 240, 159, 143, 188] // 1f3ca_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 138, 240, 159, 143, 189] // 1f3ca_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 138, 240, 159, 143, 190] // 1f3ca_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 138, 240, 159, 143, 191] // 1f3ca_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 141, 240, 159, 143, 188] // 1f9cd_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 155, 185, 240, 159, 143, 188] // 26f9_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 155, 185, 240, 159, 143, 189] // 26f9_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 155, 185, 240, 159, 143, 190] // 26f9_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 155, 185, 240, 159, 143, 191] // 26f9_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 139, 240, 159, 143, 187] // 1f3cb_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 139, 240, 159, 143, 188] // 1f3cb_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 139, 240, 159, 143, 189] // 1f3cb_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 139, 240, 159, 143, 190] // 1f3cb_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 139, 240, 159, 143, 191] // 1f3cb_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 155, 185, 240, 159, 143, 187] // 26f9_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 180, 240, 159, 143, 188] // 1f6b4_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 180, 240, 159, 143, 189] // 1f6b4_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 180, 240, 159, 143, 190] // 1f6b4_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 180, 240, 159, 143, 191] // 1f6b4_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 181, 240, 159, 143, 187] // 1f6b5_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 181, 240, 159, 143, 188] // 1f6b5_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 181, 240, 159, 143, 189] // 1f6b5_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 181, 240, 159, 143, 190] // 1f6b5_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 181, 240, 159, 143, 191] // 1f6b5_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 184, 240, 159, 143, 187] // 1f938_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 184, 240, 159, 143, 188] // 1f938_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 184, 240, 159, 143, 189] // 1f938_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 184, 240, 159, 143, 190] // 1f938_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 184, 240, 159, 143, 191] // 1f938_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 189, 240, 159, 143, 187] // 1f93d_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 189, 240, 159, 143, 188] // 1f93d_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 189, 240, 159, 143, 189] // 1f93d_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 189, 240, 159, 143, 190] // 1f93d_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 189, 240, 159, 143, 191] // 1f93d_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 190, 240, 159, 143, 187] // 1f93e_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 190, 240, 159, 143, 188] // 1f93e_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 190, 240, 159, 143, 189] // 1f93e_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 190, 240, 159, 143, 190] // 1f93e_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 190, 240, 159, 143, 191] // 1f93e_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 185, 240, 159, 143, 187] // 1f939_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 185, 240, 159, 143, 188] // 1f939_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 185, 240, 159, 143, 189] // 1f939_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 185, 240, 159, 143, 190] // 1f939_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 185, 240, 159, 143, 191] // 1f939_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 152, 240, 159, 143, 187] // 1f9d8_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 152, 240, 159, 143, 188] // 1f9d8_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 152, 240, 159, 143, 189] // 1f9d8_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 152, 240, 159, 143, 190] // 1f9d8_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 152, 240, 159, 143, 191] // 1f9d8_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 155, 128, 240, 159, 143, 187] // 1f6c0_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 155, 128, 240, 159, 143, 188] // 1f6c0_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 155, 128, 240, 159, 143, 189] // 1f6c0_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 155, 128, 240, 159, 143, 190] // 1f6c0_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 155, 128, 240, 159, 143, 191] // 1f6c0_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 155, 140, 240, 159, 143, 187] // 1f6cc_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 155, 140, 240, 159, 143, 188] // 1f6cc_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 155, 140, 240, 159, 143, 189] // 1f6cc_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 155, 140, 240, 159, 143, 190] // 1f6cc_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 155, 140, 240, 159, 143, 191] // 1f6cc_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 173, 240, 159, 143, 187] // 1f46d_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 173, 240, 159, 143, 188] // 1f46d_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 173, 240, 159, 143, 189] // 1f46d_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 173, 240, 159, 143, 190] // 1f46d_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 173, 240, 159, 143, 191] // 1f46d_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 171, 240, 159, 143, 187] // 1f46b_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 171, 240, 159, 143, 188] // 1f46b_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 171, 240, 159, 143, 189] // 1f46b_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 171, 240, 159, 143, 190] // 1f46b_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 171, 240, 159, 143, 191] // 1f46b_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 172, 240, 159, 143, 187] // 1f46c_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 172, 240, 159, 143, 188] // 1f46c_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 172, 240, 159, 143, 189] // 1f46c_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 172, 240, 159, 143, 190] // 1f46c_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 172, 240, 159, 143, 191] // 1f46c_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 143, 240, 159, 143, 187] // 1f48f_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 143, 240, 159, 143, 188] // 1f48f_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 143, 240, 159, 143, 189] // 1f48f_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 143, 240, 159, 143, 190] // 1f48f_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 143, 240, 159, 143, 191] // 1f48f_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 145, 240, 159, 143, 187] // 1f491_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 145, 240, 159, 143, 188] // 1f491_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 145, 240, 159, 143, 189] // 1f491_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 180, 240, 159, 143, 187] // 1f6b4_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 142, 240, 159, 143, 188] // 1f9ce_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 142, 240, 159, 143, 190] // 1f9ce_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 145, 240, 159, 143, 190] // 1f491_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 135, 240, 159, 143, 190] // 1f487_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 145, 240, 159, 143, 191] // 1f491_1f3ff
+        );
+        emojis
+    }
+
+    public(friend) fun four_character_skin_tone_emojis(): vector<vector<u8>> {
+        let emojis: vector<vector<u8>> = vector[];
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 176] // 1f468_1f3fb_200d_1f9b0
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 176] // 1f468_1f3fc_200d_1f9b0
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 166, 176] // 1f468_1f3fd_200d_1f9b0
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 166, 176] // 1f468_1f3fe_200d_1f9b0
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 166, 176] // 1f468_1f3ff_200d_1f9b0
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 177] // 1f468_1f3fb_200d_1f9b1
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 177] // 1f468_1f3fc_200d_1f9b1
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 166, 177] // 1f468_1f3fd_200d_1f9b1
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 166, 177] // 1f468_1f3fe_200d_1f9b1
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 166, 177] // 1f468_1f3ff_200d_1f9b1
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 179] // 1f468_1f3fb_200d_1f9b3
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 179] // 1f468_1f3fc_200d_1f9b3
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 166, 179] // 1f468_1f3fd_200d_1f9b3
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 166, 179] // 1f468_1f3fe_200d_1f9b3
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 166, 179] // 1f468_1f3ff_200d_1f9b3
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 178] // 1f468_1f3fb_200d_1f9b2
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 166, 178] // 1f468_1f3fd_200d_1f9b2
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 178] // 1f468_1f3fc_200d_1f9b2
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 166, 178] // 1f468_1f3fe_200d_1f9b2
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 166, 178] // 1f468_1f3ff_200d_1f9b2
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 176] // 1f469_1f3fb_200d_1f9b0
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 176] // 1f469_1f3fc_200d_1f9b0
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 166, 176] // 1f469_1f3fd_200d_1f9b0
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 166, 176] // 1f469_1f3ff_200d_1f9b0
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 166, 176] // 1f469_1f3fe_200d_1f9b0
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 176] // 1f9d1_1f3fb_200d_1f9b0
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 176] // 1f9d1_1f3fc_200d_1f9b0
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 166, 176] // 1f9d1_1f3fd_200d_1f9b0
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 166, 176] // 1f9d1_1f3ff_200d_1f9b0
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 177] // 1f469_1f3fb_200d_1f9b1
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 166, 176] // 1f9d1_1f3fe_200d_1f9b0
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 177] // 1f469_1f3fc_200d_1f9b1
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 166, 177] // 1f469_1f3fe_200d_1f9b1
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 166, 177] // 1f469_1f3fd_200d_1f9b1
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 177] // 1f9d1_1f3fb_200d_1f9b1
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 177] // 1f9d1_1f3fc_200d_1f9b1
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 166, 177] // 1f9d1_1f3fe_200d_1f9b1
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 179] // 1f469_1f3fb_200d_1f9b3
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 179] // 1f469_1f3fc_200d_1f9b3
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 166, 179] // 1f469_1f3fd_200d_1f9b3
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 166, 179] // 1f469_1f3fe_200d_1f9b3
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 166, 179] // 1f469_1f3ff_200d_1f9b3
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 179] // 1f9d1_1f3fb_200d_1f9b3
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 179] // 1f9d1_1f3fc_200d_1f9b3
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 166, 179] // 1f9d1_1f3fd_200d_1f9b3
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 166, 179] // 1f9d1_1f3fe_200d_1f9b3
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 166, 179] // 1f9d1_1f3ff_200d_1f9b3
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 178] // 1f469_1f3fb_200d_1f9b2
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 178] // 1f469_1f3fc_200d_1f9b2
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 166, 178] // 1f469_1f3fd_200d_1f9b2
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 166, 178] // 1f469_1f3fe_200d_1f9b2
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 166, 178] // 1f469_1f3ff_200d_1f9b2
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 178] // 1f9d1_1f3fb_200d_1f9b2
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 178] // 1f9d1_1f3fc_200d_1f9b2
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 166, 178] // 1f9d1_1f3fd_200d_1f9b2
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 166, 178] // 1f9d1_1f3fe_200d_1f9b2
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 166, 177] // 1f469_1f3ff_200d_1f9b1
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 166, 177] // 1f9d1_1f3fd_200d_1f9b1
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 166, 177] // 1f9d1_1f3ff_200d_1f9b1
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 166, 178] // 1f9d1_1f3ff_200d_1f9b2
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 142, 147] // 1f9d1_1f3fb_200d_1f393
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 142, 147] // 1f9d1_1f3fc_200d_1f393
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 142, 147] // 1f9d1_1f3fd_200d_1f393
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 142, 147] // 1f9d1_1f3fe_200d_1f393
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 142, 147] // 1f9d1_1f3ff_200d_1f393
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 142, 147] // 1f468_1f3fb_200d_1f393
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 142, 147] // 1f468_1f3fc_200d_1f393
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 142, 147] // 1f468_1f3fd_200d_1f393
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 142, 147] // 1f468_1f3fe_200d_1f393
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 142, 147] // 1f468_1f3ff_200d_1f393
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 142, 147] // 1f469_1f3fb_200d_1f393
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 142, 147] // 1f469_1f3fc_200d_1f393
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 142, 147] // 1f469_1f3fd_200d_1f393
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 142, 147] // 1f469_1f3fe_200d_1f393
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 142, 147] // 1f469_1f3ff_200d_1f393
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 143, 171] // 1f9d1_1f3fb_200d_1f3eb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 143, 171] // 1f9d1_1f3fc_200d_1f3eb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 143, 171] // 1f9d1_1f3fd_200d_1f3eb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 143, 171] // 1f9d1_1f3fe_200d_1f3eb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 143, 171] // 1f9d1_1f3ff_200d_1f3eb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 143, 171] // 1f468_1f3fb_200d_1f3eb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 143, 171] // 1f468_1f3fc_200d_1f3eb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 143, 171] // 1f468_1f3ff_200d_1f3eb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 143, 171] // 1f469_1f3fb_200d_1f3eb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 143, 171] // 1f469_1f3fd_200d_1f3eb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 143, 171] // 1f469_1f3fe_200d_1f3eb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 143, 171] // 1f469_1f3ff_200d_1f3eb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 140, 190] // 1f9d1_1f3fb_200d_1f33e
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 140, 190] // 1f9d1_1f3fc_200d_1f33e
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 140, 190] // 1f9d1_1f3fd_200d_1f33e
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 140, 190] // 1f9d1_1f3fe_200d_1f33e
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 140, 190] // 1f9d1_1f3ff_200d_1f33e
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 140, 190] // 1f468_1f3fb_200d_1f33e
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 140, 190] // 1f468_1f3fc_200d_1f33e
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 140, 190] // 1f468_1f3fd_200d_1f33e
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 140, 190] // 1f468_1f3fe_200d_1f33e
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 140, 190] // 1f468_1f3ff_200d_1f33e
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 140, 190] // 1f469_1f3fb_200d_1f33e
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 140, 190] // 1f469_1f3fc_200d_1f33e
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 140, 190] // 1f469_1f3fd_200d_1f33e
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 140, 190] // 1f469_1f3fe_200d_1f33e
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 140, 190] // 1f469_1f3ff_200d_1f33e
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 141, 179] // 1f9d1_1f3fb_200d_1f373
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 141, 179] // 1f9d1_1f3fc_200d_1f373
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 141, 179] // 1f9d1_1f3fd_200d_1f373
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 141, 179] // 1f9d1_1f3fe_200d_1f373
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 141, 179] // 1f9d1_1f3ff_200d_1f373
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 141, 179] // 1f468_1f3fb_200d_1f373
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 141, 179] // 1f468_1f3fc_200d_1f373
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 141, 179] // 1f468_1f3fd_200d_1f373
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 141, 179] // 1f468_1f3fe_200d_1f373
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 141, 179] // 1f468_1f3ff_200d_1f373
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 141, 179] // 1f469_1f3fb_200d_1f373
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 141, 179] // 1f469_1f3fc_200d_1f373
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 141, 179] // 1f469_1f3fd_200d_1f373
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 141, 179] // 1f469_1f3fe_200d_1f373
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 141, 179] // 1f469_1f3ff_200d_1f373
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 148, 167] // 1f9d1_1f3fb_200d_1f527
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 148, 167] // 1f9d1_1f3fc_200d_1f527
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 148, 167] // 1f9d1_1f3fd_200d_1f527
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 148, 167] // 1f9d1_1f3fe_200d_1f527
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 148, 167] // 1f9d1_1f3ff_200d_1f527
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 148, 167] // 1f468_1f3fb_200d_1f527
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 148, 167] // 1f468_1f3fc_200d_1f527
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 148, 167] // 1f468_1f3fd_200d_1f527
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 148, 167] // 1f468_1f3fe_200d_1f527
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 143, 171] // 1f469_1f3fc_200d_1f3eb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 143, 171] // 1f468_1f3fd_200d_1f3eb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 148, 167] // 1f468_1f3ff_200d_1f527
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 143, 171] // 1f468_1f3fe_200d_1f3eb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 148, 167] // 1f469_1f3fb_200d_1f527
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 148, 167] // 1f469_1f3fc_200d_1f527
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 148, 167] // 1f469_1f3fd_200d_1f527
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 148, 167] // 1f469_1f3fe_200d_1f527
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 148, 167] // 1f469_1f3ff_200d_1f527
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 143, 173] // 1f9d1_1f3fb_200d_1f3ed
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 143, 173] // 1f9d1_1f3fc_200d_1f3ed
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 143, 173] // 1f9d1_1f3fd_200d_1f3ed
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 143, 173] // 1f9d1_1f3fe_200d_1f3ed
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 143, 173] // 1f9d1_1f3ff_200d_1f3ed
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 143, 173] // 1f468_1f3fb_200d_1f3ed
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 143, 173] // 1f468_1f3fc_200d_1f3ed
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 143, 173] // 1f468_1f3fe_200d_1f3ed
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 143, 173] // 1f468_1f3ff_200d_1f3ed
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 143, 173] // 1f469_1f3fb_200d_1f3ed
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 143, 173] // 1f469_1f3fd_200d_1f3ed
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 143, 173] // 1f469_1f3fc_200d_1f3ed
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 143, 173] // 1f469_1f3fe_200d_1f3ed
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 143, 173] // 1f469_1f3ff_200d_1f3ed
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 143, 173] // 1f468_1f3fd_200d_1f3ed
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 146, 188] // 1f9d1_1f3fc_200d_1f4bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 146, 188] // 1f9d1_1f3fb_200d_1f4bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 146, 188] // 1f9d1_1f3fd_200d_1f4bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 146, 188] // 1f9d1_1f3fe_200d_1f4bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 146, 188] // 1f468_1f3fb_200d_1f4bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 146, 188] // 1f468_1f3fc_200d_1f4bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 146, 188] // 1f468_1f3fd_200d_1f4bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 146, 188] // 1f9d1_1f3ff_200d_1f4bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 146, 188] // 1f468_1f3fe_200d_1f4bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 146, 188] // 1f468_1f3ff_200d_1f4bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 146, 188] // 1f469_1f3fb_200d_1f4bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 146, 188] // 1f469_1f3fc_200d_1f4bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 146, 188] // 1f469_1f3fd_200d_1f4bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 146, 188] // 1f469_1f3fe_200d_1f4bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 148, 172] // 1f9d1_1f3fb_200d_1f52c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 148, 172] // 1f9d1_1f3fd_200d_1f52c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 148, 172] // 1f9d1_1f3fe_200d_1f52c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 148, 172] // 1f9d1_1f3ff_200d_1f52c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 148, 172] // 1f468_1f3fb_200d_1f52c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 146, 188] // 1f469_1f3ff_200d_1f4bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 148, 172] // 1f468_1f3fc_200d_1f52c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 148, 172] // 1f9d1_1f3fc_200d_1f52c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 148, 172] // 1f468_1f3fe_200d_1f52c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 148, 172] // 1f468_1f3fd_200d_1f52c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 148, 172] // 1f468_1f3ff_200d_1f52c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 148, 172] // 1f469_1f3fb_200d_1f52c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 148, 172] // 1f469_1f3fc_200d_1f52c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 148, 172] // 1f469_1f3fd_200d_1f52c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 148, 172] // 1f469_1f3fe_200d_1f52c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 148, 172] // 1f469_1f3ff_200d_1f52c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 146, 187] // 1f9d1_1f3fb_200d_1f4bb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 146, 187] // 1f9d1_1f3fc_200d_1f4bb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 146, 187] // 1f9d1_1f3fd_200d_1f4bb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 146, 187] // 1f9d1_1f3fe_200d_1f4bb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 146, 187] // 1f9d1_1f3ff_200d_1f4bb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 146, 187] // 1f468_1f3fb_200d_1f4bb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 146, 187] // 1f468_1f3fc_200d_1f4bb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 146, 187] // 1f468_1f3fd_200d_1f4bb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 146, 187] // 1f468_1f3fe_200d_1f4bb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 146, 187] // 1f468_1f3ff_200d_1f4bb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 146, 187] // 1f469_1f3fb_200d_1f4bb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 146, 187] // 1f469_1f3fc_200d_1f4bb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 146, 187] // 1f469_1f3fd_200d_1f4bb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 146, 187] // 1f469_1f3fe_200d_1f4bb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 146, 187] // 1f469_1f3ff_200d_1f4bb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 142, 164] // 1f9d1_1f3fb_200d_1f3a4
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 142, 164] // 1f9d1_1f3fc_200d_1f3a4
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 142, 164] // 1f9d1_1f3fd_200d_1f3a4
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 142, 164] // 1f9d1_1f3fe_200d_1f3a4
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 142, 164] // 1f9d1_1f3ff_200d_1f3a4
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 142, 164] // 1f468_1f3fb_200d_1f3a4
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 142, 164] // 1f468_1f3fc_200d_1f3a4
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 142, 164] // 1f468_1f3fd_200d_1f3a4
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 142, 164] // 1f468_1f3ff_200d_1f3a4
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 142, 164] // 1f469_1f3fb_200d_1f3a4
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 142, 164] // 1f468_1f3fe_200d_1f3a4
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 142, 164] // 1f469_1f3fc_200d_1f3a4
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 142, 164] // 1f469_1f3fd_200d_1f3a4
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 142, 164] // 1f469_1f3fe_200d_1f3a4
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 142, 164] // 1f469_1f3ff_200d_1f3a4
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 142, 168] // 1f9d1_1f3fb_200d_1f3a8
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 142, 168] // 1f9d1_1f3fc_200d_1f3a8
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 142, 168] // 1f9d1_1f3fd_200d_1f3a8
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 142, 168] // 1f9d1_1f3fe_200d_1f3a8
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 142, 168] // 1f9d1_1f3ff_200d_1f3a8
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 142, 168] // 1f468_1f3fb_200d_1f3a8
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 142, 168] // 1f468_1f3fc_200d_1f3a8
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 142, 168] // 1f468_1f3fd_200d_1f3a8
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 142, 168] // 1f468_1f3fe_200d_1f3a8
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 142, 168] // 1f468_1f3ff_200d_1f3a8
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 142, 168] // 1f469_1f3fb_200d_1f3a8
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 142, 168] // 1f469_1f3fc_200d_1f3a8
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 142, 168] // 1f469_1f3fd_200d_1f3a8
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 154, 128] // 1f9d1_1f3fc_200d_1f680
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 142, 168] // 1f469_1f3ff_200d_1f3a8
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 154, 128] // 1f9d1_1f3fe_200d_1f680
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 154, 128] // 1f9d1_1f3ff_200d_1f680
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 154, 128] // 1f468_1f3fb_200d_1f680
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 154, 128] // 1f468_1f3fc_200d_1f680
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 154, 128] // 1f468_1f3fd_200d_1f680
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 154, 128] // 1f468_1f3fe_200d_1f680
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 154, 128] // 1f468_1f3ff_200d_1f680
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 154, 128] // 1f469_1f3fb_200d_1f680
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 154, 128] // 1f469_1f3fc_200d_1f680
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 154, 128] // 1f469_1f3fd_200d_1f680
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 154, 128] // 1f469_1f3fe_200d_1f680
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 154, 128] // 1f469_1f3ff_200d_1f680
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 154, 146] // 1f9d1_1f3fb_200d_1f692
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 154, 146] // 1f9d1_1f3fc_200d_1f692
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 154, 146] // 1f9d1_1f3fd_200d_1f692
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 154, 146] // 1f9d1_1f3fe_200d_1f692
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 154, 146] // 1f9d1_1f3ff_200d_1f692
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 154, 146] // 1f468_1f3fb_200d_1f692
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 154, 146] // 1f468_1f3fc_200d_1f692
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 154, 128] // 1f9d1_1f3fb_200d_1f680
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 154, 146] // 1f468_1f3fd_200d_1f692
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 154, 146] // 1f468_1f3fe_200d_1f692
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 154, 146] // 1f468_1f3ff_200d_1f692
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 154, 146] // 1f469_1f3fb_200d_1f692
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 154, 146] // 1f469_1f3fc_200d_1f692
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 154, 146] // 1f469_1f3fd_200d_1f692
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 154, 146] // 1f469_1f3fe_200d_1f692
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 154, 146] // 1f469_1f3ff_200d_1f692
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 141, 188] // 1f469_1f3fb_200d_1f37c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 141, 188] // 1f469_1f3fc_200d_1f37c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 141, 188] // 1f469_1f3fd_200d_1f37c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 141, 188] // 1f469_1f3fe_200d_1f37c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 141, 188] // 1f469_1f3ff_200d_1f37c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 154, 128] // 1f9d1_1f3fd_200d_1f680
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 141, 188] // 1f468_1f3fb_200d_1f37c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 141, 188] // 1f468_1f3fd_200d_1f37c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 141, 188] // 1f468_1f3ff_200d_1f37c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 141, 188] // 1f9d1_1f3fb_200d_1f37c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 141, 188] // 1f9d1_1f3fc_200d_1f37c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 141, 188] // 1f9d1_1f3fd_200d_1f37c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 141, 188] // 1f9d1_1f3fe_200d_1f37c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 141, 188] // 1f9d1_1f3ff_200d_1f37c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 142, 132] // 1f9d1_1f3fb_200d_1f384
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 142, 132] // 1f9d1_1f3fc_200d_1f384
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 142, 132] // 1f9d1_1f3fd_200d_1f384
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 142, 132] // 1f9d1_1f3fe_200d_1f384
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 142, 132] // 1f9d1_1f3ff_200d_1f384
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 175] // 1f9d1_1f3fb_200d_1f9af
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 175] // 1f9d1_1f3fc_200d_1f9af
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 166, 175] // 1f9d1_1f3fd_200d_1f9af
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 166, 175] // 1f9d1_1f3fe_200d_1f9af
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 166, 175] // 1f9d1_1f3ff_200d_1f9af
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 175] // 1f468_1f3fb_200d_1f9af
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 175] // 1f468_1f3fc_200d_1f9af
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 142, 168] // 1f469_1f3fe_200d_1f3a8
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 166, 175] // 1f468_1f3fe_200d_1f9af
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 166, 175] // 1f468_1f3ff_200d_1f9af
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 175] // 1f469_1f3fb_200d_1f9af
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 175] // 1f469_1f3fc_200d_1f9af
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 166, 175] // 1f469_1f3fd_200d_1f9af
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 166, 175] // 1f469_1f3fe_200d_1f9af
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 166, 175] // 1f469_1f3ff_200d_1f9af
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 188] // 1f9d1_1f3fb_200d_1f9bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 188] // 1f9d1_1f3fc_200d_1f9bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 166, 188] // 1f9d1_1f3fd_200d_1f9bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 166, 188] // 1f9d1_1f3fe_200d_1f9bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 166, 188] // 1f9d1_1f3ff_200d_1f9bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 188] // 1f468_1f3fb_200d_1f9bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 188] // 1f468_1f3fc_200d_1f9bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 141, 188] // 1f468_1f3fc_200d_1f37c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 166, 188] // 1f468_1f3fe_200d_1f9bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 166, 188] // 1f468_1f3ff_200d_1f9bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 188] // 1f469_1f3fb_200d_1f9bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 188] // 1f469_1f3fc_200d_1f9bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 166, 188] // 1f469_1f3fd_200d_1f9bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 166, 188] // 1f469_1f3fe_200d_1f9bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 166, 188] // 1f469_1f3ff_200d_1f9bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 189] // 1f9d1_1f3fb_200d_1f9bd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 189] // 1f9d1_1f3fc_200d_1f9bd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 166, 189] // 1f9d1_1f3fd_200d_1f9bd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 166, 189] // 1f9d1_1f3fe_200d_1f9bd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 166, 189] // 1f9d1_1f3ff_200d_1f9bd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 189] // 1f468_1f3fb_200d_1f9bd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 189] // 1f468_1f3fc_200d_1f9bd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 166, 189] // 1f468_1f3fd_200d_1f9bd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 166, 189] // 1f468_1f3fe_200d_1f9bd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 166, 189] // 1f468_1f3ff_200d_1f9bd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 189] // 1f469_1f3fb_200d_1f9bd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 189] // 1f469_1f3fc_200d_1f9bd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 166, 189] // 1f469_1f3fd_200d_1f9bd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 166, 189] // 1f469_1f3fe_200d_1f9bd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 141, 188] // 1f468_1f3fe_200d_1f37c
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 166, 175] // 1f468_1f3fd_200d_1f9af
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 166, 188] // 1f468_1f3fd_200d_1f9bc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 166, 189] // 1f469_1f3ff_200d_1f9bd
+        );
+        emojis
+    }
+
+    public(friend) fun five_character_skin_tone_emojis(): vector<vector<u8>> {
+        let emojis: vector<vector<u8>> = vector[];
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 187, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 188] // 1faf1_1f3fb_200d_1faf2_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 187, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 189] // 1faf1_1f3fb_200d_1faf2_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 187, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 190] // 1faf1_1f3fb_200d_1faf2_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 187, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 191] // 1faf1_1f3fb_200d_1faf2_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 188, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 187] // 1faf1_1f3fc_200d_1faf2_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 188, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 189] // 1faf1_1f3fc_200d_1faf2_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 188, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 190] // 1faf1_1f3fc_200d_1faf2_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 188, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 191] // 1faf1_1f3fc_200d_1faf2_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 189, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 190] // 1faf1_1f3fd_200d_1faf2_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 189, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 188] // 1faf1_1f3fd_200d_1faf2_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 189, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 187] // 1faf1_1f3fd_200d_1faf2_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 189, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 191] // 1faf1_1f3fd_200d_1faf2_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 190, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 187] // 1faf1_1f3fe_200d_1faf2_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 190, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 188] // 1faf1_1f3fe_200d_1faf2_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 190, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 189] // 1faf1_1f3fe_200d_1faf2_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 190, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 191] // 1faf1_1f3fe_200d_1faf2_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 191, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 188] // 1faf1_1f3ff_200d_1faf2_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 191, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 189] // 1faf1_1f3ff_200d_1faf2_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 191, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 190] // 1faf1_1f3ff_200d_1faf2_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 148, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d4_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 171, 177, 240, 159, 143, 191, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 187] // 1faf1_1f3ff_200d_1faf2_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 148, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d4_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 148, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d4_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 148, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d4_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 148, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d4_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 148, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d4_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 148, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d4_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 177, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f471_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 177, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f471_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 177, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f471_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 177, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f471_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 177, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f471_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 177, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f471_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 177, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f471_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 177, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f471_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 177, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f471_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 177, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f471_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 141, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f64d_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 141, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f64d_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 141, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f64d_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 141, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f64d_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 141, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f64d_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 141, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f64d_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 141, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f64d_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 141, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f64d_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 141, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f64d_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 141, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f64d_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 148, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d4_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 142, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f64e_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 142, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f64e_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 142, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f64e_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 142, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f64e_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 142, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f64e_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 142, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f64e_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 142, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f64e_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 142, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f64e_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 142, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f64e_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 133, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f645_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 133, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f645_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 133, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f645_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 133, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f645_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 133, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f645_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 133, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f645_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 133, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f645_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 133, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f645_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 133, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f645_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 133, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f645_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 134, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f646_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 134, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f646_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 134, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f646_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 134, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f646_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 134, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f646_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 134, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f646_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 134, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f646_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 134, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f646_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 134, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f646_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 134, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f646_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 129, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f481_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 129, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f481_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 129, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f481_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 129, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f481_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 129, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f481_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 129, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f481_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 129, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f481_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 129, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f481_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 129, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f481_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 129, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f481_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 139, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f64b_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 139, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f64b_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 139, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f64b_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 139, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f64b_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 139, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f64b_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 139, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f64b_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 139, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f64b_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 139, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f64b_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 139, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f64b_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 139, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f64b_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 143, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9cf_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 143, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9cf_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 143, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9cf_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 143, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9cf_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 143, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9cf_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 143, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9cf_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 143, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9cf_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 143, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9cf_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 143, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9cf_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 143, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9cf_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 135, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f647_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 135, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f647_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 135, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f647_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 135, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f647_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 135, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f647_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 135, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f647_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 135, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f647_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 135, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f647_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 148, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d4_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 135, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f647_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 166, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f926_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 166, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f926_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 166, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f926_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 166, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f926_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 166, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f926_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 166, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f926_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 166, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f926_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 166, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f926_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 166, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f926_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 135, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f647_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 148, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d4_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 153, 142, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f64e_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 166, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f926_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 183, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f937_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 183, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f937_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 183, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f937_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 183, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f937_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 183, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f937_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 183, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f937_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 183, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f937_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 183, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f937_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 183, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f937_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 183, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f937_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 226, 154, 149, 239, 184, 143] // 1f9d1_1f3fd_200d_2695_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 226, 154, 149, 239, 184, 143] // 1f9d1_1f3fb_200d_2695_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 226, 154, 149, 239, 184, 143] // 1f9d1_1f3fe_200d_2695_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 226, 154, 149, 239, 184, 143] // 1f9d1_1f3fc_200d_2695_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 226, 154, 149, 239, 184, 143] // 1f9d1_1f3ff_200d_2695_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 226, 154, 149, 239, 184, 143] // 1f468_1f3fb_200d_2695_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 226, 154, 149, 239, 184, 143] // 1f468_1f3fc_200d_2695_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 226, 154, 149, 239, 184, 143] // 1f468_1f3fd_200d_2695_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 226, 154, 149, 239, 184, 143] // 1f468_1f3fe_200d_2695_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 226, 154, 149, 239, 184, 143] // 1f468_1f3ff_200d_2695_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 226, 154, 149, 239, 184, 143] // 1f469_1f3fb_200d_2695_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 226, 154, 149, 239, 184, 143] // 1f469_1f3fc_200d_2695_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 226, 154, 150, 239, 184, 143] // 1f9d1_1f3fc_200d_2696_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 226, 154, 150, 239, 184, 143] // 1f9d1_1f3fb_200d_2696_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 226, 154, 150, 239, 184, 143] // 1f9d1_1f3fd_200d_2696_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 226, 154, 150, 239, 184, 143] // 1f9d1_1f3fe_200d_2696_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 226, 154, 150, 239, 184, 143] // 1f9d1_1f3ff_200d_2696_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 226, 154, 150, 239, 184, 143] // 1f468_1f3fb_200d_2696_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 226, 154, 150, 239, 184, 143] // 1f468_1f3fc_200d_2696_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 226, 154, 150, 239, 184, 143] // 1f468_1f3fd_200d_2696_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 226, 154, 150, 239, 184, 143] // 1f468_1f3fe_200d_2696_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 226, 154, 150, 239, 184, 143] // 1f468_1f3ff_200d_2696_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 226, 154, 150, 239, 184, 143] // 1f469_1f3fb_200d_2696_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 226, 154, 150, 239, 184, 143] // 1f469_1f3fc_200d_2696_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 226, 154, 150, 239, 184, 143] // 1f469_1f3fd_200d_2696_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 226, 154, 150, 239, 184, 143] // 1f469_1f3fe_200d_2696_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 226, 154, 150, 239, 184, 143] // 1f469_1f3ff_200d_2696_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 226, 154, 149, 239, 184, 143] // 1f469_1f3fd_200d_2695_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 226, 156, 136, 239, 184, 143] // 1f9d1_1f3fc_200d_2708_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 226, 156, 136, 239, 184, 143] // 1f9d1_1f3fd_200d_2708_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 226, 156, 136, 239, 184, 143] // 1f9d1_1f3fe_200d_2708_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 226, 156, 136, 239, 184, 143] // 1f9d1_1f3ff_200d_2708_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 226, 156, 136, 239, 184, 143] // 1f468_1f3fb_200d_2708_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 226, 156, 136, 239, 184, 143] // 1f468_1f3fc_200d_2708_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 226, 156, 136, 239, 184, 143] // 1f468_1f3fd_200d_2708_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 226, 156, 136, 239, 184, 143] // 1f468_1f3fe_200d_2708_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 226, 156, 136, 239, 184, 143] // 1f468_1f3ff_200d_2708_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 226, 156, 136, 239, 184, 143] // 1f469_1f3fb_200d_2708_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 226, 156, 136, 239, 184, 143] // 1f469_1f3fc_200d_2708_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 226, 156, 136, 239, 184, 143] // 1f469_1f3fd_200d_2708_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 226, 156, 136, 239, 184, 143] // 1f469_1f3fe_200d_2708_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 226, 156, 136, 239, 184, 143] // 1f469_1f3ff_200d_2708_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 174, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f46e_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 174, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f46e_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 174, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f46e_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 174, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f46e_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 174, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f46e_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 174, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f46e_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 226, 156, 136, 239, 184, 143] // 1f9d1_1f3fb_200d_2708_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 174, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f46e_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 174, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f46e_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 174, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f46e_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 181, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f575_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 181, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f575_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 181, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f575_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 181, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f575_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 181, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f575_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 181, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f575_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 181, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f575_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 181, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f575_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 181, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f575_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 149, 181, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f575_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 130, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f482_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 130, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f482_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 130, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f482_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 226, 154, 149, 239, 184, 143] // 1f469_1f3ff_200d_2695_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 130, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f482_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 130, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f482_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 130, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f482_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 130, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f482_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 130, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f482_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 130, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f482_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 183, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f477_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 183, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f477_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 183, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f477_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 183, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f477_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 183, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f477_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 183, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f477_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 183, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f477_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 183, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f477_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 183, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f477_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 183, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f477_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 179, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f473_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 179, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f473_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 179, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f473_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 179, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f473_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 179, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f473_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 179, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f473_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 179, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f473_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 179, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f473_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 179, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f473_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 179, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f473_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 181, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f935_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 181, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f935_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 181, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f935_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 181, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f935_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 181, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f935_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 181, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f935_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 181, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f935_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 181, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f935_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 181, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f935_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 181, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f935_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 176, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f470_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 176, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f470_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 176, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f470_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 176, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f470_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 176, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f470_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 176, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f470_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 176, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f470_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 176, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f470_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 176, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f470_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 176, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f470_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 184, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9b8_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 184, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9b8_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 184, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9b8_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 184, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9b8_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 184, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9b8_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 184, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9b8_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 184, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9b8_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 184, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9b8_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 184, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9b8_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 184, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9b8_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 185, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9b9_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 185, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9b9_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 185, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9b9_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 185, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9b9_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 185, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9b9_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 185, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9b9_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 185, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9b9_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 185, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9b9_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 185, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9b9_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 166, 185, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9b9_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 153, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d9_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 153, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d9_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 153, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d9_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 153, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d9_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 153, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d9_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 153, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d9_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 153, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d9_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 153, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d9_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 130, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f482_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 153, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d9_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 154, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9da_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 154, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9da_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 154, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9da_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 154, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9da_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 154, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9da_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 154, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9da_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 154, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9da_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 154, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9da_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 154, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9da_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 154, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9da_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 155, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9db_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 174, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f46e_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 155, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9db_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 155, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9db_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 155, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9db_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 155, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9db_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 155, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9db_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 155, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9db_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 155, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9db_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 155, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9db_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 156, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9dc_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 156, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9dc_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 156, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9dc_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 156, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9dc_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 156, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9dc_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 156, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9dc_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 156, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9dc_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 156, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9dc_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 156, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9dc_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 156, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9dc_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 157, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9dd_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 157, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9dd_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 157, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9dd_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 157, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9dd_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 157, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9dd_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 157, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9dd_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 157, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9dd_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 157, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9dd_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 157, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9dd_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 157, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9dd_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 134, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f486_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 134, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f486_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 134, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f486_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 134, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f486_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 134, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f486_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 134, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f486_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 134, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f486_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 134, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f486_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 134, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f486_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 134, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f486_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 135, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f487_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 135, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f487_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 135, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f487_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 135, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f487_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 135, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f487_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 135, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f487_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 135, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f487_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 135, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f487_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 135, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f487_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 146, 135, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f487_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 182, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f6b6_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 182, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f6b6_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 182, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f6b6_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 182, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f6b6_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 182, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f6b6_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 182, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f6b6_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 182, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f6b6_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 182, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f6b6_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 182, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f6b6_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 182, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f6b6_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 141, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9cd_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 141, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9cd_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 141, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9cd_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 141, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9cd_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 141, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9cd_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 141, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9cd_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 141, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9cd_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 141, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9cd_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 141, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9cd_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 141, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9cd_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 142, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9ce_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 142, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9ce_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 142, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9ce_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 142, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9ce_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 142, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9ce_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 142, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9ce_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 142, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9ce_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 142, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9ce_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 142, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9ce_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 142, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9ce_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 131, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3c3_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 131, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3c3_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 131, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3c3_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 131, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3c3_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 131, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3c3_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 131, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3c3_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 131, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3c3_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 131, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3c3_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 131, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3c3_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 131, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3c3_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 150, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d6_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 150, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d6_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 150, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d6_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 150, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d6_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 150, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d6_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 150, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d6_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 150, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d6_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 150, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d6_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 226, 154, 149, 239, 184, 143] // 1f469_1f3fe_200d_2695_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 153, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d9_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 155, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9db_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 150, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d6_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 150, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d6_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 151, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d7_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 151, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d7_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 151, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d7_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 151, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d7_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 151, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d7_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 151, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d7_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 151, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d7_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 151, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d7_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 151, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d7_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 151, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d7_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 140, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3cc_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 140, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3cc_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 140, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3cc_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 140, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3cc_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 140, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3cc_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 140, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3cc_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 140, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3cc_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 132, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3c4_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 132, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3c4_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 132, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3c4_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 132, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3c4_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 132, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3c4_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 132, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3c4_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 140, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3cc_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 140, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3cc_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 140, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3cc_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 132, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3c4_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 132, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3c4_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 132, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3c4_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 132, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3c4_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 163, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f6a3_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 163, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f6a3_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 163, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f6a3_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 163, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f6a3_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 163, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f6a3_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 163, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f6a3_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 163, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f6a3_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 163, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f6a3_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 163, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f6a3_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 138, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3ca_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 138, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3ca_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 138, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3ca_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 138, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3ca_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 138, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3ca_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 138, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3ca_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 138, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3ca_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 138, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3ca_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 155, 185, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 26f9_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 155, 185, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 26f9_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 155, 185, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 26f9_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 155, 185, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 26f9_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 155, 185, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 26f9_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 155, 185, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 26f9_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 155, 185, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 26f9_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 155, 185, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 26f9_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 155, 185, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 26f9_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[226, 155, 185, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 26f9_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 139, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3cb_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 139, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3cb_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 139, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3cb_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 139, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3cb_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 139, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3cb_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 139, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3cb_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 139, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3cb_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 139, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3cb_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 139, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3cb_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 139, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f3cb_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 180, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f6b4_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 180, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f6b4_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 180, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f6b4_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 180, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f6b4_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 180, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f6b4_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 180, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f6b4_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 180, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f6b4_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 180, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f6b4_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 180, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f6b4_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 180, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f6b4_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 181, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f6b5_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 181, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f6b5_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 181, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f6b5_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 181, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f6b5_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 181, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f6b5_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 181, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f6b5_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 181, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f6b5_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 181, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f6b5_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 181, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f6b5_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 181, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f6b5_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 184, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f938_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 184, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f938_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 184, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f938_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 184, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f938_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 184, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f938_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 184, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f938_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 184, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f938_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 184, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f938_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 184, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f938_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 184, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f938_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 189, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f93d_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 189, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f93d_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 189, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f93d_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 189, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f93d_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 189, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f93d_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 189, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f93d_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 189, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f93d_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 189, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f93d_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 189, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f93d_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 189, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f93d_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 190, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f93e_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 190, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f93e_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 190, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f93e_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 190, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f93e_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 190, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f93e_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 190, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f93e_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 190, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f93e_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 190, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f93e_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 190, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f93e_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 190, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f93e_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 185, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f939_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 185, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f939_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 185, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f939_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 185, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f939_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 185, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f939_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 185, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f939_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 185, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f939_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 185, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f939_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 185, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f939_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 164, 185, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f939_1f3ff_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 152, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d8_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 152, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d8_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 152, 240, 159, 143, 189, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d8_1f3fd_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 152, 240, 159, 143, 190, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d8_1f3fe_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 152, 240, 159, 143, 191, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f9d8_1f3ff_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 152, 240, 159, 143, 187, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d8_1f3fb_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 152, 240, 159, 143, 188, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d8_1f3fc_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 152, 240, 159, 143, 189, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d8_1f3fd_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 152, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d8_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 138, 240, 159, 143, 188, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3ca_1f3fc_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 154, 163, 240, 159, 143, 190, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f6a3_1f3fe_200d_2640_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 143, 138, 240, 159, 143, 187, 226, 128, 141, 226, 153, 130, 239, 184, 143] // 1f3ca_1f3fb_200d_2642_fe0f
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 152, 240, 159, 143, 191, 226, 128, 141, 226, 153, 128, 239, 184, 143] // 1f9d8_1f3ff_200d_2640_fe0f
+        );
+        emojis
+    }
+
+    public(friend) fun seven_character_skin_tone_emojis(): vector<vector<u8>> {
+        let emojis: vector<vector<u8>> = vector[];
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 187] // 1f9d1_1f3fb_200d_1f91d_200d_1f9d1_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 188] // 1f9d1_1f3fb_200d_1f91d_200d_1f9d1_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 187] // 1f9d1_1f3fc_200d_1f91d_200d_1f9d1_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 188] // 1f9d1_1f3fc_200d_1f91d_200d_1f9d1_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 189] // 1f9d1_1f3fc_200d_1f91d_200d_1f9d1_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 190] // 1f9d1_1f3fc_200d_1f91d_200d_1f9d1_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 191] // 1f9d1_1f3fc_200d_1f91d_200d_1f9d1_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 187] // 1f9d1_1f3fd_200d_1f91d_200d_1f9d1_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 188] // 1f9d1_1f3fd_200d_1f91d_200d_1f9d1_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 189] // 1f9d1_1f3fd_200d_1f91d_200d_1f9d1_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 190] // 1f9d1_1f3fd_200d_1f91d_200d_1f9d1_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 191] // 1f9d1_1f3fd_200d_1f91d_200d_1f9d1_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 187] // 1f9d1_1f3fe_200d_1f91d_200d_1f9d1_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 188] // 1f9d1_1f3fe_200d_1f91d_200d_1f9d1_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 189] // 1f9d1_1f3fe_200d_1f91d_200d_1f9d1_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 190] // 1f9d1_1f3fe_200d_1f91d_200d_1f9d1_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 191] // 1f9d1_1f3fe_200d_1f91d_200d_1f9d1_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 188] // 1f9d1_1f3ff_200d_1f91d_200d_1f9d1_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 187] // 1f9d1_1f3ff_200d_1f91d_200d_1f9d1_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 189] // 1f9d1_1f3ff_200d_1f91d_200d_1f9d1_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 190] // 1f9d1_1f3ff_200d_1f91d_200d_1f9d1_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 191] // 1f9d1_1f3ff_200d_1f91d_200d_1f9d1_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 188] // 1f469_1f3fb_200d_1f91d_200d_1f469_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 189] // 1f469_1f3fb_200d_1f91d_200d_1f469_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 190] // 1f469_1f3fb_200d_1f91d_200d_1f469_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 191] // 1f469_1f3fb_200d_1f91d_200d_1f469_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 187] // 1f469_1f3fc_200d_1f91d_200d_1f469_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 189] // 1f469_1f3fc_200d_1f91d_200d_1f469_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 190] // 1f469_1f3fc_200d_1f91d_200d_1f469_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 190] // 1f9d1_1f3fb_200d_1f91d_200d_1f9d1_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 187] // 1f469_1f3fd_200d_1f91d_200d_1f469_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 188] // 1f469_1f3fd_200d_1f91d_200d_1f469_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 190] // 1f469_1f3fd_200d_1f91d_200d_1f469_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 191] // 1f469_1f3fd_200d_1f91d_200d_1f469_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 187] // 1f469_1f3fe_200d_1f91d_200d_1f469_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 188] // 1f469_1f3fe_200d_1f91d_200d_1f469_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 189] // 1f469_1f3fe_200d_1f91d_200d_1f469_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 191] // 1f469_1f3fe_200d_1f91d_200d_1f469_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 187] // 1f469_1f3ff_200d_1f91d_200d_1f469_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 188] // 1f469_1f3ff_200d_1f91d_200d_1f469_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 189] // 1f469_1f3ff_200d_1f91d_200d_1f469_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 190] // 1f469_1f3ff_200d_1f91d_200d_1f469_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 188] // 1f469_1f3fb_200d_1f91d_200d_1f468_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 189] // 1f469_1f3fb_200d_1f91d_200d_1f468_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 190] // 1f469_1f3fb_200d_1f91d_200d_1f468_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 191] // 1f469_1f3fb_200d_1f91d_200d_1f468_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 187] // 1f469_1f3fc_200d_1f91d_200d_1f468_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 189] // 1f469_1f3fc_200d_1f91d_200d_1f468_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 190] // 1f469_1f3fc_200d_1f91d_200d_1f468_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 191] // 1f469_1f3fc_200d_1f91d_200d_1f468_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 187] // 1f469_1f3fd_200d_1f91d_200d_1f468_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 188] // 1f469_1f3fd_200d_1f91d_200d_1f468_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 190] // 1f469_1f3fd_200d_1f91d_200d_1f468_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 191] // 1f469_1f3fc_200d_1f91d_200d_1f469_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 191] // 1f469_1f3fd_200d_1f91d_200d_1f468_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 189] // 1f9d1_1f3fb_200d_1f91d_200d_1f9d1_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 189] // 1f469_1f3fe_200d_1f91d_200d_1f468_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 191] // 1f469_1f3fe_200d_1f91d_200d_1f468_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 187] // 1f469_1f3ff_200d_1f91d_200d_1f468_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 188] // 1f469_1f3ff_200d_1f91d_200d_1f468_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 189] // 1f469_1f3ff_200d_1f91d_200d_1f468_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 190] // 1f469_1f3ff_200d_1f91d_200d_1f468_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 188] // 1f468_1f3fb_200d_1f91d_200d_1f468_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 189] // 1f468_1f3fb_200d_1f91d_200d_1f468_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 190] // 1f468_1f3fb_200d_1f91d_200d_1f468_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 191] // 1f9d1_1f3fb_200d_1f91d_200d_1f9d1_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 187] // 1f468_1f3fc_200d_1f91d_200d_1f468_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 189] // 1f468_1f3fc_200d_1f91d_200d_1f468_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 190] // 1f468_1f3fc_200d_1f91d_200d_1f468_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 191] // 1f468_1f3fc_200d_1f91d_200d_1f468_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 187] // 1f468_1f3fd_200d_1f91d_200d_1f468_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 188] // 1f468_1f3fd_200d_1f91d_200d_1f468_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 190] // 1f468_1f3fd_200d_1f91d_200d_1f468_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 191] // 1f468_1f3fd_200d_1f91d_200d_1f468_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 187] // 1f468_1f3fe_200d_1f91d_200d_1f468_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 188] // 1f468_1f3fe_200d_1f91d_200d_1f468_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 189] // 1f468_1f3fe_200d_1f91d_200d_1f468_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 191] // 1f468_1f3fe_200d_1f91d_200d_1f468_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 187] // 1f468_1f3ff_200d_1f91d_200d_1f468_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 188] // 1f468_1f3ff_200d_1f91d_200d_1f468_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 189] // 1f468_1f3ff_200d_1f91d_200d_1f468_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 187] // 1f469_1f3fe_200d_1f91d_200d_1f468_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 188] // 1f469_1f3fe_200d_1f91d_200d_1f468_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 191] // 1f468_1f3fb_200d_1f91d_200d_1f468_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 190] // 1f468_1f3ff_200d_1f91d_200d_1f468_1f3fe
+        );
+        emojis
+    }
+
+    public(friend) fun eight_character_skin_tone_emojis(): vector<vector<u8>> {
+        let emojis: vector<vector<u8>> = vector[];
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 187] // 1f9d1_1f3fb_200d_1f91d_200d_1f9d1_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 188] // 1f9d1_1f3fb_200d_1f91d_200d_1f9d1_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 189] // 1f9d1_1f3fb_200d_1f91d_200d_1f9d1_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 190] // 1f9d1_1f3fb_200d_1f91d_200d_1f9d1_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 191] // 1f9d1_1f3fb_200d_1f91d_200d_1f9d1_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 187] // 1f9d1_1f3fc_200d_1f91d_200d_1f9d1_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 188] // 1f9d1_1f3fc_200d_1f91d_200d_1f9d1_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 189] // 1f9d1_1f3fc_200d_1f91d_200d_1f9d1_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 190] // 1f9d1_1f3fc_200d_1f91d_200d_1f9d1_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 191] // 1f9d1_1f3fc_200d_1f91d_200d_1f9d1_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 187] // 1f9d1_1f3fd_200d_1f91d_200d_1f9d1_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 188] // 1f9d1_1f3fd_200d_1f91d_200d_1f9d1_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 189] // 1f9d1_1f3fd_200d_1f91d_200d_1f9d1_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 190] // 1f9d1_1f3fd_200d_1f91d_200d_1f9d1_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 191] // 1f9d1_1f3fd_200d_1f91d_200d_1f9d1_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 187] // 1f9d1_1f3fe_200d_1f91d_200d_1f9d1_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 188] // 1f9d1_1f3fe_200d_1f91d_200d_1f9d1_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 189] // 1f9d1_1f3fe_200d_1f91d_200d_1f9d1_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 190] // 1f9d1_1f3fe_200d_1f91d_200d_1f9d1_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 191] // 1f9d1_1f3fe_200d_1f91d_200d_1f9d1_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 187] // 1f9d1_1f3ff_200d_1f91d_200d_1f9d1_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 188] // 1f9d1_1f3ff_200d_1f91d_200d_1f9d1_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 189] // 1f9d1_1f3ff_200d_1f91d_200d_1f9d1_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 190] // 1f9d1_1f3ff_200d_1f91d_200d_1f9d1_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 167, 145, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 191] // 1f9d1_1f3ff_200d_1f91d_200d_1f9d1_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 188] // 1f469_1f3fb_200d_1f91d_200d_1f469_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 189] // 1f469_1f3fb_200d_1f91d_200d_1f469_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 190] // 1f469_1f3fb_200d_1f91d_200d_1f469_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 191] // 1f469_1f3fb_200d_1f91d_200d_1f469_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 187] // 1f469_1f3fc_200d_1f91d_200d_1f469_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 189] // 1f469_1f3fc_200d_1f91d_200d_1f469_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 190] // 1f469_1f3fc_200d_1f91d_200d_1f469_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 191] // 1f469_1f3fc_200d_1f91d_200d_1f469_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 187] // 1f469_1f3fd_200d_1f91d_200d_1f469_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 188] // 1f469_1f3fd_200d_1f91d_200d_1f469_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 190] // 1f469_1f3fd_200d_1f91d_200d_1f469_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 191] // 1f469_1f3fd_200d_1f91d_200d_1f469_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 187] // 1f469_1f3fe_200d_1f91d_200d_1f469_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 188] // 1f469_1f3fe_200d_1f91d_200d_1f469_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 189] // 1f469_1f3fe_200d_1f91d_200d_1f469_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 191] // 1f469_1f3fe_200d_1f91d_200d_1f469_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 187] // 1f469_1f3ff_200d_1f91d_200d_1f469_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 188] // 1f469_1f3ff_200d_1f91d_200d_1f469_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 189] // 1f469_1f3ff_200d_1f91d_200d_1f469_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 169, 240, 159, 143, 190] // 1f469_1f3ff_200d_1f91d_200d_1f469_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 188] // 1f469_1f3fb_200d_1f91d_200d_1f468_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 189] // 1f469_1f3fb_200d_1f91d_200d_1f468_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 190] // 1f469_1f3fb_200d_1f91d_200d_1f468_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 191] // 1f469_1f3fb_200d_1f91d_200d_1f468_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 187] // 1f469_1f3fc_200d_1f91d_200d_1f468_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 189] // 1f469_1f3fc_200d_1f91d_200d_1f468_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 190] // 1f469_1f3fc_200d_1f91d_200d_1f468_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 191] // 1f469_1f3fc_200d_1f91d_200d_1f468_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 187] // 1f469_1f3fd_200d_1f91d_200d_1f468_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 188] // 1f469_1f3fd_200d_1f91d_200d_1f468_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 190] // 1f469_1f3fd_200d_1f91d_200d_1f468_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 191] // 1f469_1f3fd_200d_1f91d_200d_1f468_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 187] // 1f469_1f3fe_200d_1f91d_200d_1f468_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 188] // 1f469_1f3fe_200d_1f91d_200d_1f468_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 189] // 1f469_1f3fe_200d_1f91d_200d_1f468_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 191] // 1f469_1f3fe_200d_1f91d_200d_1f468_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 187] // 1f469_1f3ff_200d_1f91d_200d_1f468_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 188] // 1f469_1f3ff_200d_1f91d_200d_1f468_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 189] // 1f469_1f3ff_200d_1f91d_200d_1f468_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 169, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 190] // 1f469_1f3ff_200d_1f91d_200d_1f468_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 188] // 1f468_1f3fb_200d_1f91d_200d_1f468_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 189] // 1f468_1f3fb_200d_1f91d_200d_1f468_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 191] // 1f468_1f3fb_200d_1f91d_200d_1f468_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 190] // 1f468_1f3fb_200d_1f91d_200d_1f468_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 187] // 1f468_1f3fc_200d_1f91d_200d_1f468_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 189] // 1f468_1f3fc_200d_1f91d_200d_1f468_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 190] // 1f468_1f3fc_200d_1f91d_200d_1f468_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 191] // 1f468_1f3fc_200d_1f91d_200d_1f468_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 187] // 1f468_1f3fd_200d_1f91d_200d_1f468_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 188] // 1f468_1f3fd_200d_1f91d_200d_1f468_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 191] // 1f468_1f3fd_200d_1f91d_200d_1f468_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 189, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 190] // 1f468_1f3fd_200d_1f91d_200d_1f468_1f3fe
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 188] // 1f468_1f3fe_200d_1f91d_200d_1f468_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 187] // 1f468_1f3fe_200d_1f91d_200d_1f468_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 189] // 1f468_1f3fe_200d_1f91d_200d_1f468_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 190, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 191] // 1f468_1f3fe_200d_1f91d_200d_1f468_1f3ff
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 188] // 1f468_1f3ff_200d_1f91d_200d_1f468_1f3fc
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 187] // 1f468_1f3ff_200d_1f91d_200d_1f468_1f3fb
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 189] // 1f468_1f3ff_200d_1f91d_200d_1f468_1f3fd
+        );
+        vector::push_back(&mut emojis,
+            vector[240, 159, 145, 168, 240, 159, 143, 191, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 145, 168, 240, 159, 143, 190] // 1f468_1f3ff_200d_1f91d_200d_1f468_1f3fe
+        );
+        emojis
+    }
 }
