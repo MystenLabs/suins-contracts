@@ -2,25 +2,15 @@
 module suins::emoji_tests {
 
     use suins::emoji;
-    use sui::test_scenario::Scenario;
     use sui::test_scenario;
-    use suins::emoji::EmojiConfiguration;
-
-    fun test_init(): Scenario {
-        let scenario = test_scenario::begin(@0x2);
-        {
-            let ctx = test_scenario::ctx(&mut scenario);
-            emoji::test_init(ctx);
-        };
-        scenario
-    }
 
     #[test]
-    fun test_validate_emoji() {
-        let scenario = test_init();
+    fun test_validate_label_with_emojis() {
+        let scenario = test_scenario::begin(@0x2);
+
         test_scenario::next_tx(&mut scenario, @0x2);
         {
-            let emoji_config = test_scenario::take_shared<EmojiConfiguration>(&mut scenario);
+            let emoji_config = emoji::init_emoji_config();
             let emoji = vector[
                 98, // 'b'
                 99, // 'c'
@@ -105,7 +95,7 @@ module suins::emoji_tests {
                 226, 128, 141,
                 240, 159, 145, 166,
                 97, // a
-                 240, 159, 145, 169, // 1f469_200d_1f469_200d_1f467_200d_1f467
+                240, 159, 145, 169, // 1f469_200d_1f469_200d_1f467_200d_1f467
                 226, 128, 141,
                 240, 159, 145, 169,
                 226, 128, 141,
@@ -157,43 +147,105 @@ module suins::emoji_tests {
                 226, 128, 141,
                 240, 159, 145, 169,
                 240, 159, 143, 188,
-                // 240, 159, 145, 169, // 1f469_1f3ff_200d_2764_fe0f_200d_1f468_1f3fc skin tone
-                // 240, 159, 143, 191,
-                // 226, 128, 141,
-                // 226, 157, 164,
-                // 239, 184, 143,
-                // 226, 128, 141,
-                // 240, 159, 145, 168,
-                // 240, 159, 143, 188,
+                240, 159, 145, 169, // 1f469_1f3ff_200d_2764_fe0f_200d_1f468_1f3fc skin tone
+                240, 159, 143, 191,
+                226, 128, 141,
+                226, 157, 164,
+                239, 184, 143,
+                226, 128, 141,
+                240, 159, 145, 168,
+                240, 159, 143, 188,
+                240, 159, 167, 145, // 1f9d1_1f3fb_200d_2764_fe0f_200d_1f48b_200d_1f9d1_1f3ff
+                240, 159, 143, 187,
+                226, 128, 141,
+                226, 157, 164,
+                239, 184, 143,
+                226, 128, 141,
+                240, 159, 146, 139,
+                226, 128, 141,
+                240, 159, 167, 145,
+                240, 159, 143, 191,
+                240, 159, 153, 141, // 1f64d
             ];
-            emoji::validate_emoji(&emoji_config, emoji);
-            test_scenario::return_shared(emoji_config);
+            emoji::validate_label_with_emoji(&emoji_config, emoji);
         };
         test_scenario::end(scenario);
     }
 
     #[test]
-    fun test_validate_emoji_works_with_alphabet() {
-        let scenario = test_init();
+    fun test_validate_label_with_emoji_works_with_alphabet() {
+        let scenario = test_scenario::begin(@0x2);
         test_scenario::next_tx(&mut scenario, @0x2);
         {
-            let emoji_config = test_scenario::take_shared<EmojiConfiguration>(&mut scenario);
+            let emoji_config = emoji::init_emoji_config();
             let emoji = vector[
                 98, // 'b'
                 99, // 'c'
+                100, // 'd'
             ];
-            emoji::validate_emoji(&emoji_config, emoji);
-            test_scenario::return_shared(emoji_config);
+            emoji::validate_label_with_emoji(&emoji_config, emoji);
+            let emoji = vector[
+                240, 159, 146, 150, // 1f496
+                240, 159, 171, 178, // 1faf2
+                240, 159, 171, 129 // 1fac1
+            ];
+            emoji::validate_label_with_emoji(&emoji_config, emoji);
         };
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = emoji::EInvalidCharacter)]
-    fun test_validate_emoji_aborts_with_alphabet_and_emoji_and_non_emoji_unicode() {
-        let scenario = test_init();
+    #[test]
+    fun test_validate_label_with_emoji() {
+        let scenario = test_scenario::begin(@0x2);
         test_scenario::next_tx(&mut scenario, @0x2);
         {
-            let emoji_config = test_scenario::take_shared<EmojiConfiguration>(&mut scenario);
+            let emoji_config = emoji::init_emoji_config();
+            let emoji = vector[
+                98, // 'b'
+                99, // 'c'
+                240, 159, 145, 180 // 1f474
+            ];
+            emoji::validate_label_with_emoji(&emoji_config, emoji);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
+    fun test_validate_label_with_2_emojis_abort() {
+        let scenario = test_scenario::begin(@0x2);
+        test_scenario::next_tx(&mut scenario, @0x2);
+        {
+            let emoji_config = emoji::init_emoji_config();
+            let emoji = vector[
+                240, 159, 167, 147, // 1f9d3
+                240, 159, 145, 180 // 1f474
+            ];
+            emoji::validate_label_with_emoji(&emoji_config, emoji);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
+    fun test_validate_label_with_emoji_aborts_if_label_too_short() {
+        let scenario = test_scenario::begin(@0x2);
+        test_scenario::next_tx(&mut scenario, @0x2);
+        {
+            let emoji_config = emoji::init_emoji_config();
+            let emoji = vector[
+                98, // 'b'
+                99, // 'c'
+            ];
+            emoji::validate_label_with_emoji(&emoji_config, emoji);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = emoji::EInvalidEmojiSequence)]
+    fun test_validate_label_with_emoji_aborts_with_alphabet_and_emoji_and_non_emoji_unicode() {
+        let scenario = test_scenario::begin(@0x2);
+        test_scenario::next_tx(&mut scenario, @0x2);
+        {
+            let emoji_config = emoji::init_emoji_config();
             let emoji = vector[
                 98, // 'b'
                 99, // 'c'
@@ -202,42 +254,25 @@ module suins::emoji_tests {
                 226, 128, 141,
                 240, 159, 171, 178,
                 240, 159, 143, 187,
-                112, 104, 97, 110, 107, 225, 187, 179,
+                227, 129, 185, // 30d9 non emoji
             ];
-            emoji::validate_emoji(&emoji_config, emoji);
-            test_scenario::return_shared(emoji_config);
+            emoji::validate_label_with_emoji(&emoji_config, emoji);
         };
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = emoji::EInvalidCharacter)]
-    fun test_validate_emoji_aborts_with_alphabet_and_non_emoji_unicode() {
-        let scenario = test_init();
+    #[test, expected_failure(abort_code = emoji::EInvalidEmojiSequence)]
+    fun test_validate_label_with_emoji_aborts_with_alphabet_and_non_emoji_unicode() {
+        let scenario = test_scenario::begin(@0x2);
         test_scenario::next_tx(&mut scenario, @0x2);
         {
-            let emoji_config = test_scenario::take_shared<EmojiConfiguration>(&mut scenario);
+            let emoji_config = emoji::init_emoji_config();
             let emoji = vector[
                 98, // 'b'
                 99, // 'c'
-                112, 104, 97, 110, 107, 225, 187, 179,
+                227, 129, 185, // 30d9 non emoji
             ];
-            emoji::validate_emoji(&emoji_config, emoji);
-            test_scenario::return_shared(emoji_config);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test, expected_failure(abort_code = emoji::EInvalidCharacter)]
-    fun test_validate_emoji_abort_with_non_emoji_unicode() {
-        let scenario = test_init();
-        test_scenario::next_tx(&mut scenario, @0x2);
-        {
-            let emoji_config = test_scenario::take_shared<EmojiConfiguration>(&mut scenario);
-            let emoji = vector[
-                112, 104, 97, 110, 107, 225, 187, 179
-            ];
-            emoji::validate_emoji(&emoji_config, emoji);
-            test_scenario::return_shared(emoji_config);
+            emoji::validate_label_with_emoji(&emoji_config, emoji);
         };
         test_scenario::end(scenario);
     }

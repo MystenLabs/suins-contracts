@@ -2,18 +2,17 @@ module suins::emoji {
 
     use std::string::{Self, String, utf8};
     use std::vector;
-    use sui::tx_context::TxContext;
-    use sui::object::{Self, UID};
-    use sui::transfer;
     use suins::emoji_resource;
 
-    const EInvalidEmojiSequence: u64 = 702;
-    const EInvalidCharacter: u64 = 703;
+    friend suins::configuration;
 
-    struct EmojiConfiguration has key {
-        id: UID,
+    const EInvalidEmojiSequence: u64 = 702;
+    const EInvalidLabel: u64 = 704;
+
+    struct EmojiConfiguration has store, drop {
         joiner: vector<u8>,
         variant: vector<u8>,
+        one_character_emojis: vector<vector<u8>>,
         two_character_emojis: vector<vector<u8>>,
         three_character_emojis: vector<vector<u8>>,
         four_character_emojis: vector<vector<u8>>,
@@ -26,6 +25,7 @@ module suins::emoji {
         five_character_skin_tone_emojis: vector<vector<u8>>,
         seven_character_skin_tone_emojis: vector<vector<u8>>,
         eight_character_skin_tone_emojis: vector<vector<u8>>,
+        ten_character_skin_tone_emojis: vector<vector<u8>>,
         skin_tones: vector<vector<u8>>,
     }
 
@@ -36,6 +36,7 @@ module suins::emoji {
         to: u64,
         no_characters: u64,
         is_skin_tone: bool,
+        is_single_byte: bool,
     }
 
     struct UTF8Character has drop {
@@ -43,7 +44,8 @@ module suins::emoji {
         no_bytes: u64,
     }
 
-    fun init(ctx: &mut TxContext) {
+    public(friend) fun init_emoji_config(): EmojiConfiguration {
+        let one_character_emojis = emoji_resource::one_character_emojis();
         let two_character_emojis = emoji_resource::two_character_emojis();
         let three_character_emojis = emoji_resource::three_character_emojis();
         let four_character_emojis = emoji_resource::four_character_emojis();
@@ -56,6 +58,7 @@ module suins::emoji {
         let five_character_skin_tone_emojis = emoji_resource::five_character_skin_tone_emojis();
         let seven_character_skin_tone_emojis = emoji_resource::seven_character_skin_tone_emojis();
         let eight_character_skin_tone_emojis = emoji_resource::eight_character_skin_tone_emojis();
+        let ten_character_skin_tone_emojis = emoji_resource::ten_character_skin_tone_emojis();
         let skin_tones = vector[
             vector[240, 159, 143, 187], // light skin tone U+1F3FB
             vector[240, 159, 143, 188], // medium-light skin tone U+1F3FC
@@ -63,10 +66,10 @@ module suins::emoji {
             vector[240, 159, 143, 190], // medium-dark skin tone U+1F3FE
             vector[240, 159, 143, 191], // dark skin tone U+1F3FF
         ];
-        transfer::share_object(EmojiConfiguration {
-            id: object::new(ctx),
+        EmojiConfiguration {
             joiner: vector[226, 128, 141], // U+200D
             variant: vector[239, 184, 143], // U+FE0F
+            one_character_emojis,
             two_character_emojis,
             three_character_emojis,
             four_character_emojis,
@@ -79,23 +82,36 @@ module suins::emoji {
             five_character_skin_tone_emojis,
             seven_character_skin_tone_emojis,
             eight_character_skin_tone_emojis,
+            ten_character_skin_tone_emojis,
             skin_tones,
-        });
+        }
     }
 
-    public fun validate_emoji(emoji_config: &EmojiConfiguration, str: vector<u8>) {
+    // Valid label have between 3 to 63 characters and contain only: lowercase (a-z), numbers (0-9), hyphen (-).
+    // A name may not start or end with a hyphen
+    public fun validate_label_with_emoji(emoji_config: &EmojiConfiguration, str: vector<u8>) {
         let emojis = to_emoji_sequences(emoji_config, str);
         let str = utf8(str);
         let len = vector::length(&emojis);
         let index = 0;
+        assert!(2 < len && len < 64, EInvalidLabel);
 
         while (index < len) {
             let emoji_metadata = vector::borrow(&emojis, index);
-            if (emoji_metadata.no_characters == 1) {
+            let emoji = string::sub_string(&str, emoji_metadata.from, emoji_metadata.to);
+            if (emoji_metadata.is_single_byte) {
+                let bytes = string::bytes(&emoji);
+                let byte = *vector::borrow(bytes, 0);
+                assert!(
+                    (0x61 <= byte && byte <= 0x7A)                           // a-z
+                        || (0x30 <= byte && byte <= 0x39)                    // 0-9
+                        || (byte == 0x2D && index != 0 && index != len - 1), // -
+                    EInvalidLabel
+                );
                 index = index + 1;
                 continue
             };
-            let emoji = string::sub_string(&str, emoji_metadata.from, emoji_metadata.to);
+
             if (emoji_metadata.is_skin_tone) {
                 if (emoji_metadata.no_characters == 2)
                     assert!(vector::contains(&emoji_config.two_character_skin_tone_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
@@ -107,9 +123,13 @@ module suins::emoji {
                     assert!(vector::contains(&emoji_config.seven_character_skin_tone_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
                 else if (emoji_metadata.no_characters == 8)
                     assert!(vector::contains(&emoji_config.eight_character_skin_tone_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
+                else if (emoji_metadata.no_characters == 10)
+                    assert!(vector::contains(&emoji_config.ten_character_skin_tone_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
                 else abort EInvalidEmojiSequence;
             } else {
-                if (emoji_metadata.no_characters == 2)
+                if (emoji_metadata.no_characters == 1)
+                    assert!(vector::contains(&emoji_config.one_character_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
+                else if (emoji_metadata.no_characters == 2)
                     assert!(vector::contains(&emoji_config.two_character_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
                 else if (emoji_metadata.no_characters == 3)
                     assert!(vector::contains(&emoji_config.three_character_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
@@ -137,7 +157,7 @@ module suins::emoji {
         if (192 <= first_byte && first_byte <= 223) return 2;
         if (224 <= first_byte && first_byte <= 239) return 3;
         if (240 <= first_byte && first_byte <= 247) return 4;
-        abort(EInvalidCharacter)
+        abort(EInvalidLabel)
     }
 
     fun to_utf8_characters(bytes: &vector<u8>): vector<UTF8Character> {
@@ -169,32 +189,28 @@ module suins::emoji {
         let from = 0;
         let to = 0;
         let no_characters = 0;
+        let remaining_characters = len;
 
         while (index < len) {
             let character = vector::borrow(&characters, index);
+            let bytes = string::bytes(&character.char);
             to = to + character.no_bytes;
             no_characters = no_characters + 1;
 
             // is alphabet character
             if (character.no_bytes == 1) {
-                if (is_preceding_character_scalar) {
+                if (no_characters > 1) {
                     vector::push_back(&mut result, UTF8Emoji {
                         from,
                         to: to - 1,
                         no_characters: no_characters - 1,
-                        is_skin_tone
+                        is_skin_tone,
+                        is_single_byte: false,
                     });
-                    from = to - 1;
+                    remaining_characters = remaining_characters - no_characters + 1;
                 };
-                let bytes = string::bytes(&character.char);
-                let byte = *vector::borrow(bytes, 0);
-                assert!(
-                    (0x61 <= byte && byte <= 0x7A)                           // a-z
-                        || (0x30 <= byte && byte <= 0x39)                    // 0-9
-                        || (byte == 0x2D && index != 0 && index != len - 1), // -
-                    EInvalidCharacter
-                );
-                vector::push_back(&mut result, UTF8Emoji { from, to, no_characters: 1, is_skin_tone});
+                vector::push_back(&mut result, UTF8Emoji { from: to - 1, to, no_characters: 1, is_skin_tone, is_single_byte: true });
+                remaining_characters = remaining_characters - 1;
                 from = to;
                 is_skin_tone = false;
                 no_characters = 0;
@@ -203,11 +219,13 @@ module suins::emoji {
                 continue
             };
 
-            if (vector::contains(&emoji_config.skin_tones, string::bytes(&character.char))) {
+            if (vector::contains(&emoji_config.skin_tones, bytes)) {
                 assert!(is_preceding_character_scalar, EInvalidEmojiSequence);
                 is_skin_tone = true;
-                if (index == len - 1)
-                    vector::push_back(&mut result, UTF8Emoji { from, to, no_characters, is_skin_tone });
+                if (index == len - 1) {
+                    vector::push_back(&mut result, UTF8Emoji { from, to, no_characters, is_skin_tone, is_single_byte: false });
+                    remaining_characters = remaining_characters - no_characters;
+                };
                 index = index + 1;
                 continue
             };
@@ -215,7 +233,8 @@ module suins::emoji {
             if (is_emoji_sequence_with_two_characters(&character.char)) {
                 let next_character = vector::borrow(&characters, index + 1);
                 to = to + next_character.no_bytes;
-                vector::push_back(&mut result, UTF8Emoji { from, to, no_characters: 2, is_skin_tone });
+                vector::push_back(&mut result, UTF8Emoji { from, to, no_characters: 2, is_skin_tone, is_single_byte: false });
+                remaining_characters = remaining_characters - 2;
                 no_characters = 0;
                 is_skin_tone = false;
                 from = to;
@@ -224,12 +243,29 @@ module suins::emoji {
                 continue
             };
 
-            if (*string::bytes(&character.char) == emoji_config.variant) {
+            // // special case, i.e. 0023_fe0f_20e3
+            // if (*bytes == vector[226, 131, 163]) {
+            //     std::debug::print(bytes);
+            //     std::debug::print(&character.char);
+            //     std::debug::print(&no_characters);
+            //     assert!(no_characters == 3, EInvalidLabel);
+            //     assert!(!is_skin_tone, EInvalidLabel);
+            //     // preceding character has to be 'FE0F'
+            //     assert!(!is_preceding_character_scalar, EInvalidLabel);
+            //     vector::push_back(&mut result, UTF8Emoji { from, to, no_characters, is_skin_tone, is_single_byte: false });
+            //     no_characters = 0;
+            //     from = to;
+            //     index = index + 1;
+            //     continue
+            // };
+
+            if (*bytes == emoji_config.variant) {
                 // variant character is either at the last position, or followed by the joiner character
                 if (index < len - 1) {
                     let next_character = vector::borrow(&characters, index + 1);
                     if (*string::bytes(&next_character.char) != emoji_config.joiner) {
-                        vector::push_back(&mut result, UTF8Emoji { from, to, no_characters, is_skin_tone });
+                        vector::push_back(&mut result, UTF8Emoji { from, to, no_characters, is_skin_tone, is_single_byte: false });
+                        remaining_characters = remaining_characters - no_characters;
                         no_characters = 0;
                         from = to;
                         is_skin_tone = false;
@@ -238,40 +274,45 @@ module suins::emoji {
                 } else {
                     // this variant character is at the end of the input string,
                     // so this emoji sequence has to end here
-                    vector::push_back(&mut result, UTF8Emoji { from, to, no_characters, is_skin_tone });
+                    vector::push_back(&mut result, UTF8Emoji { from, to, no_characters, is_skin_tone, is_single_byte: false });
+                    remaining_characters = remaining_characters - no_characters;
                 };
                 index = index + 1;
                 continue
             };
 
-            if (*string::bytes(&character.char) != emoji_config.joiner) {
+            if (*bytes != emoji_config.joiner) {
                 if (is_preceding_character_scalar) {
                     // 2 scalar characters cannot stand next to each other in a emoji sequence,
                     // so the previous scalar character is the end of its emoji sequence
                     vector::push_back(&mut result, UTF8Emoji {
                         from,
-                        to: to - vector::length(string::bytes(&character.char)),
+                        to: to - vector::length(bytes),
                         no_characters: no_characters - 1,
-                        is_skin_tone
+                        is_skin_tone,
+                        is_single_byte: false
                     });
+                    remaining_characters = remaining_characters - no_characters + 1;
                     no_characters = 1;
                     is_skin_tone = false;
-                    from = to - vector::length(string::bytes(&character.char));
+                    from = to - vector::length(bytes);
                 };
                 if (index == len - 1) {
-                    assert!(no_characters > 1, EInvalidCharacter);
                     vector::push_back(&mut result, UTF8Emoji {
                         from,
                         to,
                         no_characters,
-                        is_skin_tone
+                        is_skin_tone,
+                        is_single_byte: false
                     });
+                    remaining_characters = remaining_characters - no_characters;
                 };
                 is_preceding_character_scalar = true;
             } else is_preceding_character_scalar = false;
 
             index = index + 1;
         };
+        assert!(remaining_characters == 0, EInvalidLabel);
         result
     }
 
@@ -293,45 +334,10 @@ module suins::emoji {
         false
     }
 
-    #[test_only]
-    /// Wrapper of module initializer for testing
-    public fun test_init(ctx: &mut TxContext) {
-        let two_character_emojis = emoji_resource::two_character_emojis();
-        let three_character_emojis = emoji_resource::three_character_emojis();
-        let four_character_emojis = emoji_resource::four_character_emojis();
-        let five_character_emojis = emoji_resource::five_character_emojis();
-        let six_character_emojis = emoji_resource::six_character_emojis();
-        let seven_character_emojis = emoji_resource::seven_character_emojis();
-        let eight_character_emojis = emoji_resource::eight_character_emojis();
-        let two_character_skin_tone_emojis = emoji_resource::two_character_skin_tone_emojis();
-        let four_character_skin_tone_emojis = emoji_resource::four_character_skin_tone_emojis();
-        let five_character_skin_tone_emojis = emoji_resource::five_character_skin_tone_emojis();
-        let seven_character_skin_tone_emojis = emoji_resource::seven_character_skin_tone_emojis();
-        let eight_character_skin_tone_emojis = emoji_resource::eight_character_skin_tone_emojis();
-        let skin_tones = vector[
-            vector[240, 159, 143, 187], // light skin tone U+1F3FB
-            vector[240, 159, 143, 188], // medium-light skin tone U+1F3FC
-            vector[240, 159, 143, 189], // medium skin tone U+1F3FD
-            vector[240, 159, 143, 190], // medium-dark skin tone U+1F3FE
-            vector[240, 159, 143, 191], // dark skin tone U+1F3FF
-        ];
-        transfer::share_object(EmojiConfiguration {
-            id: object::new(ctx),
-            joiner: vector[226, 128, 141], // U+200D
-            variant: vector[239, 184, 143], // U+FE0F
-            two_character_emojis,
-            three_character_emojis,
-            four_character_emojis,
-            five_character_emojis,
-            six_character_emojis,
-            seven_character_emojis,
-            eight_character_emojis,
-            two_character_skin_tone_emojis,
-            four_character_skin_tone_emojis,
-            five_character_skin_tone_emojis,
-            seven_character_skin_tone_emojis,
-            eight_character_skin_tone_emojis,
-            skin_tones,
-        });
+    fun is_special_byte(_byte: u8): bool {
+        false
     }
+
+    #[test_only]
+    friend suins::emoji_tests;
 }
