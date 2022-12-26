@@ -1,48 +1,26 @@
 #[test_only]
-module suins::emoticon_tests {
+module suins::emoji_tests {
 
-    use suins::emoticon;
-    use std::vector;
+    use suins::emoji;
     use sui::test_scenario::Scenario;
     use sui::test_scenario;
-    use suins::emoticon::EmojiConfiguration;
+    use suins::emoji::EmojiConfiguration;
 
     fun test_init(): Scenario {
         let scenario = test_scenario::begin(@0x2);
         {
             let ctx = test_scenario::ctx(&mut scenario);
-            emoticon::test_init(ctx);
-
+            emoji::test_init(ctx);
         };
         scenario
     }
 
-    // #[test]
-    // fun test_ky_emoticon() {
-    //     assert!(emoticon::get_no_bytes_of_utf8(120) == 1, 0);
-    //     assert!(emoticon::get_no_bytes_of_utf8(194) == 2, 0);
-    //     assert!(emoticon::get_no_bytes_of_utf8(226) == 3, 0);
-    //     assert!(emoticon::get_no_bytes_of_utf8(240) == 4, 0);
-    // }
-
-    // #[test]
-    // fun test_ky_to_list_utf8_characters() {
-    //     let expected_res = vector[];
-    //     vector::push_back(&mut expected_res, utf8(vector[194, 163]));
-    //     vector::push_back(&mut expected_res, utf8(vector[226, 130, 172]));
-    //     vector::push_back(&mut expected_res, utf8(vector[240, 144, 141, 136]));
-    //     assert!(
-    //         expected_res == (emoticon::split_to_utf8_character(&vector[194, 163, 226, 130, 172, 240, 144, 141, 136])),
-    //         0
-    //     );
-    // }
-
     #[test]
-    fun test_ky_validate_emoticon() {
+    fun test_validate_emoji() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, @0x2);
         {
-            let emoticon = test_scenario::take_shared<EmojiConfiguration>(&mut scenario);
+            let emoji_config = test_scenario::take_shared<EmojiConfiguration>(&mut scenario);
             let emoji = vector[
                 98, // 'b'
                 99, // 'c'
@@ -179,24 +157,88 @@ module suins::emoticon_tests {
                 226, 128, 141,
                 240, 159, 145, 169,
                 240, 159, 143, 188,
-                240, 159, 145, 169, // 1f469_1f3ff_200d_2764_fe0f_200d_1f468_1f3fc skin tone
-                240, 159, 143, 191,
-                226, 128, 141,
-                226, 157, 164,
-                239, 184, 143,
-                226, 128, 141,
-                240, 159, 145, 168,
-                240, 159, 143, 188,
+                // 240, 159, 145, 169, // 1f469_1f3ff_200d_2764_fe0f_200d_1f468_1f3fc skin tone
+                // 240, 159, 143, 191,
+                // 226, 128, 141,
+                // 226, 157, 164,
+                // 239, 184, 143,
+                // 226, 128, 141,
+                // 240, 159, 145, 168,
+                // 240, 159, 143, 188,
             ];
-            let found = emoticon::validate_emoji(&emoticon, emoji);
-            std::debug::print(&vector::length(&found));
-            assert!(vector::length(&found) == 37, 0);
-            test_scenario::return_shared(emoticon);
+            emoji::validate_emoji(&emoji_config, emoji);
+            test_scenario::return_shared(emoji_config);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_validate_emoji_works_with_alphabet() {
+        let scenario = test_init();
+        test_scenario::next_tx(&mut scenario, @0x2);
+        {
+            let emoji_config = test_scenario::take_shared<EmojiConfiguration>(&mut scenario);
+            let emoji = vector[
+                98, // 'b'
+                99, // 'c'
+            ];
+            emoji::validate_emoji(&emoji_config, emoji);
+            test_scenario::return_shared(emoji_config);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = emoji::EInvalidCharacter)]
+    fun test_validate_emoji_aborts_with_alphabet_and_emoji_and_non_emoji_unicode() {
+        let scenario = test_init();
+        test_scenario::next_tx(&mut scenario, @0x2);
+        {
+            let emoji_config = test_scenario::take_shared<EmojiConfiguration>(&mut scenario);
+            let emoji = vector[
+                98, // 'b'
+                99, // 'c'
+                240, 159, 171, 177, // 1faf1_1f3fd_200d_1faf2_1f3fb skin-tone
+                240, 159, 143, 189,
+                226, 128, 141,
+                240, 159, 171, 178,
+                240, 159, 143, 187,
+                112, 104, 97, 110, 107, 225, 187, 179,
+            ];
+            emoji::validate_emoji(&emoji_config, emoji);
+            test_scenario::return_shared(emoji_config);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = emoji::EInvalidCharacter)]
+    fun test_validate_emoji_aborts_with_alphabet_and_non_emoji_unicode() {
+        let scenario = test_init();
+        test_scenario::next_tx(&mut scenario, @0x2);
+        {
+            let emoji_config = test_scenario::take_shared<EmojiConfiguration>(&mut scenario);
+            let emoji = vector[
+                98, // 'b'
+                99, // 'c'
+                112, 104, 97, 110, 107, 225, 187, 179,
+            ];
+            emoji::validate_emoji(&emoji_config, emoji);
+            test_scenario::return_shared(emoji_config);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = emoji::EInvalidCharacter)]
+    fun test_validate_emoji_abort_with_non_emoji_unicode() {
+        let scenario = test_init();
+        test_scenario::next_tx(&mut scenario, @0x2);
+        {
+            let emoji_config = test_scenario::take_shared<EmojiConfiguration>(&mut scenario);
+            let emoji = vector[
+                112, 104, 97, 110, 107, 225, 187, 179
+            ];
+            emoji::validate_emoji(&emoji_config, emoji);
+            test_scenario::return_shared(emoji_config);
         };
         test_scenario::end(scenario);
     }
 }
-
-// assert!(emoticon::get_no_bytes_utf8(&vector[194, 163]) == 2, 0);
-// assert!(emoticon::get_no_bytes_utf8(&vector[226, 130, 172]) == 3, 0);
-// assert!(emoticon::get_no_bytes_utf8(&vector[240, 144, 141, 136]) == 4, 0);
