@@ -12,6 +12,8 @@ module suins::emoji {
     struct EmojiConfiguration has store, drop {
         joiner: vector<u8>,
         variant: vector<u8>,
+        combining_enclosing: vector<u8>, // U+20E3, used to check special cases of 3-character sequences
+        latin_small_g: vector<u8>, // U+E0067, used to check special cases of 7-character sequences
         one_character_emojis: vector<vector<u8>>,
         two_character_emojis: vector<vector<u8>>,
         three_character_emojis: vector<vector<u8>>,
@@ -69,6 +71,8 @@ module suins::emoji {
         EmojiConfiguration {
             joiner: vector[226, 128, 141], // U+200D
             variant: vector[239, 184, 143], // U+FE0F
+            combining_enclosing: vector[226, 131, 163], // U+20E3
+            latin_small_g: vector[243, 160, 129, 167], // U+E0067
             one_character_emojis,
             two_character_emojis,
             three_character_emojis,
@@ -207,7 +211,26 @@ module suins::emoji {
                         is_skin_tone,
                         is_single_byte: false,
                     });
-                    remaining_characters = remaining_characters - no_characters + 1;
+                    from = to - 1;
+                    remaining_characters = remaining_characters + 1 - no_characters;
+                };
+                // check for special cases that end with u+20e3, i.e. 0023_fe0f_20e3
+                if (index < len - 2) {
+                    let next_next_character = vector::borrow(&characters, index + 2);
+                    let bytes = string::bytes(&next_next_character.char);
+                    if (*bytes == emoji_config.combining_enclosing) {
+                        assert!(!is_skin_tone, EInvalidLabel);
+                        let next_character = vector::borrow(&characters, index + 2);
+                        to = to + next_character.no_bytes;
+                        to = to + next_next_character.no_bytes;
+                        vector::push_back(&mut result, UTF8Emoji { from, to, no_characters: 3, is_skin_tone, is_single_byte: false });
+                        remaining_characters = remaining_characters - 3;
+                        no_characters = 0;
+                        from = to;
+                        index = index + 3;
+                        is_preceding_character_scalar = false;
+                        continue
+                    };
                 };
                 vector::push_back(&mut result, UTF8Emoji { from: to - 1, to, no_characters: 1, is_skin_tone, is_single_byte: true });
                 remaining_characters = remaining_characters - 1;
@@ -216,6 +239,32 @@ module suins::emoji {
                 no_characters = 0;
                 is_preceding_character_scalar = false;
                 index = index + 1;
+                continue
+            };
+
+            if (*bytes == emoji_config.latin_small_g) {
+                // special cases, i.e. 1f3f4_e0067_e0062_e0065_e006e_e0067_e007f
+                // if matches with E0067 => the next 5 characters are in the same emoji sequence
+                assert!(!is_skin_tone, EInvalidLabel);
+                assert!(no_characters == 2, EInvalidLabel);
+                let i = 1;
+                while (i <= 5) {
+                    let character = vector::borrow(&characters, index + i);
+                    to = to + character.no_bytes;
+                    i = i + 1;
+                };
+                vector::push_back(&mut result, UTF8Emoji {
+                    from,
+                    to,
+                    no_characters: 7,
+                    is_skin_tone,
+                    is_single_byte: false,
+                });
+                remaining_characters = remaining_characters - 7;
+                from = to;
+                no_characters = 0;
+                is_preceding_character_scalar = false;
+                index = index + 6;
                 continue
             };
 
@@ -242,22 +291,6 @@ module suins::emoji {
                 index = index + 2;
                 continue
             };
-
-            // // special case, i.e. 0023_fe0f_20e3
-            // if (*bytes == vector[226, 131, 163]) {
-            //     std::debug::print(bytes);
-            //     std::debug::print(&character.char);
-            //     std::debug::print(&no_characters);
-            //     assert!(no_characters == 3, EInvalidLabel);
-            //     assert!(!is_skin_tone, EInvalidLabel);
-            //     // preceding character has to be 'FE0F'
-            //     assert!(!is_preceding_character_scalar, EInvalidLabel);
-            //     vector::push_back(&mut result, UTF8Emoji { from, to, no_characters, is_skin_tone, is_single_byte: false });
-            //     no_characters = 0;
-            //     from = to;
-            //     index = index + 1;
-            //     continue
-            // };
 
             if (*bytes == emoji_config.variant) {
                 // variant character is either at the last position, or followed by the joiner character
@@ -331,10 +364,6 @@ module suins::emoji {
 
         let fourth_byte = *vector::borrow(bytes, 3);
         if (166 <= fourth_byte && fourth_byte <= 191) return true;
-        false
-    }
-
-    fun is_special_byte(_byte: u8): bool {
         false
     }
 
