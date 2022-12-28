@@ -145,6 +145,8 @@ module suins::emoji {
                     assert!(vector::contains(&emoji_config.six_character_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
                 else if (emoji_metadata.no_characters == 7)
                     assert!(vector::contains(&emoji_config.seven_character_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
+                else if (emoji_metadata.no_characters == 8)
+                    assert!(vector::contains(&emoji_config.eight_character_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
                 else abort EInvalidEmojiSequence
             };
             index = index + 1;
