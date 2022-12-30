@@ -33,6 +33,7 @@ module suins::controller {
     const EInvalidDuration: u64 = 306;
     const ELabelUnAvailable: u64 = 308;
     const ENoProfits: u64 = 310;
+    const EInvalidCode: u64 = 311;
 
     struct NameRegisteredEvent has copy, drop {
         node: String,
@@ -216,7 +217,7 @@ module suins::controller {
 
     // anyone can register a domain at any level
     // duration in years
-    public entry fun register_with_config_and_referral_code(
+    public entry fun register_with_config_and_code(
         controller: &mut BaseController,
         registrar: &mut BaseRegistrar,
         registry: &mut Registry,
@@ -228,36 +229,24 @@ module suins::controller {
         resolver: address,
         payment: &mut Coin<SUI>,
         referral_code: vector<u8>,
-        ctx: &mut TxContext,
-    ) {
-        let referral_code = ascii::string(referral_code);
-        register_internal(
-            controller, registrar, registry, config,
-            label, owner, no_years, secret, resolver,
-            payment, option::some(referral_code), option::none(), ctx,
-        );
-    }
-
-    public entry fun register_with_config_and_discount_code(
-        controller: &mut BaseController,
-        registrar: &mut BaseRegistrar,
-        registry: &mut Registry,
-        config: &mut Configuration,
-        label: vector<u8>,
-        owner: address,
-        no_years: u64,
-        secret: vector<u8>,
-        resolver: address,
-        payment: &mut Coin<SUI>,
         discount_code: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        let discount_code = ascii::string(discount_code);
-        register_internal(
-            controller, registrar, registry, config,
-            label, owner, no_years, secret, resolver,
-            payment, option::none(),option::some(discount_code), ctx
-        );
+        if (vector::length(&referral_code) != 0) {
+            let referral_code = ascii::string(referral_code);
+            register_internal(
+                controller, registrar, registry, config,
+                label, owner, no_years, secret, resolver,
+                payment, option::some(referral_code), option::none(), ctx,
+            );
+        } else if (vector::length(&referral_code) != 0) {
+            let discount_code = ascii::string(discount_code);
+            register_internal(
+                controller, registrar, registry, config,
+                label, owner, no_years, secret, resolver,
+                payment, option::none(),option::some(discount_code), ctx
+            );
+        } else abort EInvalidCode;
     }
 
     // returns remaining_fee

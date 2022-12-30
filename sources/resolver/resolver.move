@@ -6,7 +6,7 @@ module suins::resolver {
     use sui::transfer;
     use sui::tx_context::TxContext;
     use suins::base_registry::{Self, Registry};
-    use suins::helper;
+    use suins::converter;
     use std::string::{Self, String, utf8};
     use sui::table::{Self, Table};
 
@@ -70,7 +70,7 @@ module suins::resolver {
     }
 
     public fun name(base_resolver: &BaseResolver, addr: address): String {
-        let addr_str = utf8(helper::address_to_string(addr));
+        let addr_str = utf8(converter::address_to_string(addr));
         let record = table::borrow(&base_resolver.records, addr_str);
         *bag::borrow<String, String>(record, utf8(NAME))
     }
@@ -143,11 +143,11 @@ module suins::resolver {
         new_name: vector<u8>,
         ctx: &mut TxContext
     ) {
-        let label = helper::address_to_string(addr);
+        let label = converter::address_to_string(addr);
         let node = base_registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
         base_registry::authorised(registry, *string::bytes(&node), ctx);
         let new_name = utf8(new_name);
-        let addr_str = utf8(helper::address_to_string(addr));
+        let addr_str = utf8(converter::address_to_string(addr));
 
         if (table::contains(&base_resolver.records, addr_str)) {
             let record = table::borrow_mut(&mut base_resolver.records, addr_str);
@@ -175,11 +175,11 @@ module suins::resolver {
         addr: address,
         ctx: &mut TxContext
     ) {
-        let label = helper::address_to_string(addr);
+        let label = converter::address_to_string(addr);
         let node = base_registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
         base_registry::authorised(registry, *string::bytes(&node), ctx);
 
-        let addr_str = utf8(helper::address_to_string(addr));
+        let addr_str = utf8(converter::address_to_string(addr));
         let record = table::borrow_mut(&mut base_resolver.records, addr_str);
         bag::remove<String, String>(record, addr_str);
         event::emit(NameRemovedEvent { addr });

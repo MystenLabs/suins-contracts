@@ -6,7 +6,7 @@ module suins::reverse_registrar {
     use sui::tx_context::{Self, TxContext};
     use suins::base_registry::{Self, Registry, AdminCap};
     use std::string;
-    use suins::helper;
+    use suins::converter;
 
     const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
 
@@ -48,7 +48,7 @@ module suins::reverse_registrar {
         ctx: &mut TxContext
     ) {
         let addr = tx_context::sender(ctx);
-        let label = helper::address_to_string(addr);
+        let label = converter::address_to_string(addr);
         let node = base_registry::make_node(label, string::utf8(ADDR_REVERSE_BASE_NODE));
         base_registry::set_record_internal(registry, node, owner, resolver, 0);
 
