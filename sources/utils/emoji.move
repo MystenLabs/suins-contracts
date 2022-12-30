@@ -12,8 +12,10 @@ module suins::emoji {
     struct EmojiConfiguration has store, drop {
         joiner: vector<u8>,
         variant: vector<u8>,
-        combining_enclosing: vector<u8>, // U+20E3, used to check special cases of 3-character sequences
-        latin_small_g: vector<u8>, // U+E0067, used to check special cases of 7-character sequences
+        combining_enclosing: vector<u8>,
+        // U+20E3, used to check special cases of 3-character sequences
+        latin_small_g: vector<u8>,
+        // U+E0067, used to check special cases of 7-character sequences
         one_character_emojis: vector<vector<u8>>,
         two_character_emojis: vector<vector<u8>>,
         three_character_emojis: vector<vector<u8>>,
@@ -118,41 +120,169 @@ module suins::emoji {
 
             if (emoji_metadata.is_skin_tone) {
                 if (emoji_metadata.no_characters == 2)
-                    assert!(vector::contains(&emoji_config.two_character_skin_tone_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
+                    assert!(
+                        vector::contains(&emoji_config.two_character_skin_tone_emojis, string::bytes(&emoji)),
+                        EInvalidEmojiSequence
+                    )
                 else if (emoji_metadata.no_characters == 4)
-                    assert!(vector::contains(&emoji_config.four_character_skin_tone_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
+                    assert!(
+                        vector::contains(&emoji_config.four_character_skin_tone_emojis, string::bytes(&emoji)),
+                        EInvalidEmojiSequence
+                    )
                 else if (emoji_metadata.no_characters == 5)
-                    assert!(vector::contains(&emoji_config.five_character_skin_tone_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
+                    assert!(
+                        vector::contains(&emoji_config.five_character_skin_tone_emojis, string::bytes(&emoji)),
+                        EInvalidEmojiSequence
+                    )
                 else if (emoji_metadata.no_characters == 7)
-                    assert!(vector::contains(&emoji_config.seven_character_skin_tone_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
+                    assert!(
+                        vector::contains(&emoji_config.seven_character_skin_tone_emojis, string::bytes(&emoji)),
+                        EInvalidEmojiSequence
+                    )
                 else if (emoji_metadata.no_characters == 8)
-                    assert!(vector::contains(&emoji_config.eight_character_skin_tone_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
+                    assert!(
+                        vector::contains(&emoji_config.eight_character_skin_tone_emojis, string::bytes(&emoji)),
+                        EInvalidEmojiSequence
+                    )
                 else if (emoji_metadata.no_characters == 10)
-                    assert!(vector::contains(&emoji_config.ten_character_skin_tone_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
+                    assert!(
+                        vector::contains(&emoji_config.ten_character_skin_tone_emojis, string::bytes(&emoji)),
+                        EInvalidEmojiSequence
+                    )
                 else abort EInvalidEmojiSequence;
             } else {
                 if (emoji_metadata.no_characters == 1)
-                    assert!(vector::contains(&emoji_config.one_character_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
+                    assert!(
+                        vector::contains(&emoji_config.one_character_emojis, string::bytes(&emoji)),
+                        EInvalidEmojiSequence
+                    )
                 else if (emoji_metadata.no_characters == 2)
-                    assert!(vector::contains(&emoji_config.two_character_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
+                    assert!(
+                        vector::contains(&emoji_config.two_character_emojis, string::bytes(&emoji)),
+                        EInvalidEmojiSequence
+                    )
                 else if (emoji_metadata.no_characters == 3)
-                    assert!(vector::contains(&emoji_config.three_character_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
+                    assert!(
+                        vector::contains(&emoji_config.three_character_emojis, string::bytes(&emoji)),
+                        EInvalidEmojiSequence
+                    )
                 else if (emoji_metadata.no_characters == 4)
-                    assert!(vector::contains(&emoji_config.four_character_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
+                    assert!(
+                        vector::contains(&emoji_config.four_character_emojis, string::bytes(&emoji)),
+                        EInvalidEmojiSequence
+                    )
                 else if (emoji_metadata.no_characters == 5)
-                    assert!(vector::contains(&emoji_config.five_character_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
+                    assert!(
+                        vector::contains(&emoji_config.five_character_emojis, string::bytes(&emoji)),
+                        EInvalidEmojiSequence
+                    )
                 else if (emoji_metadata.no_characters == 6)
-                    assert!(vector::contains(&emoji_config.six_character_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
+                    assert!(
+                        vector::contains(&emoji_config.six_character_emojis, string::bytes(&emoji)),
+                        EInvalidEmojiSequence
+                    )
                 else if (emoji_metadata.no_characters == 7)
-                    assert!(vector::contains(&emoji_config.seven_character_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
+                    assert!(
+                        vector::contains(&emoji_config.seven_character_emojis, string::bytes(&emoji)),
+                        EInvalidEmojiSequence
+                    )
                 else if (emoji_metadata.no_characters == 8)
-                    assert!(vector::contains(&emoji_config.eight_character_emojis, string::bytes(&emoji)), EInvalidEmojiSequence)
+                    assert!(
+                        vector::contains(&emoji_config.eight_character_emojis, string::bytes(&emoji)),
+                        EInvalidEmojiSequence
+                    )
                 else abort EInvalidEmojiSequence
             };
             index = index + 1;
         };
     }
 
+    fun to_emoji_sequences(emoji_config: &EmojiConfiguration, bytes: vector<u8>): vector<UTF8Emoji> {
+        let characters = to_utf8_characters(&bytes);
+        let len = vector::length(&characters);
+        // consider only preceding character in the same emoji sequence
+        let is_preceding_character_scalar = false;
+        let is_skin_tone = false;
+        let result = vector<UTF8Emoji>[];
+        let index = 0;
+        let from_index = 0;
+        let to_index = 0;
+        let no_characters = 0;
+        let remaining_characters = len;
+
+        while (index < len) {
+            let current_character = vector::borrow(&characters, index);
+            to_index = to_index + current_character.no_bytes;
+            no_characters = no_characters + 1;
+
+            // is alphabet character
+            if (current_character.no_bytes == 1) {
+                handle_single_byte_character(
+                    emoji_config, &mut result, &characters,
+                    &mut from_index, &mut to_index, &mut index,
+                    &mut remaining_characters, &mut is_skin_tone, &mut no_characters,
+                    &mut is_preceding_character_scalar, len,
+                );
+                continue
+            };
+
+            if (*string::bytes(&current_character.char) == emoji_config.latin_small_g) {
+                handle_latin_small_g_character(
+                    &mut result, &mut characters, &mut from_index,
+                    &mut to_index, index, &mut remaining_characters,
+                    is_skin_tone, &mut no_characters, &mut is_preceding_character_scalar,
+                );
+                index = index + 6;
+                continue
+            };
+
+            if (vector::contains(&emoji_config.skin_tones, string::bytes(&current_character.char))) {
+                assert!(is_preceding_character_scalar, EInvalidEmojiSequence);
+                is_skin_tone = true;
+                if (index == len - 1) {
+                    vector::push_back(&mut result, UTF8Emoji { from: from_index, to: to_index, no_characters, is_skin_tone, is_single_byte: false });
+                    remaining_characters = remaining_characters - no_characters;
+                };
+                index = index + 1;
+                continue
+            };
+
+            if (is_emoji_sequence_of_two_characters(&current_character.char)) {
+                handle_emoji_sequence_of_two_characters(
+                    &mut result, &characters, &mut from_index,
+                    &mut to_index, index, &mut remaining_characters,
+                    &mut is_skin_tone, &mut no_characters, &mut is_preceding_character_scalar,
+                );
+                index = index + 2;
+                continue
+            };
+
+            if (*string::bytes(&current_character.char) == emoji_config.variant) {
+                handle_variant_character(
+                    emoji_config, &mut result, &characters,
+                    &mut from_index, to_index, index,
+                    &mut remaining_characters, &mut is_skin_tone,
+                    &mut no_characters, &mut is_preceding_character_scalar, len
+                );
+                index = index + 1;
+                continue
+            };
+
+            if (*string::bytes(&current_character.char) != emoji_config.joiner) {
+                handle_scalar_character(
+                    &mut result, current_character, &mut from_index,
+                    to_index, index, &mut remaining_characters, &mut is_skin_tone,
+                    &mut no_characters, is_preceding_character_scalar, len
+                );
+                is_preceding_character_scalar = true;
+            } else is_preceding_character_scalar = false;
+
+            index = index + 1;
+        };
+        assert!(remaining_characters == 0, EInvalidLabel);
+        result
+    }
+    
     // Byte 1    Type
     // 0xxxxxxx  1 byte
     // 110xxxxx  2 bytes
@@ -184,174 +314,227 @@ module suins::emoji {
         result
     }
 
-    fun to_emoji_sequences(emoji_config: &EmojiConfiguration, bytes: vector<u8>): vector<UTF8Emoji> {
-        let characters = to_utf8_characters(&bytes);
-        let len = vector::length(&characters);
-        // consider only preceding character in the same emoji sequence
-        let is_preceding_character_scalar = false;
-        let is_skin_tone = false;
-        let result = vector<UTF8Emoji>[];
-        let index = 0;
-        let from = 0;
-        let to = 0;
-        let no_characters = 0;
-        let remaining_characters = len;
-
-        while (index < len) {
-            let character = vector::borrow(&characters, index);
-            let bytes = string::bytes(&character.char);
-            to = to + character.no_bytes;
-            no_characters = no_characters + 1;
-
-            // is alphabet character
-            if (character.no_bytes == 1) {
-                if (no_characters > 1) {
-                    vector::push_back(&mut result, UTF8Emoji {
-                        from,
-                        to: to - 1,
-                        no_characters: no_characters - 1,
-                        is_skin_tone,
-                        is_single_byte: false,
-                    });
-                    from = to - 1;
-                    remaining_characters = remaining_characters + 1 - no_characters;
-                };
-                // check for special cases that end with u+20e3, i.e. 0023_fe0f_20e3
-                if (index < len - 2) {
-                    let next_next_character = vector::borrow(&characters, index + 2);
-                    let bytes = string::bytes(&next_next_character.char);
-                    if (*bytes == emoji_config.combining_enclosing) {
-                        assert!(!is_skin_tone, EInvalidLabel);
-                        let next_character = vector::borrow(&characters, index + 2);
-                        to = to + next_character.no_bytes;
-                        to = to + next_next_character.no_bytes;
-                        vector::push_back(&mut result, UTF8Emoji { from, to, no_characters: 3, is_skin_tone, is_single_byte: false });
-                        remaining_characters = remaining_characters - 3;
-                        no_characters = 0;
-                        from = to;
-                        index = index + 3;
-                        is_preceding_character_scalar = false;
-                        continue
-                    };
-                };
-                vector::push_back(&mut result, UTF8Emoji { from: to - 1, to, no_characters: 1, is_skin_tone, is_single_byte: true });
-                remaining_characters = remaining_characters - 1;
-                from = to;
-                is_skin_tone = false;
-                no_characters = 0;
-                is_preceding_character_scalar = false;
-                index = index + 1;
-                continue
-            };
-
-            if (*bytes == emoji_config.latin_small_g) {
-                // special cases, i.e. 1f3f4_e0067_e0062_e0065_e006e_e0067_e007f
-                // if matches with E0067 => the next 5 characters are in the same emoji sequence
-                assert!(!is_skin_tone, EInvalidLabel);
-                assert!(no_characters == 2, EInvalidLabel);
-                let i = 1;
-                while (i <= 5) {
-                    let character = vector::borrow(&characters, index + i);
-                    to = to + character.no_bytes;
-                    i = i + 1;
-                };
-                vector::push_back(&mut result, UTF8Emoji {
-                    from,
-                    to,
-                    no_characters: 7,
-                    is_skin_tone,
-                    is_single_byte: false,
-                });
-                remaining_characters = remaining_characters - 7;
-                from = to;
-                no_characters = 0;
-                is_preceding_character_scalar = false;
-                index = index + 6;
-                continue
-            };
-
-            if (vector::contains(&emoji_config.skin_tones, bytes)) {
-                assert!(is_preceding_character_scalar, EInvalidEmojiSequence);
-                is_skin_tone = true;
-                if (index == len - 1) {
-                    vector::push_back(&mut result, UTF8Emoji { from, to, no_characters, is_skin_tone, is_single_byte: false });
-                    remaining_characters = remaining_characters - no_characters;
-                };
-                index = index + 1;
-                continue
-            };
-
-            if (is_emoji_sequence_with_two_characters(&character.char)) {
-                let next_character = vector::borrow(&characters, index + 1);
-                to = to + next_character.no_bytes;
-                vector::push_back(&mut result, UTF8Emoji { from, to, no_characters: 2, is_skin_tone, is_single_byte: false });
-                remaining_characters = remaining_characters - 2;
-                no_characters = 0;
-                is_skin_tone = false;
-                from = to;
-                is_preceding_character_scalar = false;
-                index = index + 2;
-                continue
-            };
-
-            if (*bytes == emoji_config.variant) {
-                // variant character is either at the last position, or followed by the joiner character
-                if (index < len - 1) {
-                    let next_character = vector::borrow(&characters, index + 1);
-                    if (*string::bytes(&next_character.char) != emoji_config.joiner) {
-                        vector::push_back(&mut result, UTF8Emoji { from, to, no_characters, is_skin_tone, is_single_byte: false });
-                        remaining_characters = remaining_characters - no_characters;
-                        no_characters = 0;
-                        from = to;
-                        is_skin_tone = false;
-                    };
-                    is_preceding_character_scalar = false;
-                } else {
-                    // this variant character is at the end of the input string,
-                    // so this emoji sequence has to end here
-                    vector::push_back(&mut result, UTF8Emoji { from, to, no_characters, is_skin_tone, is_single_byte: false });
-                    remaining_characters = remaining_characters - no_characters;
-                };
-                index = index + 1;
-                continue
-            };
-
-            if (*bytes != emoji_config.joiner) {
-                if (is_preceding_character_scalar) {
-                    // 2 scalar characters cannot stand next to each other in a emoji sequence,
-                    // so the previous scalar character is the end of its emoji sequence
-                    vector::push_back(&mut result, UTF8Emoji {
-                        from,
-                        to: to - vector::length(bytes),
-                        no_characters: no_characters - 1,
-                        is_skin_tone,
-                        is_single_byte: false
-                    });
-                    remaining_characters = remaining_characters - no_characters + 1;
-                    no_characters = 1;
-                    is_skin_tone = false;
-                    from = to - vector::length(bytes);
-                };
-                if (index == len - 1) {
-                    vector::push_back(&mut result, UTF8Emoji {
-                        from,
-                        to,
-                        no_characters,
-                        is_skin_tone,
-                        is_single_byte: false
-                    });
-                    remaining_characters = remaining_characters - no_characters;
-                };
-                is_preceding_character_scalar = true;
-            } else is_preceding_character_scalar = false;
-
-            index = index + 1;
-        };
-        assert!(remaining_characters == 0, EInvalidLabel);
-        result
+    fun handle_emoji_sequence_of_two_characters(
+        result: &mut vector<UTF8Emoji>,
+        characters: &vector<UTF8Character>,
+        from_index: &mut u64,
+        to_index: &mut u64,
+        index: u64,
+        remaining_characters: &mut u64,
+        is_skin_tone: &mut bool,
+        no_characters: &mut u64,
+        is_preceding_character_scalar: &mut bool,
+    ) {
+        let next_character = vector::borrow(characters, index + 1);
+        *to_index = *to_index + next_character.no_bytes;
+        vector::push_back(result, UTF8Emoji {
+            from: *from_index,
+            to: *to_index,
+            no_characters: 2,
+            is_skin_tone: *is_skin_tone,
+            is_single_byte: false
+        });
+        *no_characters = 0;
+        *is_skin_tone = false;
+        *from_index = *to_index;
+        *remaining_characters = *remaining_characters - 2;
+        *is_preceding_character_scalar = false;
     }
 
-    fun is_emoji_sequence_with_two_characters(str: &String): bool {
+    fun handle_scalar_character(
+        result: &mut vector<UTF8Emoji>,
+        current_character: &UTF8Character,
+        from_index: &mut u64,
+        to_index: u64,
+        index: u64,
+        remaining_characters: &mut u64,
+        is_skin_tone: &mut bool,
+        no_characters: &mut u64,
+        is_preceding_character_scalar: bool,
+        len: u64
+    ) {
+        if (is_preceding_character_scalar) {
+            // 2 scalar characters cannot stand next to each other in a emoji sequence,
+            // so the previous scalar character is the end of its emoji sequence
+            let bytes = string::bytes(&current_character.char);
+            vector::push_back(result, UTF8Emoji {
+                from: *from_index,
+                to: to_index - vector::length(bytes),
+                no_characters: *no_characters - 1,
+                is_skin_tone: *is_skin_tone,
+                is_single_byte: false
+            });
+            *remaining_characters = *remaining_characters - *no_characters + 1;
+            *no_characters = 1;
+            *is_skin_tone = false;
+            *from_index = to_index - vector::length(bytes);
+        };
+        if (index == len - 1) {
+            vector::push_back(result, UTF8Emoji {
+                from: *from_index,
+                to: to_index,
+                no_characters: *no_characters,
+                is_skin_tone: *is_skin_tone,
+                is_single_byte: false
+            });
+            *remaining_characters = *remaining_characters - *no_characters;
+        };
+    }
+
+    fun handle_single_byte_character(
+        emoji_config: &EmojiConfiguration,
+        result: &mut vector<UTF8Emoji>,
+        characters: &vector<UTF8Character>,
+        from_index: &mut u64,
+        to_index: &mut u64,
+        index: &mut u64,
+        remaining_characters: &mut u64,
+        is_skin_tone: &mut bool,
+        no_characters: &mut u64,
+        is_preceding_character_scalar: &mut bool,
+        len: u64,
+    ) {
+        if (*no_characters > 1) {
+            vector::push_back(result, UTF8Emoji {
+                from: *from_index,
+                to: *to_index - 1,
+                no_characters: *no_characters - 1,
+                is_skin_tone: *is_skin_tone,
+                is_single_byte: false,
+            });
+            *from_index = *to_index - 1;
+            *remaining_characters = *remaining_characters + 1 - *no_characters;
+        };
+        // check for special cases that end with u+20e3, i.e. 0023_fe0f_20e3
+        if (*index < len - 2) {
+            let next_next_character = vector::borrow(characters, *index + 2);
+            let bytes = string::bytes(&next_next_character.char);
+            if (*bytes == emoji_config.combining_enclosing) {
+                assert!(!*is_skin_tone, EInvalidLabel);
+                let next_character = vector::borrow(characters, *index + 2);
+                *to_index = *to_index + next_character.no_bytes;
+                *to_index = *to_index + next_next_character.no_bytes;
+                vector::push_back(
+                    result,
+                    UTF8Emoji {
+                        from: *from_index,
+                        to: *to_index,
+                        no_characters: 3,
+                        is_skin_tone: *is_skin_tone,
+                        is_single_byte: false
+                    }
+                );
+                *remaining_characters = *remaining_characters - 3;
+                *no_characters = 0;
+                *from_index = *to_index;
+                *index = *index + 3;
+                *is_preceding_character_scalar = false;
+                return
+            };
+        };
+        vector::push_back(
+            result,
+            UTF8Emoji {
+                from: *to_index - 1,
+                to: *to_index,
+                no_characters: 1,
+                is_skin_tone: *is_skin_tone,
+                is_single_byte: true
+            }
+        );
+        *remaining_characters = *remaining_characters - 1;
+        *from_index = *to_index;
+        *is_skin_tone = false;
+        *no_characters = 0;
+        *is_preceding_character_scalar = false;
+        *index = *index + 1;
+    }
+
+    fun handle_latin_small_g_character(
+        result: &mut vector<UTF8Emoji>,
+        characters: &vector<UTF8Character>,
+        from_index: &mut u64,
+        to_index: &mut u64,
+        index: u64,
+        remaining_characters: &mut u64,
+        is_skin_tone: bool,
+        no_characters: &mut u64,
+        is_preceding_character_scalar: &mut bool,
+    ) {
+        // special cases, i.e. 1f3f4_e0067_e0062_e0065_e006e_e0067_e007f
+        // if matches with E0067 => the next 5 characters are in the same emoji sequence
+        assert!(!is_skin_tone, EInvalidLabel);
+        assert!(*no_characters == 2, EInvalidLabel);
+        let i = 1;
+        while (i <= 5) {
+            let character = vector::borrow(characters, index + i);
+            *to_index = *to_index + character.no_bytes;
+            i = i + 1;
+        };
+        vector::push_back(result, UTF8Emoji {
+            from: *from_index,
+            to: *to_index,
+            no_characters: 7,
+            is_skin_tone,
+            is_single_byte: false,
+        });
+        *remaining_characters = *remaining_characters - 7;
+        *from_index = *to_index;
+        *no_characters = 0;
+        *is_preceding_character_scalar = false;
+    }
+
+    fun handle_variant_character(
+        emoji_config: &EmojiConfiguration,
+        result: &mut vector<UTF8Emoji>,
+        characters: &vector<UTF8Character>,
+        from_index: &mut u64,
+        to_index: u64,
+        index: u64,
+        remaining_characters: &mut u64,
+        is_skin_tone: &mut bool,
+        no_characters: &mut u64,
+        is_preceding_character_scalar: &mut bool,
+        len: u64
+    ) {
+        // variant character is either at the last position, or followed by the joiner character
+        if (index < len - 1) {
+            let next_character = vector::borrow(characters, index + 1);
+            if (*string::bytes(&next_character.char) != emoji_config.joiner) {
+                vector::push_back(
+                    result,
+                    UTF8Emoji {
+                        from: *from_index,
+                        to: to_index,
+                        no_characters: *no_characters,
+                        is_skin_tone: *is_skin_tone,
+                        is_single_byte: false
+                    }
+                );
+                *remaining_characters = *remaining_characters - *no_characters;
+                *no_characters = 0;
+                *from_index = to_index;
+                *is_skin_tone = false;
+            };
+            *is_preceding_character_scalar = false;
+        } else {
+            // this variant character is at the end of the input string,
+            // so this emoji sequence has to end here
+            vector::push_back(
+                result,
+                UTF8Emoji {
+                    from: *from_index,
+                    to: to_index,
+                    no_characters: *no_characters,
+                    is_skin_tone: *is_skin_tone,
+                    is_single_byte: false
+                }
+            );
+            *remaining_characters = *remaining_characters - *no_characters;
+        };
+    }
+
+    fun is_emoji_sequence_of_two_characters(str: &String): bool {
         let bytes = string::bytes(str);
         if (vector::length(bytes) != 4) return false;
 
