@@ -380,11 +380,12 @@ module suins::controller {
         let index = 0;
         while (index < len) {
             let byte = *vector::borrow(label_bytes, index);
-            if (!(
-                    (byte >= 0x61 && byte <= 0x7A)                           // a-z
-                        || (byte >= 0x30 && byte <= 0x39)                    // 0-9
-                        || (byte == 0x2D && index != 0 && index != len - 1)  // -
-            )) abort EInvalidLabel;
+            assert!(
+                (byte >= 0x61 && byte <= 0x7A)                           // a-z
+                    || (byte >= 0x30 && byte <= 0x39)                    // 0-9
+                    || (byte == 0x2D && index != 0 && index != len - 1), // -
+                EInvalidLabel
+            );
 
             index = index + 1;
         };
