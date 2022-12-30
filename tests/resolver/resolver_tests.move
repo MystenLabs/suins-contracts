@@ -2,13 +2,13 @@
 module suins::resolver_tests {
 
     use sui::test_scenario::{Self, Scenario};
-    use sui::vec_map;
+    use sui::dynamic_field;
     use suins::base_registry::{Self, Registry};
     use suins::resolver::{Self, BaseResolver};
-    use suins::helper;
     use suins::base_registrar;
     use suins::base_registry_tests;
     use std::string::utf8;
+    use suins::helper;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_NAME: vector<u8> = b"sui";
@@ -19,11 +19,10 @@ module suins::resolver_tests {
     const FIRST_SUB_NODE: vector<u8> = b"eastagile.sui";
     const SECOND_SUB_NODE: vector<u8> = b"suins.sui";
     const FIRST_AVATAR: vector<u8> = b"QmfWrgbTZqwzqsvdeNc3NKacggMuTaN83sQ8V7Bs2nXKRD";
-    const SECOND_AVATAR: vector<u8> = b"Qme7ss3ARVgxv6rXqVPiikMJ8u2NLgmgszg13pYrDKEoiu";
     const FIRST_CONTENTHASH: vector<u8> = b"QmfWrgbTZqwzqsvdeNc3NKacggMuTaN83sQ8V7Bs2nXKRD";
-    const SECOND_CONTENTHASH: vector<u8> = b"Qme7ss3ARVgxv6rXqVPiikMJ8u2NLgmgszg13pYrDKEoiu";
     const AVATAR: vector<u8> = b"avatar";
     const ADDR: vector<u8> = b"addr";
+    const FIRST_CONTENT_HASH: vector<u8> = b"mtwirsqawjuoloq2gvtyug2tc3jbf5htm2zeo4rsknfiv3fdp46a";
 
     fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
@@ -40,13 +39,11 @@ module suins::resolver_tests {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(scenario);
-
             let node = base_registry::make_node(
                 helper::address_to_string(FIRST_USER_ADDRESS),
                 utf8(ADDR_REVERSE_BASE_NODE),
             );
             base_registry::new_record_test(&mut registry, node, FIRST_USER_ADDRESS);
-
             test_scenario::return_shared(registry);
         };
 
@@ -54,15 +51,13 @@ module suins::resolver_tests {
         {
             let registry = test_scenario::take_shared<Registry>(scenario);
             let resolver = test_scenario::take_shared<BaseResolver>( scenario);
-
             resolver::set_name(&mut resolver, &registry, FIRST_USER_ADDRESS, FIRST_NAME, test_scenario::ctx(scenario));
-
             test_scenario::return_shared(registry);
             test_scenario::return_shared(resolver);
         };
     }
 
-    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
     fun test_get_name_abort_if_addr_not_exists() {
         let scenario = test_init();
 
@@ -90,7 +85,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
     fun test_unset_name() {
         let scenario = test_init();
         set_name(&mut scenario);
@@ -99,9 +94,7 @@ module suins::resolver_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-
             resolver::unset_name(&mut resolver, &registry, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
-
             test_scenario::return_shared(resolver);
             test_scenario::return_shared(registry);
         };
@@ -131,7 +124,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
     fun test_unset_name_abort_if_name_not_exists() {
         let scenario = test_init();
         set_name(&mut scenario);
@@ -169,9 +162,13 @@ module suins::resolver_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-
-            resolver::set_name(&mut resolver, &registry, FIRST_USER_ADDRESS, SECOND_NAME, test_scenario::ctx(&mut scenario));
-
+            resolver::set_name(
+                &mut resolver,
+                &registry,
+                FIRST_USER_ADDRESS,
+                SECOND_NAME,
+                test_scenario::ctx(&mut scenario)
+            );
             test_scenario::return_shared(registry);
             test_scenario::return_shared(resolver);
         };
@@ -188,7 +185,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
     fun test_set_name_abort_if_addr_not_exists_in_registry() {
         let scenario = test_init();
 
@@ -231,7 +228,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
     fun test_get_addr_abort_if_node_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -319,7 +316,7 @@ module suins::resolver_tests {
     }
 
     #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
-    fun test_set_addr_abort_if_unauthorized() {
+    fun test_set_avatar_abort_if_unauthorized() {
         let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
 
@@ -327,10 +324,11 @@ module suins::resolver_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::set_avatar(
+            resolver::set_text(
                 &mut resolver,
                 &registry,
                 FIRST_SUB_NODE,
+                AVATAR,
                 FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
             );
@@ -386,10 +384,11 @@ module suins::resolver_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::set_avatar(
+            resolver::set_text(
                 &mut resolver,
                 &registry,
                 FIRST_SUB_NODE,
+                AVATAR,
                 FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
             );
@@ -400,15 +399,15 @@ module suins::resolver_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            let text = resolver::avatar(&resolver, FIRST_SUB_NODE);
+            let text = resolver::text(&resolver, FIRST_SUB_NODE, AVATAR);
             assert!(text == utf8(FIRST_AVATAR), 0);
             test_scenario::return_shared(resolver);
         };
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
-    fun test_get_avatar_abort_with_wrong_node() {
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
+    fun test_set_avatar_abort_with_wrong_node() {
         let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
 
@@ -416,10 +415,11 @@ module suins::resolver_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::set_avatar(
+            resolver::set_text(
                 &mut resolver,
                 &registry,
                 FIRST_SUB_NODE,
+                AVATAR,
                 FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
             );
@@ -430,7 +430,7 @@ module suins::resolver_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::avatar(&resolver, SECOND_SUB_NODE);
+            resolver::text(&resolver, SECOND_SUB_NODE, AVATAR);
             test_scenario::return_shared(resolver);
         };
         test_scenario::end(scenario);
@@ -449,7 +449,7 @@ module suins::resolver_tests {
                 &mut resolver,
                 &registry,
                 FIRST_SUB_NODE,
-                FIRST_CONTENTHASH,
+                FIRST_CONTENT_HASH,
                 test_scenario::ctx(&mut scenario),
             );
             test_scenario::return_shared(registry);
@@ -459,14 +459,130 @@ module suins::resolver_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            let text = resolver::contenthash(&resolver, FIRST_SUB_NODE);
-            assert!(text == utf8(FIRST_CONTENTHASH), 0);
+            let hash = resolver::contenthash(&resolver, FIRST_SUB_NODE);
+            assert!(hash == utf8(FIRST_CONTENT_HASH), 0);
             test_scenario::return_shared(resolver);
         };
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
+    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
+    fun test_set_contenthash_abort_if_unauthorized() {
+        let scenario = test_init();
+        base_registry_tests::mint_record(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_contenthash(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                FIRST_CONTENT_HASH,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
+    fun test_set_contenthash_abort_if_node_not_exists() {
+        let scenario = test_init();
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_contenthash(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                FIRST_CONTENT_HASH,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
+    fun test_get_contenthash_abort_if_node_not_exists() {
+        let scenario = test_init();
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::contenthash(&resolver, FIRST_SUB_NODE);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_set_text_record_with_new_key() {
+        let scenario = test_init();
+        base_registry_tests::mint_record(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_text(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                b"newkey",
+                FIRST_CONTENT_HASH,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            let text = resolver::text(&resolver, FIRST_SUB_NODE, b"newkey");
+            assert!(text == utf8(FIRST_CONTENT_HASH), 0);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
+    fun test_get_text_abort_if_wrong_key() {
+        let scenario = test_init();
+        base_registry_tests::mint_record(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_text(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                AVATAR,
+                FIRST_AVATAR,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::text(&resolver, FIRST_SUB_NODE, b"wrongkey");
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
     fun test_get_contenthash_abort_with_wrong_node() {
         let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
@@ -495,86 +611,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
-    fun test_set_avatar_abort_if_unauthorized() {
-        let scenario = test_init();
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let node = utf8(FIRST_SUB_NODE);
-            base_registry::new_record_test(&mut registry, node, FIRST_USER_ADDRESS);
-            test_scenario::return_shared(registry);
-        };
-
-        test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
-        {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::set_avatar(
-                &mut resolver,
-                &registry,
-                FIRST_SUB_NODE,
-                FIRST_CONTENTHASH,
-                test_scenario::ctx(&mut scenario),
-            );
-            test_scenario::return_shared(registry);
-            test_scenario::return_shared(resolver);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
-    fun test_set_contenthash_abort_if_unauthorized() {
-        let scenario = test_init();
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let node = utf8(FIRST_SUB_NODE);
-            base_registry::new_record_test(&mut registry, node, FIRST_USER_ADDRESS);
-            test_scenario::return_shared(registry);
-        };
-
-        test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
-        {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::set_contenthash(
-                &mut resolver,
-                &registry,
-                FIRST_SUB_NODE,
-                FIRST_CONTENTHASH,
-                test_scenario::ctx(&mut scenario),
-            );
-            test_scenario::return_shared(registry);
-            test_scenario::return_shared(resolver);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
-    fun test_set_contenthash_abort_if_node_not_exists() {
-        let scenario = test_init();
-
-        test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
-        {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::set_contenthash(
-                &mut resolver,
-                &registry,
-                FIRST_SUB_NODE,
-                FIRST_CONTENTHASH,
-                test_scenario::ctx(&mut scenario),
-            );
-            test_scenario::return_shared(registry);
-            test_scenario::return_shared(resolver);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
     fun test_set_avatar_abort_if_node_not_exists() {
         let scenario = test_init();
 
@@ -582,11 +619,12 @@ module suins::resolver_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::set_avatar(
+            resolver::set_text(
                 &mut resolver,
                 &registry,
                 FIRST_SUB_NODE,
-                FIRST_CONTENTHASH,
+                AVATAR,
+                FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
             );
             test_scenario::return_shared(registry);
@@ -645,7 +683,7 @@ module suins::resolver_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
     fun test_unset_contenthash_abort_if_node_not_exists() {
         let scenario = test_init();
 
@@ -703,9 +741,25 @@ module suins::resolver_tests {
     }
 
     #[test]
-    fun test_set_contenthash_override_value_if_exists() {
+    fun test_set_contenthash_if_node_exists_but_contenthash_field_not() {
         let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
+
+        // create `FIRST_SUB_NODE` record
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_addr(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                FIRST_USER_ADDRESS,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -715,88 +769,112 @@ module suins::resolver_tests {
                 &mut resolver,
                 &registry,
                 FIRST_SUB_NODE,
-                FIRST_CONTENTHASH,
+                FIRST_CONTENT_HASH,
                 test_scenario::ctx(&mut scenario),
             );
             test_scenario::return_shared(registry);
             test_scenario::return_shared(resolver);
         };
+
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            let text = resolver::contenthash(&resolver, FIRST_SUB_NODE);
-            assert!(text == utf8(FIRST_CONTENTHASH), 0);
-            test_scenario::return_shared(resolver);
-        };
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::set_contenthash(
-                &mut resolver,
-                &registry,
-                FIRST_SUB_NODE,
-                SECOND_CONTENTHASH,
-                test_scenario::ctx(&mut scenario),
-            );
-            test_scenario::return_shared(registry);
-            test_scenario::return_shared(resolver);
-        };
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
-        {
-            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            let text = resolver::contenthash(&resolver, FIRST_SUB_NODE);
-            assert!(text == utf8(SECOND_CONTENTHASH), 0);
+            let hash = resolver::contenthash(&resolver, FIRST_SUB_NODE);
+            assert!(hash == utf8(FIRST_CONTENT_HASH), 0);
             test_scenario::return_shared(resolver);
         };
         test_scenario::end(scenario);
     }
 
     #[test]
-    fun test_set_avatar_override_value_if_exists() {
+    fun test_set_avatar_if_node_exists_but_text_field_not() {
         let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
+
+        // create `FIRST_SUB_NODE` record
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_addr(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                FIRST_USER_ADDRESS,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::set_avatar(
+            resolver::set_text(
                 &mut resolver,
                 &registry,
                 FIRST_SUB_NODE,
+                AVATAR,
                 FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
             );
             test_scenario::return_shared(registry);
             test_scenario::return_shared(resolver);
         };
+
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            let text = resolver::avatar(&resolver, FIRST_SUB_NODE);
+            let text = resolver::text(&resolver, FIRST_SUB_NODE, AVATAR);
             assert!(text == utf8(FIRST_AVATAR), 0);
             test_scenario::return_shared(resolver);
         };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_set_addr_if_node_exists_but_addr_field_not() {
+        let scenario = test_init();
+        base_registry_tests::mint_record(&mut scenario);
+
+        // create `FIRST_SUB_NODE` record
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::set_avatar(
+            resolver::set_text(
                 &mut resolver,
                 &registry,
                 FIRST_SUB_NODE,
-                SECOND_AVATAR,
+                AVATAR,
+                FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
             );
             test_scenario::return_shared(registry);
             test_scenario::return_shared(resolver);
         };
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            resolver::set_addr(
+                &mut resolver,
+                &registry,
+                FIRST_SUB_NODE,
+                FIRST_USER_ADDRESS,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(resolver);
+        };
+
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            let text = resolver::avatar(&resolver, FIRST_SUB_NODE);
-            assert!(text == utf8(SECOND_AVATAR), 0);
+            let addr = resolver::addr(&resolver, FIRST_SUB_NODE);
+            assert!(addr == FIRST_USER_ADDRESS, 0);
             test_scenario::return_shared(resolver);
         };
         test_scenario::end(scenario);
