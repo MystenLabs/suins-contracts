@@ -159,22 +159,20 @@ module suins::controller {
         discount_code: vector<u8>,
         ctx: &mut TxContext,
     ) {
+        let referral_len = vector::length(&referral_code);
+        let discount_len = vector::length(&discount_code);
+        assert!(referral_len > 0 || discount_len > 0, EInvalidCode);
+
+        let referral = option::none();
+        let discount = option::none();
+        if (referral_len > 0) referral = option::some(ascii::string(referral_code));
+        if (discount_len > 0) discount = option::some(ascii::string(discount_code));
         let resolver = controller.default_addr_resolver;
-        if (vector::length(&referral_code) != 0) {
-            let referral_code = ascii::string(referral_code);
-            register_internal(
-                controller, registrar, registry, config, label,
-                owner, no_years, secret, resolver,
-                payment, option::some(referral_code), option::none(), ctx,
-            );
-        } else if (vector::length(&discount_code) != 0) {
-            let discount_code = ascii::string(discount_code);
-            register_internal(
-                controller, registrar, registry, config, label,
-                owner, no_years, secret, resolver,
-                payment, option::none(), option::some(discount_code), ctx,
-            );
-        } else abort EInvalidCode;
+        register_internal(
+            controller, registrar, registry, config, label,
+            owner, no_years, secret, resolver,
+            payment, referral, discount, ctx,
+        );
     }
 
     // anyone can register a domain at any level
@@ -219,21 +217,20 @@ module suins::controller {
         discount_code: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        if (vector::length(&referral_code) != 0) {
-            let referral_code = ascii::string(referral_code);
-            register_internal(
-                controller, registrar, registry, config,
-                label, owner, no_years, secret, resolver,
-                payment, option::some(referral_code), option::none(), ctx,
-            );
-        } else if (vector::length(&discount_code) != 0) {
-            let discount_code = ascii::string(discount_code);
-            register_internal(
-                controller, registrar, registry, config,
-                label, owner, no_years, secret, resolver,
-                payment, option::none(),option::some(discount_code), ctx
-            );
-        } else abort EInvalidCode;
+        let referral_len = vector::length(&referral_code);
+        let discount_len = vector::length(&discount_code);
+        assert!(referral_len > 0 || discount_len > 0, EInvalidCode);
+
+        let referral = option::none();
+        let discount = option::none();
+        if (referral_len > 0) referral = option::some(ascii::string(referral_code));
+        if (discount_len > 0) discount = option::some(ascii::string(discount_code));
+
+        register_internal(
+            controller, registrar, registry, config,
+            label, owner, no_years, secret, resolver,
+            payment, referral, discount, ctx,
+        );
     }
 
     // returns remaining_fee
@@ -285,12 +282,14 @@ module suins::controller {
         let registration_fee = FEE_PER_YEAR * no_years;
         assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
 
+        // can apply both discount and referral codes at the same time
+        if (option::is_some(&discount_code)) {
+            registration_fee =
+                apply_discount_code(config, registration_fee, option::borrow(&discount_code), ctx);
+        };
         if (option::is_some(&referral_code)) {
             registration_fee =
                 apply_referral_code(config, payment, registration_fee, option::borrow(&referral_code), ctx);
-        } else if (option::is_some(&discount_code)) {
-            registration_fee =
-                apply_discount_code(config, registration_fee, option::borrow(&discount_code), ctx);
         };
         let commitment = make_commitment(registrar, label, owner, secret);
         consume_commitment(controller, registrar, label, commitment, ctx);

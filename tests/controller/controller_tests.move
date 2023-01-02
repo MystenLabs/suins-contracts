@@ -1831,7 +1831,7 @@ module suins::controller_tests {
     }
 
     #[test]
-    fun test_register_with_code_apply_only_referral_code_if_use_both() {
+    fun test_register_with_code_apply_both_types_of_code() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -1847,7 +1847,7 @@ module suins::controller_tests {
 
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
-                @0x0,
+                FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 51,
                 0
@@ -1868,7 +1868,7 @@ module suins::controller_tests {
                 DISCOUNT_CODE,
                 &mut ctx,
             );
-            assert!(coin::value(&coin) == 1000000, 0);
+            assert!(coin::value(&coin) == 1300000, 0);
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
@@ -1879,7 +1879,7 @@ module suins::controller_tests {
     }
 
     #[test, expected_failure(abort_code = configuration::EReferralCodeNotExists)]
-    fun test_register_with_code_apply_only_referral_code_if_use_both_even_wrong_referral_code() {
+    fun test_register_with_code_if_use_wrong_referral_code() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -1895,7 +1895,7 @@ module suins::controller_tests {
 
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
-                @0x0,
+                FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 51,
                 0
@@ -1914,6 +1914,198 @@ module suins::controller_tests {
                 &mut coin,
                 DISCOUNT_CODE,
                 DISCOUNT_CODE,
+                &mut ctx,
+            );
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = configuration::EDiscountCodeNotExists)]
+    fun test_register_with_code_if_use_wrong_discount_code() {
+        let scenario = test_init();
+        make_commitment(&mut scenario, option::none());
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller =
+                test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar =
+                test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry =
+                test_scenario::take_shared<Registry>(&mut scenario);
+            let config =
+                test_scenario::take_shared<Configuration>(&mut scenario);
+
+            // simulate user wait for next epoch to call `register`
+            let ctx = tx_context::new(
+                FIRST_USER_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                51,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
+            controller::register_with_code(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &mut config,
+                FIRST_LABEL,
+                FIRST_USER_ADDRESS,
+                2,
+                FIRST_SECRET,
+                &mut coin,
+                REFERRAL_CODE,
+                REFERRAL_CODE,
+                &mut ctx,
+            );
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_register_with_config_and_code_apply_both_types_of_code() {
+        let scenario = test_init();
+        make_commitment(&mut scenario, option::none());
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller =
+                test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar =
+                test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry =
+                test_scenario::take_shared<Registry>(&mut scenario);
+            let config =
+                test_scenario::take_shared<Configuration>(&mut scenario);
+
+            // simulate user wait for next epoch to call `register`
+            let ctx = tx_context::new(
+                FIRST_USER_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                51,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
+            controller::register_with_config_and_code(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &mut config,
+                FIRST_LABEL,
+                FIRST_USER_ADDRESS,
+                2,
+                FIRST_SECRET,
+                FIRST_RESOLVER_ADDRESS,
+                &mut coin,
+                REFERRAL_CODE,
+                DISCOUNT_CODE,
+                &mut ctx,
+            );
+            assert!(coin::value(&coin) == 1300000, 0);
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = configuration::EReferralCodeNotExists)]
+    fun test_register_with_config_and_code_if_use_wrong_referral_code() {
+        let scenario = test_init();
+        make_commitment(&mut scenario, option::none());
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller =
+                test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar =
+                test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry =
+                test_scenario::take_shared<Registry>(&mut scenario);
+            let config =
+                test_scenario::take_shared<Configuration>(&mut scenario);
+
+            // simulate user wait for next epoch to call `register`
+            let ctx = tx_context::new(
+                FIRST_USER_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                51,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
+            controller::register_with_config_and_code(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &mut config,
+                FIRST_LABEL,
+                FIRST_USER_ADDRESS,
+                2,
+                FIRST_SECRET,
+                FIRST_RESOLVER_ADDRESS,
+                &mut coin,
+                DISCOUNT_CODE,
+                DISCOUNT_CODE,
+                &mut ctx,
+            );
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = configuration::EDiscountCodeNotExists)]
+    fun test_register_with_config_and_code_if_use_wrong_discount_code() {
+        let scenario = test_init();
+        make_commitment(&mut scenario, option::none());
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller =
+                test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar =
+                test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry =
+                test_scenario::take_shared<Registry>(&mut scenario);
+            let config =
+                test_scenario::take_shared<Configuration>(&mut scenario);
+
+            // simulate user wait for next epoch to call `register`
+            let ctx = tx_context::new(
+                FIRST_USER_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                51,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
+            controller::register_with_config_and_code(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &mut config,
+                FIRST_LABEL,
+                FIRST_USER_ADDRESS,
+                2,
+                FIRST_SECRET,
+                FIRST_RESOLVER_ADDRESS,
+                &mut coin,
+                REFERRAL_CODE,
+                REFERRAL_CODE,
                 &mut ctx,
             );
             coin::destroy_for_testing(coin);
