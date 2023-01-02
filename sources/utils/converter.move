@@ -64,7 +64,7 @@ module suins::converter {
     }
 
     #[test_only]
-    friend suins::helper_tests;
+    friend suins::converter_tests;
     #[test_only]
     friend suins::resolver_tests;
 }

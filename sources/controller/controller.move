@@ -145,7 +145,7 @@ module suins::controller {
     }
 
     // duration in years
-    public entry fun register_with_referral_code(
+    public entry fun register_with_code(
         controller: &mut BaseController,
         registrar: &mut BaseRegistrar,
         registry: &mut Registry,
@@ -156,38 +156,25 @@ module suins::controller {
         secret: vector<u8>,
         payment: &mut Coin<SUI>,
         referral_code: vector<u8>,
-        ctx: &mut TxContext,
-    ) {
-        let resolver = controller.default_addr_resolver;
-        let referral_code = ascii::string(referral_code);
-        register_internal(
-            controller, registrar, registry, config, label,
-            owner, no_years, secret, resolver,
-            payment, option::some(referral_code), option::none(), ctx,
-        );
-    }
-
-    // duration in years
-    public entry fun register_with_discount_code(
-        controller: &mut BaseController,
-        registrar: &mut BaseRegistrar,
-        registry: &mut Registry,
-        config: &mut Configuration,
-        label: vector<u8>,
-        owner: address,
-        no_years: u64,
-        secret: vector<u8>,
-        payment: &mut Coin<SUI>,
         discount_code: vector<u8>,
         ctx: &mut TxContext,
     ) {
         let resolver = controller.default_addr_resolver;
-        let discount_code = ascii::string(discount_code);
-        register_internal(
-            controller, registrar, registry, config, label,
-            owner, no_years, secret, resolver,
-            payment, option::none(), option::some(discount_code), ctx
-        );
+        if (vector::length(&referral_code) != 0) {
+            let referral_code = ascii::string(referral_code);
+            register_internal(
+                controller, registrar, registry, config, label,
+                owner, no_years, secret, resolver,
+                payment, option::some(referral_code), option::none(), ctx,
+            );
+        } else if (vector::length(&discount_code) != 0) {
+            let discount_code = ascii::string(discount_code);
+            register_internal(
+                controller, registrar, registry, config, label,
+                owner, no_years, secret, resolver,
+                payment, option::none(), option::some(discount_code), ctx,
+            );
+        } else abort EInvalidCode;
     }
 
     // anyone can register a domain at any level
@@ -239,7 +226,7 @@ module suins::controller {
                 label, owner, no_years, secret, resolver,
                 payment, option::some(referral_code), option::none(), ctx,
             );
-        } else if (vector::length(&referral_code) != 0) {
+        } else if (vector::length(&discount_code) != 0) {
             let discount_code = ascii::string(discount_code);
             register_internal(
                 controller, registrar, registry, config,
