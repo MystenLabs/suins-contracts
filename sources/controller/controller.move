@@ -18,6 +18,7 @@ module suins::controller {
     use std::option::{Self, Option};
     use std::ascii;
     use suins::emoji::validate_label_with_emoji;
+    use suins::coin_util;
 
     // TODO: remove later when timestamp is introduced
     // const MIN_COMMITMENT_AGE: u64 = 0;
@@ -92,9 +93,7 @@ module suins::controller {
         let duration = no_years * 365;
         base_registrar::renew(registrar, label, duration, ctx);
 
-        let coin_balance = coin::balance_mut(payment);
-        let paid = balance::split(coin_balance, renew_fee);
-        balance::join(&mut controller.balance, paid);
+        coin_util::pay_fee(payment, renew_fee, &mut controller.balance);
 
         event::emit(NameRenewedEvent {
             node: base_registrar::get_base_node(registrar),
@@ -271,8 +270,7 @@ module suins::controller {
         let (rate, partner) = configuration::use_referral_code(config, referral_code);
         let remaining_fee = (original_fee / 100)  * (100 - rate as u64);
         let payback = original_fee - remaining_fee;
-        let coin = coin::split(payment, payback, ctx);
-        transfer::transfer(coin, partner);
+        coin_util::transfer(payment, payback, partner, ctx);
 
         remaining_fee
     }
@@ -321,9 +319,7 @@ module suins::controller {
 
         let duration = no_years * 365;
         let nft_id = base_registrar::register(registrar, registry, config, label, owner, duration, resolver, ctx);
-        let coin_balance = coin::balance_mut(payment);
-        let paid = balance::split(coin_balance, registration_fee);
-        balance::join(&mut controller.balance, paid);
+        coin_util::pay_fee(payment, registration_fee, &mut controller.balance);
 
         event::emit(NameRegisteredEvent {
             node: base_registrar::get_base_node(registrar),
