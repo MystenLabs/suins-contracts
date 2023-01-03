@@ -1,24 +1,25 @@
 module suins::configuration {
 
-    use sui::object::UID;
-    use sui::vec_map::VecMap;
-    use sui::tx_context::TxContext;
-    use sui::vec_map;
+    use sui::object::{Self, UID};
+    use sui::vec_map::{Self, VecMap};
     use sui::transfer;
-    use sui::object;
     use sui::url::{Self, Url};
     use sui::event;
-    use suins::base_registry::AdminCap;
-    use std::ascii;
-    use suins::helper;
+    use sui::tx_context::{Self, TxContext};
+    use sui::table::{Self, Table};
+    use std::ascii::{Self, String};
     use std::vector;
     use suins::remove_later;
-    use sui::tx_context;
+    use suins::helper;
+    use suins::base_registry::AdminCap;
+    use suins::emoji::{Self, EmojiConfiguration};
 
     friend suins::base_registrar;
     friend suins::controller;
 
     // errors in the range of 401..500 indicate Sui Configuration errors
+    const EmojiConfig: vector<u8> = b"emoji_config";
+
     const EInvalidRate: u64 = 401;
     const EInvalidReferralCode: u64 = 402;
     const EInvalidDiscountCode: u64 = 403;
@@ -31,23 +32,23 @@ module suins::configuration {
     }
 
     struct ReferralCodeAddedEvent has copy, drop {
-        code: ascii::String,
+        code: String,
         rate: u8,
         partner: address,
     }
 
     struct DiscountCodeAddedEvent has copy, drop {
-        code: ascii::String,
+        code: String,
         rate: u8,
-        owner: ascii::String,
+        owner: String,
     }
 
     struct ReferralCodeRemovedEvent has copy, drop {
-        code: ascii::String,
+        code: String,
     }
 
     struct DiscountCodeRemovedEvent has copy, drop {
-        code: ascii::String,
+        code: String,
     }
 
     struct ReferralValue has store, drop {
@@ -57,7 +58,7 @@ module suins::configuration {
 
     struct DiscountValue has store, drop {
         rate: u8,
-        owner: ascii::String,
+        owner: String,
     }
 
     struct Configuration has key {
@@ -67,8 +68,10 @@ module suins::configuration {
         // day number when the network is deployed, counts from 01/01/2022, 01/01/2022 is day 1,
         // help to detect leap year
         network_first_day: u64,
-        referral_codes: VecMap<ascii::String, ReferralValue>,
-        discount_codes: VecMap<ascii::String, DiscountValue>,
+        referral_codes: VecMap<String, ReferralValue>,
+        discount_codes: VecMap<String, DiscountValue>,
+        // hold hardcoded value
+        resources: Table<String, EmojiConfiguration>,
     }
 
     fun init(ctx: &mut TxContext) {
@@ -79,12 +82,16 @@ module suins::configuration {
         vec_map::insert(&mut ipfs_urls, 1461, b"ipfs://QmaWNLR6C3QsSHcPwNoFA59DPXCKdx1t8hmyyKRqBbjYB3");
         vec_map::insert(&mut ipfs_urls, 1826, b"ipfs://QmRF7kbi4igtGcX6enEuthQRhvQZejc7ZKBhMimFJtTS8D");
         vec_map::insert(&mut ipfs_urls, 2191, b"ipfs://QmfG5ngyNak9Baxg39whWUFnm5i52p64hgBWqfKJfUKjWr");
+        let resources = table::new<String, EmojiConfiguration>(ctx);
+        table::add(&mut resources, ascii::string(EmojiConfig), emoji::init_emoji_config());
+
         transfer::share_object(Configuration {
             id: object::new(ctx),
             ipfs_urls,
             network_first_day: 0,
             referral_codes: vec_map::empty(),
             discount_codes: vec_map::empty(),
+            resources,
         });
     }
 
@@ -188,7 +195,7 @@ module suins::configuration {
         url::new_unsafe_from_bytes(b"ipfs://bafkreibngqhl3gaa7daob4i2vccziay2jjlp435cf66vhono7nrvww53ty")
     }
 
-    public(friend) fun use_discount_code(config: &mut Configuration, code: &ascii::String, ctx: &TxContext): u8 {
+    public(friend) fun use_discount_code(config: &mut Configuration, code: &String, ctx: &TxContext): u8 {
         assert!(vec_map::contains(&config.discount_codes, code), EDiscountCodeNotExists);
         let value = vec_map::get(&config.discount_codes, code);
         let owner = value.owner;
@@ -200,10 +207,14 @@ module suins::configuration {
     }
 
     // returns referral code's rate and partner address
-    public(friend) fun use_referral_code(config: &Configuration, code: &ascii::String): (u8, address) {
+    public(friend) fun use_referral_code(config: &Configuration, code: &String): (u8, address) {
         assert!(vec_map::contains(&config.referral_codes, code), EReferralCodeNotExists);
         let value = vec_map::get(&config.referral_codes, code);
         (value.rate, value.partner)
+    }
+
+    public(friend) fun get_emoji_config(config: &Configuration): &EmojiConfiguration {
+        table::borrow(&config.resources, ascii::string(EmojiConfig))
     }
 
     #[test_only]
@@ -218,7 +229,7 @@ module suins::configuration {
     }
 
     #[test_only]
-    public(friend) fun get_discount_owner(discount_value: &DiscountValue): ascii::String {
+    public(friend) fun get_discount_owner(discount_value: &DiscountValue): String {
         discount_value.owner
     }
 
@@ -228,7 +239,7 @@ module suins::configuration {
     }
 
     #[test_only]
-    public(friend) fun get_referral_code(config: &Configuration, code: &ascii::String): Option<ReferralValue> {
+    public(friend) fun get_referral_code(config: &Configuration, code: &String): Option<ReferralValue> {
         if (vec_map::contains(&config.referral_codes, code)) {
             let value = vec_map::get(&config.referral_codes, code);
             return option::some(ReferralValue { rate: value.rate, partner: value.partner })
@@ -247,7 +258,7 @@ module suins::configuration {
     }
 
     #[test_only]
-    public(friend) fun get_discount_code(config: &Configuration, code: &ascii::String): Option<DiscountValue> {
+    public(friend) fun get_discount_code(config: &Configuration, code: &String): Option<DiscountValue> {
         if (vec_map::contains(&config.discount_codes, code)) {
             let value = vec_map::get(&config.discount_codes, code);
             return option::some(DiscountValue { rate: value.rate, owner: value.owner })
@@ -266,12 +277,16 @@ module suins::configuration {
         vec_map::insert(&mut ipfs_urls, 1461, b"ipfs://QmaWNLR6C3QsSHcPwNoFA59DPXCKdx1t8hmyyKRqBbjYB3");
         vec_map::insert(&mut ipfs_urls, 1826, b"ipfs://QmRF7kbi4igtGcX6enEuthQRhvQZejc7ZKBhMimFJtTS8D");
         vec_map::insert(&mut ipfs_urls, 2191, b"ipfs://QmfG5ngyNak9Baxg39whWUFnm5i52p64hgBWqfKJfUKjWr");
+        let resources = table::new<String, EmojiConfiguration>(ctx);
+        table::add(&mut resources, ascii::string(b"emoji_config"), emoji::init_emoji_config());
+
         transfer::share_object(Configuration {
             id: object::new(ctx),
             ipfs_urls,
             network_first_day: 0,
             referral_codes: vec_map::empty(),
             discount_codes: vec_map::empty(),
+            resources,
         });
     }
 }

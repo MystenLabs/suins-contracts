@@ -17,6 +17,7 @@ module suins::controller {
     use std::vector;
     use std::option::{Self, Option};
     use std::ascii;
+    use suins::emoji::validate_label_with_emoji;
 
     // TODO: remove later when timestamp is introduced
     // const MIN_COMMITMENT_AGE: u64 = 0;
@@ -32,7 +33,6 @@ module suins::controller {
     const EInvalidDuration: u64 = 306;
     const ELabelUnAvailable: u64 = 308;
     const ENoProfits: u64 = 310;
-    const EInvalidLabel: u64 = 311;
 
     struct NameRegisteredEvent has copy, drop {
         node: String,
@@ -303,7 +303,9 @@ module suins::controller {
         discount_code: Option<ascii::String>,
         ctx: &mut TxContext,
     ) {
-        check_valid(string::utf8(label));
+        let emoji_config = configuration::get_emoji_config(config);
+        validate_label_with_emoji(emoji_config, label);
+
         let registration_fee = FEE_PER_YEAR * no_years;
         assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
 
@@ -368,27 +370,6 @@ module suins::controller {
         );
         assert!(base_registrar::available(registrar, string::utf8(label), ctx), ELabelUnAvailable);
         vec_map::remove(&mut controller.commitments, &commitment);
-    }
-
-    // Valid label have between 3 to 63 characters and contain only: lowercase (a-z), numbers (0-9), hyphen (-).
-    // A name may not start or end with a hyphen
-    fun check_valid(label: String) {
-        let label_bytes = string::bytes(&label);
-        let len = string::length(&label);
-        assert!(2 < len && len < 64, EInvalidLabel);
-
-        let index = 0;
-        while (index < len) {
-            let byte = *vector::borrow(label_bytes, index);
-            assert!(
-                (byte >= 0x61 && byte <= 0x7A)                           // a-z
-                    || (byte >= 0x30 && byte <= 0x39)                    // 0-9
-                    || (byte == 0x2D && index != 0 && index != len - 1), // -
-                EInvalidLabel
-            );
-
-            index = index + 1;
-        };
     }
 
     fun make_commitment(registrar: &BaseRegistrar, label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
