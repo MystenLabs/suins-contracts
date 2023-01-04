@@ -93,7 +93,7 @@ module suins::controller {
         let duration = no_years * 365;
         base_registrar::renew(registrar, label, duration, ctx);
 
-        coin_util::pay_fee(payment, renew_fee, &mut controller.balance);
+        coin_util::user_transfer_to_contract(payment, renew_fee, &mut controller.balance);
 
         event::emit(NameRenewedEvent {
             node: base_registrar::get_base_node(registrar),
@@ -107,8 +107,7 @@ module suins::controller {
         let amount = balance::value(&controller.balance);
         assert!(amount > 0, ENoProfits);
 
-        let coin = coin::take(&mut controller.balance, amount, ctx);
-        transfer::transfer(coin, tx_context::sender(ctx));
+        coin_util::contract_transfer_to_address(&mut controller.balance, amount, tx_context::sender(ctx), ctx);
     }
 
     public entry fun make_commitment_and_commit(
@@ -269,8 +268,8 @@ module suins::controller {
     ): u64 {
         let (rate, partner) = configuration::use_referral_code(config, referral_code);
         let remaining_fee = (original_fee / 100)  * (100 - rate as u64);
-        let payback = original_fee - remaining_fee;
-        coin_util::transfer(payment, payback, partner, ctx);
+        let payback_amount = original_fee - remaining_fee;
+        coin_util::user_transfer_to_address(payment, payback_amount, partner, ctx);
 
         remaining_fee
     }
@@ -319,7 +318,7 @@ module suins::controller {
 
         let duration = no_years * 365;
         let nft_id = base_registrar::register(registrar, registry, config, label, owner, duration, resolver, ctx);
-        coin_util::pay_fee(payment, registration_fee, &mut controller.balance);
+        coin_util::user_transfer_to_contract(payment, registration_fee, &mut controller.balance);
 
         event::emit(NameRegisteredEvent {
             node: base_registrar::get_base_node(registrar),

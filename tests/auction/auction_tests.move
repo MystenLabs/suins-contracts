@@ -12,7 +12,7 @@ module suins::auction_tests {
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
     const SECOND_USER_ADDRESS: address = @0xB002;
-    const SEAL_BID: vector<u8> = b"vUAgEwNmPr";
+    const HASH: vector<u8> = b"vUAgEwNmPr";
 
     fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
@@ -31,18 +31,18 @@ module suins::auction_tests {
         {
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(1000, ctx(&mut scenario));
-            let (owner, amount) = auction::get_bid(&auction, SEAL_BID);
+            let (owner, amount) = auction::get_bid(&auction, HASH);
             assert!(option::is_none(&owner), 0);
             assert!(option::is_none(&amount), 0);
 
-            auction::new_bid(&mut auction, SEAL_BID, 100, &mut coin, ctx(&mut scenario));
-            let (owner, amount) = auction::get_bid(&auction, SEAL_BID);
+            auction::new_bid(&mut auction, HASH, 100, &mut coin, ctx(&mut scenario));
+            let (owner, amount) = auction::get_bid(&auction, HASH);
             assert!(option::extract(&mut owner) == FIRST_USER_ADDRESS, 0);
             assert!(option::extract(&mut amount) == 100, 0);
             assert!(coin::value(&coin) == 900, 0);
 
-            auction::new_bid(&mut auction, SEAL_BID, 20, &mut coin, ctx(&mut scenario));
-            let (owner, amount) = auction::get_bid(&auction, SEAL_BID);
+            auction::new_bid(&mut auction, HASH, 20, &mut coin, ctx(&mut scenario));
+            let (owner, amount) = auction::get_bid(&auction, HASH);
             assert!(option::extract(&mut owner) == FIRST_USER_ADDRESS, 0);
             assert!(option::extract(&mut amount) == 120, 0);
             assert!(coin::value(&coin) == 880, 0);
@@ -61,7 +61,7 @@ module suins::auction_tests {
         {
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(1000, ctx(&mut scenario));
-            auction::new_bid(&mut auction, SEAL_BID, 100, &mut coin, ctx(&mut scenario));
+            auction::new_bid(&mut auction, HASH, 100, &mut coin, ctx(&mut scenario));
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(auction);
         };
@@ -70,7 +70,23 @@ module suins::auction_tests {
         {
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(1000, ctx(&mut scenario));
-            auction::new_bid(&mut auction, SEAL_BID, 100, &mut coin, ctx(&mut scenario));
+            auction::new_bid(&mut auction, HASH, 100, &mut coin, ctx(&mut scenario));
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_request_to_start_auction() {
+        let scenario = test_init();
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let coin = coin::mint_for_testing<SUI>(10000, ctx(&mut scenario));
+            auction::request_to_start_auction(&mut auction, HASH, &mut coin, ctx(&mut scenario));
+            assert!(coin::value(&coin) == 9000, 0);
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(auction);
         };
