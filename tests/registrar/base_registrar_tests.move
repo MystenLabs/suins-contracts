@@ -90,9 +90,9 @@ module suins::base_registrar_tests {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             assert!(base_registry::get_records_len(&registry) == 1, 0);
             let record = base_registry::get_record_by_key(&registry, utf8(SUB_NODE));
-            assert!(base_registry::get_record_owner(record) == FIRST_USER, 0);
-            assert!(base_registry::get_record_resolver(record) == FIRST_RESOLVER, 0);
-            assert!(base_registry::get_record_ttl(record) == 0, 0);
+            assert!(base_registry::get_record_owner(&record) == FIRST_USER, 0);
+            assert!(base_registry::get_record_resolver(&record) == FIRST_RESOLVER, 0);
+            assert!(base_registry::get_record_ttl(&record) == 0, 0);
 
             test_scenario::return_shared(registry);
         };
