@@ -886,7 +886,7 @@ module suins::resolver_tests {
     }
 
     #[test]
-    fun test_get_full_data() {
+    fun test_all_full_data() {
         let scenario = test_init();
         base_registry_tests::mint_record(&mut scenario);
 
@@ -927,6 +927,23 @@ module suins::resolver_tests {
             assert!(text == utf8(FIRST_AVATAR), 0);
             assert!(addr == FIRST_USER_ADDRESS, 0);
             assert!(content_hash == utf8(FIRST_CONTENT_HASH), 0);
+            test_scenario::return_shared(resolver);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_get_all_data_returns_empty_if_node_not_exists() {
+        let scenario = test_init();
+        base_registry_tests::mint_record(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
+            let (text, addr, content_hash) = resolver::all_data(&resolver, FIRST_SUB_NODE, AVATAR);
+            assert!(text == utf8(b""), 0);
+            assert!(addr == @0x0, 0);
+            assert!(content_hash == utf8(b""), 0);
             test_scenario::return_shared(resolver);
         };
         test_scenario::end(scenario);

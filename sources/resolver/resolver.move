@@ -110,23 +110,27 @@ module suins::resolver {
 
     // returns (text, addr, content_hash)
     public fun all_data(base_resolver: &BaseResolver, node: vector<u8>, key: vector<u8>): (String, address, String) {
-        let record = table::borrow(&base_resolver.records, utf8(node));
-        let text = utf8(b"");
-        if (bag::contains(record, utf8(TEXT))) {
-            let text_record: &Table<String, String> = bag::borrow(record, utf8(TEXT));
-            if (table::contains(text_record, utf8(key))) {
-                text = *table::borrow(text_record, utf8(key));
-            }
+        let empty_str = utf8(b"");
+        if (table::contains(&base_resolver.records, utf8(node))) {
+            let record = table::borrow(&base_resolver.records, utf8(node));
+            let text = *&empty_str;
+            if (bag::contains(record, utf8(TEXT))) {
+                let text_record: &Table<String, String> = bag::borrow(record, utf8(TEXT));
+                if (table::contains(text_record, utf8(key))) {
+                    text = *table::borrow(text_record, utf8(key));
+                }
+            };
+            let addr = @0x0;
+            if (bag::contains(record, utf8(ADDR))) {
+                addr = *bag::borrow<String, address>(record, utf8(ADDR));
+            };
+            let content_hash = *&empty_str;
+            if (bag::contains(record, utf8(CONTENTHASH))) {
+                content_hash = *bag::borrow<String, String>(record, utf8(CONTENTHASH));
+            };
+            return (text, addr, content_hash)
         };
-        let addr = @0x0;
-        if (bag::contains(record, utf8(ADDR))) {
-            addr = *bag::borrow<String, address>(record, utf8(ADDR));
-        };
-        let content_hash = utf8(b"");
-        if (bag::contains(record, utf8(CONTENTHASH))) {
-            content_hash = *bag::borrow<String, String>(record, utf8(CONTENTHASH));
-        };
-        (text, addr, content_hash)
+        (*&empty_str, @0x0, *&empty_str)
     }
 
     public entry fun set_contenthash(
