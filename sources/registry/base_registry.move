@@ -74,6 +74,10 @@ module suins::base_registry {
     public fun ttl(registry: &Registry, node: vector<u8>): u64 {
         table::borrow(&registry.records, string::utf8(node)).ttl
     }
+    
+    public fun get_record_by_key(registry: &Registry, key: String): &Record {
+        table::borrow(&registry.records, key)
+    }
 
     public entry fun set_subnode_owner(
         registry: &mut Registry,
@@ -173,11 +177,6 @@ module suins::base_registry {
     #[test_only]
     friend suins::resolver_tests;
 
-    #[test_only]
-    public fun get_record_by_key(registry: &Registry, key: String): &Record {
-        table::borrow(&registry.records, key)
-    }
-    
     #[test_only]
     public fun get_records_len(registry: &Registry): u64 { table::length(&registry.records) }
 
