@@ -12,6 +12,7 @@ module suins::base_registrar {
     use suins::configuration::{Self, Configuration};
 
     friend suins::controller;
+    friend suins::auction;
 
     // in terms of epoch
     const GRACE_PERIOD: u8 = 90;
