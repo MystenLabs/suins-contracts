@@ -186,7 +186,7 @@ module suins::base_registrar {
         assert!(registrar.base_node == base_node, EInvalidBaseNode);
 
         let label = string::sub_string(&nft.name, 0, index_of_dot);
-        if (!table::contains(&registrar.expiries, label)) abort ELabelNotExists;
+        assert!(table::contains(&registrar.expiries, label), ELabelNotExists);
         let registration = table::borrow(&registrar.expiries, label);
         assert!(registration.expiry >= tx_context::epoch(ctx), ELabelExpired);
 
