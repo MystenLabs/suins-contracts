@@ -188,7 +188,7 @@ module suins::base_registrar {
         let label = string::sub_string(&nft.name, 0, index_of_dot);
         if (!table::contains(&registrar.expiries, label)) abort ELabelNotExists;
         let registration = table::borrow(&registrar.expiries, label);
-        if (registration.expiry < tx_context::epoch(ctx)) abort ELabelExpired;
+        assert!(registration.expiry >= tx_context::epoch(ctx), ELabelExpired);
 
         // TODO: delete NFT if it expired
         base_registry::set_owner_internal(registry, nft.name, owner);

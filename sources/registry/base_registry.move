@@ -156,7 +156,7 @@ module suins::base_registry {
 
     public(friend) fun authorised(registry: &Registry, node: vector<u8>, ctx: &TxContext) {
         let owner = owner(registry, node);
-        if (tx_context::sender(ctx) != owner) abort EUnauthorized;
+        assert!(tx_context::sender(ctx) == owner, EUnauthorized);
     }
 
     fun new_record(
