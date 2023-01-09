@@ -17,6 +17,7 @@ module suins::controller {
     use std::vector;
     use std::option::{Self, Option};
     use std::ascii;
+    use suins::emoji::validate_label_with_emoji;
 
     // TODO: remove later when timestamp is introduced
     // const MIN_COMMITMENT_AGE: u64 = 0;
@@ -32,7 +33,7 @@ module suins::controller {
     const EInvalidDuration: u64 = 306;
     const ELabelUnAvailable: u64 = 308;
     const ENoProfits: u64 = 310;
-    const EInvalidLabel: u64 = 311;
+    const EInvalidCode: u64 = 311;
 
     struct NameRegisteredEvent has copy, drop {
         node: String,
@@ -144,7 +145,7 @@ module suins::controller {
     }
 
     // duration in years
-    public entry fun register_with_referral_code(
+    public entry fun register_with_code(
         controller: &mut BaseController,
         registrar: &mut BaseRegistrar,
         registry: &mut Registry,
@@ -155,37 +156,22 @@ module suins::controller {
         secret: vector<u8>,
         payment: &mut Coin<SUI>,
         referral_code: vector<u8>,
-        ctx: &mut TxContext,
-    ) {
-        let resolver = controller.default_addr_resolver;
-        let referral_code = ascii::string(referral_code);
-        register_internal(
-            controller, registrar, registry, config, label,
-            owner, no_years, secret, resolver,
-            payment, option::some(referral_code), option::none(), ctx,
-        );
-    }
-
-    // duration in years
-    public entry fun register_with_discount_code(
-        controller: &mut BaseController,
-        registrar: &mut BaseRegistrar,
-        registry: &mut Registry,
-        config: &mut Configuration,
-        label: vector<u8>,
-        owner: address,
-        no_years: u64,
-        secret: vector<u8>,
-        payment: &mut Coin<SUI>,
         discount_code: vector<u8>,
         ctx: &mut TxContext,
     ) {
+        let referral_len = vector::length(&referral_code);
+        let discount_len = vector::length(&discount_code);
+        assert!(referral_len > 0 || discount_len > 0, EInvalidCode);
+
+        let referral = option::none();
+        let discount = option::none();
+        if (referral_len > 0) referral = option::some(ascii::string(referral_code));
+        if (discount_len > 0) discount = option::some(ascii::string(discount_code));
         let resolver = controller.default_addr_resolver;
-        let discount_code = ascii::string(discount_code);
         register_internal(
             controller, registrar, registry, config, label,
             owner, no_years, secret, resolver,
-            payment, option::none(), option::some(discount_code), ctx
+            payment, referral, discount, ctx,
         );
     }
 
@@ -216,7 +202,7 @@ module suins::controller {
 
     // anyone can register a domain at any level
     // duration in years
-    public entry fun register_with_config_and_referral_code(
+    public entry fun register_with_config_and_code(
         controller: &mut BaseController,
         registrar: &mut BaseRegistrar,
         registry: &mut Registry,
@@ -228,35 +214,22 @@ module suins::controller {
         resolver: address,
         payment: &mut Coin<SUI>,
         referral_code: vector<u8>,
-        ctx: &mut TxContext,
-    ) {
-        let referral_code = ascii::string(referral_code);
-        register_internal(
-            controller, registrar, registry, config,
-            label, owner, no_years, secret, resolver,
-            payment, option::some(referral_code), option::none(), ctx,
-        );
-    }
-
-    public entry fun register_with_config_and_discount_code(
-        controller: &mut BaseController,
-        registrar: &mut BaseRegistrar,
-        registry: &mut Registry,
-        config: &mut Configuration,
-        label: vector<u8>,
-        owner: address,
-        no_years: u64,
-        secret: vector<u8>,
-        resolver: address,
-        payment: &mut Coin<SUI>,
         discount_code: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        let discount_code = ascii::string(discount_code);
+        let referral_len = vector::length(&referral_code);
+        let discount_len = vector::length(&discount_code);
+        assert!(referral_len > 0 || discount_len > 0, EInvalidCode);
+
+        let referral = option::none();
+        let discount = option::none();
+        if (referral_len > 0) referral = option::some(ascii::string(referral_code));
+        if (discount_len > 0) discount = option::some(ascii::string(discount_code));
+
         register_internal(
             controller, registrar, registry, config,
             label, owner, no_years, secret, resolver,
-            payment, option::none(),option::some(discount_code), ctx
+            payment, referral, discount, ctx,
         );
     }
 
@@ -303,16 +276,20 @@ module suins::controller {
         discount_code: Option<ascii::String>,
         ctx: &mut TxContext,
     ) {
-        check_valid(string::utf8(label));
+        let emoji_config = configuration::get_emoji_config(config);
+        validate_label_with_emoji(emoji_config, label);
+
         let registration_fee = FEE_PER_YEAR * no_years;
         assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
 
+        // can apply both discount and referral codes at the same time
+        if (option::is_some(&discount_code)) {
+            registration_fee =
+                apply_discount_code(config, registration_fee, option::borrow(&discount_code), ctx);
+        };
         if (option::is_some(&referral_code)) {
             registration_fee =
                 apply_referral_code(config, payment, registration_fee, option::borrow(&referral_code), ctx);
-        } else if (option::is_some(&discount_code)) {
-            registration_fee =
-                apply_discount_code(config, registration_fee, option::borrow(&discount_code), ctx);
         };
         let commitment = make_commitment(registrar, label, owner, secret);
         consume_commitment(controller, registrar, label, commitment, ctx);
@@ -370,26 +347,6 @@ module suins::controller {
         vec_map::remove(&mut controller.commitments, &commitment);
     }
 
-    // Valid label have between 3 to 63 characters and contain only: lowercase (a-z), numbers (0-9), hyphen (-).
-    // A name may not start or end with a hyphen
-    fun check_valid(label: String) {
-        let label_bytes = string::bytes(&label);
-        let len = string::length(&label);
-        assert!(2 < len && len < 64, EInvalidLabel);
-
-        let index = 0;
-        while (index < len) {
-            let byte = *vector::borrow(label_bytes, index);
-            if (!(
-                    (byte >= 0x61 && byte <= 0x7A)                           // a-z
-                        || (byte >= 0x30 && byte <= 0x39)                    // 0-9
-                        || (byte == 0x2D && index != 0 && index != len - 1)  // -
-            )) abort EInvalidLabel;
-
-            index = index + 1;
-        };
-    }
-
     fun make_commitment(registrar: &BaseRegistrar, label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
         let node = label;
         vector::append(&mut node, b".");
@@ -439,6 +396,7 @@ module suins::controller {
             id: object::new(ctx),
             commitments: vec_map::empty(),
             balance: balance::zero(),
+            // cannot get the ID of name_resolver in `init`, admin need to update this by calling `set_default_resolver`
             default_addr_resolver: @0x0,
         });
     }

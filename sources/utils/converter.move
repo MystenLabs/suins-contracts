@@ -1,4 +1,4 @@
-module suins::helper {
+module suins::converter {
 
     use std::bcs;
     use std::vector;
@@ -52,9 +52,7 @@ module suins::helper {
 
         while (index > 0) {
             let byte = *vector::borrow(bytes, index - 1);
-            if (!(byte >= 0x30 && byte <= 0x39)) { // 0-9
-                abort EInvalidNumber
-            };
+            assert!(byte >= 0x30 && byte <= 0x39, EInvalidNumber); // 0-9
             result = result + ((byte as u64) - 0x30) * base;
             // avoid overflow if input is MAX_U64
             if (index != 1) base = base * 10;
@@ -64,7 +62,7 @@ module suins::helper {
     }
 
     #[test_only]
-    friend suins::helper_tests;
+    friend suins::converter_tests;
     #[test_only]
     friend suins::resolver_tests;
 }

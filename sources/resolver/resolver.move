@@ -5,14 +5,15 @@ module suins::resolver {
     use sui::object::{Self, UID};
     use sui::transfer;
     use sui::tx_context::TxContext;
-    use sui::vec_map::{Self, VecMap};
     use suins::base_registry::{Self, Registry};
-    use suins::helper;
+    use suins::converter;
     use std::string::{Self, String, utf8};
+    use sui::table::{Self, Table};
 
     const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
     const NAME: vector<u8> = b"name";
     const ADDR: vector<u8> = b"addr";
+    const TEXT: vector<u8> = b"text";
     const AVATAR: vector<u8> = b"avatar";
     const CONTENTHASH: vector<u8> = b"contenthash";
 
@@ -25,11 +26,12 @@ module suins::resolver {
         addr: address,
     }
 
-    struct AvatarChangedEvent has copy, drop {
+    struct TextRecordChangedEvent has copy, drop {
         node: String,
-        avatar: String,
+        key: String,
+        value: String
     }
-
+    
     struct ContenthashChangedEvent has copy, drop {
         node: String,
         contenthash: String,
@@ -47,122 +49,119 @@ module suins::resolver {
     // this share object is used by many type of resolver, e.g., text resolver, addr resolver,...
     struct BaseResolver has key {
         id: UID,
-        resolvers: Bag,
+        records: Table<String, Bag>,
     }
 
     fun init(ctx: &mut TxContext) {
-        let resolvers = bag::new(ctx);
-        bag::add(&mut resolvers, utf8(ADDR), vec_map::empty<String, address>());
-        bag::add(&mut resolvers, utf8(NAME), vec_map::empty<address, String>());
-        bag::add(&mut resolvers, utf8(AVATAR), vec_map::empty<String, String>());
-        bag::add(&mut resolvers, utf8(CONTENTHASH), vec_map::empty<String, String>());
+        // each `record` looks like:
+        // ```
+        // "suins.sui": {
+        //   "addr": "0x2",
+        //   "contenthash": "ipfs://QmfWrgbTZqwzqsvdeNc3NKacggMuTaN83sQ8V7Bs2nXKRD",
+        //   "text": {
+        //     "avatar": "0x03"
+        //   }
+        // }
+        // ```
         transfer::share_object(BaseResolver {
             id: object::new(ctx),
-            resolvers,
+            records: table::new<String, Bag>(ctx),
         });
     }
 
-    public fun name(name_resolver: &BaseResolver, addr: address): String {
-        let names = bag::borrow<String, VecMap<address, String>>(&name_resolver.resolvers, utf8(NAME));
-        *vec_map::get(names, &addr)
+    public fun name(base_resolver: &BaseResolver, addr: address): String {
+        let addr_str = utf8(converter::address_to_string(addr));
+        let record = table::borrow(&base_resolver.records, addr_str);
+        *bag::borrow<String, String>(record, utf8(NAME))
     }
 
-    public fun avatar(base_resolver: &BaseResolver, node: vector<u8>): String {
-        let avatars = bag::borrow<String, VecMap<String, String>>(&base_resolver.resolvers, utf8(AVATAR));
-        *vec_map::get(avatars, &utf8(node))
+    public fun text(base_resolver: &BaseResolver, node: vector<u8>, key: vector<u8>): String {
+        if (table::contains(&base_resolver.records, utf8(node))) {
+            let record = table::borrow(&base_resolver.records, utf8(node));
+            if (bag::contains(record, utf8(TEXT))) {
+                let text_record: &Table<String, String> = bag::borrow(record, utf8(TEXT));
+                if (table::contains(text_record, utf8(key))) {
+                    return *table::borrow(text_record, utf8(key))
+                }
+            };
+        };
+        utf8(b"")
     }
 
     public fun addr(base_resolver: &BaseResolver, node: vector<u8>): address {
-        let addrs = bag::borrow<String, VecMap<String, address>>(&base_resolver.resolvers, utf8(ADDR));
-        *vec_map::get(addrs, &utf8(node))
+        if (table::contains(&base_resolver.records, utf8(node))) {
+            let record = table::borrow(&base_resolver.records, utf8(node));
+            if (bag::contains(record, utf8(ADDR))) {
+                return *bag::borrow<String, address>(record, utf8(ADDR))
+            };
+        };
+        @0x0
     }
 
     public fun contenthash(base_resolver: &BaseResolver, node: vector<u8>): String {
-        let hashes = bag::borrow<String, VecMap<String, String>>(&base_resolver.resolvers, utf8(CONTENTHASH));
-        *vec_map::get(hashes, &utf8(node))
-    }
-
-    public entry fun set_name(
-        base_resolver: &mut BaseResolver,
-        registry: &Registry,
-        addr: address,
-        new_name: vector<u8>,
-        ctx: &mut TxContext
-    ) {
-        let label = helper::address_to_string(addr);
-        let node = base_registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
-        base_registry::authorised(registry, *string::bytes(&node), ctx);
-
-        let new_name = utf8(new_name);
-        let names = bag::borrow_mut<String, VecMap<address, String>>(&mut base_resolver.resolvers, utf8(NAME));
-        if (vec_map::contains(names, &addr)) {
-            let current_name = vec_map::get_mut(names, &addr);
-            *current_name = new_name;
-        } else {
-            vec_map::insert(names, addr, new_name);
+        if (table::contains(&base_resolver.records, utf8(node))) {
+            let record = table::borrow(&base_resolver.records, utf8(node));
+            if (bag::contains(record, utf8(CONTENTHASH))) {
+                return *bag::borrow<String, String>(record, utf8(CONTENTHASH))
+            };
         };
-
-        event::emit(NameChangedEvent { addr, name: new_name });
+        utf8(b"")
     }
 
-    public entry fun unset_name(
-        base_resolver: &mut BaseResolver,
-        registry: &Registry,
-        addr: address,
-        ctx: &mut TxContext
-    ) {
-        let label = helper::address_to_string(addr);
-        let node = base_registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
-        base_registry::authorised(registry, *string::bytes(&node), ctx);
-
-        let names = bag::borrow_mut<String, VecMap<address, String>>(&mut base_resolver.resolvers, utf8(NAME));
-        vec_map::remove(names, &addr);
-        event::emit(NameRemovedEvent { addr });
-    }
-
-    // only allow set avatar for domain atm
-    public entry fun set_avatar(
-        base_resolver: &mut BaseResolver,
-        registry: &Registry,
-        node: vector<u8>,
-        new_avatar: vector<u8>,
-        ctx: &mut TxContext
-    ) {
-        base_registry::authorised(registry, node, ctx);
-
-        let node = utf8(node);
-        let new_avatar = utf8(new_avatar);
-        let avatars = bag::borrow_mut<String, VecMap<String, String>>(&mut base_resolver.resolvers, utf8(AVATAR));
-        if (vec_map::contains(avatars, &node)) {
-            let current_avatar = vec_map::get_mut(avatars, &node);
-            *current_avatar = new_avatar;
-        } else {
-            vec_map::insert(avatars, node, new_avatar);
+    // returns (text, addr, content_hash)
+    public fun all_data(base_resolver: &BaseResolver, node: vector<u8>, key: vector<u8>): (String, address, String) {
+        let empty_str = utf8(b"");
+        if (table::contains(&base_resolver.records, utf8(node))) {
+            let record = table::borrow(&base_resolver.records, utf8(node));
+            let text = *&empty_str;
+            if (bag::contains(record, utf8(TEXT))) {
+                let text_record: &Table<String, String> = bag::borrow(record, utf8(TEXT));
+                if (table::contains(text_record, utf8(key))) {
+                    text = *table::borrow(text_record, utf8(key));
+                }
+            };
+            let addr = @0x0;
+            if (bag::contains(record, utf8(ADDR))) {
+                addr = *bag::borrow<String, address>(record, utf8(ADDR));
+            };
+            let content_hash = *&empty_str;
+            if (bag::contains(record, utf8(CONTENTHASH))) {
+                content_hash = *bag::borrow<String, String>(record, utf8(CONTENTHASH));
+            };
+            return (text, addr, content_hash)
         };
-
-        event::emit(AvatarChangedEvent { node, avatar: new_avatar });
+        (*&empty_str, @0x0, *&empty_str)
     }
 
     public entry fun set_contenthash(
         base_resolver: &mut BaseResolver,
         registry: &Registry,
         node: vector<u8>,
-        new_contenthash: vector<u8>,
+        hash: vector<u8>,
         ctx: &mut TxContext
     ) {
         base_registry::authorised(registry, node, ctx);
-
         let node = utf8(node);
-        let new_contenthash = utf8(new_contenthash);
-        let hashes = bag::borrow_mut<String, VecMap<String, String>>(&mut base_resolver.resolvers, utf8(CONTENTHASH));
-        if (vec_map::contains(hashes, &node)) {
-            let current_contenthash = vec_map::get_mut(hashes, &node);
-            *current_contenthash = new_contenthash;
+        let new_hash = utf8(hash);
+
+        if (table::contains(&base_resolver.records, node)) {
+            let record = table::borrow_mut(&mut base_resolver.records, node);
+            if (bag::contains_with_type<String, String>(record, utf8(CONTENTHASH))) {
+                // `node` and `contenthash` exist
+                let current_contenthash = bag::borrow_mut<String, String>(record, utf8(CONTENTHASH));
+                *current_contenthash = new_hash;
+            } else {
+                // `node` exists but `contenthash` doesn't
+                bag::add<String, String>(record, utf8(CONTENTHASH), new_hash);
+            }
         } else {
-            vec_map::insert(hashes, node, new_contenthash);
+            // `node` not exist
+            let new_record = bag::new(ctx);
+            bag::add<String, String>(&mut new_record, utf8(CONTENTHASH), new_hash);
+            table::add(&mut base_resolver.records, node, new_record);
         };
 
-        event::emit(ContenthashChangedEvent { node, contenthash: new_contenthash });
+        event::emit(ContenthashChangedEvent { node, contenthash: new_hash });
     }
 
     public entry fun unset_contenthash(
@@ -174,9 +173,102 @@ module suins::resolver {
         base_registry::authorised(registry, node, ctx);
 
         let node = utf8(node);
-        let hashes = bag::borrow_mut<String, VecMap<String, String>>(&mut base_resolver.resolvers, utf8(CONTENTHASH));
-        vec_map::remove(hashes, &node);
+        let record = table::borrow_mut(&mut base_resolver.records, node);
+        bag::remove<String, String>(record, utf8(CONTENTHASH));
         event::emit(ContenthashRemovedEvent { node });
+    }
+
+    public entry fun set_name(
+        base_resolver: &mut BaseResolver,
+        registry: &Registry,
+        addr: address,
+        new_name: vector<u8>,
+        ctx: &mut TxContext
+    ) {
+        let label = converter::address_to_string(addr);
+        let node = base_registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
+        base_registry::authorised(registry, *string::bytes(&node), ctx);
+        let new_name = utf8(new_name);
+        let addr_str = utf8(converter::address_to_string(addr));
+
+        if (table::contains(&base_resolver.records, addr_str)) {
+            let record = table::borrow_mut(&mut base_resolver.records, addr_str);
+            if (bag::contains_with_type<String, String>(record, utf8(NAME))) {
+                // `node` and `name` exist
+                let current_name = bag::borrow_mut<String, String>(record, utf8(NAME));
+                *current_name = new_name;
+            } else {
+                // `node` exists but `name` doesn't
+                bag::add<String, String>(record, utf8(NAME), new_name);
+            }
+        } else {
+            // `node` not exist
+            let new_record = bag::new(ctx);
+            bag::add<String, String>(&mut new_record, utf8(NAME), new_name);
+            table::add(&mut base_resolver.records, addr_str, new_record);
+        };
+
+        event::emit(NameChangedEvent { addr, name: new_name });
+    }
+
+    public entry fun unset_name(
+        base_resolver: &mut BaseResolver,
+        registry: &Registry,
+        addr: address,
+        ctx: &mut TxContext
+    ) {
+        let label = converter::address_to_string(addr);
+        let node = base_registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
+        base_registry::authorised(registry, *string::bytes(&node), ctx);
+
+        let addr_str = utf8(converter::address_to_string(addr));
+        let record = table::borrow_mut(&mut base_resolver.records, addr_str);
+        bag::remove<String, String>(record, addr_str);
+        event::emit(NameRemovedEvent { addr });
+    }
+
+    public entry fun set_text(
+        base_resolver: &mut BaseResolver,
+        registry: &Registry,
+        node: vector<u8>,
+        key: vector<u8>,
+        new_value: vector<u8>,
+        ctx: &mut TxContext
+    ) {
+        base_registry::authorised(registry, node, ctx);
+        let node = utf8(node);
+        let new_value = utf8(new_value);
+        let key = utf8(key);
+
+        if (table::contains(&base_resolver.records, node)) {
+            let record = table::borrow_mut(&mut base_resolver.records, node);
+            if (bag::contains_with_type<String, Table<String, String>>(record, utf8(TEXT))) {
+                let text_record: &mut Table<String, String> = bag::borrow_mut(record, utf8(TEXT));
+                if (table::contains(text_record, *&key)) {
+                    // `node`, `text` and `key` exist
+                    let current_value = table::borrow_mut(text_record, key);
+                    *current_value = new_value;
+                } else {
+                    // `node`, `text` exists but `key` doesn't
+                    table::add(text_record, key, new_value);
+                }
+            } else {
+                // `text` not exists
+                let text_record: Table<String, String> = table::new(ctx);
+                table::add(&mut text_record, key, new_value);
+                bag::add(record, utf8(TEXT), text_record);
+            }
+        } else {
+            // `node` not exist
+            let text_record: Table<String, String> = table::new(ctx);
+            table::add(&mut text_record, key, new_value);
+
+            let new_record = bag::new(ctx);
+            bag::add(&mut new_record, utf8(TEXT), text_record);
+            table::add(&mut base_resolver.records, node, new_record);
+        };
+
+        event::emit(TextRecordChangedEvent { node, key, value: new_value });
     }
 
     public entry fun set_addr(
@@ -187,14 +279,21 @@ module suins::resolver {
         ctx: &mut TxContext
     ) {
         base_registry::authorised(registry, node, ctx);
-
         let node = utf8(node);
-        let addresses = bag::borrow_mut<String, VecMap<String, address>>(&mut base_resolver.resolvers, utf8(ADDR));
-        if (vec_map::contains(addresses, &node)) {
-            let current_addr = vec_map::get_mut(addresses, &node);
-            *current_addr = new_addr;
+
+        if (table::contains(&base_resolver.records, node)) {
+            let record = table::borrow_mut(&mut base_resolver.records, node);
+            if (bag::contains_with_type<String, address>(record, utf8(ADDR))) {
+                let current_addr = bag::borrow_mut<String, address>(record, utf8(ADDR));
+                *current_addr = new_addr;
+            } else {
+                // `node` exists but `key` doesn't
+                bag::add<String, address>(record, utf8(ADDR), new_addr);
+            }
         } else {
-            vec_map::insert(addresses, node, new_addr);
+            let new_record = bag::new(ctx);
+            bag::add<String, address>(&mut new_record, utf8(ADDR), new_addr);
+            table::add(&mut base_resolver.records, node, new_record);
         };
 
         event::emit(AddrChangedEvent { node, addr: new_addr });
@@ -202,21 +301,17 @@ module suins::resolver {
 
     #[test_only]
     public fun is_contenthash_existed(base_resolver: &BaseResolver, node: vector<u8>): bool {
-        let hashes = bag::borrow<String, VecMap<String, String>>(&base_resolver.resolvers, utf8(CONTENTHASH));
-        vec_map::contains(hashes, &utf8(node))
+        let record = table::borrow(&base_resolver.records, utf8(node));
+        bag::contains_with_type<String, String>(record, utf8(CONTENTHASH))
     }
 
     #[test_only]
     /// Wrapper of module initializer for testing
     public fun test_init(ctx: &mut TxContext) {
-        let resolvers = bag::new(ctx);
-        bag::add(&mut resolvers, utf8(ADDR), vec_map::empty<String, address>());
-        bag::add(&mut resolvers, utf8(NAME), vec_map::empty<address, String>());
-        bag::add(&mut resolvers, utf8(AVATAR), vec_map::empty<String, String>());
-        bag::add(&mut resolvers, utf8(CONTENTHASH), vec_map::empty<String, String>());
+        // mimic logic in `init`
         transfer::share_object(BaseResolver {
             id: object::new(ctx),
-            resolvers,
+            records: table::new<String, Bag>(ctx),
         });
     }
 }
