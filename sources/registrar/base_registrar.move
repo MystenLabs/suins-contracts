@@ -4,14 +4,14 @@ module suins::base_registrar {
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
     use sui::url::Url;
-    use sui::vec_map::{Self, VecMap};
+    use sui::table::{Self, Table};
     use std::string::{Self, String};
     use std::option;
     use std::vector;
     use suins::base_registry::{Self, Registry, AdminCap};
     use suins::configuration::{Self, Configuration};
 
-    friend suins::base_controller;
+    friend suins::controller;
 
     // in terms of epoch
     const GRACE_PERIOD: u8 = 90;
@@ -48,7 +48,6 @@ module suins::base_registrar {
 
     struct RegistrationDetail has store {
         expiry: u64,
-        owner: address,
     }
     
     struct BaseRegistrar has key {
@@ -57,13 +56,20 @@ module suins::base_registrar {
         // base_node represented in byte array
         base_node_bytes: vector<u8>,
         // key is label, e.g. 'eastagile', 'dn.eastagile'
-        expiries: VecMap<String, RegistrationDetail>,
+        expiries: Table<String, RegistrationDetail>,
     }
 
     // list of all TLD managed by this registrar
     struct TLDsList has key {
         id: UID,
         tlds: vector<String>,
+    }
+
+    fun init(ctx: &mut TxContext) {
+        transfer::share_object(TLDsList {
+            id: object::new(ctx),
+            tlds: vector::empty<String>(),
+        });
     }
 
     public entry fun new_tld(
@@ -84,16 +90,9 @@ module suins::base_registrar {
         vector::push_back(&mut tlds_list.tlds, tld_str);
         transfer::share_object(BaseRegistrar {
             id: object::new(ctx),
-            expiries: vec_map::empty(),
+            expiries: table::new(ctx),
             base_node: tld_str,
             base_node_bytes: tld,
-        });
-    }
-
-    fun init(ctx: &mut TxContext) {
-        transfer::share_object(TLDsList {
-            id: object::new(ctx),
-            tlds: vector::empty<String>(),
         });
     }
 
@@ -106,16 +105,25 @@ module suins::base_registrar {
     }
 
     public fun name_expires(registrar: &BaseRegistrar, label: String): u64 {
-        if (record_exists(registrar, label)) {
+        if (table::contains(&registrar.expiries, label)) {
             // TODO: can return whole RegistrationDetail to not look up again
-            return vec_map::get(&registrar.expiries, &label).expiry
+            return table::borrow(&registrar.expiries, label).expiry
         };
         0
+    }
+
+    public fun get_base_node(registrar: &BaseRegistrar): String {
+        registrar.base_node
+    }
+
+    public fun get_base_node_bytes(registrar: &BaseRegistrar): vector<u8> {
+        registrar.base_node_bytes
     }
 
     // TODO: add an entry fun for domain owner to register a subdomain
 
     // label can be multiple levels, e.g. 'dn.eastagile' or 'eastagile'
+    // this function doesn't charge fee
     public(friend) fun register(
         registrar: &mut BaseRegistrar,
         registry: &mut Registry,
@@ -133,12 +141,8 @@ module suins::base_registrar {
         assert!(duration > 0, EInvalidDuration);
 
         let url = configuration::get_url(config, duration, tx_context::epoch(ctx));
-        let detail = RegistrationDetail {
-            expiry: tx_context::epoch(ctx) + duration,
-            owner,
-        };
-        vec_map::insert(&mut registrar.expiries, label, detail);
-
+        let detail = RegistrationDetail { expiry: tx_context::epoch(ctx) + duration };
+        table::add(&mut registrar.expiries, label, detail);
         let node = label;
         string::append_utf8(&mut node, b".");
         string::append(&mut node, registrar.base_node);
@@ -155,27 +159,21 @@ module suins::base_registrar {
         nft_id
     }
 
-    public(friend) fun get_base_node(registrar: &BaseRegistrar): String {
-        registrar.base_node
-    }
-
-    public(friend) fun get_base_node_bytes(registrar: &BaseRegistrar): vector<u8> {
-        registrar.base_node_bytes
-    }
-
+    // this function doesn't charge fee
     public(friend) fun renew(registrar: &mut BaseRegistrar, label: vector<u8>, duration: u64, ctx: &TxContext): u64 {
         let label = string::utf8(label);
         let expiry = name_expires(registrar, label);
         assert!(expiry > 0, ELabelNotExists);
         assert!(expiry + (GRACE_PERIOD as u64) >= tx_context::epoch(ctx), ELabelExpired);
 
-        let detail = vec_map::get_mut(&mut registrar.expiries, &label);
+        let detail = table::borrow_mut(&mut registrar.expiries, label);
         detail.expiry = detail.expiry + duration;
 
         event::emit(NameRenewedEvent { label, expiry: detail.expiry });
         detail.expiry
     }
 
+    // reclaim record in registry
     public entry fun reclaim_by_nft_owner(
         registrar: &BaseRegistrar,
         registry: &mut Registry,
@@ -188,9 +186,9 @@ module suins::base_registrar {
         assert!(registrar.base_node == base_node, EInvalidBaseNode);
 
         let label = string::sub_string(&nft.name, 0, index_of_dot);
-        if (!vec_map::contains(&registrar.expiries, &label)) abort ELabelNotExists;
-        let registration = vec_map::get(&registrar.expiries, &label);
-        if (registration.expiry < tx_context::epoch(ctx)) abort ELabelExpired;
+        assert!(table::contains(&registrar.expiries, label), ELabelNotExists);
+        let registration = table::borrow(&registrar.expiries, label);
+        assert!(registration.expiry >= tx_context::epoch(ctx), ELabelExpired);
 
         // TODO: delete NFT if it expired
         base_registry::set_owner_internal(registry, nft.name, owner);
@@ -200,12 +198,13 @@ module suins::base_registrar {
         })
     }
 
-    public fun record_exists(registrar: &BaseRegistrar, label: String): bool {
-        vec_map::contains(&registrar.expiries, &label)
-    }
-
     #[test_only]
     friend suins::base_registrar_tests;
+
+    #[test_only]
+    public fun record_exists(registrar: &BaseRegistrar, label: String): bool {
+        table::contains(&registrar.expiries, label)
+    }
 
     #[test_only]
     public fun get_nft_fields(nft: &RegistrationNFT): (String, Url) {
@@ -218,13 +217,13 @@ module suins::base_registrar {
     }
 
     #[test_only]
-    public fun get_registrar(registrar: &BaseRegistrar): (&String, &vector<u8>, &VecMap<String, RegistrationDetail>) {
+    public fun get_registrar(registrar: &BaseRegistrar): (&String, &vector<u8>, &Table<String, RegistrationDetail>) {
         (&registrar.base_node, &registrar.base_node_bytes, &registrar.expiries)
     }
 
     #[test_only]
-    public fun get_registration_detail(detail: &RegistrationDetail): (&address, &u64) {
-        (&detail.owner, &detail.expiry)
+    public fun get_registration_detail(detail: &RegistrationDetail): u64 {
+        detail.expiry
     }
 
     #[test_only]
@@ -235,6 +234,10 @@ module suins::base_registrar {
     #[test_only]
     /// Wrapper of module initializer for testing
     public fun test_init(ctx: &mut TxContext) {
-        init(ctx)
+        // mimic logic in `init`
+        transfer::share_object(TLDsList {
+            id: object::new(ctx),
+            tlds: vector::empty<String>(),
+        });
     }
 }

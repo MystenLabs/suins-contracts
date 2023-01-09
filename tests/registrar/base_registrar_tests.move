@@ -2,23 +2,23 @@
 module suins::base_registrar_tests {
     use sui::test_scenario::{Self, Scenario};
     use sui::tx_context;
-    use sui::vec_map;
+    use sui::table;
     use suins::base_registry::{Self, Registry, AdminCap};
     use suins::base_registrar::{Self, BaseRegistrar, RegistrationNFT, TLDsList};
     use suins::configuration::{Self, Configuration};
-    use std::string;
     use std::vector;
+    use std::string::utf8;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER: address = @0xB001;
     const SECOND_USER: address = @0xB002;
     const FIRST_RESOLVER: address = @0xC001;
     const SECOND_RESOLVER: address = @0xC002;
-    const SUB_NODE: vector<u8> = b"eastagile.move";
     const FIRST_LABEL: vector<u8> = b"eastagile";
     const SECOND_LABEL: vector<u8> = b"ea";
+    const SUB_NODE: vector<u8> = b"eastagile.move";
 
-    fun init(): Scenario {
+    fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
@@ -68,7 +68,7 @@ module suins::base_registrar_tests {
             assert!(test_scenario::has_most_recent_for_sender<RegistrationNFT>(scenario), 0);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
             let (name, _) = base_registrar::get_nft_fields(&nft);
-            assert!(name == string::utf8(SUB_NODE), 0);
+            assert!(name == utf8(SUB_NODE), 0);
 
             test_scenario::return_to_sender(scenario, nft);
         };
@@ -76,29 +76,23 @@ module suins::base_registrar_tests {
 
     #[test]
     fun test_register() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-
             assert!(base_registry::get_records_len(&registry) == 0, 0);
-
             test_scenario::return_shared(registry);
         };
-
         register(&mut scenario);
-
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             assert!(base_registry::get_records_len(&registry) == 1, 0);
-
-            // index 0 is .sui
-            let (_, record) = base_registry::get_record_at_index(&registry, 0);
-            assert!(base_registry::get_record_owner(record) == FIRST_USER, 0);
-            assert!(base_registry::get_record_resolver(record) == FIRST_RESOLVER, 0);
-            assert!(base_registry::get_record_ttl(record) == 0, 0);
+            let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(SUB_NODE));
+            assert!(owner == FIRST_USER, 0);
+            assert!(resolver == FIRST_RESOLVER, 0);
+            assert!(ttl == 0, 0);
 
             test_scenario::return_shared(registry);
         };
@@ -107,11 +101,9 @@ module suins::base_registrar_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
-
-            let label = string::utf8(b"eastagile");
+            let label = utf8(b"eastagile");
             assert!(!base_registrar::available(&registrar, label, test_scenario::ctx(&mut scenario)), 0);
-
-            let label = string::utf8(b"ea");
+            let label = utf8(b"ea");
             assert!(base_registrar::available(&registrar, label, test_scenario::ctx(&mut scenario)), 0);
 
             test_scenario::return_shared(registrar);
@@ -121,11 +113,9 @@ module suins::base_registrar_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
-
-            let label = string::utf8(b"eastagile");
+            let label = utf8(b"eastagile");
             assert!(base_registrar::name_expires(&registrar, label) == 365, 0);
-
-            let label = string::utf8(b"ea");
+            let label = utf8(b"ea");
             assert!(base_registrar::name_expires(&registrar, label) == 0, 0);
 
             test_scenario::return_shared(registrar);
@@ -135,7 +125,7 @@ module suins::base_registrar_tests {
 
     #[test, expected_failure(abort_code = base_registrar::EInvalidLabel)]
     fun test_register_abort_with_invalid_utf8_label() {
-        let scenario = init();
+        let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
@@ -165,7 +155,7 @@ module suins::base_registrar_tests {
 
     #[test, expected_failure(abort_code = base_registrar::EInvalidDuration)]
     fun test_register_abort_with_zero_duration() {
-        let scenario = init();
+        let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
@@ -192,7 +182,7 @@ module suins::base_registrar_tests {
 
     #[test, expected_failure(abort_code = base_registrar::EInvalidDuration)]
     fun test_register_abort_with_invalid_duration() {
-        let scenario = init();
+        let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
@@ -221,7 +211,7 @@ module suins::base_registrar_tests {
 
     #[test, expected_failure(abort_code = base_registrar::ELabelUnAvailable)]
     fun test_register_abort_if_label_unavailable() {
-        let scenario = init();
+        let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
@@ -282,15 +272,15 @@ module suins::base_registrar_tests {
 
     #[test]
     fun test_renew() {
-        let scenario = init();
+        let scenario = test_init();
         register(&mut scenario);
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
 
-            assert!(base_registrar::name_expires(&registrar, string::utf8(FIRST_LABEL)) == 365, 0);
+            assert!(base_registrar::name_expires(&registrar, utf8(FIRST_LABEL)) == 365, 0);
             base_registrar::renew(&mut registrar, FIRST_LABEL, 100, test_scenario::ctx(&mut scenario));
-            assert!(base_registrar::name_expires(&registrar, string::utf8(FIRST_LABEL)) == 465, 0);
+            assert!(base_registrar::name_expires(&registrar, utf8(FIRST_LABEL)) == 465, 0);
 
             test_scenario::return_shared(registrar);
         };
@@ -299,12 +289,12 @@ module suins::base_registrar_tests {
 
     #[test, expected_failure(abort_code = base_registrar::ELabelNotExists)]
     fun test_renew_abort_if_label_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
         register(&mut scenario);
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
-            assert!(base_registrar::name_expires(&registrar, string::utf8(SECOND_LABEL)) == 0, 0);
+            assert!(base_registrar::name_expires(&registrar, utf8(SECOND_LABEL)) == 0, 0);
             base_registrar::renew(&mut registrar, SECOND_LABEL, 100, test_scenario::ctx(&mut scenario));
             test_scenario::return_shared(registrar);
         };
@@ -313,7 +303,7 @@ module suins::base_registrar_tests {
 
     #[test, expected_failure(abort_code = base_registrar::ELabelExpired)]
     fun test_renew_abort_if_label_expired() {
-        let scenario = init();
+        let scenario = test_init();
         register(&mut scenario);
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
@@ -325,7 +315,7 @@ module suins::base_registrar_tests {
                 0
             );
 
-            assert!(base_registrar::name_expires(&registrar, string::utf8(FIRST_LABEL)) == 365, 0);
+            assert!(base_registrar::name_expires(&registrar, utf8(FIRST_LABEL)) == 365, 0);
             base_registrar::renew(&mut registrar, FIRST_LABEL, 100, &ctx);
 
             test_scenario::return_shared(registrar);
@@ -335,7 +325,7 @@ module suins::base_registrar_tests {
 
     #[test]
     fun test_reclaim_by_nft_owner() {
-        let scenario = init();
+        let scenario = test_init();
         register(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER);
@@ -371,7 +361,7 @@ module suins::base_registrar_tests {
 
     #[test, expected_failure(abort_code = base_registrar::EInvalidBaseNode)]
     fun test_reclaim_by_nft_owner_abort_with_wrong_base_node() {
-        let scenario = init();
+        let scenario = test_init();
         register(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER);
@@ -399,7 +389,7 @@ module suins::base_registrar_tests {
 
     #[test, expected_failure(abort_code = base_registrar::ELabelNotExists)]
     fun test_reclaim_by_nft_owner_abort_if_label_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
         register(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER);
@@ -407,7 +397,7 @@ module suins::base_registrar_tests {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let move_registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            base_registrar::set_nft_domain(&mut nft, string::utf8(b"thisisadomain.move"));
+            base_registrar::set_nft_domain(&mut nft, utf8(b"thisisadomain.move"));
 
             base_registrar::reclaim_by_nft_owner(
                 &move_registrar,
@@ -426,7 +416,7 @@ module suins::base_registrar_tests {
 
     #[test, expected_failure(abort_code = base_registrar::ELabelExpired)]
     fun test_reclaim_by_nft_owner_abort_if_label_expired() {
-        let scenario = init();
+        let scenario = test_init();
         register(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER);
@@ -457,7 +447,7 @@ module suins::base_registrar_tests {
 
     #[test]
     fun test_new_tld() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
@@ -495,15 +485,15 @@ module suins::base_registrar_tests {
 
             let tlds = base_registrar::get_tlds(&tlds_list);
             assert!(vector::length(tlds) == 4, 0);
-            assert!(vector::borrow(tlds, 3) == &string::utf8(b"com"), 0);
+            assert!(vector::borrow(tlds, 3) == &utf8(b"com"), 0);
 
             let com_registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
 
             let (base_node, base_node_bytes, expiries) =
                 base_registrar::get_registrar(&com_registrar);
-            assert!(base_node == &string::utf8(b"com"), 0);
+            assert!(base_node == &utf8(b"com"), 0);
             assert!(base_node_bytes == &b"com", 0);
-            assert!(vec_map::size(expiries) == 0, 0);
+            assert!(table::length(expiries) == 0, 0);
 
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             assert!(base_registry::get_records_len(&registry) == 0, 0);
@@ -539,15 +529,11 @@ module suins::base_registrar_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let com_registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
-
             let (_, _, expiries) = base_registrar::get_registrar(&com_registrar);
-            assert!(vec_map::size(expiries) == 1, 0);
-            let (key, value) = vec_map::get_entry_by_idx(expiries, 0);
-            assert!(key == &string::utf8(FIRST_LABEL), 0);
-
-            let (owner, expiry) = base_registrar::get_registration_detail(value);
-            assert!(owner == &FIRST_USER, 0);
-            assert!(expiry == &365, 0);
+            assert!(table::length(expiries) == 1, 0);
+            let value = table::borrow(expiries, utf8(FIRST_LABEL));
+            let expiry = base_registrar::get_registration_detail(value);
+            assert!(expiry == 365, 0);
 
             test_scenario::return_shared(com_registrar);
         };
@@ -556,7 +542,7 @@ module suins::base_registrar_tests {
 
     #[test, expected_failure(abort_code = base_registrar::ETLDExists)]
     fun test_new_tld_abort_with_duplicated_tld() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
@@ -578,7 +564,7 @@ module suins::base_registrar_tests {
 
     #[test, expected_failure(abort_code = base_registrar::ETLDExists)]
     fun test_admin_set() {
-        let scenario = init();
+        let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {

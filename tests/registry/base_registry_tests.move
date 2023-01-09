@@ -2,10 +2,10 @@
 module suins::base_registry_tests {
 
     use sui::test_scenario::{Self, Scenario};
-    use sui::vec_map;
+    use sui::dynamic_field;
     use suins::base_registry::{Self, Registry, AdminCap};
     use suins::base_registrar::{Self, TLDsList};
-    use std::string;
+    use std::string::utf8;
 
     friend suins::resolver_tests;
 
@@ -18,7 +18,7 @@ module suins::base_registry_tests {
     const SECOND_SUB_NODE: vector<u8> = b"secondsuitest.sui";
     const THIRD_SUB_NODE: vector<u8> = b"ea.eastagile.sui";
 
-    fun init(): Scenario {
+    fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
@@ -46,17 +46,15 @@ module suins::base_registry_tests {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(scenario);
-
             assert!(base_registry::get_records_len(&registry) == 0, 0);
             base_registry::set_record_internal(
                 &mut registry,
-                string::utf8(FIRST_SUB_NODE),
+                utf8(FIRST_SUB_NODE),
                 FIRST_USER_ADDRESS,
                 FIRST_RESOLVER_ADDRESS,
                 10,
             );
             assert!(base_registry::get_records_len(&registry) == 1, 0);
-
             test_scenario::return_shared(registry);
         };
     }
@@ -64,7 +62,7 @@ module suins::base_registry_tests {
     // TODO: test for emitted events
     #[test]
     fun test_set_record_internal() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -84,7 +82,7 @@ module suins::base_registry_tests {
             assert!(base_registry::get_records_len(&registry) == 1, 0);
             base_registry::set_record_internal(
                 &mut registry,
-                string::utf8(FIRST_SUB_NODE),
+                utf8(FIRST_SUB_NODE),
                 SECOND_USER_ADDRESS,
                 SECOND_RESOLVER_ADDRESS,
                 20,
@@ -96,11 +94,11 @@ module suins::base_registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let (_, record) = base_registry::get_record_at_index(&registry, 0);
+            let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_SUB_NODE));
 
-            assert!(base_registry::get_record_owner(record) == SECOND_USER_ADDRESS, 0);
-            assert!(base_registry::get_record_resolver(record) == SECOND_RESOLVER_ADDRESS, 0);
-            assert!(base_registry::get_record_ttl(record) == 20, 0);
+            assert!(owner == SECOND_USER_ADDRESS, 0);
+            assert!(resolver == SECOND_RESOLVER_ADDRESS, 0);
+            assert!(ttl == 20, 0);
 
             test_scenario::return_shared(registry);
         };
@@ -109,7 +107,7 @@ module suins::base_registry_tests {
 
     #[test]
     fun test_set_owner() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -135,9 +133,9 @@ module suins::base_registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
     fun test_set_owner_abort_if_node_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -159,7 +157,7 @@ module suins::base_registry_tests {
 
     #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_set_owner_abort_if_unauthorised() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
@@ -178,7 +176,7 @@ module suins::base_registry_tests {
 
     #[test]
     fun test_set_subnode_owner() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -187,7 +185,7 @@ module suins::base_registry_tests {
             assert!(base_registry::get_records_len(&registry) == 1, 0);
             base_registry::set_record_internal(
                 &mut registry,
-                string::utf8(THIRD_SUB_NODE),
+                utf8(THIRD_SUB_NODE),
                 FIRST_USER_ADDRESS,
                 FIRST_RESOLVER_ADDRESS,
                 10,
@@ -221,9 +219,9 @@ module suins::base_registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
     fun test_set_subnode_owner_abort_if_node_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -241,9 +239,9 @@ module suins::base_registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
     fun test_set_subnode_owner_abort_if_subnode_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -263,7 +261,7 @@ module suins::base_registry_tests {
 
     #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_set_subnode_owner_abort_if_unauthorised() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
@@ -285,7 +283,7 @@ module suins::base_registry_tests {
 
     #[test]
     fun test_set_subnode_owner_overwrite_value_if_node_exists() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -295,7 +293,7 @@ module suins::base_registry_tests {
             assert!(base_registry::get_records_len(&registry) == 1, 0);
             base_registry::set_record_internal(
                 &mut registry,
-                string::utf8(THIRD_SUB_NODE),
+                utf8(THIRD_SUB_NODE),
                 FIRST_USER_ADDRESS,
                 FIRST_RESOLVER_ADDRESS,
                 10,
@@ -324,8 +322,8 @@ module suins::base_registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let (_, record) = base_registry::get_record_at_index(&registry, 1);
-            assert!(base_registry::get_record_owner(record) == SECOND_USER_ADDRESS, 0);
+            let (owner, _, _) = base_registry::get_record_by_key(&registry, utf8(THIRD_SUB_NODE));
+            assert!(owner == SECOND_USER_ADDRESS, 0);
 
             test_scenario::return_shared(registry);
         };
@@ -334,7 +332,7 @@ module suins::base_registry_tests {
 
     #[test]
     fun test_set_resolver() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -384,7 +382,7 @@ module suins::base_registry_tests {
 
     #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_set_resolver_abort_if_unauthorised() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
@@ -401,9 +399,9 @@ module suins::base_registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
     fun test_set_resolver_abort_if_node_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -427,7 +425,7 @@ module suins::base_registry_tests {
 
     #[test]
     fun test_set_ttl() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -463,7 +461,7 @@ module suins::base_registry_tests {
 
     #[test, expected_failure(abort_code = base_registry::EUnauthorized)]
     fun test_set_ttl_abort_if_unauthorised() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
@@ -476,9 +474,9 @@ module suins::base_registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
     fun test_set_ttl_abort_if_node_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -492,7 +490,7 @@ module suins::base_registry_tests {
 
     #[test]
     fun test_get_resolver() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -505,9 +503,9 @@ module suins::base_registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
     fun test_get_resolver_if_node_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
@@ -519,7 +517,7 @@ module suins::base_registry_tests {
 
     #[test]
     fun test_get_ttl() {
-        let scenario = init();
+        let scenario = test_init();
         mint_record(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -532,9 +530,9 @@ module suins::base_registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = vec_map::EKeyDoesNotExist)]
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
     fun test_get_ttl_if_node_not_exists() {
-        let scenario = init();
+        let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
