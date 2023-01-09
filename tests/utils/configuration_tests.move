@@ -42,11 +42,9 @@ module suins::configuration_tests {
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            configuration::set_network_first_day(&admin_cap, &mut config, 365); // 31-12-2022
+            configuration::set_network_first_day(&admin_cap, &mut config, 0); // 01-01-2023
 
             let test_url = configuration::get_url(&config, 0, 0);
-            assert!(test_url == url::new_unsafe_from_bytes(b"ipfs://QmfWrgbTZqwzqsvdeNc3NKacggMuTaN83sQ8V7Bs2nXKRD"), 0); // 31-12-2022
-            test_url = configuration::get_url(&config, 365, 0);
             assert!(test_url == url::new_unsafe_from_bytes(b"ipfs://QmZsHKQk9FbQZYCy7rMYn1z6m9Raa183dNhpGCRm3fX71s"), 0); // 31-12-2023
             test_url = configuration::get_url(&config, 365, 1);
             assert!(test_url == url::new_unsafe_from_bytes(b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2"), 0); // 01-01-2024
