@@ -3,7 +3,7 @@ module suins::remove_later {
     use std::vector;
     use std::string::{Self, utf8};
     use std::ascii;
-    use suins::helper;
+    use suins::converter;
 
     friend suins::configuration;
 
@@ -38,7 +38,7 @@ module suins::remove_later {
         if (index_of_next_comma == 3) {
             assert!(rate_str == utf8(b"100"), EInvalidDiscountCodeBatch);
             rate = 100
-        } else rate = (helper::string_to_number(rate_str) as u8);
+        } else rate = (converter::string_to_number(rate_str) as u8);
 
         // `str` now: owner
         str = string::sub_string(&str, index_of_next_comma + 1, string::length(&str));

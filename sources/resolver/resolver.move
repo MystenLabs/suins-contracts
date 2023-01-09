@@ -6,7 +6,7 @@ module suins::resolver {
     use sui::transfer;
     use sui::tx_context::TxContext;
     use suins::base_registry::{Self, Registry};
-    use suins::helper;
+    use suins::converter;
     use std::string::{Self, String, utf8};
     use sui::table::{Self, Table};
 
@@ -70,25 +70,67 @@ module suins::resolver {
     }
 
     public fun name(base_resolver: &BaseResolver, addr: address): String {
-        let addr_str = utf8(helper::address_to_string(addr));
+        let addr_str = utf8(converter::address_to_string(addr));
         let record = table::borrow(&base_resolver.records, addr_str);
         *bag::borrow<String, String>(record, utf8(NAME))
     }
 
     public fun text(base_resolver: &BaseResolver, node: vector<u8>, key: vector<u8>): String {
-        let record = table::borrow(&base_resolver.records, utf8(node));
-        let text_record: &Table<String, String> = bag::borrow(record, utf8(TEXT));
-        *table::borrow(text_record, utf8(key))
+        if (table::contains(&base_resolver.records, utf8(node))) {
+            let record = table::borrow(&base_resolver.records, utf8(node));
+            if (bag::contains(record, utf8(TEXT))) {
+                let text_record: &Table<String, String> = bag::borrow(record, utf8(TEXT));
+                if (table::contains(text_record, utf8(key))) {
+                    return *table::borrow(text_record, utf8(key))
+                }
+            };
+        };
+        utf8(b"")
     }
 
     public fun addr(base_resolver: &BaseResolver, node: vector<u8>): address {
-        let record = table::borrow(&base_resolver.records, utf8(node));
-        *bag::borrow<String, address>(record, utf8(ADDR))
+        if (table::contains(&base_resolver.records, utf8(node))) {
+            let record = table::borrow(&base_resolver.records, utf8(node));
+            if (bag::contains(record, utf8(ADDR))) {
+                return *bag::borrow<String, address>(record, utf8(ADDR))
+            };
+        };
+        @0x0
     }
 
     public fun contenthash(base_resolver: &BaseResolver, node: vector<u8>): String {
-        let record = table::borrow(&base_resolver.records, utf8(node));
-        *bag::borrow<String, String>(record, utf8(CONTENTHASH))
+        if (table::contains(&base_resolver.records, utf8(node))) {
+            let record = table::borrow(&base_resolver.records, utf8(node));
+            if (bag::contains(record, utf8(CONTENTHASH))) {
+                return *bag::borrow<String, String>(record, utf8(CONTENTHASH))
+            };
+        };
+        utf8(b"")
+    }
+
+    // returns (text, addr, content_hash)
+    public fun all_data(base_resolver: &BaseResolver, node: vector<u8>, key: vector<u8>): (String, address, String) {
+        let empty_str = utf8(b"");
+        if (table::contains(&base_resolver.records, utf8(node))) {
+            let record = table::borrow(&base_resolver.records, utf8(node));
+            let text = *&empty_str;
+            if (bag::contains(record, utf8(TEXT))) {
+                let text_record: &Table<String, String> = bag::borrow(record, utf8(TEXT));
+                if (table::contains(text_record, utf8(key))) {
+                    text = *table::borrow(text_record, utf8(key));
+                }
+            };
+            let addr = @0x0;
+            if (bag::contains(record, utf8(ADDR))) {
+                addr = *bag::borrow<String, address>(record, utf8(ADDR));
+            };
+            let content_hash = *&empty_str;
+            if (bag::contains(record, utf8(CONTENTHASH))) {
+                content_hash = *bag::borrow<String, String>(record, utf8(CONTENTHASH));
+            };
+            return (text, addr, content_hash)
+        };
+        (*&empty_str, @0x0, *&empty_str)
     }
 
     public entry fun set_contenthash(
@@ -143,11 +185,11 @@ module suins::resolver {
         new_name: vector<u8>,
         ctx: &mut TxContext
     ) {
-        let label = helper::address_to_string(addr);
+        let label = converter::address_to_string(addr);
         let node = base_registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
         base_registry::authorised(registry, *string::bytes(&node), ctx);
         let new_name = utf8(new_name);
-        let addr_str = utf8(helper::address_to_string(addr));
+        let addr_str = utf8(converter::address_to_string(addr));
 
         if (table::contains(&base_resolver.records, addr_str)) {
             let record = table::borrow_mut(&mut base_resolver.records, addr_str);
@@ -175,11 +217,11 @@ module suins::resolver {
         addr: address,
         ctx: &mut TxContext
     ) {
-        let label = helper::address_to_string(addr);
+        let label = converter::address_to_string(addr);
         let node = base_registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
         base_registry::authorised(registry, *string::bytes(&node), ctx);
 
-        let addr_str = utf8(helper::address_to_string(addr));
+        let addr_str = utf8(converter::address_to_string(addr));
         let record = table::borrow_mut(&mut base_resolver.records, addr_str);
         bag::remove<String, String>(record, addr_str);
         event::emit(NameRemovedEvent { addr });

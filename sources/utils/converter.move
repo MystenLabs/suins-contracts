@@ -1,4 +1,4 @@
-module suins::helper {
+module suins::converter {
 
     use std::bcs;
     use std::vector;
@@ -62,7 +62,7 @@ module suins::helper {
     }
 
     #[test_only]
-    friend suins::helper_tests;
+    friend suins::converter_tests;
     #[test_only]
     friend suins::resolver_tests;
 }

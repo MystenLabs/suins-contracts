@@ -42,7 +42,7 @@ module suins::base_registry {
     }
 
     // objects of this type are stored in the registry's map
-    struct Record has store, drop {
+    struct Record has store, copy, drop {
         owner: address,
         resolver: address,
         ttl: u64,
@@ -73,6 +73,12 @@ module suins::base_registry {
 
     public fun ttl(registry: &Registry, node: vector<u8>): u64 {
         table::borrow(&registry.records, string::utf8(node)).ttl
+    }
+
+    // returns (owner, resolver, ttl)
+    public fun get_record_by_key(registry: &Registry, key: String): (address, address, u64) {
+        let record = table::borrow(&registry.records, key);
+        (record.owner, record.resolver, record.ttl)
     }
 
     public entry fun set_subnode_owner(
@@ -173,11 +179,6 @@ module suins::base_registry {
     #[test_only]
     friend suins::resolver_tests;
 
-    #[test_only]
-    public fun get_record_by_key(registry: &Registry, key: String): &Record {
-        table::borrow(&registry.records, key)
-    }
-    
     #[test_only]
     public fun get_records_len(registry: &Registry): u64 { table::length(&registry.records) }
 

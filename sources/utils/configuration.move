@@ -10,7 +10,7 @@ module suins::configuration {
     use std::ascii::{Self, String};
     use std::vector;
     use suins::remove_later;
-    use suins::helper;
+    use suins::converter;
     use suins::base_registry::AdminCap;
     use suins::emoji::{Self, EmojiConfiguration};
 
@@ -127,7 +127,7 @@ module suins::configuration {
         let code = ascii::string(code);
         assert!(ascii::all_characters_printable(&code), EInvalidDiscountCode);
 
-        let owner = ascii::string(helper::address_to_string(owner));
+        let owner = ascii::string(converter::address_to_string(owner));
         let new_value = DiscountValue { rate, owner };
         if (vec_map::contains(&config.discount_codes, &code)) {
             let current_value = vec_map::get_mut(&mut config.discount_codes, &code);
@@ -198,7 +198,7 @@ module suins::configuration {
         assert!(vec_map::contains(&config.discount_codes, code), EDiscountCodeNotExists);
         let value = vec_map::get(&config.discount_codes, code);
         let owner = value.owner;
-        let sender = helper::address_to_string(tx_context::sender(ctx));
+        let sender = converter::address_to_string(tx_context::sender(ctx));
         assert!(owner == ascii::string(sender), EOwnerUnauthorized);
         let rate = value.rate;
         vec_map::remove(&mut config.discount_codes, code);

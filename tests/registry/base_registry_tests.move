@@ -94,11 +94,11 @@ module suins::base_registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let record = base_registry::get_record_by_key(&registry, utf8(FIRST_SUB_NODE));
+            let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_SUB_NODE));
 
-            assert!(base_registry::get_record_owner(record) == SECOND_USER_ADDRESS, 0);
-            assert!(base_registry::get_record_resolver(record) == SECOND_RESOLVER_ADDRESS, 0);
-            assert!(base_registry::get_record_ttl(record) == 20, 0);
+            assert!(owner == SECOND_USER_ADDRESS, 0);
+            assert!(resolver == SECOND_RESOLVER_ADDRESS, 0);
+            assert!(ttl == 20, 0);
 
             test_scenario::return_shared(registry);
         };
@@ -322,8 +322,8 @@ module suins::base_registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let record = base_registry::get_record_by_key(&registry, utf8(THIRD_SUB_NODE));
-            assert!(base_registry::get_record_owner(record) == SECOND_USER_ADDRESS, 0);
+            let (owner, _, _) = base_registry::get_record_by_key(&registry, utf8(THIRD_SUB_NODE));
+            assert!(owner == SECOND_USER_ADDRESS, 0);
 
             test_scenario::return_shared(registry);
         };

@@ -65,6 +65,13 @@ module suins::base_registrar {
         tlds: vector<String>,
     }
 
+    fun init(ctx: &mut TxContext) {
+        transfer::share_object(TLDsList {
+            id: object::new(ctx),
+            tlds: vector::empty<String>(),
+        });
+    }
+
     public entry fun new_tld(
         _: &AdminCap,
         tlds_list: &mut TLDsList,
@@ -89,13 +96,6 @@ module suins::base_registrar {
         });
     }
 
-    fun init(ctx: &mut TxContext) {
-        transfer::share_object(TLDsList {
-            id: object::new(ctx),
-            tlds: vector::empty<String>(),
-        });
-    }
-
     public fun available(registrar: &BaseRegistrar, label: String, ctx: &TxContext): bool {
         let expiry = name_expires(registrar, label);
         if (expiry != 0 ) {
@@ -105,16 +105,25 @@ module suins::base_registrar {
     }
 
     public fun name_expires(registrar: &BaseRegistrar, label: String): u64 {
-        if (record_exists(registrar, label)) {
+        if (table::contains(&registrar.expiries, label)) {
             // TODO: can return whole RegistrationDetail to not look up again
             return table::borrow(&registrar.expiries, label).expiry
         };
         0
     }
 
+    public fun get_base_node(registrar: &BaseRegistrar): String {
+        registrar.base_node
+    }
+
+    public fun get_base_node_bytes(registrar: &BaseRegistrar): vector<u8> {
+        registrar.base_node_bytes
+    }
+
     // TODO: add an entry fun for domain owner to register a subdomain
 
     // label can be multiple levels, e.g. 'dn.eastagile' or 'eastagile'
+    // this function doesn't charge fee
     public(friend) fun register(
         registrar: &mut BaseRegistrar,
         registry: &mut Registry,
@@ -150,14 +159,7 @@ module suins::base_registrar {
         nft_id
     }
 
-    public(friend) fun get_base_node(registrar: &BaseRegistrar): String {
-        registrar.base_node
-    }
-
-    public(friend) fun get_base_node_bytes(registrar: &BaseRegistrar): vector<u8> {
-        registrar.base_node_bytes
-    }
-
+    // this function doesn't charge fee
     public(friend) fun renew(registrar: &mut BaseRegistrar, label: vector<u8>, duration: u64, ctx: &TxContext): u64 {
         let label = string::utf8(label);
         let expiry = name_expires(registrar, label);
@@ -171,6 +173,7 @@ module suins::base_registrar {
         detail.expiry
     }
 
+    // reclaim record in registry
     public entry fun reclaim_by_nft_owner(
         registrar: &BaseRegistrar,
         registry: &mut Registry,
@@ -183,7 +186,7 @@ module suins::base_registrar {
         assert!(registrar.base_node == base_node, EInvalidBaseNode);
 
         let label = string::sub_string(&nft.name, 0, index_of_dot);
-        assert!(record_exists(registrar, label), ELabelNotExists);
+        assert!(table::contains(&registrar.expiries, label), ELabelNotExists);
         let registration = table::borrow(&registrar.expiries, label);
         assert!(registration.expiry >= tx_context::epoch(ctx), ELabelExpired);
 
@@ -195,12 +198,13 @@ module suins::base_registrar {
         })
     }
 
+    #[test_only]
+    friend suins::base_registrar_tests;
+
+    #[test_only]
     public fun record_exists(registrar: &BaseRegistrar, label: String): bool {
         table::contains(&registrar.expiries, label)
     }
-
-    #[test_only]
-    friend suins::base_registrar_tests;
 
     #[test_only]
     public fun get_nft_fields(nft: &RegistrationNFT): (String, Url) {
