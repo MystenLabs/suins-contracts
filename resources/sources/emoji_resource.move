@@ -1,10 +1,8 @@
-module suins::emoji_resource {
+module resources::emoji_resource {
 
     use std::vector;
-
-    friend suins::emoji;
-
-    public(friend) fun one_character_emojis(): vector<vector<u8>> {
+    
+    public fun one_character_emojis(): vector<vector<u8>> {
         let emojis: vector<vector<u8>> = vector[];
         vector::push_back(&mut emojis, vector[ 240, 159, 152, 128 ]);
         vector::push_back(&mut emojis, vector[ 240, 159, 152, 132 ]);
@@ -1179,7 +1177,7 @@ module suins::emoji_resource {
         emojis
     }
 
-    public(friend) fun two_character_emojis(): vector<vector<u8>> {
+    public fun two_character_emojis(): vector<vector<u8>> {
         let emojis: vector<vector<u8>> = vector[];
         vector::push_back(&mut emojis, vector[ 226, 152, 186, 239, 184, 143 ]);
         vector::push_back(&mut emojis, vector[ 226, 157, 164, 239, 184, 143 ]);
@@ -1649,7 +1647,7 @@ module suins::emoji_resource {
         emojis
     }
 
-    public(friend) fun three_character_emojis(): vector<vector<u8>> {
+    public fun three_character_emojis(): vector<vector<u8>> {
         let emojis: vector<vector<u8>> = vector[];
         vector::push_back(&mut emojis, vector[ 240, 159, 152, 174, 226, 128, 141, 240, 159, 146, 168 ]);
         vector::push_back(&mut emojis, vector[ 240, 159, 152, 181, 226, 128, 141, 240, 159, 146, 171 ]);
@@ -1739,7 +1737,7 @@ module suins::emoji_resource {
         emojis
     }
 
-    public(friend) fun four_character_emojis(): vector<vector<u8>> {
+    public fun four_character_emojis(): vector<vector<u8>> {
         let emojis: vector<vector<u8>> = vector[];
         vector::push_back(&mut emojis, vector[ 226, 157, 164, 239, 184, 143, 226, 128, 141, 240, 159, 148, 165 ]);
         vector::push_back(&mut emojis, vector[ 240, 159, 152, 182, 226, 128, 141, 240, 159, 140, 171, 239, 184, 143 ]);
@@ -1853,7 +1851,7 @@ module suins::emoji_resource {
         emojis
     }
 
-    public(friend) fun five_character_emojis(): vector<vector<u8>> {
+    public fun five_character_emojis(): vector<vector<u8>> {
         let emojis: vector<vector<u8>> = vector[];
         vector::push_back(&mut emojis, vector[ 240, 159, 145, 129, 239, 184, 143, 226, 128, 141, 240, 159, 151, 168, 239, 184, 143 ]);
         vector::push_back(&mut emojis, vector[ 240, 159, 143, 140, 239, 184, 143, 226, 128, 141, 226, 153, 128, 239, 184, 143 ]);
@@ -1881,7 +1879,7 @@ module suins::emoji_resource {
         emojis
     }
 
-    public(friend) fun six_character_emojis(): vector<vector<u8>> {
+    public fun six_character_emojis(): vector<vector<u8>> {
         let emojis: vector<vector<u8>> = vector[];
         vector::push_back(&mut emojis, vector[ 240, 159, 145, 169, 226, 128, 141, 226, 157, 164, 239, 184, 143, 226, 128, 141, 240, 159, 145, 168 ]);
         vector::push_back(&mut emojis, vector[ 240, 159, 145, 168, 226, 128, 141, 226, 157, 164, 239, 184, 143, 226, 128, 141, 240, 159, 145, 168 ]);
@@ -1889,7 +1887,7 @@ module suins::emoji_resource {
         emojis
     }
 
-    public(friend) fun seven_character_emojis(): vector<vector<u8>> {
+    public fun seven_character_emojis(): vector<vector<u8>> {
         let emojis: vector<vector<u8>> = vector[];
         vector::push_back(&mut emojis, vector[ 240, 159, 145, 168, 226, 128, 141, 240, 159, 145, 169, 226, 128, 141, 240, 159, 145, 167, 226, 128, 141, 240, 159, 145, 166 ]);
         vector::push_back(&mut emojis, vector[ 240, 159, 145, 168, 226, 128, 141, 240, 159, 145, 169, 226, 128, 141, 240, 159, 145, 167, 226, 128, 141, 240, 159, 145, 167 ]);
@@ -1906,7 +1904,7 @@ module suins::emoji_resource {
         emojis
     }
 
-    public(friend) fun eight_character_emojis(): vector<vector<u8>> {
+    public fun eight_character_emojis(): vector<vector<u8>> {
         let emojis: vector<vector<u8>> = vector[];
         vector::push_back(&mut emojis, vector[ 240, 159, 145, 169, 226, 128, 141, 226, 157, 164, 239, 184, 143, 226, 128, 141, 240, 159, 146, 139, 226, 128, 141, 240, 159, 145, 168 ]);
         vector::push_back(&mut emojis, vector[ 240, 159, 145, 168, 226, 128, 141, 226, 157, 164, 239, 184, 143, 226, 128, 141, 240, 159, 146, 139, 226, 128, 141, 240, 159, 145, 168 ]);
@@ -1914,7 +1912,7 @@ module suins::emoji_resource {
         emojis
     }
 
-    public(friend) fun two_character_skin_tone_emojis(): vector<vector<u8>> {
+    public fun two_character_skin_tone_emojis(): vector<vector<u8>> {
         let emojis: vector<vector<u8>> = vector[];
         vector::push_back(&mut emojis, vector[ 240, 159, 145, 139, 240, 159, 143, 188 ]);
         vector::push_back(&mut emojis, vector[ 240, 159, 145, 139, 240, 159, 143, 191 ]);
@@ -2574,7 +2572,7 @@ module suins::emoji_resource {
         emojis
     }
 
-    public(friend) fun four_character_skin_tone_emojis(): vector<vector<u8>> {
+    public fun four_character_skin_tone_emojis(): vector<vector<u8>> {
         let emojis: vector<vector<u8>> = vector[];
         vector::push_back(&mut emojis, vector[ 240, 159, 145, 168, 240, 159, 143, 187, 226, 128, 141, 240, 159, 166, 176 ]);
         vector::push_back(&mut emojis, vector[ 240, 159, 145, 168, 240, 159, 143, 188, 226, 128, 141, 240, 159, 166, 176 ]);
@@ -2899,7 +2897,7 @@ module suins::emoji_resource {
         emojis
     }
 
-    public(friend) fun five_character_skin_tone_emojis(): vector<vector<u8>> {
+    public fun five_character_skin_tone_emojis(): vector<vector<u8>> {
         let emojis: vector<vector<u8>> = vector[];
         vector::push_back(&mut emojis, vector[ 240, 159, 171, 177, 240, 159, 143, 187, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 188 ]);
         vector::push_back(&mut emojis, vector[ 240, 159, 171, 177, 240, 159, 143, 188, 226, 128, 141, 240, 159, 171, 178, 240, 159, 143, 187 ]);
@@ -3439,7 +3437,7 @@ module suins::emoji_resource {
         emojis
     }
 
-    public(friend) fun seven_character_skin_tone_emojis(): vector<vector<u8>> {
+    public fun seven_character_skin_tone_emojis(): vector<vector<u8>> {
         let emojis: vector<vector<u8>> = vector[];
         vector::push_back(&mut emojis, vector[ 240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 187 ]);
         vector::push_back(&mut emojis, vector[ 240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 240, 159, 164, 157, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 188 ]);
@@ -3529,7 +3527,7 @@ module suins::emoji_resource {
         emojis
     }
 
-    public(friend) fun eight_character_skin_tone_emojis(): vector<vector<u8>> {
+    public fun eight_character_skin_tone_emojis(): vector<vector<u8>> {
         let emojis: vector<vector<u8>> = vector[];
         vector::push_back(&mut emojis, vector[ 240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 226, 157, 164, 239, 184, 143, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 188 ]);
         vector::push_back(&mut emojis, vector[ 240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 226, 157, 164, 239, 184, 143, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 191 ]);
@@ -3629,7 +3627,7 @@ module suins::emoji_resource {
         emojis
     }
 
-    public(friend) fun ten_character_skin_tone_emojis(): vector<vector<u8>> {
+    public fun ten_character_skin_tone_emojis(): vector<vector<u8>> {
         let emojis: vector<vector<u8>> = vector[];
         vector::push_back(&mut emojis, vector[ 240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 226, 157, 164, 239, 184, 143, 226, 128, 141, 240, 159, 146, 139, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 188 ]);
         vector::push_back(&mut emojis, vector[ 240, 159, 167, 145, 240, 159, 143, 187, 226, 128, 141, 226, 157, 164, 239, 184, 143, 226, 128, 141, 240, 159, 146, 139, 226, 128, 141, 240, 159, 167, 145, 240, 159, 143, 189 ]);
