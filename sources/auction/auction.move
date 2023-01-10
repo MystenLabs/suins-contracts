@@ -15,6 +15,10 @@ module suins::auction {
     use std::vector;
     use std::bcs;
     use sui::ecdsa_k1::keccak256;
+    use suins::base_registrar::BaseRegistrar;
+    use suins::base_registry::Registry;
+    use suins::configuration::Configuration;
+    use suins::base_registrar;
     // use suins::base_registrar::BaseRegistrar;
     // use suins::base_registry::Registry;
     // use suins::configuration::Configuration;
@@ -55,6 +59,7 @@ module suins::auction {
         highest_bid: u64,
         second_highest_bid: u64,
         winner: address,
+        is_finalized: bool,
     }
 
     struct Auction has key {
@@ -126,28 +131,27 @@ module suins::auction {
     //     // TODO:
     // }
 
-    // public entry fun finalize_auction(
-    //     auction: &mut Auction,
-    //     registrar: &mut BaseRegistrar,
-    //     registry: &mut Registry,
-    //     config: &Configuration,
-    //     node: vector<u8>,
-    //     ctx: &mut TxContext
-    // ) {
-    //     // TODO: check registrar base_node
-    //     let node_str = utf8(node);
-    //     let entry = table::borrow_mut(&mut auction.entries, node_str);
-    //     assert!(entry.winner == tx_context::sender(ctx), EUnauthorized);
-    //     let state = state(entry);
-    //     assert!(state == AUCTION_STATE_OWNED, EInvalidPhase);
-    //     // TODO: where to find default_resolver_address
-    //     base_registrar::register(registrar, registry, config, node, entry.winner, 1, @0x0, ctx);
-    //     event::emit(NodeRegisteredEvent {
-    //         node: node_str,
-    //         winner: entry.winner,
-    //         amount: entry.second_highest_bid
-    //     })
-    // }
+    public entry fun finalize_auction(
+        auction: &mut Auction,
+        registrar: &mut BaseRegistrar,
+        registry: &mut Registry,
+        config: &Configuration,
+        node: vector<u8>,
+        ctx: &mut TxContext
+    ) {
+        // TODO: check TLD base node
+        let node_str = utf8(node);
+        assert!(state(auction, node_str, ctx) == AUCTION_STATE_OWNED, EInvalidPhase);
+        let entry = table::borrow_mut(&mut auction.entries, node_str);
+        assert!(entry.winner == tx_context::sender(ctx), EUnauthorized);
+        base_registrar::register(registrar, registry, config, node, entry.winner, 365, @0x0, ctx);
+        entry.is_finalized = true;
+        event::emit(NodeRegisteredEvent {
+            node: node_str,
+            winner: entry.winner,
+            amount: entry.second_highest_bid
+        })
+    }
 
     public entry fun unseal_bid(auction: &mut Auction, node: vector<u8>, value: u64, salt: vector<u8>, ctx: &mut TxContext) {
         let seal_bid = make_seal_bid(node, tx_context::sender(ctx), value, salt); // hash from node, owner, value, salt
@@ -231,6 +235,7 @@ module suins::auction {
             highest_bid: 0,
             second_highest_bid: 0,
             winner: @0x0,
+            is_finalized: false,
         };
         table::add(&mut auction.entries, node, entry);
         event::emit(AuctionStartedEvent { node, start_at })
@@ -245,7 +250,7 @@ module suins::auction {
         keccak256(&node)
     }
 
-    public fun get_entry(auction: &Auction, node: vector<u8>): (Option<u64>, Option<u64>, Option<u64>, Option<address>) {
+    public fun get_entry(auction: &Auction, node: vector<u8>): (Option<u64>, Option<u64>, Option<u64>, Option<address>, Option<bool>) {
         let node = utf8(node);
         if (table::contains(&auction.entries, node)) {
             let entry = table::borrow(&auction.entries, node);
@@ -253,10 +258,11 @@ module suins::auction {
                 option::some(entry.start_at),
                 option::some(entry.highest_bid),
                 option::some(entry.second_highest_bid),
-                option::some(entry.winner)
+                option::some(entry.winner),
+                option::some(entry.is_finalized),
             )
         };
-        (option::none(), option::none(), option::none(), option::none())
+        (option::none(), option::none(), option::none(), option::none(), option::none())
     }
 
     public fun get_bid(auction: &Auction, seal_bid: vector<u8>): (Option<address>, Option<u64>) {

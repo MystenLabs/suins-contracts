@@ -47,6 +47,7 @@ module suins::base_registrar {
         url: Url,
     }
 
+    // TODO: it has only 1 field.
     struct RegistrationDetail has store {
         expiry: u64,
     }

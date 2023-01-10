@@ -3,12 +3,19 @@ module suins::auction_tests {
 
     use sui::test_scenario::{Scenario, ctx};
     use sui::test_scenario;
-    use suins::auction::{Self, Auction, make_seal_bid, get_bid};
+    use suins::auction::{Self, Auction, make_seal_bid, get_bid, finalize_auction};
     use std::option;
     use sui::coin;
     use sui::sui::SUI;
     use sui::tx_context;
     use sui::dynamic_field;
+    use std::option::{Option, some, none};
+    use suins::base_registry::{Registry, AdminCap};
+    use suins::base_registrar::{BaseRegistrar, TLDsList};
+    use suins::base_registry;
+    use suins::base_registrar;
+    use suins::configuration::{Self, Configuration};
+    use std::string::utf8;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -22,6 +29,17 @@ module suins::auction_tests {
         {
             let ctx = ctx(&mut scenario);
             auction::test_init(ctx);
+            base_registry::test_init(ctx);
+            base_registrar::test_init(ctx);
+            configuration::test_init(ctx);
+        };
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            base_registrar::new_tld(&admin_cap, &mut tlds_list, b"sui", test_scenario::ctx(&mut scenario));
+            test_scenario::return_shared(tlds_list);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
         scenario
     }
@@ -37,20 +55,91 @@ module suins::auction_tests {
             );
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<Auction>(scenario);
-            let (start_at, highest_bid, second_highest_bid, winner) = auction::get_entry(&auction, node);
+            let (start_at, highest_bid, second_highest_bid, winner, is_finalized) = auction::get_entry(&auction, node);
             assert!(option::is_none(&start_at), 0);
             assert!(option::is_none(&highest_bid), 0);
             assert!(option::is_none(&second_highest_bid), 0);
             assert!(option::is_none(&winner), 0);
+            assert!(option::is_none(&is_finalized), 0);
 
             auction::start_auction(&mut auction, node, ctx);
-            let (start_at, highest_bid, second_highest_bid, winner) = auction::get_entry(&auction, node);
+            let (start_at, highest_bid, second_highest_bid, winner, is_finalized) = auction::get_entry(&auction, node);
             assert!(option::extract(&mut start_at) == 111, 0);
             assert!(option::extract(&mut highest_bid) == 0, 0);
             assert!(option::extract(&mut second_highest_bid) == 0, 0);
             assert!(option::extract(&mut winner) == @0x0, 0);
+            assert!(option::extract(&mut is_finalized) == false, 0);
             test_scenario::return_shared(auction);
         };
+    }
+
+    fun unseal_bid_util(auction: &mut Auction, epoch: u64, node: vector<u8>, value: u64, salt: vector<u8>, sender: address) {
+        let ctx = tx_context::new(
+            sender,
+            x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+            epoch,
+            0
+        );
+        auction::unseal_bid(auction, node, value, salt, &mut ctx);
+    }
+
+    fun get_bid_util(auction: &Auction, seal_bid: vector<u8>, expected_bidder: Option<address>, expected_value: Option<u64>) {
+        let (bidder, value) = get_bid(auction, seal_bid);
+        if (option::is_some(&expected_bidder)) {
+            assert!(option::extract(&mut bidder) == option::extract(&mut expected_bidder), 0);
+            assert!(option::extract(&mut value) == option::extract(&mut expected_value), 0);
+        } else {
+            assert!(option::is_none(&bidder), 0);
+            assert!(option::is_none(&value), 0);
+        };
+    }
+
+    fun get_entry_util(
+        auction: &Auction,
+        node: vector<u8>,
+        expected_start_at: u64,
+        expected_highest_bid: u64,
+        expected_second_highest_bid: u64,
+        expected_winner: address,
+        expected_is_finalized: bool,
+    ) {
+        let (start_at, highest_bid, second_highest_bid, winner, is_finalized) =
+            auction::get_entry(auction, node);
+        if (expected_winner != @0x0) {
+            assert!(option::extract(&mut start_at) == expected_start_at, 0);
+            assert!(option::extract(&mut highest_bid) == expected_highest_bid, 0);
+            assert!(option::extract(&mut second_highest_bid) == expected_second_highest_bid, 0);
+            assert!(option::extract(&mut winner) == expected_winner, 0);
+            assert!(option::extract(&mut is_finalized) == expected_is_finalized, 0);
+        } else {
+            assert!(option::is_none(&start_at), 0);
+            assert!(option::is_none(&highest_bid), 0);
+            assert!(option::is_none(&second_highest_bid), 0);
+            assert!(option::is_none(&winner), 0);
+            assert!(option::is_none(&is_finalized), 0);
+        }
+    }
+
+    fun finalize_auction_util(
+        scenario: &mut Scenario,
+        auction: &mut Auction,
+        node: vector<u8>,
+        sender: address,
+        epoch: u64,
+    ) {
+        let ctx = tx_context::new(
+            sender,
+            x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+            epoch,
+            0
+        );
+        let registry = test_scenario::take_shared<Registry>(scenario);
+        let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+        let config = test_scenario::take_shared<Configuration>(scenario);
+        finalize_auction(auction, &mut registrar, &mut registry, &config, node, &mut ctx);
+        test_scenario::return_shared(registry);
+        test_scenario::return_shared(config);
+        test_scenario::return_shared(registrar);
     }
 
     fun new_bid_util(scenario: &mut Scenario, seal_bid: vector<u8>, value: u64, bidder: address) {
@@ -335,59 +424,122 @@ module suins::auction_tests {
         new_bid_util(scenario, seal_bid, 1000, FIRST_USER_ADDRESS);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
-            let ctx = tx_context::new(
-                FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                114,
-                0
-            );
             let auction = test_scenario::take_shared<Auction>(scenario);
-            let (bidder, value) = get_bid(&auction, seal_bid);
-            assert!(option::extract(&mut bidder) == FIRST_USER_ADDRESS, 0);
-            assert!(option::extract(&mut value) == 1000, 0);
-            auction::unseal_bid(&mut auction, NODE, 1000, SALT, &mut ctx);
+            get_bid_util(&auction, seal_bid, some(FIRST_USER_ADDRESS), some(1000));
+            unseal_bid_util(&mut auction, 114, NODE, 1000, SALT, FIRST_USER_ADDRESS);
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<Auction>(scenario);
-            let (start_at, highest_bid, second_highest_bid, winner) =
-                auction::get_entry(&auction, NODE);
-            assert!(option::extract(&mut start_at) == 111, 0);
-            assert!(option::extract(&mut highest_bid) == 1000, 0);
-            assert!(option::extract(&mut second_highest_bid) == 0, 0);
-            assert!(option::extract(&mut winner) == FIRST_USER_ADDRESS, 0);
-            let (bidder, value) = get_bid(&auction, seal_bid);
-            assert!(option::is_none(&bidder), 0);
-            assert!(option::is_none(&value), 0);
+            get_entry_util(&mut auction, NODE, 111, 1000, 0 , FIRST_USER_ADDRESS, false);
+            get_bid_util(&auction, seal_bid, none(), none());
             test_scenario::return_shared(auction);
         };
         let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 1500, SALT);
         new_bid_util(scenario, seal_bid, 2000, SECOND_USER_ADDRESS);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
-            let ctx = tx_context::new(
-                SECOND_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                114,
-                0
-            );
             let auction = test_scenario::take_shared<Auction>(scenario);
-            let (bidder, value) = get_bid(&auction, seal_bid);
-            assert!(option::extract(&mut bidder) == SECOND_USER_ADDRESS, 0);
-            assert!(option::extract(&mut value) == 2000, 0);
-            auction::unseal_bid(&mut auction, NODE, 1500, SALT, &mut ctx);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            get_bid_util(&auction, seal_bid, some(SECOND_USER_ADDRESS), some(2000));
+            unseal_bid_util(&mut auction, 114, NODE, 1500, SALT, SECOND_USER_ADDRESS);
+            assert!(!base_registrar::record_exists(&registrar, utf8(NODE)), 0);
+            test_scenario::return_shared(auction);
+            test_scenario::return_shared(registrar);
+        };
+        test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            get_entry_util(&mut auction, NODE, 111, 1500, 1000 , SECOND_USER_ADDRESS, false);
+            finalize_auction_util(scenario, &mut auction, NODE, SECOND_USER_ADDRESS, 120);
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<Auction>(scenario);
-            let (start_at, highest_bid, second_highest_bid, winner) =
-                auction::get_entry(&auction, NODE);
-            assert!(option::extract(&mut start_at) == 111, 0);
-            assert!(option::extract(&mut highest_bid) == 1500, 0);
-            assert!(option::extract(&mut second_highest_bid) == 1000, 0);
-            assert!(option::extract(&mut winner) == SECOND_USER_ADDRESS, 0);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let registry = test_scenario::take_shared<Registry>(scenario);
+            get_entry_util(&mut auction, NODE, 111, 1500, 1000 , SECOND_USER_ADDRESS, true);
+            assert!(base_registrar::record_exists(&registrar, utf8(NODE)), 0);
+            assert!(base_registrar::name_expires(&registrar, utf8(NODE)) == 120 + 365, 0);
+            assert!(base_registry::owner(&registry, NODE) == SECOND_USER_ADDRESS, 0);
+            assert!(base_registry::ttl(&registry, NODE) == 0, 0);
+            assert!(base_registry::resolver(&registry, NODE) == @0x0, 0);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = auction::EUnauthorized)]
+    fun test_finalize_auction_util_abort_if_unauthorized() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, SALT);
+        start_auction_util(scenario, NODE);
+        new_bid_util(scenario, seal_bid, 1000, FIRST_USER_ADDRESS);
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            get_bid_util(&auction, seal_bid, some(FIRST_USER_ADDRESS), some(1000));
+            unseal_bid_util(&mut auction, 114, NODE, 1000, SALT, FIRST_USER_ADDRESS);
+            test_scenario::return_shared(auction);
+        };
+        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 1500, SALT);
+        new_bid_util(scenario, seal_bid, 2000, SECOND_USER_ADDRESS);
+        test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            get_bid_util(&auction, seal_bid, some(SECOND_USER_ADDRESS), some(2000));
+            unseal_bid_util(&mut auction, 114, NODE, 1500, SALT, SECOND_USER_ADDRESS);
+            test_scenario::return_shared(auction);
+            test_scenario::return_shared(registrar);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            finalize_auction_util(scenario, &mut auction, NODE, FIRST_USER_ADDRESS, 120);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::end(scenario_val);
+    }
+
+    #[test]
+    fun test_finalize_auction() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, SALT);
+        start_auction_util(scenario, NODE);
+        new_bid_util(scenario, seal_bid, 1000, FIRST_USER_ADDRESS);
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            get_bid_util(&auction, seal_bid, some(FIRST_USER_ADDRESS), some(1000));
+            unseal_bid_util(&mut auction, 114, NODE, 1000, SALT, FIRST_USER_ADDRESS);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            finalize_auction_util(scenario, &mut auction, NODE, FIRST_USER_ADDRESS, 122);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let registry = test_scenario::take_shared<Registry>(scenario);
+            get_entry_util(&mut auction, NODE, 111, 1000, 0 , FIRST_USER_ADDRESS, true);
+            assert!(base_registrar::record_exists(&registrar, utf8(NODE)), 0);
+            assert!(base_registrar::name_expires(&registrar, utf8(NODE)) == 122 + 365, 0);
+            assert!(base_registry::owner(&registry, NODE) == FIRST_USER_ADDRESS, 0);
+            assert!(base_registry::ttl(&registry, NODE) == 0, 0);
+            assert!(base_registry::resolver(&registry, NODE) == @0x0, 0);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(registry);
             test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario_val);
@@ -429,7 +581,7 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<Auction>(scenario);
-            let (start_at, highest_bid, second_highest_bid, winner) =
+            let (start_at, highest_bid, second_highest_bid, winner, _) =
                 auction::get_entry(&auction, NODE);
             assert!(option::extract(&mut start_at) == 111, 0);
             assert!(option::extract(&mut highest_bid) == 1000, 0);
@@ -441,7 +593,7 @@ module suins::auction_tests {
     }
 
     #[test]
-    fun test_unseal_bid_invalud_bid() {
+    fun test_unseal_invalid_bid() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, SALT);
@@ -476,7 +628,7 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<Auction>(scenario);
-            let (start_at, highest_bid, second_highest_bid, winner) =
+            let (start_at, highest_bid, second_highest_bid, winner, _) =
                 auction::get_entry(&auction, NODE);
             assert!(option::extract(&mut start_at) == 111, 0);
             assert!(option::extract(&mut highest_bid) == 1000, 0);
@@ -610,7 +762,7 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<Auction>(scenario);
-            let (start_at, highest_bid, second_highest_bid, winner) =
+            let (start_at, highest_bid, second_highest_bid, winner, _) =
                 auction::get_entry(&auction, NODE);
             assert!(option::extract(&mut start_at) == 111, 0);
             assert!(option::extract(&mut highest_bid) == 0, 0);
