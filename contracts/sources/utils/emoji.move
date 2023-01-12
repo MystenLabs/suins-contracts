@@ -2,7 +2,7 @@ module suins::emoji {
 
     use std::string::{Self, String, utf8};
     use std::vector;
-    use suins::emoji_resource;
+    use resources::emoji_resource;
 
     friend suins::configuration;
 
