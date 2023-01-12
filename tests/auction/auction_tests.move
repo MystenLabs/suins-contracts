@@ -9,7 +9,7 @@ module suins::auction_tests {
     use sui::sui::SUI;
     use sui::tx_context;
     use sui::dynamic_field;
-    use std::option::{Option, some, none};
+    use std::option::{Option, some};
     use suins::base_registry::{Registry, AdminCap};
     use suins::base_registrar::{BaseRegistrar, TLDsList};
     use suins::base_registry;
@@ -456,10 +456,12 @@ module suins::auction_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
+    #[test]
     fun test_unseal_bid_abort_if_auction_not_start() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
+        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, SALT);
+        new_bid_util(scenario, seal_bid, 1100, FIRST_USER_ADDRESS);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let ctx = tx_context::new(
@@ -469,14 +471,22 @@ module suins::auction_tests {
                 0
             );
             let auction = test_scenario::take_shared<Auction>(scenario);
+            let coin = test_scenario::most_recent_id_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
+            assert!(option::is_none(&coin), 0);
             auction::unseal_bid(&mut auction, NODE, 1000, SALT, &mut ctx);
             test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let coin = test_scenario::take_from_sender<Coin<SUI>>(scenario);
+            assert!(coin::value(&coin) == 1100, 0);
+            test_scenario::return_to_sender(scenario, coin);
         };
         test_scenario::end(scenario_val);
     }
 
     #[test]
-    fun test_unseal_bid() {
+    fun test_unseal_bid_ky() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, SALT);
@@ -485,17 +495,26 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<Auction>(scenario);
-            get_bid_util(&auction, seal_bid, some(FIRST_USER_ADDRESS), some(1000));
+            get_bid_util(&auction, seal_bid, some(FIRST_USER_ADDRESS), some(1100));
+            let coin = test_scenario::most_recent_id_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
+            assert!(option::is_none(&coin), 0);
             unseal_bid_util(&mut auction, START_AUCTION_AT + 1 + BIDDING_PERIOD, NODE, 1000, SALT, FIRST_USER_ADDRESS);
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
-            let auction = test_scenario::take_shared<Auction>(scenario);
-            get_entry_util(&mut auction, NODE, START_AUCTION_AT + 1, 1000, 0 , FIRST_USER_ADDRESS, false);
-            get_bid_util(&auction, seal_bid, none(), none());
-            test_scenario::return_shared(auction);
+            let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
+            assert!(coin::value(&coin) == 100, 0);
+            std::debug::print(&coin);
+            test_scenario::return_to_address(FIRST_USER_ADDRESS, coin);
         };
+        // test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        // {
+        //     let auction = test_scenario::take_shared<Auction>(scenario);
+        //     get_entry_util(&mut auction, NODE, START_AUCTION_AT + 1, 1000, 0 , FIRST_USER_ADDRESS, false);
+        //     get_bid_util(&auction, seal_bid, none(), none());
+        //     test_scenario::return_shared(auction);
+        // };
         let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 1500, SALT);
         new_bid_util(scenario, seal_bid, 2000, SECOND_USER_ADDRESS);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
@@ -503,10 +522,26 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<Auction>(scenario);
             let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
             get_bid_util(&auction, seal_bid, some(SECOND_USER_ADDRESS), some(2000));
+            let coin = test_scenario::most_recent_id_for_address<Coin<SUI>>(SECOND_USER_ADDRESS);
+            assert!(option::is_none(&coin), 0);
+            // let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
+            // assert!(coin::value(&coin) == 100, 0);
+            // std::debug::print(&coin);
+            // test_scenario::return_to_address(FIRST_USER_ADDRESS, coin);
             unseal_bid_util(&mut auction, START_AUCTION_AT + 1 + BIDDING_PERIOD, NODE, 1500, SALT, SECOND_USER_ADDRESS);
             assert!(!base_registrar::record_exists(&registrar, utf8(NODE)), 0);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(registrar);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
+            std::debug::print(&coin);
+            assert!(coin::value(&coin) == 1000, 0);
+            test_scenario::return_to_address(FIRST_USER_ADDRESS, coin);
+            let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
+            assert!(coin::value(&coin) == 500, 0);
+            test_scenario::return_to_address(SECOND_USER_ADDRESS, coin);
         };
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -534,7 +569,6 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let coin = test_scenario::take_from_sender<Coin<SUI>>(scenario);
-            std::debug::print(&coin::value(&coin));
             test_scenario::return_to_sender(scenario, coin);
         };
         test_scenario::end(scenario_val);

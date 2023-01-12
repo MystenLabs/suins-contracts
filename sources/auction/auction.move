@@ -193,47 +193,56 @@ module suins::auction {
         let node = utf8(node);
         let auction_state = state(auction, node, ctx);
         assert!(auction_state != AUCTION_STATE_BIDDING, EInvalidPhase);
-        let entry = table::borrow_mut(&mut auction.entries, *&node);
         let bid_detail = table::remove(&mut auction.bid_detail_by_seal_bid, seal_bid); // get and remove the bid
         // TODO: remove later
         assert!(!table::contains(&auction.bid_detail_by_seal_bid, seal_bid), EShouldNotHappen);
         assert!(bid_detail.bidder == tx_context::sender(ctx), EUnauthorized);
-
-        if (
-            bid_detail.bid_value_mask < value
-                || bid_detail.created_at < entry.start_at
-                || entry.start_at + BIDDING_PERIOD < bid_detail.created_at
-                || value < MIN_PRICE
-        ) {
-            // invalid bid
-            coin_util::contract_transfer_to_address(&mut auction.balance, bid_detail.bid_value_mask, bid_detail.bidder, ctx);
-        } else if (tx_context::epoch(ctx) > entry.start_at + BIDDING_PERIOD + REVEAL_PERIOD) {
-            // reveal too late, apply a harsh punishment to avoid extortion attack
-            coin_util::contract_transfer_to_address(&mut auction.balance, bid_detail.bid_value_mask, bid_detail.bidder, ctx);
-        } else if (auction_state == AUCTION_STATE_OWNED) {
-            // Too late! Bidder loses their bid. Get's his/her money back
-            // TODO: contract charges a small amount as a punishment
-            coin_util::contract_transfer_to_address(&mut auction.balance, bid_detail.bid_value_mask, bid_detail.bidder, ctx);
-        } else if (auction_state == AUCTION_STATE_OPEN || auction_state == AUCTION_STATE_NOT_AVAILABLE) {
-            coin_util::contract_transfer_to_address(&mut auction.balance, bid_detail.bid_value_mask, bid_detail.bidder, ctx);
-        } else if (value > entry.highest_bid) {
-            // in REVEAL phase
-            // new winner, refund previous highest bidder
-            if (entry.winner != @0x0)
-                coin_util::contract_transfer_to_address(&mut auction.balance, entry.highest_bid, entry.winner, ctx);
-            // send back extra money to sender
-            coin_util::contract_transfer_to_address(&mut auction.balance, bid_detail.bid_value_mask - value, bid_detail.bidder, ctx);
-            // vickery auction, winner pay the second highest_bid
-            entry.second_highest_bid = entry.highest_bid;
-            entry.highest_bid = value;
-            entry.winner = bid_detail.bidder;
-        } else if (value > entry.second_highest_bid) {
-            // not winner, but affects second place
-            entry.second_highest_bid = value;
+        if (!table::contains(&auction.entries, *&node)) {
+            // node not started
             coin_util::contract_transfer_to_address(&mut auction.balance, bid_detail.bid_value_mask, bid_detail.bidder, ctx);
         } else {
-            // bid doesn't affect auction
-            coin_util::contract_transfer_to_address(&mut auction.balance, bid_detail.bid_value_mask, bid_detail.bidder, ctx);
+            let entry = table::borrow_mut(&mut auction.entries, *&node);
+            if (
+                bid_detail.bid_value_mask < value
+                    || bid_detail.created_at < entry.start_at
+                    || entry.start_at + BIDDING_PERIOD < bid_detail.created_at
+                    || value < MIN_PRICE
+            ) {
+                // invalid bid
+                coin_util::contract_transfer_to_address(&mut auction.balance, bid_detail.bid_value_mask, bid_detail.bidder, ctx);
+            } else if (tx_context::epoch(ctx) > entry.start_at + BIDDING_PERIOD + REVEAL_PERIOD) {
+                // reveal too late, apply a harsh punishment to avoid extortion attack
+                coin_util::contract_transfer_to_address(&mut auction.balance, bid_detail.bid_value_mask, bid_detail.bidder, ctx);
+            } else if (auction_state == AUCTION_STATE_OWNED) {
+                // Too late! Bidder loses their bid. Get's his/her money back
+                // TODO: contract charges a small amount as a punishment
+                coin_util::contract_transfer_to_address(&mut auction.balance, bid_detail.bid_value_mask, bid_detail.bidder, ctx);
+            } else if (auction_state == AUCTION_STATE_OPEN || auction_state == AUCTION_STATE_NOT_AVAILABLE) {
+                coin_util::contract_transfer_to_address(&mut auction.balance, bid_detail.bid_value_mask, bid_detail.bidder, ctx);
+            } else if (value > entry.highest_bid) {
+                // in REVEAL phase
+                // new winner, refund previous highest bidder
+                if (entry.winner != @0x0) {
+                    coin_util::contract_transfer_to_address(&mut auction.balance, entry.highest_bid, entry.winner, ctx);
+                    std::debug::print(&entry.winner);
+                    std::debug::print(&entry.highest_bid);
+                };
+                // send back extra money to sender
+                std::debug::print(&bid_detail.bidder);
+                std::debug::print(&(bid_detail.bid_value_mask - value));
+                coin_util::contract_transfer_to_address(&mut auction.balance, bid_detail.bid_value_mask - value, bid_detail.bidder, ctx);
+                // vickery auction, winner pay the second highest_bid
+                entry.second_highest_bid = entry.highest_bid;
+                entry.highest_bid = value;
+                entry.winner = bid_detail.bidder;
+            } else if (value > entry.second_highest_bid) {
+                // not winner, but affects second place
+                entry.second_highest_bid = value;
+                coin_util::contract_transfer_to_address(&mut auction.balance, bid_detail.bid_value_mask, bid_detail.bidder, ctx);
+            } else {
+                // bid doesn't affect auction
+                coin_util::contract_transfer_to_address(&mut auction.balance, bid_detail.bid_value_mask, bid_detail.bidder, ctx);
+            }
         };
         event::emit(BidRevealedEvent {
             node,
