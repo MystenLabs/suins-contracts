@@ -23,12 +23,14 @@ module suins::auction_tests {
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
     const SECOND_USER_ADDRESS: address = @0xB002;
+    const THIRD_USER_ADDRESS: address = @0xB003;
     const HASH: vector<u8> = b"vUAgEwNmPr";
     const NODE: vector<u8> = b"suinns";
     const SECOND_NODE: vector<u8> = b"suinns2";
     const THIRD_NODE: vector<u8> = b"suinns3";
     const NODE_SUI: vector<u8> = b"suinns.sui";
     const SALT: vector<u8> = b"CnRGhPvfCu";
+    // epoch at which user calls start_auction, next epoch. e.g START_AUCTION_AT + 1, is starting epoch
     const START_AUCTION_AT: u64 = 110;
     const BIDDING_PERIOD: u64 = 3;
     const REVEAL_PERIOD: u64 = 3;
@@ -37,7 +39,10 @@ module suins::auction_tests {
     const AUCTION_STATE_PENDING: u8 = 2;
     const AUCTION_STATE_BIDDING: u8 = 3;
     const AUCTION_STATE_REVEAL: u8 = 4;
-    const AUCTION_STATE_OWNED: u8 = 5;
+    const AUCTION_STATE_FINALIZING: u8 = 5;
+    const AUCTION_STATE_OWNED: u8 = 6;
+    const AUCTION_STATE_REOPEN: u8 = 7;
+
 
     fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
@@ -84,7 +89,8 @@ module suins::auction_tests {
             assert!(state_util(&auction, node, START_AUCTION_AT) == AUCTION_STATE_PENDING, 0);
             assert!(state_util(&auction, node, START_AUCTION_AT + 1) == AUCTION_STATE_BIDDING, 0);
             assert!(state_util(&auction, node, START_AUCTION_AT + 1 + BIDDING_PERIOD) == AUCTION_STATE_REVEAL, 0);
-            assert!(state_util(&auction, node, START_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD) == AUCTION_STATE_OWNED, 0);
+            // receive no bid
+            assert!(state_util(&auction, node, START_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD) == AUCTION_STATE_REOPEN, 0);
             let (start_at, highest_bid, second_highest_bid, winner, is_finalized) = auction::get_entry(&auction, node);
             assert!(option::extract(&mut start_at) == START_AUCTION_AT + 1, 0);
             assert!(option::extract(&mut highest_bid) == 0, 0);
@@ -506,9 +512,9 @@ module suins::auction_tests {
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
-            // let coin = test_scenario::take_from_sender<Coin<SUI>>(scenario);
-            // assert!(coin::value(&coin) == 1100, 0);
-            // test_scenario::return_to_sender(scenario, coin);
+            let coin = test_scenario::take_from_sender<Coin<SUI>>(scenario);
+            assert!(coin::value(&coin) == 1100, 0);
+            test_scenario::return_to_sender(scenario, coin);
         };
         test_scenario::end(scenario_val);
     }
@@ -536,7 +542,9 @@ module suins::auction_tests {
             assert!(mask == 1100, 0);
             assert!(created_at == START_AUCTION_AT + 1, 0);
 
+            assert!(state_util(&auction, NODE, START_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD) == AUCTION_STATE_REOPEN, 0);
             unseal_bid_util(&mut auction, START_AUCTION_AT + 1 + BIDDING_PERIOD, NODE, 1000, SALT, FIRST_USER_ADDRESS);
+            assert!(state_util(&auction, NODE, START_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD) == AUCTION_STATE_FINALIZING, 0);
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
@@ -777,8 +785,9 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<Auction>(scenario);
+            assert!(state_util(&auction, NODE, START_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD) == AUCTION_STATE_REOPEN, 0);
             unseal_bid_util(&mut auction, START_AUCTION_AT + 1 + BIDDING_PERIOD, NODE, 500, SALT, SECOND_USER_ADDRESS);
-
+            assert!(state_util(&auction, NODE, START_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD) == AUCTION_STATE_REOPEN, 0);
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
@@ -1351,7 +1360,6 @@ module suins::auction_tests {
         {
             let auction = test_scenario::take_shared<Auction>(scenario);
             let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            std::debug::print(&coin::value(&coin));
             assert!(coin::value(&coin) == 30000, 0);
             let (start_at, highest_bid, second_highest_bid, winner, is_finalized) =
                 auction::get_entry(&auction, NODE);
@@ -1362,6 +1370,193 @@ module suins::auction_tests {
             assert!(option::extract(&mut is_finalized) == false, 0);
             test_scenario::return_shared(auction);
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin);
+        };
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
+    fun test_unseal_bid_abort_if_use_seal_bid_of_other_people() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, SALT);
+        start_auction_util(scenario, NODE);
+        new_bid_util(scenario, seal_bid, 1000, FIRST_USER_ADDRESS);
+        test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            unseal_bid_util(&mut auction, START_AUCTION_AT + 1 + BIDDING_PERIOD, NODE, 1000, SALT, SECOND_USER_ADDRESS);
+            test_scenario::return_shared(auction);
+        };
+
+        test_scenario::end(scenario_val);
+    }
+
+    #[test]
+    fun test_unseal_bid_handle_second_highest_bid() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 3000, SALT);
+        start_auction_util(scenario, NODE);
+        new_bid_util(scenario, seal_bid, 4100, FIRST_USER_ADDRESS);
+        test_scenario::next_tx(scenario, SUINS_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            let coin = test_scenario::most_recent_id_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
+            assert!(option::is_none(&coin), 0);
+            let coin = test_scenario::most_recent_id_for_address<Coin<SUI>>(SECOND_USER_ADDRESS);
+            assert!(option::is_none(&coin), 0);
+            test_scenario::return_shared(auction);
+        };
+
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            unseal_bid_util(&mut auction, START_AUCTION_AT + 1 + BIDDING_PERIOD, NODE, 3000, SALT, FIRST_USER_ADDRESS);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
+            assert!(coin::value(&coin) == 1100, 0);
+            test_scenario::return_to_address(FIRST_USER_ADDRESS, coin);
+        };
+        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 1500, SALT);
+        new_bid_util(scenario, seal_bid, 2000, SECOND_USER_ADDRESS);
+        test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            unseal_bid_util(&mut auction, START_AUCTION_AT + 1 + BIDDING_PERIOD, NODE, 1500, SALT, SECOND_USER_ADDRESS);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
+            assert!(coin::value(&coin) == 2000, 0);
+            test_scenario::return_to_address(SECOND_USER_ADDRESS, coin);
+        };
+        test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            get_entry_util(&mut auction, NODE, START_AUCTION_AT + 1, 3000, 1500 , FIRST_USER_ADDRESS, false);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::end(scenario_val);
+    }
+
+    #[test]
+    fun test_unseal_bid_handle_low_value_bid() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 3000, SALT);
+        start_auction_util(scenario, NODE);
+        new_bid_util(scenario, seal_bid, 4100, FIRST_USER_ADDRESS);
+        test_scenario::next_tx(scenario, SUINS_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            let coin = test_scenario::most_recent_id_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
+            assert!(option::is_none(&coin), 0);
+            let coin = test_scenario::most_recent_id_for_address<Coin<SUI>>(SECOND_USER_ADDRESS);
+            assert!(option::is_none(&coin), 0);
+            test_scenario::return_shared(auction);
+        };
+
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            unseal_bid_util(&mut auction, START_AUCTION_AT + 1 + BIDDING_PERIOD, NODE, 3000, SALT, FIRST_USER_ADDRESS);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
+            assert!(coin::value(&coin) == 1100, 0);
+            test_scenario::return_to_address(FIRST_USER_ADDRESS, coin);
+        };
+        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 1500, SALT);
+        new_bid_util(scenario, seal_bid, 2000, SECOND_USER_ADDRESS);
+        test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            unseal_bid_util(&mut auction, START_AUCTION_AT + 1 + BIDDING_PERIOD, NODE, 1500, SALT, SECOND_USER_ADDRESS);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
+        {
+            let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
+            assert!(coin::value(&coin) == 2000, 0);
+            test_scenario::return_to_address(SECOND_USER_ADDRESS, coin);
+        };
+        let seal_bid = make_seal_bid(NODE, THIRD_USER_ADDRESS, 1200, SALT);
+        new_bid_util(scenario, seal_bid, 2000, THIRD_USER_ADDRESS);
+        test_scenario::next_tx(scenario, THIRD_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            unseal_bid_util(&mut auction, START_AUCTION_AT + 1 + BIDDING_PERIOD, NODE, 1200, SALT, THIRD_USER_ADDRESS);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
+        {
+            let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, THIRD_USER_ADDRESS);
+            assert!(coin::value(&coin) == 2000, 0);
+            test_scenario::return_to_address(THIRD_USER_ADDRESS, coin);
+        };
+        test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            get_entry_util(&mut auction, NODE, START_AUCTION_AT + 1, 3000, 1500 , FIRST_USER_ADDRESS, false);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = auction::EInvalidPhase)]
+    fun test_finalize_bid_abort_if_too_early() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, SALT);
+        start_auction_util(scenario, NODE);
+        new_bid_util(scenario, seal_bid, 1100, FIRST_USER_ADDRESS);
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            unseal_bid_util(&mut auction, START_AUCTION_AT + 1 + BIDDING_PERIOD, NODE, 1000, SALT, FIRST_USER_ADDRESS);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            get_entry_util(&mut auction, NODE, START_AUCTION_AT + 1, 1000, 0 , FIRST_USER_ADDRESS, false);
+            finalize_auction_util(scenario, &mut auction, NODE, FIRST_USER_ADDRESS, START_AUCTION_AT + 1 + BIDDING_PERIOD);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = auction::EInvalidPhase)]
+    fun test_finalize_bid_abort_being_called_twice() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, SALT);
+        start_auction_util(scenario, NODE);
+        new_bid_util(scenario, seal_bid, 1100, FIRST_USER_ADDRESS);
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            unseal_bid_util(&mut auction, START_AUCTION_AT + 1 + BIDDING_PERIOD, NODE, 1000, SALT, FIRST_USER_ADDRESS);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            get_entry_util(&mut auction, NODE, START_AUCTION_AT + 1, 1000, 0 , FIRST_USER_ADDRESS, false);
+            finalize_auction_util(scenario, &mut auction, NODE, FIRST_USER_ADDRESS, START_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            finalize_auction_util(scenario, &mut auction, NODE, FIRST_USER_ADDRESS, START_AUCTION_AT + 1 + BIDDING_PERIOD);
+            test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario_val);
     }

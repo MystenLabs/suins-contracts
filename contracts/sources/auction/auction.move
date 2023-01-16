@@ -1,34 +1,24 @@
 module suins::auction {
 
     use sui::object::UID;
+    use sui::vec_set::{Self, VecSet};
     use sui::table::{Self, Table};
     use sui::tx_context::{Self, TxContext};
     use sui::sui::SUI;
     use sui::balance::{Self, Balance};
     use sui::transfer;
     use sui::object;
-    use std::option::{Self, Option};
+    use sui::ecdsa_k1::keccak256;
     use sui::coin::Coin;
-    use suins::coin_util;
     use sui::event;
+    use std::option::{Self, Option};
     use std::string::{String, utf8};
     use std::vector;
     use std::bcs;
-    use sui::ecdsa_k1::keccak256;
-    use suins::base_registrar::BaseRegistrar;
+    use suins::base_registrar::{Self, BaseRegistrar};
     use suins::base_registry::{Registry, AdminCap};
     use suins::configuration::Configuration;
-    use suins::base_registrar;
-    use sui::vec_set::VecSet;
-    use sui::vec_set;
-    // use suins::base_registrar::BaseRegistrar;
-    // use suins::base_registry::Registry;
-    // use suins::configuration::Configuration;
-    // use suins::base_registrar;
-    // // use suins::base_registrar::BaseRegistrar;
-    // use suins::base_registry::Registry;
-    // use suins::configuration::Configuration;
-    // use suins::base_registrar;
+    use suins::coin_util;
 
     const MIN_PRICE: u64 = 1000;
     const BIDDING_PERIOD: u64 = 3;
@@ -38,7 +28,9 @@ module suins::auction {
     const AUCTION_STATE_PENDING: u8 = 2;
     const AUCTION_STATE_BIDDING: u8 = 3;
     const AUCTION_STATE_REVEAL: u8 = 4;
-    const AUCTION_STATE_OWNED: u8 = 5;
+    const AUCTION_STATE_FINALIZING: u8 = 5;
+    const AUCTION_STATE_OWNED: u8 = 6;
+    const AUCTION_STATE_REOPEN: u8 = 7;
 
     const EUnauthorized: u64 = 801;
     const EInvalidPhase: u64 = 802;
@@ -60,7 +52,7 @@ module suins::auction {
     }
 
     // info of each auction this is ongoing or over
-    struct AuctionEntry has store {
+    struct AuctionEntry has store, drop {
         start_at: u64,
         highest_bid: u64,
         second_highest_bid: u64,
@@ -178,7 +170,7 @@ module suins::auction {
     ) {
         // TODO: what to do with .move?
         assert!(base_registrar::get_base_node_bytes(registrar) == b"sui", EInvalidRegistrar);
-        assert!(state(auction, node, ctx) == AUCTION_STATE_OWNED, EInvalidPhase);
+        assert!(state(auction, node, ctx) == AUCTION_STATE_FINALIZING, EInvalidPhase);
         let node_str = utf8(node);
         let entry = table::borrow_mut(&mut auction.entries, node_str);
         assert!(entry.winner == tx_context::sender(ctx), EUnauthorized);
@@ -198,13 +190,14 @@ module suins::auction {
         let bid_detail = table::remove(&mut auction.bid_detail_by_seal_bid, seal_bid); // get and remove the bid
         // TODO: remove later
         assert!(!table::contains(&auction.bid_detail_by_seal_bid, seal_bid), EShouldNotHappen);
-        assert!(bid_detail.bidder == bidder, EUnauthorized);
+        assert!(bid_detail.bidder == bidder, EShouldNotHappen);
         let bids = table::borrow_mut(&mut auction.bid_details_by_addr, bidder);
         assert!(vec_set::contains(bids, &bid_detail), EShouldNotHappen);
         vec_set::remove(bids, &bid_detail);
         assert!(!vec_set::contains(bids, &bid_detail), EShouldNotHappen);
 
         let auction_state = state(auction, node, ctx);
+        // TODO: do we allow this?
         assert!(auction_state != AUCTION_STATE_BIDDING, EInvalidPhase);
         let node = utf8(node);
         event::emit(BidRevealedEvent {
@@ -213,7 +206,7 @@ module suins::auction {
             bid_value: value,
         });
 
-        if (auction_state == AUCTION_STATE_OPEN) {
+        if (auction_state != AUCTION_STATE_REVEAL) {
             // node not started
             coin_util::contract_transfer_to_address(
                 &mut auction.balance,
@@ -224,39 +217,14 @@ module suins::auction {
             return
         };
         let entry = table::borrow_mut(&mut auction.entries, *&node);
+        // TODO: separate validation of bid_detail
         if (
             bid_detail.bid_value_mask < value
+                || value < MIN_PRICE
                 || bid_detail.created_at < entry.start_at
                 || entry.start_at + BIDDING_PERIOD <= bid_detail.created_at
-                || value < MIN_PRICE
         ) {
             // invalid bid
-            coin_util::contract_transfer_to_address(
-                &mut auction.balance,
-                bid_detail.bid_value_mask,
-                bid_detail.bidder,
-                ctx
-            );
-        } else if (tx_context::epoch(ctx) >= entry.start_at + BIDDING_PERIOD + REVEAL_PERIOD) {
-            // reveal too late, apply a harsh punishment to avoid extortion attack
-            coin_util::contract_transfer_to_address(
-                &mut auction.balance,
-                bid_detail.bid_value_mask,
-                bid_detail.bidder,
-                ctx
-            );
-        } else if (auction_state == AUCTION_STATE_OWNED) {
-            // Too late! Bidder loses their bid. Get's his/her money back
-            // TODO: contract charges a small amount as a punishment
-            // shoud not happen
-            coin_util::contract_transfer_to_address(
-                &mut auction.balance,
-                bid_detail.bid_value_mask,
-                bid_detail.bidder,
-                ctx
-            );
-        } else if (auction_state == AUCTION_STATE_OPEN || auction_state == AUCTION_STATE_NOT_AVAILABLE) {
-            // TODO: test this
             coin_util::contract_transfer_to_address(
                 &mut auction.balance,
                 bid_detail.bid_value_mask,
@@ -299,11 +267,14 @@ module suins::auction {
         }
     }
 
-    // TODO: node is hashed
     public entry fun start_auction(auction: &mut Auction, node: vector<u8>, ctx: &mut TxContext) {
-    // TODO: what if node was registered before
+        // TODO: what if node was registered before
         let state = state(auction, node, ctx);
         assert!(state == AUCTION_STATE_OPEN, EInvalidPhase);
+        let node = utf8(node);
+        if (state == AUCTION_STATE_REOPEN) {
+            let _ = table::remove(&mut auction.entries, node);
+        };
         // current_epoch was validated in `state`
         let start_at = tx_context::epoch(ctx) + 1;
         let entry = AuctionEntry {
@@ -313,7 +284,6 @@ module suins::auction {
             winner: @0x0,
             is_finalized: false,
         };
-        let node = utf8(node);
         table::add(&mut auction.entries, node, entry);
         event::emit(AuctionStartedEvent { node, start_at })
     }
@@ -364,7 +334,8 @@ module suins::auction {
             if (current_epoch < entry.start_at + BIDDING_PERIOD + REVEAL_PERIOD) return AUCTION_STATE_REVEAL;
             // TODO: what if noone bid on this domain?
             // TODO: check for highest_bid != 0
-            return AUCTION_STATE_OWNED
+            if (entry.highest_bid == 0) return AUCTION_STATE_REOPEN;
+            return AUCTION_STATE_FINALIZING
         };
         AUCTION_STATE_OPEN
     }
