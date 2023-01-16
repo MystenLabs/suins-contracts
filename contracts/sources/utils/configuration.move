@@ -13,6 +13,7 @@ module suins::configuration {
     use suins::converter;
     use suins::base_registry::AdminCap;
     use suins::emoji::{Self, EmojiConfiguration};
+    use std::string;
 
     friend suins::base_registrar;
     friend suins::controller;
@@ -43,6 +44,10 @@ module suins::configuration {
         owner: String,
     }
 
+    struct ReserveDomainAddedEvent has copy, drop {
+        domain: string::String,
+    }
+
     struct ReferralCodeRemovedEvent has copy, drop {
         code: String,
     }
@@ -70,7 +75,10 @@ module suins::configuration {
         network_first_day: u64,
         referral_codes: VecMap<String, ReferralValue>,
         discount_codes: VecMap<String, DiscountValue>,
+        // if `key` doesn't contains TLD, it means we reserve both .sui and .move
+        reserve_domains: Table<string::String, bool>,
         // hold hardcoded value
+        // TODO: change this to `Bag`
         resources: Table<String, EmojiConfiguration>,
     }
 
@@ -83,13 +91,14 @@ module suins::configuration {
         vec_map::insert(&mut ipfs_urls, 1826, b"ipfs://QmfG5ngyNak9Baxg39whWUFnm5i52p64hgBWqfKJfUKjWr");
         let resources = table::new<String, EmojiConfiguration>(ctx);
         table::add(&mut resources, ascii::string(EmojiConfig), emoji::init_emoji_config());
-
+        // TODO: hardcode reserve domain
         transfer::share_object(Configuration {
             id: object::new(ctx),
             ipfs_urls,
             network_first_day: 0,
             referral_codes: vec_map::empty(),
             discount_codes: vec_map::empty(),
+            reserve_domains: table::new(ctx),
             resources,
         });
     }
@@ -97,6 +106,39 @@ module suins::configuration {
     public entry fun set_network_first_day(_: &AdminCap, config: &mut Configuration, new_day: u64) {
         config.network_first_day = new_day;
         event::emit(NetworkFirstDayChangedEvent { new_day })
+    }
+
+    // TODO: handle .sui and .move separately
+    public entry fun new_reserve_domains(_: &AdminCap, config: &mut Configuration, domains: vector<u8>) {
+        let domains = remove_later::deserialize_reserve_domains(domains);
+        let len = vector::length(&domains);
+        let index = 0;
+        // let emoji_config = table::borrow(&config.resources, ascii::string(EmojiConfig));
+        while (index < len) {
+            let domain = vector::borrow(&domains, index);
+            // TODO: validate or not
+            // emoji::validate_label(emoji_config, *string::bytes(domain));
+            if (!table::contains(&config.reserve_domains, *domain)) {
+                table::add(&mut config.reserve_domains, *domain, true);
+            };
+            event::emit(ReserveDomainAddedEvent { domain: *domain });
+            index = index + 1;
+        };
+    }
+
+    public entry fun remove_reserve_domains(_: &AdminCap, config: &mut Configuration, domains: vector<u8>) {
+        let domains = remove_later::deserialize_reserve_domains(domains);
+        let len = vector::length(&domains);
+        let index = 0;
+        // let emoji_config = table::borrow(&config.resources, ascii::string(EmojiConfig));
+        while (index < len) {
+            let domain = vector::borrow(&domains, index);
+            if (table::contains(&config.reserve_domains, *domain)) {
+                table::remove(&mut config.reserve_domains, *domain);
+            };
+            event::emit(ReserveDomainAddedEvent { domain: *domain });
+            index = index + 1;
+        };
     }
 
     // rate in percentage, e.g. discount = 10 means 10%;
@@ -247,6 +289,15 @@ module suins::configuration {
     }
 
     #[test_only]
+    public(friend) fun is_label_reserved(config: &Configuration, label: vector<u8>): bool {
+        let label = string::utf8(label);
+        if (table::contains(&config.reserve_domains, label)) {
+            return true
+        };
+        false
+    }
+
+    #[test_only]
     public(friend) fun get_referral_partner(referral_value: &ReferralValue): address {
         referral_value.partner
     }
@@ -284,6 +335,7 @@ module suins::configuration {
             network_first_day: 0,
             referral_codes: vec_map::empty(),
             discount_codes: vec_map::empty(),
+            reserve_domains: table::new(ctx),
             resources,
         });
     }
