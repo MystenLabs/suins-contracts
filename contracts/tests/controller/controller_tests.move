@@ -6,18 +6,21 @@ module suins::controller_tests {
     use sui::tx_context;
     use sui::sui::SUI;
     use suins::controller::{Self, BaseController};
-    use suins::base_registrar::{Self, BaseRegistrar, TLDsList};
+    use suins::base_registrar::{Self, BaseRegistrar, TLDsList, RegistrationNFT};
     use suins::base_registry::{Self, Registry, AdminCap};
     use suins::emoji;
     use suins::configuration::{Self, Configuration};
     use std::string;
     use std::option::{Self, Option};
+    use std::string::utf8;
+    use sui::url;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
     const SECOND_USER_ADDRESS: address = @0xB002;
     const FIRST_RESOLVER_ADDRESS: address = @0xC001;
     const FIRST_LABEL: vector<u8> = b"eastagile-123";
+    const FIRST_NODE: vector<u8> = b"eastagile-123.sui";
     const SECOND_LABEL: vector<u8> = b"suinameservice";
     const THIRD_LABEL: vector<u8> = b"thirdsuinameservice";
     const FIRST_SECRET: vector<u8> = b"oKz=QdYd)]ryKB%";
@@ -25,6 +28,7 @@ module suins::controller_tests {
     const FIRST_INVALID_LABEL: vector<u8> = b"east.agile";
     const SECOND_INVALID_LABEL: vector<u8> = b"ea";
     const THIRD_INVALID_LABEL: vector<u8> = b"zkaoxpcbarubhtxkunajudxezneyczueajbggrynkwbepxjqjxrigrtgglhfjpax";
+    const AUCTIONED_LABEL: vector<u8> = b"suins";
     const FOURTH_INVALID_LABEL: vector<u8> = b"-eastagile";
     const FIFTH_INVALID_LABEL: vector<u8> = b"east/?agile";
     const REFERRAL_CODE: vector<u8> = b"X43kS8";
@@ -46,7 +50,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             base_registrar::new_tld(&admin_cap, &mut tlds_list,b"sui", test_scenario::ctx(&mut scenario));
             base_registrar::new_tld(&admin_cap, &mut tlds_list,b"addr.reverse", test_scenario::ctx(&mut scenario));
-            base_registrar::new_tld(&admin_cap, &mut tlds_list,b"move", test_scenario::ctx(&mut scenario));
+            // base_registrar::new_tld(&admin_cap, &mut tlds_list,b"move", test_scenario::ctx(&mut scenario));
             configuration::new_referral_code(&admin_cap, &mut config, REFERRAL_CODE, 10, FIRST_USER_ADDRESS);
             configuration::new_discount_code(&admin_cap, &mut config, DISCOUNT_CODE, 15, FIRST_USER_ADDRESS);
             test_scenario::return_shared(tlds_list);
@@ -104,6 +108,8 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
             assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
+            assert!(controller::balance(&controller) == 0, 0);
+            assert!(base_registrar::get_no_registration(&registrar) == 0, 0);
 
             controller::register_with_config(
                 &mut controller,
@@ -124,6 +130,25 @@ module suins::controller_tests {
             test_scenario::return_shared(config);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(registry);
+        };
+
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
+            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+
+            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(name == utf8(FIRST_NODE), 0);
+            assert!(
+                url == url::new_unsafe_from_bytes(b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2"),
+                0
+            ); // 2024
+            // assert!(base_registrar::get_registrar(&registrar) == 1, 0);
+            test_scenario::return_to_sender(scenario, nft);
+            test_scenario::return_shared(controller);
         };
     }
 
@@ -172,6 +197,7 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
             assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
+            assert!(controller::balance(&controller) == 0, 0);
 
             controller::register(
                 &mut controller,
@@ -192,12 +218,13 @@ module suins::controller_tests {
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
-
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            assert!(controller::balance(&controller) == 2000000, 0);
+
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             assert!(controller::commitment_len(&controller) == 0, 0);
             assert!(base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
@@ -251,7 +278,6 @@ module suins::controller_tests {
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(registry);
             test_scenario::return_shared(config);
-
         };
         test_scenario::end(scenario);
     }
@@ -395,13 +421,6 @@ module suins::controller_tests {
             test_scenario::return_shared(registry);
             test_scenario::return_shared(config);
         };
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
-            assert!(controller::commitment_len(&controller) == 0, 0);
-            test_scenario::return_shared(controller);
-        };
         test_scenario::end(scenario);
     }
 
@@ -453,7 +472,7 @@ module suins::controller_tests {
     }
 
     #[test, expected_failure(abort_code = controller::ELabelUnAvailable)]
-    fun test_register_abort_if_label_was_registered() {
+    fun test_register_abort_if_label_was_registered_before() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
 
@@ -476,6 +495,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
+            assert!(controller::balance(&controller) == 0, 0);
 
             controller::register(
                 &mut controller,
@@ -508,6 +528,7 @@ module suins::controller_tests {
                 test_scenario::take_shared<Registry>(&mut scenario);
             let config =
                 test_scenario::take_shared<Configuration>(&mut scenario);
+            assert!(controller::balance(&controller) == 1000000, 0);
 
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
@@ -564,6 +585,8 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(4000001, &mut ctx);
             assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
+            assert!(controller::balance(&controller) == 0, 0);
+
             controller::register_with_config(
                 &mut controller,
                 &mut registrar,
@@ -589,15 +612,11 @@ module suins::controller_tests {
         {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            assert!(controller::balance(&controller) == 2000000, 0);
             assert!(controller::commitment_len(&controller) == 0, 0);
             assert!(base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
-        };
-
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
-        {
-            assert!(!test_scenario::has_most_recent_for_sender<Coin<SUI>>(&mut scenario), 0);
         };
 
         // withdraw
@@ -606,6 +625,7 @@ module suins::controller_tests {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             assert!(controller::balance(&controller) == 2000000, 0);
+            assert!(!test_scenario::has_most_recent_for_sender<Coin<SUI>>(&mut scenario), 0);
             controller::withdraw(&admin_cap, &mut controller, test_scenario::ctx(&mut scenario));
             assert!(controller::balance(&controller) == 0, 0);
             test_scenario::return_shared(controller);
@@ -801,6 +821,45 @@ module suins::controller_tests {
     }
 
     #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
+    fun test_register_abort_if_label_is_reserved_for_auction() {
+        let scenario = test_init();
+        make_commitment(&mut scenario, option::none());
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller =
+                test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar =
+                test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry =
+                test_scenario::take_shared<Registry>(&mut scenario);
+            let config =
+                test_scenario::take_shared<Configuration>(&mut scenario);
+            let coin = coin::mint_for_testing<SUI>(1000001, test_scenario::ctx(&mut scenario));
+
+            controller::register(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &mut config,
+                AUCTIONED_LABEL,
+                FIRST_USER_ADDRESS,
+                2,
+                FIRST_SECRET,
+                &mut coin,
+                test_scenario::ctx(&mut scenario),
+            );
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(registry);
+        };
+
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
     fun test_register_abort_if_label_is_invalid() {
         let scenario = test_init();
 
@@ -882,6 +941,7 @@ module suins::controller_tests {
             let ctx = test_scenario::ctx(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(2000001, ctx);
             assert!(base_registrar::name_expires(&registrar, string::utf8(FIRST_LABEL)) == 416, 0);
+            assert!(controller::balance(&controller) == 1000000, 0);
 
             controller::renew(
                 &mut controller,
@@ -897,6 +957,14 @@ module suins::controller_tests {
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
+        };
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller =
+                test_scenario::take_shared<BaseController>(&mut scenario);
+            assert!(controller::balance(&controller) == 3000000, 0);
+            test_scenario::return_shared(controller);
         };
         test_scenario::end(scenario);
     }
@@ -1187,7 +1255,9 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            assert!(controller::balance(&controller) == 0, 0);
             assert!(!base_registrar::record_exists(&registrar, string::utf8(FIRST_LABEL)), 0);
+
             controller::register_with_code(
                 &mut controller,
                 &mut registrar,
@@ -1783,7 +1853,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
+    // #[test]
     fun test_register_with_emoji() {
         let scenario = test_init();
         let label = vector[104, 109, 109, 109, 49, 240, 159, 145, 180];

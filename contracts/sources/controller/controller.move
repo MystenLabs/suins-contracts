@@ -274,7 +274,7 @@ module suins::controller {
         ctx: &mut TxContext,
     ) {
         let emoji_config = configuration::get_emoji_config(config);
-        validate_label_with_emoji(emoji_config, label);
+        validate_label_with_emoji(emoji_config, label, 7, 63);
 
         let registration_fee = FEE_PER_YEAR * no_years;
         assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
