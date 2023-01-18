@@ -180,6 +180,31 @@ module suins::auction {
         })
     }
 
+    // TODO: testing only
+    public entry fun finalize_auction_with_epoch(
+        auction: &mut Auction,
+        registrar: &mut BaseRegistrar,
+        registry: &mut Registry,
+        config: &Configuration,
+        node: vector<u8>,
+        epoch: u64,
+        ctx: &mut TxContext
+    ) {
+        // TODO: what to do with .move?
+        assert!(base_registrar::get_base_node_bytes(registrar) == b"sui", EInvalidRegistrar);
+        assert!(state_with_epoch(auction, node, epoch, ctx) == AUCTION_STATE_FINALIZING, EInvalidPhase);
+        let node_str = utf8(node);
+        let entry = table::borrow_mut(&mut auction.entries, node_str);
+        assert!(entry.winner == tx_context::sender(ctx), EUnauthorized);
+        base_registrar::register(registrar, registry, config, node, entry.winner, 365, @0x0, ctx);
+        entry.is_finalized = true;
+        event::emit(NodeRegisteredEvent {
+            node: node_str,
+            winner: entry.winner,
+            amount: entry.second_highest_bid
+        })
+    }
+
     public entry fun unseal_bid(auction: &mut Auction, node: vector<u8>, value: u64, salt: vector<u8>, ctx: &mut TxContext) {
         let bidder = tx_context::sender(ctx);
         let seal_bid = make_seal_bid(node, bidder, value, salt); // hash from node, owner, value, salt
@@ -192,6 +217,91 @@ module suins::auction {
         assert!(!vec_set::contains(bids, &bid_detail), EShouldNotHappen);
 
         let auction_state = state(auction, node, ctx);
+        // TODO: do we allow this?
+        assert!(auction_state != AUCTION_STATE_BIDDING, EInvalidPhase);
+        let node = utf8(node);
+        event::emit(BidRevealedEvent {
+            node,
+            bidder: bid_detail.bidder,
+            bid_value: value,
+        });
+
+        if (auction_state != AUCTION_STATE_REVEAL) {
+            // node not started
+            coin_util::contract_transfer_to_address(
+                &mut auction.balance,
+                bid_detail.bid_value_mask,
+                bid_detail.bidder,
+                ctx
+            );
+            return
+        };
+        let entry = table::borrow_mut(&mut auction.entries, *&node);
+        // TODO: separate validation of bid_detail
+        if (
+            bid_detail.bid_value_mask < value
+                || value < MIN_PRICE
+                || bid_detail.created_at < entry.start_at
+                || entry.start_at + BIDDING_PERIOD <= bid_detail.created_at
+        ) {
+            // invalid bid
+            coin_util::contract_transfer_to_address(
+                &mut auction.balance,
+                bid_detail.bid_value_mask,
+                bid_detail.bidder,
+                ctx
+            );
+        } else if (value > entry.highest_bid) {
+            // in REVEAL phase
+            // new winner, refund previous highest bidder
+            if (entry.winner != @0x0)
+                coin_util::contract_transfer_to_address(&mut auction.balance, entry.highest_bid, entry.winner, ctx);
+            // send back extra money to sender
+            if (bid_detail.bid_value_mask - value > 0) {
+                coin_util::contract_transfer_to_address(
+                    &mut auction.balance,
+                    bid_detail.bid_value_mask - value,
+                    bid_detail.bidder,
+                    ctx
+                );
+            };
+            // vickery auction, winner pay the second highest_bid
+            entry.second_highest_bid = entry.highest_bid;
+            entry.highest_bid = value;
+            entry.winner = bid_detail.bidder;
+        } else if (value > entry.second_highest_bid) {
+            // not winner, but affects second place
+            entry.second_highest_bid = value;
+            coin_util::contract_transfer_to_address(
+                &mut auction.balance,
+                bid_detail.bid_value_mask,
+                bid_detail.bidder,
+                ctx
+            );
+        } else {
+            // bid doesn't affect auction
+            coin_util::contract_transfer_to_address(
+                &mut auction.balance,
+                bid_detail.bid_value_mask,
+                bid_detail.bidder,
+                ctx
+            );
+        }
+    }
+
+    // testing only
+    public entry fun unseal_bid_with_epoch(auction: &mut Auction, node: vector<u8>, value: u64, salt: vector<u8>, epoch: u64, ctx: &mut TxContext) {
+        let bidder = tx_context::sender(ctx);
+        let seal_bid = make_seal_bid(node, bidder, value, salt); // hash from node, owner, value, salt
+        // TODO: validate domain name
+        let bid_detail = table::remove(&mut auction.bid_detail_by_seal_bid, seal_bid); // get and remove the bid
+        assert!(bid_detail.bidder == bidder, EShouldNotHappen);
+        let bids = table::borrow_mut(&mut auction.bid_details_by_addr, bidder);
+        assert!(vec_set::contains(bids, &bid_detail), EShouldNotHappen);
+        vec_set::remove(bids, &bid_detail);
+        assert!(!vec_set::contains(bids, &bid_detail), EShouldNotHappen);
+
+        let auction_state = state_with_epoch(auction, node, epoch, ctx);
         // TODO: do we allow this?
         assert!(auction_state != AUCTION_STATE_BIDDING, EInvalidPhase);
         let node = utf8(node);
@@ -287,6 +397,36 @@ module suins::auction {
         event::emit(AuctionStartedEvent { node, start_at })
     }
 
+    // TODO: testing only
+    public entry fun start_auction_with_epoch(
+        auction: &mut Auction,
+        node: vector<u8>,
+        payment: &mut Coin<SUI>,
+        epoch: u64,
+        ctx: &mut TxContext
+    ) {
+        // TODO: what if node was registered before
+        let state = state_with_epoch(auction, node, epoch, ctx);
+        assert!(state == AUCTION_STATE_OPEN, EInvalidPhase);
+        let node = utf8(node);
+        if (state == AUCTION_STATE_REOPEN) {
+            let _ = table::remove(&mut auction.entries, node);
+        };
+        // TODO: remove node
+        // current_epoch was validated in `state`
+        let start_at = epoch + 1;
+        let entry = AuctionEntry {
+            start_at,
+            highest_bid: 0,
+            second_highest_bid: 0,
+            winner: @0x0,
+            is_finalized: false,
+        };
+        table::add(&mut auction.entries, node, entry);
+        coin_util::user_transfer_to_contract(payment, FEE_PER_YEAR, &mut auction.balance);
+        event::emit(AuctionStartedEvent { node, start_at })
+    }
+
     public fun make_seal_bid(node: vector<u8>, owner: address, value: u64, salt: vector<u8>): vector<u8> {
         let owner = bcs::to_bytes(&owner);
         vector::append(&mut node, owner);
@@ -323,6 +463,25 @@ module suins::auction {
     // Open -> Bidding (startAuction) -> Reveal -> Owned
     public fun state(auction: &Auction, node: vector<u8>, ctx: &mut TxContext): u8 {
         let current_epoch = tx_context::epoch(ctx);
+        let node = utf8(node);
+        if (current_epoch < auction.auction_start_at || current_epoch > auction.auction_end_at) return AUCTION_STATE_NOT_AVAILABLE;
+        if (table::contains(&auction.entries, node)) {
+            let entry = table::borrow(&auction.entries, node);
+            if (entry.is_finalized) return AUCTION_STATE_OWNED;
+            if (current_epoch == entry.start_at - 1) return AUCTION_STATE_PENDING;
+            if (current_epoch < entry.start_at + BIDDING_PERIOD) return AUCTION_STATE_BIDDING;
+            if (current_epoch < entry.start_at + BIDDING_PERIOD + REVEAL_PERIOD) return AUCTION_STATE_REVEAL;
+            // TODO: what if noone bid on this domain?
+            // TODO: check for highest_bid != 0
+            if (entry.highest_bid == 0) return AUCTION_STATE_REOPEN;
+            return AUCTION_STATE_FINALIZING
+        };
+        AUCTION_STATE_OPEN
+    }
+
+    // TODO: testing only
+    public fun state_with_epoch(auction: &Auction, node: vector<u8>, epoch: u64, ctx: &mut TxContext): u8 {
+        let current_epoch = epoch;
         let node = utf8(node);
         if (current_epoch < auction.auction_start_at || current_epoch > auction.auction_end_at) return AUCTION_STATE_NOT_AVAILABLE;
         if (table::contains(&auction.entries, node)) {
