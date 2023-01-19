@@ -157,6 +157,40 @@ module suins::auction {
         coin_util::user_transfer_to_contract(payment, bid_value_mask, &mut auction.balance);
     }
 
+    public entry fun new_bid_with_epoch(
+        auction: &mut Auction,
+        seal_bid: vector<u8>,
+        bid_value_mask: u64,
+        payment: &mut Coin<SUI>,
+        epoch: u64,
+        ctx: &mut TxContext
+    ) {
+        let current_epoch = epoch;
+        assert!(
+            auction.auction_start_at <= current_epoch && current_epoch <= auction.auction_end_at,
+            EAuctionNotAvailable,
+        );
+        assert!(!table::contains(&auction.bid_detail_by_seal_bid, seal_bid), EBidExisted);
+        assert!(bid_value_mask >= MIN_PRICE, EInvalidBid);
+        let bidder = tx_context::sender(ctx);
+        let bid = BidDetail {
+            bidder,
+            bid_value_mask,
+            created_at: current_epoch,
+        };
+        table::add(&mut auction.bid_detail_by_seal_bid, seal_bid, *&bid);
+        if (table::contains(&auction.bid_details_by_addr, bidder)) {
+            let bid_details = table::borrow_mut(&mut auction.bid_details_by_addr, bidder);
+            // TODO: add more fields
+            vec_set::insert(bid_details, bid);
+        } else {
+            let bid_details = vec_set::singleton(bid);
+            table::add(&mut auction.bid_details_by_addr, bidder, bid_details);
+        };
+        event::emit(NewBidEvent { bidder, seal_bid, bid_value_mask });
+        coin_util::user_transfer_to_contract(payment, bid_value_mask, &mut auction.balance);
+    }
+
     public entry fun finalize_auction(
         auction: &mut Auction,
         registrar: &mut BaseRegistrar,
