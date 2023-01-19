@@ -480,7 +480,7 @@ module suins::auction {
     }
 
     // TODO: testing only
-    public fun state_with_epoch(auction: &Auction, node: vector<u8>, epoch: u64, ctx: &mut TxContext): u8 {
+    public fun state_with_epoch(auction: &Auction, node: vector<u8>, epoch: u64, _ctx: &mut TxContext): u8 {
         let current_epoch = epoch;
         let node = utf8(node);
         if (current_epoch < auction.auction_start_at || current_epoch > auction.auction_end_at) return AUCTION_STATE_NOT_AVAILABLE;

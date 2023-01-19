@@ -81,6 +81,8 @@ module suins::base_registry {
         (record.owner, record.resolver, record.ttl)
     }
 
+    // TODO: subdomain
+    /// Change ownner of subdomain, can only be called by node's owner
     public entry fun set_subnode_owner(
         registry: &mut Registry,
         node: vector<u8>,
@@ -91,9 +93,9 @@ module suins::base_registry {
         // required both node and subnode to exist
         authorised(registry, node, ctx);
 
-        let node = make_node(label, string::utf8(node));
-        set_owner_internal(registry, node, owner);
-        event::emit(NewOwnerEvent { node, owner });
+        let subnode = make_node(label, string::utf8(node));
+        set_owner_internal(registry, subnode, owner);
+        event::emit(NewOwnerEvent { node: subnode, owner });
     }
 
     public entry fun set_owner(registry: &mut Registry, node: vector<u8>, owner: address, ctx: &mut TxContext) {
@@ -194,6 +196,11 @@ module suins::base_registry {
     #[test_only]
     public fun new_record_test(registry: &mut Registry, node: String, owner: address) {
         new_record(registry, node, owner, @0x0, 0);
+    }
+
+    #[test_only]
+    public fun record_exists(registry: &Registry, node: String): bool {
+        table::contains(&registry.records, node)
     }
 
     #[test_only]

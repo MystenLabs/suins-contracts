@@ -108,7 +108,6 @@ module suins::base_registrar {
 
     public fun name_expires(registrar: &BaseRegistrar, label: String): u64 {
         if (table::contains(&registrar.expiries, label)) {
-            // TODO: can return whole RegistrationDetail to not look up again
             return table::borrow(&registrar.expiries, label).expiry
         };
         0

@@ -335,7 +335,7 @@ module suins::controller {
         //     ECommitmentNotValid
         // );
         assert!(
-            *vec_map::get(&controller.commitments, &commitment) + MAX_COMMITMENT_AGE >= tx_context::epoch(ctx),
+            *vec_map::get(&controller.commitments, &commitment) + MAX_COMMITMENT_AGE > tx_context::epoch(ctx),
             ECommitmentTooOld
         );
         assert!(base_registrar::available(registrar, string::utf8(label), ctx), ELabelUnAvailable);

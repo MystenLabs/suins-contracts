@@ -1,3 +1,5 @@
+/// These funtionalities are supposed to be supported by the Sui SDK in the future
+/// we will remove it as soon as SDK's support is ready
 module suins::remove_later {
 
     use std::vector;
