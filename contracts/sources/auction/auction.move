@@ -22,8 +22,8 @@ module suins::auction {
 
     const MIN_PRICE: u64 = 1000;
     const FEE_PER_YEAR: u64 = 10000;
-    const BIDDING_PERIOD: u64 = 3;
-    const REVEAL_PERIOD: u64 = 3;
+    const BIDDING_PERIOD: u64 = 1;
+    const REVEAL_PERIOD: u64 = 1;
     const AUCTION_STATE_NOT_AVAILABLE: u8 = 0;
     const AUCTION_STATE_OPEN: u8 = 1;
     const AUCTION_STATE_PENDING: u8 = 2;
