@@ -1,3 +1,8 @@
+/// Its job is to charge fee, validate domain, apply referral and discount code
+/// The auctual records are stored in BaseRegistry
+/// Controller and Auction are the only 2 ways to register a new domain
+/// During auction time, only domains that have 7 to 63 characters are allowed to be registered through controller,
+/// after auction, all domains can be registered
 module suins::controller {
 
     use sui::balance::{Self, Balance};

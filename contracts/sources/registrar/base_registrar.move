@@ -1,3 +1,5 @@
+/// Base structure for all kind of registrars except reverse one
+/// Call `new_tld` to setup new registrar
 module suins::base_registrar {
     use sui::event;
     use sui::object::{Self, ID, UID};
@@ -38,11 +40,11 @@ module suins::base_registrar {
         owner: address,
     }
 
-    // send to owner of a domain, not store in registry
+    /// NFT representing ownership of a domain
     struct RegistrationNFT has key, store {
         id: UID,
-        // name and url fields have special meaning in sui explorer and extension
-        // if url is a ipfs image, this image is showed on sui explorer and extension
+        /// name and url fields have special meaning in sui explorer and extension
+        /// if url is a ipfs image, this image is showed on sui explorer and extension
         name: String,
         url: Url,
     }
@@ -55,13 +57,13 @@ module suins::base_registrar {
     struct BaseRegistrar has key {
         id: UID,
         base_node: String,
-        // base_node represented in byte array
+        /// base_node represented in byte array
         base_node_bytes: vector<u8>,
-        // key is label, e.g. 'eastagile', 'dn.eastagile'
+        /// key is label, e.g. 'eastagile', 'dn.eastagile'
         expiries: Table<String, RegistrationDetail>,
     }
 
-    // list of all TLD managed by this registrar
+    /// list of all TLD managed by this registrar
     struct TLDsList has key {
         id: UID,
         tlds: vector<String>,
@@ -123,8 +125,8 @@ module suins::base_registrar {
 
     // TODO: add an entry fun for domain owner to register a subdomain
 
-    // label can be multiple levels, e.g. 'dn.eastagile' or 'eastagile'
-    // this function doesn't charge fee
+    /// label can have multiple levels, e.g. 'dn.suins' or 'suins'
+    /// this function doesn't charge fee
     public(friend) fun register(
         registrar: &mut BaseRegistrar,
         registry: &mut Registry,
@@ -135,15 +137,17 @@ module suins::base_registrar {
         resolver: address,
         ctx: &mut TxContext
     ): ID {
+        assert!(duration > 0, EInvalidDuration);
+        // TODO: label is validated in Controller, consider removing this
         let label = string::try_utf8(label);
         assert!(option::is_some(&label), EInvalidLabel);
         let label = option::extract(&mut label);
         assert!(available(registrar, label, ctx), ELabelUnAvailable);
-        assert!(duration > 0, EInvalidDuration);
 
         let url = configuration::get_url(config, duration, tx_context::epoch(ctx));
         let detail = RegistrationDetail { expiry: tx_context::epoch(ctx) + duration };
         table::add(&mut registrar.expiries, label, detail);
+
         let node = label;
         string::append_utf8(&mut node, b".");
         string::append(&mut node, registrar.base_node);
@@ -160,7 +164,7 @@ module suins::base_registrar {
         nft_id
     }
 
-    // this function doesn't charge fee
+    /// this function doesn't charge fee
     public(friend) fun renew(registrar: &mut BaseRegistrar, label: vector<u8>, duration: u64, ctx: &TxContext): u64 {
         let label = string::utf8(label);
         let expiry = name_expires(registrar, label);
@@ -174,7 +178,7 @@ module suins::base_registrar {
         detail.expiry
     }
 
-    // reclaim record in registry
+    /// reclaim record in registry
     public entry fun reclaim_by_nft_owner(
         registrar: &BaseRegistrar,
         registry: &mut Registry,

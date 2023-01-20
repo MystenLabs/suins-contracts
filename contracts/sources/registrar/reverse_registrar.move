@@ -1,3 +1,5 @@
+/// Use for domains in the form of "0x123ABC.addr.reverse"
+/// This kind of domains are needed to get default name,...
 module suins::reverse_registrar {
 
     use sui::event;
@@ -24,6 +26,7 @@ module suins::reverse_registrar {
         default_name_resolver: address,
     }
 
+    // TODO: why doesn't this registrar hold its own record while base_registrar does?
     fun init(ctx: &mut TxContext) {
         transfer::share_object(ReverseRegistrar {
             id: object::new(ctx),
@@ -51,7 +54,7 @@ module suins::reverse_registrar {
         let label = converter::address_to_string(addr);
         let node = base_registry::make_node(label, string::utf8(ADDR_REVERSE_BASE_NODE));
         base_registry::set_record_internal(registry, node, owner, resolver, 0);
-
+        // TODO: add this as a record of reverse registrar
         event::emit(ReverseClaimedEvent { addr, resolver })
     }
 

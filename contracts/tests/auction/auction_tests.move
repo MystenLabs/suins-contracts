@@ -24,6 +24,7 @@ module suins::auction_tests {
     const FIRST_USER_ADDRESS: address = @0xB001;
     const SECOND_USER_ADDRESS: address = @0xB002;
     const THIRD_USER_ADDRESS: address = @0xB003;
+    const RESOLVER_ADDRESS: address = @0xC001;
     const HASH: vector<u8> = b"vUAgEwNmPr";
     const NODE: vector<u8> = b"suinns";
     const SECOND_NODE: vector<u8> = b"suinns2";
@@ -159,7 +160,7 @@ module suins::auction_tests {
         let registry = test_scenario::take_shared<Registry>(scenario);
         let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
         let config = test_scenario::take_shared<Configuration>(scenario);
-        finalize_auction(auction, &mut registrar, &mut registry, &config, node, &mut ctx);
+        finalize_auction(auction, &mut registrar, &mut registry, &config, node, RESOLVER_ADDRESS, &mut ctx);
         test_scenario::return_shared(registry);
         test_scenario::return_shared(config);
         test_scenario::return_shared(registrar);
@@ -639,7 +640,7 @@ module suins::auction_tests {
             assert!(base_registrar::name_expires(&registrar, utf8(NODE)) == START_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 365, 0);
             assert!(base_registry::owner(&registry, NODE_SUI) == SECOND_USER_ADDRESS, 0);
             assert!(base_registry::ttl(&registry, NODE_SUI) == 0, 0);
-            assert!(base_registry::resolver(&registry, NODE_SUI) == @0x0, 0);
+            assert!(base_registry::resolver(&registry, NODE_SUI) == RESOLVER_ADDRESS, 0);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(registry);
             test_scenario::return_shared(auction);
@@ -730,7 +731,7 @@ module suins::auction_tests {
             assert!(base_registrar::name_expires(&registrar, utf8(NODE)) == START_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 365, 0);
             assert!(base_registry::owner(&registry, NODE_SUI) == FIRST_USER_ADDRESS, 0);
             assert!(base_registry::ttl(&registry, NODE_SUI) == 0, 0);
-            assert!(base_registry::resolver(&registry, NODE_SUI) == @0x0, 0);
+            assert!(base_registry::resolver(&registry, NODE_SUI) == RESOLVER_ADDRESS, 0);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(registry);
             test_scenario::return_shared(auction);
@@ -765,7 +766,7 @@ module suins::auction_tests {
             let sui_registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
             let move_registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
-            finalize_auction(&mut auction, &mut move_registrar, &mut registry, &config, NODE, &mut ctx);
+            finalize_auction(&mut auction, &mut move_registrar, &mut registry, &config, NODE, RESOLVER_ADDRESS, &mut ctx);
             test_scenario::return_shared(registry);
             test_scenario::return_shared(config);
             test_scenario::return_shared(sui_registrar);
