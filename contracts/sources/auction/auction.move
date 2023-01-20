@@ -223,6 +223,7 @@ module suins::auction {
         config: &Configuration,
         node: vector<u8>,
         epoch: u64,
+        resolver: address,
         ctx: &mut TxContext
     ) {
         // TODO: what to do with .move?
@@ -231,7 +232,7 @@ module suins::auction {
         let node_str = utf8(node);
         let entry = table::borrow_mut(&mut auction.entries, node_str);
         assert!(entry.winner == tx_context::sender(ctx), EUnauthorized);
-        base_registrar::register(registrar, registry, config, node, entry.winner, 365, @0x0, ctx);
+        base_registrar::register(registrar, registry, config, node, entry.winner, 365, resolver, ctx);
         entry.is_finalized = true;
         event::emit(NodeRegisteredEvent {
             node: node_str,
