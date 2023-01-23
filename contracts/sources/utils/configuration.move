@@ -332,7 +332,7 @@ module suins::configuration {
         transfer::share_object(Configuration {
             id: object::new(ctx),
             ipfs_urls,
-            network_first_day: 0,
+            network_first_day: 1,
             referral_codes: vec_map::empty(),
             discount_codes: vec_map::empty(),
             reserve_domains: table::new(ctx),

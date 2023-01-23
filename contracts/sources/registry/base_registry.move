@@ -144,16 +144,12 @@ module suins::base_registry {
         resolver: address,
         ttl: u64,
     ) {
-        let record = if (table::contains(&registry.records, node)) {
+        if (table::contains(&registry.records, node)) {
             let record = table::borrow_mut(&mut registry.records, node);
             record.owner = owner;
-            record
-        } else {
-            new_record(registry, node, owner, resolver, ttl);
-            table::borrow_mut(&mut registry.records, node)
-        };
-        record.resolver = resolver;
-        record.ttl = ttl;
+            record.resolver = resolver;
+            record.ttl = ttl;
+        } else new_record(registry, node, owner, resolver, ttl);
     }
 
     public(friend) fun authorised(registry: &Registry, node: vector<u8>, ctx: &TxContext) {
