@@ -1412,8 +1412,6 @@ module suins::controller_tests {
             let coin1 = test_scenario::take_from_address<Coin<SUI>>(&mut scenario, SECOND_USER_ADDRESS);
             let coin2 = test_scenario::take_from_address<Coin<SUI>>(&mut scenario, SECOND_USER_ADDRESS);
 
-            std::debug::print(&coin::value(&coin1));
-            std::debug::print(&coin::value(&coin2));
             assert!(coin::value(&coin1) == 99, 0);
             assert!(coin::value(&coin2) == 400000, 0);
 
@@ -1667,7 +1665,6 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
-            std::debug::print(&base_registrar::get_registration_detail(detail));
             assert!(base_registrar::get_registration_detail(detail) == 51 + 730, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);

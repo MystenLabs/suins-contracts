@@ -1,7 +1,6 @@
 module suins::auction {
 
     use sui::object::UID;
-    use sui::vec_set::{Self, VecSet};
     use sui::table::{Self, Table};
     use sui::tx_context::{Self, TxContext};
     use sui::sui::SUI;
@@ -11,7 +10,7 @@ module suins::auction {
     use sui::ecdsa_k1::keccak256;
     use sui::coin::Coin;
     use sui::event;
-    use std::option::{Self, Option};
+    use std::option::{Self, Option, none, some};
     use std::string::{String, utf8};
     use std::vector;
     use std::bcs;
@@ -31,7 +30,7 @@ module suins::auction {
     const AUCTION_STATE_REVEAL: u8 = 4;
     const AUCTION_STATE_FINALIZING: u8 = 5;
     const AUCTION_STATE_OWNED: u8 = 6;
-    const AUCTION_STATE_REOPEN: u8 = 7;
+    const AUCTION_STATE_REOPENED: u8 = 7;
 
     const EUnauthorized: u64 = 801;
     const EInvalidPhase: u64 = 802;
@@ -44,12 +43,20 @@ module suins::auction {
     const EInvalidConfigParam: u64 = 808;
     const EInvalidRegistrar: u64 = 809;
     const EShouldNotHappen: u64 = 810;
+    const EAlreadyFinalized: u64 = 811;
+    const EAlreadyUnsealed: u64 = 812;
 
     struct BidDetail has store, copy, drop {
         bidder: address,
         // upper limit of the actual bid value to hide the real value
         bid_value_mask: u64,
+        // 0 for unknowned value
+        bid_value: u64,
+        // empty for unknowned
+        node: String,
         created_at: u64,
+        seal_bid: vector<u8>,
+        is_unsealed: bool,
     }
 
     // info of each auction this is ongoing or over
@@ -64,8 +71,15 @@ module suins::auction {
     struct Auction has key {
         id: UID,
         // key: seal hash
-        bid_detail_by_seal_bid: Table<vector<u8>, BidDetail>,
-        bid_details_by_addr: Table<address, VecSet<BidDetail>>,
+        // bid_detail_by_seal_bid: Table<vector<u8>, BidDetail>,
+        bid_details_by_bidder: Table<address, vector<BidDetail>>,
+        /// list of bids that are unsealed
+        /// unsealed_bids: {
+        ///   suins.sui: {
+        ///     0xabc: [bid1, bid2],
+        ///   },
+        /// }
+        // unsealed_bids: Table<String, Table<address, VecSet<BidDetail>>>,
         // key: node
         entries: Table<String, AuctionEntry>,
         balance: Balance<SUI>,
@@ -99,8 +113,9 @@ module suins::auction {
     fun init(ctx: &mut TxContext) {
         transfer::share_object(Auction {
             id: object::new(ctx),
-            bid_detail_by_seal_bid: table::new(ctx),
-            bid_details_by_addr: table::new(ctx),
+            // bid_detail_by_seal_bid: table::new(ctx),
+            bid_details_by_bidder: table::new(ctx),
+            // unsealed_bids: table::new(ctx),
             entries: table::new(ctx),
             balance: balance::zero(),
             auction_start_at: 0,
@@ -116,18 +131,52 @@ module suins::auction {
     }
 
     // used by bidder
+    // TODO: do we allow winner to withdraw?
+    // TODO: noway to check winner right now
     public entry fun withdraw(auction: &mut Auction, ctx: &mut TxContext) {
         assert!(tx_context::epoch(ctx) > auction.auction_end_at, EInvalidPhase);
+
         let sender = tx_context::sender(ctx);
-        let bid_details = table::remove(&mut auction.bid_details_by_addr, sender);
-        let bid_details = vec_set::into_keys(bid_details);
+        let bid_details = table::remove(&mut auction.bid_details_by_bidder, sender);
         let len = vector::length(&bid_details);
         let index = 0;
+
         while(index < len) {
             let detail = vector::borrow(&bid_details, index);
             coin_util::contract_transfer_to_address(&mut auction.balance, detail.bid_value_mask, detail.bidder, ctx);
             index = index + 1;
         };
+    }
+
+    // testing only
+    public entry fun withdraw_with_epoch(auction: &mut Auction, epoch: u64, ctx: &mut TxContext) {
+        assert!(epoch > auction.auction_end_at, EInvalidPhase);
+
+        let sender = tx_context::sender(ctx);
+        let bid_details = table::remove(&mut auction.bid_details_by_bidder, sender);
+        let len = vector::length(&bid_details);
+        let index = 0;
+
+        while(index < len) {
+            let detail = vector::borrow(&bid_details, index);
+            coin_util::contract_transfer_to_address(&mut auction.balance, detail.bid_value_mask, detail.bidder, ctx);
+            index = index + 1;
+        };
+    }
+
+    /// Return index of bid if exists
+    fun seal_bid_exists(bids: &vector<BidDetail>, seal_bid: vector<u8>): Option<u64> {
+        let len = vector::length(bids);
+        let index = 0;
+
+        while(index < len) {
+            let detail = vector::borrow(bids, index);
+            if (detail.seal_bid == seal_bid) {
+                return some(index)
+            };
+            index = index + 1;
+        };
+        none()
     }
 
     public entry fun new_bid(auction: &mut Auction, seal_bid: vector<u8>, bid_value_mask: u64, payment: &mut Coin<SUI>, ctx: &mut TxContext) {
@@ -136,23 +185,27 @@ module suins::auction {
             auction.auction_start_at <= current_epoch && current_epoch <= auction.auction_end_at,
             EAuctionNotAvailable,
         );
-        assert!(!table::contains(&auction.bid_detail_by_seal_bid, seal_bid), EBidExisted);
         assert!(bid_value_mask >= MIN_PRICE, EInvalidBid);
+
+        if (!table::contains(&auction.bid_details_by_bidder, tx_context::sender(ctx))) {
+            table::add(&mut auction.bid_details_by_bidder, tx_context::sender(ctx), vector[]);
+        };
+
+        let bids_by_sender = table::borrow_mut(&mut auction.bid_details_by_bidder, tx_context::sender(ctx));
+        assert!(option::is_none(&seal_bid_exists(bids_by_sender, seal_bid)), EBidExisted);
+
         let bidder = tx_context::sender(ctx);
         let bid = BidDetail {
             bidder,
             bid_value_mask,
+            bid_value: 0,
+            node: utf8(vector[]),
             created_at: current_epoch,
+            seal_bid,
+            is_unsealed: false,
         };
-        table::add(&mut auction.bid_detail_by_seal_bid, seal_bid, *&bid);
-        if (table::contains(&auction.bid_details_by_addr, bidder)) {
-            let bid_details = table::borrow_mut(&mut auction.bid_details_by_addr, bidder);
-            // TODO: add more fields
-            vec_set::insert(bid_details, bid);
-        } else {
-            let bid_details = vec_set::singleton(bid);
-            table::add(&mut auction.bid_details_by_addr, bidder, bid_details);
-        };
+        vector::push_back(bids_by_sender, bid);
+
         event::emit(NewBidEvent { bidder, seal_bid, bid_value_mask });
         coin_util::user_transfer_to_contract(payment, bid_value_mask, &mut auction.balance);
     }
@@ -170,23 +223,27 @@ module suins::auction {
             auction.auction_start_at <= current_epoch && current_epoch <= auction.auction_end_at,
             EAuctionNotAvailable,
         );
-        assert!(!table::contains(&auction.bid_detail_by_seal_bid, seal_bid), EBidExisted);
         assert!(bid_value_mask >= MIN_PRICE, EInvalidBid);
+
+        if (!table::contains(&auction.bid_details_by_bidder, tx_context::sender(ctx))) {
+            table::add(&mut auction.bid_details_by_bidder, tx_context::sender(ctx), vector[]);
+        };
+
+        let bids_by_sender = table::borrow_mut(&mut auction.bid_details_by_bidder, tx_context::sender(ctx));
+        assert!(option::is_none(&seal_bid_exists(bids_by_sender, seal_bid)), EBidExisted);
+
         let bidder = tx_context::sender(ctx);
         let bid = BidDetail {
             bidder,
             bid_value_mask,
+            bid_value: 0,
+            node: utf8(vector[]),
             created_at: current_epoch,
+            seal_bid,
+            is_unsealed: false,
         };
-        table::add(&mut auction.bid_detail_by_seal_bid, seal_bid, *&bid);
-        if (table::contains(&auction.bid_details_by_addr, bidder)) {
-            let bid_details = table::borrow_mut(&mut auction.bid_details_by_addr, bidder);
-            // TODO: add more fields
-            vec_set::insert(bid_details, bid);
-        } else {
-            let bid_details = vec_set::singleton(bid);
-            table::add(&mut auction.bid_details_by_addr, bidder, bid_details);
-        };
+        vector::push_back(bids_by_sender, bid);
+
         event::emit(NewBidEvent { bidder, seal_bid, bid_value_mask });
         coin_util::user_transfer_to_contract(payment, bid_value_mask, &mut auction.balance);
     }
@@ -202,10 +259,55 @@ module suins::auction {
     ) {
         // TODO: what to do with .move?
         assert!(base_registrar::get_base_node_bytes(registrar) == b"sui", EInvalidRegistrar);
-        assert!(state(auction, node, ctx) == AUCTION_STATE_FINALIZING, EInvalidPhase);
+        let auction_state = state(auction, node, ctx);
+        assert!(
+            auction_state == AUCTION_STATE_FINALIZING
+                || auction_state == AUCTION_STATE_REOPENED
+                || auction_state == AUCTION_STATE_OWNED,
+            EInvalidPhase
+        );
+
         let node_str = utf8(node);
         let entry = table::borrow_mut(&mut auction.entries, node_str);
-        assert!(entry.winner == tx_context::sender(ctx), EUnauthorized);
+        let bids_of_sender = table::borrow_mut(&mut auction.bid_details_by_bidder, tx_context::sender(ctx));
+
+        // Refund all the bids
+        // TODO: remove bids_of_sender if being empty
+        let len = vector::length(bids_of_sender);
+        let index = 0;
+        while (index < len) {
+            if (vector::borrow(bids_of_sender, index).node != node_str) {
+                index = index + 1;
+                continue
+            };
+
+            let detail = vector::remove(bids_of_sender, index);
+            len = len - 1;
+            if (
+                entry.winner == detail.bidder
+                    && entry.highest_bid == detail.bid_value
+                    && detail.bid_value_mask - detail.bid_value > 0
+            ) {
+                // send extra money to winner
+                coin_util::contract_transfer_to_address(
+                    &mut auction.balance,
+                    detail.bid_value_mask - detail.bid_value,
+                    detail.bidder,
+                    ctx
+                );
+            } else {
+                coin_util::contract_transfer_to_address(
+                    &mut auction.balance,
+                    detail.bid_value_mask,
+                    detail.bidder,
+                    ctx
+                );
+            };
+        };
+        if (entry.winner != tx_context::sender(ctx)) return;
+        // winner cannot claim twice
+        assert!(!entry.is_finalized, EAlreadyFinalized);
+
         base_registrar::register(registrar, registry, config, node, entry.winner, 365, resolver, ctx);
         entry.is_finalized = true;
         event::emit(NodeRegisteredEvent {
@@ -228,10 +330,55 @@ module suins::auction {
     ) {
         // TODO: what to do with .move?
         assert!(base_registrar::get_base_node_bytes(registrar) == b"sui", EInvalidRegistrar);
-        assert!(state_with_epoch(auction, node, epoch, ctx) == AUCTION_STATE_FINALIZING, EInvalidPhase);
+        let auction_state = state_with_epoch(auction, node, epoch, ctx);
+        assert!(
+            auction_state == AUCTION_STATE_FINALIZING
+                || auction_state == AUCTION_STATE_REOPENED
+                || auction_state == AUCTION_STATE_OWNED,
+            EInvalidPhase
+        );
+
         let node_str = utf8(node);
         let entry = table::borrow_mut(&mut auction.entries, node_str);
-        assert!(entry.winner == tx_context::sender(ctx), EUnauthorized);
+        let bids_of_sender = table::borrow_mut(&mut auction.bid_details_by_bidder, tx_context::sender(ctx));
+
+        // Refund all the bids
+        // TODO: remove bids_of_sender if being empty
+        let len = vector::length(bids_of_sender);
+        let index = 0;
+        while (index < len) {
+            if (vector::borrow(bids_of_sender, index).node != node_str) {
+                index = index + 1;
+                continue
+            };
+
+            let detail = vector::remove(bids_of_sender, index);
+            len = len - 1;
+            if (
+                entry.winner == detail.bidder
+                    && entry.highest_bid == detail.bid_value
+                    && detail.bid_value_mask - detail.bid_value > 0
+            ) {
+                // send extra money to winner
+                coin_util::contract_transfer_to_address(
+                    &mut auction.balance,
+                    detail.bid_value_mask - detail.bid_value,
+                    detail.bidder,
+                    ctx
+                );
+            } else {
+                coin_util::contract_transfer_to_address(
+                    &mut auction.balance,
+                    detail.bid_value_mask,
+                    detail.bidder,
+                    ctx
+                );
+            };
+        };
+        if (entry.winner != tx_context::sender(ctx)) return;
+        // winner cannot claim twice
+        assert!(!entry.is_finalized, EAlreadyFinalized);
+
         base_registrar::register(registrar, registry, config, node, entry.winner, 365, resolver, ctx);
         entry.is_finalized = true;
         event::emit(NodeRegisteredEvent {
@@ -241,39 +388,27 @@ module suins::auction {
         })
     }
 
+    // TODO: validate domain name
     public entry fun unseal_bid(auction: &mut Auction, node: vector<u8>, value: u64, salt: vector<u8>, ctx: &mut TxContext) {
-        let bidder = tx_context::sender(ctx);
-        let seal_bid = make_seal_bid(node, bidder, value, salt); // hash from node, owner, value, salt
-        // TODO: validate domain name
-        let bid_detail = table::remove(&mut auction.bid_detail_by_seal_bid, seal_bid); // get and remove the bid
-         assert!(bid_detail.bidder == bidder, EShouldNotHappen);
-        let bids = table::borrow_mut(&mut auction.bid_details_by_addr, bidder);
-        assert!(vec_set::contains(bids, &bid_detail), EShouldNotHappen);
-        vec_set::remove(bids, &bid_detail);
-        assert!(!vec_set::contains(bids, &bid_detail), EShouldNotHappen);
-
         let auction_state = state(auction, node, ctx);
-        // TODO: do we allow this?
-        assert!(auction_state != AUCTION_STATE_BIDDING, EInvalidPhase);
+        assert!(auction_state == AUCTION_STATE_REVEAL, EInvalidPhase);
+
+        let seal_bid = make_seal_bid(node, tx_context::sender(ctx), value, salt); // hash from node, owner, value, salt
+        let bids_by_sender = table::borrow_mut(&mut auction.bid_details_by_bidder, tx_context::sender(ctx));
+        let index = seal_bid_exists(bids_by_sender, seal_bid);
+        assert!(option::is_some(&index), EInvalidBid);
+
+        let bid_detail = vector::borrow_mut(bids_by_sender, option::extract(&mut index));
+        assert!(!bid_detail.is_unsealed, EAlreadyUnsealed);
+
         let node = utf8(node);
         event::emit(BidRevealedEvent {
             node,
-            bidder: bid_detail.bidder,
+            bidder: tx_context::sender(ctx),
             bid_value: value,
         });
 
-        if (auction_state != AUCTION_STATE_REVEAL) {
-            // node not started
-            coin_util::contract_transfer_to_address(
-                &mut auction.balance,
-                bid_detail.bid_value_mask,
-                bid_detail.bidder,
-                ctx
-            );
-            return
-        };
         let entry = table::borrow_mut(&mut auction.entries, *&node);
-        // TODO: separate validation of bid_detail
         if (
             bid_detail.bid_value_mask < value
                 || value < MIN_PRICE
@@ -281,26 +416,7 @@ module suins::auction {
                 || entry.start_at + BIDDING_PERIOD <= bid_detail.created_at
         ) {
             // invalid bid
-            coin_util::contract_transfer_to_address(
-                &mut auction.balance,
-                bid_detail.bid_value_mask,
-                bid_detail.bidder,
-                ctx
-            );
         } else if (value > entry.highest_bid) {
-            // in REVEAL phase
-            // new winner, refund previous highest bidder
-            if (entry.winner != @0x0)
-                coin_util::contract_transfer_to_address(&mut auction.balance, entry.highest_bid, entry.winner, ctx);
-            // send back extra money to sender
-            if (bid_detail.bid_value_mask - value > 0) {
-                coin_util::contract_transfer_to_address(
-                    &mut auction.balance,
-                    bid_detail.bid_value_mask - value,
-                    bid_detail.bidder,
-                    ctx
-                );
-            };
             // vickery auction, winner pay the second highest_bid
             entry.second_highest_bid = entry.highest_bid;
             entry.highest_bid = value;
@@ -308,117 +424,22 @@ module suins::auction {
         } else if (value > entry.second_highest_bid) {
             // not winner, but affects second place
             entry.second_highest_bid = value;
-            coin_util::contract_transfer_to_address(
-                &mut auction.balance,
-                bid_detail.bid_value_mask,
-                bid_detail.bidder,
-                ctx
-            );
         } else {
             // bid doesn't affect auction
-            coin_util::contract_transfer_to_address(
-                &mut auction.balance,
-                bid_detail.bid_value_mask,
-                bid_detail.bidder,
-                ctx
-            );
-        }
-    }
-
-    // testing only
-    public entry fun unseal_bid_with_epoch(auction: &mut Auction, node: vector<u8>, value: u64, salt: vector<u8>, epoch: u64, ctx: &mut TxContext) {
-        let bidder = tx_context::sender(ctx);
-        let seal_bid = make_seal_bid(node, bidder, value, salt); // hash from node, owner, value, salt
-        // TODO: validate domain name
-        let bid_detail = table::remove(&mut auction.bid_detail_by_seal_bid, seal_bid); // get and remove the bid
-        assert!(bid_detail.bidder == bidder, EShouldNotHappen);
-        let bids = table::borrow_mut(&mut auction.bid_details_by_addr, bidder);
-        assert!(vec_set::contains(bids, &bid_detail), EShouldNotHappen);
-        vec_set::remove(bids, &bid_detail);
-        assert!(!vec_set::contains(bids, &bid_detail), EShouldNotHappen);
-
-        let auction_state = state_with_epoch(auction, node, epoch, ctx);
-        // TODO: do we allow this?
-        assert!(auction_state != AUCTION_STATE_BIDDING, EInvalidPhase);
-        let node = utf8(node);
-        event::emit(BidRevealedEvent {
-            node,
-            bidder: bid_detail.bidder,
-            bid_value: value,
-        });
-
-        if (auction_state != AUCTION_STATE_REVEAL) {
-            // node not started
-            coin_util::contract_transfer_to_address(
-                &mut auction.balance,
-                bid_detail.bid_value_mask,
-                bid_detail.bidder,
-                ctx
-            );
-            return
         };
-        let entry = table::borrow_mut(&mut auction.entries, *&node);
-        // TODO: separate validation of bid_detail
-        if (
-            bid_detail.bid_value_mask < value
-                || value < MIN_PRICE
-                || bid_detail.created_at < entry.start_at
-                || entry.start_at + BIDDING_PERIOD <= bid_detail.created_at
-        ) {
-            // invalid bid
-            coin_util::contract_transfer_to_address(
-                &mut auction.balance,
-                bid_detail.bid_value_mask,
-                bid_detail.bidder,
-                ctx
-            );
-        } else if (value > entry.highest_bid) {
-            // in REVEAL phase
-            // new winner, refund previous highest bidder
-            if (entry.winner != @0x0)
-                coin_util::contract_transfer_to_address(&mut auction.balance, entry.highest_bid, entry.winner, ctx);
-            // send back extra money to sender
-            if (bid_detail.bid_value_mask - value > 0) {
-                coin_util::contract_transfer_to_address(
-                    &mut auction.balance,
-                    bid_detail.bid_value_mask - value,
-                    bid_detail.bidder,
-                    ctx
-                );
-            };
-            // vickery auction, winner pay the second highest_bid
-            entry.second_highest_bid = entry.highest_bid;
-            entry.highest_bid = value;
-            entry.winner = bid_detail.bidder;
-        } else if (value > entry.second_highest_bid) {
-            // not winner, but affects second place
-            entry.second_highest_bid = value;
-            coin_util::contract_transfer_to_address(
-                &mut auction.balance,
-                bid_detail.bid_value_mask,
-                bid_detail.bidder,
-                ctx
-            );
-        } else {
-            // bid doesn't affect auction
-            coin_util::contract_transfer_to_address(
-                &mut auction.balance,
-                bid_detail.bid_value_mask,
-                bid_detail.bidder,
-                ctx
-            );
-        }
+        bid_detail.bid_value = value;
+        bid_detail.node = node;
+        bid_detail.is_unsealed = true;
     }
 
     public entry fun start_auction(auction: &mut Auction, node: vector<u8>, payment: &mut Coin<SUI>, ctx: &mut TxContext) {
-        // TODO: what if node was registered before
         let state = state(auction, node, ctx);
-        assert!(state == AUCTION_STATE_OPEN, EInvalidPhase);
+        assert!(state == AUCTION_STATE_OPEN || state == AUCTION_STATE_REOPENED, EInvalidPhase);
+
         let node = utf8(node);
-        if (state == AUCTION_STATE_REOPEN) {
+        if (state == AUCTION_STATE_REOPENED) {
             let _ = table::remove(&mut auction.entries, node);
         };
-        // TODO: remove node
         // current_epoch was validated in `state`
         let start_at = tx_context::epoch(ctx) + 1;
         let entry = AuctionEntry {
@@ -441,14 +462,13 @@ module suins::auction {
         epoch: u64,
         ctx: &mut TxContext
     ) {
-        // TODO: what if node was registered before
         let state = state_with_epoch(auction, node, epoch, ctx);
-        assert!(state == AUCTION_STATE_OPEN, EInvalidPhase);
+        assert!(state == AUCTION_STATE_OPEN || state == AUCTION_STATE_REOPENED, EInvalidPhase);
+
         let node = utf8(node);
-        if (state == AUCTION_STATE_REOPEN) {
+        if (state == AUCTION_STATE_REOPENED) {
             let _ = table::remove(&mut auction.entries, node);
         };
-        // TODO: remove node
         // current_epoch was validated in `state`
         let start_at = epoch + 1;
         let entry = AuctionEntry {
@@ -487,12 +507,16 @@ module suins::auction {
         (option::none(), option::none(), option::none(), option::none(), option::none())
     }
 
-    public fun get_bid(auction: &Auction, seal_bid: vector<u8>): (Option<address>, Option<u64>) {
-        if (table::contains(&auction.bid_detail_by_seal_bid, seal_bid)) {
-            let bid = table::borrow(&auction.bid_detail_by_seal_bid, seal_bid);
-            return (option::some(bid.bidder), option::some(bid.bid_value_mask))
+    public fun get_bid(auction: &Auction, seal_bid: vector<u8>, bidder: address): Option<u64> {
+        if (table::contains(&auction.bid_details_by_bidder, bidder)) {
+            let bids_by_bidder = table::borrow(&auction.bid_details_by_bidder, bidder);
+            let index = seal_bid_exists(bids_by_bidder, seal_bid);
+            if (option::is_some(&index)) {
+                let bid = vector::borrow(bids_by_bidder, option::extract(&mut index));
+                return option::some(bid.bid_value_mask)
+            }
         };
-        (option::none(), option::none())
+        option::none()
     }
 
     // State transitions for names:
@@ -507,9 +531,9 @@ module suins::auction {
             if (current_epoch == entry.start_at - 1) return AUCTION_STATE_PENDING;
             if (current_epoch < entry.start_at + BIDDING_PERIOD) return AUCTION_STATE_BIDDING;
             if (current_epoch < entry.start_at + BIDDING_PERIOD + REVEAL_PERIOD) return AUCTION_STATE_REVEAL;
-            // TODO: what if noone bid on this domain?
-            // TODO: check for highest_bid != 0
-            if (entry.highest_bid == 0) return AUCTION_STATE_REOPEN;
+            // TODO: because auction can be reopened, there is a case
+            // TODO: where only 1 user places bid and his bid is invalid
+            if (entry.highest_bid == 0) return AUCTION_STATE_REOPENED;
             return AUCTION_STATE_FINALIZING
         };
         AUCTION_STATE_OPEN
@@ -526,9 +550,9 @@ module suins::auction {
             if (current_epoch == entry.start_at - 1) return AUCTION_STATE_PENDING;
             if (current_epoch < entry.start_at + BIDDING_PERIOD) return AUCTION_STATE_BIDDING;
             if (current_epoch < entry.start_at + BIDDING_PERIOD + REVEAL_PERIOD) return AUCTION_STATE_REVEAL;
-            // TODO: what if noone bid on this domain?
-            // TODO: check for highest_bid != 0
-            if (entry.highest_bid == 0) return AUCTION_STATE_REOPEN;
+            // TODO: because auction can be reopened, there is a case
+            // TODO: where only 1 user places bid and his bid is invalid
+            if (entry.highest_bid == 0) return AUCTION_STATE_REOPENED;
             return AUCTION_STATE_FINALIZING
         };
         AUCTION_STATE_OPEN
@@ -542,16 +566,16 @@ module suins::auction {
     }
 
     #[test_only]
-    public fun get_bids_by_addr(auction: &Auction, addr: address): VecSet<BidDetail> {
-        if (table::contains(&auction.bid_details_by_addr, addr)) {
-            return *table::borrow(&auction.bid_details_by_addr, addr)
+    public fun get_bids_by_addr(auction: &Auction, bidder: address): vector<BidDetail> {
+        if (table::contains(&auction.bid_details_by_bidder, bidder)) {
+            return *table::borrow(&auction.bid_details_by_bidder, bidder)
         };
-        vec_set::empty()
+        vector[]
     }
 
     #[test_only]
-    public fun get_bid_detail_fields(bid_detail: &BidDetail): (address, u64, u64) {
-        (bid_detail.bidder, bid_detail.bid_value_mask, bid_detail.created_at)
+    public fun get_bid_detail_fields(bid_detail: &BidDetail): (address, u64, u64, bool) {
+        (bid_detail.bidder, bid_detail.bid_value_mask, bid_detail.created_at, bid_detail.is_unsealed)
     }
 
     #[test_only]
@@ -559,8 +583,7 @@ module suins::auction {
     public fun test_init(ctx: &mut TxContext) {
         transfer::share_object(Auction {
             id: object::new(ctx),
-            bid_detail_by_seal_bid: table::new(ctx),
-            bid_details_by_addr: table::new(ctx),
+            bid_details_by_bidder: table::new(ctx),
             entries: table::new(ctx),
             balance: balance::zero(),
             auction_start_at: 100,
