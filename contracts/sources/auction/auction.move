@@ -18,6 +18,8 @@ module suins::auction {
     use suins::base_registry::{Registry, AdminCap};
     use suins::configuration::Configuration;
     use suins::coin_util;
+    use suins::emoji;
+    use suins::configuration;
 
     const MIN_PRICE: u64 = 1000;
     const FEE_PER_YEAR: u64 = 10000;
@@ -388,7 +390,7 @@ module suins::auction {
         })
     }
 
-    // TODO: validate domain name
+    // TODO: do we need to validate domain here?
     public entry fun unseal_bid(auction: &mut Auction, node: vector<u8>, value: u64, salt: vector<u8>, ctx: &mut TxContext) {
         let auction_state = state(auction, node, ctx);
         assert!(auction_state == AUCTION_STATE_REVEAL, EInvalidPhase);
@@ -432,7 +434,17 @@ module suins::auction {
         bid_detail.is_unsealed = true;
     }
 
-    public entry fun start_auction(auction: &mut Auction, node: vector<u8>, payment: &mut Coin<SUI>, ctx: &mut TxContext) {
+    // TODO: validate domain name
+    public entry fun start_auction(
+        auction: &mut Auction,
+        config: &Configuration,
+        node: vector<u8>,
+        payment: &mut Coin<SUI>,
+        ctx: &mut TxContext
+    ) {
+        let emoji_config = configuration::get_emoji_config(config);
+        emoji::validate_label_with_emoji(emoji_config, node, 3, 6);
+
         let state = state(auction, node, ctx);
         assert!(state == AUCTION_STATE_OPEN || state == AUCTION_STATE_REOPENED, EInvalidPhase);
 

@@ -17,6 +17,7 @@ module suins::configuration {
 
     friend suins::base_registrar;
     friend suins::controller;
+    friend suins::auction;
 
     // errors in the range of 401..500 indicate Sui Configuration errors
     const EmojiConfig: vector<u8> = b"emoji_config";
