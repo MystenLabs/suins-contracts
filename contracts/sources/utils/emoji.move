@@ -118,7 +118,7 @@ module suins::emoji {
                 assert!(
                     (0x61 <= byte && byte <= 0x7A)                           // a-z
                         || (0x30 <= byte && byte <= 0x39)                    // 0-9
-                        || (byte == 0x2D && index != 0 && index != len - 1), // -
+                        || (byte == 0x2D && index != 0 && index != len - 1), // - // TODO: is it correct?
                     EInvalidLabel
                 );
                 index = index + 1;

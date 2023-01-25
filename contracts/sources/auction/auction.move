@@ -47,6 +47,7 @@ module suins::auction {
     const EShouldNotHappen: u64 = 810;
     const EAlreadyFinalized: u64 = 811;
     const EAlreadyUnsealed: u64 = 812;
+    const ESealBidNotExists: u64 = 813;
 
     struct BidDetail has store, copy, drop {
         bidder: address,
@@ -55,7 +56,7 @@ module suins::auction {
         // 0 for unknowned value
         bid_value: u64,
         // empty for unknowned
-        node: String,
+        label: String,
         created_at: u64,
         seal_bid: vector<u8>,
         is_unsealed: bool,
@@ -82,15 +83,15 @@ module suins::auction {
         ///   },
         /// }
         // unsealed_bids: Table<String, Table<address, VecSet<BidDetail>>>,
-        // key: node
+        // key: label
         entries: Table<String, AuctionEntry>,
         balance: Balance<SUI>,
         auction_start_at: u64,
         auction_end_at: u64,
     }
 
-    struct NodeRegisteredEvent has copy, drop {
-        node: String,
+    struct LabelRegisteredEvent has copy, drop {
+        label: String,
         winner: address,
         amount: u64,
     }
@@ -102,27 +103,14 @@ module suins::auction {
     }
 
     struct BidRevealedEvent has copy, drop {
-        node: String,
+        label: String,
         bidder: address,
         bid_value: u64,
     }
 
     struct AuctionStartedEvent has copy, drop {
-        node: String,
+        label: String,
         start_at: u64,
-    }
-
-    fun init(ctx: &mut TxContext) {
-        transfer::share_object(Auction {
-            id: object::new(ctx),
-            // bid_detail_by_seal_bid: table::new(ctx),
-            bid_details_by_bidder: table::new(ctx),
-            // unsealed_bids: table::new(ctx),
-            entries: table::new(ctx),
-            balance: balance::zero(),
-            auction_start_at: 0,
-            auction_end_at: 0,
-        });
     }
 
     public entry fun config_auction(_: &AdminCap, auction: &mut Auction, start_at: u64, end_at: u64, ctx: &mut TxContext) {
@@ -166,21 +154,6 @@ module suins::auction {
         };
     }
 
-    /// Return index of bid if exists
-    fun seal_bid_exists(bids: &vector<BidDetail>, seal_bid: vector<u8>): Option<u64> {
-        let len = vector::length(bids);
-        let index = 0;
-
-        while(index < len) {
-            let detail = vector::borrow(bids, index);
-            if (detail.seal_bid == seal_bid) {
-                return some(index)
-            };
-            index = index + 1;
-        };
-        none()
-    }
-
     public entry fun new_bid(auction: &mut Auction, seal_bid: vector<u8>, bid_value_mask: u64, payment: &mut Coin<SUI>, ctx: &mut TxContext) {
         let current_epoch = tx_context::epoch(ctx);
         assert!(
@@ -201,7 +174,7 @@ module suins::auction {
             bidder,
             bid_value_mask,
             bid_value: 0,
-            node: utf8(vector[]),
+            label: utf8(vector[]),
             created_at: current_epoch,
             seal_bid,
             is_unsealed: false,
@@ -239,7 +212,7 @@ module suins::auction {
             bidder,
             bid_value_mask,
             bid_value: 0,
-            node: utf8(vector[]),
+            label: utf8(vector[]),
             created_at: current_epoch,
             seal_bid,
             is_unsealed: false,
@@ -255,13 +228,13 @@ module suins::auction {
         registrar: &mut BaseRegistrar,
         registry: &mut Registry,
         config: &Configuration,
-        node: vector<u8>,
+        label: vector<u8>,
         resolver: address,
         ctx: &mut TxContext
     ) {
         // TODO: what to do with .move?
         assert!(base_registrar::get_base_node_bytes(registrar) == b"sui", EInvalidRegistrar);
-        let auction_state = state(auction, node, ctx);
+        let auction_state = state(auction, label, ctx);
         assert!(
             auction_state == AUCTION_STATE_FINALIZING
                 || auction_state == AUCTION_STATE_REOPENED
@@ -269,8 +242,8 @@ module suins::auction {
             EInvalidPhase
         );
 
-        let node_str = utf8(node);
-        let entry = table::borrow_mut(&mut auction.entries, node_str);
+        let label_str = utf8(label);
+        let entry = table::borrow_mut(&mut auction.entries, label_str);
         let bids_of_sender = table::borrow_mut(&mut auction.bid_details_by_bidder, tx_context::sender(ctx));
 
         // Refund all the bids
@@ -278,7 +251,7 @@ module suins::auction {
         let len = vector::length(bids_of_sender);
         let index = 0;
         while (index < len) {
-            if (vector::borrow(bids_of_sender, index).node != node_str) {
+            if (vector::borrow(bids_of_sender, index).label != label_str) {
                 index = index + 1;
                 continue
             };
@@ -310,10 +283,12 @@ module suins::auction {
         // winner cannot claim twice
         assert!(!entry.is_finalized, EAlreadyFinalized);
 
-        base_registrar::register(registrar, registry, config, node, entry.winner, 365, resolver, ctx);
+        base_registrar::register(registrar, registry, config, label, entry.winner, 365, resolver, ctx);
         entry.is_finalized = true;
-        event::emit(NodeRegisteredEvent {
-            node: node_str,
+
+        // TODO: change event name
+        event::emit(LabelRegisteredEvent {
+            label: label_str,
             winner: entry.winner,
             amount: entry.second_highest_bid
         })
@@ -325,14 +300,14 @@ module suins::auction {
         registrar: &mut BaseRegistrar,
         registry: &mut Registry,
         config: &Configuration,
-        node: vector<u8>,
+        label: vector<u8>,
         epoch: u64,
         resolver: address,
         ctx: &mut TxContext
     ) {
         // TODO: what to do with .move?
         assert!(base_registrar::get_base_node_bytes(registrar) == b"sui", EInvalidRegistrar);
-        let auction_state = state_with_epoch(auction, node, epoch, ctx);
+        let auction_state = state_with_epoch(auction, label, epoch, ctx);
         assert!(
             auction_state == AUCTION_STATE_FINALIZING
                 || auction_state == AUCTION_STATE_REOPENED
@@ -340,8 +315,8 @@ module suins::auction {
             EInvalidPhase
         );
 
-        let node_str = utf8(node);
-        let entry = table::borrow_mut(&mut auction.entries, node_str);
+        let label_str = utf8(label);
+        let entry = table::borrow_mut(&mut auction.entries, label_str);
         let bids_of_sender = table::borrow_mut(&mut auction.bid_details_by_bidder, tx_context::sender(ctx));
 
         // Refund all the bids
@@ -349,7 +324,7 @@ module suins::auction {
         let len = vector::length(bids_of_sender);
         let index = 0;
         while (index < len) {
-            if (vector::borrow(bids_of_sender, index).node != node_str) {
+            if (vector::borrow(bids_of_sender, index).label != label_str) {
                 index = index + 1;
                 continue
             };
@@ -381,36 +356,36 @@ module suins::auction {
         // winner cannot claim twice
         assert!(!entry.is_finalized, EAlreadyFinalized);
 
-        base_registrar::register(registrar, registry, config, node, entry.winner, 365, resolver, ctx);
+        base_registrar::register(registrar, registry, config, label, entry.winner, 365, resolver, ctx);
         entry.is_finalized = true;
-        event::emit(NodeRegisteredEvent {
-            node: node_str,
+        event::emit(LabelRegisteredEvent {
+            label: label_str,
             winner: entry.winner,
             amount: entry.second_highest_bid
         })
     }
 
     // TODO: do we need to validate domain here?
-    public entry fun unseal_bid(auction: &mut Auction, node: vector<u8>, value: u64, salt: vector<u8>, ctx: &mut TxContext) {
-        let auction_state = state(auction, node, ctx);
+    public entry fun unseal_bid(auction: &mut Auction, label: vector<u8>, value: u64, salt: vector<u8>, ctx: &mut TxContext) {
+        let auction_state = state(auction, label, ctx);
         assert!(auction_state == AUCTION_STATE_REVEAL, EInvalidPhase);
 
-        let seal_bid = make_seal_bid(node, tx_context::sender(ctx), value, salt); // hash from node, owner, value, salt
+        let seal_bid = make_seal_bid(label, tx_context::sender(ctx), value, salt); // hash from label, owner, value, salt
         let bids_by_sender = table::borrow_mut(&mut auction.bid_details_by_bidder, tx_context::sender(ctx));
         let index = seal_bid_exists(bids_by_sender, seal_bid);
-        assert!(option::is_some(&index), EInvalidBid);
+        assert!(option::is_some(&index), ESealBidNotExists);
 
         let bid_detail = vector::borrow_mut(bids_by_sender, option::extract(&mut index));
         assert!(!bid_detail.is_unsealed, EAlreadyUnsealed);
 
-        let node = utf8(node);
+        let label = utf8(label);
         event::emit(BidRevealedEvent {
-            node,
+            label,
             bidder: tx_context::sender(ctx),
             bid_value: value,
         });
 
-        let entry = table::borrow_mut(&mut auction.entries, *&node);
+        let entry = table::borrow_mut(&mut auction.entries, *&label);
         if (
             bid_detail.bid_value_mask < value
                 || value < MIN_PRICE
@@ -430,7 +405,7 @@ module suins::auction {
             // bid doesn't affect auction
         };
         bid_detail.bid_value = value;
-        bid_detail.node = node;
+        bid_detail.label = label;
         bid_detail.is_unsealed = true;
     }
 
@@ -438,19 +413,19 @@ module suins::auction {
     public entry fun start_auction(
         auction: &mut Auction,
         config: &Configuration,
-        node: vector<u8>,
+        label: vector<u8>,
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext
     ) {
         let emoji_config = configuration::get_emoji_config(config);
-        emoji::validate_label_with_emoji(emoji_config, node, 3, 6);
+        emoji::validate_label_with_emoji(emoji_config, label, 3, 6);
 
-        let state = state(auction, node, ctx);
+        let state = state(auction, label, ctx);
         assert!(state == AUCTION_STATE_OPEN || state == AUCTION_STATE_REOPENED, EInvalidPhase);
 
-        let node = utf8(node);
+        let label = utf8(label);
         if (state == AUCTION_STATE_REOPENED) {
-            let _ = table::remove(&mut auction.entries, node);
+            let _ = table::remove(&mut auction.entries, label);
         };
         // current_epoch was validated in `state`
         let start_at = tx_context::epoch(ctx) + 1;
@@ -461,25 +436,25 @@ module suins::auction {
             winner: @0x0,
             is_finalized: false,
         };
-        table::add(&mut auction.entries, node, entry);
+        table::add(&mut auction.entries, label, entry);
         coin_util::user_transfer_to_contract(payment, FEE_PER_YEAR, &mut auction.balance);
-        event::emit(AuctionStartedEvent { node, start_at })
+        event::emit(AuctionStartedEvent { label, start_at })
     }
 
     // TODO: testing only
     public entry fun start_auction_with_epoch(
         auction: &mut Auction,
-        node: vector<u8>,
+        label: vector<u8>,
         payment: &mut Coin<SUI>,
         epoch: u64,
         ctx: &mut TxContext
     ) {
-        let state = state_with_epoch(auction, node, epoch, ctx);
+        let state = state_with_epoch(auction, label, epoch, ctx);
         assert!(state == AUCTION_STATE_OPEN || state == AUCTION_STATE_REOPENED, EInvalidPhase);
 
-        let node = utf8(node);
+        let label = utf8(label);
         if (state == AUCTION_STATE_REOPENED) {
-            let _ = table::remove(&mut auction.entries, node);
+            let _ = table::remove(&mut auction.entries, label);
         };
         // current_epoch was validated in `state`
         let start_at = epoch + 1;
@@ -490,24 +465,33 @@ module suins::auction {
             winner: @0x0,
             is_finalized: false,
         };
-        table::add(&mut auction.entries, node, entry);
+        table::add(&mut auction.entries, label, entry);
         coin_util::user_transfer_to_contract(payment, FEE_PER_YEAR, &mut auction.balance);
-        event::emit(AuctionStartedEvent { node, start_at })
+        event::emit(AuctionStartedEvent { label, start_at })
     }
 
-    public fun make_seal_bid(node: vector<u8>, owner: address, value: u64, salt: vector<u8>): vector<u8> {
+    // TODO: For testing only
+    public entry fun set_entry(auction: &mut Auction, label: vector<u8>, new_epoch: u64) {
+        let label = utf8(label);
+        let entry = table::borrow_mut(&mut auction.entries, label);
+        entry.start_at = new_epoch;
+    }
+
+    // === Public Functions ===
+
+    public fun make_seal_bid(label: vector<u8>, owner: address, value: u64, salt: vector<u8>): vector<u8> {
         let owner = bcs::to_bytes(&owner);
-        vector::append(&mut node, owner);
+        vector::append(&mut label, owner);
         let value = bcs::to_bytes(&value);
-        vector::append(&mut node, value);
-        vector::append(&mut node, salt);
-        keccak256(&node)
+        vector::append(&mut label, value);
+        vector::append(&mut label, salt);
+        keccak256(&label)
     }
 
-    public fun get_entry(auction: &Auction, node: vector<u8>): (Option<u64>, Option<u64>, Option<u64>, Option<address>, Option<bool>) {
-        let node = utf8(node);
-        if (table::contains(&auction.entries, node)) {
-            let entry = table::borrow(&auction.entries, node);
+    public fun get_entry(auction: &Auction, label: vector<u8>): (Option<u64>, Option<u64>, Option<u64>, Option<address>, Option<bool>) {
+        let label = utf8(label);
+        if (table::contains(&auction.entries, label)) {
+            let entry = table::borrow(&auction.entries, label);
             return (
                 option::some(entry.start_at),
                 option::some(entry.highest_bid),
@@ -518,27 +502,52 @@ module suins::auction {
         };
         (option::none(), option::none(), option::none(), option::none(), option::none())
     }
-
-    public fun get_bid(auction: &Auction, seal_bid: vector<u8>, bidder: address): Option<u64> {
+    
+    public fun get_bids_by_bidder_and_label(auction: &Auction, label: vector<u8>, bidder: address): vector<BidDetail> {
+        let result = vector[];
         if (table::contains(&auction.bid_details_by_bidder, bidder)) {
-            let bids_by_bidder = table::borrow(&auction.bid_details_by_bidder, bidder);
-            let index = seal_bid_exists(bids_by_bidder, seal_bid);
-            if (option::is_some(&index)) {
-                let bid = vector::borrow(bids_by_bidder, option::extract(&mut index));
-                return option::some(bid.bid_value_mask)
-            }
+            let bids = table::borrow(&auction.bid_details_by_bidder, bidder);
+            let label = utf8(label);
+            let len = vector::length(bids);
+            let index = 0;
+
+            while(index < len) {
+                let detail = vector::borrow(bids, index);
+                if (detail.label == label) {
+                    vector::push_back(&mut result, *detail);
+                };
+                index = index + 1;
+            };
         };
-        option::none()
+        result
+    }
+
+    public fun get_unsealed_bids(auction: &Auction, bidder: address): vector<BidDetail> {
+        let result = vector[];
+        if (table::contains(&auction.bid_details_by_bidder, bidder)) {
+            let bids = table::borrow(&auction.bid_details_by_bidder, bidder);
+            let len = vector::length(bids);
+            let index = 0;
+
+            while(index < len) {
+                let detail = vector::borrow(bids, index);
+                if (detail.is_unsealed) {
+                    vector::push_back(&mut result, *detail);
+                };
+                index = index + 1;
+            };
+        };
+        result
     }
 
     // State transitions for names:
     // Open -> Bidding (startAuction) -> Reveal -> Owned
-    public fun state(auction: &Auction, node: vector<u8>, ctx: &mut TxContext): u8 {
+    public fun state(auction: &Auction, label: vector<u8>, ctx: &mut TxContext): u8 {
         let current_epoch = tx_context::epoch(ctx);
-        let node = utf8(node);
+        let label = utf8(label);
         if (current_epoch < auction.auction_start_at || current_epoch > auction.auction_end_at) return AUCTION_STATE_NOT_AVAILABLE;
-        if (table::contains(&auction.entries, node)) {
-            let entry = table::borrow(&auction.entries, node);
+        if (table::contains(&auction.entries, label)) {
+            let entry = table::borrow(&auction.entries, label);
             if (entry.is_finalized) return AUCTION_STATE_OWNED;
             if (current_epoch == entry.start_at - 1) return AUCTION_STATE_PENDING;
             if (current_epoch < entry.start_at + BIDDING_PERIOD) return AUCTION_STATE_BIDDING;
@@ -552,12 +561,12 @@ module suins::auction {
     }
 
     // TODO: testing only
-    public fun state_with_epoch(auction: &Auction, node: vector<u8>, epoch: u64, _ctx: &mut TxContext): u8 {
+    public fun state_with_epoch(auction: &Auction, label: vector<u8>, epoch: u64, _ctx: &mut TxContext): u8 {
         let current_epoch = epoch;
-        let node = utf8(node);
+        let label = utf8(label);
         if (current_epoch < auction.auction_start_at || current_epoch > auction.auction_end_at) return AUCTION_STATE_NOT_AVAILABLE;
-        if (table::contains(&auction.entries, node)) {
-            let entry = table::borrow(&auction.entries, node);
+        if (table::contains(&auction.entries, label)) {
+            let entry = table::borrow(&auction.entries, label);
             if (entry.is_finalized) return AUCTION_STATE_OWNED;
             if (current_epoch == entry.start_at - 1) return AUCTION_STATE_PENDING;
             if (current_epoch < entry.start_at + BIDDING_PERIOD) return AUCTION_STATE_BIDDING;
@@ -570,19 +579,57 @@ module suins::auction {
         AUCTION_STATE_OPEN
     }
 
-    // TODO: For testing only
-    public entry fun set_entry(auction: &mut Auction, node: vector<u8>, new_epoch: u64) {
-        let node = utf8(node);
-        let entry = table::borrow_mut(&mut auction.entries, node);
-        entry.start_at = new_epoch;
+    // === Private Functions ===
+
+    fun init(ctx: &mut TxContext) {
+        transfer::share_object(Auction {
+            id: object::new(ctx),
+            // bid_detail_by_seal_bid: table::new(ctx),
+            bid_details_by_bidder: table::new(ctx),
+            // unsealed_bids: table::new(ctx),
+            entries: table::new(ctx),
+            balance: balance::zero(),
+            auction_start_at: 0,
+            auction_end_at: 0,
+        });
     }
 
+    /// Return index of bid if exists
+    fun seal_bid_exists(bids: &vector<BidDetail>, seal_bid: vector<u8>): Option<u64> {
+        let len = vector::length(bids);
+        let index = 0;
+
+        while(index < len) {
+            let detail = vector::borrow(bids, index);
+            if (detail.seal_bid == seal_bid) {
+                return some(index)
+            };
+            index = index + 1;
+        };
+        none()
+    }
+
+    // === Testing ===
+
     #[test_only]
-    public fun get_bids_by_addr(auction: &Auction, bidder: address): vector<BidDetail> {
+    public fun get_bids_by_bidder(auction: &Auction, bidder: address): vector<BidDetail> {
         if (table::contains(&auction.bid_details_by_bidder, bidder)) {
             return *table::borrow(&auction.bid_details_by_bidder, bidder)
         };
         vector[]
+    }
+
+    #[test_only]
+    public fun get_seal_bid_by_bidder(auction: &Auction, seal_bid: vector<u8>, bidder: address): Option<u64> {
+        if (table::contains(&auction.bid_details_by_bidder, bidder)) {
+            let bids_by_bidder = table::borrow(&auction.bid_details_by_bidder, bidder);
+            let index = seal_bid_exists(bids_by_bidder, seal_bid);
+            if (option::is_some(&index)) {
+                let bid = vector::borrow(bids_by_bidder, option::extract(&mut index));
+                return option::some(bid.bid_value_mask)
+            }
+        };
+        option::none()
     }
 
     #[test_only]
