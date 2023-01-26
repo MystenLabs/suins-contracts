@@ -2,7 +2,7 @@ module suins::auction {
 
     use sui::object::UID;
     use sui::table::{Self, Table};
-    use sui::tx_context::{Self, TxContext};
+    use sui::tx_context::{Self, TxContext, epoch, sender};
     use sui::sui::SUI;
     use sui::balance::{Self, Balance};
     use sui::transfer;
@@ -25,6 +25,7 @@ module suins::auction {
     const FEE_PER_YEAR: u64 = 10000;
     const BIDDING_PERIOD: u64 = 1;
     const REVEAL_PERIOD: u64 = 1;
+    const FINALIZING_PERIOD: u64 = 30;
     const AUCTION_STATE_NOT_AVAILABLE: u8 = 0;
     const AUCTION_STATE_OPEN: u8 = 1;
     const AUCTION_STATE_PENDING: u8 = 2;
@@ -73,16 +74,12 @@ module suins::auction {
 
     struct Auction has key {
         id: UID,
-        // key: seal hash
-        // bid_detail_by_seal_bid: Table<vector<u8>, BidDetail>,
-        bid_details_by_bidder: Table<address, vector<BidDetail>>,
         /// list of bids that are unsealed
-        /// unsealed_bids: {
-        ///   suins.sui: {
-        ///     0xabc: [bid1, bid2],
-        ///   },
+        /// bid_details_by_bidder: {
+        ///   0xabc: [bid1, bid2],
+        ///   0x123: [bid3, bid4],
         /// }
-        // unsealed_bids: Table<String, Table<address, VecSet<BidDetail>>>,
+        bid_details_by_bidder: Table<address, vector<BidDetail>>,
         // key: label
         entries: Table<String, AuctionEntry>,
         balance: Balance<SUI>,
@@ -114,6 +111,8 @@ module suins::auction {
     }
 
     public entry fun config_auction(_: &AdminCap, auction: &mut Auction, start_at: u64, end_at: u64, ctx: &mut TxContext) {
+        // TODO: hard reset all entries and bids?
+        // TODO: if do so, what to do with balance in there?
         assert!(start_at < end_at, EInvalidConfigParam);
         assert!(tx_context::epoch(ctx) <= start_at, EInvalidConfigParam);
         auction.auction_start_at = start_at;
@@ -124,18 +123,39 @@ module suins::auction {
     // TODO: do we allow winner to withdraw?
     // TODO: noway to check winner right now
     public entry fun withdraw(auction: &mut Auction, ctx: &mut TxContext) {
-        assert!(tx_context::epoch(ctx) > auction.auction_end_at, EInvalidPhase);
+        assert!(epoch(ctx) > auction.auction_end_at, EInvalidPhase);
 
-        let sender = tx_context::sender(ctx);
-        let bid_details = table::remove(&mut auction.bid_details_by_bidder, sender);
-        let len = vector::length(&bid_details);
+        let bid_details = table::borrow_mut(&mut auction.bid_details_by_bidder, sender(ctx));
+        let len = vector::length(bid_details);
         let index = 0;
 
-        while(index < len) {
-            let detail = vector::borrow(&bid_details, index);
-            coin_util::contract_transfer_to_address(&mut auction.balance, detail.bid_value_mask, detail.bidder, ctx);
-            index = index + 1;
+        while (index < len) {
+            let detail = vector::borrow(bid_details, index);
+
+            if (table::contains(&auction.entries, detail.label)) {
+                let entry = table::borrow(&auction.entries, detail.label);
+
+                if (
+                    !entry.is_finalized
+                        && entry.winner == sender(ctx)
+                        && auction.auction_end_at + FINALIZING_PERIOD > epoch(ctx)
+                        && detail.bid_value == entry.highest_bid // bidder can bid multiple times on same domain
+                ) {
+                    index = index + 1;
+                    continue
+                };
+            };
+
+            coin_util::contract_transfer_to_address(
+                &mut auction.balance,
+                detail.bid_value_mask,
+                detail.bidder,
+                ctx
+            );
+            vector::remove(bid_details, index);
+            len = len - 1;
         };
+        // TODO: remove `sender(ctx)` key from `bid_details_by_bidder` if `bid_details` is empty
     }
 
     // testing only
