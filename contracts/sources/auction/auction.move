@@ -572,27 +572,8 @@ module suins::auction {
         };
         (option::none(), option::none(), option::none(), option::none(), option::none())
     }
-    
-    public fun get_bids_by_bidder_and_label(auction: &Auction, label: vector<u8>, bidder: address): vector<BidDetail> {
-        let result = vector[];
-        if (table::contains(&auction.bid_details_by_bidder, bidder)) {
-            let bids = table::borrow(&auction.bid_details_by_bidder, bidder);
-            let label = utf8(label);
-            let len = vector::length(bids);
-            let index = 0;
 
-            while(index < len) {
-                let detail = vector::borrow(bids, index);
-                if (detail.label == label) {
-                    vector::push_back(&mut result, *detail);
-                };
-                index = index + 1;
-            };
-        };
-        result
-    }
-
-    public fun get_unsealed_bids(auction: &Auction, bidder: address): vector<BidDetail> {
+    public fun get_unsealed_labels_by_bidder(auction: &Auction, bidder: address): vector<String> {
         let result = vector[];
         if (table::contains(&auction.bid_details_by_bidder, bidder)) {
             let bids = table::borrow(&auction.bid_details_by_bidder, bidder);
@@ -602,7 +583,43 @@ module suins::auction {
             while(index < len) {
                 let detail = vector::borrow(bids, index);
                 if (detail.is_unsealed) {
-                    vector::push_back(&mut result, *detail);
+                    vector::push_back(&mut result, detail.label);
+                };
+                index = index + 1;
+            };
+        };
+        result
+    }
+
+    public fun get_unsealed_created_at_by_bidder(auction: &Auction, bidder: address): vector<u64> {
+        let result = vector[];
+        if (table::contains(&auction.bid_details_by_bidder, bidder)) {
+            let bids = table::borrow(&auction.bid_details_by_bidder, bidder);
+            let len = vector::length(bids);
+            let index = 0;
+
+            while(index < len) {
+                let detail = vector::borrow(bids, index);
+                if (detail.is_unsealed) {
+                    vector::push_back(&mut result, detail.created_at);
+                };
+                index = index + 1;
+            };
+        };
+        result
+    }
+
+    public fun get_unsealed_value_by_bidder(auction: &Auction, bidder: address): vector<u64> {
+        let result = vector[];
+        if (table::contains(&auction.bid_details_by_bidder, bidder)) {
+            let bids = table::borrow(&auction.bid_details_by_bidder, bidder);
+            let len = vector::length(bids);
+            let index = 0;
+
+            while(index < len) {
+                let detail = vector::borrow(bids, index);
+                if (detail.is_unsealed) {
+                    vector::push_back(&mut result, detail.bid_value);
                 };
                 index = index + 1;
             };
