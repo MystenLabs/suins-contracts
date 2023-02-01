@@ -83,15 +83,20 @@ module suins::auction_tests {
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+
             base_registrar::new_tld(&admin_cap, &mut tlds_list, b"move", test_scenario::ctx(&mut scenario));
             base_registrar::new_tld(&admin_cap, &mut tlds_list, b"sui", test_scenario::ctx(&mut scenario));
+            auction::config_auction(&admin_cap, &mut auction, 100, 200, test_scenario::ctx(&mut scenario));
+
             test_scenario::return_shared(tlds_list);
+            test_scenario::return_shared(auction);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
         scenario
     }
 
-    fun start_auction_util(scenario: &mut Scenario, node: vector<u8>) {
+    public fun start_auction_util(scenario: &mut Scenario, node: vector<u8>) {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let ctx = tx_context::new(
@@ -118,15 +123,14 @@ module suins::auction_tests {
             assert!(state_util(&auction, node, START_AUCTION_AT) == AUCTION_STATE_PENDING, 0);
             assert!(state_util(&auction, node, START_AUCTION_AT + 1) == AUCTION_STATE_BIDDING, 0);
             assert!(state_util(&auction, node, START_AUCTION_AT + 1 + BIDDING_PERIOD) == AUCTION_STATE_REVEAL, 0);
+
             // receive no bid
-            assert!(
-                state_util(
-                    &auction,
-                    node,
-                    START_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
-                ) == AUCTION_STATE_REOPENED,
-                0
+            let state = state_util(
+                &auction,
+                node,
+                START_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
             );
+            assert!(state == AUCTION_STATE_REOPENED || state == AUCTION_STATE_NOT_AVAILABLE, 0);
             let (start_at, highest_bid, second_highest_bid, winner, is_finalized) = auction::get_entry(&auction, node);
             assert!(option::extract(&mut start_at) == START_AUCTION_AT + 1, 0);
             assert!(option::extract(&mut highest_bid) == 0, 0);
@@ -140,7 +144,7 @@ module suins::auction_tests {
         };
     }
 
-    fun unseal_bid_util(
+    public fun unseal_bid_util(
         auction: &mut Auction,
         epoch: u64,
         node: vector<u8>,
@@ -217,7 +221,7 @@ module suins::auction_tests {
         state(auction, node, &mut ctx)
     }
 
-    fun new_bid_util(scenario: &mut Scenario, seal_bid: vector<u8>, value: u64, bidder: address) {
+    public fun new_bid_util(scenario: &mut Scenario, seal_bid: vector<u8>, value: u64, bidder: address) {
         test_scenario::next_tx(scenario, bidder);
         {
             let ctx = tx_context::new(

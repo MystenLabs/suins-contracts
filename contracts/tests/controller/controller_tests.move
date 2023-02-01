@@ -11,10 +11,13 @@ module suins::controller_tests {
     use suins::emoji;
     use suins::configuration::{Self, Configuration};
     use std::string;
-    use std::option::{Self, Option};
+    use std::option::{Self, Option, some};
     use std::string::utf8;
     use sui::url;
     use sui::table;
+    use suins::auction::{Auction, make_seal_bid};
+    use suins::auction;
+    use suins::auction_tests::{start_auction_util, new_bid_util, unseal_bid_util};
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -30,10 +33,13 @@ module suins::controller_tests {
     const SECOND_INVALID_LABEL: vector<u8> = b"ea";
     const THIRD_INVALID_LABEL: vector<u8> = b"zkaoxpcbarubhtxkunajudxezneyczueajbggrynkwbepxjqjxrigrtgglhfjpax";
     const AUCTIONED_LABEL: vector<u8> = b"suins";
+    const AUCTIONED_NODE: vector<u8> = b"suins.sui";
     const FOURTH_INVALID_LABEL: vector<u8> = b"-eastagile";
     const FIFTH_INVALID_LABEL: vector<u8> = b"east/?agile";
     const REFERRAL_CODE: vector<u8> = b"X43kS8";
     const DISCOUNT_CODE: vector<u8> = b"DC12345";
+    const BIDDING_PERIOD: u64 = 1;
+    const REVEAL_PERIOD: u64 = 1;
 
     fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
@@ -43,6 +49,7 @@ module suins::controller_tests {
             base_registrar::test_init(ctx);
             controller::test_init(ctx);
             configuration::test_init(ctx);
+            auction::test_init(ctx);
         };
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
@@ -101,6 +108,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
             let registry = test_scenario::take_shared<Registry>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
+            let auction = test_scenario::take_shared<Auction>(scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
@@ -122,6 +130,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 1,
@@ -135,6 +144,7 @@ module suins::controller_tests {
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(registry);
         };
@@ -203,6 +213,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -222,6 +233,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -237,6 +249,7 @@ module suins::controller_tests {
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -284,6 +297,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
@@ -300,6 +314,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 SECOND_LABEL,
                 FIRST_USER_ADDRESS,
                 1,
@@ -313,6 +328,7 @@ module suins::controller_tests {
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(registry);
             test_scenario::return_shared(config);
+            test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario);
     }
@@ -328,6 +344,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
@@ -343,6 +360,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 SECOND_LABEL,
                 FIRST_USER_ADDRESS,
                 1,
@@ -356,6 +374,7 @@ module suins::controller_tests {
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(registry);
             test_scenario::return_shared(config);
+            test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario);
     }
@@ -371,6 +390,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -385,6 +405,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 SECOND_LABEL,
                 SECOND_USER_ADDRESS,
                 1,
@@ -397,6 +418,7 @@ module suins::controller_tests {
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(registry);
         };
         test_scenario::end(scenario);
@@ -413,6 +435,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             // simulate user call `register` in the same epoch as `make_commitment_and_commit`
             let ctx = tx_context::new(
                 @0x0,
@@ -427,6 +450,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 1,
@@ -440,6 +464,7 @@ module suins::controller_tests {
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(registry);
             test_scenario::return_shared(config);
+            test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario);
     }
@@ -455,6 +480,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
@@ -469,6 +495,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 1,
@@ -482,6 +509,7 @@ module suins::controller_tests {
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario);
     }
@@ -498,6 +526,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
@@ -513,6 +542,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 1,
@@ -526,6 +556,7 @@ module suins::controller_tests {
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(registry);
             test_scenario::return_shared(config);
+            test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario);
     }
@@ -541,6 +572,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -559,6 +591,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -574,6 +607,7 @@ module suins::controller_tests {
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -645,6 +679,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(10001, test_scenario::ctx(&mut scenario));
 
             controller::register_with_config(
@@ -652,6 +687,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 SECOND_INVALID_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -664,6 +700,7 @@ module suins::controller_tests {
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
         };
@@ -682,6 +719,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(1000001, test_scenario::ctx(&mut scenario));
 
             controller::register_with_config(
@@ -689,6 +727,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 THIRD_INVALID_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -702,6 +741,7 @@ module suins::controller_tests {
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(registry);
         };
 
@@ -719,6 +759,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(10001, test_scenario::ctx(&mut scenario));
 
             controller::register_with_config(
@@ -726,6 +767,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FOURTH_INVALID_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -738,6 +780,7 @@ module suins::controller_tests {
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
         };
@@ -756,6 +799,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(1000001, test_scenario::ctx(&mut scenario));
 
             controller::register_with_config(
@@ -763,6 +807,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIFTH_INVALID_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -776,6 +821,7 @@ module suins::controller_tests {
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(registry);
         };
 
@@ -810,6 +856,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(1000001, test_scenario::ctx(&mut scenario));
 
             controller::register(
@@ -817,6 +864,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 AUCTIONED_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -829,6 +877,7 @@ module suins::controller_tests {
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(registry);
         };
 
@@ -870,6 +919,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -883,6 +933,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_INVALID_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -897,6 +948,7 @@ module suins::controller_tests {
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario);
     }
@@ -1176,6 +1228,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
@@ -1192,6 +1245,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 SECOND_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -1206,6 +1260,7 @@ module suins::controller_tests {
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
         };
@@ -1223,6 +1278,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1242,6 +1298,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -1259,6 +1316,7 @@ module suins::controller_tests {
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -1309,6 +1367,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1328,6 +1387,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 3,
@@ -1344,6 +1404,7 @@ module suins::controller_tests {
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
 
         };
 
@@ -1432,6 +1493,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1451,6 +1513,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -1466,6 +1529,7 @@ module suins::controller_tests {
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
         };
@@ -1516,6 +1580,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 SECOND_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1529,6 +1594,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -1542,6 +1608,7 @@ module suins::controller_tests {
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
         };
@@ -1559,6 +1626,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1572,6 +1640,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -1586,6 +1655,7 @@ module suins::controller_tests {
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(registry);
         };
         test_scenario::end(scenario);
@@ -1602,6 +1672,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1621,6 +1692,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -1636,6 +1708,7 @@ module suins::controller_tests {
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
         };
@@ -1686,6 +1759,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 SECOND_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1699,6 +1773,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -1714,6 +1789,7 @@ module suins::controller_tests {
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(registry);
         };
         test_scenario::end(scenario);
@@ -1730,6 +1806,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1743,6 +1820,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -1758,6 +1836,7 @@ module suins::controller_tests {
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(registry);
         };
         test_scenario::end(scenario);
@@ -1774,6 +1853,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1787,6 +1867,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -1800,6 +1881,7 @@ module suins::controller_tests {
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
         };
@@ -1810,6 +1892,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1823,6 +1906,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -1838,6 +1922,7 @@ module suins::controller_tests {
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario);
     }
@@ -1852,6 +1937,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1867,6 +1953,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -1882,6 +1969,7 @@ module suins::controller_tests {
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -1901,6 +1989,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
@@ -1916,6 +2005,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 SECOND_LABEL,
                 FIRST_USER_ADDRESS,
                 1,
@@ -1930,6 +2020,7 @@ module suins::controller_tests {
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(registry);
         };
 
@@ -1960,6 +2051,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1973,6 +2065,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -1986,6 +2079,7 @@ module suins::controller_tests {
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
         };
@@ -2004,6 +2098,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
@@ -2024,6 +2119,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 label,
                 FIRST_USER_ADDRESS,
                 2,
@@ -2037,6 +2133,7 @@ module suins::controller_tests {
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(registry);
         };
 
@@ -2084,6 +2181,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
@@ -2104,6 +2202,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -2118,6 +2217,7 @@ module suins::controller_tests {
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
         };
@@ -2169,6 +2269,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2183,6 +2284,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -2195,6 +2297,7 @@ module suins::controller_tests {
 
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
@@ -2212,6 +2315,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2226,6 +2330,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -2241,6 +2346,7 @@ module suins::controller_tests {
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario);
     }
@@ -2259,6 +2365,7 @@ module suins::controller_tests {
                 test_scenario::take_shared<Registry>(&mut scenario);
             let config =
                 test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2278,6 +2385,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -2293,6 +2401,7 @@ module suins::controller_tests {
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(registry);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -2342,6 +2451,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2356,6 +2466,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -2371,6 +2482,7 @@ module suins::controller_tests {
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
+            test_scenario::return_shared(auction);
             test_scenario::return_shared(registry);
         };
         test_scenario::end(scenario);
@@ -2386,6 +2498,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2400,6 +2513,7 @@ module suins::controller_tests {
                 &mut registrar,
                 &mut registry,
                 &mut config,
+                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -2415,7 +2529,888 @@ module suins::controller_tests {
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario);
     }
+
+    fun set_auction_config(scenario: &mut Scenario) {
+        test_scenario::next_tx(scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
+            let auction = test_scenario::take_shared<Auction>(scenario);
+
+            auction::config_auction(&admin_cap, &mut auction, 50, 110, test_scenario::ctx(scenario));
+
+            test_scenario::return_shared(auction);
+            test_scenario::return_to_sender(scenario, admin_cap);
+        };
+    }
+
+    #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
+    fun test_register_abort_if_register_short_domain_while_auction_not_start_yet() {
+        let scenario = test_init();
+        set_auction_config(&mut scenario);
+
+        make_commitment(&mut scenario, option::none());
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                21,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+
+            controller::register(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &mut config,
+                &auction,
+                AUCTIONED_LABEL,
+                FIRST_USER_ADDRESS,
+                2,
+                FIRST_SECRET,
+                &mut coin,
+                &mut ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_register_work_if_register_long_domain_while_auction_not_start_yet() {
+        let scenario = test_init();
+        set_auction_config(&mut scenario);
+
+        make_commitment(&mut scenario, option::none());
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                21,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+
+            controller::register(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &mut config,
+                &auction,
+                FIRST_LABEL,
+                FIRST_USER_ADDRESS,
+                1,
+                FIRST_SECRET,
+                &mut coin,
+                &mut ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
+        };
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+
+            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(name == utf8(FIRST_NODE), 0);
+            assert!(
+                url == url::new_unsafe_from_bytes(b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2"),
+                0
+            ); // 2024
+            assert!(table::length(expiries) == 1, 0);
+            assert!(base_registry::get_records_len(&registry) == 1, 0);
+
+            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
+
+            assert!(owner == FIRST_USER_ADDRESS, 0);
+            assert!(resolver == @0x0, 0);
+            assert!(ttl == 0, 0);
+            assert!(base_registrar::get_registration_detail(detail) == 21 + 365, 0);
+
+            test_scenario::return_to_sender(&mut scenario, nft);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
+    fun test_register_abort_if_register_short_domain_while_auction_is_happening() {
+        let scenario = test_init();
+        set_auction_config(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                71,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+
+            controller::register(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &mut config,
+                &auction,
+                AUCTIONED_LABEL,
+                FIRST_USER_ADDRESS,
+                2,
+                FIRST_SECRET,
+                &mut coin,
+                &mut ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_register_work_if_register_lonng_domain_while_auction_is_happening() {
+        let scenario = test_init();
+        set_auction_config(&mut scenario);
+
+        make_commitment(&mut scenario, some(FIRST_LABEL));
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                51,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+
+            controller::register(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &mut config,
+                &auction,
+                FIRST_LABEL,
+                FIRST_USER_ADDRESS,
+                1,
+                FIRST_SECRET,
+                &mut coin,
+                &mut ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+
+            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(name == utf8(FIRST_NODE), 0);
+            assert!(
+                url == url::new_unsafe_from_bytes(b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2"),
+                0
+            ); // 2024
+            assert!(table::length(expiries) == 1, 0);
+            assert!(base_registry::get_records_len(&registry) == 1, 0);
+
+            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
+
+            assert!(owner == FIRST_USER_ADDRESS, 0);
+            assert!(resolver == @0x0, 0);
+            assert!(ttl == 0, 0);
+            assert!(base_registrar::get_registration_detail(detail) == 51 + 365, 0);
+
+            test_scenario::return_to_sender(&mut scenario, nft);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_register_work_for_long_domain_if_auction_is_over() {
+        let scenario = test_init();
+        set_auction_config(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                220,
+                0
+            );
+            let commitment = controller::test_make_commitment(
+                &registrar,
+                FIRST_LABEL,
+                FIRST_USER_ADDRESS,
+                FIRST_SECRET
+            );
+
+            controller::make_commitment_and_commit(
+                &mut controller,
+                commitment,
+                &mut ctx,
+            );
+
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                221,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+
+            controller::register(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &mut config,
+                &auction,
+                FIRST_LABEL,
+                FIRST_USER_ADDRESS,
+                1,
+                FIRST_SECRET,
+                &mut coin,
+                &mut ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+
+            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(name == utf8(FIRST_NODE), 0);
+            assert!(
+                url == url::new_unsafe_from_bytes(b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2"),
+                0
+            ); // 2024
+            assert!(table::length(expiries) == 1, 0);
+            assert!(base_registry::get_records_len(&registry) == 1, 0);
+
+            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
+
+            assert!(owner == FIRST_USER_ADDRESS, 0);
+            assert!(resolver == @0x0, 0);
+            assert!(ttl == 0, 0);
+            assert!(base_registrar::get_registration_detail(detail) == 221 + 365, 0);
+
+            test_scenario::return_to_sender(&mut scenario, nft);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_register_work_for_short_domain_if_auction_is_over() {
+        let scenario = test_init();
+        set_auction_config(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                220,
+                0
+            );
+            let commitment = controller::test_make_commitment(
+                &registrar,
+                AUCTIONED_LABEL,
+                FIRST_USER_ADDRESS,
+                FIRST_SECRET
+            );
+
+            controller::make_commitment_and_commit(
+                &mut controller,
+                commitment,
+                &mut ctx,
+            );
+
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                221,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+
+            controller::register(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &mut config,
+                &auction,
+                AUCTIONED_LABEL,
+                FIRST_USER_ADDRESS,
+                1,
+                FIRST_SECRET,
+                &mut coin,
+                &mut ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+
+            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(name == utf8(AUCTIONED_NODE), 0);
+            assert!(
+                url == url::new_unsafe_from_bytes(b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2"),
+                0
+            ); // 2024
+            assert!(table::length(expiries) == 1, 0);
+            assert!(base_registry::get_records_len(&registry) == 1, 0);
+
+            let detail = table::borrow(expiries, utf8(AUCTIONED_LABEL));
+            let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(AUCTIONED_NODE));
+
+            assert!(owner == FIRST_USER_ADDRESS, 0);
+            assert!(resolver == @0x0, 0);
+            assert!(ttl == 0, 0);
+            assert!(base_registrar::get_registration_detail(detail) == 221 + 365, 0);
+
+            test_scenario::return_to_sender(&mut scenario, nft);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_register_work_if_name_not_wait_for_being_finalized() {
+        let scenario = test_init();
+        set_auction_config(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                120,
+                0
+            );
+            let commitment = controller::test_make_commitment(
+                &registrar,
+                FIRST_LABEL,
+                FIRST_USER_ADDRESS,
+                FIRST_SECRET
+            );
+
+            controller::make_commitment_and_commit(
+                &mut controller,
+                commitment,
+                &mut ctx,
+            );
+
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                121,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+
+            controller::register(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &mut config,
+                &auction,
+                FIRST_LABEL,
+                FIRST_USER_ADDRESS,
+                1,
+                FIRST_SECRET,
+                &mut coin,
+                &mut ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+
+            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(name == utf8(FIRST_NODE), 0);
+            assert!(
+                url == url::new_unsafe_from_bytes(b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2"),
+                0
+            ); // 2024
+            assert!(table::length(expiries) == 1, 0);
+            assert!(base_registry::get_records_len(&registry) == 1, 0);
+
+            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
+
+            assert!(owner == FIRST_USER_ADDRESS, 0);
+            assert!(resolver == @0x0, 0);
+            assert!(ttl == 0, 0);
+            assert!(base_registrar::get_registration_detail(detail) == 121 + 365, 0);
+
+            test_scenario::return_to_sender(&mut scenario, nft);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = controller::ELabelUnAvailable)]
+    fun test_register_abort_if_name_are_waiting_for_being_finalized() {
+        let scenario = test_init();
+        set_auction_config(&mut scenario);
+        start_auction_util(&mut scenario, AUCTIONED_LABEL);
+        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000, b"CnRGhPvfCu");
+        new_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER_ADDRESS);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+
+            unseal_bid_util(
+                &mut auction,
+                110 + 1 + BIDDING_PERIOD,
+                AUCTIONED_LABEL,
+                1000,
+                b"CnRGhPvfCu",
+                FIRST_USER_ADDRESS,
+                2
+            );
+
+            test_scenario::return_shared(auction);
+        };
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                120,
+                0
+            );
+            let commitment = controller::test_make_commitment(
+                &registrar,
+                FIRST_LABEL,
+                FIRST_USER_ADDRESS,
+                FIRST_SECRET
+            );
+
+            controller::make_commitment_and_commit(
+                &mut controller,
+                commitment,
+                &mut ctx,
+            );
+
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                121,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+
+            controller::register(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &mut config,
+                &auction,
+                AUCTIONED_LABEL,
+                FIRST_USER_ADDRESS,
+                1,
+                FIRST_SECRET,
+                &mut coin,
+                &mut ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::end(scenario);
+    }
+     #[test, expected_failure(abort_code = controller::ERegistrationIsDisabled)]
+        fun test_register_abort_if_registration_is_disabled() {
+         let scenario = test_init();
+         set_auction_config(&mut scenario);
+
+         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+         {
+             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+
+             controller::set_disable(&admin_cap, &mut controller, true);
+
+             test_scenario::return_to_sender(&mut scenario, admin_cap);
+             test_scenario::return_shared(controller);
+         };
+         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+         {
+             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+             let ctx = tx_context::new(
+                 @0x0,
+                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                 220,
+                 0
+             );
+             let commitment = controller::test_make_commitment(
+                 &registrar,
+                 AUCTIONED_LABEL,
+                 FIRST_USER_ADDRESS,
+                 FIRST_SECRET
+             );
+
+             controller::make_commitment_and_commit(
+                 &mut controller,
+                 commitment,
+                 &mut ctx,
+             );
+
+             test_scenario::return_shared(controller);
+             test_scenario::return_shared(registrar);
+         };
+         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+         {
+             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+             let registry = test_scenario::take_shared<Registry>(&mut scenario);
+             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+             let auction = test_scenario::take_shared<Auction>(&mut scenario);
+             let ctx = tx_context::new(
+                 @0x0,
+                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                 221,
+                 0
+             );
+             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+
+             controller::register(
+                 &mut controller,
+                 &mut registrar,
+                 &mut registry,
+                 &mut config,
+                 &auction,
+                 AUCTIONED_LABEL,
+                 FIRST_USER_ADDRESS,
+                 1,
+                 FIRST_SECRET,
+                 &mut coin,
+                 &mut ctx,
+             );
+
+             coin::destroy_for_testing(coin);
+             test_scenario::return_shared(controller);
+             test_scenario::return_shared(registrar);
+             test_scenario::return_shared(config);
+             test_scenario::return_shared(registry);
+             test_scenario::return_shared(auction);
+         };
+         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+         {
+             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+             let (name, url) = base_registrar::get_nft_fields(&nft);
+             let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+             let registry = test_scenario::take_shared<Registry>(&mut scenario);
+
+             assert!(controller::balance(&controller) == 1000000, 0);
+             assert!(name == utf8(AUCTIONED_NODE), 0);
+             assert!(
+                 url == url::new_unsafe_from_bytes(b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2"),
+                 0
+             ); // 2024
+             assert!(table::length(expiries) == 1, 0);
+             assert!(base_registry::get_records_len(&registry) == 1, 0);
+
+             let detail = table::borrow(expiries, utf8(AUCTIONED_LABEL));
+             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(AUCTIONED_NODE));
+
+             assert!(owner == FIRST_USER_ADDRESS, 0);
+             assert!(resolver == @0x0, 0);
+             assert!(ttl == 0, 0);
+             assert!(base_registrar::get_registration_detail(detail) == 221 + 365, 0);
+
+             test_scenario::return_to_sender(&mut scenario, nft);
+             test_scenario::return_shared(controller);
+             test_scenario::return_shared(registrar);
+             test_scenario::return_shared(registry);
+         };
+         test_scenario::end(scenario);
+     }
+
+    #[test]
+    fun test_register_abort_if_registration_is_enabled_again() {
+        let scenario = test_init();
+        set_auction_config(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+
+            controller::set_disable(&admin_cap, &mut controller, true);
+
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
+            test_scenario::return_shared(controller);
+        };
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+
+            controller::set_disable(&admin_cap, &mut controller, false);
+
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
+            test_scenario::return_shared(controller);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                220,
+                0
+            );
+            let commitment = controller::test_make_commitment(
+                &registrar,
+                AUCTIONED_LABEL,
+                FIRST_USER_ADDRESS,
+                FIRST_SECRET
+            );
+
+            controller::make_commitment_and_commit(
+                &mut controller,
+                commitment,
+                &mut ctx,
+            );
+
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                221,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+
+            controller::register(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &mut config,
+                &auction,
+                AUCTIONED_LABEL,
+                FIRST_USER_ADDRESS,
+                1,
+                FIRST_SECRET,
+                &mut coin,
+                &mut ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+
+            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(name == utf8(AUCTIONED_NODE), 0);
+            assert!(
+                url == url::new_unsafe_from_bytes(b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2"),
+                0
+            ); // 2024
+            assert!(table::length(expiries) == 1, 0);
+            assert!(base_registry::get_records_len(&registry) == 1, 0);
+
+            let detail = table::borrow(expiries, utf8(AUCTIONED_LABEL));
+            let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(AUCTIONED_NODE));
+
+            assert!(owner == FIRST_USER_ADDRESS, 0);
+            assert!(resolver == @0x0, 0);
+            assert!(ttl == 0, 0);
+            assert!(base_registrar::get_registration_detail(detail) == 221 + 365, 0);
+
+            test_scenario::return_to_sender(&mut scenario, nft);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
 }

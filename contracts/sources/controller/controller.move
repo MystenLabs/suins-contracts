@@ -17,13 +17,16 @@ module suins::controller {
     use suins::base_registry::{Registry, AdminCap};
     use suins::base_registrar::{Self, BaseRegistrar};
     use suins::configuration::{Self, Configuration};
-    use std::string::{Self, String};
+    use std::string::{Self, String, utf8};
     use std::bcs;
     use std::vector;
     use std::option::{Self, Option};
     use std::ascii;
     use suins::emoji::validate_label_with_emoji;
     use suins::coin_util;
+    // use suins::auction;
+    use suins::auction::Auction;
+    use suins::auction;
 
     // TODO: remove later when timestamp is introduced
     // const MIN_COMMITMENT_AGE: u64 = 0;
@@ -40,6 +43,7 @@ module suins::controller {
     const ELabelUnAvailable: u64 = 308;
     const ENoProfits: u64 = 310;
     const EInvalidCode: u64 = 311;
+    const ERegistrationIsDisabled: u64 = 312;
 
     struct NameRegisteredEvent has copy, drop {
         node: String,
@@ -69,6 +73,8 @@ module suins::controller {
         commitments: VecMap<vector<u8>, u64>,
         balance: Balance<SUI>,
         default_addr_resolver: address,
+        /// To turn off registration
+        disable: bool,
     }
 
     fun init(ctx: &mut TxContext) {
@@ -78,6 +84,7 @@ module suins::controller {
             balance: balance::zero(),
             // cannot get the ID of name_resolver in `init`, admin need to update this by calling `set_default_resolver`
             default_addr_resolver: @0x0,
+            disable: false,
         });
     }
 
@@ -131,6 +138,7 @@ module suins::controller {
         registrar: &mut BaseRegistrar,
         registry: &mut Registry,
         config: &mut Configuration,
+        auction: &Auction,
         label: vector<u8>,
         owner: address,
         no_years: u64,
@@ -141,9 +149,20 @@ module suins::controller {
         let resolver = controller.default_addr_resolver;
         // TODO: duration in year only, currently in number of days
         register_internal(
-            controller, registrar, registry, config, label, owner,
-            no_years, secret, resolver, payment,
-            option::none(), option::none(), ctx,
+            controller,
+            registrar,
+            registry,
+            config,
+            auction,
+            label,
+            owner,
+            no_years,
+            secret,
+            resolver,
+            payment,
+            option::none(),
+            option::none(),
+            ctx,
         );
     }
 
@@ -153,6 +172,7 @@ module suins::controller {
         registrar: &mut BaseRegistrar,
         registry: &mut Registry,
         config: &mut Configuration,
+        auction: &Auction,
         label: vector<u8>,
         owner: address,
         no_years: u64,
@@ -170,11 +190,23 @@ module suins::controller {
         let discount = option::none();
         if (referral_len > 0) referral = option::some(ascii::string(referral_code));
         if (discount_len > 0) discount = option::some(ascii::string(discount_code));
+
         let resolver = controller.default_addr_resolver;
         register_internal(
-            controller, registrar, registry, config, label,
-            owner, no_years, secret, resolver,
-            payment, referral, discount, ctx,
+            controller,
+            registrar,
+            registry,
+            config,
+            auction,
+            label,
+            owner,
+            no_years,
+            secret,
+            resolver,
+            payment,
+            referral,
+            discount,
+            ctx,
         );
     }
 
@@ -188,6 +220,7 @@ module suins::controller {
         registrar: &mut BaseRegistrar,
         registry: &mut Registry,
         config: &mut Configuration,
+        auction: &Auction,
         label: vector<u8>,
         owner: address,
         no_years: u64,
@@ -197,9 +230,20 @@ module suins::controller {
         ctx: &mut TxContext,
     ) {
         register_internal(
-            controller, registrar, registry, config, label,
-            owner, no_years, secret, resolver,
-            payment, option::none(), option::none(), ctx
+            controller,
+            registrar,
+            registry,
+            config,
+            auction,
+            label,
+            owner,
+            no_years,
+            secret,
+            resolver,
+            payment,
+            option::none(),
+            option::none(),
+            ctx
         );
     }
 
@@ -210,6 +254,7 @@ module suins::controller {
         registrar: &mut BaseRegistrar,
         registry: &mut Registry,
         config: &mut Configuration,
+        auction: &Auction,
         label: vector<u8>,
         owner: address,
         no_years: u64,
@@ -230,9 +275,20 @@ module suins::controller {
         if (discount_len > 0) discount = option::some(ascii::string(discount_code));
 
         register_internal(
-            controller, registrar, registry, config,
-            label, owner, no_years, secret, resolver,
-            payment, referral, discount, ctx,
+            controller,
+            registrar,
+            registry,
+            config,
+            auction,
+            label,
+            owner,
+            no_years,
+            secret,
+            resolver,
+            payment,
+            referral,
+            discount,
+            ctx,
         );
     }
 
@@ -268,6 +324,7 @@ module suins::controller {
         registrar: &mut BaseRegistrar,
         registry: &mut Registry,
         config: &mut Configuration,
+        auction: &Auction,
         label: vector<u8>,
         owner: address,
         no_years: u64,
@@ -278,9 +335,16 @@ module suins::controller {
         discount_code: Option<ascii::String>,
         ctx: &mut TxContext,
     ) {
+        assert!(!controller.disable, ERegistrationIsDisabled);
         let emoji_config = configuration::get_emoji_config(config);
-        validate_label_with_emoji(emoji_config, label, 7, 63);
-
+        let label_str = utf8(label);
+        // TODO: cannot register (3->6)-character domains before auction ends
+        if (tx_context::epoch(ctx) <= auction::auction_end_at(auction)) {
+            validate_label_with_emoji(emoji_config, label, 7, 63)
+        } else {
+            assert!(auction::is_label_available_for_controller(auction, label_str, ctx), ELabelUnAvailable);
+            validate_label_with_emoji(emoji_config, label, 3, 63)
+        };
         let registration_fee = FEE_PER_YEAR * no_years;
         assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
 
@@ -302,7 +366,7 @@ module suins::controller {
 
         event::emit(NameRegisteredEvent {
             node: base_registrar::get_base_node(registrar),
-            label: string::utf8(label),
+            label: label_str,
             owner,
             cost: FEE_PER_YEAR * no_years,
             expiry: tx_context::epoch(ctx) + duration,
@@ -389,6 +453,10 @@ module suins::controller {
         apply_referral_code(config, payment, original_fee, &ascii::string(referral_code), ctx)
     }
 
+    public entry fun set_disable(_: &AdminCap, controller: &mut BaseController, new_value: bool) {
+        controller.disable = new_value;
+    }
+
     #[test_only]
     /// Wrapper of module initializer for testing
     public fun test_init(ctx: &mut TxContext) {
@@ -398,6 +466,7 @@ module suins::controller {
             balance: balance::zero(),
             // cannot get the ID of name_resolver in `init`, admin need to update this by calling `set_default_resolver`
             default_addr_resolver: @0x0,
+            disable: false,
         });
     }
 }
