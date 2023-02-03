@@ -139,34 +139,33 @@ module suins::auction {
     }
 
     /// #### Notice
-    /// Used by bidders to reveal true parameters of their sealed bids.
-    /// No payment is returned in this function.
+    /// Used to initiate the auction for a node.
+    /// This function only starts the auction for a .sui node, caller still needs to call `place_bid` to bid.
     /// New auction entry has the state of `PENDING`. It moves to 'BIDDING' state in the next epoch.
+    /// Caller transfers a payment of coin with the value of `FEE_PER_YEAR`.
     ///
     /// #### Dev
-    /// The entry represeting the `label` is updated new value if `value` is either the highest value
-    /// or second highest value
-    /// The label and bid_value properties of bid detail is updated
+    /// New Entry record is created
     ///
     /// #### Params
     /// label label of the node being auctioned, the node has the form `label`.sui
-    /// value auctual value that bidder wants to spend
-    /// salt random string used when hashing the sealed bid
     ///
     /// Panics
-    /// Panics if auction is not in `REVEAL` state
-    /// or sender has never ever placed a bid
-    /// or the parameters don't match any sealed bid
-    /// or the sealed bid has already been unsealed
-    /// or `label` hasn't been started
-    public entry fun start_auction(
+    /// Panics if current epoch is outside of auction time period
+    /// or the node is already opened
+    /// or the node isn't ready to be auctioned
+    /// or the label length is not in the range of 3-6 characters
+    public entry fun start_an_auction(
         auction: &mut Auction,
         config: &Configuration,
         label: vector<u8>,
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext
     ) {
-        // TODO: add a check for current epoch, should be end_at - BIDDING_PERIOD - REVEAL_PERIOD
+        assert!(
+            auction.open_at <= epoch(ctx) && epoch(ctx) <= auction.end_at - BIDDING_PERIOD - REVEAL_PERIOD,
+            EAuctionNotAvailable,
+        );
         let _emoji_config = configuration::get_emoji_config(config);
         // emoji::validate_label_with_emoji(emoji_config, label, 3, 6);
 
@@ -177,7 +176,6 @@ module suins::auction {
         if (state == AUCTION_STATE_REOPENED) {
             let _ = table::remove(&mut auction.entries, label);
         };
-        // current_epoch was validated in `state`
         let start_at = epoch(ctx) + 1;
         let entry = AuctionEntry {
             start_at,
@@ -187,6 +185,7 @@ module suins::auction {
             is_finalized: false,
         };
         table::add(&mut auction.entries, label, entry);
+
         coin_util::user_transfer_to_contract(payment, FEE_PER_YEAR, &mut auction.balance);
         event::emit(AuctionStartedEvent { label, start_at })
     }
@@ -527,12 +526,13 @@ module suins::auction {
 
     public(friend) fun auction_end_at(auction: &Auction): u64 {
         // FIXME
-        auction.end_at + BIDDING_PERIOD + REVEAL_PERIOD
+        auction.end_at
     }
 
-    public(friend) fun is_label_available_for_controller(auction: &Auction, label: String, ctx: &TxContext): bool {
-        if (auction.end_at + BIDDING_PERIOD + REVEAL_PERIOD > epoch(ctx)) return false;
-        if (auction.end_at + BIDDING_PERIOD + REVEAL_PERIOD + EXTRA_PERIOD <= epoch(ctx)) return true;
+    // label is presumed to have 3-6 characters
+    public(friend) fun is_auction_label_available_for_controller(auction: &Auction, label: String, ctx: &TxContext): bool {
+        if (auction.end_at >= epoch(ctx)) return false;
+        if (auction.end_at + EXTRA_PERIOD < epoch(ctx)) return true;
         if (table::contains(&auction.entries, label)) {
             let entry = table::borrow(&auction.entries, label);
             if (!entry.is_finalized) return false

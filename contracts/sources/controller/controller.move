@@ -342,7 +342,7 @@ module suins::controller {
         if (tx_context::epoch(ctx) <= auction::auction_end_at(auction)) {
             validate_label_with_emoji(emoji_config, label, 7, 63)
         } else {
-            assert!(auction::is_label_available_for_controller(auction, label_str, ctx), ELabelUnAvailable);
+            assert!(auction::is_auction_label_available_for_controller(auction, label_str, ctx), ELabelUnAvailable);
             validate_label_with_emoji(emoji_config, label, 3, 63)
         };
         let registration_fee = FEE_PER_YEAR * no_years;

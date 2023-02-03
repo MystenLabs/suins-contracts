@@ -69,6 +69,8 @@ module suins::auction_tests {
     const AUCTION_STATE_FINALIZING: u8 = 5;
     const AUCTION_STATE_OWNED: u8 = 6;
     const AUCTION_STATE_REOPENED: u8 = 7;
+    const AUCTION_START_AT: u64 = 100;
+    const AUCTION_END_AT: u64 = 200;
 
     fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
@@ -87,7 +89,7 @@ module suins::auction_tests {
 
             base_registrar::new_tld(&admin_cap, &mut tlds_list, b"move", test_scenario::ctx(&mut scenario));
             base_registrar::new_tld(&admin_cap, &mut tlds_list, b"sui", test_scenario::ctx(&mut scenario));
-            auction::config_auction(&admin_cap, &mut auction, 100, 200, test_scenario::ctx(&mut scenario));
+            auction::config_auction(&admin_cap, &mut auction, AUCTION_START_AT, AUCTION_END_AT, test_scenario::ctx(&mut scenario));
 
             test_scenario::return_shared(tlds_list);
             test_scenario::return_shared(auction);
@@ -118,7 +120,7 @@ module suins::auction_tests {
             assert!(state_util(&auction, node, START_AUCTION_AT) == AUCTION_STATE_OPEN, 0);
 
             let coin = coin::mint_for_testing<SUI>(30000, ctx);
-            auction::start_auction(&mut auction, &config, node, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &config, node, &mut coin, ctx);
             assert!(coin::value(&coin) == 20000, 0);
             assert!(state_util(&auction, node, START_AUCTION_AT) == AUCTION_STATE_PENDING, 0);
             assert!(state_util(&auction, node, START_AUCTION_AT + 1) == AUCTION_STATE_BIDDING, 0);
@@ -430,7 +432,7 @@ module suins::auction_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::EInvalidPhase)]
+    #[test, expected_failure(abort_code = auction::EAuctionNotAvailable)]
     fun test_start_auction_aborts_if_too_early() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -439,7 +441,7 @@ module suins::auction_tests {
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                90,
+                AUCTION_START_AT - 1,
                 0
             );
             let ctx = &mut ctx;
@@ -447,7 +449,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(30000, ctx);
 
-            auction::start_auction(&mut auction, &config, NODE, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &config, NODE, &mut coin, ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -456,7 +458,7 @@ module suins::auction_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::EInvalidPhase)]
+    #[test, expected_failure(abort_code = auction::EAuctionNotAvailable)]
     fun test_start_auction_aborts_if_too_late() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -465,7 +467,7 @@ module suins::auction_tests {
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                300,
+                AUCTION_END_AT,
                 0
             );
             let ctx = &mut ctx;
@@ -473,7 +475,33 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(30000, ctx);
 
-            auction::start_auction(&mut auction, &config, NODE, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &config, NODE, &mut coin, ctx);
+
+            test_scenario::return_shared(auction);
+            test_scenario::return_shared(config);
+            coin::destroy_for_testing(coin);
+        };
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = auction::EAuctionNotAvailable)]
+    fun test_start_auction_aborts_if_too_late_2() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let ctx = tx_context::new(
+                FIRST_USER_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                AUCTION_END_AT - BIDDING_PERIOD - REVEAL_PERIOD + 1,
+                0
+            );
+            let ctx = &mut ctx;
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            let config = test_scenario::take_shared<Configuration>(scenario);
+            let coin = coin::mint_for_testing<SUI>(30000, ctx);
+
+            auction::start_an_auction(&mut auction, &config, NODE, &mut coin, ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -499,7 +527,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(30000, ctx);
 
-            auction::start_auction(&mut auction, &config, b"su", &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &config, b"su", &mut coin, ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -525,7 +553,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(30000, ctx);
 
-            auction::start_auction(&mut auction, &config, b"suinssu", &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &config, b"suinssu", &mut coin, ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -551,10 +579,10 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let test_coin = coin::mint_for_testing<SUI>(30000, ctx);
 
-            auction::start_auction(&mut auction, &config, NODE, &mut test_coin, ctx);
+            auction::start_an_auction(&mut auction, &config, NODE, &mut test_coin, ctx);
             assert!(coin::value(&test_coin) == 20000, 0);
 
-            auction::start_auction(&mut auction, &config, NODE, &mut test_coin, ctx);
+            auction::start_an_auction(&mut auction, &config, NODE, &mut test_coin, ctx);
 
             coin::destroy_for_testing(test_coin);
             test_scenario::return_shared(auction);
@@ -579,7 +607,7 @@ module suins::auction_tests {
             let coin = coin::mint_for_testing<SUI>(30000, &mut ctx);
             let config = test_scenario::take_shared<Configuration>(scenario);
 
-            auction::start_auction(&mut auction, &config, NODE, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &config, NODE, &mut coin, &mut ctx);
 
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
@@ -587,7 +615,7 @@ module suins::auction_tests {
                 111,
                 0
             );
-            auction::start_auction(&mut auction, &config, NODE, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &config, NODE, &mut coin, &mut ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -612,7 +640,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(30000, &mut ctx);
 
-            auction::start_auction(&mut auction, &config, NODE, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &config, NODE, &mut coin, &mut ctx);
 
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
@@ -620,7 +648,7 @@ module suins::auction_tests {
                 111 + BIDDING_PERIOD,
                 0
             );
-            auction::start_auction(&mut auction, &config, NODE, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &config, NODE, &mut coin, &mut ctx);
 
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(auction);
@@ -645,7 +673,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(30000, &mut ctx);
 
-            auction::start_auction(&mut auction, &config, NODE, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &config, NODE, &mut coin, &mut ctx);
             assert!(coin::value(&coin) == 20000, 0);
 
             let ctx = tx_context::new(
@@ -654,7 +682,7 @@ module suins::auction_tests {
                 111 + BIDDING_PERIOD + REVEAL_PERIOD,
                 0
             );
-            auction::start_auction(&mut auction, &config, NODE, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &config, NODE, &mut coin, &mut ctx);
             assert!(coin::value(&coin) == 10000, 0);
 
             coin::destroy_for_testing(coin);
@@ -700,7 +728,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(30000, &mut ctx);
 
-            auction::start_auction(&mut auction, &config, NODE, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &config, NODE, &mut coin, &mut ctx);
 
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(auction);
@@ -758,7 +786,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(30000, &mut ctx);
 
-            auction::start_auction(&mut auction, &config, NODE, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &config, NODE, &mut coin, &mut ctx);
 
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(auction);
@@ -1813,7 +1841,7 @@ module suins::auction_tests {
             );
             let coin = coin::mint_for_testing<SUI>(30000, &mut ctx);
 
-            auction::start_auction(&mut auction, &config, NODE, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &config, NODE, &mut coin, &mut ctx);
 
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(auction);
@@ -1888,7 +1916,7 @@ module suins::auction_tests {
             );
             let coin = coin::mint_for_testing<SUI>(30000, &mut ctx);
 
-            auction::start_auction(&mut auction, &config, NODE, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &config, NODE, &mut coin, &mut ctx);
 
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(auction);

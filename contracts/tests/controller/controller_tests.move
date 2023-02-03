@@ -40,6 +40,8 @@ module suins::controller_tests {
     const DISCOUNT_CODE: vector<u8> = b"DC12345";
     const BIDDING_PERIOD: u64 = 1;
     const REVEAL_PERIOD: u64 = 1;
+    const AUCTION_START_AT: u64 = 50;
+    const AUCTION_END_AT: u64 = 120;
 
     fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
@@ -2540,7 +2542,7 @@ module suins::controller_tests {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let auction = test_scenario::take_shared<Auction>(scenario);
 
-            auction::config_auction(&admin_cap, &mut auction, 50, 110, test_scenario::ctx(scenario));
+            auction::config_auction(&admin_cap, &mut auction, AUCTION_START_AT, AUCTION_END_AT, test_scenario::ctx(scenario));
 
             test_scenario::return_shared(auction);
             test_scenario::return_to_sender(scenario, admin_cap);
