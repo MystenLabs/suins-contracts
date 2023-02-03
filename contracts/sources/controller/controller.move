@@ -339,7 +339,7 @@ module suins::controller {
         let emoji_config = configuration::get_emoji_config(config);
         let label_str = utf8(label);
         // TODO: cannot register (3->6)-character domains before auction ends
-        if (tx_context::epoch(ctx) <= auction::auction_end_at(auction)) {
+        if (tx_context::epoch(ctx) <= auction::auction_close_at(auction)) {
             validate_label_with_emoji(emoji_config, label, 7, 63)
         } else {
             assert!(auction::is_auction_label_available_for_controller(auction, label_str, ctx), ELabelUnAvailable);

@@ -22,8 +22,8 @@ module suins::auction {
 
     const MIN_PRICE: u64 = 1000;
     const FEE_PER_YEAR: u64 = 10000;
-    const BIDDING_PERIOD: u64 = 1;
-    const REVEAL_PERIOD: u64 = 1;
+    const BIDDING_PERIOD: u64 = 3;
+    const REVEAL_PERIOD: u64 = 3;
     /// time period from end_at, so winner have time to claim their winning
     const EXTRA_PERIOD: u64 = 30;
     const AUCTION_STATE_NOT_AVAILABLE: u8 = 0;
@@ -87,7 +87,7 @@ module suins::auction {
         entries: Table<String, AuctionEntry>,
         balance: Balance<SUI>,
         open_at: u64,
-        end_at: u64,
+        close_at: u64,
     }
 
     struct NodeRegisteredEvent has copy, drop {
@@ -120,7 +120,7 @@ module suins::auction {
     /// This function is meant to be used in development phase.
     ///
     /// #### Dev
-    /// The open_at and end_at properties of Auction share object is updated.
+    /// The open_at and close_at properties of Auction share object is updated.
     ///
     /// #### Params
     /// open_at epoch at which all names are available for auction.
@@ -131,11 +131,11 @@ module suins::auction {
     /// Panics
     /// Panics if open_at is less than end_at
     /// or current epoch is less than or equal open_at
-    public entry fun config_auction(_: &AdminCap, auction: &mut Auction, open_at: u64, end_at: u64, ctx: &mut TxContext) {
-        assert!(open_at < end_at, EInvalidConfigParam);
+    public entry fun config_auction(_: &AdminCap, auction: &mut Auction, open_at: u64, close_at: u64, ctx: &mut TxContext) {
+        assert!(open_at < close_at, EInvalidConfigParam);
         assert!(epoch(ctx) <= open_at, EInvalidConfigParam);
         auction.open_at = open_at;
-        auction.end_at = end_at;
+        auction.close_at = close_at;
     }
 
     /// #### Notice
@@ -162,12 +162,13 @@ module suins::auction {
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext
     ) {
+        // TODO: should we enforce the current epoch <= auction.close_at - BIDDING_PERIOD - REVEAL_PERIOD?
         assert!(
-            auction.open_at <= epoch(ctx) && epoch(ctx) <= auction.end_at - BIDDING_PERIOD - REVEAL_PERIOD,
+            auction.open_at <= epoch(ctx) && epoch(ctx) <= auction.close_at,
             EAuctionNotAvailable,
         );
-        let _emoji_config = configuration::get_emoji_config(config);
-        // emoji::validate_label_with_emoji(emoji_config, label, 3, 6);
+        let emoji_config = configuration::get_emoji_config(config);
+        emoji::validate_label_with_emoji(emoji_config, label, 3, 6);
 
         let state = state(auction, label, ctx);
         assert!(state == AUCTION_STATE_OPEN || state == AUCTION_STATE_REOPENED, EInvalidPhase);
@@ -207,10 +208,9 @@ module suins::auction {
     /// or the sealed bid exists
     /// or payment doesn't have enough coin
     public entry fun place_bid(auction: &mut Auction, sealed_bid: vector<u8>, bid_value_mask: u64, payment: &mut Coin<SUI>, ctx: &mut TxContext) {
-        let current_epoch = epoch(ctx);
-        // TODO: should not have + 1, remove and add tests later
+        // TODO: should we enforce the current epoch <= auction.close_at - REVEAL_PERIOD?
         assert!(
-            auction.open_at <= current_epoch && current_epoch <= auction.end_at + 1,
+            auction.open_at <= epoch(ctx) && epoch(ctx) <= auction.close_at,
             EAuctionNotAvailable,
         );
         assert!(bid_value_mask >= MIN_PRICE, EInvalidBid);
@@ -228,7 +228,7 @@ module suins::auction {
             bid_value_mask,
             bid_value: 0,
             label: utf8(vector[]),
-            created_at: current_epoch,
+            created_at: epoch(ctx),
             sealed_bid,
             is_unsealed: false,
         };
@@ -259,6 +259,10 @@ module suins::auction {
     /// or the sealed bid has already been unsealed
     /// or `label` hasn't been started
     public entry fun reveal_bid(auction: &mut Auction, label: vector<u8>, value: u64, salt: vector<u8>, ctx: &mut TxContext) {
+        assert!(
+            auction.open_at <= epoch(ctx) && epoch(ctx) <= auction.close_at,
+            EAuctionNotAvailable,
+        );
         // TODO: do we need to validate domain here?
         let auction_state = state(auction, label, ctx);
         assert!(auction_state == AUCTION_STATE_REVEAL, EInvalidPhase);
@@ -333,8 +337,10 @@ module suins::auction {
         resolver: address,
         ctx: &mut TxContext
     ) {
-        // TODO: check current time
-        // TODO: only allow .sui TLD
+        assert!(
+            auction.open_at <= epoch(ctx) && epoch(ctx) <= auction.close_at + EXTRA_PERIOD,
+            EAuctionNotAvailable,
+        );
         assert!(base_registrar::get_base_node_bytes(registrar) == b"sui", EInvalidRegistrar);
         let auction_state = state(auction, label, ctx);
         // the reveal phase is over in all of these phases and have received bids
@@ -411,7 +417,7 @@ module suins::auction {
     /// Panics if current epoch is less than or equal end_at
     /// or sender has never ever placed a bid
     public entry fun withdraw(auction: &mut Auction, ctx: &mut TxContext) {
-        assert!(epoch(ctx) > auction.end_at, EInvalidPhase);
+        assert!(epoch(ctx) > auction.close_at, EInvalidPhase);
 
         let bid_details = table::borrow_mut(&mut auction.bid_details_by_bidder, sender(ctx));
         let len = vector::length(bid_details);
@@ -422,11 +428,10 @@ module suins::auction {
 
             if (table::contains(&auction.entries, detail.label)) {
                 let entry = table::borrow(&auction.entries, detail.label);
-                assert!(!(entry.is_finalized && entry.winner == sender(ctx)), EShouldNotHappen);
                 if (
                     !entry.is_finalized
                         && entry.winner == sender(ctx)
-                        && auction.end_at + EXTRA_PERIOD > epoch(ctx)
+                        && auction.close_at + EXTRA_PERIOD > epoch(ctx)
                         && detail.bid_value == entry.highest_bid // bidder can bid multiple times on same domain
                 ) {
                     index = index + 1;
@@ -503,13 +508,24 @@ module suins::auction {
     ///   AUCTION_STATE_NOT_AVAILABLE | AUCTION_STATE_OPEN | AUCTION_STATE_PENDING | AUCTION_STATE_BIDDING |
     ///   AUCTION_STATE_REVEAL | AUCTION_STATE_FINALIZING | AUCTION_STATE_OWNED | AUCTION_STATE_REOPENED
     /// ]
-    public fun state(auction: &Auction, label: vector<u8>, ctx: &mut TxContext): u8 {
+    public fun state(auction: &Auction, label: vector<u8>, ctx: &TxContext): u8 {
         let current_epoch = epoch(ctx);
         let label = utf8(label);
-        // FIXME: check CLAIM_PERIOD
-        if (current_epoch < auction.open_at || current_epoch > auction_end_at(auction)) return AUCTION_STATE_NOT_AVAILABLE;
-        if (table::contains(&auction.entries, label)) {
+        if (current_epoch < auction.open_at || current_epoch > auction.close_at + EXTRA_PERIOD) return AUCTION_STATE_NOT_AVAILABLE;
+        let is_entry_existed = table::contains(&auction.entries, label);
+        // TODO: start_an_auction doesn't enforce the current epoch to guarantee a valid auction entry.
+        if (current_epoch > auction.close_at && is_entry_existed) {
             let entry = table::borrow(&auction.entries, label);
+
+            if (entry.is_finalized) return AUCTION_STATE_OWNED;
+            if (current_epoch < entry.start_at + BIDDING_PERIOD + REVEAL_PERIOD) return AUCTION_STATE_NOT_AVAILABLE;
+            if (entry.highest_bid == 0) return AUCTION_STATE_NOT_AVAILABLE;
+            return AUCTION_STATE_FINALIZING
+        };
+
+        if (is_entry_existed) {
+            let entry = table::borrow(&auction.entries, label);
+
             if (entry.is_finalized) return AUCTION_STATE_OWNED;
             if (current_epoch == entry.start_at - 1) return AUCTION_STATE_PENDING;
             if (current_epoch < entry.start_at + BIDDING_PERIOD) return AUCTION_STATE_BIDDING;
@@ -519,20 +535,20 @@ module suins::auction {
             if (entry.highest_bid == 0) return AUCTION_STATE_REOPENED;
             return AUCTION_STATE_FINALIZING
         };
+        if (current_epoch > auction.close_at) return AUCTION_STATE_NOT_AVAILABLE;
         AUCTION_STATE_OPEN
     }
 
     // === Friend Functions ===
 
-    public(friend) fun auction_end_at(auction: &Auction): u64 {
-        // FIXME
-        auction.end_at
+    public(friend) fun auction_close_at(auction: &Auction): u64 {
+        auction.close_at
     }
 
     // label is presumed to have 3-6 characters
     public(friend) fun is_auction_label_available_for_controller(auction: &Auction, label: String, ctx: &TxContext): bool {
-        if (auction.end_at >= epoch(ctx)) return false;
-        if (auction.end_at + EXTRA_PERIOD < epoch(ctx)) return true;
+        if (auction.close_at >= epoch(ctx)) return false;
+        if (auction.close_at + EXTRA_PERIOD < epoch(ctx)) return true;
         if (table::contains(&auction.entries, label)) {
             let entry = table::borrow(&auction.entries, label);
             if (!entry.is_finalized) return false
@@ -549,7 +565,7 @@ module suins::auction {
             entries: table::new(ctx),
             balance: balance::zero(),
             open_at: 0,
-            end_at: 0,
+            close_at: 0,
         });
     }
 
@@ -605,7 +621,7 @@ module suins::auction {
             entries: table::new(ctx),
             balance: balance::zero(),
             open_at: 0,
-            end_at: 0,
+            close_at: 0,
         });
     }
 }

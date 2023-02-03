@@ -17,7 +17,7 @@ module suins::controller_tests {
     use sui::table;
     use suins::auction::{Auction, make_seal_bid};
     use suins::auction;
-    use suins::auction_tests::{start_auction_util, new_bid_util, unseal_bid_util};
+    use suins::auction_tests::{start_an_auction_util, place_bid_util, reveal_bid_util};
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -38,8 +38,8 @@ module suins::controller_tests {
     const FIFTH_INVALID_LABEL: vector<u8> = b"east/?agile";
     const REFERRAL_CODE: vector<u8> = b"X43kS8";
     const DISCOUNT_CODE: vector<u8> = b"DC12345";
-    const BIDDING_PERIOD: u64 = 1;
-    const REVEAL_PERIOD: u64 = 1;
+    const BIDDING_PERIOD: u64 = 3;
+    const REVEAL_PERIOD: u64 = 3;
     const AUCTION_START_AT: u64 = 50;
     const AUCTION_END_AT: u64 = 120;
 
@@ -3098,15 +3098,15 @@ module suins::controller_tests {
     fun test_register_abort_if_name_are_waiting_for_being_finalized() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
-        start_auction_util(&mut scenario, AUCTIONED_LABEL);
+        start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
         let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000, b"CnRGhPvfCu");
-        new_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER_ADDRESS);
+        place_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER_ADDRESS);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
 
-            unseal_bid_util(
+            reveal_bid_util(
                 &mut auction,
                 110 + 1 + BIDDING_PERIOD,
                 AUCTIONED_LABEL,
