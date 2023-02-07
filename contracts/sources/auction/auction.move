@@ -1,3 +1,5 @@
+/// Implementation of auction module.
+/// More information in: ../../../docs
 module suins::auction {
 
     use sui::object::UID;
@@ -77,11 +79,10 @@ module suins::auction {
 
     struct Auction has key {
         id: UID,
-        // list of bids
-        // bid_details_by_bidder: {
-        //   0xabc: [bid1, bid2],
-        //   0x123: [bid3, bid4],
-        // }
+        /// bid_details_by_bidder: {
+        ///   0xabc: [bid1, bid2],
+        ///   0x123: [bid3, bid4],
+        /// }
         bid_details_by_bidder: Table<address, vector<BidDetail>>,
         // key: label
         entries: Table<String, AuctionEntry>,
@@ -116,45 +117,48 @@ module suins::auction {
     }
 
     /// #### Notice
-    /// Used by the admin to set configuration parameter.
-    /// This function is meant to be used in development phase.
+    /// The admin uses this function to establish configuration parameters.
+    /// It is intended solely for use during the development phase.
     ///
     /// #### Dev
-    /// The open_at and close_at properties of Auction share object is updated.
+    /// The `open_at` and `close_at` properties of Auction share object are updated.
     ///
     /// #### Params
-    /// open_at epoch at which all names are available for auction.
-    /// end_at the last epoch at which all names remain available for auction,
-    /// after this epoch, the entries that have winner but not yet being finalized
-    /// have `EXTRA_CLAIM_PERIOD` epoches to be finalized by winner.
+    /// `open_at`: epoch at which all names are available for auction.
+    /// `close_at`: the last epoch at which all names remain available for auction.
+    /// Once this epoch has passed, the entries that have a winner but haven't yet being finalized
+    /// have an additional `EXTRA_CLAIM_PERIOD` epochs for the winner to finalize.
     ///
     /// Panics
-    /// Panics if open_at is less than end_at
-    /// or current epoch is less than or equal open_at
-    public entry fun config_auction(_: &AdminCap, auction: &mut Auction, open_at: u64, close_at: u64, ctx: &mut TxContext) {
+    /// Panics if `open_at` is less than `close_at`
+    /// or current epoch is less than or equal `open_at`
+    public entry fun configurate_auction(_: &AdminCap, auction: &mut Auction, open_at: u64, close_at: u64, ctx: &mut TxContext) {
         assert!(open_at < close_at, EInvalidConfigParam);
         assert!(epoch(ctx) <= open_at, EInvalidConfigParam);
+
         auction.open_at = open_at;
         auction.close_at = close_at;
     }
 
     /// #### Notice
-    /// Used to initiate the auction for a node.
-    /// This function only starts the auction for a .sui node, caller still needs to call `place_bid` to bid.
-    /// New auction entry has the state of `PENDING`. It moves to 'BIDDING' state in the next epoch.
-    /// Caller transfers a payment of coin with the value of `FEE_PER_YEAR`.
+    /// This function initiates the auction process for a `.sui` node.
+    /// However, the caller must still call `place_bid` to place his/her bid.
+    /// When the auction starts, a new entry is created in the `PENDING` state.
+    /// In the next epoch, it moves to the `BIDDING` state.
+    /// The caller also transfers a payment of coins worth `FEE_PER_YEAR`.
     ///
     /// #### Dev
-    /// New Entry record is created
+    /// New `Entry` record is created.
+    /// If `Entry` record exists and in the `REOPENED` state, it is remove and reinitialize.
     ///
     /// #### Params
-    /// label label of the node being auctioned, the node has the form `label`.sui
+    /// `label`: label of the node being auctioned, the node has the form `label`.sui
     ///
     /// Panics
     /// Panics if current epoch is outside of auction time period
     /// or the node is already opened
-    /// or the node isn't ready to be auctioned
-    /// or the label length is not in the range of 3-6 characters
+    /// or the node is not eligible for auction.
+    /// or the length of the label must be within the range of 3-6 characters.
     public entry fun start_an_auction(
         auction: &mut Auction,
         config: &Configuration,
@@ -175,6 +179,8 @@ module suins::auction {
 
         let label = utf8(label);
         if (state == AUCTION_STATE_REOPENED) {
+            // added in below statement
+            // TODO: reset fields instead of removing them
             let _ = table::remove(&mut auction.entries, label);
         };
         let start_at = epoch(ctx) + 1;
@@ -186,25 +192,25 @@ module suins::auction {
             is_finalized: false,
         };
         table::add(&mut auction.entries, label, entry);
+        event::emit(AuctionStartedEvent { label, start_at });
 
-        coin_util::user_transfer_to_contract(payment, FEE_PER_YEAR, &mut auction.balance);
-        event::emit(AuctionStartedEvent { label, start_at })
+        coin_util::user_transfer_to_contract(payment, FEE_PER_YEAR, &mut auction.balance)
     }
 
     /// #### Notice
-    /// Used by bidders to place new bid.
-    /// The bidder transfers a payment of coin with the value of bid value mask to hide his/her actual bid value.
+    /// Bidders use this function to place a new bid.
+    /// They transfer a payment of coins with a value equal to the bid value mask to hide the actual bid amount.
     ///
     /// #### Dev
     /// New bid detail is created.
     ///
     /// #### Params
-    /// sealed_bid return value of `make_seal_bid`
-    /// bid_value_mask upper bound of actual bid value
+    /// `sealed_bid`: return value of `make_seal_bid`
+    /// `bid_value_mask`: upper bound of actual bid value
     ///
     /// Panics
     /// Panics if current epoch is less than end_at
-    /// or bid value mask is less than MIN_PRICE
+    /// or `bid_value_mask` is less than `MIN_PRICE`
     /// or the sealed bid exists
     /// or payment doesn't have enough coin
     public entry fun place_bid(auction: &mut Auction, sealed_bid: vector<u8>, bid_value_mask: u64, payment: &mut Coin<SUI>, ctx: &mut TxContext) {
@@ -233,24 +239,25 @@ module suins::auction {
             is_unsealed: false,
         };
         vector::push_back(bids_by_sender, bid);
-
         event::emit(NewBidEvent { bidder, sealed_bid, bid_value_mask });
-        coin_util::user_transfer_to_contract(payment, bid_value_mask, &mut auction.balance);
+
+        coin_util::user_transfer_to_contract(payment, bid_value_mask, &mut auction.balance)
     }
 
     /// #### Notice
-    /// Used by bidders to reveal true parameters of their sealed bids.
-    /// No payment is returned in this function
+    /// Bidders use this function to reveal the true parameters of their sealed bids.
+    /// No payment is returned in this function.
+    /// Bidders can retrieve their payment by using either the `finalize_auction` or `withdraw` function.
     ///
     /// #### Dev
-    /// The entry represeting the `label` is updated new value if `value` is either the highest value
-    /// or second highest value
-    /// The label and bid_value properties of bid detail is updated
+    /// The `Entry` record represeting the `label` is updated with the new bid value if `value` is either the highest
+    /// or second highest value.
+    /// The `label` and `bid_value` properties of the bid detail are updated.
     ///
     /// #### Params
-    /// label label of the node being auctioned, the node has the form `label`.sui
-    /// value auctual value that bidder wants to spend
-    /// salt random string used when hashing the sealed bid
+    /// `label`: label of the node being auctioned, the node has the form `label`.sui
+    /// `value`: auctual value that bidder wants to spend
+    /// `salt`: random string used when hashing the sealed bid
     ///
     /// Panics
     /// Panics if auction is not in `REVEAL` state
@@ -293,7 +300,7 @@ module suins::auction {
             // invalid bid
             // TODO: what to do now?
         } else if (value > entry.highest_bid) {
-            // vickery auction, winner pay the second highest_bid
+            // Vickrey auction, winner pays the second highest_bid
             entry.second_highest_bid = entry.highest_bid;
             entry.highest_bid = value;
             entry.winner = bid_detail.bidder;
@@ -310,8 +317,8 @@ module suins::auction {
     }
 
     /// #### Notice
-    /// Used by bidders who bided on `label`.
-    /// If being called by the winner, he/she get back the payment that are the difference between bid mask and bid value.
+    /// Bidders use this function to claim the NFT or withdraw payment of their bids on `label`.
+    /// If being called by the winner, he/she retrieve the payment that are the difference between bid mask and bid value.
     /// He/she also get the NFT representing the ownership of `label`.sui node.
     /// If not the winner, he/she get back the payment that he/her deposited when place the bid.
     /// We allow bidders to have multiple bids on one domain, this function checks every of them.
@@ -392,9 +399,9 @@ module suins::auction {
             };
         };
         if (entry.winner != sender(ctx)) return;
+        entry.is_finalized = true;
 
         base_registrar::register(registrar, registry, config, label, entry.winner, 365, resolver, ctx);
-        entry.is_finalized = true;
 
         event::emit(NodeRegisteredEvent {
             label: label_str,
@@ -405,7 +412,7 @@ module suins::auction {
     }
 
     /// #### Notice
-    /// Used by bidders to withdraw all their remaining bids.
+    /// Bidders use this function to withdraw all their remaining bids.
     /// If there is any entry in which the sender is the winner and not yet finalized and still in `EXTRA_PERIOD`,
     /// skip that winning bid (For these bids, bidders have to call `finalize_auction` to get their extra payment and NFT).
     ///
@@ -457,10 +464,10 @@ module suins::auction {
     /// Generate the sealed bid that is used when placing a new bid
     ///
     /// #### Params
-    /// label label of the node being auctioned, the node has the form `label`.sui
-    /// owner address of the bidder
-    /// value bid value
-    /// salt a random string
+    /// `label`: label of the node being auctioned, the node has the form `label`.sui
+    /// `owner`: address of the bidder
+    /// `value`: bid value
+    /// `salt`: a random string
     ///
     /// #### Return
     /// Hashed string using keccak256
@@ -539,7 +546,7 @@ module suins::auction {
         AUCTION_STATE_OPEN
     }
 
-    // === Friend Functions ===
+    // === Friend and Private Functions ===
 
     public(friend) fun auction_close_at(auction: &Auction): u64 {
         auction.close_at
@@ -555,8 +562,6 @@ module suins::auction {
         };
         true
     }
-
-    // === Private Functions ===
 
     fun init(ctx: &mut TxContext) {
         transfer::share_object(Auction {
