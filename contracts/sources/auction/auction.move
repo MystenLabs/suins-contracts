@@ -75,6 +75,9 @@ module suins::auction {
         second_highest_bid: u64,
         winner: address,
         is_finalized: bool,
+        /// the created_at property of the current winning bid
+        /// if 2 bidders bid same value, we choose the one who called `new_bid` first
+        bid_detail_created_at: u64,
     }
 
     struct Auction has key {
@@ -88,6 +91,8 @@ module suins::auction {
         entries: Table<String, AuctionEntry>,
         balance: Balance<SUI>,
         open_at: u64,
+        /// last epoch where auction for domains can be started
+        /// the auction really ends at = start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD + FINALIZING_PERIOD
         close_at: u64,
     }
 
@@ -190,6 +195,7 @@ module suins::auction {
             second_highest_bid: 0,
             winner: @0x0,
             is_finalized: false,
+            bid_detail_created_at: 0,
         };
         table::add(&mut auction.entries, label, entry);
         event::emit(AuctionStartedEvent { label, start_at });
@@ -304,6 +310,14 @@ module suins::auction {
             entry.second_highest_bid = entry.highest_bid;
             entry.highest_bid = value;
             entry.winner = bid_detail.bidder;
+            entry.bid_detail_created_at = bid_detail.created_at;
+        } else if (value == entry.highest_bid && bid_detail.created_at < entry.bid_detail_created_at) {
+            // if same value and same created_at, we choose first one who reveals bid.
+            // TODO: could be combined with the previous check
+            entry.second_highest_bid = entry.highest_bid;
+            entry.highest_bid = value;
+            entry.winner = bid_detail.bidder;
+            entry.bid_detail_created_at = bid_detail.created_at;
         } else if (value > entry.second_highest_bid) {
             // not winner, but affects second place
             entry.second_highest_bid = value;
@@ -381,13 +395,22 @@ module suins::auction {
                     && entry.highest_bid == detail.bid_value
                     && detail.bid_value_mask - detail.bid_value > 0
             ) {
-                // return extra payment to winner
-                coin_util::contract_transfer_to_address(
-                    &mut auction.balance,
-                    detail.bid_value_mask - detail.bid_value,
-                    detail.bidder,
-                    ctx
-                );
+                if (entry.second_highest_bid != 0) {
+                    coin_util::contract_transfer_to_address(
+                        &mut auction.balance,
+                        detail.bid_value_mask - entry.second_highest_bid,
+                        detail.bidder,
+                        ctx
+                    );
+                } else {
+                    // winner is the only one who bided
+                    coin_util::contract_transfer_to_address(
+                        &mut auction.balance,
+                        detail.bid_value_mask - detail.bid_value,
+                        detail.bidder,
+                        ctx
+                    );
+                }
             } else {
                 // TODO: charge paymennt as punishmennt
                 coin_util::contract_transfer_to_address(
