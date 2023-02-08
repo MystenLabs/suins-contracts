@@ -87,7 +87,7 @@ module suins::auction_tests {
 
             base_registrar::new_tld(&admin_cap, &mut tlds_list, b"move", test_scenario::ctx(&mut scenario));
             base_registrar::new_tld(&admin_cap, &mut tlds_list, b"sui", test_scenario::ctx(&mut scenario));
-            auction::config_auction(&admin_cap, &mut auction, 100, 200, test_scenario::ctx(&mut scenario));
+            auction::configurate_auction(&admin_cap, &mut auction, 100, 200, test_scenario::ctx(&mut scenario));
 
             test_scenario::return_shared(tlds_list);
             test_scenario::return_shared(auction);
@@ -929,12 +929,12 @@ module suins::auction_tests {
             assert!(vector::length(&bids) == 0, 0);
             test_scenario::return_shared(auction);
         };
-        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let ids = test_scenario::ids_for_address<Coin<SUI>>(SECOND_USER_ADDRESS);
             assert!(vector::length(&ids) == 1, 0);
             let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
-            assert!(coin::value(&coin) == 500, 0);
+            assert!(coin::value(&coin) == 1000, 0);
             test_scenario::return_to_address(SECOND_USER_ADDRESS, coin);
         };
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
@@ -1922,7 +1922,7 @@ module suins::auction_tests {
     }
 
     #[test]
-    fun test_winner_finalize_auction_get_money_back() {
+    fun test_winner_finalize_auction_retrive_payment() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_util(scenario, NODE);
@@ -2051,7 +2051,7 @@ module suins::auction_tests {
             let first_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
             let second_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
 
-            assert!(coin::value(&first_coin) == 300, 0);
+            assert!(coin::value(&first_coin) == 400, 0);
             assert!(coin::value(&second_coin) == 2200, 0);
 
             test_scenario::return_to_address(SECOND_USER_ADDRESS, first_coin);
@@ -2279,7 +2279,7 @@ module suins::auction_tests {
             );
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let auction = test_scenario::take_shared<Auction>(scenario);
-            auction::config_auction(&admin_cap, &mut auction, 3000, 3001, &mut ctx);
+            auction::configurate_auction(&admin_cap, &mut auction, 3000, 3001, &mut ctx);
             test_scenario::return_shared(auction);
             test_scenario::return_to_sender(scenario, admin_cap);
         };
@@ -2300,7 +2300,7 @@ module suins::auction_tests {
             );
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let auction = test_scenario::take_shared<Auction>(scenario);
-            auction::config_auction(&admin_cap, &mut auction, 3001, 3000, &mut ctx);
+            auction::configurate_auction(&admin_cap, &mut auction, 3001, 3000, &mut ctx);
             test_scenario::return_shared(auction);
             test_scenario::return_to_sender(scenario, admin_cap);
         };
@@ -2321,7 +2321,7 @@ module suins::auction_tests {
             );
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let auction = test_scenario::take_shared<Auction>(scenario);
-            auction::config_auction(&admin_cap, &mut auction, 3000, 3000, &mut ctx);
+            auction::configurate_auction(&admin_cap, &mut auction, 3000, 3000, &mut ctx);
             test_scenario::return_shared(auction);
             test_scenario::return_to_sender(scenario, admin_cap);
         };
@@ -2342,7 +2342,7 @@ module suins::auction_tests {
             );
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let auction = test_scenario::take_shared<Auction>(scenario);
-            auction::config_auction(&admin_cap, &mut auction, 100, 300, &mut ctx);
+            auction::configurate_auction(&admin_cap, &mut auction, 100, 300, &mut ctx);
             test_scenario::return_shared(auction);
             test_scenario::return_to_sender(scenario, admin_cap);
         };
@@ -3240,7 +3240,7 @@ module suins::auction_tests {
             );
             test_scenario::return_shared(auction);
         };
-        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let ids = test_scenario::ids_for_address<Coin<SUI>>(SECOND_USER_ADDRESS);
             assert!(vector::length(&ids) == 1, 0);
@@ -3270,7 +3270,7 @@ module suins::auction_tests {
             let ids = test_scenario::ids_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
             assert!(vector::length(&ids) == 1, 0);
             let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin) == 1100, 0);
+            assert!(coin::value(&coin) == 2600, 0);
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin);
         };
 
@@ -3386,7 +3386,7 @@ module suins::auction_tests {
             let ids = test_scenario::ids_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
             assert!(vector::length(&ids) == 1, 0);
             let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin) == 1100, 0);
+            assert!(coin::value(&coin) == 2600, 0);
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin);
         };
 
@@ -3625,7 +3625,7 @@ module suins::auction_tests {
             assert!(vector::length(&ids) == 1, 0);
 
             let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
-            assert!(coin::value(&coin) == 1300, 0);
+            assert!(coin::value(&coin) == 2300, 0);
             test_scenario::return_to_address(SECOND_USER_ADDRESS, coin);
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
@@ -3654,7 +3654,7 @@ module suins::auction_tests {
             assert!(vector::length(&ids) == 1, 0);
 
             let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
-            assert!(coin::value(&coin) == 1300, 0);
+            assert!(coin::value(&coin) == 2300, 0);
             test_scenario::return_to_address(SECOND_USER_ADDRESS, coin);
         };
         test_scenario::end(scenario_val);

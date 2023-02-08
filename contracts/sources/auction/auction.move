@@ -115,8 +115,7 @@ module suins::auction {
         start_at: u64,
     }
 
-    // TODO: change method name
-    public entry fun config_auction(_: &AdminCap, auction: &mut Auction, start_at: u64, end_at: u64, ctx: &mut TxContext) {
+    public entry fun configurate_auction(_: &AdminCap, auction: &mut Auction, start_at: u64, end_at: u64, ctx: &mut TxContext) {
         // TODO: hard reset all entries and bids?
         // TODO: if do so, what to do with balance in there?
         assert!(start_at < end_at, EInvalidConfigParam);
@@ -287,13 +286,24 @@ module suins::auction {
                     && entry.highest_bid == detail.bid_value
                     && detail.bid_value_mask - detail.bid_value > 0
             ) {
-                // send extra money to winner
-                coin_util::contract_transfer_to_address(
-                    &mut auction.balance,
-                    detail.bid_value_mask - detail.bid_value,
-                    detail.bidder,
-                    ctx
-                );
+                // send extra payment to winner
+                if (entry.second_highest_bid != 0) {
+                    coin_util::contract_transfer_to_address(
+                        &mut auction.balance,
+                        detail.bid_value_mask - entry.second_highest_bid,
+                        detail.bidder,
+                        ctx
+                    );
+                } else {
+                    // winner is the only one who bided
+                    coin_util::contract_transfer_to_address(
+                        &mut auction.balance,
+                        detail.bid_value_mask - detail.bid_value,
+                        detail.bidder,
+                        ctx
+                    );
+                }
+
             } else {
                 coin_util::contract_transfer_to_address(
                     &mut auction.balance,
@@ -420,6 +430,7 @@ module suins::auction {
             // invalid bid
         } else if (value > entry.highest_bid) {
             // vickery auction, winner pay the second highest_bid
+            // TODO: store created_at field `cause we gonna use it it same highest_bid
             entry.second_highest_bid = entry.highest_bid;
             entry.highest_bid = value;
             entry.winner = bid_detail.bidder;
