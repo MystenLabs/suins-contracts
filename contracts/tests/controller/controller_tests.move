@@ -38,8 +38,8 @@ module suins::controller_tests {
     const FIFTH_INVALID_LABEL: vector<u8> = b"east/?agile";
     const REFERRAL_CODE: vector<u8> = b"X43kS8";
     const DISCOUNT_CODE: vector<u8> = b"DC12345";
-    const BIDDING_PERIOD: u64 = 1;
-    const REVEAL_PERIOD: u64 = 1;
+    const BIDDING_PERIOD: u64 = 3;
+    const REVEAL_PERIOD: u64 = 3;
 
     fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
