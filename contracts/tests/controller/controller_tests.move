@@ -70,7 +70,7 @@ module suins::controller_tests {
             );
             if (option::is_none(&label)) label = option::some(FIRST_LABEL);
             let commitment = controller::test_make_commitment(&registrar, option::extract(&mut label), FIRST_USER_ADDRESS, FIRST_SECRET);
-            controller::make_commitment_and_commit(
+            controller::commit(
                 &mut controller,
                 commitment,
                 &mut ctx,
@@ -817,7 +817,7 @@ module suins::controller_tests {
             );
 
             let commitment = controller::test_make_commitment(&registrar, FIRST_INVALID_LABEL, FIRST_USER_ADDRESS, FIRST_SECRET);
-            controller::make_commitment_and_commit(
+            controller::commit(
                 &mut controller,
                 commitment,
                 &mut ctx,
@@ -1045,7 +1045,7 @@ module suins::controller_tests {
             );
 
             let commitment = controller::test_make_commitment(&registrar, FIRST_LABEL, FIRST_USER_ADDRESS, FIRST_SECRET);
-            controller::make_commitment_and_commit(
+            controller::commit(
                 &mut controller,
                 commitment,
                 &mut ctx,
@@ -1068,7 +1068,7 @@ module suins::controller_tests {
             );
 
             let commitment = controller::test_make_commitment(&registrar, FIRST_LABEL, SECOND_USER_ADDRESS, FIRST_SECRET);
-            controller::make_commitment_and_commit(
+            controller::commit(
                 &mut controller,
                 commitment,
                 &mut ctx,
@@ -1090,7 +1090,7 @@ module suins::controller_tests {
             );
 
             let commitment = controller::test_make_commitment(&registrar, FIRST_LABEL, FIRST_USER_ADDRESS, SECOND_SECRET);
-            controller::make_commitment_and_commit(
+            controller::commit(
                 &mut controller,
                 commitment,
                 &mut ctx,
@@ -1111,7 +1111,7 @@ module suins::controller_tests {
                 0
             );
             let commitment = controller::test_make_commitment(&registrar, SECOND_LABEL, FIRST_USER_ADDRESS, FIRST_SECRET);
-            controller::make_commitment_and_commit(
+            controller::commit(
                 &mut controller,
                 commitment,
                 &mut ctx,
