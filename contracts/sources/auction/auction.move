@@ -72,6 +72,9 @@ module suins::auction {
         second_highest_bid: u64,
         winner: address,
         is_finalized: bool,
+        /// the created_at property of the current winning bid
+        /// if 2 bidders bid same value, we choose the one who called `new_bid` first
+        bid_detail_created_at: u64,
     }
 
     struct Auction has key {
@@ -85,10 +88,10 @@ module suins::auction {
         // key: label
         entries: Table<String, AuctionEntry>,
         balance: Balance<SUI>,
-        start_auction_start_at: u64,
+        open_at: u64,
         /// last epoch where auction for domains can be started
         /// the auction really ends at = start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD + FINALIZING_PERIOD
-        start_auction_end_at: u64,
+        close_at: u64,
     }
 
     struct LabelRegisteredEvent has copy, drop {
@@ -115,18 +118,18 @@ module suins::auction {
         start_at: u64,
     }
 
-    public entry fun configurate_auction(_: &AdminCap, auction: &mut Auction, start_at: u64, end_at: u64, ctx: &mut TxContext) {
+    public entry fun configurate_auction(_: &AdminCap, auction: &mut Auction, open_at: u64, close_at: u64, ctx: &mut TxContext) {
         // TODO: hard reset all entries and bids?
         // TODO: if do so, what to do with balance in there?
-        assert!(start_at < end_at, EInvalidConfigParam);
-        assert!(epoch(ctx) <= start_at, EInvalidConfigParam);
-        auction.start_auction_start_at = start_at;
-        auction.start_auction_end_at = end_at;
+        assert!(open_at < close_at, EInvalidConfigParam);
+        assert!(epoch(ctx) <= open_at, EInvalidConfigParam);
+        auction.open_at = open_at;
+        auction.close_at = close_at;
     }
 
     // used by bidder
     public entry fun withdraw(auction: &mut Auction, ctx: &mut TxContext) {
-        assert!(epoch(ctx) > auction.start_auction_end_at, EInvalidPhase);
+        assert!(epoch(ctx) > auction.close_at, EInvalidPhase);
 
         let bid_details = table::borrow_mut(&mut auction.bid_details_by_bidder, sender(ctx));
         let len = vector::length(bid_details);
@@ -141,7 +144,7 @@ module suins::auction {
                 if (
                     !entry.is_finalized
                         && entry.winner == sender(ctx)
-                        && auction.start_auction_end_at + FINALIZING_PERIOD > epoch(ctx)
+                        && auction.close_at + FINALIZING_PERIOD > epoch(ctx)
                         && detail.bid_value == entry.highest_bid // bidder can bid multiple times on same domain
                 ) {
                     index = index + 1;
@@ -163,7 +166,7 @@ module suins::auction {
 
     // testing only
     public entry fun withdraw_with_epoch(auction: &mut Auction, epoch: u64, ctx: &mut TxContext) {
-        assert!(epoch > auction.start_auction_end_at, EInvalidPhase);
+        assert!(epoch > auction.close_at, EInvalidPhase);
 
         let sender = tx_context::sender(ctx);
         let bid_details = table::remove(&mut auction.bid_details_by_bidder, sender);
@@ -180,7 +183,7 @@ module suins::auction {
     public entry fun new_bid(auction: &mut Auction, seal_bid: vector<u8>, bid_value_mask: u64, payment: &mut Coin<SUI>, ctx: &mut TxContext) {
         let current_epoch = tx_context::epoch(ctx);
         assert!(
-            auction.start_auction_start_at <= current_epoch && current_epoch <= auction.start_auction_end_at + 1,
+            auction.open_at <= current_epoch && current_epoch <= auction.close_at + 1,
             EAuctionNotAvailable,
         );
         assert!(bid_value_mask >= MIN_PRICE, EInvalidBid);
@@ -218,7 +221,7 @@ module suins::auction {
     ) {
         let current_epoch = epoch;
         assert!(
-            auction.start_auction_start_at <= current_epoch && current_epoch <= auction.start_auction_end_at,
+            auction.open_at <= current_epoch && current_epoch <= auction.close_at,
             EAuctionNotAvailable,
         );
         assert!(bid_value_mask >= MIN_PRICE, EInvalidBid);
@@ -430,10 +433,18 @@ module suins::auction {
             // invalid bid
         } else if (value > entry.highest_bid) {
             // vickery auction, winner pay the second highest_bid
-            // TODO: store created_at field `cause we gonna use it it same highest_bid
             entry.second_highest_bid = entry.highest_bid;
             entry.highest_bid = value;
             entry.winner = bid_detail.bidder;
+            entry.bid_detail_created_at = bid_detail.created_at;
+        } else if (value == entry.highest_bid && bid_detail.created_at < entry.bid_detail_created_at) {
+            // if same value and same created_at, we choose first one who reveals bid.
+            // FIXME: test me
+            // TODO: could be combined with the previous check
+            entry.second_highest_bid = entry.highest_bid;
+            entry.highest_bid = value;
+            entry.winner = bid_detail.bidder;
+            entry.bid_detail_created_at = bid_detail.created_at;
         } else if (value > entry.second_highest_bid) {
             // not winner, but affects second place
             entry.second_highest_bid = value;
@@ -523,6 +534,7 @@ module suins::auction {
             second_highest_bid: 0,
             winner: @0x0,
             is_finalized: false,
+            bid_detail_created_at: 0,
         };
         table::add(&mut auction.entries, label, entry);
         coin_util::user_transfer_to_contract(payment, FEE_PER_YEAR, &mut auction.balance);
@@ -552,6 +564,7 @@ module suins::auction {
             second_highest_bid: 0,
             winner: @0x0,
             is_finalized: false,
+            bid_detail_created_at: 0,
         };
         table::add(&mut auction.entries, label, entry);
         coin_util::user_transfer_to_contract(payment, FEE_PER_YEAR, &mut auction.balance);
@@ -651,7 +664,7 @@ module suins::auction {
         let current_epoch = epoch(ctx);
         let label = utf8(label);
         // TODO: test me
-        if (current_epoch < auction.start_auction_start_at || current_epoch > auction_end_at(auction)) return AUCTION_STATE_NOT_AVAILABLE;
+        if (current_epoch < auction.open_at || current_epoch > auction_end_at(auction)) return AUCTION_STATE_NOT_AVAILABLE;
         if (table::contains(&auction.entries, label)) {
             let entry = table::borrow(&auction.entries, label);
             if (entry.is_finalized) return AUCTION_STATE_OWNED;
@@ -670,7 +683,7 @@ module suins::auction {
     public fun state_with_epoch(auction: &Auction, label: vector<u8>, epoch: u64, _ctx: &mut TxContext): u8 {
         let current_epoch = epoch;
         let label = utf8(label);
-        if (current_epoch < auction.start_auction_start_at || current_epoch > auction.start_auction_end_at) return AUCTION_STATE_NOT_AVAILABLE;
+        if (current_epoch < auction.open_at || current_epoch > auction.close_at) return AUCTION_STATE_NOT_AVAILABLE;
         if (table::contains(&auction.entries, label)) {
             let entry = table::borrow(&auction.entries, label);
             if (entry.is_finalized) return AUCTION_STATE_OWNED;
@@ -688,12 +701,12 @@ module suins::auction {
     // === Friend Functions ===
 
     public(friend) fun auction_end_at(auction: &Auction): u64 {
-        auction.start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD
+        auction.close_at + BIDDING_PERIOD + REVEAL_PERIOD
     }
 
     public(friend) fun is_label_available_for_controller(auction: &Auction, label: String, ctx: &TxContext): bool {
-        if (auction.start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD > epoch(ctx)) return false;
-        if (auction.start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD + FINALIZING_PERIOD <= epoch(ctx)) return true;
+        if (auction.close_at + BIDDING_PERIOD + REVEAL_PERIOD > epoch(ctx)) return false;
+        if (auction.close_at + BIDDING_PERIOD + REVEAL_PERIOD + FINALIZING_PERIOD <= epoch(ctx)) return true;
         if (table::contains(&auction.entries, label)) {
             let entry = table::borrow(&auction.entries, label);
             if (!entry.is_finalized) return false
@@ -709,8 +722,8 @@ module suins::auction {
             bid_details_by_bidder: table::new(ctx),
             entries: table::new(ctx),
             balance: balance::zero(),
-            start_auction_start_at: 0,
-            start_auction_end_at: 0,
+            open_at: 0,
+            close_at: 0,
         });
     }
 
@@ -765,8 +778,8 @@ module suins::auction {
             bid_details_by_bidder: table::new(ctx),
             entries: table::new(ctx),
             balance: balance::zero(),
-            start_auction_start_at: 0,
-            start_auction_end_at: 0,
+            open_at: 0,
+            close_at: 0,
         });
     }
 }
