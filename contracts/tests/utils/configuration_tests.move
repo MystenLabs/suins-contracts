@@ -54,6 +54,12 @@ module suins::configuration_tests {
             assert!(test_url == url::new_unsafe_from_bytes(b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2"), 0); // 31-12-2024
             test_url = configuration::get_url(&config, 731, 1);
             assert!(test_url == url::new_unsafe_from_bytes(b"ipfs://QmaWNLR6C3QsSHcPwNoFA59DPXCKdx1t8hmyyKRqBbjYB3"), 0); // 01-01-2025
+            test_url = configuration::get_url(&config, 1096, 1);
+            assert!(test_url == url::new_unsafe_from_bytes(b"ipfs://QmRF7kbi4igtGcX6enEuthQRhvQZejc7ZKBhMimFJtTS8D"), 0); // 01-01-2026
+            test_url = configuration::get_url(&config, 1461, 1);
+            assert!(test_url == url::new_unsafe_from_bytes(b"ipfs://QmTdkzVAAW7yRHu5EVMwH2d7kUM1a9amyW67NCYgut6Hd5"), 0); // 01-01-2027
+            test_url = configuration::get_url(&config, 1826, 1);
+            assert!(test_url == url::new_unsafe_from_bytes(b"ipfs://Qmdm7ET9hbMRn7ex9TH6cJaKr8h8AE29w8kMqAhExBHfh9"), 0); // 01-01-2028
             test_url = configuration::get_url(&config, 7300, 1);
             assert!(test_url == url::new_unsafe_from_bytes(b"ipfs://bafkreibngqhl3gaa7daob4i2vccziay2jjlp435cf66vhono7nrvww53ty"), 0);
 

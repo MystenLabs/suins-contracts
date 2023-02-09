@@ -9,11 +9,11 @@ module suins::controller {
     use sui::coin::{Self, Coin};
     use sui::ecdsa_k1::keccak256;
     use sui::event;
+    use sui::linked_table::{Self, LinkedTable};
     use sui::object::{Self, UID, ID};
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
     use sui::sui::SUI;
-    use sui::vec_map::{Self, VecMap};
     use suins::base_registry::{Registry, AdminCap};
     use suins::base_registrar::{Self, BaseRegistrar};
     use suins::configuration::{Self, Configuration};
@@ -70,7 +70,7 @@ module suins::controller {
 
     struct BaseController has key {
         id: UID,
-        commitments: VecMap<vector<u8>, u64>,
+        commitments: LinkedTable<vector<u8>, u64>,
         balance: Balance<SUI>,
         default_addr_resolver: address,
         /// To turn off registration
@@ -80,7 +80,7 @@ module suins::controller {
     fun init(ctx: &mut TxContext) {
         transfer::share_object(BaseController {
             id: object::new(ctx),
-            commitments: vec_map::empty(),
+            commitments: linked_table::new(ctx),
             balance: balance::zero(),
             // cannot get the ID of name_resolver in `init`, admin need to update this by calling `set_default_resolver`
             default_addr_resolver: @0x0,
@@ -123,13 +123,13 @@ module suins::controller {
         coin_util::contract_transfer_to_address(&mut controller.balance, amount, tx_context::sender(ctx), ctx);
     }
 
-    public entry fun make_commitment_and_commit(
+    public entry fun commit(
         controller: &mut BaseController,
         commitment: vector<u8>,
         ctx: &mut TxContext,
     ) {
         remove_outdated_commitment(controller, ctx);
-        vec_map::insert(&mut controller.commitments, commitment, tx_context::epoch(ctx));
+        linked_table::push_back(&mut controller.commitments, commitment, tx_context::epoch(ctx));
     }
 
     // duration in years
@@ -379,14 +379,14 @@ module suins::controller {
 
     fun remove_outdated_commitment(controller: &mut BaseController, ctx: &mut TxContext) {
         // TODO: need to update logic when timestamp is introduced
-        let len = vec_map::size(&controller.commitments);
-        let index = 0;
-        while (index < len && len > 0 ) {
-            let (_, created_at) = vec_map::get_entry_by_idx(&controller.commitments, index);
-            if (*created_at + MAX_COMMITMENT_AGE < tx_context::epoch(ctx)) {
-                vec_map::remove_entry_by_idx(&mut controller.commitments, index);
-                len = len - 1;
-            } else index = index + 1;
+        let front_element = linked_table::front(&controller.commitments);
+
+        while (option::is_some(front_element)) {
+            let created_at = linked_table::borrow(&controller.commitments, *option::borrow(front_element));
+            if (*created_at + MAX_COMMITMENT_AGE <= tx_context::epoch(ctx)) {
+                linked_table::pop_front(&mut controller.commitments);
+                front_element = linked_table::front(&controller.commitments);
+            } else break;
         };
     }
 
@@ -397,18 +397,18 @@ module suins::controller {
         commitment: vector<u8>,
         ctx: &TxContext,
     ) {
-        assert!(vec_map::contains(&controller.commitments, &commitment), ECommitmentNotExists);
+        assert!(linked_table::contains(&controller.commitments, commitment), ECommitmentNotExists);
         // TODO: remove later when timestamp is introduced
         // assert!(
         //     *vec_map::get(&controller.commitments, &commitment) + MIN_COMMITMENT_AGE <= tx_context::epoch(ctx),
         //     ECommitmentNotValid
         // );
         assert!(
-            *vec_map::get(&controller.commitments, &commitment) + MAX_COMMITMENT_AGE > tx_context::epoch(ctx),
+            *linked_table::borrow(&controller.commitments, commitment) + MAX_COMMITMENT_AGE > tx_context::epoch(ctx),
             ECommitmentTooOld
         );
         assert!(base_registrar::available(registrar, string::utf8(label), ctx), ELabelUnAvailable);
-        vec_map::remove(&mut controller.commitments, &commitment);
+        linked_table::remove(&mut controller.commitments, commitment);
     }
 
     fun make_commitment(registrar: &BaseRegistrar, label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
@@ -434,7 +434,7 @@ module suins::controller {
 
     #[test_only]
     public fun commitment_len(controller: &BaseController): u64 {
-        vec_map::size(&controller.commitments)
+        linked_table::length(&controller.commitments)
     }
 
     #[test_only]
@@ -462,7 +462,7 @@ module suins::controller {
     public fun test_init(ctx: &mut TxContext) {
         transfer::share_object(BaseController {
             id: object::new(ctx),
-            commitments: vec_map::empty(),
+            commitments: linked_table::new(ctx),
             balance: balance::zero(),
             // cannot get the ID of name_resolver in `init`, admin need to update this by calling `set_default_resolver`
             default_addr_resolver: @0x0,
