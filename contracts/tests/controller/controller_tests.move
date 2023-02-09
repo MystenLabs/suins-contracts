@@ -438,7 +438,7 @@ module suins::controller_tests {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
-            // simulate user call `register` in the same epoch as `make_commitment_and_commit`
+            // simulate user call `register` in the same epoch as `commit`
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
