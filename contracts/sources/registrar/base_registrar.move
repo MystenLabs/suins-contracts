@@ -6,14 +6,19 @@ module suins::base_registrar {
     use sui::event;
     use sui::object::{Self, ID, UID};
     use sui::transfer;
-    use sui::tx_context::{TxContext, epoch};
+    use sui::tx_context::{TxContext, epoch, sender};
     use sui::url::Url;
     use sui::table::{Self, Table};
-    use std::string::{Self, String};
+    use std::string::{Self, String, utf8};
     use std::option;
     use std::vector;
     use suins::base_registry::{Self, Registry, AdminCap};
     use suins::configuration::{Self, Configuration};
+    use sui::ecdsa_k1;
+    use suins::remove_later;
+    use suins::converter;
+    use sui::url;
+    use std::hash::sha2_256;
 
     friend suins::controller;
     friend suins::auction;
@@ -32,6 +37,9 @@ module suins::base_registrar {
     const ELabelNotExists: u64 = 207;
     const ETLDExists: u64 = 208;
     const EInvalidBaseNode: u64 = 209;
+    const ESignatureNotMatch: u64 = 210;
+    const EInvalidMessage: u64 = 211;
+    const EHashMessageNotMatch: u64 = 212;
 
     struct NameRenewedEvent has copy, drop {
         label: String,
@@ -41,6 +49,12 @@ module suins::base_registrar {
     struct NameReclaimedEvent has copy, drop {
         node: String,
         owner: address,
+    }
+
+    struct ImageUpdatedEvent has copy, drop {
+        sender: address,
+        node: String,
+        new_image: Url,
     }
 
     /// NFT representing ownership of a domain
@@ -53,6 +67,7 @@ module suins::base_registrar {
     }
 
     // TODO: this struct has only 1 field, consider removing it
+    // TODO: we don't know the address of owner in SC
     struct RegistrationDetail has store {
         expiry: u64,
     }
@@ -138,6 +153,38 @@ module suins::base_registrar {
         })
     }
 
+    public entry fun update_image_url(
+        registrar: &BaseRegistrar,
+        config: &Configuration,
+        nft: &mut RegistrationNFT,
+        signature: vector<u8>,
+        hashed_msg: vector<u8>,
+        raw_msg: vector<u8>,
+        ctx: &mut TxContext,
+    ) {
+        assert!(sha2_256(raw_msg) == hashed_msg, EHashMessageNotMatch);
+        assert!(ecdsa_k1::secp256k1_verify(&signature, configuration::public_key(config), &hashed_msg), ESignatureNotMatch);
+
+        let (ipfs, owner, expiry) = remove_later::deserialize_image_msg(raw_msg);
+
+        let sender = converter::address_to_string(sender(ctx));
+        assert!(owner == utf8(sender), EInvalidMessage);
+
+        let label = get_label_part(&nft.name, &registrar.tld);
+        // TODO: allow to update image of expired domain or not?
+        // assert!(expiry >= epoch(ctx), ELabelExpired);
+
+        assert!(expiry == name_expires_at(registrar, label), EInvalidMessage);
+        assert!(expiry > 0, ELabelNotExists);
+
+        nft.url = url::new_unsafe_from_bytes(*string::bytes(&ipfs));
+        event::emit(ImageUpdatedEvent {
+            sender: sender(ctx),
+            node: nft.name,
+            new_image: nft.url,
+        })
+    }
+
     // === Public Functions ===
 
     /// #### Notice
@@ -194,6 +241,34 @@ module suins::base_registrar {
         resolver: address,
         ctx: &mut TxContext
     ): ID {
+        register_with_image(
+            registrar,
+            registry,
+            config,
+            label,
+            owner,
+            duration,
+            resolver,
+            vector[],
+            vector[],
+            vector[],
+            ctx
+        )
+    }
+
+    public(friend) fun register_with_image(
+        registrar: &mut BaseRegistrar,
+        registry: &mut Registry,
+        config: &Configuration,
+        label: vector<u8>,
+        owner: address,
+        duration: u64,
+        resolver: address,
+        signature: vector<u8>,
+        hashed_msg: vector<u8>,
+        raw_msg: vector<u8>,
+        ctx: &mut TxContext
+    ): ID {
         assert!(duration > 0, EInvalidDuration);
         // TODO: label is already validated in Controller, consider removing this
         let label = string::try_utf8(label);
@@ -201,15 +276,30 @@ module suins::base_registrar {
         let label = option::extract(&mut label);
         assert!(available(registrar, label, ctx), ELabelUnAvailable);
 
-        let detail = RegistrationDetail { expiry: epoch(ctx) + duration };
+        let expiry = epoch(ctx) + duration;
+        let detail = RegistrationDetail { expiry };
         table::add(&mut registrar.expiries, label, detail);
 
         let node = label;
         string::append_utf8(&mut node, b".");
         string::append(&mut node, registrar.tld);
 
-        // TODO: no longer store image urls in contract. Now get it from caller and verify it
-        let url = configuration::get_url(config, duration, epoch(ctx));
+        let url;
+        if (vector::is_empty(&hashed_msg) || vector::is_empty(&raw_msg))
+            url = url::new_unsafe_from_bytes(vector[])
+        else {
+            assert!(sha2_256(raw_msg) == hashed_msg, EHashMessageNotMatch);
+            assert!(ecdsa_k1::secp256k1_verify(&signature, configuration::public_key(config), &hashed_msg), ESignatureNotMatch);
+
+            let (ipfs, owner_msg, expiry_msg) = remove_later::deserialize_image_msg(raw_msg);
+
+            let owner = converter::address_to_string(owner);
+            assert!(owner_msg == utf8(owner), EInvalidMessage);
+            assert!(expiry_msg == expiry, EInvalidMessage);
+
+            url = url::new_unsafe(string::to_ascii(ipfs));
+        };
+
         let nft = RegistrationNFT {
             id: object::new(ctx),
             name: node,

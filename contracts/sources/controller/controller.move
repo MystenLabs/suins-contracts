@@ -120,7 +120,11 @@ module suins::controller {
     /// `owner`: owner address of created NFT
     /// `no_years`: in years
     /// `secret`: the value used to create commitment in the first step
-    ///
+    /// `signature`: secp256k1 of `hashed_msg`
+    /// `hashed_msg`: sha256 of `raw_msg`
+    /// `raw_msg`: the data to verify and update image url, with format: <ipfs_url>,<owner>,<expiry>.
+    /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
+    /// 
     /// Panic
     /// Panic if new registration is disabled
     /// or `label` contains characters that are not allowed
@@ -139,6 +143,9 @@ module suins::controller {
         no_years: u64,
         secret: vector<u8>,
         payment: &mut Coin<SUI>,
+        signature: vector<u8>,
+        hashed_msg: vector<u8>,
+        raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
         let resolver = controller.default_addr_resolver;
@@ -156,6 +163,9 @@ module suins::controller {
             payment,
             option::none(),
             option::none(),
+            signature,
+            hashed_msg,
+            raw_msg,
             ctx,
         );
     }
@@ -168,6 +178,10 @@ module suins::controller {
     ///
     /// #### Params
     /// `resolver`: address of the resolver
+    /// `signature`: secp256k1 of `hashed_msg`
+    /// `hashed_msg`: sha256 of `raw_msg`
+    /// `raw_msg`: the data to verify and update image url, with format: <ipfs_url>,<owner>,<expiry>.
+    /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
     public entry fun register_with_config(
         controller: &mut BaseController,
         registrar: &mut BaseRegistrar,
@@ -180,6 +194,9 @@ module suins::controller {
         secret: vector<u8>,
         resolver: address,
         payment: &mut Coin<SUI>,
+        signature: vector<u8>,
+        hashed_msg: vector<u8>,
+        raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
         register_internal(
@@ -196,6 +213,9 @@ module suins::controller {
             payment,
             option::none(),
             option::none(),
+            signature,
+            hashed_msg,
+            raw_msg,
             ctx
         );
     }
@@ -212,6 +232,10 @@ module suins::controller {
     /// #### Params
     /// `referral_code`: referral code to be used
     /// `discount_code`: discount code to be used
+    /// `signature`: secp256k1 of `hashed_msg`
+    /// `hashed_msg`: sha256 of `raw_msg`
+    /// `raw_msg`: the data to verify and update image url, with format: <ipfs_url>,<owner>,<expiry>.
+    /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
     public entry fun register_with_code(
         controller: &mut BaseController,
         registrar: &mut BaseRegistrar,
@@ -225,6 +249,9 @@ module suins::controller {
         payment: &mut Coin<SUI>,
         referral_code: vector<u8>,
         discount_code: vector<u8>,
+        signature: vector<u8>,
+        hashed_msg: vector<u8>,
+        raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
         let referral_len = vector::length(&referral_code);
@@ -252,6 +279,9 @@ module suins::controller {
             payment,
             referral,
             discount,
+            signature,
+            hashed_msg,
+            raw_msg,
             ctx,
         );
     }
@@ -268,6 +298,10 @@ module suins::controller {
     /// #### Params
     /// `referral_code`: referral code to be used
     /// `discount_code`: discount code to be used
+    /// `signature`: secp256k1 of `hashed_msg`
+    /// `hashed_msg`: sha256 of `raw_msg`
+    /// `raw_msg`: the data to verify and update image url, with format: <ipfs_url>,<owner>,<expiry>.
+    /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
     public entry fun register_with_config_and_code(
         controller: &mut BaseController,
         registrar: &mut BaseRegistrar,
@@ -282,6 +316,9 @@ module suins::controller {
         payment: &mut Coin<SUI>,
         referral_code: vector<u8>,
         discount_code: vector<u8>,
+        signature: vector<u8>,
+        hashed_msg: vector<u8>,
+        raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
         // TODO: duplicate with `register_with_code`, consider moving this block to a separate function
@@ -308,6 +345,9 @@ module suins::controller {
             payment,
             referral,
             discount,
+            signature,
+            hashed_msg,
+            raw_msg,
             ctx,
         );
     }
@@ -412,6 +452,9 @@ module suins::controller {
         payment: &mut Coin<SUI>,
         referral_code: Option<ascii::String>,
         discount_code: Option<ascii::String>,
+        signature: vector<u8>,
+        hashed_msg: vector<u8>,
+        raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
         assert!(!controller.disable, ERegistrationIsDisabled);
@@ -440,7 +483,19 @@ module suins::controller {
         consume_commitment(controller, registrar, label, commitment, ctx);
 
         let duration = no_years * 365;
-        let nft_id = base_registrar::register(registrar, registry, config, label, owner, duration, resolver, ctx);
+        let nft_id = base_registrar::register_with_image(
+            registrar,
+            registry,
+            config,
+            label,
+            owner,
+            duration,
+            resolver,
+            signature,
+            hashed_msg,
+            raw_msg,
+            ctx
+        );
         coin_util::user_transfer_to_contract(payment, registration_fee, &mut controller.balance);
 
         event::emit(NameRegisteredEvent {

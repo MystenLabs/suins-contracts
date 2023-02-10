@@ -139,6 +139,9 @@ module suins::controller_tests {
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1, 0);
@@ -163,9 +166,9 @@ module suins::controller_tests {
             assert!(controller::balance(&controller) == 1000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2"),
+                url == url::new_unsafe_from_bytes(b""),
                 0
-            ); // 2024
+            );
             assert!(table::length(expiries) == 1, 0);
             assert!(base_registry::get_records_len(&registry) == 1, 0);
 
@@ -241,6 +244,9 @@ module suins::controller_tests {
                 2,
                 FIRST_SECRET,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1000000, 0);
@@ -266,9 +272,9 @@ module suins::controller_tests {
             assert!(controller::balance(&controller) == 2000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmaWNLR6C3QsSHcPwNoFA59DPXCKdx1t8hmyyKRqBbjYB3"),
+                url == url::new_unsafe_from_bytes(b""),
                 0
-            ); // 2025
+            );
             assert!(table::length(expiries) == 1, 0);
             assert!(base_registry::get_records_len(&registry) == 1, 0);
 
@@ -322,6 +328,9 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -368,6 +377,9 @@ module suins::controller_tests {
                 1,
                 SECOND_SECRET,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -413,6 +425,9 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -458,6 +473,9 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -503,6 +521,9 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -550,6 +571,9 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -600,6 +624,9 @@ module suins::controller_tests {
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 2000001, 0);
@@ -624,9 +651,9 @@ module suins::controller_tests {
             assert!(controller::balance(&controller) == 2000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmaWNLR6C3QsSHcPwNoFA59DPXCKdx1t8hmyyKRqBbjYB3"),
+                url == url::new_unsafe_from_bytes(b""),
                 0
-            ); // 2025
+            );
             assert!(table::length(expiries) == 1, 0);
             assert!(base_registry::get_records_len(&registry) == 1, 0);
 
@@ -696,6 +723,9 @@ module suins::controller_tests {
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 test_scenario::ctx(&mut scenario),
             );
 
@@ -736,6 +766,9 @@ module suins::controller_tests {
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 test_scenario::ctx(&mut scenario),
             );
 
@@ -776,6 +809,9 @@ module suins::controller_tests {
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 test_scenario::ctx(&mut scenario),
             );
 
@@ -816,6 +852,9 @@ module suins::controller_tests {
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 test_scenario::ctx(&mut scenario),
             );
 
@@ -872,6 +911,9 @@ module suins::controller_tests {
                 2,
                 FIRST_SECRET,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 test_scenario::ctx(&mut scenario),
             );
 
@@ -942,6 +984,9 @@ module suins::controller_tests {
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -1253,6 +1298,9 @@ module suins::controller_tests {
                 2,
                 FIRST_SECRET,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -1308,6 +1356,9 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 b"",
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -1333,9 +1384,9 @@ module suins::controller_tests {
 
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmaWNLR6C3QsSHcPwNoFA59DPXCKdx1t8hmyyKRqBbjYB3"),
+                url == url::new_unsafe_from_bytes(b""),
                 0
-            ); // 2025
+            );
             assert!(table::length(expiries) == 1, 0);
             assert!(base_registry::get_records_len(&registry) == 1, 0);
             assert!(coin::value(&coin) == 200000, 0);
@@ -1398,6 +1449,9 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 b"",
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1000000, 0);
@@ -1422,9 +1476,9 @@ module suins::controller_tests {
 
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmRF7kbi4igtGcX6enEuthQRhvQZejc7ZKBhMimFJtTS8D"),
+                url == url::new_unsafe_from_bytes(b""),
                 0
-            ); // 2025
+            );
             assert!(table::length(expiries) == 1, 0);
             assert!(base_registry::get_records_len(&registry) == 1, 0);
             assert!(coin::value(&coin) == 300000, 0);
@@ -1523,6 +1577,9 @@ module suins::controller_tests {
                 &mut coin,
                 b"",
                 DISCOUNT_CODE,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -1548,9 +1605,9 @@ module suins::controller_tests {
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmaWNLR6C3QsSHcPwNoFA59DPXCKdx1t8hmyyKRqBbjYB3"),
+                url == url::new_unsafe_from_bytes(b""),
                 0
-            ); // 2025
+            );
             assert!(table::length(expiries) == 1, 0);
             assert!(base_registry::get_records_len(&registry) == 1, 0);
             assert!(controller::balance(&controller) == 1700000, 0);
@@ -1604,6 +1661,9 @@ module suins::controller_tests {
                 &mut coin,
                 b"",
                 DISCOUNT_CODE,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -1650,6 +1710,9 @@ module suins::controller_tests {
                 &mut coin,
                 b"",
                 REFERRAL_CODE,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -1703,6 +1766,9 @@ module suins::controller_tests {
                 &mut coin,
                 b"",
                 DISCOUNT_CODE,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1300000, 0);
@@ -1727,9 +1793,9 @@ module suins::controller_tests {
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmaWNLR6C3QsSHcPwNoFA59DPXCKdx1t8hmyyKRqBbjYB3"),
+                url == url::new_unsafe_from_bytes(b""),
                 0
-            ); // 2025
+            );
             assert!(table::length(expiries) == 1, 0);
             assert!(base_registry::get_records_len(&registry) == 1, 0);
             assert!(controller::balance(&controller) == 1700000, 0);
@@ -1784,6 +1850,9 @@ module suins::controller_tests {
                 &mut coin,
                 b"",
                 DISCOUNT_CODE,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -1831,6 +1900,9 @@ module suins::controller_tests {
                 &mut coin,
                 b"",
                 REFERRAL_CODE,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -1877,6 +1949,9 @@ module suins::controller_tests {
                 &mut coin,
                 b"",
                 DISCOUNT_CODE,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -1916,6 +1991,9 @@ module suins::controller_tests {
                 &mut coin,
                 b"",
                 DISCOUNT_CODE,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -1963,6 +2041,9 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 b"",
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1000000, 0);
@@ -2015,6 +2096,9 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 b"",
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 2000000, 0);
@@ -2075,6 +2159,9 @@ module suins::controller_tests {
                 &mut coin,
                 DISCOUNT_CODE,
                 b"",
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -2127,6 +2214,9 @@ module suins::controller_tests {
                 2,
                 FIRST_SECRET,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1000000, 0);
@@ -2151,9 +2241,9 @@ module suins::controller_tests {
             assert!(controller::balance(&controller) == 2000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmaWNLR6C3QsSHcPwNoFA59DPXCKdx1t8hmyyKRqBbjYB3"),
+                url == url::new_unsafe_from_bytes(b""),
                 0
-            ); // 2024
+            );
             assert!(table::length(expiries) == 1, 0);
             assert!(base_registry::get_records_len(&registry) == 1, 0);
 
@@ -2212,6 +2302,9 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 DISCOUNT_CODE,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1300000, 0);
@@ -2236,9 +2329,9 @@ module suins::controller_tests {
 
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmaWNLR6C3QsSHcPwNoFA59DPXCKdx1t8hmyyKRqBbjYB3"),
+                url == url::new_unsafe_from_bytes(b""),
                 0
-            ); // 2025
+            );
             assert!(table::length(expiries) == 1, 0);
             assert!(base_registry::get_records_len(&registry) == 1, 0);
             assert!(coin::value(&coin) == 170000, 0);
@@ -2294,6 +2387,9 @@ module suins::controller_tests {
                 &mut coin,
                 DISCOUNT_CODE,
                 DISCOUNT_CODE,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -2340,6 +2436,9 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 REFERRAL_CODE,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -2396,6 +2495,9 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 DISCOUNT_CODE,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1300000, 0);
@@ -2418,9 +2520,9 @@ module suins::controller_tests {
 
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmaWNLR6C3QsSHcPwNoFA59DPXCKdx1t8hmyyKRqBbjYB3"),
+                url == url::new_unsafe_from_bytes(b""),
                 0
-            ); // 2025
+            );
             assert!(table::length(expiries) == 1, 0);
             assert!(base_registry::get_records_len(&registry) == 1, 0);
             assert!(coin::value(&coin) == 170000, 0);
@@ -2477,6 +2579,9 @@ module suins::controller_tests {
                 &mut coin,
                 DISCOUNT_CODE,
                 DISCOUNT_CODE,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -2524,6 +2629,9 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 REFERRAL_CODE,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
             coin::destroy_for_testing(coin);
@@ -2581,6 +2689,9 @@ module suins::controller_tests {
                 2,
                 FIRST_SECRET,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -2626,6 +2737,9 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -2649,9 +2763,9 @@ module suins::controller_tests {
             assert!(controller::balance(&controller) == 1000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2"),
+                url == url::new_unsafe_from_bytes(b""),
                 0
-            ); // 2024
+            );
             assert!(table::length(expiries) == 1, 0);
             assert!(base_registry::get_records_len(&registry) == 1, 0);
 
@@ -2702,6 +2816,9 @@ module suins::controller_tests {
                 2,
                 FIRST_SECRET,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -2747,6 +2864,9 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -2769,9 +2889,9 @@ module suins::controller_tests {
             assert!(controller::balance(&controller) == 1000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2"),
+                url == url::new_unsafe_from_bytes(b""),
                 0
-            ); // 2024
+            );
             assert!(table::length(expiries) == 1, 0);
             assert!(base_registry::get_records_len(&registry) == 1, 0);
 
@@ -2848,6 +2968,9 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -2870,9 +2993,9 @@ module suins::controller_tests {
             assert!(controller::balance(&controller) == 1000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2"),
+                url == url::new_unsafe_from_bytes(b""),
                 0
-            ); // 2024
+            );
             assert!(table::length(expiries) == 1, 0);
             assert!(base_registry::get_records_len(&registry) == 1, 0);
 
@@ -2949,6 +3072,9 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -2971,9 +3097,9 @@ module suins::controller_tests {
             assert!(controller::balance(&controller) == 1000000, 0);
             assert!(name == utf8(AUCTIONED_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2"),
+                url == url::new_unsafe_from_bytes(b""),
                 0
-            ); // 2024
+            );
             assert!(table::length(expiries) == 1, 0);
             assert!(base_registry::get_records_len(&registry) == 1, 0);
 
@@ -3050,6 +3176,9 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -3072,9 +3201,9 @@ module suins::controller_tests {
             assert!(controller::balance(&controller) == 1000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2"),
+                url == url::new_unsafe_from_bytes(b""),
                 0
-            ); // 2024
+            );
             assert!(table::length(expiries) == 1, 0);
             assert!(base_registry::get_records_len(&registry) == 1, 0);
 
@@ -3171,6 +3300,9 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -3250,6 +3382,9 @@ module suins::controller_tests {
                  1,
                  FIRST_SECRET,
                  &mut coin,
+                 vector[],
+                 vector[],
+                 vector[],
                  &mut ctx,
              );
 
@@ -3272,9 +3407,9 @@ module suins::controller_tests {
              assert!(controller::balance(&controller) == 1000000, 0);
              assert!(name == utf8(AUCTIONED_NODE), 0);
              assert!(
-                 url == url::new_unsafe_from_bytes(b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2"),
+                 url == url::new_unsafe_from_bytes(b""),
                  0
-             ); // 2024
+             );
              assert!(table::length(expiries) == 1, 0);
              assert!(base_registry::get_records_len(&registry) == 1, 0);
 
@@ -3371,6 +3506,9 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
+                vector[],
+                vector[],
+                vector[],
                 &mut ctx,
             );
 
@@ -3393,9 +3531,9 @@ module suins::controller_tests {
             assert!(controller::balance(&controller) == 1000000, 0);
             assert!(name == utf8(AUCTIONED_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2"),
+                url == url::new_unsafe_from_bytes(b""),
                 0
-            ); // 2024
+            );
             assert!(table::length(expiries) == 1, 0);
             assert!(base_registry::get_records_len(&registry) == 1, 0);
 
