@@ -316,8 +316,13 @@ module suins::controller {
     fun remove_outdated_commitment(controller: &mut BaseController, ctx: &mut TxContext) {
         // TODO: need to update logic when timestamp is introduced
         let front_element = linked_table::front(&controller.commitments);
+        let i = 0;
+        let max = 50;
+        // TODO: add a flag so when we find the last outdated commitment, we change that to true
+        // TODO: later we don't need to check again
+        while (option::is_some(front_element) && i < max) {
+            i = i + 1;
 
-        while (option::is_some(front_element)) {
             let created_at = linked_table::borrow(&controller.commitments, *option::borrow(front_element));
             if (*created_at + MAX_COMMITMENT_AGE <= tx_context::epoch(ctx)) {
                 linked_table::pop_front(&mut controller.commitments);
