@@ -13,7 +13,7 @@ module suins::controller {
     use sui::linked_table::{Self, LinkedTable};
     use sui::object::{Self, UID, ID};
     use sui::transfer;
-    use sui::tx_context::{Self, TxContext};
+    use sui::tx_context::{TxContext, sender, epoch};
     use sui::sui::SUI;
     use suins::base_registry::{Registry, AdminCap};
     use suins::base_registrar::{Self, BaseRegistrar};
@@ -105,7 +105,7 @@ module suins::controller {
         ctx: &mut TxContext,
     ) {
         remove_outdated_commitments(controller, ctx);
-        linked_table::push_back(&mut controller.commitments, commitment, tx_context::epoch(ctx));
+        linked_table::push_back(&mut controller.commitments, commitment, epoch(ctx));
     }
 
     /// #### Notice
@@ -339,7 +339,7 @@ module suins::controller {
         base_registrar::renew(registrar, label, duration, ctx);
 
         event::emit(NameRenewedEvent {
-            node: base_registrar::get_base_node(registrar),
+            node: base_registrar::base_node(registrar),
             label: string::utf8(label),
             cost: renew_fee,
             duration,
@@ -355,7 +355,7 @@ module suins::controller {
         let amount = balance::value(&controller.balance);
         assert!(amount > 0, ENoProfits);
 
-        coin_util::contract_transfer_to_address(&mut controller.balance, amount, tx_context::sender(ctx), ctx);
+        coin_util::contract_transfer_to_address(&mut controller.balance, amount, sender(ctx), ctx);
     }
 
     // === Private Functions ===
@@ -415,10 +415,10 @@ module suins::controller {
         ctx: &mut TxContext,
     ) {
         assert!(!controller.disable, ERegistrationIsDisabled);
-        let emoji_config = configuration::get_emoji_config(config);
+        let emoji_config = configuration::emoji_config(config);
         let label_str = utf8(label);
 
-        if (tx_context::epoch(ctx) <= auction::auction_close_at(auction)) {
+        if (epoch(ctx) <= auction::auction_close_at(auction)) {
             validate_label_with_emoji(emoji_config, label, 7, 63)
         } else {
             assert!(auction::is_auction_label_available_for_controller(auction, label_str, ctx), ELabelUnAvailable);
@@ -444,11 +444,11 @@ module suins::controller {
         coin_util::user_transfer_to_contract(payment, registration_fee, &mut controller.balance);
 
         event::emit(NameRegisteredEvent {
-            node: base_registrar::get_base_node(registrar),
+            node: base_registrar::base_node(registrar),
             label: label_str,
             owner,
             cost: FEE_PER_YEAR * no_years,
-            expiry: tx_context::epoch(ctx) + duration,
+            expiry: epoch(ctx) + duration,
             nft_id,
             resolver,
             referral_code,
@@ -462,7 +462,7 @@ module suins::controller {
 
         while (option::is_some(front_element)) {
             let created_at = linked_table::borrow(&controller.commitments, *option::borrow(front_element));
-            if (*created_at + MAX_COMMITMENT_AGE <= tx_context::epoch(ctx)) {
+            if (*created_at + MAX_COMMITMENT_AGE <= epoch(ctx)) {
                 linked_table::pop_front(&mut controller.commitments);
                 front_element = linked_table::front(&controller.commitments);
             } else break;
@@ -483,7 +483,7 @@ module suins::controller {
         //     ECommitmentNotValid
         // );
         assert!(
-            *linked_table::borrow(&controller.commitments, commitment) + MAX_COMMITMENT_AGE > tx_context::epoch(ctx),
+            *linked_table::borrow(&controller.commitments, commitment) + MAX_COMMITMENT_AGE > epoch(ctx),
             ECommitmentTooOld
         );
         assert!(base_registrar::available(registrar, string::utf8(label), ctx), ELabelUnAvailable);
@@ -493,7 +493,7 @@ module suins::controller {
     fun make_commitment(registrar: &BaseRegistrar, label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
         let node = label;
         vector::append(&mut node, b".");
-        vector::append(&mut node, base_registrar::get_base_node_bytes(registrar));
+        vector::append(&mut node, base_registrar::base_node_bytes(registrar));
 
         let owner_bytes = bcs::to_bytes(&owner);
         vector::append(&mut node, owner_bytes);

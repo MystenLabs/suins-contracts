@@ -4,7 +4,7 @@ module suins::base_registrar_tests {
     use sui::tx_context;
     use sui::table;
     use suins::base_registry::{Self, Registry, AdminCap};
-    use suins::base_registrar::{Self, BaseRegistrar, RegistrationNFT, TLDsList};
+    use suins::base_registrar::{Self, BaseRegistrar, RegistrationNFT, TLDList};
     use suins::configuration::{Self, Configuration};
     use std::vector;
     use std::string::utf8;
@@ -31,7 +31,7 @@ module suins::base_registrar_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
 
             base_registrar::new_tld(&admin_cap, &mut tlds_list, b"move", test_scenario::ctx(&mut scenario));
             base_registrar::new_tld(&admin_cap, &mut tlds_list, b"sui", test_scenario::ctx(&mut scenario));
@@ -124,10 +124,10 @@ module suins::base_registrar_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
 
             let label = utf8(b"eastagile");
-            assert!(base_registrar::name_expires(&registrar, label) == 10 + 365, 0);
+            assert!(base_registrar::name_expires_at(&registrar, label) == 10 + 365, 0);
 
             let label = utf8(b"ea");
-            assert!(base_registrar::name_expires(&registrar, label) == 0, 0);
+            assert!(base_registrar::name_expires_at(&registrar, label) == 0, 0);
 
             test_scenario::return_shared(registrar);
         };
@@ -233,9 +233,9 @@ module suins::base_registrar_tests {
         {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
 
-            assert!(base_registrar::name_expires(&registrar, utf8(FIRST_LABEL)) == 375, 0);
+            assert!(base_registrar::name_expires_at(&registrar, utf8(FIRST_LABEL)) == 375, 0);
             let new_expiry = base_registrar::renew(&mut registrar, FIRST_LABEL, 100, test_scenario::ctx(&mut scenario));
-            assert!(base_registrar::name_expires(&registrar, utf8(FIRST_LABEL)) == 475, 0);
+            assert!(base_registrar::name_expires_at(&registrar, utf8(FIRST_LABEL)) == 475, 0);
             assert!(new_expiry == 475, 0);
 
             test_scenario::return_shared(registrar);
@@ -249,7 +249,7 @@ module suins::base_registrar_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
-            assert!(base_registrar::name_expires(&registrar, utf8(SECOND_LABEL)) == 0, 0);
+            assert!(base_registrar::name_expires_at(&registrar, utf8(SECOND_LABEL)) == 0, 0);
 
             base_registrar::renew(&mut registrar, SECOND_LABEL, 100, test_scenario::ctx(&mut scenario));
             test_scenario::return_shared(registrar);
@@ -271,7 +271,7 @@ module suins::base_registrar_tests {
                 0
             );
 
-            assert!(base_registrar::name_expires(&registrar, utf8(FIRST_LABEL)) == 375, 0);
+            assert!(base_registrar::name_expires_at(&registrar, utf8(FIRST_LABEL)) == 375, 0);
             base_registrar::renew(&mut registrar, FIRST_LABEL, 100, &ctx);
             test_scenario::return_shared(registrar);
         };
@@ -289,7 +289,7 @@ module suins::base_registrar_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
 
-            base_registrar::reclaim_by_nft_owner(
+            base_registrar::reclaim_name(
                 &registrar,
                 &mut registry,
                 &nft,
@@ -326,7 +326,7 @@ module suins::base_registrar_tests {
             let move_registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
 
-            base_registrar::reclaim_by_nft_owner(
+            base_registrar::reclaim_name(
                 &move_registrar,
                 &mut registry,
                 &nft,
@@ -354,7 +354,7 @@ module suins::base_registrar_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             base_registrar::set_nft_domain(&mut nft, utf8(b"thisisadomain.sui"));
 
-            base_registrar::reclaim_by_nft_owner(
+            base_registrar::reclaim_name(
                 &sui_registrar,
                 &mut registry,
                 &nft,
@@ -386,7 +386,7 @@ module suins::base_registrar_tests {
                 0
             );
 
-            base_registrar::reclaim_by_nft_owner(
+            base_registrar::reclaim_name(
                 &move_registrar,
                 &mut registry,
                 &nft,
@@ -407,7 +407,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
             let tlds = base_registrar::get_tlds(&tlds_list);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
@@ -421,7 +421,7 @@ module suins::base_registrar_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
 
             base_registrar::new_tld(
                 &admin_cap,
@@ -436,7 +436,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
             let tlds = base_registrar::get_tlds(&tlds_list);
             let com_registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
@@ -500,7 +500,7 @@ module suins::base_registrar_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
 
             base_registrar::new_tld(
                 &admin_cap,
@@ -522,7 +522,7 @@ module suins::base_registrar_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
 
             base_registrar::new_tld(
                 &admin_cap,

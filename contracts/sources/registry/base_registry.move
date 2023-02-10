@@ -6,7 +6,7 @@ module suins::base_registry {
     use sui::object::{Self, UID};
     use sui::transfer;
     use sui::table::{Self, Table};
-    use sui::tx_context::{Self, TxContext};
+    use sui::tx_context::{TxContext, sender};
     use std::string::{Self, String};
 
     friend suins::base_registrar;
@@ -53,6 +53,7 @@ module suins::base_registry {
 
     struct Registry has key {
         id: UID,
+        /// name records that correspond to registration records in `Registrar`
         records: Table<String, Record>,
     }
 
@@ -217,7 +218,7 @@ module suins::base_registry {
 
     public(friend) fun authorised(registry: &Registry, node: vector<u8>, ctx: &TxContext) {
         let owner = owner(registry, node);
-        assert!(tx_context::sender(ctx) == owner, EUnauthorized);
+        assert!(sender(ctx) == owner, EUnauthorized);
     }
 
     public(friend) fun set_owner_internal(registry: &mut Registry, node: String, owner: address) {
@@ -255,7 +256,7 @@ module suins::base_registry {
         });
         transfer::transfer(AdminCap {
             id: object::new(ctx)
-        }, tx_context::sender(ctx));
+        }, sender(ctx));
     }
 
     fun new_record(
@@ -310,6 +311,6 @@ module suins::base_registry {
         });
         transfer::transfer(AdminCap {
             id: object::new(ctx)
-        }, tx_context::sender(ctx));
+        }, sender(ctx));
     }
 }

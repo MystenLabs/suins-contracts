@@ -6,7 +6,7 @@ module suins::controller_tests {
     use sui::tx_context;
     use sui::sui::SUI;
     use suins::controller::{Self, BaseController};
-    use suins::base_registrar::{Self, BaseRegistrar, TLDsList, RegistrationNFT};
+    use suins::base_registrar::{Self, BaseRegistrar, TLDList, RegistrationNFT};
     use suins::base_registry::{Self, Registry, AdminCap};
     use suins::emoji;
     use suins::configuration::{Self, Configuration};
@@ -56,7 +56,7 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             base_registrar::new_tld(&admin_cap, &mut tlds_list,b"sui", test_scenario::ctx(&mut scenario));
             configuration::new_referral_code(&admin_cap, &mut config, REFERRAL_CODE, 10, SECOND_USER_ADDRESS);
@@ -967,7 +967,7 @@ module suins::controller_tests {
             let ctx = test_scenario::ctx(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(2000001, ctx);
 
-            assert!(base_registrar::name_expires(&registrar, string::utf8(FIRST_LABEL)) == 416, 0);
+            assert!(base_registrar::name_expires_at(&registrar, string::utf8(FIRST_LABEL)) == 416, 0);
             assert!(controller::balance(&controller) == 1000000, 0);
 
             controller::renew(
@@ -980,7 +980,7 @@ module suins::controller_tests {
             );
 
             assert!(coin::value(&coin) == 1, 0);
-            assert!(base_registrar::name_expires(&registrar, string::utf8(FIRST_LABEL)) == 1146, 0);
+            assert!(base_registrar::name_expires_at(&registrar, string::utf8(FIRST_LABEL)) == 1146, 0);
 
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);

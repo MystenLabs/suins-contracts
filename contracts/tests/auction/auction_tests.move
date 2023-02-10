@@ -9,7 +9,7 @@ module suins::auction_tests {
     use sui::dynamic_field;
     use suins::auction::{Self, Auction, make_seal_bid, get_seal_bid_by_bidder, finalize_auction, get_bids_by_bidder, get_bid_detail_fields, withdraw, state};
     use suins::base_registry::{Self, Registry, AdminCap};
-    use suins::base_registrar::{Self, BaseRegistrar, TLDsList};
+    use suins::base_registrar::{Self, BaseRegistrar, TLDList};
     use suins::configuration::{Self, Configuration};
     use suins::emoji;
     use std::string::utf8;
@@ -84,7 +84,7 @@ module suins::auction_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
 
             base_registrar::new_tld(&admin_cap, &mut tlds_list, b"move", ctx(&mut scenario));
@@ -970,7 +970,7 @@ module suins::auction_tests {
             get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
             assert!(base_registrar::record_exists(&registrar, utf8(NODE)), 0);
             assert!(
-                base_registrar::name_expires(
+                base_registrar::name_expires_at(
                     &registrar,
                     utf8(NODE)
                 ) == START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 365,
@@ -1019,7 +1019,7 @@ module suins::auction_tests {
             get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
             assert!(base_registrar::record_exists(&registrar, utf8(NODE)), 0);
             assert!(
-                base_registrar::name_expires(
+                base_registrar::name_expires_at(
                     &registrar,
                     utf8(NODE)
                 ) == START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 365,
@@ -1448,7 +1448,7 @@ module suins::auction_tests {
             get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1000, 0, FIRST_USER_ADDRESS, true);
             assert!(base_registrar::record_exists(&sui_registrar, utf8(NODE)), 0);
             assert!(
-                base_registrar::name_expires(
+                base_registrar::name_expires_at(
                     &sui_registrar,
                     utf8(NODE)
                 ) == START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 365,
@@ -1515,7 +1515,7 @@ module suins::auction_tests {
             get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1000, 0, FIRST_USER_ADDRESS, true);
             assert!(base_registrar::record_exists(&sui_registrar, utf8(NODE)), 0);
             assert!(
-                base_registrar::name_expires(
+                base_registrar::name_expires_at(
                     &sui_registrar,
                     utf8(NODE)
                 ) == AUCTION_CLOSE_AT + 10 + 365,

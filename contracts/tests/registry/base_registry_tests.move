@@ -4,7 +4,7 @@ module suins::base_registry_tests {
     use sui::test_scenario::{Self, Scenario};
     use sui::dynamic_field;
     use suins::base_registry::{Self, Registry, AdminCap};
-    use suins::base_registrar::{Self, TLDsList};
+    use suins::base_registrar::{Self, TLDList};
     use std::string::utf8;
 
     friend suins::resolver_tests;
@@ -29,7 +29,7 @@ module suins::base_registry_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             base_registrar::new_tld(&admin_cap, &mut tlds_list, b"sui", test_scenario::ctx(&mut scenario));

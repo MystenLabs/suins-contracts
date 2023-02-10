@@ -37,7 +37,6 @@ module suins::auction {
     const AUCTION_STATE_OWNED: u8 = 6;
     const AUCTION_STATE_REOPENED: u8 = 7;
 
-    const EUnauthorized: u64 = 801;
     const EInvalidPhase: u64 = 802;
     const EAuctionNotAvailable: u64 = 803;
     const EBidExisted: u64 = 804;
@@ -176,7 +175,7 @@ module suins::auction {
             auction.open_at <= epoch(ctx) && epoch(ctx) <= auction.close_at,
             EAuctionNotAvailable,
         );
-        let emoji_config = configuration::get_emoji_config(config);
+        let emoji_config = configuration::emoji_config(config);
         emoji::validate_label_with_emoji(emoji_config, label, 3, 6);
 
         let state = state(auction, label, ctx);
@@ -362,7 +361,7 @@ module suins::auction {
             auction.open_at <= epoch(ctx) && epoch(ctx) <= auction.close_at + EXTRA_PERIOD,
             EAuctionNotAvailable,
         );
-        assert!(base_registrar::get_base_node_bytes(registrar) == b"sui", EInvalidRegistrar);
+        assert!(base_registrar::base_node_bytes(registrar) == b"sui", EInvalidRegistrar);
         let auction_state = state(auction, label, ctx);
         // the reveal phase is over in all of these phases and have received bids
         assert!(
