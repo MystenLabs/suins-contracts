@@ -39,6 +39,7 @@ module suins::base_registrar {
     const ESignatureNotMatch: u64 = 210;
     const EInvalidMessage: u64 = 211;
     const EHashedMessageNotMatch: u64 = 212;
+    const ENFTExpired: u64 = 213;
 
     struct NameRenewedEvent has copy, drop {
         label: String,
@@ -67,7 +68,7 @@ module suins::base_registrar {
 
     // TODO: this struct has only 1 field, consider removing it
     // TODO: we don't know the address of owner in SC
-    struct RegistrationDetail has store {
+    struct RegistrationDetail has store, drop {
         expiry: u64,
         owner: address,
     }
@@ -153,14 +154,6 @@ module suins::base_registrar {
         })
     }
 
-    fun validate_nft(registrar: &BaseRegistrar, nft: &RegistrationNFT, ctx: &mut TxContext) {
-        let label = get_label_part(&nft.name, &registrar.tld);
-        let detail = table::borrow(&registrar.details, label);
-
-        assert!(detail.owner == sender(ctx), ELabelNotExists);
-        assert!(!is_expired(registrar, label, ctx), ELabelExpired);
-    }
-
     public entry fun update_image_url(
         registrar: &BaseRegistrar,
         config: &Configuration,
@@ -214,6 +207,15 @@ module suins::base_registrar {
             return expiry < epoch(ctx)
         };
         true
+    }
+
+    // TODO: every functions that take RegistrationNFT must call this
+    public fun validate_nft(registrar: &BaseRegistrar, nft: &RegistrationNFT, ctx: &mut TxContext) {
+        let label = get_label_part(&nft.name, &registrar.tld);
+        let detail = table::borrow(&registrar.details, label);
+
+        assert!(detail.owner == sender(ctx), ENFTExpired);
+        assert!(!is_expired(registrar, label, ctx), ENFTExpired);
     }
 
     /// #### Notice
@@ -298,6 +300,11 @@ module suins::base_registrar {
 
         let expiry = epoch(ctx) + duration;
         let detail = RegistrationDetail { expiry, owner };
+
+        if (table::contains(&registrar.details, label)) {
+            // this `label` is available for registration again
+            table::remove(&mut registrar.details, label);
+        };
         table::add(&mut registrar.details, label, detail);
 
         let node = label;

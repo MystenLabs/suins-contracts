@@ -182,6 +182,7 @@ module suins::controller_tests {
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_expiry(detail) == 51 + 365, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(scenario, nft);
             test_scenario::return_shared(controller);
@@ -285,6 +286,7 @@ module suins::controller_tests {
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_expiry(detail) == 21 + 730, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -570,6 +572,199 @@ module suins::controller_tests {
     }
 
     #[test]
+    fun test_register_works_if_previous_registration_is_expired() {
+        let scenario = test_init();
+        register(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                599,
+                10
+            );
+            let commitment = controller::test_make_commitment(
+                &registrar,
+                FIRST_LABEL,
+                SECOND_USER_ADDRESS,
+                FIRST_SECRET
+            );
+
+            controller::commit(
+                &mut controller,
+                commitment,
+                &mut ctx,
+            );
+
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+        };
+
+        test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            // simulate user wait for next epoch to call `register`
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                600,
+                20
+            );
+            let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
+            assert!(controller::balance(&controller) == 1000000, 0);
+
+            controller::register(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &mut config,
+                &auction,
+                FIRST_LABEL,
+                SECOND_USER_ADDRESS,
+                1,
+                FIRST_SECRET,
+                &mut coin,
+                &mut ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(auction);
+        };
+
+        test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+
+            assert!(controller::balance(&controller) == 2000000, 0);
+            assert!(name == utf8(FIRST_NODE), 0);
+            assert!(
+                url == url::new_unsafe_from_bytes(b""),
+                0
+            );
+            assert!(table::length(expiries) == 1, 0);
+            assert!(base_registry::get_records_len(&registry) == 1, 0);
+
+            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
+
+            assert!(owner == SECOND_USER_ADDRESS, 0);
+            std::debug::print(&resolver);
+            assert!(resolver == @0x0, 0);
+            assert!(ttl == 0, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 600 + 365, 0);
+            assert!(base_registrar::get_registration_owner(detail) == SECOND_USER_ADDRESS, 0);
+
+            base_registrar::validate_nft(&registrar, &nft, test_scenario::ctx(&mut scenario));
+
+            test_scenario::return_to_sender(&mut scenario, nft);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = base_registrar::ENFTExpired)]
+    fun test_register_works_if_previous_registration_is_expired_2() {
+        let scenario = test_init();
+        register(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                599,
+                10
+            );
+            let commitment = controller::test_make_commitment(
+                &registrar,
+                FIRST_LABEL,
+                SECOND_USER_ADDRESS,
+                FIRST_SECRET
+            );
+
+            controller::commit(
+                &mut controller,
+                commitment,
+                &mut ctx,
+            );
+
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+        };
+
+        test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            // simulate user wait for next epoch to call `register`
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                600,
+                20
+            );
+            let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
+            assert!(controller::balance(&controller) == 1000000, 0);
+
+            controller::register(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &mut config,
+                &auction,
+                FIRST_LABEL,
+                SECOND_USER_ADDRESS,
+                1,
+                FIRST_SECRET,
+                &mut coin,
+                &mut ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(auction);
+        };
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+
+            base_registrar::validate_nft(&registrar, &nft, test_scenario::ctx(&mut scenario));
+
+            test_scenario::return_to_sender(&mut scenario, nft);
+            test_scenario::return_shared(registrar);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
     fun test_register_with_config() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -643,6 +838,7 @@ module suins::controller_tests {
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_expiry(detail) == 51 + 730, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -1354,6 +1550,7 @@ module suins::controller_tests {
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_expiry(detail) == 51 + 730, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_to_address(SECOND_USER_ADDRESS, coin);
@@ -1443,6 +1640,7 @@ module suins::controller_tests {
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_expiry(detail) == 51 + 1095, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_to_address(SECOND_USER_ADDRESS, coin);
@@ -1568,6 +1766,7 @@ module suins::controller_tests {
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_expiry(detail) == 51 + 730, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -1747,6 +1946,7 @@ module suins::controller_tests {
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_expiry(detail) == 51 + 730, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -2170,6 +2370,7 @@ module suins::controller_tests {
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_expiry(detail) == 51 + 730, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -2257,6 +2458,7 @@ module suins::controller_tests {
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_expiry(detail) == 51 + 730, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER_ADDRESS, 0);
 
             coin::destroy_for_testing(coin);
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -2439,6 +2641,7 @@ module suins::controller_tests {
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_expiry(detail) == 51 + 730, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER_ADDRESS, 0);
 
             coin::destroy_for_testing(coin);
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -2668,6 +2871,7 @@ module suins::controller_tests {
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_expiry(detail) == 21 + 365, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -2788,6 +2992,7 @@ module suins::controller_tests {
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_expiry(detail) == 51 + 365, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -2889,6 +3094,7 @@ module suins::controller_tests {
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_expiry(detail) == 221 + 365, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -2990,6 +3196,7 @@ module suins::controller_tests {
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_expiry(detail) == 221 + 365, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -3091,6 +3298,7 @@ module suins::controller_tests {
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_expiry(detail) == 121 + 365, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -3291,6 +3499,7 @@ module suins::controller_tests {
              assert!(resolver == @0x0, 0);
              assert!(ttl == 0, 0);
              assert!(base_registrar::get_registration_expiry(detail) == 221 + 365, 0);
+             assert!(base_registrar::get_registration_owner(detail) == FIRST_USER_ADDRESS, 0);
 
              test_scenario::return_to_sender(&mut scenario, nft);
              test_scenario::return_shared(controller);
@@ -3412,6 +3621,7 @@ module suins::controller_tests {
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_expiry(detail) == 221 + 365, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -3599,9 +3809,9 @@ module suins::controller_tests {
                 2,
                 FIRST_SECRET,
                 &mut coin,
-                x"03771eb1c177eaba688e743be3aab8f74a81d32290799b3e4649f43f31c473432a42935d2f8224e7137219bc7fb08ad8afb003ec68a70c1083002e4ca0d3b806",
-                x"95d45e6be891cd2b398cc2844791c2d8bcd90a53e757edb2eef254503c84c526",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,751",
+                x"b8d5c020ccf043fb1dde772067d54e254041ec4c8e137f5017158711e59e86933d1889cf4d9c6ad8ef57290cc00d99b7ba60da5c0db64a996f72af010acdd2b0",
+                x"64d1c3d80ac32235d4bf1c5499ac362fd28b88eba2984e81cc36924be09f5a2d",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,751",
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1000000, 0);
@@ -3640,6 +3850,7 @@ module suins::controller_tests {
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_expiry(detail) == 21 + 730, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -3686,9 +3897,9 @@ module suins::controller_tests {
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
-                x"03771eb1c177eaba688e743be3aab8f74a81d32290799b3e4649f43f31c473432a42935d2f8224e7137219bc7fb08ad8afb003ec68a70c1083002e4ca0d3b806",
-                x"95d45e6be891cd2b398cc2844791c2d8bcd90a53e757edb2eef254503c84c526",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,751",
+                x"b8d5c020ccf043fb1dde772067d54e254041ec4c8e137f5017158711e59e86933d1889cf4d9c6ad8ef57290cc00d99b7ba60da5c0db64a996f72af010acdd2b0",
+                x"64d1c3d80ac32235d4bf1c5499ac362fd28b88eba2984e81cc36924be09f5a2d",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,751",
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 2000001, 0);
@@ -3726,6 +3937,7 @@ module suins::controller_tests {
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_expiry(detail) == 21 + 730, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -3791,8 +4003,8 @@ module suins::controller_tests {
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
-                x"03771eb1c177eaba688e743be3aab8f74a81d32290799b3e4649f43f31c473432a42935d2f8224e7137219bc7fb08ad8afb003ec68a70c1083002e4ca0d3b806",
-                x"95d45e6be891cd2b398cc2844791c2d8bcd90a53e757edb2eef254503c84c526",
+                x"b8d5c020ccf043fb1dde772067d54e254041ec4c8e137f5017158711e59e86933d1889cf4d9c6ad8ef57290cc00d99b7ba60da5c0db64a996f72af010acdd2b0",
+                x"64d1c3d80ac32235d4bf1c5499ac362fd28b88eba2984e81cc36924be09f5a2d",
                 b"",
                 &mut ctx,
             );
@@ -3840,8 +4052,8 @@ module suins::controller_tests {
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
                 x"",
-                x"95d45e6be891cd2b398cc2844791c2d8bcd90a53e757edb2eef254503c84c526",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,751",
+                x"64d1c3d80ac32235d4bf1c5499ac362fd28b88eba2984e81cc36924be09f5a2d",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,751",
                 &mut ctx,
             );
 
@@ -3887,9 +4099,9 @@ module suins::controller_tests {
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
-                x"03771eb1c177eaba688e743be3aab8f74a81d32290799b3e4649f43f31c473432a42935d2f8224e7137219bc7fb08ad8afb003ec68a70c1083002e4ca0d3b806",
+                x"b8d5c020ccf043fb1dde772067d54e254041ec4c8e137f5017158711e59e86933d1889cf4d9c6ad8ef57290cc00d99b7ba60da5c0db64a996f72af010acdd2b0",
                 x"",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,751",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,751",
                 &mut ctx,
             );
 
@@ -3942,9 +4154,9 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 DISCOUNT_CODE,
-                x"03771eb1c177eaba688e743be3aab8f74a81d32290799b3e4649f43f31c473432a42935d2f8224e7137219bc7fb08ad8afb003ec68a70c1083002e4ca0d3b806",
-                x"95d45e6be891cd2b398cc2844791c2d8bcd90a53e757edb2eef254503c84c526",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,751",
+                x"b8d5c020ccf043fb1dde772067d54e254041ec4c8e137f5017158711e59e86933d1889cf4d9c6ad8ef57290cc00d99b7ba60da5c0db64a996f72af010acdd2b0",
+                x"64d1c3d80ac32235d4bf1c5499ac362fd28b88eba2984e81cc36924be09f5a2d",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,751",
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1300000, 0);
@@ -3984,6 +4196,7 @@ module suins::controller_tests {
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_expiry(detail) == 21 + 730, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER_ADDRESS, 0);
 
             coin::destroy_for_testing(coin);
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -4028,8 +4241,8 @@ module suins::controller_tests {
                 REFERRAL_CODE,
                 DISCOUNT_CODE,
                 x"",
-                x"95d45e6be891cd2b398cc2844791c2d8bcd90a53e757edb2eef254503c84c526",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,751",
+                x"64d1c3d80ac32235d4bf1c5499ac362fd28b88eba2984e81cc36924be09f5a2d",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,751",
                 &mut ctx,
             );
 
@@ -4076,9 +4289,9 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 DISCOUNT_CODE,
-                x"03771eb1c177eaba688e743be3aab8f74a81d32290799b3e4649f43f31c473432a42935d2f8224e7137219bc7fb08ad8afb003ec68a70c1083002e4ca0d3b806",
+                x"b8d5c020ccf043fb1dde772067d54e254041ec4c8e137f5017158711e59e86933d1889cf4d9c6ad8ef57290cc00d99b7ba60da5c0db64a996f72af010acdd2b0",
                 x"",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,751",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,751",
                 &mut ctx,
             );
 
@@ -4125,8 +4338,8 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 DISCOUNT_CODE,
-                x"03771eb1c177eaba688e743be3aab8f74a81d32290799b3e4649f43f31c473432a42935d2f8224e7137219bc7fb08ad8afb003ec68a70c1083002e4ca0d3b806",
-                x"95d45e6be891cd2b398cc2844791c2d8bcd90a53e757edb2eef254503c84c526",
+                x"b8d5c020ccf043fb1dde772067d54e254041ec4c8e137f5017158711e59e86933d1889cf4d9c6ad8ef57290cc00d99b7ba60da5c0db64a996f72af010acdd2b0",
+                x"64d1c3d80ac32235d4bf1c5499ac362fd28b88eba2984e81cc36924be09f5a2d",
                 b"",
                 &mut ctx,
             );
@@ -4184,9 +4397,9 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 DISCOUNT_CODE,
-                x"03771eb1c177eaba688e743be3aab8f74a81d32290799b3e4649f43f31c473432a42935d2f8224e7137219bc7fb08ad8afb003ec68a70c1083002e4ca0d3b806",
-                x"95d45e6be891cd2b398cc2844791c2d8bcd90a53e757edb2eef254503c84c526",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,751",
+                x"b8d5c020ccf043fb1dde772067d54e254041ec4c8e137f5017158711e59e86933d1889cf4d9c6ad8ef57290cc00d99b7ba60da5c0db64a996f72af010acdd2b0",
+                x"64d1c3d80ac32235d4bf1c5499ac362fd28b88eba2984e81cc36924be09f5a2d",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,751",
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1300000, 0);
@@ -4224,6 +4437,7 @@ module suins::controller_tests {
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_expiry(detail) == 21 + 730, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER_ADDRESS, 0);
 
             coin::destroy_for_testing(coin);
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -4272,8 +4486,8 @@ module suins::controller_tests {
                 REFERRAL_CODE,
                 DISCOUNT_CODE,
                 x"",
-                x"95d45e6be891cd2b398cc2844791c2d8bcd90a53e757edb2eef254503c84c526",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,751",
+                x"64d1c3d80ac32235d4bf1c5499ac362fd28b88eba2984e81cc36924be09f5a2d",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,751",
                 &mut ctx,
             );
 
@@ -4324,9 +4538,9 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 DISCOUNT_CODE,
-                x"03771eb1c177eaba688e743be3aab8f74a81d32290799b3e4649f43f31c473432a42935d2f8224e7137219bc7fb08ad8afb003ec68a70c1083002e4ca0d3b806",
+                x"b8d5c020ccf043fb1dde772067d54e254041ec4c8e137f5017158711e59e86933d1889cf4d9c6ad8ef57290cc00d99b7ba60da5c0db64a996f72af010acdd2b0",
                 x"",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,751",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,751",
                 &mut ctx,
             );
 
@@ -4377,8 +4591,8 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 DISCOUNT_CODE,
-                x"03771eb1c177eaba688e743be3aab8f74a81d32290799b3e4649f43f31c473432a42935d2f8224e7137219bc7fb08ad8afb003ec68a70c1083002e4ca0d3b806",
-                x"95d45e6be891cd2b398cc2844791c2d8bcd90a53e757edb2eef254503c84c526",
+                x"b8d5c020ccf043fb1dde772067d54e254041ec4c8e137f5017158711e59e86933d1889cf4d9c6ad8ef57290cc00d99b7ba60da5c0db64a996f72af010acdd2b0",
+                x"64d1c3d80ac32235d4bf1c5499ac362fd28b88eba2984e81cc36924be09f5a2d",
                 b"",
                 &mut ctx,
             );
