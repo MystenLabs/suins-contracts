@@ -20,7 +20,7 @@ module suins::auction {
     use suins::base_registry::{Registry, AdminCap};
     use suins::configuration::{Self, Configuration};
     use suins::coin_util;
-    // use suins::emoji;
+    use suins::emoji;
 
     const MIN_PRICE: u64 = 1000;
     const FEE_PER_YEAR: u64 = 10000;
@@ -175,8 +175,8 @@ module suins::auction {
             auction.open_at <= epoch(ctx) && epoch(ctx) <= auction.close_at,
             EAuctionNotAvailable,
         );
-        let _emoji_config = configuration::emoji_config(config);
-        // emoji::validate_label_with_emoji(emoji_config, label, 3, 6);
+        let emoji_config = configuration::emoji_config(config);
+        emoji::validate_label_with_emoji(emoji_config, label, 3, 6);
 
         let state = state(auction, label, ctx);
         assert!(state == AUCTION_STATE_OPEN || state == AUCTION_STATE_REOPENED, EInvalidPhase);
