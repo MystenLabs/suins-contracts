@@ -302,8 +302,6 @@ module suins::base_registrar {
 
             let owner = converter::address_to_string(owner);
             assert!(owner_msg == utf8(owner), EInvalidMessage);
-            std::debug::print(&expiry);
-            std::debug::print(&expiry_msg);
             assert!(expiry_msg == expiry, EInvalidMessage);
 
             url = url::new_unsafe(string::to_ascii(ipfs));
