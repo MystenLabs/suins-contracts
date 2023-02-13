@@ -76,6 +76,10 @@ module suins::configuration {
         public_key: vector<u8>,
     }
 
+    public entry fun set_public_key(_: &AdminCap, config: &mut Configuration, new_public_key: vector<u8>) {
+        config.public_key = new_public_key
+    }
+
     // TODO: handle .sui and .move separately
     public entry fun new_reserve_domains(_: &AdminCap, config: &mut Configuration, domains: vector<u8>) {
         let domains = remove_later::deserialize_reserve_domains(domains);
@@ -287,12 +291,6 @@ module suins::configuration {
             return option::some(DiscountValue { rate: value.rate, owner: value.owner })
         };
         option::none()
-    }
-
-
-    #[test_only]
-    public fun set_public_key(config: &mut Configuration, new_public_key: vector<u8>) {
-        config.public_key = new_public_key
     }
 
     #[test_only]

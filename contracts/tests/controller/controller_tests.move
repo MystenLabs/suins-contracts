@@ -62,6 +62,7 @@ module suins::controller_tests {
             configuration::new_referral_code(&admin_cap, &mut config, REFERRAL_CODE, 10, SECOND_USER_ADDRESS);
             configuration::new_discount_code(&admin_cap, &mut config, DISCOUNT_CODE, 15, FIRST_USER_ADDRESS);
             configuration::set_public_key(
+                &admin_cap,
                 &mut config,
                 x"0445e28df251d0ec0f66f284f7d5598db7e68b1a196396e4e13a3942d1364812ae5ed65ebb3d20cbf073ad50c6bbafa92505dc9b306e30476e57919a63ac824cab"
             );
@@ -180,7 +181,7 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
-            assert!(base_registrar::get_registration_detail(detail) == 51 + 365, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 51 + 365, 0);
 
             test_scenario::return_to_sender(scenario, nft);
             test_scenario::return_shared(controller);
@@ -283,7 +284,7 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
-            assert!(base_registrar::get_registration_detail(detail) == 21 + 730, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 21 + 730, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -641,7 +642,7 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
-            assert!(base_registrar::get_registration_detail(detail) == 51 + 730, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 51 + 730, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -1352,7 +1353,7 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
-            assert!(base_registrar::get_registration_detail(detail) == 51 + 730, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 51 + 730, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_to_address(SECOND_USER_ADDRESS, coin);
@@ -1441,7 +1442,7 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
-            assert!(base_registrar::get_registration_detail(detail) == 51 + 1095, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 51 + 1095, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_to_address(SECOND_USER_ADDRESS, coin);
@@ -1566,7 +1567,7 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
-            assert!(base_registrar::get_registration_detail(detail) == 51 + 730, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 51 + 730, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -1745,7 +1746,7 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
-            assert!(base_registrar::get_registration_detail(detail) == 51 + 730, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 51 + 730, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -2168,7 +2169,7 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
-            assert!(base_registrar::get_registration_detail(detail) == 51 + 730, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 51 + 730, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -2255,7 +2256,7 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
-            assert!(base_registrar::get_registration_detail(detail) == 51 + 730, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 51 + 730, 0);
 
             coin::destroy_for_testing(coin);
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -2437,7 +2438,7 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
-            assert!(base_registrar::get_registration_detail(detail) == 51 + 730, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 51 + 730, 0);
 
             coin::destroy_for_testing(coin);
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -2666,7 +2667,7 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
-            assert!(base_registrar::get_registration_detail(detail) == 21 + 365, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 21 + 365, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -2786,7 +2787,7 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
-            assert!(base_registrar::get_registration_detail(detail) == 51 + 365, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 51 + 365, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -2887,7 +2888,7 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
-            assert!(base_registrar::get_registration_detail(detail) == 221 + 365, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 221 + 365, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -2988,7 +2989,7 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
-            assert!(base_registrar::get_registration_detail(detail) == 221 + 365, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 221 + 365, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -3089,7 +3090,7 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
-            assert!(base_registrar::get_registration_detail(detail) == 121 + 365, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 121 + 365, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -3289,7 +3290,7 @@ module suins::controller_tests {
              assert!(owner == FIRST_USER_ADDRESS, 0);
              assert!(resolver == @0x0, 0);
              assert!(ttl == 0, 0);
-             assert!(base_registrar::get_registration_detail(detail) == 221 + 365, 0);
+             assert!(base_registrar::get_registration_expiry(detail) == 221 + 365, 0);
 
              test_scenario::return_to_sender(&mut scenario, nft);
              test_scenario::return_shared(controller);
@@ -3410,7 +3411,7 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
-            assert!(base_registrar::get_registration_detail(detail) == 221 + 365, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 221 + 365, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -3638,7 +3639,7 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
-            assert!(base_registrar::get_registration_detail(detail) == 21 + 730, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 21 + 730, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -3724,7 +3725,7 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
-            assert!(base_registrar::get_registration_detail(detail) == 21 + 730, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 21 + 730, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -3982,7 +3983,7 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
-            assert!(base_registrar::get_registration_detail(detail) == 21 + 730, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 21 + 730, 0);
 
             coin::destroy_for_testing(coin);
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -4222,7 +4223,7 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
-            assert!(base_registrar::get_registration_detail(detail) == 21 + 730, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 21 + 730, 0);
 
             coin::destroy_for_testing(coin);
             test_scenario::return_to_sender(&mut scenario, nft);

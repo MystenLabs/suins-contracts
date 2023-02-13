@@ -37,6 +37,7 @@ module suins::base_registrar_tests {
             base_registrar::new_tld(&admin_cap, &mut tlds_list, b"move", test_scenario::ctx(&mut scenario));
             base_registrar::new_tld(&admin_cap, &mut tlds_list, b"sui", test_scenario::ctx(&mut scenario));
             configuration::set_public_key(
+                &admin_cap,
                 &mut config,
                 x"0445e28df251d0ec0f66f284f7d5598db7e68b1a196396e4e13a3942d1364812ae5ed65ebb3d20cbf073ad50c6bbafa92505dc9b306e30476e57919a63ac824cab"
             );
@@ -86,7 +87,8 @@ module suins::base_registrar_tests {
             let (_, _, expiries) = base_registrar::get_registrar(&registrar);
             let detail = table::borrow(expiries, utf8(FIRST_LABEL));
 
-            assert!(base_registrar::get_registration_detail(detail) == 10 + 365, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 10 + 365, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b""),
@@ -152,7 +154,8 @@ module suins::base_registrar_tests {
             let (_, _, expiries) = base_registrar::get_registrar(&registrar);
             let detail = table::borrow(expiries, utf8(FIRST_LABEL));
 
-            assert!(base_registrar::get_registration_detail(detail) == 10 + 365, 0);
+            assert!(base_registrar::get_registration_expiry(detail) == 10 + 365, 0);
+            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"),
@@ -557,7 +560,7 @@ module suins::base_registrar_tests {
             let (_, _, expiries) = base_registrar::get_registrar(&com_registrar);
             assert!(table::length(expiries) == 1, 0);
             let value = table::borrow(expiries, utf8(FIRST_LABEL));
-            let expiry = base_registrar::get_registration_detail(value);
+            let expiry = base_registrar::get_registration_expiry(value);
             assert!(expiry == 365, 0);
 
             test_scenario::return_shared(com_registrar);

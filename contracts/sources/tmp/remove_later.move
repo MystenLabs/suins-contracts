@@ -18,8 +18,7 @@ module suins::remove_later {
         owner: ascii::String,
     }
 
-    /// `msg` format: ipfs_url,owner,expiry
-    /// `owner` doesn't start with `0x` and must have exactly 20 characters
+    /// `msg` format: <ipfs_url>,<node>,<expiry>
     public(friend) fun deserialize_image_msg(msg: vector<u8>): (String, String, u64) {
         // `msg` now: ipfs_url,owner,expiry
         let msg = utf8(msg);
@@ -32,11 +31,11 @@ module suins::remove_later {
         msg = string::sub_string(&msg, index_of_next_comma + 1, string::length(&msg));
 
         index_of_next_comma = string::index_of(&msg, &comma);
-        let owner = string::sub_string(&msg, 0, index_of_next_comma);
+        let node = string::sub_string(&msg, 0, index_of_next_comma);
         // `msg` now: expiry
         let expiry = string::sub_string(&msg, index_of_next_comma + 1, string::length(&msg));
 
-        (ipfs, owner, converter::string_to_number(expiry))
+        (ipfs, node, converter::string_to_number(expiry))
     }
 
     /// This funtion doesn't validate domains

@@ -9,14 +9,13 @@ module suins::base_registrar {
     use sui::tx_context::{TxContext, epoch, sender};
     use sui::url::Url;
     use sui::table::{Self, Table};
-    use std::string::{Self, String, utf8};
+    use std::string::{Self, String};
     use std::option;
     use std::vector;
     use suins::base_registry::{Self, Registry, AdminCap};
     use suins::configuration::{Self, Configuration};
     use sui::ecdsa_k1;
     use suins::remove_later;
-    use suins::converter;
     use sui::url;
     use std::hash::sha2_256;
 
@@ -70,6 +69,7 @@ module suins::base_registrar {
     // TODO: we don't know the address of owner in SC
     struct RegistrationDetail has store {
         expiry: u64,
+        owner: address,
     }
 
     struct BaseRegistrar has key {
@@ -79,7 +79,7 @@ module suins::base_registrar {
         tld_bytes: vector<u8>,
         /// key is label, e.g. 'eastagile', 'dn.eastagile'
         /// Registration record, each has its own name record in `Registry
-        expiries: Table<String, RegistrationDetail>,
+        details: Table<String, RegistrationDetail>,
     }
 
     /// list of all TLD managed by this registrar
@@ -117,7 +117,7 @@ module suins::base_registrar {
         vector::push_back(&mut tld_list.tlds, tld_str);
         transfer::share_object(BaseRegistrar {
             id: object::new(ctx),
-            expiries: table::new(ctx),
+            details: table::new(ctx),
             tld: tld_str,
             tld_bytes: new_tld,
         });
@@ -141,8 +141,8 @@ module suins::base_registrar {
         ctx: &mut TxContext,
     ) {
         let label = get_label_part(&nft.name, &registrar.tld);
-        assert!(table::contains(&registrar.expiries, label), ELabelNotExists);
-        let registration = table::borrow(&registrar.expiries, label);
+        assert!(table::contains(&registrar.details, label), ELabelNotExists);
+        let registration = table::borrow(&registrar.details, label);
         assert!(registration.expiry >= epoch(ctx), ELabelExpired);
 
         // TODO: delete NFT if it expired
@@ -151,6 +151,14 @@ module suins::base_registrar {
             node: nft.name,
             owner,
         })
+    }
+
+    fun validate_nft(registrar: &BaseRegistrar, nft: &RegistrationNFT, ctx: &mut TxContext) {
+        let label = get_label_part(&nft.name, &registrar.tld);
+        let detail = table::borrow(&registrar.details, label);
+
+        assert!(detail.owner == sender(ctx), ELabelNotExists);
+        assert!(!is_expired(registrar, label, ctx), ELabelExpired);
     }
 
     public entry fun update_image_url(
@@ -162,20 +170,17 @@ module suins::base_registrar {
         raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
+        validate_nft(registrar, nft, ctx);
         assert!(sha2_256(raw_msg) == hashed_msg, EHashedMessageNotMatch);
         assert!(ecdsa_k1::secp256k1_verify(&signature, configuration::public_key(config), &hashed_msg), ESignatureNotMatch);
 
-        let (ipfs, owner, expiry) = remove_later::deserialize_image_msg(raw_msg);
+        let (ipfs, node_msg, expiry) = remove_later::deserialize_image_msg(raw_msg);
 
-        let sender = converter::address_to_string(sender(ctx));
-        assert!(owner == utf8(sender), EInvalidMessage);
+        assert!(node_msg == nft.name, EInvalidMessage);
 
         let label = get_label_part(&nft.name, &registrar.tld);
-        // TODO: allow to update image of expired domain or not? => No
-        // assert!(expiry >= epoch(ctx), ELabelExpired);
 
         assert!(expiry == name_expires_at(registrar, label), EInvalidMessage);
-        assert!(expiry > 0, ELabelNotExists);
 
         nft.url = url::new_unsafe_from_bytes(*string::bytes(&ipfs));
         event::emit(ImageUpdatedEvent {
@@ -203,6 +208,14 @@ module suins::base_registrar {
         true
     }
 
+    public fun is_expired(registrar: &BaseRegistrar, label: String, ctx: &TxContext): bool {
+        let expiry = name_expires_at(registrar, label);
+        if (expiry != 0) {
+            return expiry < epoch(ctx)
+        };
+        true
+    }
+
     /// #### Notice
     /// Returns the epoch after which the `label` is expired.
     ///
@@ -213,8 +226,8 @@ module suins::base_registrar {
     /// 0: if `label` expired
     /// otherwise: the expiration date
     public fun name_expires_at(registrar: &BaseRegistrar, label: String): u64 {
-        if (table::contains(&registrar.expiries, label)) {
-            return table::borrow(&registrar.expiries, label).expiry
+        if (table::contains(&registrar.details, label)) {
+            return table::borrow(&registrar.details, label).expiry
         };
         0
     }
@@ -284,8 +297,8 @@ module suins::base_registrar {
         assert!(available(registrar, label, ctx), ELabelUnAvailable);
 
         let expiry = epoch(ctx) + duration;
-        let detail = RegistrationDetail { expiry };
-        table::add(&mut registrar.expiries, label, detail);
+        let detail = RegistrationDetail { expiry, owner };
+        table::add(&mut registrar.details, label, detail);
 
         let node = label;
         string::append_utf8(&mut node, b".");
@@ -298,10 +311,9 @@ module suins::base_registrar {
             assert!(sha2_256(raw_msg) == hashed_msg, EHashedMessageNotMatch);
             assert!(ecdsa_k1::secp256k1_verify(&signature, configuration::public_key(config), &hashed_msg), ESignatureNotMatch);
 
-            let (ipfs, owner_msg, expiry_msg) = remove_later::deserialize_image_msg(raw_msg);
+            let (ipfs, node_msg, expiry_msg) = remove_later::deserialize_image_msg(raw_msg);
 
-            let owner = converter::address_to_string(owner);
-            assert!(owner_msg == utf8(owner), EInvalidMessage);
+            assert!(node_msg == node, EInvalidMessage);
             assert!(expiry_msg == expiry, EInvalidMessage);
 
             url = url::new_unsafe(string::to_ascii(ipfs));
@@ -331,7 +343,7 @@ module suins::base_registrar {
         assert!(expiry > 0, ELabelNotExists);
         assert!(expiry + (GRACE_PERIOD as u64) >= epoch(ctx), ELabelExpired);
 
-        let detail = table::borrow_mut(&mut registrar.expiries, label);
+        let detail = table::borrow_mut(&mut registrar.details, label);
         detail.expiry = detail.expiry + duration;
 
         event::emit(NameRenewedEvent { label, expiry: detail.expiry });
@@ -359,7 +371,7 @@ module suins::base_registrar {
 
     #[test_only]
     public fun record_exists(registrar: &BaseRegistrar, label: String): bool {
-        table::contains(&registrar.expiries, label)
+        table::contains(&registrar.details, label)
     }
 
     #[test_only]
@@ -374,12 +386,17 @@ module suins::base_registrar {
 
     #[test_only]
     public fun get_registrar(registrar: &BaseRegistrar): (&String, &vector<u8>, &Table<String, RegistrationDetail>) {
-        (&registrar.tld, &registrar.tld_bytes, &registrar.expiries)
+        (&registrar.tld, &registrar.tld_bytes, &registrar.details)
     }
 
     #[test_only]
-    public fun get_registration_detail(detail: &RegistrationDetail): u64 {
+    public fun get_registration_expiry(detail: &RegistrationDetail): u64 {
         detail.expiry
+    }
+
+    #[test_only]
+    public fun get_registration_owner(detail: &RegistrationDetail): address {
+        detail.owner
     }
 
     #[test_only]
