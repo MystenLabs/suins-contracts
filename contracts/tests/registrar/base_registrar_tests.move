@@ -962,7 +962,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EHashMessageNotMatch)]
+    #[test, expected_failure(abort_code = base_registrar::EHashedMessageNotMatch)]
     fun test_update_image_url_aborts_with_incorrect_hashed_message() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -1034,7 +1034,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EHashMessageNotMatch  )]
+    #[test, expected_failure(abort_code = base_registrar::EHashedMessageNotMatch  )]
     fun test_register_with_image_aborts_with_incorrect_hash_msg() {
         let scenario = test_init();
         register_with_image(

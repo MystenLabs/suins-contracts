@@ -43,6 +43,7 @@ module suins::controller {
     const ENoProfits: u64 = 310;
     const EInvalidCode: u64 = 311;
     const ERegistrationIsDisabled: u64 = 312;
+    const EInvalidMessage: u64 = 313;
 
     struct NameRegisteredEvent has copy, drop {
         node: String,
@@ -120,11 +121,7 @@ module suins::controller {
     /// `owner`: owner address of created NFT
     /// `no_years`: in years
     /// `secret`: the value used to create commitment in the first step
-    /// `signature`: secp256k1 of `hashed_msg`
-    /// `hashed_msg`: sha256 of `raw_msg`
-    /// `raw_msg`: the data to verify and update image url, with format: <ipfs_url>,<owner>,<expiry>.
-    /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
-    /// 
+    ///
     /// Panic
     /// Panic if new registration is disabled
     /// or `label` contains characters that are not allowed
@@ -143,12 +140,79 @@ module suins::controller {
         no_years: u64,
         secret: vector<u8>,
         payment: &mut Coin<SUI>,
+        ctx: &mut TxContext,
+    ) {
+        let resolver = controller.default_addr_resolver;
+
+        register_internal(
+            controller,
+            registrar,
+            registry,
+            config,
+            auction,
+            label,
+            owner,
+            no_years,
+            secret,
+            resolver,
+            payment,
+            option::none(),
+            option::none(),
+            vector[],
+            vector[],
+            vector[],
+            ctx,
+        );
+    }
+
+    /// #### Notice
+    /// This function is the second step in the commit/reveal process, which is implemented to prevent front-running.
+    /// It acts as a gatekeeper for the `Registrar::Controller`, responsible for node validation and charging payment.
+    ///
+    /// #### Dev
+    /// This function uses default resolver address.
+    ///
+    /// #### Params
+    /// `label`: label of the node being registered, the node has the form `label`.sui
+    /// `owner`: owner address of created NFT
+    /// `no_years`: in years
+    /// `secret`: the value used to create commitment in the first step
+    /// `signature`: secp256k1 of `hashed_msg`
+    /// `hashed_msg`: sha256 of `raw_msg`
+    /// `raw_msg`: the data to verify and update image url, with format: <ipfs_url>,<owner>,<expiry>.
+    /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
+    ///
+    /// Panic
+    /// Panic if new registration is disabled
+    /// or `label` contains characters that are not allowed
+    /// or `label is waiting to be finalized in auction
+    /// or label length isn't outside of the permitted range
+    /// or `payment` doesn't have enough coins
+    /// or either `referral_code` or `discount_code` is invalid
+    public entry fun register_with_image(
+        controller: &mut BaseController,
+        registrar: &mut BaseRegistrar,
+        registry: &mut Registry,
+        config: &mut Configuration,
+        auction: &Auction,
+        label: vector<u8>,
+        owner: address,
+        no_years: u64,
+        secret: vector<u8>,
+        payment: &mut Coin<SUI>,
         signature: vector<u8>,
         hashed_msg: vector<u8>,
         raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
+        assert!(
+            !vector::is_empty(&signature)
+                && !vector::is_empty(&hashed_msg)
+                && !vector::is_empty(&raw_msg),
+            EInvalidMessage
+        );
         let resolver = controller.default_addr_resolver;
+
         register_internal(
             controller,
             registrar,
@@ -178,11 +242,54 @@ module suins::controller {
     ///
     /// #### Params
     /// `resolver`: address of the resolver
+    public entry fun register_with_config(
+        controller: &mut BaseController,
+        registrar: &mut BaseRegistrar,
+        registry: &mut Registry,
+        config: &mut Configuration,
+        auction: &Auction,
+        label: vector<u8>,
+        owner: address,
+        no_years: u64,
+        secret: vector<u8>,
+        resolver: address,
+        payment: &mut Coin<SUI>,
+        ctx: &mut TxContext,
+    ) {
+        register_internal(
+            controller,
+            registrar,
+            registry,
+            config,
+            auction,
+            label,
+            owner,
+            no_years,
+            secret,
+            resolver,
+            payment,
+            option::none(),
+            option::none(),
+            vector[],
+            vector[],
+            vector[],
+            ctx
+        );
+    }
+
+    /// #### Notice
+    /// Similar to the `register_with_image` function, with an added `resolver` parameter.
+    ///
+    /// #### Dev
+    /// Use `resolver` parameter for resolver address.
+    ///
+    /// #### Params
+    /// `resolver`: address of the resolver
     /// `signature`: secp256k1 of `hashed_msg`
     /// `hashed_msg`: sha256 of `raw_msg`
     /// `raw_msg`: the data to verify and update image url, with format: <ipfs_url>,<owner>,<expiry>.
     /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
-    public entry fun register_with_config(
+    public entry fun register_with_config_and_image(
         controller: &mut BaseController,
         registrar: &mut BaseRegistrar,
         registry: &mut Registry,
@@ -199,6 +306,13 @@ module suins::controller {
         raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
+        assert!(
+            !vector::is_empty(&signature)
+                && !vector::is_empty(&hashed_msg)
+                && !vector::is_empty(&raw_msg),
+            EInvalidMessage
+        );
+
         register_internal(
             controller,
             registrar,
@@ -232,11 +346,62 @@ module suins::controller {
     /// #### Params
     /// `referral_code`: referral code to be used
     /// `discount_code`: discount code to be used
+    public entry fun register_with_code(
+        controller: &mut BaseController,
+        registrar: &mut BaseRegistrar,
+        registry: &mut Registry,
+        config: &mut Configuration,
+        auction: &Auction,
+        label: vector<u8>,
+        owner: address,
+        no_years: u64,
+        secret: vector<u8>,
+        payment: &mut Coin<SUI>,
+        referral_code: vector<u8>,
+        discount_code: vector<u8>,
+        ctx: &mut TxContext,
+    ) {
+        let (referral_code, discount_code) = validate_codes(referral_code, discount_code);
+        let resolver = controller.default_addr_resolver;
+
+        register_internal(
+            controller,
+            registrar,
+            registry,
+            config,
+            auction,
+            label,
+            owner,
+            no_years,
+            secret,
+            resolver,
+            payment,
+            referral_code,
+            discount_code,
+            vector[],
+            vector[],
+            vector[],
+            ctx,
+        );
+    }
+
+    /// #### Notice
+    /// Similar to the `register` function, with added `referral_code` and `discount_code` parameters.
+    /// Can use one or two codes at the same time.
+    /// `discount_code` is applied first before `referral_code` if use both.
+    ///
+    /// #### Dev
+    /// Use empty string for unused code, however, at least one code must be used.
+    /// Remove `discount_code` after this function returns.
+    ///
+    /// #### Params
+    /// `referral_code`: referral code to be used
+    /// `discount_code`: discount code to be used
     /// `signature`: secp256k1 of `hashed_msg`
     /// `hashed_msg`: sha256 of `raw_msg`
     /// `raw_msg`: the data to verify and update image url, with format: <ipfs_url>,<owner>,<expiry>.
     /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
-    public entry fun register_with_code(
+    public entry fun register_with_code_and_image(
         controller: &mut BaseController,
         registrar: &mut BaseRegistrar,
         registry: &mut Registry,
@@ -254,17 +419,15 @@ module suins::controller {
         raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        let referral_len = vector::length(&referral_code);
-        let discount_len = vector::length(&discount_code);
-        // doesn't have a format for codes right now, so any non-empty code is considered valid
-        assert!(referral_len > 0 || discount_len > 0, EInvalidCode);
-
-        let referral = option::none();
-        let discount = option::none();
-        if (referral_len > 0) referral = option::some(ascii::string(referral_code));
-        if (discount_len > 0) discount = option::some(ascii::string(discount_code));
-
+        assert!(
+            !vector::is_empty(&signature)
+                && !vector::is_empty(&hashed_msg)
+                && !vector::is_empty(&raw_msg),
+            EInvalidMessage
+        );
+        let (referral_code, discount_code) = validate_codes(referral_code, discount_code);
         let resolver = controller.default_addr_resolver;
+
         register_internal(
             controller,
             registrar,
@@ -277,11 +440,62 @@ module suins::controller {
             secret,
             resolver,
             payment,
-            referral,
-            discount,
+            referral_code,
+            discount_code,
             signature,
             hashed_msg,
             raw_msg,
+            ctx,
+        );
+    }
+
+    /// #### Notice
+    /// Similar to the `register_with_config` function, with added `referral_code` and `discount_code` parameters.
+    /// Can use one or two codes at the same time.
+    /// `discount_code` is applied first before `referral_code` if use both.
+    ///
+    /// #### Dev
+    /// Use empty string for unused code, however, at least one code must be used.
+    /// Remove `discount_code` after this function returns.
+    ///
+    /// #### Params
+    /// `referral_code`: referral code to be used
+    /// `discount_code`: discount code to be used
+    public entry fun register_with_config_and_code(
+        controller: &mut BaseController,
+        registrar: &mut BaseRegistrar,
+        registry: &mut Registry,
+        config: &mut Configuration,
+        auction: &Auction,
+        label: vector<u8>,
+        owner: address,
+        no_years: u64,
+        secret: vector<u8>,
+        resolver: address,
+        payment: &mut Coin<SUI>,
+        referral_code: vector<u8>,
+        discount_code: vector<u8>,
+        ctx: &mut TxContext,
+    ) {
+        let (referral_code, discount_code) = validate_codes(referral_code, discount_code);
+
+        register_internal(
+            controller,
+            registrar,
+            registry,
+            config,
+            auction,
+            label,
+            owner,
+            no_years,
+            secret,
+            resolver,
+            payment,
+            referral_code,
+            discount_code,
+            vector[],
+            vector[],
+            vector[],
             ctx,
         );
     }
@@ -302,7 +516,7 @@ module suins::controller {
     /// `hashed_msg`: sha256 of `raw_msg`
     /// `raw_msg`: the data to verify and update image url, with format: <ipfs_url>,<owner>,<expiry>.
     /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
-    public entry fun register_with_config_and_code(
+    public entry fun register_with_config_and_code_and_image(
         controller: &mut BaseController,
         registrar: &mut BaseRegistrar,
         registry: &mut Registry,
@@ -321,15 +535,13 @@ module suins::controller {
         raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        // TODO: duplicate with `register_with_code`, consider moving this block to a separate function
-        let referral_len = vector::length(&referral_code);
-        let discount_len = vector::length(&discount_code);
-        assert!(referral_len > 0 || discount_len > 0, EInvalidCode);
-
-        let referral = option::none();
-        let discount = option::none();
-        if (referral_len > 0) referral = option::some(ascii::string(referral_code));
-        if (discount_len > 0) discount = option::some(ascii::string(discount_code));
+        assert!(
+            !vector::is_empty(&signature)
+                && !vector::is_empty(&hashed_msg)
+                && !vector::is_empty(&raw_msg),
+            EInvalidMessage
+        );
+        let (referral_code, discount_code) = validate_codes(referral_code, discount_code);
 
         register_internal(
             controller,
@@ -343,8 +555,8 @@ module suins::controller {
             secret,
             resolver,
             payment,
-            referral,
-            discount,
+            referral_code,
+            discount_code,
             signature,
             hashed_msg,
             raw_msg,
@@ -420,7 +632,7 @@ module suins::controller {
         ctx: &mut TxContext
     ): u64 {
         let (rate, partner) = configuration::use_referral_code(config, referral_code);
-        let remaining_fee = (original_fee / 100)  * (100 - rate as u64);
+        let remaining_fee = (original_fee / 100) * (100 - rate as u64);
         let payback_amount = original_fee - remaining_fee;
         coin_util::user_transfer_to_address(payment, payback_amount, partner, ctx);
 
@@ -435,7 +647,7 @@ module suins::controller {
         ctx: &mut TxContext,
     ): u64 {
         let rate = configuration::use_discount_code(config, referral_code, ctx);
-        (original_fee / 100)  * (100 - rate as u64)
+        (original_fee / 100) * (100 - rate as u64)
     }
 
     fun register_internal(
@@ -556,8 +768,30 @@ module suins::controller {
         keccak256(&node)
     }
 
+    fun validate_codes(
+        referral_code: vector<u8>,
+        discount_code: vector<u8>
+    ): (Option<ascii::String>, Option<ascii::String>) {
+        let referral_len = vector::length(&referral_code);
+        let discount_len = vector::length(&discount_code);
+        // doesn't have a format for codes right now, so any non-empty code is considered valid
+        assert!(referral_len > 0 || discount_len > 0, EInvalidCode);
+
+        let referral = option::none();
+        let discount = option::none();
+        if (referral_len > 0) referral = option::some(ascii::string(referral_code));
+        if (discount_len > 0) discount = option::some(ascii::string(discount_code));
+
+        (referral, discount)
+    }
+
     #[test_only]
-    public fun test_make_commitment(registrar: &BaseRegistrar, label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
+    public fun test_make_commitment(
+        registrar: &BaseRegistrar,
+        label: vector<u8>,
+        owner: address,
+        secret: vector<u8>
+    ): vector<u8> {
         make_commitment(registrar, label, owner, secret)
     }
 

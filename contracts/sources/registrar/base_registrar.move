@@ -39,7 +39,7 @@ module suins::base_registrar {
     const EInvalidBaseNode: u64 = 209;
     const ESignatureNotMatch: u64 = 210;
     const EInvalidMessage: u64 = 211;
-    const EHashMessageNotMatch: u64 = 212;
+    const EHashedMessageNotMatch: u64 = 212;
 
     struct NameRenewedEvent has copy, drop {
         label: String,
@@ -162,7 +162,7 @@ module suins::base_registrar {
         raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        assert!(sha2_256(raw_msg) == hashed_msg, EHashMessageNotMatch);
+        assert!(sha2_256(raw_msg) == hashed_msg, EHashedMessageNotMatch);
         assert!(ecdsa_k1::secp256k1_verify(&signature, configuration::public_key(config), &hashed_msg), ESignatureNotMatch);
 
         let (ipfs, owner, expiry) = remove_later::deserialize_image_msg(raw_msg);
@@ -171,7 +171,7 @@ module suins::base_registrar {
         assert!(owner == utf8(sender), EInvalidMessage);
 
         let label = get_label_part(&nft.name, &registrar.tld);
-        // TODO: allow to update image of expired domain or not?
+        // TODO: allow to update image of expired domain or not? => No
         // assert!(expiry >= epoch(ctx), ELabelExpired);
 
         assert!(expiry == name_expires_at(registrar, label), EInvalidMessage);
@@ -269,6 +269,13 @@ module suins::base_registrar {
         raw_msg: vector<u8>,
         ctx: &mut TxContext
     ): ID {
+        // this isn't necessary `cause it's validated in Controller
+        // assert!(
+        //     !vector::is_empty(&signature)
+        //         && !vector::is_empty(&hashed_msg)
+        //         && !vector::is_empty(&raw_msg),
+        //     EInvalidMessage
+        // );
         assert!(duration > 0, EInvalidDuration);
         // TODO: label is already validated in Controller, consider removing this
         let label = string::try_utf8(label);
@@ -285,16 +292,18 @@ module suins::base_registrar {
         string::append(&mut node, registrar.tld);
 
         let url;
-        if (vector::is_empty(&hashed_msg) || vector::is_empty(&raw_msg))
+        if (vector::is_empty(&hashed_msg) || vector::is_empty(&raw_msg) || vector::is_empty(&signature))
             url = url::new_unsafe_from_bytes(vector[])
         else {
-            assert!(sha2_256(raw_msg) == hashed_msg, EHashMessageNotMatch);
+            assert!(sha2_256(raw_msg) == hashed_msg, EHashedMessageNotMatch);
             assert!(ecdsa_k1::secp256k1_verify(&signature, configuration::public_key(config), &hashed_msg), ESignatureNotMatch);
 
             let (ipfs, owner_msg, expiry_msg) = remove_later::deserialize_image_msg(raw_msg);
 
             let owner = converter::address_to_string(owner);
             assert!(owner_msg == utf8(owner), EInvalidMessage);
+            std::debug::print(&expiry);
+            std::debug::print(&expiry_msg);
             assert!(expiry_msg == expiry, EInvalidMessage);
 
             url = url::new_unsafe(string::to_ascii(ipfs));

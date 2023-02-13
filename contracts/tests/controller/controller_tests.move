@@ -61,6 +61,11 @@ module suins::controller_tests {
             base_registrar::new_tld(&admin_cap, &mut tlds_list,b"sui", test_scenario::ctx(&mut scenario));
             configuration::new_referral_code(&admin_cap, &mut config, REFERRAL_CODE, 10, SECOND_USER_ADDRESS);
             configuration::new_discount_code(&admin_cap, &mut config, DISCOUNT_CODE, 15, FIRST_USER_ADDRESS);
+            configuration::set_public_key(
+                &mut config,
+                x"0445e28df251d0ec0f66f284f7d5598db7e68b1a196396e4e13a3942d1364812ae5ed65ebb3d20cbf073ad50c6bbafa92505dc9b306e30476e57919a63ac824cab"
+            );
+
             test_scenario::return_shared(tlds_list);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
@@ -139,9 +144,6 @@ module suins::controller_tests {
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1, 0);
@@ -244,9 +246,6 @@ module suins::controller_tests {
                 2,
                 FIRST_SECRET,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1000000, 0);
@@ -328,9 +327,6 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -377,9 +373,6 @@ module suins::controller_tests {
                 1,
                 SECOND_SECRET,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -425,9 +418,6 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -473,9 +463,6 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -521,9 +508,6 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -571,9 +555,6 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -624,9 +605,6 @@ module suins::controller_tests {
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 2000001, 0);
@@ -723,9 +701,6 @@ module suins::controller_tests {
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 test_scenario::ctx(&mut scenario),
             );
 
@@ -766,9 +741,6 @@ module suins::controller_tests {
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 test_scenario::ctx(&mut scenario),
             );
 
@@ -809,9 +781,6 @@ module suins::controller_tests {
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 test_scenario::ctx(&mut scenario),
             );
 
@@ -852,9 +821,6 @@ module suins::controller_tests {
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 test_scenario::ctx(&mut scenario),
             );
 
@@ -911,9 +877,6 @@ module suins::controller_tests {
                 2,
                 FIRST_SECRET,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 test_scenario::ctx(&mut scenario),
             );
 
@@ -984,9 +947,6 @@ module suins::controller_tests {
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -1298,9 +1258,6 @@ module suins::controller_tests {
                 2,
                 FIRST_SECRET,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -1356,9 +1313,6 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 b"",
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -1449,9 +1403,6 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 b"",
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1000000, 0);
@@ -1577,9 +1528,6 @@ module suins::controller_tests {
                 &mut coin,
                 b"",
                 DISCOUNT_CODE,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -1661,9 +1609,6 @@ module suins::controller_tests {
                 &mut coin,
                 b"",
                 DISCOUNT_CODE,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -1710,9 +1655,6 @@ module suins::controller_tests {
                 &mut coin,
                 b"",
                 REFERRAL_CODE,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -1766,9 +1708,6 @@ module suins::controller_tests {
                 &mut coin,
                 b"",
                 DISCOUNT_CODE,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1300000, 0);
@@ -1850,9 +1789,6 @@ module suins::controller_tests {
                 &mut coin,
                 b"",
                 DISCOUNT_CODE,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -1900,9 +1836,6 @@ module suins::controller_tests {
                 &mut coin,
                 b"",
                 REFERRAL_CODE,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -1949,9 +1882,6 @@ module suins::controller_tests {
                 &mut coin,
                 b"",
                 DISCOUNT_CODE,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -1991,9 +1921,6 @@ module suins::controller_tests {
                 &mut coin,
                 b"",
                 DISCOUNT_CODE,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -2041,9 +1968,6 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 b"",
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1000000, 0);
@@ -2096,9 +2020,6 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 b"",
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 2000000, 0);
@@ -2159,9 +2080,6 @@ module suins::controller_tests {
                 &mut coin,
                 DISCOUNT_CODE,
                 b"",
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -2214,9 +2132,6 @@ module suins::controller_tests {
                 2,
                 FIRST_SECRET,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1000000, 0);
@@ -2302,9 +2217,6 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 DISCOUNT_CODE,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1300000, 0);
@@ -2387,9 +2299,6 @@ module suins::controller_tests {
                 &mut coin,
                 DISCOUNT_CODE,
                 DISCOUNT_CODE,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -2436,9 +2345,6 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 REFERRAL_CODE,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -2495,9 +2401,6 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 DISCOUNT_CODE,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1300000, 0);
@@ -2579,9 +2482,6 @@ module suins::controller_tests {
                 &mut coin,
                 DISCOUNT_CODE,
                 DISCOUNT_CODE,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -2629,9 +2529,6 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 REFERRAL_CODE,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
             coin::destroy_for_testing(coin);
@@ -2689,9 +2586,6 @@ module suins::controller_tests {
                 2,
                 FIRST_SECRET,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -2737,9 +2631,6 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -2816,9 +2707,6 @@ module suins::controller_tests {
                 2,
                 FIRST_SECRET,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -2864,9 +2752,6 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -2968,9 +2853,6 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -3072,9 +2954,6 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -3176,9 +3055,6 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -3300,9 +3176,6 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -3382,9 +3255,6 @@ module suins::controller_tests {
                  1,
                  FIRST_SECRET,
                  &mut coin,
-                 vector[],
-                 vector[],
-                 vector[],
                  &mut ctx,
              );
 
@@ -3506,9 +3376,6 @@ module suins::controller_tests {
                 1,
                 FIRST_SECRET,
                 &mut coin,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -3544,6 +3411,234 @@ module suins::controller_tests {
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_detail(detail) == 221 + 365, 0);
+
+            test_scenario::return_to_sender(&mut scenario, nft);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = controller::EInvalidMessage)]
+    fun test_register_with_image_aborts_with_empty_signature() {
+        let scenario = test_init();
+        make_commitment(&mut scenario, option::none());
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                21,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+
+            controller::register_with_image(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &mut config,
+                &auction,
+                FIRST_LABEL,
+                FIRST_USER_ADDRESS,
+                2,
+                FIRST_SECRET,
+                &mut coin,
+                x"",
+                x"127552ffa7fb7c3718ee61851c49eba03ef7d0dc0933c7c5802cdd98226f6006",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,375",
+                &mut ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = controller::EInvalidMessage)]
+    fun test_register_with_image_aborts_with_empty_hashed_message() {
+        let scenario = test_init();
+        make_commitment(&mut scenario, option::none());
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                21,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+
+            controller::register_with_image(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &mut config,
+                &auction,
+                FIRST_LABEL,
+                FIRST_USER_ADDRESS,
+                2,
+                FIRST_SECRET,
+                &mut coin,
+                x"6aab9920d59442c5478c3f5b29db45518b40a3d76f1b396b70c902b557e93b206b0ce9ab84ce44277d84055da9dd10ff77c490ba8473cd86ead37be874b9662f",
+                x"",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,375",
+                &mut ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = controller::EInvalidMessage)]
+    fun test_register_with_image_aborts_with_empty_raw_message() {
+        let scenario = test_init();
+        make_commitment(&mut scenario, option::none());
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                21,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+
+            controller::register_with_image(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &mut config,
+                &auction,
+                FIRST_LABEL,
+                FIRST_USER_ADDRESS,
+                2,
+                FIRST_SECRET,
+                &mut coin,
+                x"6aab9920d59442c5478c3f5b29db45518b40a3d76f1b396b70c902b557e93b206b0ce9ab84ce44277d84055da9dd10ff77c490ba8473cd86ead37be874b9662f",
+                x"127552ffa7fb7c3718ee61851c49eba03ef7d0dc0933c7c5802cdd98226f6006",
+                b"",
+                &mut ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_register_with_image() {
+        let scenario = test_init();
+        make_commitment(&mut scenario, option::none());
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                21,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+
+            assert!(!base_registrar::record_exists(&registrar, utf8(FIRST_LABEL)), 0);
+            assert!(controller::balance(&controller) == 0, 0);
+            assert!(controller::commitment_len(&controller) == 1, 0);
+            assert!(!base_registry::record_exists(&registry, utf8(FIRST_NODE)), 0);
+            assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
+
+            controller::register_with_image(
+                &mut controller,
+                &mut registrar,
+                &mut registry,
+                &mut config,
+                &auction,
+                FIRST_LABEL,
+                FIRST_USER_ADDRESS,
+                2,
+                FIRST_SECRET,
+                &mut coin,
+                x"03771eb1c177eaba688e743be3aab8f74a81d32290799b3e4649f43f31c473432a42935d2f8224e7137219bc7fb08ad8afb003ec68a70c1083002e4ca0d3b806",
+                x"95d45e6be891cd2b398cc2844791c2d8bcd90a53e757edb2eef254503c84c526",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,751",
+                &mut ctx,
+            );
+            assert!(coin::value(&coin) == 1000000, 0);
+            assert!(controller::commitment_len(&controller) == 0, 0);
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(auction);
+        };
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+
+            assert!(controller::balance(&controller) == 2000000, 0);
+            assert!(name == utf8(FIRST_NODE), 0);
+            assert!(
+                url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"),
+                0
+            );
+            assert!(table::length(expiries) == 1, 0);
+            assert!(base_registry::get_records_len(&registry) == 1, 0);
+
+            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
+
+            assert!(owner == FIRST_USER_ADDRESS, 0);
+            assert!(resolver == @0x0, 0);
+            assert!(ttl == 0, 0);
+            assert!(base_registrar::get_registration_detail(detail) == 21 + 730, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
