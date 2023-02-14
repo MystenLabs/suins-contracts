@@ -12,6 +12,7 @@ module suins::controller_tests {
     use suins::configuration::{Self, Configuration};
     use std::string;
     use std::option::{Self, Option};
+    use std::vector;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -70,7 +71,7 @@ module suins::controller_tests {
             );
             if (option::is_none(&label)) label = option::some(FIRST_LABEL);
             let commitment = controller::test_make_commitment(&registrar, option::extract(&mut label), FIRST_USER_ADDRESS, FIRST_SECRET);
-            controller::make_commitment_and_commit(
+            controller::commit(
                 &mut controller,
                 commitment,
                 &mut ctx,
@@ -817,7 +818,7 @@ module suins::controller_tests {
             );
 
             let commitment = controller::test_make_commitment(&registrar, FIRST_INVALID_LABEL, FIRST_USER_ADDRESS, FIRST_SECRET);
-            controller::make_commitment_and_commit(
+            controller::commit(
                 &mut controller,
                 commitment,
                 &mut ctx,
@@ -1045,7 +1046,7 @@ module suins::controller_tests {
             );
 
             let commitment = controller::test_make_commitment(&registrar, FIRST_LABEL, FIRST_USER_ADDRESS, FIRST_SECRET);
-            controller::make_commitment_and_commit(
+            controller::commit(
                 &mut controller,
                 commitment,
                 &mut ctx,
@@ -1068,7 +1069,7 @@ module suins::controller_tests {
             );
 
             let commitment = controller::test_make_commitment(&registrar, FIRST_LABEL, SECOND_USER_ADDRESS, FIRST_SECRET);
-            controller::make_commitment_and_commit(
+            controller::commit(
                 &mut controller,
                 commitment,
                 &mut ctx,
@@ -1090,7 +1091,7 @@ module suins::controller_tests {
             );
 
             let commitment = controller::test_make_commitment(&registrar, FIRST_LABEL, FIRST_USER_ADDRESS, SECOND_SECRET);
-            controller::make_commitment_and_commit(
+            controller::commit(
                 &mut controller,
                 commitment,
                 &mut ctx,
@@ -1111,7 +1112,7 @@ module suins::controller_tests {
                 0
             );
             let commitment = controller::test_make_commitment(&registrar, SECOND_LABEL, FIRST_USER_ADDRESS, FIRST_SECRET);
-            controller::make_commitment_and_commit(
+            controller::commit(
                 &mut controller,
                 commitment,
                 &mut ctx,
@@ -2113,6 +2114,182 @@ module suins::controller_tests {
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
             test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_commit_removes_only_50_outdated() {
+        let scenario = test_init();
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                47,
+                0
+            );
+            let i: u8 = 0;
+
+            while (i < 70) {
+                let secret = FIRST_SECRET;
+                vector::push_back(&mut secret, i);
+                let commitment = controller::test_make_commitment(&registrar,  FIRST_LABEL, FIRST_USER_ADDRESS, secret);
+                controller::commit(
+                    &mut controller,
+                    commitment,
+                    &mut ctx,
+                );
+
+                i = i + 1;
+            };
+
+            assert!(controller::commitment_len(&controller) == 70, 0);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                0
+            );
+            let commitment = controller::test_make_commitment(&registrar, b"label-1", FIRST_USER_ADDRESS, FIRST_SECRET);
+            controller::commit(
+                &mut controller,
+                commitment,
+                &mut ctx,
+            );
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+
+            assert!(controller::commitment_len(&controller) == 21, 0);
+            test_scenario::return_shared(controller);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                0
+            );
+            let commitment = controller::test_make_commitment(&registrar, b"label-2", FIRST_USER_ADDRESS, FIRST_SECRET);
+            controller::commit(
+                &mut controller,
+                commitment,
+                &mut ctx,
+            );
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+
+            assert!(controller::commitment_len(&controller) == 2, 0);
+            test_scenario::return_shared(controller);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                51,
+                0
+            );
+            let commitment = controller::test_make_commitment(&registrar, b"label-3", FIRST_USER_ADDRESS, FIRST_SECRET);
+            controller::commit(
+                &mut controller,
+                commitment,
+                &mut ctx,
+            );
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+
+            assert!(controller::commitment_len(&controller) == 3, 0);
+            test_scenario::return_shared(controller);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_commit_removes_only_50_outdated_2() {
+        let scenario = test_init();
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                47,
+                0
+            );
+            let i: u8 = 0;
+
+            while (i < 40) {
+                let secret = FIRST_SECRET;
+                vector::push_back(&mut secret, i);
+                let commitment = controller::test_make_commitment(&registrar,  FIRST_LABEL, FIRST_USER_ADDRESS, secret);
+                controller::commit(
+                    &mut controller,
+                    commitment,
+                    &mut ctx,
+                );
+
+                i = i + 1;
+            };
+
+            assert!(controller::commitment_len(&controller) == 40, 0);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                0
+            );
+            let commitment = controller::test_make_commitment(&registrar, b"label-2", FIRST_USER_ADDRESS, FIRST_SECRET);
+            controller::commit(
+                &mut controller,
+                commitment,
+                &mut ctx,
+            );
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+
+            assert!(controller::commitment_len(&controller) == 1, 0);
+            test_scenario::return_shared(controller);
         };
         test_scenario::end(scenario);
     }

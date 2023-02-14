@@ -80,7 +80,8 @@ module suins::configuration {
         vec_map::insert(&mut ipfs_urls, 731, b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2");
         vec_map::insert(&mut ipfs_urls, 1096, b"ipfs://QmaWNLR6C3QsSHcPwNoFA59DPXCKdx1t8hmyyKRqBbjYB3");
         vec_map::insert(&mut ipfs_urls, 1461, b"ipfs://QmRF7kbi4igtGcX6enEuthQRhvQZejc7ZKBhMimFJtTS8D");
-        vec_map::insert(&mut ipfs_urls, 1826, b"ipfs://QmfG5ngyNak9Baxg39whWUFnm5i52p64hgBWqfKJfUKjWr");
+        vec_map::insert(&mut ipfs_urls, 1826, b"ipfs://QmTdkzVAAW7yRHu5EVMwH2d7kUM1a9amyW67NCYgut6Hd5");
+        vec_map::insert(&mut ipfs_urls, 2192, b"ipfs://Qmdm7ET9hbMRn7ex9TH6cJaKr8h8AE29w8kMqAhExBHfh9");
         let resources = table::new<String, EmojiConfiguration>(ctx);
         table::add(&mut resources, ascii::string(EmojiConfig), emoji::init_emoji_config());
 
@@ -274,7 +275,8 @@ module suins::configuration {
         vec_map::insert(&mut ipfs_urls, 731, b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2");
         vec_map::insert(&mut ipfs_urls, 1096, b"ipfs://QmaWNLR6C3QsSHcPwNoFA59DPXCKdx1t8hmyyKRqBbjYB3");
         vec_map::insert(&mut ipfs_urls, 1461, b"ipfs://QmRF7kbi4igtGcX6enEuthQRhvQZejc7ZKBhMimFJtTS8D");
-        vec_map::insert(&mut ipfs_urls, 1826, b"ipfs://QmfG5ngyNak9Baxg39whWUFnm5i52p64hgBWqfKJfUKjWr");
+        vec_map::insert(&mut ipfs_urls, 1826, b"ipfs://QmTdkzVAAW7yRHu5EVMwH2d7kUM1a9amyW67NCYgut6Hd5");
+        vec_map::insert(&mut ipfs_urls, 2192, b"ipfs://Qmdm7ET9hbMRn7ex9TH6cJaKr8h8AE29w8kMqAhExBHfh9");
         let resources = table::new<String, EmojiConfiguration>(ctx);
         table::add(&mut resources, ascii::string(b"emoji_config"), emoji::init_emoji_config());
 
