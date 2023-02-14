@@ -31,6 +31,7 @@ module suins::controller {
     // const MIN_COMMITMENT_AGE: u64 = 0;
     const MAX_COMMITMENT_AGE: u64 = 3;
     const FEE_PER_YEAR: u64 = 1000000;
+    const NO_OUTDATED_COMMITMENT_TO_REMOVE: u64 = 50;
 
     // errors in the range of 301..400 indicate Sui Controller errors
     const EInvalidResolverAddress: u64 = 301;
@@ -457,10 +458,12 @@ module suins::controller {
     }
 
     fun remove_outdated_commitments(controller: &mut BaseController, ctx: &mut TxContext) {
-        // TODO: need to update logic when timestamp is introduced
         let front_element = linked_table::front(&controller.commitments);
+        let i = 0;
 
-        while (option::is_some(front_element)) {
+        while (option::is_some(front_element) && i < NO_OUTDATED_COMMITMENT_TO_REMOVE) {
+            i = i + 1;
+
             let created_at = linked_table::borrow(&controller.commitments, *option::borrow(front_element));
             if (*created_at + MAX_COMMITMENT_AGE <= epoch(ctx)) {
                 linked_table::pop_front(&mut controller.commitments);
