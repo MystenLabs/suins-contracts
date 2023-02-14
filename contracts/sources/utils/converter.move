@@ -9,6 +9,7 @@ module suins::converter {
     friend suins::controller;
     friend suins::configuration;
     friend suins::remove_later;
+    friend suins::base_registrar;
 
     const REGISTRATION_FEE_PER_YEAR: u64 = 1000000;
     const EInvalidNumber: u64 = 601;

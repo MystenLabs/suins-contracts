@@ -1,8 +1,9 @@
-/// Its job is to charge fee, validate domain, apply referral and discount code
-/// The auctual records are stored in BaseRegistry
-/// Controller and Auction are the only 2 ways to register a new domain
-/// During auction time, only domains that have 7 to 63 characters are allowed to be registered through controller,
-/// after auction, all domains can be registered
+/// Its job is to charge payment, add validation and apply referral and discount code
+/// when registering and extend experation of domanin names.
+/// The real logic of mint a NFT and store the record in blockchain is done in Registrar and Registry contract.
+/// Domain name registration can only occur using the Controller and Auction contracts.
+/// During auction period, only domains with 7 to 63 characters can be registered via the Controller,
+/// but after the auction has ended, all domains can be registered.
 module suins::controller {
 
     use sui::balance::{Self, Balance};
@@ -12,21 +13,19 @@ module suins::controller {
     use sui::linked_table::{Self, LinkedTable};
     use sui::object::{Self, UID, ID};
     use sui::transfer;
-    use sui::tx_context::{Self, TxContext};
+    use sui::tx_context::{TxContext, sender, epoch};
     use sui::sui::SUI;
     use suins::base_registry::{Registry, AdminCap};
     use suins::base_registrar::{Self, BaseRegistrar};
     use suins::configuration::{Self, Configuration};
+    use suins::emoji::validate_label_with_emoji;
+    use suins::coin_util;
+    use suins::auction::{Self, Auction};
     use std::string::{Self, String, utf8};
+    use std::ascii;
     use std::bcs;
     use std::vector;
     use std::option::{Self, Option};
-    use std::ascii;
-    use suins::emoji::validate_label_with_emoji;
-    use suins::coin_util;
-    // use suins::auction;
-    use suins::auction::Auction;
-    use suins::auction;
 
     // TODO: remove later when timestamp is introduced
     // const MIN_COMMITMENT_AGE: u64 = 0;
@@ -75,64 +74,60 @@ module suins::controller {
         default_addr_resolver: address,
         /// To turn off registration
         disable: bool,
+
     }
 
-    fun init(ctx: &mut TxContext) {
-        transfer::share_object(BaseController {
-            id: object::new(ctx),
-            commitments: linked_table::new(ctx),
-            balance: balance::zero(),
-            // cannot get the ID of name_resolver in `init`, admin need to update this by calling `set_default_resolver`
-            default_addr_resolver: @0x0,
-            disable: false,
-        });
-    }
-
+    /// #### Notice
+    /// The admin uses this function to set default resolver address,
+    /// which is the default value when registering without config.
+    ///
+    /// #### Dev
+    /// The `default_addr_resolver` property of Controller share object is updated.
+    ///
+    /// #### Params
+    /// `resolver`: address of new default resolver.
     public entry fun set_default_resolver(_: &AdminCap, controller: &mut BaseController, resolver: address) {
         controller.default_addr_resolver = resolver;
         event::emit(DefaultResolverChangedEvent { resolver })
     }
 
-    public entry fun renew(
-        controller: &mut BaseController,
-        registrar: &mut BaseRegistrar,
-        label: vector<u8>,
-        no_years: u64,
-        payment: &mut Coin<SUI>,
-        ctx: &mut TxContext,
-    ) {
-        let renew_fee = FEE_PER_YEAR * no_years;
-        assert!(coin::value(payment) >= renew_fee, ENotEnoughFee);
-        let duration = no_years * 365;
-        base_registrar::renew(registrar, label, duration, ctx);
-
-        coin_util::user_transfer_to_contract(payment, renew_fee, &mut controller.balance);
-
-        event::emit(NameRenewedEvent {
-            node: base_registrar::get_base_node(registrar),
-            label: string::utf8(label),
-            cost: renew_fee,
-            duration,
-        })
-    }
-
-    public entry fun withdraw(_: &AdminCap, controller: &mut BaseController, ctx: &mut TxContext) {
-        let amount = balance::value(&controller.balance);
-        assert!(amount > 0, ENoProfits);
-
-        coin_util::contract_transfer_to_address(&mut controller.balance, amount, tx_context::sender(ctx), ctx);
-    }
-
+    /// #### Notice
+    /// This function is the first step in the commit/reveal process, which is implemented to prevent front-running.
+    ///
+    /// #### Dev
+    /// This also removes outdated commentments.
+    ///
+    /// #### Params
+    /// `commitment`: hash from `make_commitment`
     public entry fun commit(
         controller: &mut BaseController,
         commitment: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        remove_outdated_commitment(controller, ctx);
-        linked_table::push_back(&mut controller.commitments, commitment, tx_context::epoch(ctx));
+        remove_outdated_commitments(controller, ctx);
+        linked_table::push_back(&mut controller.commitments, commitment, epoch(ctx));
     }
 
-    // duration in years
+    /// #### Notice
+    /// This function is the second step in the commit/reveal process, which is implemented to prevent front-running.
+    /// It acts as a gatekeeper for the `Registrar::Controller`, responsible for node validation and charging payment.
+    ///
+    /// #### Dev
+    /// This function uses default resolver address.
+    ///
+    /// #### Params
+    /// `label`: label of the node being registered, the node has the form `label`.sui
+    /// `owner`: owner address of created NFT
+    /// `no_years`: in years
+    /// `secret`: the value used to create commitment in the first step
+    ///
+    /// Panic
+    /// Panic if new registration is disabled
+    /// or `label` contains characters that are not allowed
+    /// or `label is waiting to be finalized in auction
+    /// or label length isn't outside of the permitted range
+    /// or `payment` doesn't have enough coins
+    /// or either `referral_code` or `discount_code` is invalid
     public entry fun register(
         controller: &mut BaseController,
         registrar: &mut BaseRegistrar,
@@ -147,7 +142,6 @@ module suins::controller {
         ctx: &mut TxContext,
     ) {
         let resolver = controller.default_addr_resolver;
-        // TODO: duration in year only, currently in number of days
         register_internal(
             controller,
             registrar,
@@ -166,55 +160,14 @@ module suins::controller {
         );
     }
 
-    // duration in years
-    public entry fun register_with_code(
-        controller: &mut BaseController,
-        registrar: &mut BaseRegistrar,
-        registry: &mut Registry,
-        config: &mut Configuration,
-        auction: &Auction,
-        label: vector<u8>,
-        owner: address,
-        no_years: u64,
-        secret: vector<u8>,
-        payment: &mut Coin<SUI>,
-        referral_code: vector<u8>,
-        discount_code: vector<u8>,
-        ctx: &mut TxContext,
-    ) {
-        let referral_len = vector::length(&referral_code);
-        let discount_len = vector::length(&discount_code);
-        assert!(referral_len > 0 || discount_len > 0, EInvalidCode);
-
-        let referral = option::none();
-        let discount = option::none();
-        if (referral_len > 0) referral = option::some(ascii::string(referral_code));
-        if (discount_len > 0) discount = option::some(ascii::string(discount_code));
-
-        let resolver = controller.default_addr_resolver;
-        register_internal(
-            controller,
-            registrar,
-            registry,
-            config,
-            auction,
-            label,
-            owner,
-            no_years,
-            secret,
-            resolver,
-            payment,
-            referral,
-            discount,
-            ctx,
-        );
-    }
-
-    // anyone can register a domain at any level
-    // duration in years
-    /**
-     * @param {Code} resolver - address of custom resolver
-     */
+    /// #### Notice
+    /// Similar to the `register` function, with an added `resolver` parameter.
+    ///
+    /// #### Dev
+    /// Use `resolver` parameter for resolver address.
+    ///
+    /// #### Params
+    /// `resolver`: address of the resolver
     public entry fun register_with_config(
         controller: &mut BaseController,
         registrar: &mut BaseRegistrar,
@@ -247,8 +200,74 @@ module suins::controller {
         );
     }
 
-    // anyone can register a domain at any level
-    // duration in years
+    /// #### Notice
+    /// Similar to the `register` function, with added `referral_code` and `discount_code` parameters.
+    /// Can use one or two codes at the same time.
+    /// `discount_code` is applied first before `referral_code` if use both.
+    ///
+    /// #### Dev
+    /// Use empty string for unused code, however, at least one code must be used.
+    /// Remove `discount_code` after this function returns.
+    ///
+    /// #### Params
+    /// `referral_code`: referral code to be used
+    /// `discount_code`: discount code to be used
+    public entry fun register_with_code(
+        controller: &mut BaseController,
+        registrar: &mut BaseRegistrar,
+        registry: &mut Registry,
+        config: &mut Configuration,
+        auction: &Auction,
+        label: vector<u8>,
+        owner: address,
+        no_years: u64,
+        secret: vector<u8>,
+        payment: &mut Coin<SUI>,
+        referral_code: vector<u8>,
+        discount_code: vector<u8>,
+        ctx: &mut TxContext,
+    ) {
+        let referral_len = vector::length(&referral_code);
+        let discount_len = vector::length(&discount_code);
+        // doesn't have a format for codes right now, so any non-empty code is considered valid
+        assert!(referral_len > 0 || discount_len > 0, EInvalidCode);
+
+        let referral = option::none();
+        let discount = option::none();
+        if (referral_len > 0) referral = option::some(ascii::string(referral_code));
+        if (discount_len > 0) discount = option::some(ascii::string(discount_code));
+
+        let resolver = controller.default_addr_resolver;
+        register_internal(
+            controller,
+            registrar,
+            registry,
+            config,
+            auction,
+            label,
+            owner,
+            no_years,
+            secret,
+            resolver,
+            payment,
+            referral,
+            discount,
+            ctx,
+        );
+    }
+
+    /// #### Notice
+    /// Similar to the `register_with_config` function, with added `referral_code` and `discount_code` parameters.
+    /// Can use one or two codes at the same time.
+    /// `discount_code` is applied first before `referral_code` if use both.
+    ///
+    /// #### Dev
+    /// Use empty string for unused code, however, at least one code must be used.
+    /// Remove `discount_code` after this function returns.
+    ///
+    /// #### Params
+    /// `referral_code`: referral code to be used
+    /// `discount_code`: discount code to be used
     public entry fun register_with_config_and_code(
         controller: &mut BaseController,
         registrar: &mut BaseRegistrar,
@@ -265,6 +284,7 @@ module suins::controller {
         discount_code: vector<u8>,
         ctx: &mut TxContext,
     ) {
+        // TODO: duplicate with `register_with_code`, consider moving this block to a separate function
         let referral_len = vector::length(&referral_code);
         let discount_len = vector::length(&discount_code);
         assert!(referral_len > 0 || discount_len > 0, EInvalidCode);
@@ -290,6 +310,65 @@ module suins::controller {
             discount,
             ctx,
         );
+    }
+
+    /// #### Notice
+    /// Anyone can use this function to extend expiration of a node. The TLD comes from BaseRegistrar::tld.
+    /// It acts as a gatekeeper for the `Registrar::Renew`, responsible for charging payment.
+    ///
+    /// #### Params
+    /// `label`: label of the node being registered, the node has the form `label`.sui
+    /// `no_years`: in years
+    ///
+    /// Panic
+    /// Panic if node doesn't exist
+    /// or `payment` doesn't have enough coins
+    public entry fun renew(
+        controller: &mut BaseController,
+        registrar: &mut BaseRegistrar,
+        label: vector<u8>,
+        no_years: u64,
+        payment: &mut Coin<SUI>,
+        ctx: &mut TxContext,
+    ) {
+        let renew_fee = FEE_PER_YEAR * no_years;
+        assert!(coin::value(payment) >= renew_fee, ENotEnoughFee);
+        coin_util::user_transfer_to_contract(payment, renew_fee, &mut controller.balance);
+
+        let duration = no_years * 365;
+        base_registrar::renew(registrar, label, duration, ctx);
+
+        event::emit(NameRenewedEvent {
+            node: base_registrar::base_node(registrar),
+            label: string::utf8(label),
+            cost: renew_fee,
+            duration,
+        })
+    }
+
+    /// #### Notice
+    /// Admin use this function to withdraw the payment.
+    ///
+    /// Panics
+    /// Panics if no profits has been created.
+    public entry fun withdraw(_: &AdminCap, controller: &mut BaseController, ctx: &mut TxContext) {
+        let amount = balance::value(&controller.balance);
+        assert!(amount > 0, ENoProfits);
+
+        coin_util::contract_transfer_to_address(&mut controller.balance, amount, sender(ctx), ctx);
+    }
+
+    // === Private Functions ===
+
+    fun init(ctx: &mut TxContext) {
+        transfer::share_object(BaseController {
+            id: object::new(ctx),
+            commitments: linked_table::new(ctx),
+            balance: balance::zero(),
+            // cannot get the ID of name_resolver in `init`, admin need to update this by calling `set_default_resolver`
+            default_addr_resolver: @0x0,
+            disable: false,
+        });
     }
 
     // returns remaining_fee
@@ -336,13 +415,13 @@ module suins::controller {
         ctx: &mut TxContext,
     ) {
         assert!(!controller.disable, ERegistrationIsDisabled);
-        let emoji_config = configuration::get_emoji_config(config);
+        let emoji_config = configuration::emoji_config(config);
         let label_str = utf8(label);
-        // TODO: cannot register (3->6)-character domains before auction ends
-        if (tx_context::epoch(ctx) <= auction::auction_end_at(auction)) {
+
+        if (epoch(ctx) <= auction::auction_close_at(auction)) {
             validate_label_with_emoji(emoji_config, label, 7, 63)
         } else {
-            assert!(auction::is_label_available_for_controller(auction, label_str, ctx), ELabelUnAvailable);
+            assert!(auction::is_auction_label_available_for_controller(auction, label_str, ctx), ELabelUnAvailable);
             validate_label_with_emoji(emoji_config, label, 3, 63)
         };
         let registration_fee = FEE_PER_YEAR * no_years;
@@ -365,11 +444,11 @@ module suins::controller {
         coin_util::user_transfer_to_contract(payment, registration_fee, &mut controller.balance);
 
         event::emit(NameRegisteredEvent {
-            node: base_registrar::get_base_node(registrar),
+            node: base_registrar::base_node(registrar),
             label: label_str,
             owner,
             cost: FEE_PER_YEAR * no_years,
-            expiry: tx_context::epoch(ctx) + duration,
+            expiry: epoch(ctx) + duration,
             nft_id,
             resolver,
             referral_code,
@@ -377,13 +456,13 @@ module suins::controller {
         });
     }
 
-    fun remove_outdated_commitment(controller: &mut BaseController, ctx: &mut TxContext) {
+    fun remove_outdated_commitments(controller: &mut BaseController, ctx: &mut TxContext) {
         // TODO: need to update logic when timestamp is introduced
         let front_element = linked_table::front(&controller.commitments);
 
         while (option::is_some(front_element)) {
             let created_at = linked_table::borrow(&controller.commitments, *option::borrow(front_element));
-            if (*created_at + MAX_COMMITMENT_AGE <= tx_context::epoch(ctx)) {
+            if (*created_at + MAX_COMMITMENT_AGE <= epoch(ctx)) {
                 linked_table::pop_front(&mut controller.commitments);
                 front_element = linked_table::front(&controller.commitments);
             } else break;
@@ -404,7 +483,7 @@ module suins::controller {
         //     ECommitmentNotValid
         // );
         assert!(
-            *linked_table::borrow(&controller.commitments, commitment) + MAX_COMMITMENT_AGE > tx_context::epoch(ctx),
+            *linked_table::borrow(&controller.commitments, commitment) + MAX_COMMITMENT_AGE > epoch(ctx),
             ECommitmentTooOld
         );
         assert!(base_registrar::available(registrar, string::utf8(label), ctx), ELabelUnAvailable);
@@ -414,7 +493,7 @@ module suins::controller {
     fun make_commitment(registrar: &BaseRegistrar, label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
         let node = label;
         vector::append(&mut node, b".");
-        vector::append(&mut node, base_registrar::get_base_node_bytes(registrar));
+        vector::append(&mut node, base_registrar::base_node_bytes(registrar));
 
         let owner_bytes = bcs::to_bytes(&owner);
         vector::append(&mut node, owner_bytes);

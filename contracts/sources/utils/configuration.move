@@ -5,7 +5,7 @@ module suins::configuration {
     use sui::transfer;
     use sui::url::{Self, Url};
     use sui::event;
-    use sui::tx_context::{Self, TxContext};
+    use sui::tx_context::{TxContext, sender};
     use sui::table::{Self, Table};
     use std::ascii::{Self, String};
     use std::vector;
@@ -69,40 +69,16 @@ module suins::configuration {
 
     struct Configuration has key {
         id: UID,
-        // key is the day number of the end-of-year day counted from 01/01/2022, e.g., 2022 is day 365, 2023 is day 730
+        /// key is the day number of the end-of-year day counted from 01/01/2022, e.g., 2022 is day 365, 2023 is day 730
         ipfs_urls: VecMap<u64, vector<u8>>,
-        // day number when the network is deployed, counts from 01/01/2022, 01/01/2022 is day 1,
-        // help to detect leap year
+        /// day number from the date the network is deployed, counts from 01/01/2023, 01/01/2023 is day 1,
+        /// help to detect leap year
         network_first_day: u64,
         referral_codes: VecMap<String, ReferralValue>,
         discount_codes: VecMap<String, DiscountValue>,
-        // if `key` doesn't contains TLD, it means we reserve both .sui and .move
+        /// if `key` doesn't contains TLD, it means we reserve both .sui and .move
         reserve_domains: Table<string::String, bool>,
-        // hold hardcoded value
-        // TODO: change this to `Bag`
-        resources: Table<String, EmojiConfiguration>,
-    }
-
-    fun init(ctx: &mut TxContext) {
-        let ipfs_urls = vec_map::empty<u64, vector<u8>>();
-        vec_map::insert(&mut ipfs_urls, 365, b"ipfs://QmZsHKQk9FbQZYCy7rMYn1z6m9Raa183dNhpGCRm3fX71s");
-        vec_map::insert(&mut ipfs_urls, 731, b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2");
-        vec_map::insert(&mut ipfs_urls, 1096, b"ipfs://QmaWNLR6C3QsSHcPwNoFA59DPXCKdx1t8hmyyKRqBbjYB3");
-        vec_map::insert(&mut ipfs_urls, 1461, b"ipfs://QmRF7kbi4igtGcX6enEuthQRhvQZejc7ZKBhMimFJtTS8D");
-        vec_map::insert(&mut ipfs_urls, 1826, b"ipfs://QmTdkzVAAW7yRHu5EVMwH2d7kUM1a9amyW67NCYgut6Hd5");
-        vec_map::insert(&mut ipfs_urls, 2192, b"ipfs://Qmdm7ET9hbMRn7ex9TH6cJaKr8h8AE29w8kMqAhExBHfh9");
-        let resources = table::new<String, EmojiConfiguration>(ctx);
-        table::add(&mut resources, ascii::string(EmojiConfig), emoji::init_emoji_config());
-        // TODO: hardcode reserve domain
-        transfer::share_object(Configuration {
-            id: object::new(ctx),
-            ipfs_urls,
-            network_first_day: 0,
-            referral_codes: vec_map::empty(),
-            discount_codes: vec_map::empty(),
-            reserve_domains: table::new(ctx),
-            resources,
-        });
+        emoji_config: EmojiConfiguration,
     }
 
     public entry fun set_network_first_day(_: &AdminCap, config: &mut Configuration, new_day: u64) {
@@ -115,11 +91,10 @@ module suins::configuration {
         let domains = remove_later::deserialize_reserve_domains(domains);
         let len = vector::length(&domains);
         let index = 0;
-        // let emoji_config = table::borrow(&config.resources, ascii::string(EmojiConfig));
+
         while (index < len) {
             let domain = vector::borrow(&domains, index);
-            // TODO: validate or not
-            // emoji::validate_label(emoji_config, *string::bytes(domain));
+            // TODO: validate or not?
             if (!table::contains(&config.reserve_domains, *domain)) {
                 table::add(&mut config.reserve_domains, *domain, true);
             };
@@ -132,7 +107,7 @@ module suins::configuration {
         let domains = remove_later::deserialize_reserve_domains(domains);
         let len = vector::length(&domains);
         let index = 0;
-        // let emoji_config = table::borrow(&config.resources, ascii::string(EmojiConfig));
+
         while (index < len) {
             let domain = vector::borrow(&domains, index);
             if (table::contains(&config.reserve_domains, *domain)) {
@@ -186,9 +161,9 @@ module suins::configuration {
     // owner must have '0x'
     public entry fun new_discount_code_batch(_: &AdminCap, config: &mut Configuration, code_batch: vector<u8>) {
         let discount_codes = remove_later::deserialize_new_discount_code_batch(code_batch);
-
         let len = vector::length(&discount_codes);
         let index = 0;
+
         while(index < len) {
             let discount_code = vector::borrow(&discount_codes, index);
             let (code, rate, owner) = remove_later::get_discount_fields(discount_code);
@@ -216,6 +191,7 @@ module suins::configuration {
         let codes = remove_later::deserialize_remove_discount_code_batch(code_batch);
         let len = vector::length(&codes);
         let index = 0;
+
         while(index < len) {
             let code = vector::borrow(&codes, index);
             vec_map::remove(&mut config.discount_codes, code);
@@ -224,10 +200,13 @@ module suins::configuration {
         };
     }
 
+    // === Friend and Private Functions ===
+
     public(friend) fun get_url(config: &Configuration, duration: u64, current_epoch: u64): Url {
         let end_date = config.network_first_day + current_epoch + duration;
         let len = vec_map::size(&config.ipfs_urls);
         let index = 0;
+
         while (index < len) {
             let (key, value) = vec_map::get_entry_by_idx(&config.ipfs_urls, index);
             if (end_date <= *key) {
@@ -240,10 +219,12 @@ module suins::configuration {
 
     public(friend) fun use_discount_code(config: &mut Configuration, code: &String, ctx: &TxContext): u8 {
         assert!(vec_map::contains(&config.discount_codes, code), EDiscountCodeNotExists);
+
         let value = vec_map::get(&config.discount_codes, code);
         let owner = value.owner;
-        let sender = converter::address_to_string(tx_context::sender(ctx));
+        let sender = converter::address_to_string(sender(ctx));
         assert!(owner == ascii::string(sender), EOwnerUnauthorized);
+
         let rate = value.rate;
         vec_map::remove(&mut config.discount_codes, code);
         rate
@@ -256,8 +237,27 @@ module suins::configuration {
         (value.rate, value.partner)
     }
 
-    public(friend) fun get_emoji_config(config: &Configuration): &EmojiConfiguration {
-        table::borrow(&config.resources, ascii::string(EmojiConfig))
+    public(friend) fun emoji_config(config: &Configuration): &EmojiConfiguration {
+        &config.emoji_config
+    }
+
+    fun init(ctx: &mut TxContext) {
+        let ipfs_urls = vec_map::empty<u64, vector<u8>>();
+        vec_map::insert(&mut ipfs_urls, 365, b"ipfs://QmZsHKQk9FbQZYCy7rMYn1z6m9Raa183dNhpGCRm3fX71s");
+        vec_map::insert(&mut ipfs_urls, 731, b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2");
+        vec_map::insert(&mut ipfs_urls, 1096, b"ipfs://QmaWNLR6C3QsSHcPwNoFA59DPXCKdx1t8hmyyKRqBbjYB3");
+        vec_map::insert(&mut ipfs_urls, 1461, b"ipfs://QmRF7kbi4igtGcX6enEuthQRhvQZejc7ZKBhMimFJtTS8D");
+        vec_map::insert(&mut ipfs_urls, 1826, b"ipfs://QmTdkzVAAW7yRHu5EVMwH2d7kUM1a9amyW67NCYgut6Hd5");
+        vec_map::insert(&mut ipfs_urls, 2192, b"ipfs://Qmdm7ET9hbMRn7ex9TH6cJaKr8h8AE29w8kMqAhExBHfh9");
+        transfer::share_object(Configuration {
+            id: object::new(ctx),
+            ipfs_urls,
+            network_first_day: 0,
+            referral_codes: vec_map::empty(),
+            discount_codes: vec_map::empty(),
+            reserve_domains: table::new(ctx),
+            emoji_config: emoji::init_emoji_config(),
+        });
     }
 
     #[test_only]
@@ -329,8 +329,6 @@ module suins::configuration {
         vec_map::insert(&mut ipfs_urls, 1461, b"ipfs://QmRF7kbi4igtGcX6enEuthQRhvQZejc7ZKBhMimFJtTS8D");
         vec_map::insert(&mut ipfs_urls, 1826, b"ipfs://QmTdkzVAAW7yRHu5EVMwH2d7kUM1a9amyW67NCYgut6Hd5");
         vec_map::insert(&mut ipfs_urls, 2192, b"ipfs://Qmdm7ET9hbMRn7ex9TH6cJaKr8h8AE29w8kMqAhExBHfh9");
-        let resources = table::new<String, EmojiConfiguration>(ctx);
-        table::add(&mut resources, ascii::string(b"emoji_config"), emoji::init_emoji_config());
 
         transfer::share_object(Configuration {
             id: object::new(ctx),
@@ -339,7 +337,7 @@ module suins::configuration {
             referral_codes: vec_map::empty(),
             discount_codes: vec_map::empty(),
             reserve_domains: table::new(ctx),
-            resources,
+            emoji_config: emoji::init_emoji_config(),
         });
     }
 }

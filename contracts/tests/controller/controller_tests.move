@@ -6,7 +6,7 @@ module suins::controller_tests {
     use sui::tx_context;
     use sui::sui::SUI;
     use suins::controller::{Self, BaseController};
-    use suins::base_registrar::{Self, BaseRegistrar, TLDsList, RegistrationNFT};
+    use suins::base_registrar::{Self, BaseRegistrar, TLDList, RegistrationNFT};
     use suins::base_registry::{Self, Registry, AdminCap};
     use suins::emoji;
     use suins::configuration::{Self, Configuration};
@@ -17,7 +17,7 @@ module suins::controller_tests {
     use sui::table;
     use suins::auction::{Auction, make_seal_bid};
     use suins::auction;
-    use suins::auction_tests::{start_auction_util, new_bid_util, unseal_bid_util};
+    use suins::auction_tests::{start_an_auction_util, place_bid_util, reveal_bid_util};
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -40,6 +40,8 @@ module suins::controller_tests {
     const DISCOUNT_CODE: vector<u8> = b"DC12345";
     const BIDDING_PERIOD: u64 = 3;
     const REVEAL_PERIOD: u64 = 3;
+    const AUCTION_START_AT: u64 = 50;
+    const AUCTION_END_AT: u64 = 120;
 
     fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
@@ -54,7 +56,7 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             base_registrar::new_tld(&admin_cap, &mut tlds_list,b"sui", test_scenario::ctx(&mut scenario));
             configuration::new_referral_code(&admin_cap, &mut config, REFERRAL_CODE, 10, SECOND_USER_ADDRESS);
@@ -79,7 +81,13 @@ module suins::controller_tests {
                 0
             );
             if (option::is_none(&label)) label = option::some(FIRST_LABEL);
-            let commitment = controller::test_make_commitment(&registrar, option::extract(&mut label), FIRST_USER_ADDRESS, FIRST_SECRET);
+            let commitment = controller::test_make_commitment(
+                &registrar,
+                option::extract(&mut label),
+                FIRST_USER_ADDRESS,
+                FIRST_SECRET
+            );
+
             controller::commit(
                 &mut controller,
                 commitment,
@@ -959,7 +967,7 @@ module suins::controller_tests {
             let ctx = test_scenario::ctx(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(2000001, ctx);
 
-            assert!(base_registrar::name_expires(&registrar, string::utf8(FIRST_LABEL)) == 416, 0);
+            assert!(base_registrar::name_expires_at(&registrar, string::utf8(FIRST_LABEL)) == 416, 0);
             assert!(controller::balance(&controller) == 1000000, 0);
 
             controller::renew(
@@ -972,7 +980,7 @@ module suins::controller_tests {
             );
 
             assert!(coin::value(&coin) == 1, 0);
-            assert!(base_registrar::name_expires(&registrar, string::utf8(FIRST_LABEL)) == 1146, 0);
+            assert!(base_registrar::name_expires_at(&registrar, string::utf8(FIRST_LABEL)) == 1146, 0);
 
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
@@ -2534,7 +2542,7 @@ module suins::controller_tests {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let auction = test_scenario::take_shared<Auction>(scenario);
 
-            auction::configurate_auction(&admin_cap, &mut auction, 50, 110, test_scenario::ctx(scenario));
+            auction::configurate_auction(&admin_cap, &mut auction, AUCTION_START_AT, AUCTION_END_AT, test_scenario::ctx(scenario));
 
             test_scenario::return_shared(auction);
             test_scenario::return_to_sender(scenario, admin_cap);
@@ -3090,15 +3098,15 @@ module suins::controller_tests {
     fun test_register_abort_if_name_are_waiting_for_being_finalized() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
-        start_auction_util(&mut scenario, AUCTIONED_LABEL);
+        start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
         let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000, b"CnRGhPvfCu");
-        new_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER_ADDRESS);
+        place_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER_ADDRESS);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
 
-            unseal_bid_util(
+            reveal_bid_util(
                 &mut auction,
                 110 + 1 + BIDDING_PERIOD,
                 AUCTIONED_LABEL,
