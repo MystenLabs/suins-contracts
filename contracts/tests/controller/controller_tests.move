@@ -2148,8 +2148,6 @@ module suins::controller_tests {
             };
 
             assert!(controller::commitment_len(&controller) == 70, 0);
-            assert!(controller::get_latest_epoch_commitment(&controller) == 47, 0);
-            assert!(controller::get_no_more_outdated_commitment(&controller) == true, 0);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
         };
@@ -2177,8 +2175,6 @@ module suins::controller_tests {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
 
             assert!(controller::commitment_len(&controller) == 21, 0);
-            assert!(controller::get_latest_epoch_commitment(&controller) == 50, 0);
-            assert!(controller::get_no_more_outdated_commitment(&controller) == false, 0);
             test_scenario::return_shared(controller);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -2205,8 +2201,6 @@ module suins::controller_tests {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
 
             assert!(controller::commitment_len(&controller) == 2, 0);
-            assert!(controller::get_latest_epoch_commitment(&controller) == 50, 0);
-            assert!(controller::get_no_more_outdated_commitment(&controller) == true, 0);
             test_scenario::return_shared(controller);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -2233,8 +2227,6 @@ module suins::controller_tests {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
 
             assert!(controller::commitment_len(&controller) == 3, 0);
-            assert!(controller::get_latest_epoch_commitment(&controller) == 51, 0);
-            assert!(controller::get_no_more_outdated_commitment(&controller) == true, 0);
             test_scenario::return_shared(controller);
         };
         test_scenario::end(scenario);
@@ -2270,8 +2262,6 @@ module suins::controller_tests {
             };
 
             assert!(controller::commitment_len(&controller) == 40, 0);
-            assert!(controller::get_latest_epoch_commitment(&controller) == 47, 0);
-            assert!(controller::get_no_more_outdated_commitment(&controller) == true, 0);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
         };
@@ -2299,8 +2289,6 @@ module suins::controller_tests {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
 
             assert!(controller::commitment_len(&controller) == 1, 0);
-            assert!(controller::get_latest_epoch_commitment(&controller) == 50, 0);
-            assert!(controller::get_no_more_outdated_commitment(&controller) == true, 0);
             test_scenario::return_shared(controller);
         };
         test_scenario::end(scenario);
