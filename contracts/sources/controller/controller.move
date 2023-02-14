@@ -16,7 +16,7 @@ module suins::controller {
     use sui::tx_context::{TxContext, sender, epoch};
     use sui::sui::SUI;
     use suins::base_registry::{Registry, AdminCap};
-    use suins::base_registrar::{Self, BaseRegistrar};
+    use suins::base_registrar::{Self, BaseRegistrar, RegistrationNFT};
     use suins::configuration::{Self, Configuration};
     use suins::emoji::validate_label_with_emoji;
     use suins::coin_util;
@@ -90,6 +90,16 @@ module suins::controller {
     public entry fun set_default_resolver(_: &AdminCap, controller: &mut BaseController, resolver: address) {
         controller.default_addr_resolver = resolver;
         event::emit(DefaultResolverChangedEvent { resolver })
+    }
+
+    /// #### Notice
+    /// The admin uses this function to enable or disable registration.
+    ///
+    ///
+    /// #### Params
+    /// `new_value`: false to enable registration, true to disable it.
+    public entry fun set_disable(_: &AdminCap, controller: &mut BaseController, new_value: bool) {
+        controller.disable = new_value;
     }
 
     /// #### Notice
@@ -583,19 +593,39 @@ module suins::controller {
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext,
     ) {
-        let renew_fee = FEE_PER_YEAR * no_years;
-        assert!(coin::value(payment) >= renew_fee, ENotEnoughFee);
-        coin_util::user_transfer_to_contract(payment, renew_fee, &mut controller.balance);
+        renew_internal(controller, registrar, label, no_years, payment, ctx)
+    }
 
-        let duration = no_years * 365;
-        base_registrar::renew(registrar, label, duration, ctx);
-
-        event::emit(NameRenewedEvent {
-            node: base_registrar::base_node(registrar),
-            label: string::utf8(label),
-            cost: renew_fee,
-            duration,
-        })
+    /// #### Notice
+    /// Anyone can use this function to extend expiration of a node. The TLD comes from BaseRegistrar::tld.
+    /// It acts as a gatekeeper for the `Registrar::renew`, responsible for charging payment.
+    /// The image url of the `nft` is updated.
+    ///
+    /// #### Params
+    /// `label`: label of the node being registered, the node has the form `label`.sui
+    /// `no_years`: in years
+    ///
+    /// Panic
+    /// Panic if node doesn't exist
+    /// or `payment` doesn't have enough coins
+    /// or `signature` is empty
+    /// or `hashed_msg` is empty
+    /// or `msg` is empty
+    public entry fun renew_with_image(
+        controller: &mut BaseController,
+        registrar: &mut BaseRegistrar,
+        config: &Configuration,
+        label: vector<u8>,
+        no_years: u64,
+        payment: &mut Coin<SUI>,
+        nft: &mut RegistrationNFT,
+        signature: vector<u8>,
+        hashed_msg: vector<u8>,
+        raw_msg: vector<u8>,
+        ctx: &mut TxContext,
+    ) {
+        renew_internal(controller, registrar, label, no_years, payment, ctx);
+        base_registrar::update_image_url(registrar, config, nft, signature, hashed_msg, raw_msg, ctx);
     }
 
     /// #### Notice
@@ -612,14 +642,27 @@ module suins::controller {
 
     // === Private Functions ===
 
-    fun init(ctx: &mut TxContext) {
-        transfer::share_object(BaseController {
-            id: object::new(ctx),
-            commitments: linked_table::new(ctx),
-            balance: balance::zero(),
-            // cannot get the ID of name_resolver in `init`, admin need to update this by calling `set_default_resolver`
-            default_addr_resolver: @0x0,
-            disable: false,
+    /// Returns the epoch at which the `label` is expired
+    fun renew_internal(
+        controller: &mut BaseController,
+        registrar: &mut BaseRegistrar,
+        label: vector<u8>,
+        no_years: u64,
+        payment: &mut Coin<SUI>,
+        ctx: &mut TxContext
+    ) {
+        let renew_fee = FEE_PER_YEAR * no_years;
+        assert!(coin::value(payment) >= renew_fee, ENotEnoughFee);
+        coin_util::user_transfer_to_contract(payment, renew_fee, &mut controller.balance);
+
+        let duration = no_years * 365;
+        base_registrar::renew(registrar, label, duration, ctx);
+
+        event::emit(NameRenewedEvent {
+            node: base_registrar::base_node(registrar),
+            label: string::utf8(label),
+            cost: renew_fee,
+            duration,
         });
     }
 
@@ -785,6 +828,17 @@ module suins::controller {
         (referral, discount)
     }
 
+    fun init(ctx: &mut TxContext) {
+        transfer::share_object(BaseController {
+            id: object::new(ctx),
+            commitments: linked_table::new(ctx),
+            balance: balance::zero(),
+            // cannot get the ID of name_resolver in `init`, admin need to update this by calling `set_default_resolver`
+            default_addr_resolver: @0x0,
+            disable: false,
+        });
+    }
+
     #[test_only]
     public fun test_make_commitment(
         registrar: &BaseRegistrar,
@@ -819,10 +873,6 @@ module suins::controller {
         ctx: &mut TxContext
     ): u64 {
         apply_referral_code(config, payment, original_fee, &ascii::string(referral_code), ctx)
-    }
-
-    public entry fun set_disable(_: &AdminCap, controller: &mut BaseController, new_value: bool) {
-        controller.disable = new_value;
     }
 
     #[test_only]

@@ -4606,4 +4606,303 @@ module suins::controller_tests {
         };
         test_scenario::end(scenario);
     }
+
+    #[test]
+    fun test_renew_with_image() {
+        let scenario = test_init();
+        register(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = base_registrar::get_nft_fields(&nft);
+
+            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(name == utf8(b"eastagile-123.sui"), 0);
+            assert!(url == url::new_unsafe_from_bytes(b""), 0);
+
+            test_scenario::return_shared(controller);
+            test_scenario::return_to_sender(&mut scenario, nft);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&scenario);
+            let ctx = test_scenario::ctx(&mut scenario);
+            let coin = coin::mint_for_testing<SUI>(2000001, ctx);
+
+            assert!(base_registrar::name_expires_at(&registrar, string::utf8(FIRST_LABEL)) == 416, 0);
+            assert!(controller::balance(&controller) == 1000000, 0);
+
+            controller::renew_with_image(
+                &mut controller,
+                &mut registrar,
+                &config,
+                FIRST_LABEL,
+                2,
+                &mut coin,
+                &mut nft,
+                x"9d1b824b2c7c3649cc967465393cc00cfa3e4c8e542ef0175a0525f91cb80b8721370eb6ca3f36896e0b740f99ebd02ea3e50480b19ac66466045b3e4763b14f",
+                x"8ae97b7af21e857a343b93f0ca8a132819aa4edd4bedcee3e3a37d8f9bb89821",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,1146",
+                ctx,
+            );
+
+            assert!(coin::value(&coin) == 1, 0);
+            assert!(base_registrar::name_expires_at(&registrar, string::utf8(FIRST_LABEL)) == 1146, 0);
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(&mut scenario, nft);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = base_registrar::get_nft_fields(&nft);
+
+            assert!(controller::balance(&controller) == 3000000, 0);
+            assert!(name == utf8(b"eastagile-123.sui"), 0);
+            assert!(url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"), 0);
+
+            test_scenario::return_shared(controller);
+            test_scenario::return_to_sender(&mut scenario, nft);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    fun test_renew_with_image_aborts_with_empty_signature() {
+        let scenario = test_init();
+        register(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&scenario);
+            let ctx = test_scenario::ctx(&mut scenario);
+            let coin = coin::mint_for_testing<SUI>(2000001, ctx);
+
+            controller::renew_with_image(
+                &mut controller,
+                &mut registrar,
+                &config,
+                FIRST_LABEL,
+                2,
+                &mut coin,
+                &mut nft,
+                x"",
+                x"8ae97b7af21e857a343b93f0ca8a132819aa4edd4bedcee3e3a37d8f9bb89821",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,1146",
+                ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(&mut scenario, nft);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    fun test_renew_with_image_aborts_with_empty_hashed_msg() {
+        let scenario = test_init();
+        register(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&scenario);
+            let ctx = test_scenario::ctx(&mut scenario);
+            let coin = coin::mint_for_testing<SUI>(2000001, ctx);
+
+            controller::renew_with_image(
+                &mut controller,
+                &mut registrar,
+                &config,
+                FIRST_LABEL,
+                2,
+                &mut coin,
+                &mut nft,
+                x"a8ae97b7af21e87a343b93f0ca8a132819aa4edd4bedcee3e3a37d8f9bb89821",
+                x"",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,1146",
+                ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(&mut scenario, nft);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    fun test_renew_with_image_aborts_with_empty_raw_msg() {
+        let scenario = test_init();
+        register(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&scenario);
+            let ctx = test_scenario::ctx(&mut scenario);
+            let coin = coin::mint_for_testing<SUI>(2000001, ctx);
+
+            controller::renew_with_image(
+                &mut controller,
+                &mut registrar,
+                &config,
+                FIRST_LABEL,
+                2,
+                &mut coin,
+                &mut nft,
+                x"a8ae97b7af21e85a343b93f0ca8a132819aa4edd4bedcee3e3a37d8f9bb89821",
+                x"a8ae97b7af21857a343b93f0ca8a132819aa4edd4bedcee3e3a37d8f9bb89821",
+                b"",
+                ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(&mut scenario, nft);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = base_registrar::ELabelExpired)]
+    fun test_renew_with_image_aborts_if_being_called_too_late() {
+        let scenario = test_init();
+        register(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&scenario);
+            let ctx = tx_context::new(
+                FIRST_USER_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                600,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(2000001, &mut ctx);
+
+            assert!(base_registrar::name_expires_at(&registrar, string::utf8(FIRST_LABEL)) == 416, 0);
+
+            controller::renew_with_image(
+                &mut controller,
+                &mut registrar,
+                &config,
+                FIRST_LABEL,
+                2,
+                &mut coin,
+                &mut nft,
+                x"9d1b824b2c7c3649cc967465393cc00cfa3e4c8e542ef0175a0525f91cb80b8721370eb6ca3f36896e0b740f99ebd02ea3e50480b19ac66466045b3e4763b14f",
+                x"8ae97b7af21e857a343b93f0ca8a132819aa4edd4bedcee3e3a37d8f9bb89821",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,1146",
+                &mut ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(&mut scenario, nft);
+        };
+        test_scenario::end(scenario);
+    }
+
+    // FIXME: which epoch?
+    #[test]
+    fun test_renew_with_image_works_if_being_called_in_grace_time() {
+        let scenario = test_init();
+        register(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = base_registrar::get_nft_fields(&nft);
+
+            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(name == utf8(b"eastagile-123.sui"), 0);
+            assert!(url == url::new_unsafe_from_bytes(b""), 0);
+
+            test_scenario::return_shared(controller);
+            test_scenario::return_to_sender(&mut scenario, nft);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&scenario);
+            let ctx = tx_context::new(
+                FIRST_USER_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                450,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(2000001, &mut ctx);
+
+            assert!(base_registrar::name_expires_at(&registrar, string::utf8(FIRST_LABEL)) == 416, 0);
+            assert!(controller::balance(&controller) == 1000000, 0);
+
+            controller::renew_with_image(
+                &mut controller,
+                &mut registrar,
+                &config,
+                FIRST_LABEL,
+                2,
+                &mut coin,
+                &mut nft,
+                x"9d1b824b2c7c3649cc967465393cc00cfa3e4c8e542ef0175a0525f91cb80b8721370eb6ca3f36896e0b740f99ebd02ea3e50480b19ac66466045b3e4763b14f",
+                x"8ae97b7af21e857a343b93f0ca8a132819aa4edd4bedcee3e3a37d8f9bb89821",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,1146",
+                &mut ctx,
+            );
+
+            assert!(coin::value(&coin) == 1, 0);
+            assert!(base_registrar::name_expires_at(&registrar, string::utf8(FIRST_LABEL)) == 1146, 0);
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(&mut scenario, nft);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = base_registrar::get_nft_fields(&nft);
+
+            assert!(controller::balance(&controller) == 3000000, 0);
+            assert!(name == utf8(b"eastagile-123.sui"), 0);
+            assert!(url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"), 0);
+
+            test_scenario::return_shared(controller);
+            test_scenario::return_to_sender(&mut scenario, nft);
+        };
+        test_scenario::end(scenario);
+    }
 }

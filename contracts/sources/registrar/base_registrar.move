@@ -163,9 +163,18 @@ module suins::base_registrar {
         raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
+        assert!(
+            !vector::is_empty(&signature)
+                && !vector::is_empty(&hashed_msg)
+                && !vector::is_empty(&raw_msg),
+            EInvalidMessage
+        );
         validate_nft(registrar, nft, ctx);
         assert!(sha2_256(raw_msg) == hashed_msg, EHashedMessageNotMatch);
-        assert!(ecdsa_k1::secp256k1_verify(&signature, configuration::public_key(config), &hashed_msg), ESignatureNotMatch);
+        assert!(
+            ecdsa_k1::secp256k1_verify(&signature, configuration::public_key(config), &hashed_msg),
+            ESignatureNotMatch
+        );
 
         let (ipfs, node_msg, expiry) = remove_later::deserialize_image_msg(raw_msg);
 
@@ -316,7 +325,10 @@ module suins::base_registrar {
             url = url::new_unsafe_from_bytes(vector[])
         else {
             assert!(sha2_256(raw_msg) == hashed_msg, EHashedMessageNotMatch);
-            assert!(ecdsa_k1::secp256k1_verify(&signature, configuration::public_key(config), &hashed_msg), ESignatureNotMatch);
+            assert!(
+                ecdsa_k1::secp256k1_verify(&signature, configuration::public_key(config), &hashed_msg),
+                ESignatureNotMatch
+            );
 
             let (ipfs, node_msg, expiry_msg) = remove_later::deserialize_image_msg(raw_msg);
 
@@ -340,10 +352,8 @@ module suins::base_registrar {
     }
 
     /// this function doesn't charge fee
-    /// meant to be called by `Controller`
+    /// intended to be called by `Controller`
     public(friend) fun renew(registrar: &mut BaseRegistrar, label: vector<u8>, duration: u64, ctx: &TxContext): u64 {
-        // TODO: update the image
-        // TODO: add msg and signature parameter
         let label = string::utf8(label);
         let expiry = name_expires_at(registrar, label);
 
@@ -351,6 +361,7 @@ module suins::base_registrar {
         assert!(expiry + (GRACE_PERIOD as u64) >= epoch(ctx), ELabelExpired);
 
         let detail = table::borrow_mut(&mut registrar.details, label);
+        // TODO: if being called in GRACE_TIME, which epoch should we use?
         detail.expiry = detail.expiry + duration;
 
         event::emit(NameRenewedEvent { label, expiry: detail.expiry });

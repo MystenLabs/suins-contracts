@@ -681,19 +681,6 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
-
-            assert!(name == utf8(FIRST_NODE), 0);
-            assert!(
-                url == url::new_unsafe_from_bytes(b""),
-                0
-            );
-            test_scenario::return_to_sender(scenario, nft);
-        };
-
-        test_scenario::next_tx(scenario, FIRST_USER);
-        {
             let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
@@ -726,19 +713,6 @@ module suins::base_registrar_tests {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         register(scenario);
-
-        test_scenario::next_tx(scenario, FIRST_USER);
-        {
-            let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
-
-            assert!(name == utf8(FIRST_NODE), 0);
-            assert!(
-                url == url::new_unsafe_from_bytes(b""),
-                0
-            );
-            test_scenario::return_to_sender(scenario, nft);
-        };
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
@@ -777,19 +751,6 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
-
-            assert!(name == utf8(FIRST_NODE), 0);
-            assert!(
-                url == url::new_unsafe_from_bytes(b""),
-                0
-            );
-            test_scenario::return_to_sender(scenario, nft);
-        };
-
-        test_scenario::next_tx(scenario, FIRST_USER);
-        {
             let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
@@ -822,19 +783,6 @@ module suins::base_registrar_tests {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         register(scenario);
-
-        test_scenario::next_tx(scenario, FIRST_USER);
-        {
-            let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
-
-            assert!(name == utf8(FIRST_NODE), 0);
-            assert!(
-                url == url::new_unsafe_from_bytes(b""),
-                0
-            );
-            test_scenario::return_to_sender(scenario, nft);
-        };
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
@@ -873,19 +821,6 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
-
-            assert!(name == utf8(FIRST_NODE), 0);
-            assert!(
-                url == url::new_unsafe_from_bytes(b""),
-                0
-            );
-            test_scenario::return_to_sender(scenario, nft);
-        };
-
-        test_scenario::next_tx(scenario, FIRST_USER);
-        {
             let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
@@ -918,19 +853,6 @@ module suins::base_registrar_tests {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         register(scenario);
-
-        test_scenario::next_tx(scenario, FIRST_USER);
-        {
-            let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
-
-            assert!(name == utf8(FIRST_NODE), 0);
-            assert!(
-                url == url::new_unsafe_from_bytes(b""),
-                0
-            );
-            test_scenario::return_to_sender(scenario, nft);
-        };
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
@@ -969,16 +891,37 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
+            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
 
-            assert!(name == utf8(FIRST_NODE), 0);
-            assert!(
-                url == url::new_unsafe_from_bytes(b""),
+            let ctx = tx_context::new(
+                FIRST_USER,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                10,
                 0
             );
+            base_registrar::update_image_url(
+                &mut registrar,
+                &config,
+                &mut nft,
+                x"6aab9920d59442c5478c3f5b29db45518b40a3d76f1b396b70c902b557e93b206b0ce9ab84ce44277d84055da9dd10ff77c490ba8473cd86ead37be874b9662f",
+                x"127552ffa7f12b7c3718ee61851c49eba03ef7d0dc0923c7c5802cdd98226f6006",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,375",
+                &mut ctx
+            );
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, nft);
         };
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    fun test_update_image_url_aborts_with_empty_signature() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        register(scenario);
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
@@ -992,14 +935,81 @@ module suins::base_registrar_tests {
                 10,
                 0
             );
-            let signature = x"6aab9920d59442c5478c3f5b29db45518b40a3d76f1b396b70c902b557e93b206b0ce9ab84ce44277d84055da9dd10ff77c490ba8473cd86ead37be874b9662f";
             base_registrar::update_image_url(
                 &mut registrar,
                 &config,
                 &mut nft,
-                signature,
-                x"127552ffa7f12b7c3718ee61851c49eba03ef7d0dc0923c7c5802cdd98226f6006",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,375",
+                x"",
+                x"3431f0a9e0fe14c885766842f37b43b774e60dbd96f8502cc327e1ac20d06257",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,475",
+                &mut ctx
+            );
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(scenario, nft);
+        };
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    fun test_update_image_url_aborts_with_empty_hashed_msg() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        register(scenario);
+
+        test_scenario::next_tx(scenario, FIRST_USER);
+        {
+            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let config = test_scenario::take_shared<Configuration>(scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
+
+            let ctx = tx_context::new(
+                FIRST_USER,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                10,
+                0
+            );
+            base_registrar::update_image_url(
+                &mut registrar,
+                &config,
+                &mut nft,
+                x"6aab9920d59442c5478c3f5b29db45518b40a3d76f1b396b70c902b557e93b206b0ce9ab84ce44277d84055da9dd10ff77c490ba8473cd86ead37be874b9662f",
+                x"",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,475",
+                &mut ctx
+            );
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(scenario, nft);
+        };
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    fun test_update_image_url_aborts_with_empty_raw_msg() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        register(scenario);
+
+        test_scenario::next_tx(scenario, FIRST_USER);
+        {
+            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let config = test_scenario::take_shared<Configuration>(scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
+
+            let ctx = tx_context::new(
+                FIRST_USER,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                10,
+                0
+            );
+            base_registrar::update_image_url(
+                &mut registrar,
+                &config,
+                &mut nft,
+                x"6aab9920d59442c5478c3f5b29db45518b40a3d76f1b396b70c902b557e93b206b0ce9ab84ce44277d84055da9dd10ff77c490ba8473cd86ead37be874b9662f",
+                x"3431f0a9e0fe14c885766842f37b43b774e60dbd96f8502cc327e1ac20d06257",
+                b"",
                 &mut ctx
             );
             test_scenario::return_shared(registrar);
