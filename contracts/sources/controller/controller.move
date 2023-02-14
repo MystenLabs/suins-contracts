@@ -76,7 +76,7 @@ module suins::controller {
             // cannot get the ID of name_resolver in `init`, admin need to update this by calling `set_default_resolver`
             default_addr_resolver: @0x0,
             latest_epoch_commitment: 0,
-            no_more_outdated_commitment: false,
+            no_more_outdated_commitment: true,
         });
     }
 
@@ -425,7 +425,7 @@ module suins::controller {
             // cannot get the ID of name_resolver in `init`, admin need to update this by calling `set_default_resolver`
             default_addr_resolver: @0x0,
             latest_epoch_commitment: 0,
-            no_more_outdated_commitment: false,
+            no_more_outdated_commitment: true,
         });
     }
 }
