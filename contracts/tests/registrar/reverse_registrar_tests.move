@@ -4,7 +4,7 @@ module suins::reverse_registrar_tests {
     use sui::test_scenario::{Self, Scenario};
     use suins::base_registry::{Self, Registry, AdminCap};
     use suins::reverse_registrar::{Self, ReverseRegistrar};
-    use suins::base_registrar::{Self, TLDsList};
+    use suins::base_registrar::{Self, TLDList};
     use std::string::utf8;
 
     const SUINS_ADDRESS: address = @0xA001;
@@ -26,7 +26,7 @@ module suins::reverse_registrar_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
 
             base_registrar::new_tld(&admin_cap, &mut tlds_list, b"sui", test_scenario::ctx(&mut scenario));
             base_registrar::new_tld(&admin_cap, &mut tlds_list, b"addr.reverse", test_scenario::ctx(&mut scenario));

@@ -12,6 +12,7 @@ module suins::configuration_tests {
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_CODE: vector<u8> = b"ThisIsCode1";
+    const FIRST_DOMAIN_BATCH: vector<u8> = b"google;suins;medium";
     const SECOND_CODE: vector<u8> = b"DF1234";
     const ADD_CODE_BATCH: vector<u8> = b"ThisIsCode1,30,0xABCDef;DF1234,10,0x0000000000000000000000000000000c9310f87e";
     const REMOVE_CODE_BATCH: vector<u8> = b"ThisIsCode1;DF1234;";
@@ -574,6 +575,56 @@ module suins::configuration_tests {
                 configuration::get_discount_owner(&referral_value) == ascii::string(b"0000000000000000000000000000000000abcdef"),
                 0
             );
+            test_scenario::return_shared(config);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_set_then_remove_new_reserve_domains() {
+        let scenario = test_init();
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            assert!(!configuration::is_label_reserved(&config, b"google"), 0);
+            assert!(!configuration::is_label_reserved(&config, b"suins"), 0);
+            assert!(!configuration::is_label_reserved(&config, b"medium"), 0);
+
+            configuration::new_reserve_domains(
+                &admin_cap,
+                &mut config,
+                FIRST_DOMAIN_BATCH,
+            );
+
+            assert!(configuration::is_label_reserved(&config, b"google"), 0);
+            assert!(configuration::is_label_reserved(&config, b"suins"), 0);
+            assert!(configuration::is_label_reserved(&config, b"medium"), 0);
+
+            configuration::remove_reserve_domains(
+                &admin_cap,
+                &mut config,
+                b"google",
+            );
+            assert!(!configuration::is_label_reserved(&config, b"google"), 0);
+
+            configuration::remove_reserve_domains(
+                &admin_cap,
+                &mut config,
+                FIRST_DOMAIN_BATCH,
+            );
+            assert!(!configuration::is_label_reserved(&config, b"suins"), 0);
+            assert!(!configuration::is_label_reserved(&config, b"medium"), 0);
+
+            configuration::new_reserve_domains(
+                &admin_cap,
+                &mut config,
+                b"github",
+            );
+            assert!(configuration::is_label_reserved(&config, b"github"), 0);
+
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
             test_scenario::return_shared(config);
         };
         test_scenario::end(scenario);
