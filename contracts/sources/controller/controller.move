@@ -7,7 +7,7 @@ module suins::controller {
     use sui::linked_table::{Self, LinkedTable};
     use sui::object::{Self, UID, ID};
     use sui::transfer;
-    use sui::tx_context::{Self, TxContext};
+    use sui::tx_context::{Self, TxContext, epoch};
     use sui::sui::SUI;
     use suins::base_registry::{Registry, AdminCap};
     use suins::base_registrar::{Self, BaseRegistrar};
@@ -23,6 +23,7 @@ module suins::controller {
     // const MIN_COMMITMENT_AGE: u64 = 0;
     const MAX_COMMITMENT_AGE: u64 = 3;
     const FEE_PER_YEAR: u64 = 1000000;
+    const NO_OUTDATED_COMMITMENT_TO_REMOVE: u64 = 50;
 
     // errors in the range of 301..400 indicate Sui Controller errors
     const EInvalidResolverAddress: u64 = 301;
@@ -63,6 +64,8 @@ module suins::controller {
         commitments: LinkedTable<vector<u8>, u64>,
         balance: Balance<SUI>,
         default_addr_resolver: address,
+        latest_epoch_commitment: u64,
+        no_more_outdated_commitment: bool,
     }
 
     fun init(ctx: &mut TxContext) {
@@ -72,6 +75,8 @@ module suins::controller {
             balance: balance::zero(),
             // cannot get the ID of name_resolver in `init`, admin need to update this by calling `set_default_resolver`
             default_addr_resolver: @0x0,
+            latest_epoch_commitment: 0,
+            no_more_outdated_commitment: false,
         });
     }
 
@@ -314,20 +319,26 @@ module suins::controller {
     }
 
     fun remove_outdated_commitment(controller: &mut BaseController, ctx: &mut TxContext) {
-        // TODO: need to update logic when timestamp is introduced
+        if (controller.latest_epoch_commitment != epoch(ctx)) {
+            controller.latest_epoch_commitment = epoch(ctx);
+            controller.no_more_outdated_commitment = false;
+        };
         let front_element = linked_table::front(&controller.commitments);
+        if (option::is_none(front_element)) controller.no_more_outdated_commitment = true;
         let i = 0;
-        let max = 50;
-        // TODO: add a flag so when we find the last outdated commitment, we change that to true
-        // TODO: later we don't need to check again
-        while (option::is_some(front_element) && i < max) {
+
+        while (option::is_some(front_element) && i < NO_OUTDATED_COMMITMENT_TO_REMOVE && !controller.no_more_outdated_commitment) {
             i = i + 1;
 
             let created_at = linked_table::borrow(&controller.commitments, *option::borrow(front_element));
             if (*created_at + MAX_COMMITMENT_AGE <= tx_context::epoch(ctx)) {
                 linked_table::pop_front(&mut controller.commitments);
                 front_element = linked_table::front(&controller.commitments);
-            } else break;
+                if (option::is_none(front_element)) controller.no_more_outdated_commitment = true;
+            } else {
+                controller.no_more_outdated_commitment = true;
+                break
+            }
         };
     }
 
@@ -384,6 +395,16 @@ module suins::controller {
     }
 
     #[test_only]
+    public fun get_latest_epoch_commitment(controller: &BaseController): u64 {
+        controller.latest_epoch_commitment
+    }
+
+    #[test_only]
+    public fun get_no_more_outdated_commitment(controller: &BaseController): bool {
+        controller.no_more_outdated_commitment
+    }
+
+    #[test_only]
     public fun apply_referral_code_test(
         config: &Configuration,
         payment: &mut Coin<SUI>,
@@ -403,6 +424,8 @@ module suins::controller {
             balance: balance::zero(),
             // cannot get the ID of name_resolver in `init`, admin need to update this by calling `set_default_resolver`
             default_addr_resolver: @0x0,
+            latest_epoch_commitment: 0,
+            no_more_outdated_commitment: false,
         });
     }
 }
