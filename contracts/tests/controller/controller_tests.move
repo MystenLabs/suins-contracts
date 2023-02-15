@@ -2543,7 +2543,7 @@ module suins::controller_tests {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let auction = test_scenario::take_shared<Auction>(scenario);
 
-            auction::configurate_auction(&admin_cap, &mut auction, AUCTION_START_AT, AUCTION_END_AT, test_scenario::ctx(scenario));
+            auction::configure_auction(&admin_cap, &mut auction, AUCTION_START_AT, AUCTION_END_AT, test_scenario::ctx(scenario));
 
             test_scenario::return_shared(auction);
             test_scenario::return_to_sender(scenario, admin_cap);
