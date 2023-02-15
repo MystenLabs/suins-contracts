@@ -4,7 +4,7 @@ module suins::base_registrar_tests {
     use sui::tx_context;
     use sui::table;
     use suins::base_registry::{Self, Registry, AdminCap};
-    use suins::base_registrar::{Self, BaseRegistrar, RegistrationNFT, TLDsList};
+    use suins::base_registrar::{Self, BaseRegistrar, RegistrationNFT, TLDList};
     use suins::configuration::{Self, Configuration};
     use std::vector;
     use std::string::utf8;
@@ -30,7 +30,7 @@ module suins::base_registrar_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
 
             base_registrar::new_tld(&admin_cap, &mut tlds_list, b"sui", test_scenario::ctx(&mut scenario));
             base_registrar::new_tld(&admin_cap, &mut tlds_list, b"addr.reverse", test_scenario::ctx(&mut scenario));
@@ -451,7 +451,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
 
             let tlds = base_registrar::get_tlds(&tlds_list);
             assert!(vector::length(tlds) == 3, 0);
@@ -467,7 +467,7 @@ module suins::base_registrar_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
             base_registrar::new_tld(
                 &admin_cap,
                 &mut tlds_list,
@@ -481,7 +481,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
 
             let tlds = base_registrar::get_tlds(&tlds_list);
             assert!(vector::length(tlds) == 4, 0);
@@ -547,7 +547,7 @@ module suins::base_registrar_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
 
             base_registrar::new_tld(
                 &admin_cap,
@@ -569,7 +569,7 @@ module suins::base_registrar_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
 
             base_registrar::new_tld(
                 &admin_cap,

@@ -49,7 +49,7 @@ module suins::base_registrar {
     struct RegistrationDetail has store {
         expiry: u64,
     }
-    
+
     struct BaseRegistrar has key {
         id: UID,
         base_node: String,
@@ -60,13 +60,13 @@ module suins::base_registrar {
     }
 
     // list of all TLD managed by this registrar
-    struct TLDsList has key {
+    struct TLDList has key {
         id: UID,
         tlds: vector<String>,
     }
 
     fun init(ctx: &mut TxContext) {
-        transfer::share_object(TLDsList {
+        transfer::share_object(TLDList {
             id: object::new(ctx),
             tlds: vector::empty<String>(),
         });
@@ -74,14 +74,14 @@ module suins::base_registrar {
 
     public entry fun new_tld(
         _: &AdminCap,
-        tlds_list: &mut TLDsList,
+        tlds_list: &mut TLDList,
         tld: vector<u8>,
         ctx: &mut TxContext,
     ) {
         let tld_str = string::utf8(tld);
         let len = vector::length(&tlds_list.tlds);
         let index = 0;
-        while(index < len) {
+        while (index < len) {
             let existed_tld = vector::borrow(&tlds_list.tlds, index);
             assert!(*existed_tld != tld_str, ETLDExists);
             index = index + 1;
@@ -98,7 +98,7 @@ module suins::base_registrar {
 
     public fun available(registrar: &BaseRegistrar, label: String, ctx: &TxContext): bool {
         let expiry = name_expires(registrar, label);
-        if (expiry != 0 ) {
+        if (expiry != 0) {
             return expiry + (GRACE_PERIOD as u64) < tx_context::epoch(ctx)
         };
         true
@@ -212,7 +212,7 @@ module suins::base_registrar {
     }
 
     #[test_only]
-    public fun get_tlds(tlds: &TLDsList): &vector<String> {
+    public fun get_tlds(tlds: &TLDList): &vector<String> {
         &tlds.tlds
     }
 
@@ -235,7 +235,7 @@ module suins::base_registrar {
     /// Wrapper of module initializer for testing
     public fun test_init(ctx: &mut TxContext) {
         // mimic logic in `init`
-        transfer::share_object(TLDsList {
+        transfer::share_object(TLDList {
             id: object::new(ctx),
             tlds: vector::empty<String>(),
         });

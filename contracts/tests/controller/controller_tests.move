@@ -6,7 +6,7 @@ module suins::controller_tests {
     use sui::tx_context;
     use sui::sui::SUI;
     use suins::controller::{Self, BaseController};
-    use suins::base_registrar::{Self, BaseRegistrar, TLDsList};
+    use suins::base_registrar::{Self, BaseRegistrar, TLDList};
     use suins::base_registry::{Self, Registry, AdminCap};
     use suins::emoji;
     use suins::configuration::{Self, Configuration};
@@ -43,7 +43,7 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let tlds_list = test_scenario::take_shared<TLDsList>(&mut scenario);
+            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             base_registrar::new_tld(&admin_cap, &mut tlds_list,b"sui", test_scenario::ctx(&mut scenario));
             base_registrar::new_tld(&admin_cap, &mut tlds_list,b"addr.reverse", test_scenario::ctx(&mut scenario));
