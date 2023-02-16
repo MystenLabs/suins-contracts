@@ -2,7 +2,7 @@ module suins::controller {
 
     use sui::balance::{Self, Balance};
     use sui::coin::{Self, Coin};
-    use sui::ecdsa_k1::keccak256;
+    use sui::hash::keccak256;
     use sui::event;
     use sui::linked_table::{Self, LinkedTable};
     use sui::object::{Self, UID, ID};
