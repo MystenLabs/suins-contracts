@@ -9,7 +9,7 @@ module suins::auction {
     use sui::balance::{Self, Balance};
     use sui::transfer;
     use sui::object;
-    use sui::ecdsa_k1::keccak256;
+    use sui::hash::keccak256;
     use sui::coin::Coin;
     use sui::event;
     use std::option::{Self, Option, none, some};
