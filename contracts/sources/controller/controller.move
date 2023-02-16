@@ -8,7 +8,7 @@ module suins::controller {
 
     use sui::balance::{Self, Balance};
     use sui::coin::{Self, Coin};
-    use sui::ecdsa_k1::keccak256;
+    use sui::hash::keccak256;
     use sui::event;
     use sui::linked_table::{Self, LinkedTable};
     use sui::object::{Self, UID, ID};
@@ -26,6 +26,7 @@ module suins::controller {
     use std::bcs;
     use std::vector;
     use std::option::{Self, Option};
+    use sui::url::Url;
 
     // TODO: remove later when timestamp is introduced
     // const MIN_COMMITMENT_AGE: u64 = 0;
@@ -55,6 +56,7 @@ module suins::controller {
         resolver: address,
         referral_code: Option<ascii::String>,
         discount_code: Option<ascii::String>,
+        url: Url,
     }
 
     struct DefaultResolverChangedEvent has copy, drop {
@@ -738,7 +740,7 @@ module suins::controller {
         consume_commitment(controller, registrar, label, commitment, ctx);
 
         let duration = no_years * 365;
-        let nft_id = base_registrar::register_with_image(
+        let (nft_id, url) = base_registrar::register_with_image(
             registrar,
             registry,
             config,
@@ -763,6 +765,7 @@ module suins::controller {
             resolver,
             referral_code,
             discount_code,
+            url,
         });
     }
 

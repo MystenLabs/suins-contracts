@@ -265,7 +265,7 @@ module suins::base_registrar {
         resolver: address,
         ctx: &mut TxContext
     ): ID {
-        register_with_image(
+        let (nft_id, _url) = register_with_image(
             registrar,
             registry,
             config,
@@ -277,7 +277,8 @@ module suins::base_registrar {
             vector[],
             vector[],
             ctx
-        )
+        );
+        nft_id
     }
 
     public(friend) fun register_with_image(
@@ -292,7 +293,7 @@ module suins::base_registrar {
         hashed_msg: vector<u8>,
         raw_msg: vector<u8>,
         ctx: &mut TxContext
-    ): ID {
+    ): (ID, Url) {
         // this isn't necessary `cause it's validated in Controller
         // assert!(
         //     !vector::is_empty(&signature)
@@ -348,7 +349,7 @@ module suins::base_registrar {
         transfer::transfer(nft, owner);
         base_registry::set_record_internal(registry, node, owner, resolver, 0);
 
-        nft_id
+        (nft_id, url)
     }
 
     /// this function doesn't charge fee
