@@ -4,7 +4,7 @@
 /// users must call the corresponding functions in `Controller`.
 module suins::base_registrar {
     use sui::event;
-    use sui::object::{Self, ID, UID};
+    use sui::object::{Self, ID, UID, uid_to_inner};
     use sui::transfer;
     use sui::tx_context::{TxContext, epoch, sender};
     use sui::url::Url;
@@ -71,6 +71,7 @@ module suins::base_registrar {
     struct RegistrationDetail has store, drop {
         expiry: u64,
         owner: address,
+        nft_id: ID,
     }
 
     struct BaseRegistrar has key {
@@ -141,12 +142,12 @@ module suins::base_registrar {
         owner: address,
         ctx: &mut TxContext,
     ) {
+        validate_nft(registrar, nft, ctx);
+
         let label = get_label_part(&nft.name, &registrar.tld);
-        assert!(table::contains(&registrar.details, label), ELabelNotExists);
         let registration = table::borrow(&registrar.details, label);
         assert!(registration.expiry >= epoch(ctx), ELabelExpired);
 
-        // TODO: delete NFT if it expired
         base_registry::set_owner_internal(registry, nft.name, owner);
         event::emit(NameReclaimedEvent {
             node: nft.name,
@@ -223,7 +224,9 @@ module suins::base_registrar {
         let label = get_label_part(&nft.name, &registrar.tld);
         let detail = table::borrow(&registrar.details, label);
 
+        // TODO: delete NFT if it expired
         assert!(detail.owner == sender(ctx), ENFTExpired);
+        assert!(detail.nft_id == uid_to_inner(&nft.id), ENFTExpired);
         assert!(!is_expired(registrar, label, ctx), ENFTExpired);
     }
 
@@ -233,7 +236,7 @@ module suins::base_registrar {
     /// #### Params
     /// `label`: label to be checked
     ///
-    /// #### Return
+    /// #### Returns
     /// 0: if `label` expired
     /// otherwise: the expiration date
     public fun name_expires_at(registrar: &BaseRegistrar, label: String): u64 {
@@ -294,13 +297,7 @@ module suins::base_registrar {
         raw_msg: vector<u8>,
         ctx: &mut TxContext
     ): (ID, Url) {
-        // this isn't necessary `cause it's validated in Controller
-        // assert!(
-        //     !vector::is_empty(&signature)
-        //         && !vector::is_empty(&hashed_msg)
-        //         && !vector::is_empty(&raw_msg),
-        //     EInvalidMessage
-        // );
+        // the calling fuction is responsible for checking emptyness of msg
         assert!(duration > 0, EInvalidDuration);
         // TODO: label is already validated in Controller, consider removing this
         let label = string::try_utf8(label);
@@ -309,14 +306,6 @@ module suins::base_registrar {
         assert!(available(registrar, label, ctx), ELabelUnAvailable);
 
         let expiry = epoch(ctx) + duration;
-        let detail = RegistrationDetail { expiry, owner };
-
-        if (table::contains(&registrar.details, label)) {
-            // this `label` is available for registration again
-            table::remove(&mut registrar.details, label);
-        };
-        table::add(&mut registrar.details, label, detail);
-
         let node = label;
         string::append_utf8(&mut node, b".");
         string::append(&mut node, registrar.tld);
@@ -345,7 +334,14 @@ module suins::base_registrar {
             url,
         };
         let nft_id = object::uid_to_inner(&nft.id);
+        let detail = RegistrationDetail { expiry, owner, nft_id };
 
+        if (table::contains(&registrar.details, label)) {
+            // this `label` is available for registration again
+            table::remove(&mut registrar.details, label);
+        };
+
+        table::add(&mut registrar.details, label, detail);
         transfer::transfer(nft, owner);
         base_registry::set_record_internal(registry, node, owner, resolver, 0);
 
@@ -362,7 +358,6 @@ module suins::base_registrar {
         assert!(expiry + (GRACE_PERIOD as u64) >= epoch(ctx), ELabelExpired);
 
         let detail = table::borrow_mut(&mut registrar.details, label);
-        // TODO: if being called in GRACE_TIME, which epoch should we use?
         detail.expiry = detail.expiry + duration;
 
         event::emit(NameRenewedEvent { label, expiry: detail.expiry });

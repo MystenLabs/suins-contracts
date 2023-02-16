@@ -664,7 +664,6 @@ module suins::controller_tests {
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
             assert!(owner == SECOND_USER_ADDRESS, 0);
-            std::debug::print(&resolver);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
             assert!(base_registrar::get_registration_expiry(detail) == 600 + 365, 0);

@@ -4,12 +4,13 @@ module suins::base_registrar_tests {
     use sui::test_scenario::{Self, Scenario};
     use sui::tx_context;
     use sui::table;
+    use sui::url;
+    use sui::dynamic_field;
     use suins::base_registry::{Self, Registry, AdminCap};
     use suins::base_registrar::{Self, BaseRegistrar, RegistrationNFT, TLDList};
     use suins::configuration::{Self, Configuration};
     use std::vector;
     use std::string::utf8;
-    use sui::url;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER: address = @0xB001;
@@ -19,6 +20,7 @@ module suins::base_registrar_tests {
     const FIRST_LABEL: vector<u8> = b"eastagile";
     const FIRST_NODE: vector<u8> = b"eastagile.sui";
     const SECOND_LABEL: vector<u8> = b"ea";
+    const THIRD_LABEL: vector<u8> = b"eastagil";
 
     fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
@@ -390,7 +392,7 @@ module suins::base_registrar_tests {
     }
 
     #[test, expected_failure(abort_code = base_registrar::EInvalidBaseNode)]
-    fun test_reclaim_by_nft_owner_abort_with_wrong_base_node() {
+    fun test_reclaim_name_by_nft_owner_abort_with_wrong_base_node() {
         let scenario = test_init();
         register(&mut scenario);
 
@@ -417,8 +419,8 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ELabelNotExists)]
-    fun test_reclaim_by_nft_owner_abort_if_label_not_exists() {
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
+    fun test_reclaim_name_by_nft_owner_abort_if_label_not_exists() {
         let scenario = test_init();
         register(&mut scenario);
 
@@ -444,8 +446,8 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ELabelExpired)]
-    fun test_reclaim_by_nft_owner_abort_if_label_expired() {
+    #[test, expected_failure(abort_code = base_registrar::ENFTExpired)]
+    fun test_reclaim_name_by_nft_owner_abort_if_nft_expired() {
         let scenario = test_init();
         register(&mut scenario);
 
@@ -1217,16 +1219,15 @@ module suins::base_registrar_tests {
             let ctx = tx_context::new(
                 FIRST_USER,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                500,
+                600,
                 0
             );
-            let signature = x"868d254e6ed4599a3c1bb93492008d2c8995233a02136c88a5f52b606383a7f46b1b4a83f9bf155852fd7e393421131d4b3ef9e5f8a02fd79c4c8a9b37bf67d7";
 
             base_registrar::update_image_url(
                 &mut registrar,
                 &config,
                 &mut nft,
-                signature,
+                x"868d254e6ed4599a3c1bb93492008d2c8995233a02136c88a5f52b606383a7f46b1b4a83f9bf155852fd7e393421131d4b3ef9e5f8a02fd79c4c8a9b37bf67d7",
                 x"3fc956b60da3d565cee6c7cc66efa0034bb32ef777b40982191e34b9c76191d8",
                 b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,895",
                 &mut ctx
@@ -1279,24 +1280,503 @@ module suins::base_registrar_tests {
             let ctx = tx_context::new(
                 SECOND_USER,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                500,
+                600,
                 0
             );
-            let signature = x"868d254e6ed4599a3c1bb93492008d2c8995233a02136c88a5f52b606383a7f46b1b4a83f9bf155852fd7e393421131d4b3ef9e5f8a02fd79c4c8a9b37bf67d7";
 
             base_registrar::update_image_url(
                 &mut registrar,
                 &config,
                 &mut nft,
-                signature,
+                x"868d254e6ed4599a3c1bb93492008d2c8995233a02136c88a5f52b606383a7f46b1b4a83f9bf155852fd7e393421131d4b3ef9e5f8a02fd79c4c8a9b37bf67d7",
                 x"3fc956b60da3d565cee6c7cc66efa0034bb32ef777b40982191e34b9c76191d8",
                 b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,895",
-                &mut ctx
+                &mut ctx,
             );
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, nft);
         };
         test_scenario::end(scenario_val);
+    }
+
+    #[test]
+    fun test_update_image_url_works_if_user_has_2_nfts_same_domain_and_uses_valid_one() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        register(scenario);
+
+        test_scenario::next_tx(scenario, FIRST_USER);
+        {
+            let registry = test_scenario::take_shared<Registry>(scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let image = test_scenario::take_shared<Configuration>(scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                530,
+                10
+            );
+
+            base_registrar::register(
+                &mut registrar,
+                &mut registry,
+                &image,
+                FIRST_LABEL,
+                FIRST_USER,
+                365,
+                FIRST_RESOLVER,
+                &mut ctx
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(image);
+            test_scenario::return_shared(registrar);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER);
+        {
+            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let config = test_scenario::take_shared<Configuration>(scenario);
+            let new_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
+            let old_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
+            let ctx = tx_context::new(
+                FIRST_USER,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                600,
+                0
+            );
+
+            base_registrar::update_image_url(
+                &mut registrar,
+                &config,
+                &mut new_nft,
+                x"868d254e6ed4599a3c1bb93492008d2c8995233a02136c88a5f52b606383a7f46b1b4a83f9bf155852fd7e393421131d4b3ef9e5f8a02fd79c4c8a9b37bf67d7",
+                x"3fc956b60da3d565cee6c7cc66efa0034bb32ef777b40982191e34b9c76191d8",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,895",
+                &mut ctx
+            );
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(scenario, old_nft);
+            test_scenario::return_to_sender(scenario, new_nft);
+        };
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = base_registrar::ENFTExpired)]
+    fun test_update_image_url_works_if_user_has_2_nfts_same_domain_and_uses_expired_one() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        register(scenario);
+
+        test_scenario::next_tx(scenario, FIRST_USER);
+        {
+            let registry = test_scenario::take_shared<Registry>(scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let image = test_scenario::take_shared<Configuration>(scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                530,
+                10
+            );
+
+            base_registrar::register(
+                &mut registrar,
+                &mut registry,
+                &image,
+                FIRST_LABEL,
+                FIRST_USER,
+                365,
+                FIRST_RESOLVER,
+                &mut ctx
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(image);
+            test_scenario::return_shared(registrar);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER);
+        {
+            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let config = test_scenario::take_shared<Configuration>(scenario);
+            let new_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
+            let old_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
+            let ctx = tx_context::new(
+                FIRST_USER,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                600,
+                0
+            );
+
+            base_registrar::update_image_url(
+                &mut registrar,
+                &config,
+                &mut old_nft,
+                x"868d254e6ed4599a3c1bb93492008d2c8995233a02136c88a5f52b606383a7f46b1b4a83f9bf155852fd7e393421131d4b3ef9e5f8a02fd79c4c8a9b37bf67d7",
+                x"3fc956b60da3d565cee6c7cc66efa0034bb32ef777b40982191e34b9c76191d8",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,895",
+                &mut ctx
+            );
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(scenario, old_nft);
+            test_scenario::return_to_sender(scenario, new_nft);
+        };
+        test_scenario::end(scenario_val);
+    }
+
+    #[test]
+    fun test_update_image_url_works_if_user_owns_2_nfts_different_domains_and_uses_right_one() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        register(scenario);
+
+        test_scenario::next_tx(scenario, FIRST_USER);
+        {
+            let registry = test_scenario::take_shared<Registry>(scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let image = test_scenario::take_shared<Configuration>(scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                30,
+                10
+            );
+
+            base_registrar::register(
+                &mut registrar,
+                &mut registry,
+                &image,
+                THIRD_LABEL,
+                FIRST_USER,
+                365,
+                FIRST_RESOLVER,
+                &mut ctx
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(image);
+            test_scenario::return_shared(registrar);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER);
+        {
+            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let config = test_scenario::take_shared<Configuration>(scenario);
+            let second_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
+            let first_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
+            let ctx = tx_context::new(
+                FIRST_USER,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                0
+            );
+
+            base_registrar::update_image_url(
+                &mut registrar,
+                &config,
+                &mut first_nft,
+                x"1750ce9c94af251d3288589b4e98369ee09a41530b42f545eab96763ecbaa8b941f0a814e7440eacd803c507633825ca1f70dc9018b59cb3e49871ca6ddcf704",
+                x"c9cbb723ef1dce214552f05378404491ce9cb36429df9ca307b1619268f09335",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,375",
+                &mut ctx
+            );
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(scenario, first_nft);
+            test_scenario::return_to_sender(scenario, second_nft);
+        };
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    fun test_update_image_url_works_if_user_owns_2_nfts_and_uses_wrong_one() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        register(scenario);
+
+        test_scenario::next_tx(scenario, FIRST_USER);
+        {
+            let registry = test_scenario::take_shared<Registry>(scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let image = test_scenario::take_shared<Configuration>(scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                30,
+                10
+            );
+
+            base_registrar::register(
+                &mut registrar,
+                &mut registry,
+                &image,
+                THIRD_LABEL,
+                FIRST_USER,
+                365,
+                FIRST_RESOLVER,
+                &mut ctx
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(image);
+            test_scenario::return_shared(registrar);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER);
+        {
+            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let config = test_scenario::take_shared<Configuration>(scenario);
+            let second_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
+            let first_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
+            let ctx = tx_context::new(
+                FIRST_USER,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                0
+            );
+
+            base_registrar::update_image_url(
+                &mut registrar,
+                &config,
+                &mut second_nft,
+                x"1750ce9c94af251d3288589b4e98369ee09a41530b42f545eab96763ecbaa8b941f0a814e7440eacd803c507633825ca1f70dc9018b59cb3e49871ca6ddcf704",
+                x"c9cbb723ef1dce214552f05378404491ce9cb36429df9ca307b1619268f09335",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,375",
+                &mut ctx
+            );
+            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(scenario, first_nft);
+            test_scenario::return_to_sender(scenario, second_nft);
+        };
+        test_scenario::end(scenario_val);
+    }
+
+    #[test]
+    fun test_reclaim_works_if_user_has_2_nfts_of_same_domains_and_uses_new_one() {
+        let scenario = test_init();
+        register(&mut scenario);
+        test_scenario::next_tx(&mut scenario, FIRST_USER);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let image = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                466,
+                10
+            );
+
+            base_registrar::register(
+                &mut registrar,
+                &mut registry,
+                &image,
+                FIRST_LABEL,
+                FIRST_USER,
+                365,
+                FIRST_RESOLVER,
+                &mut ctx
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(image);
+            test_scenario::return_shared(registrar);
+        };
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let new_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let old_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+
+            base_registrar::reclaim_name(
+                &registrar,
+                &mut registry,
+                &new_nft,
+                SECOND_USER,
+                test_scenario::ctx(&mut scenario)
+            );
+
+            test_scenario::return_to_sender(&mut scenario, new_nft);
+            test_scenario::return_to_sender(&mut scenario, old_nft);
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(registrar);
+        };
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+
+            let owner = base_registry::owner(&registry, FIRST_NODE);
+            assert!(SECOND_USER == owner, 0);
+
+            test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = base_registrar::ENFTExpired)]
+    fun test_reclaim_aborts_if_user_has_2_nfts_of_same_domains_and_uses_old_one() {
+        let scenario = test_init();
+        register(&mut scenario);
+        test_scenario::next_tx(&mut scenario, FIRST_USER);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let image = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                466,
+                10
+            );
+
+            base_registrar::register(
+                &mut registrar,
+                &mut registry,
+                &image,
+                FIRST_LABEL,
+                FIRST_USER,
+                365,
+                FIRST_RESOLVER,
+                &mut ctx
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(image);
+            test_scenario::return_shared(registrar);
+        };
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let new_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let old_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+
+            base_registrar::reclaim_name(
+                &registrar,
+                &mut registry,
+                &old_nft,
+                SECOND_USER,
+                test_scenario::ctx(&mut scenario)
+            );
+
+            test_scenario::return_to_sender(&mut scenario, new_nft);
+            test_scenario::return_to_sender(&mut scenario, old_nft);
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(registrar);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_reclaim_works_if_being_called_by_new_owner() {
+        let scenario = test_init();
+        register(&mut scenario);
+        test_scenario::next_tx(&mut scenario, SECOND_USER);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let image = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                466,
+                20
+            );
+
+            base_registrar::register(
+                &mut registrar,
+                &mut registry,
+                &image,
+                FIRST_LABEL,
+                SECOND_USER,
+                365,
+                FIRST_RESOLVER,
+                &mut ctx
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(image);
+            test_scenario::return_shared(registrar);
+        };
+
+        test_scenario::next_tx(&mut scenario, SECOND_USER);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+
+            base_registrar::reclaim_name(
+                &registrar,
+                &mut registry,
+                &nft,
+                SECOND_USER,
+                test_scenario::ctx(&mut scenario)
+            );
+
+            test_scenario::return_to_sender(&mut scenario, nft);
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(registrar);
+        };
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+
+            let owner = base_registry::owner(&registry, FIRST_NODE);
+            assert!(SECOND_USER == owner, 0);
+
+            test_scenario::return_shared(registry);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = base_registrar::ENFTExpired)]
+    fun test_reclaim_works_if_being_called_by_old_owner() {
+        let scenario = test_init();
+        register(&mut scenario);
+        test_scenario::next_tx(&mut scenario, SECOND_USER);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let image = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                466,
+                20
+            );
+
+            base_registrar::register(
+                &mut registrar,
+                &mut registry,
+                &image,
+                FIRST_LABEL,
+                SECOND_USER,
+                365,
+                FIRST_RESOLVER,
+                &mut ctx
+            );
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(image);
+            test_scenario::return_shared(registrar);
+        };
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER);
+        {
+            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+
+            base_registrar::reclaim_name(
+                &registrar,
+                &mut registry,
+                &nft,
+                SECOND_USER,
+                test_scenario::ctx(&mut scenario)
+            );
+
+            test_scenario::return_to_sender(&mut scenario, nft);
+            test_scenario::return_shared(registry);
+            test_scenario::return_shared(registrar);
+        };
+        test_scenario::end(scenario);
     }
 }

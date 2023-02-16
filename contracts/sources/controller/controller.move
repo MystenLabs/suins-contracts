@@ -626,6 +626,7 @@ module suins::controller {
         raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
+        // nft is validated in `update_image_url`
         renew_internal(controller, registrar, label, no_years, payment, ctx);
         base_registrar::update_image_url(registrar, config, nft, signature, hashed_msg, raw_msg, ctx);
     }
