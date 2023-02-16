@@ -5,7 +5,7 @@ module suins::auction_tests {
     use sui::test_scenario;
     use sui::coin::{Self, Coin};
     use sui::sui::SUI;
-    use sui::tx_context;
+    use sui::tx_context::{Self, epoch};
     use sui::dynamic_field;
     use suins::auction::{Self, Auction, make_seal_bid, get_seal_bid_by_bidder, finalize_auction, get_bids_by_bidder, get_bid_detail_fields, withdraw, state};
     use suins::base_registry::{Self, Registry, AdminCap};
@@ -220,7 +220,7 @@ module suins::auction_tests {
             epoch,
             10
         );
-        state(auction, node, &mut ctx)
+        state(auction, node, epoch(&ctx))
     }
 
     public fun place_bid_util(scenario: &mut Scenario, seal_bid: vector<u8>, value: u64, bidder: address) {
@@ -1393,7 +1393,6 @@ module suins::auction_tests {
             get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, false);
 
             test_scenario::return_shared(auction);
-
         };
         test_scenario::end(scenario_val);
     }
@@ -3366,7 +3365,6 @@ module suins::auction_tests {
             get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 0, 0, @0x0, false);
 
             test_scenario::return_shared(auction);
-
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -4470,7 +4468,7 @@ module suins::auction_tests {
                 10
             );
 
-            assert!(state(&auction, NODE, &ctx) == AUCTION_STATE_NOT_AVAILABLE, 0);
+            assert!(state(&auction, NODE, epoch(&ctx)) == AUCTION_STATE_NOT_AVAILABLE, 0);
 
             test_scenario::return_shared(auction);
         };
@@ -4503,7 +4501,7 @@ module suins::auction_tests {
                 10
             );
 
-            assert!(state(&auction, NODE, &ctx) == AUCTION_STATE_NOT_AVAILABLE, 0);
+            assert!(state(&auction, NODE, epoch(&ctx)) == AUCTION_STATE_NOT_AVAILABLE, 0);
             test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario_val);
