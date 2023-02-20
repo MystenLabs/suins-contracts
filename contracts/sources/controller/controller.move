@@ -800,7 +800,7 @@ module suins::controller {
             *linked_table::borrow(&controller.commitments, commitment) + MAX_COMMITMENT_AGE > epoch(ctx),
             ECommitmentTooOld
         );
-        assert!(base_registrar::available(registrar, string::utf8(label), ctx), ELabelUnAvailable);
+        assert!(base_registrar::is_available(registrar, string::utf8(label), ctx), ELabelUnAvailable);
         linked_table::remove(&mut controller.commitments, commitment);
     }
 
