@@ -3,7 +3,6 @@ module suins::base_registrar_tests {
 
     use sui::test_scenario::{Self, Scenario};
     use sui::tx_context;
-    use sui::table;
     use sui::url;
     use sui::dynamic_field;
     use suins::base_registry::{Self, Registry, AdminCap};
@@ -63,8 +62,6 @@ module suins::base_registrar_tests {
                 0
             );
 
-            assert!(base_registry::get_records_len(&registry) == 0, 0);
-
             base_registrar::register(
                 &mut registrar,
                 &mut registry,
@@ -86,8 +83,8 @@ module suins::base_registrar_tests {
             let registry = test_scenario::take_shared<Registry>(scenario);
             let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
-            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
+            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
 
             assert!(base_registrar::get_registration_expiry(detail) == 10 + 365, 0);
             assert!(base_registrar::get_registration_owner(detail) == FIRST_USER, 0);
@@ -96,7 +93,6 @@ module suins::base_registrar_tests {
                 url == url::new_unsafe_from_bytes(b""),
                 0
             );
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
 
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
@@ -127,8 +123,6 @@ module suins::base_registrar_tests {
                 0
             );
 
-            assert!(base_registry::get_records_len(&registry) == 0, 0);
-
             base_registrar::register_with_image(
                 &mut registrar,
                 &mut registry,
@@ -153,8 +147,8 @@ module suins::base_registrar_tests {
             let registry = test_scenario::take_shared<Registry>(scenario);
             let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
-            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
+            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
 
             assert!(base_registrar::get_registration_expiry(detail) == 10 + 365, 0);
             assert!(base_registrar::get_registration_owner(detail) == FIRST_USER, 0);
@@ -163,7 +157,6 @@ module suins::base_registrar_tests {
                 url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"),
                 0
             );
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
 
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
@@ -489,7 +482,6 @@ module suins::base_registrar_tests {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             assert!(vector::length(tlds) == 2, 0);
-            assert!(base_registry::get_records_len(&registry) == 0, 0);
 
             test_scenario::return_shared(tlds_list);
             test_scenario::return_shared(registry);
@@ -520,13 +512,11 @@ module suins::base_registrar_tests {
 
             assert!(vector::length(tlds) == 3, 0);
             assert!(vector::borrow(tlds, 2) == &utf8(b"com"), 0);
-            assert!(base_registry::get_records_len(&registry) == 0, 0);
 
-            let (base_node, base_node_bytes, expiries) =
+            let (base_node, base_node_bytes, _) =
                 base_registrar::get_registrar(&com_registrar);
             assert!(base_node == &utf8(b"com"), 0);
             assert!(base_node_bytes == &b"com", 0);
-            assert!(table::length(expiries) == 0, 0);
 
             test_scenario::return_shared(tlds_list);
             test_scenario::return_shared(com_registrar);
@@ -559,9 +549,8 @@ module suins::base_registrar_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let com_registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
-            let (_, _, expiries) = base_registrar::get_registrar(&com_registrar);
-            assert!(table::length(expiries) == 1, 0);
-            let value = table::borrow(expiries, utf8(FIRST_LABEL));
+            let (_, _, uid) = base_registrar::get_registrar(&com_registrar);
+            let value = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
             assert!(base_registrar::get_registration_expiry(value) == 365, 0);
             assert!(base_registrar::get_registration_owner(value) == FIRST_USER, 0);
 

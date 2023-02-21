@@ -3,12 +3,12 @@
 /// All functions that involves payment charging in this module aren't supposed to be called directly,
 /// users must call the corresponding functions in `Controller`.
 module suins::base_registrar {
+    use sui::dynamic_field as field;
     use sui::event;
     use sui::object::{Self, ID, UID, uid_to_inner};
     use sui::transfer;
     use sui::tx_context::{TxContext, epoch, sender};
     use sui::url::Url;
-    use sui::table::{Self, Table};
     use std::string::{Self, String};
     use std::option;
     use std::vector;
@@ -74,14 +74,13 @@ module suins::base_registrar {
         nft_id: ID,
     }
 
+    /// Mapping domain name to registration record (instance of `RegistrationDetail`).
+    /// Each record is a dynamic field of this share object,.
     struct BaseRegistrar has key {
         id: UID,
         tld: String,
         /// base_node represented in byte array
         tld_bytes: vector<u8>,
-        /// key is label, e.g. 'eastagile', 'dn.eastagile'
-        /// Registration record, each has its own name record in `Registry
-        details: Table<String, RegistrationDetail>,
     }
 
     /// list of all TLD managed by this registrar
@@ -119,7 +118,6 @@ module suins::base_registrar {
         vector::push_back(&mut tld_list.tlds, tld_str);
         transfer::share_object(BaseRegistrar {
             id: object::new(ctx),
-            details: table::new(ctx),
             tld: tld_str,
             tld_bytes: new_tld,
         });
@@ -145,7 +143,7 @@ module suins::base_registrar {
         validate_nft(registrar, nft, ctx);
 
         let label = get_label_part(&nft.name, &registrar.tld);
-        let registration = table::borrow(&registrar.details, label);
+        let registration = field::borrow<String, RegistrationDetail>(&registrar.id, label);
         assert!(registration.expiry >= epoch(ctx), ELabelExpired);
 
         base_registry::set_owner_internal(registry, nft.name, owner);
@@ -222,8 +220,7 @@ module suins::base_registrar {
     // TODO: every functions that take RegistrationNFT must call this
     public fun validate_nft(registrar: &BaseRegistrar, nft: &RegistrationNFT, ctx: &mut TxContext) {
         let label = get_label_part(&nft.name, &registrar.tld);
-        let detail = table::borrow(&registrar.details, label);
-
+        let detail = field::borrow<String, RegistrationDetail>(&registrar.id, label);
         // TODO: delete NFT if it expired
         assert!(detail.owner == sender(ctx), ENFTExpired);
         assert!(detail.nft_id == uid_to_inner(&nft.id), ENFTExpired);
@@ -240,8 +237,8 @@ module suins::base_registrar {
     /// 0: if `label` expired
     /// otherwise: the expiration date
     public fun name_expires_at(registrar: &BaseRegistrar, label: String): u64 {
-        if (table::contains(&registrar.details, label)) {
-            return table::borrow(&registrar.details, label).expiry
+        if (field::exists_with_type<String, RegistrationDetail>(&registrar.id, label)) {
+            return field::borrow<String, RegistrationDetail>(&registrar.id, label).expiry
         };
         0
     }
@@ -336,12 +333,12 @@ module suins::base_registrar {
         let nft_id = object::uid_to_inner(&nft.id);
         let detail = RegistrationDetail { expiry, owner, nft_id };
 
-        if (table::contains(&registrar.details, label)) {
+        if (field::exists_with_type<String, RegistrationDetail>(&registrar.id, label)) {
             // this `label` is available for registration again
-            table::remove(&mut registrar.details, label);
+            field::remove<String, RegistrationDetail>(&mut registrar.id, label);
         };
 
-        table::add(&mut registrar.details, label, detail);
+        field::add(&mut registrar.id, label, detail);
         transfer::transfer(nft, owner);
         base_registry::set_record_internal(registry, node, owner, resolver, 0);
 
@@ -357,7 +354,7 @@ module suins::base_registrar {
         assert!(expiry > 0, ELabelNotExists);
         assert!(expiry + (GRACE_PERIOD as u64) >= epoch(ctx), ELabelExpired);
 
-        let detail = table::borrow_mut(&mut registrar.details, label);
+        let detail: &mut RegistrationDetail = field::borrow_mut(&mut registrar.id, label);
         detail.expiry = detail.expiry + duration;
 
         event::emit(NameRenewedEvent { label, expiry: detail.expiry });
@@ -385,7 +382,7 @@ module suins::base_registrar {
 
     #[test_only]
     public fun record_exists(registrar: &BaseRegistrar, label: String): bool {
-        table::contains(&registrar.details, label)
+        field::exists_with_type<String, RegistrationDetail>(&registrar.id, label)
     }
 
     #[test_only]
@@ -399,8 +396,8 @@ module suins::base_registrar {
     }
 
     #[test_only]
-    public fun get_registrar(registrar: &BaseRegistrar): (&String, &vector<u8>, &Table<String, RegistrationDetail>) {
-        (&registrar.tld, &registrar.tld_bytes, &registrar.details)
+    public fun get_registrar(registrar: &BaseRegistrar): (&String, &vector<u8>, &UID) {
+        (&registrar.tld, &registrar.tld_bytes, &registrar.id)
     }
 
     #[test_only]
