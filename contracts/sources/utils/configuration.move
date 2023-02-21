@@ -3,16 +3,15 @@ module suins::configuration {
     use sui::object::{Self, UID};
     use sui::vec_map::{Self, VecMap};
     use sui::transfer;
-    use sui::url::{Self, Url};
     use sui::event;
     use sui::tx_context::{TxContext, sender};
     use sui::table::{Self, Table};
-    use std::ascii::{Self, String};
-    use std::vector;
     use suins::remove_later;
     use suins::converter;
     use suins::base_registry::AdminCap;
     use suins::emoji::{Self, EmojiConfiguration};
+    use std::ascii::{Self, String};
+    use std::vector;
     use std::string;
 
     friend suins::base_registrar;
@@ -69,21 +68,16 @@ module suins::configuration {
 
     struct Configuration has key {
         id: UID,
-        /// key is the day number of the end-of-year day counted from 01/01/2022, e.g., 2022 is day 365, 2023 is day 730
-        ipfs_urls: VecMap<u64, vector<u8>>,
-        /// day number from the date the network is deployed, counts from 01/01/2023, 01/01/2023 is day 1,
-        /// help to detect leap year
-        network_first_day: u64,
         referral_codes: VecMap<String, ReferralValue>,
         discount_codes: VecMap<String, DiscountValue>,
         /// if `key` doesn't contains TLD, it means we reserve both .sui and .move
         reserve_domains: Table<string::String, bool>,
         emoji_config: EmojiConfiguration,
+        public_key: vector<u8>,
     }
 
-    public entry fun set_network_first_day(_: &AdminCap, config: &mut Configuration, new_day: u64) {
-        config.network_first_day = new_day;
-        event::emit(NetworkFirstDayChangedEvent { new_day })
+    public entry fun set_public_key(_: &AdminCap, config: &mut Configuration, new_public_key: vector<u8>) {
+        config.public_key = new_public_key
     }
 
     // TODO: handle .sui and .move separately
@@ -202,21 +196,6 @@ module suins::configuration {
 
     // === Friend and Private Functions ===
 
-    public(friend) fun get_url(config: &Configuration, duration: u64, current_epoch: u64): Url {
-        let end_date = config.network_first_day + current_epoch + duration;
-        let len = vec_map::size(&config.ipfs_urls);
-        let index = 0;
-
-        while (index < len) {
-            let (key, value) = vec_map::get_entry_by_idx(&config.ipfs_urls, index);
-            if (end_date <= *key) {
-                return url::new_unsafe_from_bytes(*value)
-            };
-            index = index + 1;
-        };
-        url::new_unsafe_from_bytes(b"ipfs://bafkreibngqhl3gaa7daob4i2vccziay2jjlp435cf66vhono7nrvww53ty")
-    }
-
     public(friend) fun use_discount_code(config: &mut Configuration, code: &String, ctx: &TxContext): u8 {
         assert!(vec_map::contains(&config.discount_codes, code), EDiscountCodeNotExists);
 
@@ -241,22 +220,18 @@ module suins::configuration {
         &config.emoji_config
     }
 
+    public(friend) fun public_key(config: &Configuration): &vector<u8> {
+        &config.public_key
+    }
+
     fun init(ctx: &mut TxContext) {
-        let ipfs_urls = vec_map::empty<u64, vector<u8>>();
-        vec_map::insert(&mut ipfs_urls, 365, b"ipfs://QmZsHKQk9FbQZYCy7rMYn1z6m9Raa183dNhpGCRm3fX71s");
-        vec_map::insert(&mut ipfs_urls, 731, b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2");
-        vec_map::insert(&mut ipfs_urls, 1096, b"ipfs://QmaWNLR6C3QsSHcPwNoFA59DPXCKdx1t8hmyyKRqBbjYB3");
-        vec_map::insert(&mut ipfs_urls, 1461, b"ipfs://QmRF7kbi4igtGcX6enEuthQRhvQZejc7ZKBhMimFJtTS8D");
-        vec_map::insert(&mut ipfs_urls, 1826, b"ipfs://QmTdkzVAAW7yRHu5EVMwH2d7kUM1a9amyW67NCYgut6Hd5");
-        vec_map::insert(&mut ipfs_urls, 2192, b"ipfs://Qmdm7ET9hbMRn7ex9TH6cJaKr8h8AE29w8kMqAhExBHfh9");
         transfer::share_object(Configuration {
             id: object::new(ctx),
-            ipfs_urls,
-            network_first_day: 0,
             referral_codes: vec_map::empty(),
             discount_codes: vec_map::empty(),
             reserve_domains: table::new(ctx),
             emoji_config: emoji::init_emoji_config(),
+            public_key: vector::empty(),
         });
     }
 
@@ -321,23 +296,13 @@ module suins::configuration {
     #[test_only]
     /// Wrapper of module initializer for testing
     public fun test_init(ctx: &mut TxContext) {
-        // mimic logic in `init`
-        let ipfs_urls = vec_map::empty<u64, vector<u8>>();
-        vec_map::insert(&mut ipfs_urls, 365, b"ipfs://QmZsHKQk9FbQZYCy7rMYn1z6m9Raa183dNhpGCRm3fX71s");
-        vec_map::insert(&mut ipfs_urls, 731, b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2");
-        vec_map::insert(&mut ipfs_urls, 1096, b"ipfs://QmaWNLR6C3QsSHcPwNoFA59DPXCKdx1t8hmyyKRqBbjYB3");
-        vec_map::insert(&mut ipfs_urls, 1461, b"ipfs://QmRF7kbi4igtGcX6enEuthQRhvQZejc7ZKBhMimFJtTS8D");
-        vec_map::insert(&mut ipfs_urls, 1826, b"ipfs://QmTdkzVAAW7yRHu5EVMwH2d7kUM1a9amyW67NCYgut6Hd5");
-        vec_map::insert(&mut ipfs_urls, 2192, b"ipfs://Qmdm7ET9hbMRn7ex9TH6cJaKr8h8AE29w8kMqAhExBHfh9");
-
         transfer::share_object(Configuration {
             id: object::new(ctx),
-            ipfs_urls,
-            network_first_day: 1,
             referral_codes: vec_map::empty(),
             discount_codes: vec_map::empty(),
             reserve_domains: table::new(ctx),
             emoji_config: emoji::init_emoji_config(),
+            public_key: vector::empty(),
         });
     }
 }
