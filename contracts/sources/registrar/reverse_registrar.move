@@ -49,8 +49,6 @@ module suins::reverse_registrar {
         resolver: address,
         ctx: &mut TxContext
     ) {
-        // FIXME: why do I want to have some one as the owner of my record?
-        // TODO: currently only set name record, so `sender(ctx)` cannot reclaim the name record
         let label = converter::address_to_string(sender(ctx));
         let node = base_registry::make_node(label, string::utf8(ADDR_REVERSE_BASE_NODE));
         base_registry::set_record_internal(registry, node, owner, resolver, 0);
