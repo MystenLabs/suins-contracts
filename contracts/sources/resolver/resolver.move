@@ -46,6 +46,15 @@ module suins::resolver {
         node: String,
     }
 
+    struct AvatarChangedEvent has copy, drop {
+        node: String,
+        avatar: String,
+    }
+
+    struct AvatarRemovedEvent has copy, drop {
+        node: String,
+    }
+
     struct AddrChangedEvent has copy, drop {
         node: String,
         addr: String,
@@ -136,6 +145,74 @@ module suins::resolver {
     }
 
     /// #### Notice
+    /// This funtions allows owner of `node` to set avatar url.
+    ///
+    /// #### Dev
+    /// Create 'avatar' key if not exist.
+    ///
+    /// #### Params
+    /// `node`: node to be updated
+    /// `avatar`: avatar url
+    ///
+    /// Panics
+    /// Panics if caller isn't the owner of `node`
+    public entry fun set_avatar(
+        base_resolver: &mut BaseResolver,
+        registry: &Registry,
+        node: vector<u8>,
+        hash: vector<u8>,
+        ctx: &mut TxContext
+    ) {
+        // TODO: group avatar, contenthash,... into 1 function
+        base_registry::authorised(registry, node, ctx);
+        let node = utf8(node);
+        let new_hash = utf8(hash);
+        let key = utf8(AVATAR);
+
+        if (field::exists_with_type<String, VecMap<String, String>>(&base_resolver.id, node)) {
+            let record = field::borrow_mut<String, VecMap<String, String>>(&mut base_resolver.id, node);
+            if (vec_map::contains(record, &key)) {
+                // `node` and `contenthash` exist
+                let current_contenthash = vec_map::get_mut(record, &key);
+                *current_contenthash = new_hash;
+            } else {
+                // `node` exists but `avatar` doesn't
+                vec_map::insert(record, key, new_hash);
+            }
+        } else {
+            // `node` not exist
+            let new_record = vec_map::empty<String, String>();
+            vec_map::insert(&mut new_record, key, new_hash);
+            field::add(&mut base_resolver.id, node, new_record);
+        };
+
+        event::emit(ContenthashChangedEvent { node, contenthash: new_hash });
+    }
+
+    /// #### Notice
+    /// This funtions allows owner of `node` to unset avatar url.
+    ///
+    /// #### Params
+    /// `node`: node to be updated
+    ///
+    /// Panics
+    /// Panics if caller isn't the owner of `node`
+    /// or `node` doesn't exist.
+    public entry fun unset_avatar(
+        base_resolver: &mut BaseResolver,
+        registry: &Registry,
+        node: vector<u8>,
+        ctx: &mut TxContext
+    ) {
+        base_registry::authorised(registry, node, ctx);
+
+        let node = utf8(node);
+        let record = field::borrow_mut<String, VecMap<String, String>>(&mut base_resolver.id, node);
+        vec_map::remove(record, &utf8(AVATAR));
+        event::emit(AvatarRemovedEvent { node });
+    }
+
+    /// #### Notice
     /// This funtions allows owner of `sender_addr`.addr.reverse` to set default domain name which is mapped to the sender address.
     /// The node is identified by the sender address with format: `sender_addr`.addr.reverse.
     ///
@@ -202,9 +279,8 @@ module suins::resolver {
         let label = converter::address_to_string(addr);
         let node = base_registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
         base_registry::authorised(registry, *string::bytes(&node), ctx);
-
         let record = field::borrow_mut(&mut base_resolver.id, node);
-        vec_map::remove<String, String>(record, &node);
+        vec_map::remove<String, String>(record, &utf8(NAME));
 
         event::emit(NameRemovedEvent { addr });
     }
@@ -307,6 +383,27 @@ module suins::resolver {
     /// `node`: node to find the content hash
     public fun contenthash(base_resolver: &BaseResolver, node: vector<u8>): String {
         let key = utf8(CONTENTHASH);
+        let node = utf8(node);
+
+        if (field::exists_with_type<String, VecMap<String, String>>(&base_resolver.id, node)) {
+            let record = field::borrow<String, VecMap<String, String>>(&base_resolver.id, node);
+            if (vec_map::contains(record, &key)) {
+                return *vec_map::get(record, &key)
+            };
+        };
+        utf8(b"")
+    }
+
+    /// #### Notice
+    /// Get avatar of a `node`.
+    ///
+    /// #### Dev
+    /// Returns empty string if `node` or `avatar` key doesn't exist.
+    ///
+    /// #### Params
+    /// `node`: node to find the content hash
+    public fun avatar(base_resolver: &BaseResolver, node: vector<u8>): String {
+        let key = utf8(AVATAR);
         let node = utf8(node);
 
         if (field::exists_with_type<String, VecMap<String, String>>(&base_resolver.id, node)) {
