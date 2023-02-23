@@ -184,7 +184,7 @@ module suins::auction {
         let emoji_config = configuration::emoji_config(config);
         emoji::validate_label_with_emoji(emoji_config, label, 3, 6);
 
-        let state = state(auction, label, ctx);
+        let state = state(auction, label, epoch(ctx));
         assert!(state == AUCTION_STATE_OPEN || state == AUCTION_STATE_REOPENED, EInvalidPhase);
 
         let label = utf8(label);
@@ -294,7 +294,7 @@ module suins::auction {
             EAuctionNotAvailable,
         );
         // TODO: do we need to validate domain here?
-        let auction_state = state(auction, label, ctx);
+        let auction_state = state(auction, label, epoch(ctx));
         assert!(auction_state == AUCTION_STATE_REVEAL, EInvalidPhase);
 
         let seal_bid = make_seal_bid(label, sender(ctx), value, salt); // hash from label, owner, value, salt
@@ -380,7 +380,7 @@ module suins::auction {
             EAuctionNotAvailable,
         );
         assert!(base_registrar::base_node_bytes(registrar) == b"sui", EInvalidRegistrar);
-        let auction_state = state(auction, label, ctx);
+        let auction_state = state(auction, label, epoch(ctx));
         // the reveal phase is over in all of these phases and have received bids
         assert!(
             auction_state == AUCTION_STATE_FINALIZING
@@ -558,8 +558,7 @@ module suins::auction {
     ///   AUCTION_STATE_NOT_AVAILABLE | AUCTION_STATE_OPEN | AUCTION_STATE_PENDING | AUCTION_STATE_BIDDING |
     ///   AUCTION_STATE_REVEAL | AUCTION_STATE_FINALIZING | AUCTION_STATE_OWNED | AUCTION_STATE_REOPENED
     /// ]
-    public fun state(auction: &Auction, label: vector<u8>, ctx: &TxContext): u8 {
-        let current_epoch = epoch(ctx);
+    public fun state(auction: &Auction, label: vector<u8>, current_epoch: u64): u8 {
         let label = utf8(label);
         if (current_epoch < auction.open_at || current_epoch > auction.close_at + EXTRA_PERIOD) return AUCTION_STATE_NOT_AVAILABLE;
         let is_entry_existed = table::contains(&auction.entries, label);
