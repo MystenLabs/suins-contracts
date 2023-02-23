@@ -187,10 +187,10 @@ module suins::base_registrar_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
 
             let label = utf8(b"eastagile");
-            assert!(!base_registrar::available(&registrar, label, test_scenario::ctx(&mut scenario)), 0);
+            assert!(!base_registrar::is_available(&registrar, label, test_scenario::ctx(&mut scenario)), 0);
 
             let label = utf8(b"ea");
-            assert!(base_registrar::available(&registrar, label, test_scenario::ctx(&mut scenario)), 0);
+            assert!(base_registrar::is_available(&registrar, label, test_scenario::ctx(&mut scenario)), 0);
 
             test_scenario::return_shared(registrar);
         };
