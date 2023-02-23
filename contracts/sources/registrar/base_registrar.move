@@ -41,22 +41,6 @@ module suins::base_registrar {
     const EHashedMessageNotMatch: u64 = 212;
     const ENFTExpired: u64 = 213;
 
-    struct NameRenewedEvent has copy, drop {
-        label: String,
-        expiry: u64,
-    }
-
-    struct NameReclaimedEvent has copy, drop {
-        node: String,
-        owner: address,
-    }
-
-    struct ImageUpdatedEvent has copy, drop {
-        sender: address,
-        node: String,
-        new_image: Url,
-    }
-
     /// NFT representing ownership of a domain
     struct RegistrationNFT has key, store {
         id: UID,
@@ -87,6 +71,22 @@ module suins::base_registrar {
     struct TLDList has key {
         id: UID,
         tlds: vector<String>,
+    }
+
+    struct NameRenewedEvent has copy, drop {
+        label: String,
+        expiry: u64,
+    }
+
+    struct NameReclaimedEvent has copy, drop {
+        node: String,
+        owner: address,
+    }
+
+    struct ImageUpdatedEvent has copy, drop {
+        sender: address,
+        node: String,
+        new_image: Url,
     }
 
     /// #### Notice

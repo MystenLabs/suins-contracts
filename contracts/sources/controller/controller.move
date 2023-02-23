@@ -17,7 +17,7 @@ module suins::controller {
     use sui::sui::SUI;
     use suins::base_registry::{Registry, AdminCap};
     use suins::base_registrar::{Self, BaseRegistrar, RegistrationNFT};
-    use suins::configuration::{Self, Configuration};
+    use suins::configuration::{Self, Configuration, max_domain_length, min_domain_length, min_non_auction_domain_length, price_for_node};
     use suins::emoji::validate_label_with_emoji;
     use suins::coin_util;
     use suins::auction::{Self, Auction};
@@ -28,11 +28,7 @@ module suins::controller {
     use std::option::{Self, Option};
     use sui::url::Url;
 
-    // TODO: remove later when timestamp is introduced
-    // const MIN_COMMITMENT_AGE: u64 = 0;
     const MAX_COMMITMENT_AGE: u64 = 3;
-    const FEE_PER_YEAR: u64 = 1000000;
-    const NO_OUTDATED_COMMITMENT_TO_REMOVE: u64 = 50;
 
     // errors in the range of 301..400 indicate Sui Controller errors
     const EInvalidResolverAddress: u64 = 301;
@@ -45,7 +41,14 @@ module suins::controller {
     const ENoProfits: u64 = 310;
     const EInvalidCode: u64 = 311;
     const ERegistrationIsDisabled: u64 = 312;
-    const EInvalidMessage: u64 = 313;
+    const EInvalidImageMessage: u64 = 313;
+
+    struct BaseController has key {
+        id: UID,
+        commitments: LinkedTable<vector<u8>, u64>,
+        balance: Balance<SUI>,
+        default_addr_resolver: address,
+    }
 
     struct NameRegisteredEvent has copy, drop {
         node: String,
@@ -71,16 +74,6 @@ module suins::controller {
         duration: u64,
     }
 
-    struct BaseController has key {
-        id: UID,
-        commitments: LinkedTable<vector<u8>, u64>,
-        balance: Balance<SUI>,
-        default_addr_resolver: address,
-        /// To turn off registration
-        disable: bool,
-
-    }
-
     /// #### Notice
     /// The admin uses this function to set default resolver address,
     /// which is the default value when registering without config.
@@ -93,16 +86,6 @@ module suins::controller {
     public entry fun set_default_resolver(_: &AdminCap, controller: &mut BaseController, resolver: address) {
         controller.default_addr_resolver = resolver;
         event::emit(DefaultResolverChangedEvent { resolver })
-    }
-
-    /// #### Notice
-    /// The admin uses this function to enable or disable registration.
-    ///
-    ///
-    /// #### Params
-    /// `new_value`: false to enable registration, true to disable it.
-    public entry fun set_disable(_: &AdminCap, controller: &mut BaseController, new_value: bool) {
-        controller.disable = new_value;
     }
 
     /// #### Notice
@@ -155,8 +138,6 @@ module suins::controller {
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext,
     ) {
-        let resolver = controller.default_addr_resolver;
-
         register_internal(
             controller,
             registrar,
@@ -167,7 +148,7 @@ module suins::controller {
             owner,
             no_years,
             secret,
-            resolver,
+            controller.default_addr_resolver,
             payment,
             option::none(),
             option::none(),
@@ -218,13 +199,7 @@ module suins::controller {
         raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        assert!(
-            !vector::is_empty(&signature)
-                && !vector::is_empty(&hashed_msg)
-                && !vector::is_empty(&raw_msg),
-            EInvalidMessage
-        );
-        let resolver = controller.default_addr_resolver;
+        validate_image_msg(&signature, &hashed_msg, &raw_msg);
 
         register_internal(
             controller,
@@ -236,7 +211,7 @@ module suins::controller {
             owner,
             no_years,
             secret,
-            resolver,
+            controller.default_addr_resolver,
             payment,
             option::none(),
             option::none(),
@@ -319,12 +294,7 @@ module suins::controller {
         raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        assert!(
-            !vector::is_empty(&signature)
-                && !vector::is_empty(&hashed_msg)
-                && !vector::is_empty(&raw_msg),
-            EInvalidMessage
-        );
+        validate_image_msg(&signature, &hashed_msg, &raw_msg);
 
         register_internal(
             controller,
@@ -375,7 +345,6 @@ module suins::controller {
         ctx: &mut TxContext,
     ) {
         let (referral_code, discount_code) = validate_codes(referral_code, discount_code);
-        let resolver = controller.default_addr_resolver;
 
         register_internal(
             controller,
@@ -387,7 +356,7 @@ module suins::controller {
             owner,
             no_years,
             secret,
-            resolver,
+            controller.default_addr_resolver,
             payment,
             referral_code,
             discount_code,
@@ -432,12 +401,7 @@ module suins::controller {
         raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        assert!(
-            !vector::is_empty(&signature)
-                && !vector::is_empty(&hashed_msg)
-                && !vector::is_empty(&raw_msg),
-            EInvalidMessage
-        );
+        validate_image_msg(&signature, &hashed_msg, &raw_msg);
         let (referral_code, discount_code) = validate_codes(referral_code, discount_code);
         let resolver = controller.default_addr_resolver;
 
@@ -548,12 +512,7 @@ module suins::controller {
         raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        assert!(
-            !vector::is_empty(&signature)
-                && !vector::is_empty(&hashed_msg)
-                && !vector::is_empty(&raw_msg),
-            EInvalidMessage
-        );
+        validate_image_msg(&signature, &hashed_msg, &raw_msg);
         let (referral_code, discount_code) = validate_codes(referral_code, discount_code);
 
         register_internal(
@@ -627,7 +586,7 @@ module suins::controller {
         raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        // nft is validated in `update_image_url`
+        // NFT and imag_msg are validated in `update_image_url`
         renew_internal(controller, registrar, label, no_years, payment, ctx);
         base_registrar::update_image_url(registrar, config, nft, signature, hashed_msg, raw_msg, ctx);
     }
@@ -646,7 +605,6 @@ module suins::controller {
 
     // === Private Functions ===
 
-    /// Returns the epoch at which the `label` is expired
     fun renew_internal(
         controller: &mut BaseController,
         registrar: &mut BaseRegistrar,
@@ -655,7 +613,7 @@ module suins::controller {
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext
     ) {
-        let renew_fee = FEE_PER_YEAR * no_years;
+        let renew_fee = price_for_node(no_years);
         assert!(coin::value(payment) >= renew_fee, ENotEnoughFee);
         coin_util::user_transfer_to_contract(payment, renew_fee, &mut controller.balance);
 
@@ -668,33 +626,6 @@ module suins::controller {
             cost: renew_fee,
             duration,
         });
-    }
-
-    // returns remaining_fee
-    fun apply_referral_code(
-        config: &Configuration,
-        payment: &mut Coin<SUI>,
-        original_fee: u64,
-        referral_code: &ascii::String,
-        ctx: &mut TxContext
-    ): u64 {
-        let (rate, partner) = configuration::use_referral_code(config, referral_code);
-        let remaining_fee = (original_fee / 100) * (100 - rate as u64);
-        let payback_amount = original_fee - remaining_fee;
-        coin_util::user_transfer_to_address(payment, payback_amount, partner, ctx);
-
-        remaining_fee
-    }
-
-    // returns remaining_fee and discout owner address
-    fun apply_discount_code(
-        config: &mut Configuration,
-        original_fee: u64,
-        referral_code: &ascii::String,
-        ctx: &mut TxContext,
-    ): u64 {
-        let rate = configuration::use_discount_code(config, referral_code, ctx);
-        (original_fee / 100) * (100 - rate as u64)
     }
 
     fun register_internal(
@@ -716,17 +647,24 @@ module suins::controller {
         raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        assert!(!controller.disable, ERegistrationIsDisabled);
+        assert!(configuration::is_enable_controller(config), ERegistrationIsDisabled);
         let emoji_config = configuration::emoji_config(config);
         let label_str = utf8(label);
 
         if (epoch(ctx) <= auction::auction_close_at(auction)) {
-            validate_label_with_emoji(emoji_config, label, 7, 63)
+            // auction time, cann't register short names
+            validate_label_with_emoji(
+                emoji_config,
+                label,
+                min_non_auction_domain_length(config),
+                max_domain_length(config)
+            )
         } else {
             assert!(auction::is_auction_label_available_for_controller(auction, label_str, ctx), ELabelUnAvailable);
-            validate_label_with_emoji(emoji_config, label, 3, 63)
+            validate_label_with_emoji(emoji_config, label, min_domain_length(config), max_domain_length(config))
         };
-        let registration_fee = FEE_PER_YEAR * no_years;
+
+        let registration_fee = price_for_node(no_years);
         assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
 
         // can apply both discount and referral codes at the same time
@@ -738,6 +676,7 @@ module suins::controller {
             registration_fee =
                 apply_referral_code(config, payment, registration_fee, option::borrow(&referral_code), ctx);
         };
+
         let commitment = make_commitment(registrar, label, owner, secret);
         consume_commitment(controller, registrar, label, commitment, ctx);
 
@@ -761,7 +700,7 @@ module suins::controller {
             node: base_registrar::base_node(registrar),
             label: label_str,
             owner,
-            cost: FEE_PER_YEAR * no_years,
+            cost: price_for_node(no_years),
             expiry: epoch(ctx) + duration,
             nft_id,
             resolver,
@@ -771,13 +710,37 @@ module suins::controller {
         });
     }
 
+    // returns remaining_fee
+    fun apply_referral_code(
+        config: &Configuration,
+        payment: &mut Coin<SUI>,
+        original_fee: u64,
+        referral_code: &ascii::String,
+        ctx: &mut TxContext
+    ): u64 {
+        let (rate, partner) = configuration::use_referral_code(config, referral_code);
+        let remaining_fee = (original_fee / 100) * (100 - rate as u64);
+        let payback_amount = original_fee - remaining_fee;
+        coin_util::user_transfer_to_address(payment, payback_amount, partner, ctx);
+
+        remaining_fee
+    }
+
+    // returns remaining_fee after being discounted
+    fun apply_discount_code(
+        config: &mut Configuration,
+        original_fee: u64,
+        referral_code: &ascii::String,
+        ctx: &mut TxContext,
+    ): u64 {
+        let rate = configuration::use_discount_code(config, referral_code, ctx);
+        (original_fee / 100) * (100 - rate as u64)
+    }
+
     fun remove_outdated_commitments(controller: &mut BaseController, ctx: &mut TxContext) {
         let front_element = linked_table::front(&controller.commitments);
-        let i = 0;
 
-        while (option::is_some(front_element) && i < NO_OUTDATED_COMMITMENT_TO_REMOVE) {
-            i = i + 1;
-
+        while (option::is_some(front_element)) {
             let created_at = linked_table::borrow(&controller.commitments, *option::borrow(front_element));
             if (*created_at + MAX_COMMITMENT_AGE <= epoch(ctx)) {
                 linked_table::pop_front(&mut controller.commitments);
@@ -803,7 +766,7 @@ module suins::controller {
             *linked_table::borrow(&controller.commitments, commitment) + MAX_COMMITMENT_AGE > epoch(ctx),
             ECommitmentTooOld
         );
-        assert!(base_registrar::is_available(registrar, string::utf8(label), ctx), ELabelUnAvailable);
+        assert!(base_registrar::available(registrar, string::utf8(label), ctx), ELabelUnAvailable);
         linked_table::remove(&mut controller.commitments, commitment);
     }
 
@@ -835,6 +798,15 @@ module suins::controller {
         (referral, discount)
     }
 
+    fun validate_image_msg(signature: &vector<u8>, hashed_msg: &vector<u8>, raw_msg: &vector<u8>) {
+        assert!(
+            !vector::is_empty(signature)
+                && !vector::is_empty(hashed_msg)
+                && !vector::is_empty(raw_msg),
+            EInvalidImageMessage
+        );
+    }
+
     fun init(ctx: &mut TxContext) {
         transfer::share_object(BaseController {
             id: object::new(ctx),
@@ -842,7 +814,6 @@ module suins::controller {
             balance: balance::zero(),
             // cannot get the ID of name_resolver in `init`, admin need to update this by calling `set_default_resolver`
             default_addr_resolver: @0x0,
-            disable: false,
         });
     }
 
@@ -891,7 +862,6 @@ module suins::controller {
             balance: balance::zero(),
             // cannot get the ID of name_resolver in `init`, admin need to update this by calling `set_default_resolver`
             default_addr_resolver: @0x0,
-            disable: false,
         });
     }
 }

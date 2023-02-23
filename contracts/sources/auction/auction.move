@@ -594,12 +594,9 @@ module suins::auction {
         auction.close_at
     }
 
-    // label is presumed to have 3-6 characters
-    public(friend) fun is_auction_label_available_for_controller(
-        auction: &Auction,
-        label: String,
-        ctx: &TxContext
-    ): bool {
+    // label is assumed to have 3-6 characters
+    // TODO: add comment, rename function
+    public(friend) fun is_auction_label_available_for_controller(auction: &Auction, label: String, ctx: &TxContext): bool {
         if (auction.close_at >= epoch(ctx)) return false;
         if (auction.close_at + EXTRA_PERIOD < epoch(ctx)) return true;
         if (table::contains(&auction.entries, label)) {
