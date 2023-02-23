@@ -136,7 +136,13 @@ module suins::auction {
     /// Panics
     /// Panics if `open_at` is less than `close_at`
     /// or current epoch is less than or equal `open_at`
-    public entry fun configurate_auction(_: &AdminCap, auction: &mut Auction, open_at: u64, close_at: u64, ctx: &mut TxContext) {
+    public entry fun configure_auction(
+        _: &AdminCap,
+        auction: &mut Auction,
+        open_at: u64,
+        close_at: u64,
+        ctx: &mut TxContext
+    ) {
         assert!(open_at < close_at, EInvalidConfigParam);
         assert!(epoch(ctx) <= open_at, EInvalidConfigParam);
 
@@ -178,7 +184,7 @@ module suins::auction {
         let emoji_config = configuration::emoji_config(config);
         emoji::validate_label_with_emoji(emoji_config, label, 3, 6);
 
-        let state = state(auction, label, ctx);
+        let state = state(auction, label, epoch(ctx));
         assert!(state == AUCTION_STATE_OPEN || state == AUCTION_STATE_REOPENED, EInvalidPhase);
 
         let label = utf8(label);
@@ -218,7 +224,13 @@ module suins::auction {
     /// or `bid_value_mask` is less than `MIN_PRICE`
     /// or the sealed bid exists
     /// or payment doesn't have enough coin
-    public entry fun place_bid(auction: &mut Auction, sealed_bid: vector<u8>, bid_value_mask: u64, payment: &mut Coin<SUI>, ctx: &mut TxContext) {
+    public entry fun place_bid(
+        auction: &mut Auction,
+        sealed_bid: vector<u8>,
+        bid_value_mask: u64,
+        payment: &mut Coin<SUI>,
+        ctx: &mut TxContext
+    ) {
         // TODO: should we enforce the current epoch <= auction.close_at - REVEAL_PERIOD?
         assert!(
             auction.open_at <= epoch(ctx) && epoch(ctx) <= auction.close_at,
@@ -270,13 +282,19 @@ module suins::auction {
     /// or the parameters don't match any sealed bid
     /// or the sealed bid has already been unsealed
     /// or `label` hasn't been started
-    public entry fun reveal_bid(auction: &mut Auction, label: vector<u8>, value: u64, salt: vector<u8>, ctx: &mut TxContext) {
+    public entry fun reveal_bid(
+        auction: &mut Auction,
+        label: vector<u8>,
+        value: u64,
+        salt: vector<u8>,
+        ctx: &mut TxContext
+    ) {
         assert!(
             auction.open_at <= epoch(ctx) && epoch(ctx) <= auction.close_at,
             EAuctionNotAvailable,
         );
         // TODO: do we need to validate domain here?
-        let auction_state = state(auction, label, ctx);
+        let auction_state = state(auction, label, epoch(ctx));
         assert!(auction_state == AUCTION_STATE_REVEAL, EInvalidPhase);
 
         let seal_bid = make_seal_bid(label, sender(ctx), value, salt); // hash from label, owner, value, salt
@@ -362,7 +380,7 @@ module suins::auction {
             EAuctionNotAvailable,
         );
         assert!(base_registrar::base_node_bytes(registrar) == b"sui", EInvalidRegistrar);
-        let auction_state = state(auction, label, ctx);
+        let auction_state = state(auction, label, epoch(ctx));
         // the reveal phase is over in all of these phases and have received bids
         assert!(
             auction_state == AUCTION_STATE_FINALIZING
@@ -510,7 +528,10 @@ module suins::auction {
     ///
     /// #### Return
     /// (`start_at`, `highest_bid`, `second_highest_bid`, `winner`, `is_finalized`)
-    public fun get_entry(auction: &Auction, label: vector<u8>): (Option<u64>, Option<u64>, Option<u64>, Option<address>, Option<bool>) {
+    public fun get_entry(
+        auction: &Auction,
+        label: vector<u8>
+    ): (Option<u64>, Option<u64>, Option<u64>, Option<address>, Option<bool>) {
         let label = utf8(label);
         if (table::contains(&auction.entries, label)) {
             let entry = table::borrow(&auction.entries, label);
@@ -537,8 +558,7 @@ module suins::auction {
     ///   AUCTION_STATE_NOT_AVAILABLE | AUCTION_STATE_OPEN | AUCTION_STATE_PENDING | AUCTION_STATE_BIDDING |
     ///   AUCTION_STATE_REVEAL | AUCTION_STATE_FINALIZING | AUCTION_STATE_OWNED | AUCTION_STATE_REOPENED
     /// ]
-    public fun state(auction: &Auction, label: vector<u8>, ctx: &TxContext): u8 {
-        let current_epoch = epoch(ctx);
+    public fun state(auction: &Auction, label: vector<u8>, current_epoch: u64): u8 {
         let label = utf8(label);
         if (current_epoch < auction.open_at || current_epoch > auction.close_at + EXTRA_PERIOD) return AUCTION_STATE_NOT_AVAILABLE;
         let is_entry_existed = table::contains(&auction.entries, label);
@@ -575,7 +595,11 @@ module suins::auction {
     }
 
     // label is presumed to have 3-6 characters
-    public(friend) fun is_auction_label_available_for_controller(auction: &Auction, label: String, ctx: &TxContext): bool {
+    public(friend) fun is_auction_label_available_for_controller(
+        auction: &Auction,
+        label: String,
+        ctx: &TxContext
+    ): bool {
         if (auction.close_at >= epoch(ctx)) return false;
         if (auction.close_at + EXTRA_PERIOD < epoch(ctx)) return true;
         if (table::contains(&auction.entries, label)) {
@@ -601,7 +625,7 @@ module suins::auction {
         let len = vector::length(bids);
         let index = 0;
 
-        while(index < len) {
+        while (index < len) {
             let detail = vector::borrow(bids, index);
             if (detail.sealed_bid == seal_bid) {
                 return some(index)

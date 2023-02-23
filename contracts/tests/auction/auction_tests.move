@@ -5,7 +5,7 @@ module suins::auction_tests {
     use sui::test_scenario;
     use sui::coin::{Self, Coin};
     use sui::sui::SUI;
-    use sui::tx_context;
+    use sui::tx_context::{Self, epoch};
     use sui::dynamic_field;
     use suins::auction::{Self, Auction, make_seal_bid, get_seal_bid_by_bidder, finalize_auction, get_bids_by_bidder, get_bid_detail_fields, withdraw, state};
     use suins::base_registry::{Self, Registry, AdminCap};
@@ -89,7 +89,7 @@ module suins::auction_tests {
 
             base_registrar::new_tld(&admin_cap, &mut tlds_list, b"move", ctx(&mut scenario));
             base_registrar::new_tld(&admin_cap, &mut tlds_list, b"sui", ctx(&mut scenario));
-            auction::configurate_auction(&admin_cap, &mut auction, AUCTION_OPEN_AT, AUCTION_CLOSE_AT, ctx(&mut scenario));
+            auction::configure_auction(&admin_cap, &mut auction, AUCTION_OPEN_AT, AUCTION_CLOSE_AT, ctx(&mut scenario));
 
             test_scenario::return_shared(tlds_list);
             test_scenario::return_shared(auction);
@@ -220,7 +220,7 @@ module suins::auction_tests {
             epoch,
             10
         );
-        state(auction, node, &mut ctx)
+        state(auction, node, epoch(&ctx))
     }
 
     public fun place_bid_util(scenario: &mut Scenario, seal_bid: vector<u8>, value: u64, bidder: address) {
@@ -1393,7 +1393,6 @@ module suins::auction_tests {
             get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, false);
 
             test_scenario::return_shared(auction);
-
         };
         test_scenario::end(scenario_val);
     }
@@ -2699,7 +2698,7 @@ module suins::auction_tests {
             );
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let auction = test_scenario::take_shared<Auction>(scenario);
-            auction::configurate_auction(&admin_cap, &mut auction, 3000, 3001, &mut ctx);
+            auction::configure_auction(&admin_cap, &mut auction, 3000, 3001, &mut ctx);
             test_scenario::return_shared(auction);
             test_scenario::return_to_sender(scenario, admin_cap);
         };
@@ -2720,7 +2719,7 @@ module suins::auction_tests {
             );
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let auction = test_scenario::take_shared<Auction>(scenario);
-            auction::configurate_auction(&admin_cap, &mut auction, 3001, 3000, &mut ctx);
+            auction::configure_auction(&admin_cap, &mut auction, 3001, 3000, &mut ctx);
             test_scenario::return_shared(auction);
             test_scenario::return_to_sender(scenario, admin_cap);
         };
@@ -2741,7 +2740,7 @@ module suins::auction_tests {
             );
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let auction = test_scenario::take_shared<Auction>(scenario);
-            auction::configurate_auction(&admin_cap, &mut auction, 3000, 3000, &mut ctx);
+            auction::configure_auction(&admin_cap, &mut auction, 3000, 3000, &mut ctx);
             test_scenario::return_shared(auction);
             test_scenario::return_to_sender(scenario, admin_cap);
         };
@@ -2762,7 +2761,7 @@ module suins::auction_tests {
             );
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let auction = test_scenario::take_shared<Auction>(scenario);
-            auction::configurate_auction(&admin_cap, &mut auction, 100, 300, &mut ctx);
+            auction::configure_auction(&admin_cap, &mut auction, 100, 300, &mut ctx);
             test_scenario::return_shared(auction);
             test_scenario::return_to_sender(scenario, admin_cap);
         };
@@ -3366,7 +3365,6 @@ module suins::auction_tests {
             get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 0, 0, @0x0, false);
 
             test_scenario::return_shared(auction);
-
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -4470,7 +4468,7 @@ module suins::auction_tests {
                 10
             );
 
-            assert!(state(&auction, NODE, &ctx) == AUCTION_STATE_NOT_AVAILABLE, 0);
+            assert!(state(&auction, NODE, epoch(&ctx)) == AUCTION_STATE_NOT_AVAILABLE, 0);
 
             test_scenario::return_shared(auction);
         };
@@ -4503,7 +4501,7 @@ module suins::auction_tests {
                 10
             );
 
-            assert!(state(&auction, NODE, &ctx) == AUCTION_STATE_NOT_AVAILABLE, 0);
+            assert!(state(&auction, NODE, epoch(&ctx)) == AUCTION_STATE_NOT_AVAILABLE, 0);
             test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario_val);
