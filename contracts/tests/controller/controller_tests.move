@@ -14,11 +14,11 @@ module suins::controller_tests {
     use std::option::{Self, Option, some};
     use std::string::utf8;
     use sui::url;
-    use sui::table;
     use suins::auction::{Auction, make_seal_bid};
     use suins::auction;
     use suins::auction_tests::{start_an_auction_util, place_bid_util, reveal_bid_util};
     use std::vector;
+    use sui::dynamic_field;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -126,12 +126,10 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
 
             assert!(!base_registrar::record_exists(&registrar, utf8(FIRST_LABEL)), 0);
             assert!(!base_registry::record_exists(&registry, utf8(FIRST_NODE)), 0);
             assert!(controller::balance(&controller) == 0, 0);
-            assert!(table::length(expiries) == 0, 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(scenario), 0);
 
             controller::register_with_config(
@@ -164,7 +162,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
             let registry = test_scenario::take_shared<Registry>(scenario);
 
             assert!(controller::balance(&controller) == 1000000, 0);
@@ -173,10 +171,8 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b""),
                 0
             );
-            assert!(table::length(expiries) == 1, 0);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
 
-            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -268,7 +264,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             assert!(controller::balance(&controller) == 2000000, 0);
@@ -277,10 +273,8 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b""),
                 0
             );
-            assert!(table::length(expiries) == 1, 0);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
 
-            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -649,7 +643,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             assert!(controller::balance(&controller) == 2000000, 0);
@@ -658,10 +652,8 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b""),
                 0
             );
-            assert!(table::length(expiries) == 1, 0);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
 
-            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
             assert!(owner == SECOND_USER_ADDRESS, 0);
@@ -819,7 +811,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             assert!(controller::balance(&controller) == 2000000, 0);
@@ -828,10 +820,8 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b""),
                 0
             );
-            assert!(table::length(expiries) == 1, 0);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
 
-            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -1529,7 +1519,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let coin = test_scenario::take_from_address<Coin<SUI>>(&mut scenario, SECOND_USER_ADDRESS);
 
@@ -1538,12 +1528,10 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b""),
                 0
             );
-            assert!(table::length(expiries) == 1, 0);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
             assert!(coin::value(&coin) == 200000, 0);
             assert!(controller::balance(&controller) == 1800000, 0);
 
-            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -1619,7 +1607,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let coin = test_scenario::take_from_address<Coin<SUI>>(&mut scenario, SECOND_USER_ADDRESS);
 
@@ -1628,12 +1616,10 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b""),
                 0
             );
-            assert!(table::length(expiries) == 1, 0);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
             assert!(coin::value(&coin) == 300000, 0);
             assert!(controller::balance(&controller) == 2700000, 0);
 
-            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -1746,7 +1732,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
@@ -1755,11 +1741,9 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b""),
                 0
             );
-            assert!(table::length(expiries) == 1, 0);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
             assert!(controller::balance(&controller) == 1700000, 0);
 
-            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -1926,7 +1910,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
@@ -1935,11 +1919,9 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b""),
                 0
             );
-            assert!(table::length(expiries) == 1, 0);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
             assert!(controller::balance(&controller) == 1700000, 0);
 
-            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -2351,7 +2333,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             assert!(controller::balance(&controller) == 2000000, 0);
@@ -2360,10 +2342,8 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b""),
                 0
             );
-            assert!(table::length(expiries) == 1, 0);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
 
-            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -2437,7 +2417,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let coin = test_scenario::take_from_address<Coin<SUI>>(&mut scenario, SECOND_USER_ADDRESS);
 
@@ -2446,12 +2426,10 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b""),
                 0
             );
-            assert!(table::length(expiries) == 1, 0);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
             assert!(coin::value(&coin) == 170000, 0);
             assert!(controller::balance(&controller) == 1700000 - 170000, 0);
 
-            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -2620,7 +2598,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let coin = test_scenario::take_from_address<Coin<SUI>>(&mut scenario, SECOND_USER_ADDRESS);
 
@@ -2629,12 +2607,10 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b""),
                 0
             );
-            assert!(table::length(expiries) == 1, 0);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
             assert!(coin::value(&coin) == 170000, 0);
             assert!(controller::balance(&controller) == 1700000 - 170000, 0);
 
-            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -2852,7 +2828,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             assert!(controller::balance(&controller) == 1000000, 0);
@@ -2861,10 +2837,8 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b""),
                 0
             );
-            assert!(table::length(expiries) == 1, 0);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
 
-            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -2973,7 +2947,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             assert!(controller::balance(&controller) == 1000000, 0);
@@ -2982,10 +2956,8 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b""),
                 0
             );
-            assert!(table::length(expiries) == 1, 0);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
 
-            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -3075,7 +3047,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             assert!(controller::balance(&controller) == 1000000, 0);
@@ -3084,10 +3056,8 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b""),
                 0
             );
-            assert!(table::length(expiries) == 1, 0);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
 
-            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -3177,7 +3147,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             assert!(controller::balance(&controller) == 1000000, 0);
@@ -3186,10 +3156,8 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b""),
                 0
             );
-            assert!(table::length(expiries) == 1, 0);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
 
-            let detail = table::borrow(expiries, utf8(AUCTIONED_LABEL));
+            let detail = dynamic_field::borrow(uid, utf8(AUCTIONED_LABEL));
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(AUCTIONED_NODE));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -3279,7 +3247,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             assert!(controller::balance(&controller) == 1000000, 0);
@@ -3288,10 +3256,8 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b""),
                 0
             );
-            assert!(table::length(expiries) == 1, 0);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
 
-            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -3480,7 +3446,7 @@ module suins::controller_tests {
              let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
              let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
              let (name, url) = base_registrar::get_nft_fields(&nft);
-             let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+             let (_, _, uid) = base_registrar::get_registrar(&registrar);
              let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
              assert!(controller::balance(&controller) == 1000000, 0);
@@ -3489,10 +3455,8 @@ module suins::controller_tests {
                  url == url::new_unsafe_from_bytes(b""),
                  0
              );
-             assert!(table::length(expiries) == 1, 0);
-             assert!(base_registry::get_records_len(&registry) == 1, 0);
 
-             let detail = table::borrow(expiries, utf8(AUCTIONED_LABEL));
+             let detail = dynamic_field::borrow(uid, utf8(AUCTIONED_LABEL));
              let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(AUCTIONED_NODE));
 
              assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -3602,7 +3566,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             assert!(controller::balance(&controller) == 1000000, 0);
@@ -3611,10 +3575,8 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b""),
                 0
             );
-            assert!(table::length(expiries) == 1, 0);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
 
-            let detail = table::borrow(expiries, utf8(AUCTIONED_LABEL));
+            let detail = dynamic_field::borrow(uid, utf8(AUCTIONED_LABEL));
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(AUCTIONED_NODE));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -4007,7 +3969,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             assert!(controller::balance(&controller) == 2000000, 0);
@@ -4016,10 +3978,8 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"),
                 0
             );
-            assert!(table::length(expiries) == 1, 0);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
 
-            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -4094,7 +4054,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
             assert!(controller::balance(&controller) == 2000000, 0);
@@ -4103,10 +4063,8 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"),
                 0
             );
-            assert!(table::length(expiries) == 1, 0);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
 
-            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -4351,7 +4309,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let coin = test_scenario::take_from_address<Coin<SUI>>(&mut scenario, SECOND_USER_ADDRESS);
 
@@ -4360,12 +4318,10 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"),
                 0
             );
-            assert!(table::length(expiries) == 1, 0);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
             assert!(coin::value(&coin) == 170000, 0);
             assert!(controller::balance(&controller) == 1700000 - 170000, 0);
 
-            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -4592,7 +4548,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, expiries) = base_registrar::get_registrar(&registrar);
+            let (_, _, uid) = base_registrar::get_registrar(&registrar);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let coin = test_scenario::take_from_address<Coin<SUI>>(&mut scenario, SECOND_USER_ADDRESS);
 
@@ -4601,12 +4557,10 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"),
                 0
             );
-            assert!(table::length(expiries) == 1, 0);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
             assert!(coin::value(&coin) == 170000, 0);
             assert!(controller::balance(&controller) == 1700000 - 170000, 0);
 
-            let detail = table::borrow(expiries, utf8(FIRST_LABEL));
+            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);

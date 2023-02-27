@@ -43,7 +43,6 @@ module suins::reverse_registrar_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            assert!(base_registry::get_records_len(&registry) == 0, 0);
             test_scenario::return_shared(registry);
         };
 
@@ -63,7 +62,6 @@ module suins::reverse_registrar_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
@@ -88,7 +86,6 @@ module suins::reverse_registrar_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
             assert!(owner == SECOND_USER_ADDRESS, 0);
             assert!(resolver == SECOND_RESOLVER_ADDRESS, 0);
@@ -106,7 +103,6 @@ module suins::reverse_registrar_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            assert!(base_registry::get_records_len(&registry) == 0, 0);
             test_scenario::return_shared(registry);
         };
 
@@ -129,7 +125,6 @@ module suins::reverse_registrar_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);

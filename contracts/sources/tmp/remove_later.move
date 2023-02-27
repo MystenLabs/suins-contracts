@@ -128,7 +128,7 @@ module suins::remove_later {
     }
 
     /// `str` format: code1,rate1,owner1
-    fun deserialize_discount_code(str: string::String): DiscountCode {
+    fun deserialize_discount_code(str: String): DiscountCode {
         // `str` now: code,rate,owner
         let comma = utf8(b",");
 

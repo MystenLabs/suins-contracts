@@ -5,14 +5,14 @@ module suins::configuration {
     use sui::transfer;
     use sui::event;
     use sui::tx_context::{TxContext, sender};
-    use sui::table::{Self, Table};
+    use sui::dynamic_field as field;
     use suins::remove_later;
     use suins::converter;
     use suins::base_registry::AdminCap;
     use suins::emoji::{Self, EmojiConfiguration};
-    use std::ascii::{Self, String};
+    use std::ascii;
     use std::vector;
-    use std::string;
+    use std::string::{String};
 
     friend suins::base_registrar;
     friend suins::controller;
@@ -33,27 +33,27 @@ module suins::configuration {
     }
 
     struct ReferralCodeAddedEvent has copy, drop {
-        code: String,
+        code: ascii::String,
         rate: u8,
         partner: address,
     }
 
     struct DiscountCodeAddedEvent has copy, drop {
-        code: String,
+        code: ascii::String,
         rate: u8,
-        owner: String,
+        owner: ascii::String,
     }
 
     struct ReserveDomainAddedEvent has copy, drop {
-        domain: string::String,
+        domain: String,
     }
 
     struct ReferralCodeRemovedEvent has copy, drop {
-        code: String,
+        code: ascii::String,
     }
 
     struct DiscountCodeRemovedEvent has copy, drop {
-        code: String,
+        code: ascii::String,
     }
 
     struct ReferralValue has store, drop {
@@ -63,15 +63,16 @@ module suins::configuration {
 
     struct DiscountValue has store, drop {
         rate: u8,
-        owner: String,
+        owner: ascii::String,
     }
 
+    /// This share object is the parent of reverse_domains
+    /// The keys of dynamic child objects may or may not contain TLD.
+    /// If it doesn't, it means we reserve both .sui and .move
     struct Configuration has key {
         id: UID,
-        referral_codes: VecMap<String, ReferralValue>,
-        discount_codes: VecMap<String, DiscountValue>,
-        /// if `key` doesn't contains TLD, it means we reserve both .sui and .move
-        reserve_domains: Table<string::String, bool>,
+        referral_codes: VecMap<ascii::String, ReferralValue>,
+        discount_codes: VecMap<ascii::String, DiscountValue>,
         emoji_config: EmojiConfiguration,
         public_key: vector<u8>,
     }
@@ -89,8 +90,8 @@ module suins::configuration {
         while (index < len) {
             let domain = vector::borrow(&domains, index);
             // TODO: validate or not?
-            if (!table::contains(&config.reserve_domains, *domain)) {
-                table::add(&mut config.reserve_domains, *domain, true);
+            if (!field::exists_with_type<String, bool>(&config.id, *domain)) {
+                field::add(&mut config.id, *domain, true);
             };
             event::emit(ReserveDomainAddedEvent { domain: *domain });
             index = index + 1;
@@ -104,8 +105,8 @@ module suins::configuration {
 
         while (index < len) {
             let domain = vector::borrow(&domains, index);
-            if (table::contains(&config.reserve_domains, *domain)) {
-                table::remove(&mut config.reserve_domains, *domain);
+            if (field::exists_with_type<String, bool>(&config.id, *domain)) {
+                field::remove<String, bool>(&mut config.id, *domain);
             };
             event::emit(ReserveDomainAddedEvent { domain: *domain });
             index = index + 1;
@@ -196,7 +197,7 @@ module suins::configuration {
 
     // === Friend and Private Functions ===
 
-    public(friend) fun use_discount_code(config: &mut Configuration, code: &String, ctx: &TxContext): u8 {
+    public(friend) fun use_discount_code(config: &mut Configuration, code: &ascii::String, ctx: &TxContext): u8 {
         assert!(vec_map::contains(&config.discount_codes, code), EDiscountCodeNotExists);
 
         let value = vec_map::get(&config.discount_codes, code);
@@ -210,7 +211,7 @@ module suins::configuration {
     }
 
     // returns referral code's rate and partner address
-    public(friend) fun use_referral_code(config: &Configuration, code: &String): (u8, address) {
+    public(friend) fun use_referral_code(config: &Configuration, code: &ascii::String): (u8, address) {
         assert!(vec_map::contains(&config.referral_codes, code), EReferralCodeNotExists);
         let value = vec_map::get(&config.referral_codes, code);
         (value.rate, value.partner)
@@ -229,7 +230,6 @@ module suins::configuration {
             id: object::new(ctx),
             referral_codes: vec_map::empty(),
             discount_codes: vec_map::empty(),
-            reserve_domains: table::new(ctx),
             emoji_config: emoji::init_emoji_config(),
             public_key: vector::empty(),
         });
@@ -240,6 +240,8 @@ module suins::configuration {
 
     #[test_only]
     use std::option::{Self, Option};
+    #[test_only]
+    use std::string;
 
     #[test_only]
     public(friend) fun get_discount_rate(discount_value: &DiscountValue): u8 {
@@ -247,7 +249,7 @@ module suins::configuration {
     }
 
     #[test_only]
-    public(friend) fun get_discount_owner(discount_value: &DiscountValue): String {
+    public(friend) fun get_discount_owner(discount_value: &DiscountValue): ascii::String {
         discount_value.owner
     }
 
@@ -257,7 +259,7 @@ module suins::configuration {
     }
 
     #[test_only]
-    public(friend) fun get_referral_code(config: &Configuration, code: &String): Option<ReferralValue> {
+    public(friend) fun get_referral_code(config: &Configuration, code: &ascii::String): Option<ReferralValue> {
         if (vec_map::contains(&config.referral_codes, code)) {
             let value = vec_map::get(&config.referral_codes, code);
             return option::some(ReferralValue { rate: value.rate, partner: value.partner })
@@ -267,11 +269,7 @@ module suins::configuration {
 
     #[test_only]
     public(friend) fun is_label_reserved(config: &Configuration, label: vector<u8>): bool {
-        let label = string::utf8(label);
-        if (table::contains(&config.reserve_domains, label)) {
-            return true
-        };
-        false
+        field::exists_with_type<String, bool>(&config.id, string::utf8(label))
     }
 
     #[test_only]
@@ -285,7 +283,7 @@ module suins::configuration {
     }
 
     #[test_only]
-    public(friend) fun get_discount_code(config: &Configuration, code: &String): Option<DiscountValue> {
+    public(friend) fun get_discount_code(config: &Configuration, code: &ascii::String): Option<DiscountValue> {
         if (vec_map::contains(&config.discount_codes, code)) {
             let value = vec_map::get(&config.discount_codes, code);
             return option::some(DiscountValue { rate: value.rate, owner: value.owner })
@@ -300,7 +298,6 @@ module suins::configuration {
             id: object::new(ctx),
             referral_codes: vec_map::empty(),
             discount_codes: vec_map::empty(),
-            reserve_domains: table::new(ctx),
             emoji_config: emoji::init_emoji_config(),
             public_key: vector::empty(),
         });

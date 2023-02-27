@@ -46,7 +46,6 @@ module suins::base_registry_tests {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(scenario);
-            assert!(base_registry::get_records_len(&registry) == 0, 0);
             base_registry::set_record_internal(
                 &mut registry,
                 utf8(FIRST_SUB_NODE),
@@ -54,7 +53,6 @@ module suins::base_registry_tests {
                 FIRST_RESOLVER_ADDRESS,
                 10,
             );
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
             test_scenario::return_shared(registry);
         };
     }
@@ -79,7 +77,6 @@ module suins::base_registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
             base_registry::set_record_internal(
                 &mut registry,
                 utf8(FIRST_SUB_NODE),
@@ -87,7 +84,6 @@ module suins::base_registry_tests {
                 SECOND_RESOLVER_ADDRESS,
                 20,
             );
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
             test_scenario::return_shared(registry);
         };
 
@@ -113,14 +109,12 @@ module suins::base_registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
             base_registry::set_owner(
                 &mut registry,
                 FIRST_SUB_NODE,
                 SECOND_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
             test_scenario::return_shared(registry);
         };
 
@@ -142,14 +136,12 @@ module suins::base_registry_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
             base_registry::set_owner(
                 &mut registry,
                 SECOND_SUB_NODE,
                 SECOND_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
             test_scenario::return_shared(registry);
         };
         test_scenario::end(scenario);
@@ -182,7 +174,6 @@ module suins::base_registry_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
             base_registry::set_record_internal(
                 &mut registry,
                 utf8(THIRD_SUB_NODE),
@@ -190,14 +181,12 @@ module suins::base_registry_tests {
                 FIRST_RESOLVER_ADDRESS,
                 10,
             );
-            assert!(base_registry::get_records_len(&registry) == 2, 0);
             test_scenario::return_shared(registry);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            assert!(base_registry::get_records_len(&registry) == 2, 0);
             base_registry::set_subnode_owner(
                 &mut registry,
                 FIRST_SUB_NODE,
@@ -205,7 +194,6 @@ module suins::base_registry_tests {
                 SECOND_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
-            assert!(base_registry::get_records_len(&registry) == 2, 0);
 
             test_scenario::return_shared(registry);
         };
@@ -290,7 +278,6 @@ module suins::base_registry_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
             base_registry::set_record_internal(
                 &mut registry,
                 utf8(THIRD_SUB_NODE),
@@ -298,7 +285,6 @@ module suins::base_registry_tests {
                 FIRST_RESOLVER_ADDRESS,
                 10,
             );
-            assert!(base_registry::get_records_len(&registry) == 2, 0);
             test_scenario::return_shared(registry);
         };
 
@@ -306,7 +292,6 @@ module suins::base_registry_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
-            assert!(base_registry::get_records_len(&registry) == 2, 0);
             base_registry::set_subnode_owner(
                 &mut registry,
                 FIRST_SUB_NODE,
@@ -314,7 +299,6 @@ module suins::base_registry_tests {
                 SECOND_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario)
             );
-            assert!(base_registry::get_records_len(&registry) == 2, 0);
 
             test_scenario::return_shared(registry);
         };
@@ -359,14 +343,12 @@ module suins::base_registry_tests {
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
 
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
             base_registry::set_resolver(
                 &mut registry,
                 FIRST_SUB_NODE,
                 SECOND_RESOLVER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
 
             test_scenario::return_shared(registry);
         };
@@ -407,17 +389,12 @@ module suins::base_registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
-
-            assert!(base_registry::get_records_len(&registry) == 1, 0);
-
             base_registry::set_resolver(
                 &mut registry,
                 SECOND_SUB_NODE,
                 SECOND_RESOLVER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
-
-            assert!(base_registry::get_records_len(&registry) == 2, 0);
             test_scenario::return_shared(registry);
         };
         test_scenario::end(scenario);
