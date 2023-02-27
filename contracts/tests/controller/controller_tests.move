@@ -3369,7 +3369,7 @@ module suins::controller_tests {
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                121,
+                AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + 1,
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
