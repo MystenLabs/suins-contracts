@@ -21,6 +21,8 @@ module suins::configuration {
     friend suins::auction;
 
     const PRICE_PER_YEAR: u64 = 1000000;
+    const MAX_COMMITMENT_AGE: u64 = 3;
+    const NO_OUTDATED_COMMITMENTS_TO_REMOVE: u64 = 50;
 
     const EInvalidRate: u64 = 401;
     const EInvalidReferralCode: u64 = 402;
@@ -215,6 +217,14 @@ module suins::configuration {
 
     public fun price_for_node(no_years: u64): u64 {
         PRICE_PER_YEAR * no_years
+    }
+
+    public fun max_commitment_age(): u64 {
+        MAX_COMMITMENT_AGE
+    }
+
+    public fun no_outdated_commitments_to_remove(): u64 {
+        NO_OUTDATED_COMMITMENTS_TO_REMOVE
     }
 
     public fun public_key(config: &Configuration): &vector<u8> {

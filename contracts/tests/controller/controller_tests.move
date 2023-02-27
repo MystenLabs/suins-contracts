@@ -5,20 +5,19 @@ module suins::controller_tests {
     use sui::test_scenario::{Self, Scenario};
     use sui::tx_context;
     use sui::sui::SUI;
-    use suins::controller::{Self, BaseController};
-    use suins::base_registrar::{Self, BaseRegistrar, TLDList, RegistrationNFT};
-    use suins::base_registry::{Self, Registry, AdminCap};
-    use suins::emoji;
-    use suins::configuration::{Self, Configuration};
-    use std::string;
-    use std::option::{Self, Option, some};
-    use std::string::utf8;
     use sui::url;
+    use sui::dynamic_field;
     use suins::auction::{Auction, make_seal_bid};
     use suins::auction;
     use suins::auction_tests::{start_an_auction_util, place_bid_util, reveal_bid_util};
+    use suins::base_registrar::{Self, BaseRegistrar, TLDList, RegistrationNFT};
+    use suins::base_registry::{Self, Registry, AdminCap};
+    use suins::configuration::{Self, Configuration};
+    use suins::controller::{Self, BaseController};
+    use suins::emoji;
+    use std::option::{Self, Option, some};
+    use std::string::{Self, utf8};
     use std::vector;
-    use sui::dynamic_field;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -662,7 +661,7 @@ module suins::controller_tests {
             assert!(base_registrar::get_registration_expiry(detail) == 600 + 365, 0);
             assert!(base_registrar::get_registration_owner(detail) == SECOND_USER_ADDRESS, 0);
 
-            base_registrar::validate_nft(&registrar, &nft, test_scenario::ctx(&mut scenario));
+            base_registrar::assert_nft_not_expires(&registrar, &nft, test_scenario::ctx(&mut scenario));
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(controller);
@@ -748,7 +747,7 @@ module suins::controller_tests {
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
 
-            base_registrar::validate_nft(&registrar, &nft, test_scenario::ctx(&mut scenario));
+            base_registrar::assert_nft_not_expires(&registrar, &nft, test_scenario::ctx(&mut scenario));
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(registrar);
@@ -2080,13 +2079,40 @@ module suins::controller_tests {
         {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                60,
+                0
+            );
+            let commitment = controller::test_make_commitment(
+                &registrar,
+                SECOND_LABEL,
+                FIRST_USER_ADDRESS,
+                FIRST_SECRET
+            );
+
+            controller::commit(
+                &mut controller,
+                commitment,
+                &mut ctx,
+            );
+
+            test_scenario::return_shared(controller);
+            test_scenario::return_shared(registrar);
+        };
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let registry = test_scenario::take_shared<Registry>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                51,
+                61,
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
@@ -2097,7 +2123,7 @@ module suins::controller_tests {
                 &mut registry,
                 &mut config,
                 &auction,
-                FIRST_LABEL,
+                SECOND_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -3370,13 +3396,13 @@ module suins::controller_tests {
 
          test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
          {
-             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+             let config = test_scenario::take_shared<Configuration>(&mut scenario);
              let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
 
-             controller::set_disable(&admin_cap, &mut controller, true);
+             configuration::set_enable_controller(&admin_cap, &mut config, false);
 
              test_scenario::return_to_sender(&mut scenario, admin_cap);
-             test_scenario::return_shared(controller);
+             test_scenario::return_shared(config);
          };
          test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
          {
@@ -3480,23 +3506,23 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
 
-            controller::set_disable(&admin_cap, &mut controller, true);
+            configuration::set_enable_controller(&admin_cap, &mut config, false);
 
             test_scenario::return_to_sender(&mut scenario, admin_cap);
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(config);
         };
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
 
-            controller::set_disable(&admin_cap, &mut controller, false);
+            configuration::set_enable_controller(&admin_cap, &mut config, true);
 
             test_scenario::return_to_sender(&mut scenario, admin_cap);
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(config);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -3648,7 +3674,7 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
-
+            std::debug::print(&controller::commitment_len(&controller));
             assert!(controller::commitment_len(&controller) == 21, 0);
             test_scenario::return_shared(controller);
         };
@@ -3769,7 +3795,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = controller::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_register_with_image_aborts_with_empty_signature() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -3816,7 +3842,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = controller::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_register_with_image_aborts_with_empty_hashed_message() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -3863,7 +3889,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = controller::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_register_with_image_aborts_with_empty_raw_message() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -4105,7 +4131,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = controller::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_register_with_config_and_image_aborts_with_empty_raw_message() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -4153,7 +4179,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = controller::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_register_with_config_and_image_aborts_with_empty_signature() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -4201,7 +4227,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = controller::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_register_with_config_and_image_aborts_with_empty_hashed_message() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -4339,7 +4365,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = controller::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_register_with_code_and_image_aborts_with_empty_signature() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -4388,7 +4414,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = controller::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_register_with_code_and_image_aborts_with_empty_hashed_message() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -4437,7 +4463,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = controller::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_register_with_code_and_image_aborts_with_empty_raw_message() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -4578,7 +4604,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = controller::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_register_with_config_and_code_and_image_aborts_with_empty_signature() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -4631,7 +4657,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = controller::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_register_with_config_and_code_and_image_aborts_with_empty_hashed_message() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -4684,7 +4710,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = controller::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_register_with_config_and_code_and_image_aborts_with_empty_raw_message() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -4806,7 +4832,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_renew_with_image_aborts_with_empty_signature() {
         let scenario = test_init();
         register(&mut scenario);
@@ -4843,7 +4869,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_renew_with_image_aborts_with_empty_hashed_msg() {
         let scenario = test_init();
         register(&mut scenario);
@@ -4880,7 +4906,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_renew_with_image_aborts_with_empty_raw_msg() {
         let scenario = test_init();
         register(&mut scenario);
