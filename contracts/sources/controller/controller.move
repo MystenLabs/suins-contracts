@@ -669,7 +669,7 @@ module suins::controller {
                 max_domain_length(config)
             )
         } else {
-            assert!(auction::is_auction_label_available_for_controller(auction, label_str, ctx), ELabelUnAvailable);
+            assert!(auction::is_auctioned_label_available_for_controller(auction, label_str, ctx), ELabelUnAvailable);
             validate_label_with_emoji(emoji_config, label, min_domain_length(config), max_domain_length(config))
         };
         let commitment = make_commitment(registrar, label, owner, secret);
