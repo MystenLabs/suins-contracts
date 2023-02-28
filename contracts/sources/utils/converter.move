@@ -3,12 +3,14 @@ module suins::converter {
     use std::bcs;
     use std::vector;
     use std::string;
+    use std::string::String;
 
     friend suins::reverse_registrar;
     friend suins::resolver;
     friend suins::controller;
     friend suins::configuration;
     friend suins::remove_later;
+    friend suins::base_registrar;
 
     const REGISTRATION_FEE_PER_YEAR: u64 = 1000000;
     const EInvalidNumber: u64 = 601;
@@ -43,7 +45,7 @@ module suins::converter {
         result
     }
 
-    public(friend) fun string_to_number(str: string::String): u64 {
+    public(friend) fun string_to_number(str: String): u64 {
         let bytes = string::bytes(&str);
         // count from 1 because Move doesn't have negative number atm
         let index = vector::length(bytes);

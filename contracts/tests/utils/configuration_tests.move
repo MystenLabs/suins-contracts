@@ -2,7 +2,6 @@
 module suins::configuration_tests {
 
     use sui::test_scenario;
-    use sui::url;
     use sui::test_scenario::Scenario;
     use sui::vec_map;
     use suins::configuration::{Self, Configuration};
@@ -12,6 +11,7 @@ module suins::configuration_tests {
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_CODE: vector<u8> = b"ThisIsCode1";
+    const FIRST_DOMAIN_BATCH: vector<u8> = b"google;suins;medium";
     const SECOND_CODE: vector<u8> = b"DF1234";
     const ADD_CODE_BATCH: vector<u8> = b"ThisIsCode1,30,0xABCDef;DF1234,10,0x0000000000000000000000000000000c9310f87e";
     const REMOVE_CODE_BATCH: vector<u8> = b"ThisIsCode1;DF1234;";
@@ -33,41 +33,7 @@ module suins::configuration_tests {
         };
         scenario
     }
-
-    #[test]
-    fun test_get_url() {
-        let scenario = test_init();
-
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
-        {
-            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            configuration::set_network_first_day(&admin_cap, &mut config, 0); // 01-01-2023
-
-            let test_url = configuration::get_url(&config, 0, 0);
-            assert!(test_url == url::new_unsafe_from_bytes(b"ipfs://QmZsHKQk9FbQZYCy7rMYn1z6m9Raa183dNhpGCRm3fX71s"), 0); // 31-12-2023
-            test_url = configuration::get_url(&config, 365, 1);
-            assert!(test_url == url::new_unsafe_from_bytes(b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2"), 0); // 01-01-2024
-            // test leap year
-            test_url = configuration::get_url(&config, 730, 1);
-            assert!(test_url == url::new_unsafe_from_bytes(b"ipfs://QmWjyuoBW7gSxAqvkTYSNbXnNka6iUHNqs3ier9bN3g7Y2"), 0); // 31-12-2024
-            test_url = configuration::get_url(&config, 731, 1);
-            assert!(test_url == url::new_unsafe_from_bytes(b"ipfs://QmaWNLR6C3QsSHcPwNoFA59DPXCKdx1t8hmyyKRqBbjYB3"), 0); // 01-01-2025
-            test_url = configuration::get_url(&config, 1096, 1);
-            assert!(test_url == url::new_unsafe_from_bytes(b"ipfs://QmRF7kbi4igtGcX6enEuthQRhvQZejc7ZKBhMimFJtTS8D"), 0); // 01-01-2026
-            test_url = configuration::get_url(&config, 1461, 1);
-            assert!(test_url == url::new_unsafe_from_bytes(b"ipfs://QmTdkzVAAW7yRHu5EVMwH2d7kUM1a9amyW67NCYgut6Hd5"), 0); // 01-01-2027
-            test_url = configuration::get_url(&config, 1826, 1);
-            assert!(test_url == url::new_unsafe_from_bytes(b"ipfs://Qmdm7ET9hbMRn7ex9TH6cJaKr8h8AE29w8kMqAhExBHfh9"), 0); // 01-01-2028
-            test_url = configuration::get_url(&config, 7300, 1);
-            assert!(test_url == url::new_unsafe_from_bytes(b"ipfs://bafkreibngqhl3gaa7daob4i2vccziay2jjlp435cf66vhono7nrvww53ty"), 0);
-
-            test_scenario::return_to_sender(&mut scenario, admin_cap);
-            test_scenario::return_shared(config);
-        };
-        test_scenario::end(scenario);
-    }
-
+    
     #[test]
     fun test_set_then_remove_new_referral_code() {
         let scenario = test_init();
@@ -574,6 +540,56 @@ module suins::configuration_tests {
                 configuration::get_discount_owner(&referral_value) == ascii::string(b"0000000000000000000000000000000000abcdef"),
                 0
             );
+            test_scenario::return_shared(config);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_set_then_remove_new_reserve_domains() {
+        let scenario = test_init();
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            assert!(!configuration::is_label_reserved(&config, b"google"), 0);
+            assert!(!configuration::is_label_reserved(&config, b"suins"), 0);
+            assert!(!configuration::is_label_reserved(&config, b"medium"), 0);
+
+            configuration::new_reserve_domains(
+                &admin_cap,
+                &mut config,
+                FIRST_DOMAIN_BATCH,
+            );
+
+            assert!(configuration::is_label_reserved(&config, b"google"), 0);
+            assert!(configuration::is_label_reserved(&config, b"suins"), 0);
+            assert!(configuration::is_label_reserved(&config, b"medium"), 0);
+
+            configuration::remove_reserve_domains(
+                &admin_cap,
+                &mut config,
+                b"google",
+            );
+            assert!(!configuration::is_label_reserved(&config, b"google"), 0);
+
+            configuration::remove_reserve_domains(
+                &admin_cap,
+                &mut config,
+                FIRST_DOMAIN_BATCH,
+            );
+            assert!(!configuration::is_label_reserved(&config, b"suins"), 0);
+            assert!(!configuration::is_label_reserved(&config, b"medium"), 0);
+
+            configuration::new_reserve_domains(
+                &admin_cap,
+                &mut config,
+                b"github",
+            );
+            assert!(configuration::is_label_reserved(&config, b"github"), 0);
+
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
             test_scenario::return_shared(config);
         };
         test_scenario::end(scenario);

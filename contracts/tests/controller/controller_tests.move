@@ -882,7 +882,7 @@ module suins::controller_tests {
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let ctx = test_scenario::ctx(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(2000001, ctx);
-            assert!(base_registrar::name_expires(&registrar, string::utf8(FIRST_LABEL)) == 416, 0);
+            assert!(base_registrar::name_expires_at(&registrar, string::utf8(FIRST_LABEL)) == 416, 0);
 
             controller::renew(
                 &mut controller,
@@ -894,7 +894,7 @@ module suins::controller_tests {
             );
 
             assert!(coin::value(&coin) == 1, 0);
-            assert!(base_registrar::name_expires(&registrar, string::utf8(FIRST_LABEL)) == 1146, 0);
+            assert!(base_registrar::name_expires_at(&registrar, string::utf8(FIRST_LABEL)) == 1146, 0);
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
@@ -941,7 +941,7 @@ module suins::controller_tests {
         {
             let controller =
                 test_scenario::take_shared<BaseController>(&mut scenario);
-            
+
             let registrar =
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let ctx = tx_context::new(
@@ -974,7 +974,7 @@ module suins::controller_tests {
         {
             let controller =
                 test_scenario::take_shared<BaseController>(&mut scenario);
-            
+
             let registrar =
                 test_scenario::take_shared<BaseRegistrar>(&mut scenario);
             let ctx = test_scenario::ctx(&mut scenario);

@@ -99,7 +99,7 @@ module suins::controller {
         balance::join(&mut controller.balance, paid);
 
         event::emit(NameRenewedEvent {
-            node: base_registrar::get_base_node(registrar),
+            node: base_registrar::base_node(registrar),
             label: string::utf8(label),
             cost: renew_fee,
             duration,
@@ -277,8 +277,8 @@ module suins::controller {
         discount_code: Option<ascii::String>,
         ctx: &mut TxContext,
     ) {
-        let emoji_config = configuration::get_emoji_config(config);
-        validate_label_with_emoji(emoji_config, label);
+        let emoji_config = configuration::emoji_config(config);
+        validate_label_with_emoji(emoji_config, label, 3, 63);
 
         let registration_fee = FEE_PER_YEAR * no_years;
         assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
@@ -302,7 +302,7 @@ module suins::controller {
         balance::join(&mut controller.balance, paid);
 
         event::emit(NameRegisteredEvent {
-            node: base_registrar::get_base_node(registrar),
+            node: base_registrar::base_node(registrar),
             label: string::utf8(label),
             owner,
             cost: FEE_PER_YEAR * no_years,
@@ -346,14 +346,14 @@ module suins::controller {
             *linked_table::borrow(&controller.commitments, commitment) + MAX_COMMITMENT_AGE > tx_context::epoch(ctx),
             ECommitmentTooOld
         );
-        assert!(base_registrar::available(registrar, string::utf8(label), ctx), ELabelUnAvailable);
+        assert!(base_registrar::is_available(registrar, string::utf8(label), ctx), ELabelUnAvailable);
         linked_table::remove(&mut controller.commitments, commitment);
     }
 
     fun make_commitment(registrar: &BaseRegistrar, label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
         let node = label;
         vector::append(&mut node, b".");
-        vector::append(&mut node, base_registrar::get_base_node_bytes(registrar));
+        vector::append(&mut node, base_registrar::base_node_bytes(registrar));
 
         let owner_bytes = bcs::to_bytes(&owner);
         vector::append(&mut node, owner_bytes);
