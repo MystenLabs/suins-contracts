@@ -4,13 +4,15 @@ module suins::resolver_tests {
     use sui::test_scenario::{Self, Scenario};
     use sui::vec_map;
     use sui::dynamic_field;
-    use suins::base_registry::{Self, Registry};
+    use suins::base_registry;
     use suins::resolver::{Self, BaseResolver};
     use suins::base_registrar;
     use suins::base_registry_tests;
     use suins::converter::address_to_string;
     use suins::converter;
     use std::string::utf8;
+    use suins::abc::SuiNS;
+    use suins::abc;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_NAME: vector<u8> = b"sui";
@@ -31,6 +33,7 @@ module suins::resolver_tests {
         {
             let ctx = test_scenario::ctx(&mut scenario);
             base_registry::test_init(ctx);
+            abc::test_init(ctx);
             base_registrar::test_init(ctx);
             resolver::test_init(ctx);
         };
@@ -40,21 +43,21 @@ module suins::resolver_tests {
     fun set_name(scenario: &mut Scenario) {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let node = base_registry::make_node(
                 converter::address_to_string(FIRST_USER_ADDRESS),
                 utf8(ADDR_REVERSE_BASE_NODE),
             );
-            base_registry::new_record_test(&mut registry, node, FIRST_USER_ADDRESS);
-            test_scenario::return_shared(registry);
+            base_registry::new_record_test(&mut suins, node, FIRST_USER_ADDRESS);
+            test_scenario::return_shared(suins);
         };
 
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let resolver = test_scenario::take_shared<BaseResolver>( scenario);
-            resolver::set_name(&mut resolver, &registry, FIRST_USER_ADDRESS, FIRST_NAME, test_scenario::ctx(scenario));
-            test_scenario::return_shared(registry);
+            resolver::set_name(&mut resolver, &suins, FIRST_USER_ADDRESS, FIRST_NAME, test_scenario::ctx(scenario));
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
     }
@@ -95,11 +98,11 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::unset_name(&mut resolver, &registry, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
+            resolver::unset_name(&mut resolver, &suins, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
             test_scenario::return_shared(resolver);
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -119,11 +122,11 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::unset_name(&mut resolver, &registry, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
+            resolver::unset_name(&mut resolver, &suins, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
             test_scenario::return_shared(resolver);
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
@@ -135,24 +138,24 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
 
-            resolver::unset_name(&mut resolver, &registry, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
+            resolver::unset_name(&mut resolver, &suins, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
 
             test_scenario::return_shared(resolver);
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
 
-            resolver::unset_name(&mut resolver, &registry, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
+            resolver::unset_name(&mut resolver, &suins, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
 
             test_scenario::return_shared(resolver);
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
@@ -164,16 +167,16 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_name(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_USER_ADDRESS,
                 SECOND_NAME,
                 test_scenario::ctx(&mut scenario)
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
@@ -195,12 +198,12 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
 
-            resolver::set_name(&mut resolver, &registry, FIRST_USER_ADDRESS, FIRST_NAME, test_scenario::ctx(&mut scenario));
+            resolver::set_name(&mut resolver, &suins, FIRST_USER_ADDRESS, FIRST_NAME, test_scenario::ctx(&mut scenario));
 
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
         test_scenario::end(scenario);
@@ -212,21 +215,21 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let node = base_registry::make_node(
                 converter::address_to_string(FIRST_USER_ADDRESS),
                 utf8(ADDR_REVERSE_BASE_NODE),
             );
-            base_registry::new_record_test(&mut registry, node, FIRST_USER_ADDRESS);
-            test_scenario::return_shared(registry);
+            base_registry::new_record_test(&mut suins, node, FIRST_USER_ADDRESS);
+            test_scenario::return_shared(suins);
         };
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
-            resolver::set_name(&mut resolver, &registry, FIRST_USER_ADDRESS, FIRST_NAME, test_scenario::ctx(&mut scenario));
-            test_scenario::return_shared(registry);
+            resolver::set_name(&mut resolver, &suins, FIRST_USER_ADDRESS, FIRST_NAME, test_scenario::ctx(&mut scenario));
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
         test_scenario::end(scenario);
@@ -252,16 +255,16 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_addr(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
@@ -282,31 +285,31 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_addr(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_addr(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 SECOND_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
@@ -327,16 +330,16 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_avatar(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
         test_scenario::end(scenario);
@@ -349,31 +352,31 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_addr(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario)
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_addr(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 SECOND_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario)
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
         test_scenario::end(scenario);
@@ -386,16 +389,16 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_avatar(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
@@ -416,16 +419,16 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_avatar(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
@@ -446,16 +449,16 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_contenthash(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_CONTENT_HASH,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
@@ -476,16 +479,16 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_contenthash(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_CONTENT_HASH,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
         test_scenario::end(scenario);
@@ -497,16 +500,16 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_contenthash(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_CONTENT_HASH,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
         test_scenario::end(scenario);
@@ -532,17 +535,17 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_text(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 b"newkey",
                 FIRST_CONTENT_HASH,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
@@ -563,17 +566,17 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_text(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 CUSTOM_KEY,
                 FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
@@ -594,16 +597,16 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_contenthash(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_CONTENTHASH,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
@@ -623,16 +626,16 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_avatar(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
         test_scenario::end(scenario);
@@ -645,16 +648,16 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_contenthash(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_CONTENTHASH,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
@@ -667,15 +670,15 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::unset_contenthash(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
@@ -694,15 +697,15 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::unset_contenthash(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
         test_scenario::end(scenario);
@@ -715,30 +718,30 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_contenthash(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_CONTENTHASH,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::unset_contenthash(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
@@ -753,31 +756,31 @@ module suins::resolver_tests {
         // create `FIRST_SUB_NODE` record
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_addr(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_contenthash(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_CONTENT_HASH,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
@@ -798,31 +801,31 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_addr(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_avatar(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
@@ -843,31 +846,31 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_avatar(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_addr(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
@@ -888,30 +891,30 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_addr(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
             resolver::set_avatar(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
             );
             resolver::set_contenthash(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_CONTENT_HASH,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
@@ -953,16 +956,16 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_avatar(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
@@ -986,16 +989,16 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_addr(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
@@ -1019,16 +1022,16 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_contenthash(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_CONTENTHASH,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
@@ -1052,16 +1055,16 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_addr(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
@@ -1082,16 +1085,16 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_contenthash(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_CONTENTHASH,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 
@@ -1112,16 +1115,16 @@ module suins::resolver_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let resolver = test_scenario::take_shared<BaseResolver>(&mut scenario);
             resolver::set_contenthash(
                 &mut resolver,
-                &registry,
+                &suins,
                 FIRST_SUB_NODE,
                 FIRST_CONTENTHASH,
                 test_scenario::ctx(&mut scenario),
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(resolver);
         };
 

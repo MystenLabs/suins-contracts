@@ -6,9 +6,10 @@ module suins::reverse_registrar {
     use sui::object::{Self, UID};
     use sui::transfer;
     use sui::tx_context::{TxContext, sender};
-    use suins::base_registry::{Self, Registry, AdminCap};
+    use suins::base_registry::{Self, AdminCap};
     use std::string;
     use suins::converter;
+    use suins::abc::SuiNS;
 
     const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
 
@@ -30,8 +31,8 @@ module suins::reverse_registrar {
     /// #### Notice
     /// Similar to `claim_with_resolver`. The only differrence is
     /// this function uses `default_name_resolver` property as resolver address.
-    public entry fun claim(registrar: &mut ReverseRegistrar, registry: &mut Registry, owner: address, ctx: &mut TxContext) {
-        claim_with_resolver(registry, owner, *&registrar.default_name_resolver, ctx)
+    public entry fun claim(registrar: &mut ReverseRegistrar, suins: &mut SuiNS, owner: address, ctx: &mut TxContext) {
+        claim_with_resolver(suins, owner, *&registrar.default_name_resolver, ctx)
     }
 
     /// #### Notice
@@ -44,14 +45,14 @@ module suins::reverse_registrar {
     /// `owner`: new owner address of new name record.
     /// `resolver`: resolver address of new name record.
     public entry fun claim_with_resolver(
-        registry: &mut Registry,
+        suins: &mut SuiNS,
         owner: address,
         resolver: address,
         ctx: &mut TxContext
     ) {
         let label = converter::address_to_string(sender(ctx));
         let node = base_registry::make_node(label, string::utf8(ADDR_REVERSE_BASE_NODE));
-        base_registry::set_record_internal(registry, node, owner, resolver, 0);
+        base_registry::set_record_internal(suins, node, owner, resolver, 0);
 
         event::emit(ReverseClaimedEvent { addr: sender(ctx), resolver })
     }

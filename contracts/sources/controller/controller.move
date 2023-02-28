@@ -1,6 +1,6 @@
 /// Its job is to charge payment, add validation and apply referral and discount code
 /// when registering and extend experation of domanin names.
-/// The real logic of mint a NFT and store the record in blockchain is done in Registrar and Registry contract.
+/// The real logic of mint a NFT and store the record in blockchain is done in Registrar and SuiNS contract.
 /// Domain name registration can only occur using the Controller and Auction contracts.
 /// During auction period, only domains with 7 to 63 characters can be registered via the Controller,
 /// but after the auction has ended, all domains can be registered.
@@ -15,8 +15,8 @@ module suins::controller {
     use sui::transfer;
     use sui::tx_context::{TxContext, sender, epoch};
     use sui::sui::SUI;
-    use suins::base_registry::{Registry, AdminCap};
-    use suins::base_registrar::{Self, BaseRegistrar, RegistrationNFT};
+    use suins::base_registry::AdminCap;
+    use suins::base_registrar::{Self, RegistrationNFT};
     use suins::configuration::{
         Self,
         Configuration,
@@ -36,6 +36,7 @@ module suins::controller {
     use std::vector;
     use std::option::{Self, Option};
     use sui::url::Url;
+    use suins::abc::SuiNS;
 
     // errors in the range of 301..400 indicate Sui Controller errors
     const EInvalidResolverAddress: u64 = 301;
@@ -57,7 +58,7 @@ module suins::controller {
     }
 
     struct NameRegisteredEvent has copy, drop {
-        node: String,
+        tld: String,
         label: String,
         owner: address,
         cost: u64,
@@ -74,7 +75,7 @@ module suins::controller {
     }
 
     struct NameRenewedEvent has copy, drop {
-        node: String,
+        tld: String,
         label: String,
         cost: u64,
         duration: u64,
@@ -133,8 +134,8 @@ module suins::controller {
     /// or either `referral_code` or `discount_code` is invalid
     public entry fun register(
         controller: &mut BaseController,
-        registrar: &mut BaseRegistrar,
-        registry: &mut Registry,
+        suins: &mut SuiNS,
+        tld: vector<u8>,
         config: &mut Configuration,
         auction: &Auction,
         label: vector<u8>,
@@ -147,8 +148,8 @@ module suins::controller {
         let resolver = controller.default_addr_resolver;
         register_internal(
             controller,
-            registrar,
-            registry,
+            suins,
+            tld,
             config,
             auction,
             label,
@@ -192,8 +193,8 @@ module suins::controller {
     /// or either `referral_code` or `discount_code` is invalid
     public entry fun register_with_image(
         controller: &mut BaseController,
-        registrar: &mut BaseRegistrar,
-        registry: &mut Registry,
+        suins: &mut SuiNS,
+        tld: vector<u8>,
         config: &mut Configuration,
         auction: &Auction,
         label: vector<u8>,
@@ -211,8 +212,8 @@ module suins::controller {
 
         register_internal(
             controller,
-            registrar,
-            registry,
+            suins,
+            tld,
             config,
             auction,
             label,
@@ -240,8 +241,8 @@ module suins::controller {
     /// `resolver`: address of the resolver
     public entry fun register_with_config(
         controller: &mut BaseController,
-        registrar: &mut BaseRegistrar,
-        registry: &mut Registry,
+        suins: &mut SuiNS,
+        tld: vector<u8>,
         config: &mut Configuration,
         auction: &Auction,
         label: vector<u8>,
@@ -254,8 +255,8 @@ module suins::controller {
     ) {
         register_internal(
             controller,
-            registrar,
-            registry,
+            suins,
+            tld,
             config,
             auction,
             label,
@@ -287,8 +288,8 @@ module suins::controller {
     /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
     public entry fun register_with_config_and_image(
         controller: &mut BaseController,
-        registrar: &mut BaseRegistrar,
-        registry: &mut Registry,
+        suins: &mut SuiNS,
+        tld: vector<u8>,
         config: &mut Configuration,
         auction: &Auction,
         label: vector<u8>,
@@ -306,8 +307,8 @@ module suins::controller {
 
         register_internal(
             controller,
-            registrar,
-            registry,
+            suins,
+            tld,
             config,
             auction,
             label,
@@ -339,8 +340,8 @@ module suins::controller {
     /// `discount_code`: discount code to be used
     public entry fun register_with_code(
         controller: &mut BaseController,
-        registrar: &mut BaseRegistrar,
-        registry: &mut Registry,
+        suins: &mut SuiNS,
+        tld: vector<u8>,
         config: &mut Configuration,
         auction: &Auction,
         label: vector<u8>,
@@ -357,8 +358,8 @@ module suins::controller {
 
         register_internal(
             controller,
-            registrar,
-            registry,
+            suins,
+            tld,
             config,
             auction,
             label,
@@ -394,8 +395,8 @@ module suins::controller {
     /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
     public entry fun register_with_code_and_image(
         controller: &mut BaseController,
-        registrar: &mut BaseRegistrar,
-        registry: &mut Registry,
+        suins: &mut SuiNS,
+        tld: vector<u8>,
         config: &mut Configuration,
         auction: &Auction,
         label: vector<u8>,
@@ -416,8 +417,8 @@ module suins::controller {
 
         register_internal(
             controller,
-            registrar,
-            registry,
+            suins,
+            tld,
             config,
             auction,
             label,
@@ -449,8 +450,8 @@ module suins::controller {
     /// `discount_code`: discount code to be used
     public entry fun register_with_config_and_code(
         controller: &mut BaseController,
-        registrar: &mut BaseRegistrar,
-        registry: &mut Registry,
+        suins: &mut SuiNS,
+        tld: vector<u8>,
         config: &mut Configuration,
         auction: &Auction,
         label: vector<u8>,
@@ -467,8 +468,8 @@ module suins::controller {
 
         register_internal(
             controller,
-            registrar,
-            registry,
+            suins,
+            tld,
             config,
             auction,
             label,
@@ -504,8 +505,8 @@ module suins::controller {
     /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
     public entry fun register_with_config_and_code_and_image(
         controller: &mut BaseController,
-        registrar: &mut BaseRegistrar,
-        registry: &mut Registry,
+        suins: &mut SuiNS,
+        tld: vector<u8>,
         config: &mut Configuration,
         auction: &Auction,
         label: vector<u8>,
@@ -526,8 +527,8 @@ module suins::controller {
 
         register_internal(
             controller,
-            registrar,
-            registry,
+            suins,
+            tld,
             config,
             auction,
             label,
@@ -557,14 +558,15 @@ module suins::controller {
     /// Panic if node doesn't exist
     /// or `payment` doesn't have enough coins
     public entry fun renew(
+        suins: &mut SuiNS,
+        tld: vector<u8>,
         controller: &mut BaseController,
-        registrar: &mut BaseRegistrar,
         label: vector<u8>,
         no_years: u64,
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext,
     ) {
-        renew_internal(controller, registrar, label, no_years, payment, ctx)
+        renew_internal(suins, tld, controller, label, no_years, payment, ctx)
     }
 
     /// #### Notice
@@ -583,8 +585,9 @@ module suins::controller {
     /// or `hashed_msg` is empty
     /// or `msg` is empty
     public entry fun renew_with_image(
+        suins: &mut SuiNS,
+        tld: vector<u8>,
         controller: &mut BaseController,
-        registrar: &mut BaseRegistrar,
         config: &Configuration,
         label: vector<u8>,
         no_years: u64,
@@ -596,8 +599,8 @@ module suins::controller {
         ctx: &mut TxContext,
     ) {
         // NFT and imag_msg are validated in `update_image_url`
-        renew_internal(controller, registrar, label, no_years, payment, ctx);
-        base_registrar::update_image_url(registrar, config, nft, signature, hashed_msg, raw_msg, ctx);
+        renew_internal(suins, tld, controller, label, no_years, payment, ctx);
+        base_registrar::update_image_url(suins, tld, config, nft, signature, hashed_msg, raw_msg, ctx);
     }
 
     /// #### Notice
@@ -615,8 +618,9 @@ module suins::controller {
     // === Private Functions ===
 
     fun renew_internal(
+        suins: &mut SuiNS,
+        tld: vector<u8>,
         controller: &mut BaseController,
-        registrar: &mut BaseRegistrar,
         label: vector<u8>,
         no_years: u64,
         payment: &mut Coin<SUI>,
@@ -627,10 +631,10 @@ module suins::controller {
         coin_util::user_transfer_to_contract(payment, renew_fee, &mut controller.balance);
 
         let duration = no_years * 365;
-        base_registrar::renew(registrar, label, duration, ctx);
+        base_registrar::renew(suins, tld, label, duration, ctx);
 
         event::emit(NameRenewedEvent {
-            node: base_registrar::base_node(registrar),
+            tld: utf8(tld),
             label: string::utf8(label),
             cost: renew_fee,
             duration,
@@ -639,8 +643,8 @@ module suins::controller {
 
     fun register_internal(
         controller: &mut BaseController,
-        registrar: &mut BaseRegistrar,
-        registry: &mut Registry,
+        suins: &mut SuiNS,
+        tld: vector<u8>,
         config: &mut Configuration,
         auction: &Auction,
         label: vector<u8>,
@@ -672,8 +676,8 @@ module suins::controller {
             assert!(auction::is_auctioned_label_available_for_controller(auction, label_str, ctx), ELabelUnAvailable);
             validate_label_with_emoji(emoji_config, label, min_domain_length(config), max_domain_length(config))
         };
-        let commitment = make_commitment(registrar, label, owner, secret);
-        consume_commitment(controller, registrar, label, commitment, ctx);
+        let commitment = make_commitment(tld, label, owner, secret);
+        consume_commitment(suins, tld, controller, label, commitment, ctx);
 
         let registration_fee = price_for_node(no_years);
         assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
@@ -690,8 +694,8 @@ module suins::controller {
 
         let duration = no_years * 365;
         let (nft_id, url) = base_registrar::register_with_image(
-            registrar,
-            registry,
+            suins,
+            tld,
             config,
             label,
             owner,
@@ -705,7 +709,7 @@ module suins::controller {
         coin_util::user_transfer_to_contract(payment, registration_fee, &mut controller.balance);
 
         event::emit(NameRegisteredEvent {
-            node: base_registrar::base_node(registrar),
+            tld: utf8(tld),
             label: label_str,
             owner,
             cost: price_for_node(no_years),
@@ -761,8 +765,9 @@ module suins::controller {
     }
 
     fun consume_commitment(
+        suins: &SuiNS,
+        tld: vector<u8>,
         controller: &mut BaseController,
-        registrar: &BaseRegistrar,
         label: vector<u8>,
         commitment: vector<u8>,
         ctx: &TxContext,
@@ -777,14 +782,14 @@ module suins::controller {
             *linked_table::borrow(&controller.commitments, commitment) + configuration::max_commitment_age() > epoch(ctx),
             ECommitmentTooOld
         );
-        assert!(base_registrar::is_available(registrar, string::utf8(label), ctx), ELabelUnAvailable);
+        assert!(base_registrar::is_available(suins, tld, string::utf8(label), ctx), ELabelUnAvailable);
         linked_table::remove(&mut controller.commitments, commitment);
     }
 
-    fun make_commitment(registrar: &BaseRegistrar, label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
+    fun make_commitment(tld: vector<u8>, label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
         let node = label;
         vector::append(&mut node, b".");
-        vector::append(&mut node, base_registrar::base_node_bytes(registrar));
+        vector::append(&mut node, tld);
 
         let owner_bytes = bcs::to_bytes(&owner);
         vector::append(&mut node, owner_bytes);
@@ -821,12 +826,12 @@ module suins::controller {
 
     #[test_only]
     public fun test_make_commitment(
-        registrar: &BaseRegistrar,
+        tld: vector<u8>,
         label: vector<u8>,
         owner: address,
         secret: vector<u8>
     ): vector<u8> {
-        make_commitment(registrar, label, owner, secret)
+        make_commitment(tld, label, owner, secret)
     }
 
     #[test_only]

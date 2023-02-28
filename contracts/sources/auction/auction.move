@@ -16,11 +16,12 @@ module suins::auction {
     use std::string::{String, utf8};
     use std::vector;
     use std::bcs;
-    use suins::base_registrar::{Self, BaseRegistrar};
-    use suins::base_registry::{Registry, AdminCap};
+    use suins::base_registrar;
+    use suins::base_registry::AdminCap;
     use suins::configuration::{Self, Configuration};
     use suins::coin_util;
-    use suins::emoji;
+    use suins::abc::SuiNS;
+    // use suins::emoji;
 
     const MIN_PRICE: u64 = 1000;
     const FEE_PER_YEAR: u64 = 10000;
@@ -180,8 +181,8 @@ module suins::auction {
             auction.start_auction_start_at <= epoch(ctx) && epoch(ctx) <= auction.start_auction_end_at,
             EAuctionNotAvailable,
         );
-        let emoji_config = configuration::emoji_config(config);
-        emoji::validate_label_with_emoji(emoji_config, label, 3, 6);
+        let _emoji_config = configuration::emoji_config(config);
+        // emoji::validate_label_with_emoji(emoji_config, label, 3, 6);
 
         let state = state(auction, label, epoch(ctx));
         assert!(state == AUCTION_STATE_OPEN || state == AUCTION_STATE_REOPENED, EInvalidPhase);
@@ -366,8 +367,8 @@ module suins::auction {
     /// or the auction has already been finalized and sender is the winner
     public entry fun finalize_auction(
         auction: &mut Auction,
-        registrar: &mut BaseRegistrar,
-        registry: &mut Registry,
+        suins: &mut SuiNS,
+        tld: vector<u8>,
         config: &Configuration,
         label: vector<u8>,
         resolver: address,
@@ -377,7 +378,7 @@ module suins::auction {
             auction.start_auction_start_at <= epoch(ctx) && epoch(ctx) <= auction_close_at(auction) + EXTRA_PERIOD,
             EAuctionNotAvailable,
         );
-        assert!(base_registrar::base_node_bytes(registrar) == b"sui", EInvalidRegistrar);
+        assert!(tld == b"sui", EInvalidRegistrar);
         let auction_state = state(auction, label, epoch(ctx));
         // the reveal phase is over in all of these phases and have received bids
         assert!(
@@ -439,7 +440,7 @@ module suins::auction {
         if (entry.winner != sender(ctx)) return;
         entry.is_finalized = true;
 
-        base_registrar::register(registrar, registry, config, label, entry.winner, 365, resolver, ctx);
+        base_registrar::register(suins, tld, config, label, entry.winner, 365, resolver, ctx);
 
         event::emit(NodeRegisteredEvent {
             label: label_str,

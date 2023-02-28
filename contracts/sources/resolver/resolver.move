@@ -8,11 +8,12 @@ module suins::resolver {
     use sui::object::{Self, UID};
     use sui::transfer;
     use sui::tx_context::TxContext;
-    use suins::base_registry::{Self, Registry};
+    use suins::base_registry;
     use suins::converter;
     use std::string::{Self, String, utf8};
     use sui::vec_map::VecMap;
     use sui::vec_map;
+    use suins::abc::SuiNS;
 
     const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
     const NAME: vector<u8> = b"name";
@@ -91,12 +92,12 @@ module suins::resolver {
     /// Panics if caller isn't the owner of `node`
     public entry fun set_contenthash(
         base_resolver: &mut BaseResolver,
-        registry: &Registry,
+        suins: &SuiNS,
         node: vector<u8>,
         hash: vector<u8>,
         ctx: &mut TxContext
     ) {
-        base_registry::authorised(registry, node, ctx);
+        base_registry::authorised(suins, node, ctx);
         let node = utf8(node);
         let new_hash = utf8(hash);
         let key = utf8(CONTENTHASH);
@@ -132,11 +133,11 @@ module suins::resolver {
     /// or `node` doesn't exist.
     public entry fun unset_contenthash(
         base_resolver: &mut BaseResolver,
-        registry: &Registry,
+        suins: &SuiNS,
         node: vector<u8>,
         ctx: &mut TxContext
     ) {
-        base_registry::authorised(registry, node, ctx);
+        base_registry::authorised(suins, node, ctx);
 
         let node = utf8(node);
         let record = field::borrow_mut<String, VecMap<String, String>>(&mut base_resolver.id, node);
@@ -158,13 +159,13 @@ module suins::resolver {
     /// Panics if caller isn't the owner of `node`
     public entry fun set_avatar(
         base_resolver: &mut BaseResolver,
-        registry: &Registry,
+        suins: &SuiNS,
         node: vector<u8>,
         hash: vector<u8>,
         ctx: &mut TxContext
     ) {
         // TODO: group avatar, contenthash,... into 1 function
-        base_registry::authorised(registry, node, ctx);
+        base_registry::authorised(suins, node, ctx);
         let node = utf8(node);
         let new_hash = utf8(hash);
         let key = utf8(AVATAR);
@@ -200,11 +201,11 @@ module suins::resolver {
     /// or `node` doesn't exist.
     public entry fun unset_avatar(
         base_resolver: &mut BaseResolver,
-        registry: &Registry,
+        suins: &SuiNS,
         node: vector<u8>,
         ctx: &mut TxContext
     ) {
-        base_registry::authorised(registry, node, ctx);
+        base_registry::authorised(suins, node, ctx);
 
         let node = utf8(node);
         let record = field::borrow_mut<String, VecMap<String, String>>(&mut base_resolver.id, node);
@@ -228,7 +229,7 @@ module suins::resolver {
     /// Panics if caller isn't the owner of `sender_addr`.addr.reverse.
     public entry fun set_name(
         base_resolver: &mut BaseResolver,
-        registry: &Registry,
+        suins: &SuiNS,
         addr: address,
         new_name: vector<u8>,
         ctx: &mut TxContext
@@ -236,7 +237,7 @@ module suins::resolver {
         let label = converter::address_to_string(addr);
         let node = base_registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
         // TODO: do we have to authorised this?
-        base_registry::authorised(registry, *string::bytes(&node), ctx);
+        base_registry::authorised(suins, *string::bytes(&node), ctx);
 
         let new_name = utf8(new_name);
         let key = utf8(NAME);
@@ -272,13 +273,13 @@ module suins::resolver {
     /// or `addr`.addr.reverse doesn't exist.
     public entry fun unset_name(
         base_resolver: &mut BaseResolver,
-        registry: &Registry,
+        suins: &SuiNS,
         addr: address,
         ctx: &mut TxContext
     ) {
         let label = converter::address_to_string(addr);
         let node = base_registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
-        base_registry::authorised(registry, *string::bytes(&node), ctx);
+        base_registry::authorised(suins, *string::bytes(&node), ctx);
         let record = field::borrow_mut(&mut base_resolver.id, node);
         vec_map::remove<String, String>(record, &utf8(NAME));
 
@@ -298,7 +299,7 @@ module suins::resolver {
     /// Panics if caller isn't the owner of `node`
     public entry fun set_text(
         base_resolver: &mut BaseResolver,
-        registry: &Registry,
+        suins: &SuiNS,
         node: vector<u8>,
         key: vector<u8>,
         new_value: vector<u8>,
@@ -306,7 +307,7 @@ module suins::resolver {
     ) {
         assert!(key != CONTENTHASH && key != ADDR && key != AVATAR && key != NAME, EInvalidKey);
         // TODO: we don't have unset_text function
-        base_registry::authorised(registry, node, ctx);
+        base_registry::authorised(suins, node, ctx);
         let node = utf8(node);
         let new_value = utf8(new_value);
         let key = utf8(key);
@@ -342,13 +343,13 @@ module suins::resolver {
     /// Panics if caller isn't the owner of `node`
     public entry fun set_addr(
         base_resolver: &mut BaseResolver,
-        registry: &Registry,
+        suins: &SuiNS,
         node: vector<u8>,
         new_addr: address,
         ctx: &mut TxContext
     ) {
         // TODO: we don't have unset_addr function
-        base_registry::authorised(registry, node, ctx);
+        base_registry::authorised(suins, node, ctx);
         let node = utf8(node);
         let key = utf8(ADDR);
         let new_addr = utf8(converter::address_to_string(new_addr));
