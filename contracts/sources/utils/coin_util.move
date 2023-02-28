@@ -8,6 +8,7 @@ module suins::coin_util {
     use sui::coin::Coin;
     use sui::balance;
 
+    friend suins::auction;
     friend suins::controller;
 
     public(friend) fun user_transfer_to_address(payment: &mut Coin<SUI>, amount: u64, receiver: address, ctx: &mut TxContext) {
