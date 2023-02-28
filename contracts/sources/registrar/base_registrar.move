@@ -3,6 +3,7 @@
 /// All functions that involves payment charging in this module aren't supposed to be called directly,
 /// users must call the corresponding functions in `Controller`.
 module suins::base_registrar {
+
     use sui::dynamic_field as field;
     use sui::event;
     use sui::object::{Self, ID, UID, uid_to_inner};
@@ -20,7 +21,6 @@ module suins::base_registrar {
     use std::hash::sha2_256;
 
     friend suins::controller;
-    friend suins::auction;
 
     // in terms of epoch
     const GRACE_PERIOD: u8 = 90;
