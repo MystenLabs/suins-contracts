@@ -3,7 +3,7 @@ module suins::reverse_registrar_tests {
 
     use sui::test_scenario::{Self, Scenario};
     use suins::base_registry::{Self, AdminCap};
-    use suins::reverse_registrar::{Self, ReverseRegistrar};
+    use suins::reverse_registrar;
     use suins::base_registrar;
     use std::string::utf8;
     use suins::abc::SuiNS;
@@ -22,7 +22,6 @@ module suins::reverse_registrar_tests {
         {
             let ctx = test_scenario::ctx(&mut scenario);
             base_registry::test_init(ctx);
-            reverse_registrar::test_init(ctx);
             abc::test_init(ctx);
         };
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -112,17 +111,14 @@ module suins::reverse_registrar_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let registrar = test_scenario::take_shared<ReverseRegistrar>(&mut scenario);
 
             reverse_registrar::claim(
-                &mut registrar,
                 &mut suins,
                 FIRST_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
 
             test_scenario::return_shared(suins);
-            test_scenario::return_shared(registrar);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -144,37 +140,37 @@ module suins::reverse_registrar_tests {
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let registrar = test_scenario::take_shared<ReverseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let default_resolver = reverse_registrar::get_default_resolver(&registrar);
+            let default_resolver = abc::default_name_resolver(&suins);
             assert!(default_resolver == @0x0, 0);
 
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
         };
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let registrar = test_scenario::take_shared<ReverseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
 
             reverse_registrar::set_default_resolver(
                 &admin_cap,
-                &mut registrar,
+                &mut suins,
                 FIRST_RESOLVER_ADDRESS,
             );
 
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let registrar = test_scenario::take_shared<ReverseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let default_resolver = reverse_registrar::get_default_resolver(&registrar);
+            let default_resolver = abc::default_name_resolver(&suins);
             assert!(default_resolver == FIRST_RESOLVER_ADDRESS, 0);
 
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
        };
         test_scenario::end(scenario);
     }

@@ -3,13 +3,11 @@
 module suins::reverse_registrar {
 
     use sui::event;
-    use sui::object::{Self, UID};
-    use sui::transfer;
     use sui::tx_context::{TxContext, sender};
+    use suins::abc::{Self, SuiNS};
     use suins::base_registry::{Self, AdminCap};
-    use std::string;
     use suins::converter;
-    use suins::abc::SuiNS;
+    use std::string;
 
     const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
 
@@ -22,17 +20,12 @@ module suins::reverse_registrar {
         resolver: address,
     }
 
-    struct ReverseRegistrar has key {
-        // doesn't need to store registration records because address itself can prove the ownership
-        id: UID,
-        default_name_resolver: address,
-    }
-
     /// #### Notice
     /// Similar to `claim_with_resolver`. The only differrence is
     /// this function uses `default_name_resolver` property as resolver address.
-    public entry fun claim(registrar: &mut ReverseRegistrar, suins: &mut SuiNS, owner: address, ctx: &mut TxContext) {
-        claim_with_resolver(suins, owner, *&registrar.default_name_resolver, ctx)
+    public entry fun claim(suins: &mut SuiNS, owner: address, ctx: &mut TxContext) {
+        let resolver = abc::default_name_resolver(suins);
+        claim_with_resolver(suins, owner, resolver, ctx)
     }
 
     /// #### Notice
@@ -59,34 +52,8 @@ module suins::reverse_registrar {
 
     /// #### Notice
     /// The admin uses this function to update `default_name_resolver`.
-    public entry fun set_default_resolver(_: &AdminCap, registrar: &mut ReverseRegistrar, resolver: address) {
-        registrar.default_name_resolver = resolver;
+    public entry fun set_default_resolver(_: &AdminCap, suins: &mut SuiNS, resolver: address) {
+        *abc::default_name_resolver_mut(suins) = resolver;
         event::emit(DefaultResolverChangedEvent { resolver })
-    }
-
-    // === Friend and Private Functions ===
-
-    fun init(ctx: &mut TxContext) {
-        transfer::share_object(ReverseRegistrar {
-            id: object::new(ctx),
-            // cannot get the ID of name_resolver in `init`, the admin has to update this by calling
-            // `set_default_resolver`
-            default_name_resolver: @0x0,
-        });
-    }
-
-    // === Testing ===
-
-    #[test_only]
-    public fun get_default_resolver(registrar: &ReverseRegistrar): address {
-        registrar.default_name_resolver
-    }
-
-    #[test_only]
-    public fun test_init(ctx: &mut TxContext) {
-        transfer::share_object(ReverseRegistrar {
-            id: object::new(ctx),
-            default_name_resolver: @0x0,
-        });
     }
 }

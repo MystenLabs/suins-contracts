@@ -7,16 +7,81 @@ module suins::abc {
     use sui::table;
     use sui::transfer;
     use sui::object;
+    use sui::linked_table::LinkedTable;
+    use sui::balance::Balance;
+    use sui::sui::SUI;
+    use sui::linked_table;
+    use sui::balance;
 
     friend suins::base_registry;
     friend suins::base_registrar;
     friend suins::reverse_registrar;
+    friend suins::controller;
+    friend suins::coin_util;
 
-    /// each name records has a corresponding registration records in `Registrar`
+    struct SuiNS has key {
+        id: UID,
+        /// Maps domain names to name records (instance of `NameRecord`).
+        registry: Table<String, NameRecord>,
+        /// Maps tlds to registrar objects, each registrar object is responsible for domains of a particular tld.
+        /// Registrar object is a mapping of domain names to registration records (instance of `RegistrationRecord`).
+        /// A registrar object can be created by calling `new_tld` and has a record with key `tld` to represent its tld.
+        registrars: Table<String, Table<String, RegistrationRecord>>,
+        /// Be used in `reverse_registrar.move`
+        default_name_resolver: address,
+        controller: Controller,
+    }
+
     struct NameRecord has store, copy, drop {
         owner: address,
         resolver: address,
         ttl: u64,
+    }
+
+    /// each registration records has a corresponding name records
+    struct RegistrationRecord has store, drop {
+        expiry: u64,
+        owner: address,
+        nft_id: ID,
+    }
+
+    struct Controller has store {
+        commitments: LinkedTable<vector<u8>, u64>,
+        // TODO: make it an outer field
+        balance: Balance<SUI>,
+        default_addr_resolver: address,
+    }
+
+    public(friend) fun registry(suins: &SuiNS): &Table<String, NameRecord> {
+        &suins.registry
+    }
+
+    public(friend) fun registry_mut(suins: &mut SuiNS): &mut Table<String, NameRecord> {
+        &mut suins.registry
+    }
+
+    public(friend) fun registrars(suins: &SuiNS): &Table<String, Table<String, RegistrationRecord>> {
+        &suins.registrars
+    }
+
+    public(friend) fun registrars_mut(suins: &mut SuiNS): &mut Table<String, Table<String, RegistrationRecord>> {
+        &mut suins.registrars
+    }
+
+    public(friend) fun registrar(suins: &SuiNS, tld: String): &Table<String, RegistrationRecord> {
+        table::borrow(&suins.registrars, tld)
+    }
+
+    public(friend) fun registrar_mut(suins: &mut SuiNS, tld: String): &mut Table<String, RegistrationRecord> {
+        table::borrow_mut(&mut suins.registrars, tld)
+    }
+
+    public(friend) fun default_name_resolver(suins: &SuiNS): address {
+        suins.default_name_resolver
+    }
+
+    public(friend) fun default_name_resolver_mut(suins: &mut SuiNS): &mut address {
+        &mut suins.default_name_resolver
     }
 
     public(friend) fun name_record_owner(name_record: &NameRecord): &address {
@@ -48,12 +113,6 @@ module suins::abc {
         NameRecord { owner, resolver, ttl }
     }
 
-    struct RegistrationRecord has store, drop {
-        expiry: u64,
-        owner: address,
-        nft_id: ID,
-    }
-
     public(friend) fun registration_record_expiry(record: &RegistrationRecord): u64 {
         record.expiry
     }
@@ -74,64 +133,72 @@ module suins::abc {
         RegistrationRecord { expiry, owner, nft_id }
     }
 
-    struct SuiNS has key {
-        id: UID,
-        /// Maps domain names to name records (instance of `NameRecord`).
-        registry: Table<String, NameRecord>,
-        /// Maps tlds to registrar objects, each registrar object is responsible for domains of a particular tld.
-        /// Registrar object is a mapping of domain names to registration records (instance of `RegistrationRecord`).
-        /// A registrar object can be created by calling `new_tld` and has a record with key `tld` to represent its tld.
-        registrars: Table<String, Table<String, RegistrationRecord>>
+    public(friend) fun controller_default_addr_resolver(suins: &SuiNS): address {
+        suins.controller.default_addr_resolver
     }
 
-    public(friend) fun registry(suins: &SuiNS): &Table<String, NameRecord> {
-        &suins.registry
+    public(friend) fun controller_default_addr_resolver_mut(suins: &mut SuiNS): &mut address {
+        &mut suins.controller.default_addr_resolver
     }
 
-    public(friend) fun registry_mut(suins: &mut SuiNS): &mut Table<String, NameRecord> {
-        &mut suins.registry
+    public(friend) fun controller_commitments(suins: &SuiNS): &LinkedTable<vector<u8>, u64> {
+        &suins.controller.commitments
     }
 
-    public(friend) fun registrars(suins: &SuiNS): &Table<String, Table<String, RegistrationRecord>> {
-        &suins.registrars
+    public(friend) fun controller_commitments_mut(suins: &mut SuiNS): &mut LinkedTable<vector<u8>, u64> {
+        &mut suins.controller.commitments
     }
 
-    public(friend) fun registrars_mut(suins: &mut SuiNS): &mut Table<String, Table<String, RegistrationRecord>> {
-        &mut suins.registrars
+    public(friend) fun controller_balance(suins: &SuiNS): &Balance<SUI> {
+        &suins.controller.balance
     }
 
-    public(friend) fun registrar(suins: &SuiNS, tld: String): &Table<String, RegistrationRecord> {
-        table::borrow(&suins.registrars, tld)
-    }
-
-    public(friend) fun registrar_mut(suins: &mut SuiNS, tld: String): &mut Table<String, RegistrationRecord> {
-        table::borrow_mut(&mut suins.registrars, tld)
+    /// Use carefully
+    public(friend) fun controller_balance_mut(suins: &mut SuiNS): &mut Balance<SUI> {
+        &mut suins.controller.balance
     }
 
     fun init(ctx: &mut TxContext) {
         let registry = table::new(ctx);
         let registrars = table::new(ctx);
+        let controller = Controller {
+            commitments: linked_table::new(ctx),
+            balance: balance::zero(),
+            default_addr_resolver: @0x0,
+        };
 
         transfer::share_object(SuiNS {
             id: object::new(ctx),
             registry,
-            registrars
+            registrars,
+            default_name_resolver: @0x0,
+            controller,
         })
     }
 
-    #[test_only]
-    friend suins::base_registry_tests;
+    // === Testing ===
 
     #[test_only]
-    /// Wrapper of module initializer for testing
+    friend suins::base_registry_tests;
+    #[test_only]
+    friend suins::reverse_registrar_tests;
+
+    #[test_only]
     public fun test_init(ctx: &mut TxContext) {
-        let registry = table::new<String, NameRecord>(ctx);
+        let registry = table::new(ctx);
         let registrars = table::new(ctx);
+        let controller = Controller {
+            commitments: linked_table::new(ctx),
+            balance: balance::zero(),
+            default_addr_resolver: @0x0,
+        };
 
         transfer::share_object(SuiNS {
             id: object::new(ctx),
             registry,
-            registrars
+            registrars,
+            default_name_resolver: @0x0,
+            controller,
         })
     }
 }

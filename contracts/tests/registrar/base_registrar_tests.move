@@ -511,7 +511,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ETLDExists)]
+    #[test, expected_failure(abort_code = dynamic_field::EFieldAlreadyExists)]
     fun test_new_tld_abort_with_duplicated_tld() {
         let scenario = test_init();
 
