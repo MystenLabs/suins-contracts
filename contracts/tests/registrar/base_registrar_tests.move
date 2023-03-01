@@ -23,7 +23,7 @@ module suins::base_registrar_tests {
     const SECOND_LABEL: vector<u8> = b"ea";
     const THIRD_LABEL: vector<u8> = b"eastagil";
     const MOVE_REGISTRAR: vector<u8> = b"move";
-    const SUI_REGISTRAR: vector<u8> = b"SUI";
+    const SUI_REGISTRAR: vector<u8> = b"sui";
 
     fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
@@ -1353,7 +1353,7 @@ module suins::base_registrar_tests {
     }
 
     #[test]
-    fun test_update_image_url_works_if_user_owns_2_nfts_different_domains_and_uses_right_one() {
+    fun test_update_image_url_works_if_user_owns_2_different_nft_domains_and_uses_right_one() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         register(scenario);

@@ -6,7 +6,6 @@ module suins::controller_tests {
     use sui::tx_context;
     use sui::sui::SUI;
     use sui::url;
-    use sui::dynamic_field;
     use suins::auction::{Auction, make_seal_bid};
     use suins::auction;
     use suins::auction_tests::{start_an_auction_util, place_bid_util, reveal_bid_util};
@@ -16,11 +15,10 @@ module suins::controller_tests {
     use suins::controller::{Self, BaseController};
     use suins::emoji;
     use std::option::{Self, Option, some};
-    use std::string::{Self, utf8};
+    use std::string::utf8;
     use std::vector;
     use suins::abc::SuiNS;
     use suins::abc;
-    use sui::sui_system::SuiSystemState;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -75,6 +73,7 @@ module suins::controller_tests {
             );
 
             test_scenario::return_shared(config);
+            test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
         scenario
@@ -854,7 +853,6 @@ module suins::controller_tests {
         {
             let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(10001, test_scenario::ctx(&mut scenario));
@@ -879,7 +877,6 @@ module suins::controller_tests {
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
-            test_scenario::return_shared(suins);
         };
 
         test_scenario::end(scenario);
@@ -1153,6 +1150,7 @@ module suins::controller_tests {
 
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -2107,7 +2105,7 @@ module suins::controller_tests {
     }
 
     #[test]
-    fun test_register_with_referral_code_ok_if_being_used_twice() {
+    fun test_register_with_referral_code_works_if_code_is_used_twice() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -2174,8 +2172,8 @@ module suins::controller_tests {
                 2
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, SECOND_LABEL), 0);
 
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             controller::register_with_code(
                 &mut controller,
                 &mut suins,
@@ -3107,8 +3105,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
-            assert!(expiry == 211 + 365, 0);
+            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
+            assert!(expiry == 221 + 365, 0);
             assert!(owner== FIRST_USER_ADDRESS, 0);
 
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(AUCTIONED_NODE));
@@ -3477,7 +3475,7 @@ module suins::controller_tests {
     }
 
     #[test]
-    fun test_register_abort_if_registration_is_enabled_again() {
+    fun test_register_works_if_registration_is_reenabled() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
 
@@ -3575,9 +3573,9 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
             assert!(expiry == 221 + 365, 0);
-            assert!(owner== FIRST_USER_ADDRESS, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(AUCTIONED_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
