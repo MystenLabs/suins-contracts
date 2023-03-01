@@ -6,13 +6,11 @@ module suins::resolver_tests {
     use sui::dynamic_field;
     use suins::base_registry;
     use suins::resolver::{Self, BaseResolver};
-    use suins::base_registrar;
     use suins::base_registry_tests;
+    use suins::abc::{Self, SuiNS};
     use suins::converter::address_to_string;
     use suins::converter;
     use std::string::utf8;
-    use suins::abc::SuiNS;
-    use suins::abc;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_NAME: vector<u8> = b"sui";
@@ -34,7 +32,6 @@ module suins::resolver_tests {
             let ctx = test_scenario::ctx(&mut scenario);
             base_registry::test_init(ctx);
             abc::test_init(ctx);
-            base_registrar::test_init(ctx);
             resolver::test_init(ctx);
         };
         scenario

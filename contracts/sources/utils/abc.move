@@ -58,7 +58,7 @@ module suins::abc {
         record.expiry
     }
 
-    public(friend) fun registration_record_expiry_mut(record: &RegistrationRecord): &mut u64 {
+    public(friend) fun registration_record_expiry_mut(record: &mut RegistrationRecord): &mut u64 {
         &mut record.expiry
     }
 

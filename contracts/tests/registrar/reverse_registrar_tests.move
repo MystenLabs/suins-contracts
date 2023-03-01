@@ -34,6 +34,7 @@ module suins::reverse_registrar_tests {
             base_registrar::new_tld(&admin_cap, &mut suins, b"addr.reverse", test_scenario::ctx(&mut scenario));
             base_registrar::new_tld(&admin_cap, &mut suins, b"move", test_scenario::ctx(&mut scenario));
 
+            test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
         scenario

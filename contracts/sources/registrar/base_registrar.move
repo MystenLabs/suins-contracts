@@ -110,8 +110,7 @@ module suins::base_registrar {
     ) {
         let tld = utf8(tld);
         let registrar = abc::registrar(suins, tld);
-        let label = get_label_part(&nft.name, &tld);
-        assert_nft_not_expires(registrar, label, nft, ctx);
+        let label = assert_nft_not_expires(registrar, tld, nft, ctx);
 
         let registration = table::borrow(registrar, label);
         assert!(abc::registration_record_expiry(registration) >= epoch(ctx), ELabelExpired);
@@ -154,9 +153,8 @@ module suins::base_registrar {
     ) {
         let tld = utf8(tld);
         let registrar = abc::registrar(suins, tld);
-        let label = get_label_part(&nft.name, &tld);
+        let label = assert_nft_not_expires(registrar, tld, nft, ctx);
 
-        assert_nft_not_expires(registrar, label, nft, ctx);
         assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
         assert_image_msg_match(config, signature, hashed_msg, raw_msg);
 
@@ -350,7 +348,14 @@ module suins::base_registrar {
         is_available_internal(registrar, label, ctx)
     }
 
-    fun assert_nft_not_expires(registrar: &Table<String, RegistrationRecord>, label: String, nft: &RegistrationNFT, ctx: &mut TxContext) {
+    /// Returns the label of NFT
+    public(friend) fun assert_nft_not_expires(
+        registrar: &Table<String, RegistrationRecord>,
+        tld: String,
+        nft: &RegistrationNFT,
+        ctx: &mut TxContext,
+    ): String {
+        let label = get_label_part(&nft.name, &tld);
         let record = table::borrow(registrar, label);
         // TODO: delete NFT if it expired
         assert!(abc::registration_record_owner(record) == sender(ctx), ENFTExpired);
@@ -358,6 +363,8 @@ module suins::base_registrar {
 
         let expiry = name_expires_at_internal(registrar, label);
         assert!(expiry != 0 && expiry >= epoch(ctx), ENFTExpired);
+
+        label
     }
 
     fun name_expires_at_internal(registrar: &Table<String, RegistrationRecord>, label: String): u64 {
@@ -387,9 +394,13 @@ module suins::base_registrar {
 
     #[test_only]
     friend suins::base_registrar_tests;
+    #[test_only]
+    friend suins::controller_tests;
 
     #[test_only]
-    public fun record_exists(suins: &SuiNS, tld: String, label: String): bool {
+    public fun record_exists(suins: &SuiNS, tld: vector<u8>, label: vector<u8>): bool {
+        let tld = utf8(tld);
+        let label = utf8(label);
         let registrar = abc::registrar(suins, tld);
 
         table::contains(registrar, label)
@@ -415,6 +426,12 @@ module suins::base_registrar {
         let record = table::borrow(registrar, label);
 
         (abc::registration_record_expiry(record), abc::registration_record_owner(record))
+    }
+
+    #[test_only]
+    public fun get_registrar(suins: &SuiNS, tld: vector<u8>): &Table<String, RegistrationRecord> {
+        let tld = utf8(tld);
+        abc::registrar(suins, tld)
     }
 
     #[test_only]

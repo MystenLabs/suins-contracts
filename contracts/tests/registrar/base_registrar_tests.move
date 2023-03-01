@@ -47,6 +47,7 @@ module suins::base_registrar_tests {
                 x"0445e28df251d0ec0f66f284f7d5598db7e68b1a196396e4e13a3942d1364812ae5ed65ebb3d20cbf073ad50c6bbafa92505dc9b306e30476e57919a63ac824cab"
             );
             test_scenario::return_shared(config);
+            test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
         scenario
@@ -465,6 +466,7 @@ module suins::base_registrar_tests {
                 test_scenario::ctx(&mut scenario)
             );
 
+            test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
 
