@@ -90,7 +90,7 @@ module suins::base_registrar_tests {
             assert!(base_registrar::get_registration_owner(detail) == FIRST_USER, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b""),
+                url == url::new_unsafe_from_bytes(b"QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
 
@@ -616,7 +616,7 @@ module suins::base_registrar_tests {
 
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b""),
+                url == url::new_unsafe_from_bytes(b"QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
             test_scenario::return_to_sender(scenario, nft);
