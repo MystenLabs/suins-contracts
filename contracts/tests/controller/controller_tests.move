@@ -168,7 +168,7 @@ module suins::controller_tests {
             assert!(controller::balance(&controller) == 1000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b""),
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
 
@@ -270,7 +270,7 @@ module suins::controller_tests {
             assert!(controller::balance(&controller) == 2000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b""),
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
 
@@ -649,7 +649,7 @@ module suins::controller_tests {
             assert!(controller::balance(&controller) == 2000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b""),
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
 
@@ -817,7 +817,7 @@ module suins::controller_tests {
             assert!(controller::balance(&controller) == 2000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b""),
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
 
@@ -1525,7 +1525,7 @@ module suins::controller_tests {
 
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b""),
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
             assert!(coin::value(&coin) == 200000, 0);
@@ -1613,7 +1613,7 @@ module suins::controller_tests {
 
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b""),
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
             assert!(coin::value(&coin) == 300000, 0);
@@ -1738,7 +1738,7 @@ module suins::controller_tests {
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b""),
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
             assert!(controller::balance(&controller) == 1700000, 0);
@@ -1916,7 +1916,7 @@ module suins::controller_tests {
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b""),
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
             assert!(controller::balance(&controller) == 1700000, 0);
@@ -2339,7 +2339,7 @@ module suins::controller_tests {
             assert!(controller::balance(&controller) == 2000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b""),
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
 
@@ -2423,7 +2423,7 @@ module suins::controller_tests {
 
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b""),
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
             assert!(coin::value(&coin) == 170000, 0);
@@ -2604,7 +2604,7 @@ module suins::controller_tests {
 
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b""),
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
             assert!(coin::value(&coin) == 170000, 0);
@@ -2834,7 +2834,7 @@ module suins::controller_tests {
             assert!(controller::balance(&controller) == 1000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b""),
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
 
@@ -2953,7 +2953,7 @@ module suins::controller_tests {
             assert!(controller::balance(&controller) == 1000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b""),
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
 
@@ -3053,7 +3053,7 @@ module suins::controller_tests {
             assert!(controller::balance(&controller) == 1000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b""),
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
 
@@ -3153,7 +3153,7 @@ module suins::controller_tests {
             assert!(controller::balance(&controller) == 1000000, 0);
             assert!(name == utf8(AUCTIONED_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b""),
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
 
@@ -3253,7 +3253,7 @@ module suins::controller_tests {
             assert!(controller::balance(&controller) == 1000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b""),
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
 
@@ -3452,7 +3452,7 @@ module suins::controller_tests {
              assert!(controller::balance(&controller) == 1000000, 0);
              assert!(name == utf8(AUCTIONED_NODE), 0);
              assert!(
-                 url == url::new_unsafe_from_bytes(b""),
+                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                  0
              );
 
@@ -3572,7 +3572,7 @@ module suins::controller_tests {
             assert!(controller::balance(&controller) == 1000000, 0);
             assert!(name == utf8(AUCTIONED_NODE), 0);
             assert!(
-                url == url::new_unsafe_from_bytes(b""),
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
 
@@ -4750,7 +4750,7 @@ module suins::controller_tests {
 
             assert!(controller::balance(&controller) == 1000000, 0);
             assert!(name == utf8(b"eastagile-123.sui"), 0);
-            assert!(url == url::new_unsafe_from_bytes(b""), 0);
+            assert!(url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"), 0);
 
             test_scenario::return_shared(controller);
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -4961,7 +4961,6 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    // FIXME: which epoch?
     #[test]
     fun test_renew_with_image_works_if_being_called_in_grace_time() {
         let scenario = test_init();
@@ -4975,7 +4974,7 @@ module suins::controller_tests {
 
             assert!(controller::balance(&controller) == 1000000, 0);
             assert!(name == utf8(b"eastagile-123.sui"), 0);
-            assert!(url == url::new_unsafe_from_bytes(b""), 0);
+            assert!(url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"), 0);
 
             test_scenario::return_shared(controller);
             test_scenario::return_to_sender(&mut scenario, nft);
