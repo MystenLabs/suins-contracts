@@ -357,7 +357,7 @@ module suins::base_registrar {
 
         let url;
         if (vector::is_empty(&hashed_msg) || vector::is_empty(&raw_msg) || vector::is_empty(&signature))
-            url = url::new_unsafe_from_bytes(vector[])
+            url = url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY")
         else {
             assert_image_msg_match(config, signature, hashed_msg, raw_msg);
 
