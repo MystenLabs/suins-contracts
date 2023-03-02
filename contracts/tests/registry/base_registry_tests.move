@@ -6,8 +6,8 @@ module suins::base_registry_tests {
     use suins::base_registry::{Self, AdminCap};
     use suins::base_registrar;
     use std::string::utf8;
-    use suins::abc::SuiNS;
-    use suins::abc;
+    use suins::entity::SuiNS;
+    use suins::entity;
 
     friend suins::resolver_tests;
 
@@ -25,7 +25,7 @@ module suins::base_registry_tests {
         {
             let ctx = test_scenario::ctx(&mut scenario);
             base_registry::test_init(ctx);
-            abc::test_init(ctx);
+            entity::test_init(ctx);
         };
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);

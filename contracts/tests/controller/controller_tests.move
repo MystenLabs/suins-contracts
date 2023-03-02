@@ -12,13 +12,13 @@ module suins::controller_tests {
     use suins::base_registrar::{Self, RegistrationNFT};
     use suins::base_registry::{Self, AdminCap};
     use suins::configuration::{Self, Configuration};
-    use suins::controller::{Self, BaseController};
+    use suins::controller;
     use suins::emoji;
     use std::option::{Self, Option, some};
     use std::string::utf8;
     use std::vector;
-    use suins::abc::SuiNS;
-    use suins::abc;
+    use suins::entity::SuiNS;
+    use suins::entity;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -52,9 +52,8 @@ module suins::controller_tests {
         {
             let ctx = test_scenario::ctx(&mut scenario);
             base_registry::test_init(ctx);
-            controller::test_init(ctx);
             configuration::test_init(ctx);
-            abc::test_init(ctx);
+            entity::test_init(ctx);
             auction::test_init(ctx);
         };
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -82,8 +81,8 @@ module suins::controller_tests {
     fun make_commitment(scenario: &mut Scenario, label: Option<vector<u8>>) {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(scenario);
-            let no_of_commitments = controller::commitment_len(&controller);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            let no_of_commitments = controller::commitment_len(&suins);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -99,14 +98,14 @@ module suins::controller_tests {
             );
 
             controller::commit(
-                &mut controller,
+                &mut suins,
                 commitment,
                 &mut ctx,
             );
-            assert!(controller::commitment_len(&controller) - no_of_commitments == 1, 0);
+            assert!(controller::commitment_len(&suins) - no_of_commitments == 1, 0);
 
-            test_scenario::return_shared(controller);
-        };
+            test_scenario::return_shared(suins);
+            };
     }
 
     fun register(scenario: &mut Scenario) {
@@ -115,7 +114,6 @@ module suins::controller_tests {
         // register
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let auction = test_scenario::take_shared<Auction>(scenario);
@@ -130,11 +128,10 @@ module suins::controller_tests {
 
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
-            assert!(controller::balance(&controller) == 0, 0);
+            assert!(controller::balance(&suins) == 0, 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(scenario), 0);
 
             controller::register_with_config(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -150,7 +147,6 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == 1, 0);
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -158,13 +154,12 @@ module suins::controller_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
             base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(controller::balance(&suins) == 1000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b""),
@@ -182,7 +177,6 @@ module suins::controller_tests {
 
 
             test_scenario::return_to_sender(scenario, nft);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
     }
@@ -193,16 +187,16 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
-            assert!(controller::commitment_len(&controller) == 0, 0);
-            test_scenario::return_shared(controller);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            assert!(controller::commitment_len(&suins) == 0, 0);
+            test_scenario::return_shared(suins);
         };
         make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
-            assert!(controller::commitment_len(&controller) == 1, 0);
-            test_scenario::return_shared(controller);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            assert!(controller::commitment_len(&suins) == 1, 0);
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
@@ -214,7 +208,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -227,13 +220,12 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(controller::balance(&controller) == 0, 0);
-            assert!(controller::commitment_len(&controller) == 1, 0);
+            assert!(controller::balance(&suins) == 0, 0);
+            assert!(controller::commitment_len(&suins) == 1, 0);
             assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -246,10 +238,9 @@ module suins::controller_tests {
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1000000, 0);
-            assert!(controller::commitment_len(&controller) == 0, 0);
+            assert!(controller::commitment_len(&suins) == 0, 0);
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -257,13 +248,12 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
             base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::balance(&controller) == 2000000, 0);
+            assert!(controller::balance(&suins) == 2000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b""),
@@ -280,7 +270,6 @@ module suins::controller_tests {
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -293,7 +282,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -309,7 +297,6 @@ module suins::controller_tests {
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, SECOND_LABEL), 0);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -323,7 +310,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
@@ -338,7 +324,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -353,7 +338,6 @@ module suins::controller_tests {
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -367,7 +351,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
@@ -382,7 +365,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -396,7 +378,6 @@ module suins::controller_tests {
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -410,7 +391,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -425,7 +405,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -439,7 +418,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(1000000, &mut ctx);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -453,7 +431,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
@@ -468,7 +445,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -482,7 +458,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(9999, &mut ctx);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -496,7 +471,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -512,7 +486,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -524,10 +497,9 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
-            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(controller::balance(&suins) == 1000000, 0);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -541,7 +513,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
@@ -556,7 +527,7 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -571,17 +542,16 @@ module suins::controller_tests {
             );
 
             controller::commit(
-                &mut controller,
+                &mut suins,
                 commitment,
                 &mut ctx,
             );
 
-            test_scenario::return_shared(controller);
-        };
+            test_scenario::return_shared(suins);
+            };
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -593,10 +563,9 @@ module suins::controller_tests {
                 20
             );
             let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
-            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(controller::balance(&suins) == 1000000, 0);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -610,7 +579,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
@@ -618,13 +586,12 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
             base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::balance(&controller) == 2000000, 0);
+            assert!(controller::balance(&suins) == 2000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b""),
@@ -649,7 +616,6 @@ module suins::controller_tests {
             );
 
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -662,7 +628,7 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -677,17 +643,16 @@ module suins::controller_tests {
             );
 
             controller::commit(
-                &mut controller,
+                &mut suins,
                 commitment,
                 &mut ctx,
             );
 
-            test_scenario::return_shared(controller);
-        };
+            test_scenario::return_shared(suins);
+            };
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -699,10 +664,9 @@ module suins::controller_tests {
                 20
             );
             let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
-            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(controller::balance(&suins) == 1000000, 0);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -716,7 +680,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
@@ -748,7 +711,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -762,11 +724,10 @@ module suins::controller_tests {
 
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
-            assert!(controller::balance(&controller) == 0, 0);
+            assert!(controller::balance(&suins) == 0, 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
             controller::register_with_config(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -782,7 +743,6 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == 2000001, 0);
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -790,14 +750,13 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
             base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
 
-            assert!(controller::balance(&controller) == 2000000, 0);
+            assert!(controller::balance(&suins) == 2000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b""),
@@ -814,23 +773,22 @@ module suins::controller_tests {
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
 
         // withdraw
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(controller::balance(&controller) == 2000000, 0);
+            assert!(controller::balance(&suins) == 2000000, 0);
             assert!(!test_scenario::has_most_recent_for_sender<Coin<SUI>>(&mut scenario), 0);
 
-            controller::withdraw(&admin_cap, &mut controller, test_scenario::ctx(&mut scenario));
-            assert!(controller::balance(&controller) == 0, 0);
+            controller::withdraw(&admin_cap, &mut suins, test_scenario::ctx(&mut scenario));
+            assert!(controller::balance(&suins) == 0, 0);
 
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
 
@@ -851,14 +809,12 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(10001, test_scenario::ctx(&mut scenario));
 
             controller::register_with_config(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -873,7 +829,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -889,14 +844,12 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(1000001, test_scenario::ctx(&mut scenario));
 
             controller::register_with_config(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -911,7 +864,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -927,14 +879,12 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(10001, test_scenario::ctx(&mut scenario));
 
             controller::register_with_config(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -949,7 +899,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
@@ -965,14 +914,12 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(1000001, test_scenario::ctx(&mut scenario));
 
             controller::register_with_config(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -987,7 +934,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -1002,12 +948,10 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-
-            controller::withdraw(&admin_cap, &mut controller, test_scenario::ctx(&mut scenario));
-
-            test_scenario::return_shared(controller);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            controller::withdraw(&admin_cap, &mut suins, test_scenario::ctx(&mut scenario));
+            test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
         test_scenario::end(scenario);
@@ -1020,14 +964,12 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(1000001, test_scenario::ctx(&mut scenario));
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -1041,7 +983,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -1056,7 +997,7 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1064,7 +1005,7 @@ module suins::controller_tests {
                 0
             );
 
-            assert!(controller::commitment_len(&controller) == 0, 0);
+            assert!(controller::commitment_len(&suins) == 0, 0);
 
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
@@ -1073,18 +1014,16 @@ module suins::controller_tests {
                 FIRST_SECRET
             );
             controller::commit(
-                &mut controller,
+                &mut suins,
                 commitment,
                 &mut ctx,
             );
-            assert!(controller::commitment_len(&controller) == 1, 0);
-
-            test_scenario::return_shared(controller);
+            assert!(controller::commitment_len(&suins) == 1, 0);
+            test_scenario::return_shared(suins);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -1097,7 +1036,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(10001, &mut ctx);
 
             controller::register_with_config(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -1112,7 +1050,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -1127,18 +1064,16 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = test_scenario::ctx(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(2000001, ctx);
 
             assert!(base_registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 416, 0);
-            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(controller::balance(&suins) == 1000000, 0);
 
             controller::renew(
                 &mut suins,
                 SUI_REGISTRAR,
-                &mut controller,
                 FIRST_LABEL,
                 2,
                 &mut coin,
@@ -1149,17 +1084,14 @@ module suins::controller_tests {
             assert!(base_registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 1146, 0);
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
-
-            assert!(controller::balance(&controller) == 3000000, 0);
-
-            test_scenario::return_shared(controller);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            assert!(controller::balance(&suins) == 3000000, 0);
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
@@ -1170,7 +1102,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = test_scenario::ctx(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(1000001, ctx);
@@ -1180,7 +1111,6 @@ module suins::controller_tests {
             controller::renew(
                 &mut suins,
                 SUI_REGISTRAR,
-                &mut controller,
                 FIRST_LABEL,
                 1,
                 &mut coin,
@@ -1188,7 +1118,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -1201,7 +1130,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
@@ -1214,7 +1142,6 @@ module suins::controller_tests {
             controller::renew(
                 &mut suins,
                 SUI_REGISTRAR,
-                &mut controller,
                 FIRST_LABEL,
                 1,
                 &mut coin,
@@ -1222,7 +1149,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -1234,7 +1160,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = test_scenario::ctx(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(4, ctx);
@@ -1244,7 +1169,6 @@ module suins::controller_tests {
             controller::renew(
                 &mut suins,
                 SUI_REGISTRAR,
-                &mut controller,
                 FIRST_LABEL,
                 1,
                 &mut coin,
@@ -1252,7 +1176,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -1264,31 +1187,25 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
-
-            assert!(controller::get_default_resolver(&controller) == @0x0, 0);
-
-            test_scenario::return_shared(controller);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            assert!(controller::get_default_resolver(&suins) == @0x0, 0);
+            test_scenario::return_shared(suins);
         };
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-
-            controller::set_default_resolver(&admin_cap, &mut controller, FIRST_RESOLVER_ADDRESS);
-
-            test_scenario::return_shared(controller);
+            controller::set_default_resolver(&admin_cap, &mut suins, FIRST_RESOLVER_ADDRESS);
+            test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
-
-            assert!(controller::get_default_resolver(&controller) == FIRST_RESOLVER_ADDRESS, 0);
-
-            test_scenario::return_shared(controller);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            assert!(controller::get_default_resolver(&suins) == FIRST_RESOLVER_ADDRESS, 0);
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
@@ -1299,7 +1216,7 @@ module suins::controller_tests {
         // outdated commitment
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1307,7 +1224,7 @@ module suins::controller_tests {
                 0
             );
 
-            assert!(controller::commitment_len(&controller) == 0, 0);
+            assert!(controller::commitment_len(&suins) == 0, 0);
 
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
@@ -1316,20 +1233,19 @@ module suins::controller_tests {
                 FIRST_SECRET
             );
             controller::commit(
-                &mut controller,
+                &mut suins,
                 commitment,
                 &mut ctx,
             );
 
-            assert!(controller::commitment_len(&controller) == 1, 0);
-
-            test_scenario::return_shared(controller);
+            assert!(controller::commitment_len(&suins) == 1, 0);
+            test_scenario::return_shared(suins);
         };
 
         // outdated commitment
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1344,18 +1260,18 @@ module suins::controller_tests {
                 FIRST_SECRET
             );
             controller::commit(
-                &mut controller,
+                &mut suins,
                 commitment,
                 &mut ctx,
             );
-            assert!(controller::commitment_len(&controller) == 1, 0);
+            assert!(controller::commitment_len(&suins) == 1, 0);
 
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1370,18 +1286,18 @@ module suins::controller_tests {
                 SECOND_SECRET
             );
             controller::commit(
-                &mut controller,
+                &mut suins,
                 commitment,
                 &mut ctx,
             );
-            assert!(controller::commitment_len(&controller) == 1, 0);
+            assert!(controller::commitment_len(&suins) == 1, 0);
 
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1396,18 +1312,17 @@ module suins::controller_tests {
                 FIRST_SECRET
             );
             controller::commit(
-                &mut controller,
+                &mut suins,
                 commitment,
                 &mut ctx,
             );
-            assert!(controller::commitment_len(&controller) == 2, 0);
+            assert!(controller::commitment_len(&suins) == 2, 0);
 
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -1420,10 +1335,9 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(2000001, &mut ctx);
 
-            assert!(controller::commitment_len(&controller) == 2, 0);
+            assert!(controller::commitment_len(&suins) == 2, 0);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -1437,10 +1351,9 @@ module suins::controller_tests {
             );
 
             assert!(coin::value(&coin) == 1, 0);
-            assert!(controller::commitment_len(&controller) == 1, 0);
+            assert!(controller::commitment_len(&suins) == 1, 0);
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
@@ -1455,7 +1368,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -1467,14 +1379,13 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
-            assert!(controller::balance(&controller) == 0, 0);
+            assert!(controller::balance(&suins) == 0, 0);
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
             controller::register_with_code(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -1492,7 +1403,6 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == 1000000, 0);
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -1500,7 +1410,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
@@ -1514,7 +1423,7 @@ module suins::controller_tests {
                 0
             );
             assert!(coin::value(&coin) == 200000, 0);
-            assert!(controller::balance(&controller) == 1800000, 0);
+            assert!(controller::balance(&suins) == 1800000, 0);
 
             let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
@@ -1527,7 +1436,6 @@ module suins::controller_tests {
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_to_address(SECOND_USER_ADDRESS, coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -1540,7 +1448,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -1552,14 +1459,13 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(4000000, &mut ctx);
 
-            assert!(controller::balance(&controller) == 0, 0);
+            assert!(controller::balance(&suins) == 0, 0);
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
             controller::register_with_config_and_code(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -1576,7 +1482,6 @@ module suins::controller_tests {
             );
             assert!(coin::value(&coin) == 1000000, 0);
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -1584,7 +1489,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -1598,7 +1502,7 @@ module suins::controller_tests {
                 0
             );
             assert!(coin::value(&coin) == 300000, 0);
-            assert!(controller::balance(&controller) == 2700000, 0);
+            assert!(controller::balance(&suins) == 2700000, 0);
 
             let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 1095, 0);
@@ -1611,7 +1515,6 @@ module suins::controller_tests {
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_to_address(SECOND_USER_ADDRESS, coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -1661,7 +1564,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -1673,14 +1575,13 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
-            assert!(controller::balance(&controller) == 0, 0);
+            assert!(controller::balance(&suins) == 0, 0);
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
             controller::register_with_code(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -1698,7 +1599,6 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == 1300000, 0);
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
@@ -1706,7 +1606,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -1719,7 +1618,7 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b""),
                 0
             );
-            assert!(controller::balance(&controller) == 1700000, 0);
+            assert!(controller::balance(&suins) == 1700000, 0);
 
             let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
@@ -1731,7 +1630,6 @@ module suins::controller_tests {
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -1744,7 +1642,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -1757,7 +1654,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register_with_code(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -1773,7 +1669,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
@@ -1788,7 +1683,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -1801,7 +1695,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register_with_code(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -1817,7 +1710,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -1832,7 +1724,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -1844,14 +1735,13 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
-            assert!(controller::balance(&controller) == 0, 0);
+            assert!(controller::balance(&suins) == 0, 0);
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
             controller::register_with_config_and_code(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -1869,7 +1759,6 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == 1300000, 0);
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
@@ -1877,7 +1766,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -1890,7 +1778,7 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b""),
                 0
             );
-            assert!(controller::balance(&controller) == 1700000, 0);
+            assert!(controller::balance(&suins) == 1700000, 0);
 
             let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
@@ -1902,7 +1790,6 @@ module suins::controller_tests {
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -1915,7 +1802,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -1928,7 +1814,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register_with_config_and_code(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -1945,7 +1830,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -1960,7 +1844,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -1973,7 +1856,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register_with_config_and_code(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -1990,7 +1872,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -2005,7 +1886,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -2018,7 +1898,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register_with_code(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -2034,7 +1913,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
@@ -2042,7 +1920,7 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2057,17 +1935,16 @@ module suins::controller_tests {
             );
 
             controller::commit(
-                &mut controller,
+                &mut suins,
                 commitment,
                 &mut ctx,
             );
 
-            test_scenario::return_shared(controller);
-        };
+            test_scenario::return_shared(suins);
+            };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -2080,7 +1957,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register_with_code(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -2096,7 +1972,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -2110,7 +1985,6 @@ module suins::controller_tests {
         make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -2125,7 +1999,6 @@ module suins::controller_tests {
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
 
             controller::register_with_code(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -2141,7 +2014,6 @@ module suins::controller_tests {
             );
             assert!(coin::value(&coin) == 1000000, 0);
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -2149,18 +2021,17 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let coin = test_scenario::take_from_address<Coin<SUI>>(&mut scenario, SECOND_USER_ADDRESS);
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             assert!(coin::value(&coin) == 200000, 0);
-            assert!(controller::balance(&controller) == 1800000, 0);
+            assert!(controller::balance(&suins) == 1800000, 0);
 
             test_scenario::return_to_address(SECOND_USER_ADDRESS, coin);
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
         };
         make_commitment(&mut scenario, option::some(SECOND_LABEL));
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -2175,7 +2046,6 @@ module suins::controller_tests {
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, SECOND_LABEL), 0);
 
             controller::register_with_code(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -2191,7 +2061,6 @@ module suins::controller_tests {
             );
             assert!(coin::value(&coin) == 2000000, 0);
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -2201,14 +2070,14 @@ module suins::controller_tests {
         {
             let coin1 = test_scenario::take_from_address<Coin<SUI>>(&mut scenario, SECOND_USER_ADDRESS);
             let coin2 = test_scenario::take_from_address<Coin<SUI>>(&mut scenario, SECOND_USER_ADDRESS);
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             assert!(coin::value(&coin1) == 100000, 0);
             assert!(coin::value(&coin2) == 200000, 0);
-            assert!(controller::balance(&controller) == 2700000, 0);
+            assert!(controller::balance(&suins) == 2700000, 0);
 
-            test_scenario::return_shared(controller);
             test_scenario::return_to_address(SECOND_USER_ADDRESS, coin2);
+            test_scenario::return_shared(suins);
             test_scenario::return_to_address(SECOND_USER_ADDRESS, coin1);
         };
         test_scenario::end(scenario);
@@ -2220,7 +2089,6 @@ module suins::controller_tests {
         make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -2233,7 +2101,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register_with_code(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -2249,7 +2116,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
@@ -2265,7 +2131,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -2279,13 +2144,12 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(controller::balance(&controller) == 0, 0);
-            assert!(controller::commitment_len(&controller) == 1, 0);
+            assert!(controller::balance(&suins) == 0, 0);
+            assert!(controller::commitment_len(&suins) == 1, 0);
             assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -2300,7 +2164,6 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == 1000000, 0);
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -2308,14 +2171,13 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::balance(&controller) == 2000000, 0);
+            assert!(controller::balance(&suins) == 2000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b""),
@@ -2332,7 +2194,6 @@ module suins::controller_tests {
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -2344,7 +2205,6 @@ module suins::controller_tests {
         make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -2357,14 +2217,13 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
-            assert!(controller::balance(&controller) == 0, 0);
+            assert!(controller::balance(&suins) == 0, 0);
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
             controller::register_with_code(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -2381,7 +2240,6 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == 1300000, 0);
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
@@ -2389,7 +2247,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -2403,7 +2260,7 @@ module suins::controller_tests {
                 0
             );
             assert!(coin::value(&coin) == 170000, 0);
-            assert!(controller::balance(&controller) == 1700000 - 170000, 0);
+            assert!(controller::balance(&suins) == 1700000 - 170000, 0);
 
             let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
@@ -2416,7 +2273,6 @@ module suins::controller_tests {
 
             coin::destroy_for_testing(coin);
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -2428,7 +2284,6 @@ module suins::controller_tests {
         make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -2442,7 +2297,6 @@ module suins::controller_tests {
 
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             controller::register_with_code(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -2458,7 +2312,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
@@ -2472,7 +2325,6 @@ module suins::controller_tests {
         make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -2486,7 +2338,6 @@ module suins::controller_tests {
 
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             controller::register_with_code(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -2502,7 +2353,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -2516,8 +2366,6 @@ module suins::controller_tests {
         make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller =
-                test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -2529,14 +2377,13 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
-            assert!(controller::balance(&controller) == 0, 0);
+            assert!(controller::balance(&suins) == 0, 0);
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
             controller::register_with_config_and_code(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -2553,14 +2400,12 @@ module suins::controller_tests {
             );
             assert!(coin::value(&coin) == 1300000, 0);
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -2574,7 +2419,7 @@ module suins::controller_tests {
                 0
             );
             assert!(coin::value(&coin) == 170000, 0);
-            assert!(controller::balance(&controller) == 1700000 - 170000, 0);
+            assert!(controller::balance(&suins) == 1700000 - 170000, 0);
 
             let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
@@ -2587,7 +2432,6 @@ module suins::controller_tests {
 
             coin::destroy_for_testing(coin);
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -2599,7 +2443,6 @@ module suins::controller_tests {
         make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -2613,7 +2456,6 @@ module suins::controller_tests {
 
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             controller::register_with_config_and_code(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -2630,7 +2472,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -2644,7 +2485,6 @@ module suins::controller_tests {
         make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -2658,7 +2498,6 @@ module suins::controller_tests {
 
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             controller::register_with_config_and_code(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -2674,7 +2513,6 @@ module suins::controller_tests {
                 &mut ctx,
             );
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -2709,7 +2547,6 @@ module suins::controller_tests {
         make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -2722,7 +2559,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -2736,7 +2572,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -2752,7 +2587,6 @@ module suins::controller_tests {
         make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -2765,7 +2599,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -2779,7 +2612,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -2787,14 +2619,13 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
 
             base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(controller::balance(&suins) == 1000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b""),
@@ -2811,7 +2642,6 @@ module suins::controller_tests {
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -2824,7 +2654,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -2837,7 +2666,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -2851,7 +2679,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -2867,7 +2694,6 @@ module suins::controller_tests {
         make_commitment(&mut scenario, some(FIRST_LABEL));
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -2880,7 +2706,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -2894,21 +2719,19 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
 
             base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(controller::balance(&suins) == 1000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b""),
@@ -2925,7 +2748,6 @@ module suins::controller_tests {
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -2938,7 +2760,7 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2953,16 +2775,15 @@ module suins::controller_tests {
             );
 
             controller::commit(
-                &mut controller,
+                &mut suins,
                 commitment,
                 &mut ctx,
             );
 
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -2975,7 +2796,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -2989,21 +2809,19 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
 
             base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(controller::balance(&suins) == 1000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b""),
@@ -3020,7 +2838,6 @@ module suins::controller_tests {
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -3033,7 +2850,7 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3048,16 +2865,15 @@ module suins::controller_tests {
             );
 
             controller::commit(
-                &mut controller,
+                &mut suins,
                 commitment,
                 &mut ctx,
             );
 
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -3070,7 +2886,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -3084,21 +2899,19 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(controller::balance(&suins) == 1000000, 0);
             assert!(name == utf8(AUCTIONED_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b""),
@@ -3115,7 +2928,6 @@ module suins::controller_tests {
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -3128,7 +2940,7 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3143,16 +2955,15 @@ module suins::controller_tests {
             );
 
             controller::commit(
-                &mut controller,
+                &mut suins,
                 commitment,
                 &mut ctx,
             );
 
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -3165,7 +2976,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -3179,21 +2989,19 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(controller::balance(&suins) == 1000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b""),
@@ -3210,7 +3018,6 @@ module suins::controller_tests {
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -3243,7 +3050,7 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3258,16 +3065,15 @@ module suins::controller_tests {
             );
 
             controller::commit(
-                &mut controller,
+                &mut suins,
                 commitment,
                 &mut ctx,
             );
 
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -3280,7 +3086,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -3294,7 +3099,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -3309,7 +3113,7 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3324,17 +3128,16 @@ module suins::controller_tests {
             );
 
             controller::commit(
-                &mut controller,
+                &mut suins,
                 commitment,
                 &mut ctx,
             );
 
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -3347,7 +3150,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -3361,7 +3163,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -3386,7 +3187,7 @@ module suins::controller_tests {
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3401,16 +3202,15 @@ module suins::controller_tests {
             );
 
             controller::commit(
-                &mut controller,
+                &mut suins,
                 commitment,
                 &mut ctx,
             );
 
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -3423,7 +3223,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -3437,21 +3236,19 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(controller::balance(&suins) == 1000000, 0);
             assert!(name == utf8(AUCTIONED_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b""),
@@ -3468,7 +3265,6 @@ module suins::controller_tests {
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -3501,7 +3297,7 @@ module suins::controller_tests {
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3516,16 +3312,15 @@ module suins::controller_tests {
             );
 
             controller::commit(
-                &mut controller,
+                &mut suins,
                 commitment,
                 &mut ctx,
             );
 
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -3538,7 +3333,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -3552,21 +3346,19 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(controller::balance(&suins) == 1000000, 0);
             assert!(name == utf8(AUCTIONED_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b""),
@@ -3583,7 +3375,6 @@ module suins::controller_tests {
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -3595,7 +3386,7 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3609,7 +3400,7 @@ module suins::controller_tests {
                 vector::push_back(&mut secret, i);
                 let commitment = controller::test_make_commitment(SUI_REGISTRAR, FIRST_LABEL, FIRST_USER_ADDRESS, secret);
                 controller::commit(
-                    &mut controller,
+                    &mut suins,
                     commitment,
                     &mut ctx,
                 );
@@ -3617,12 +3408,12 @@ module suins::controller_tests {
                 i = i + 1;
             };
 
-            assert!(controller::commitment_len(&controller) == 70, 0);
-            test_scenario::return_shared(controller);
+            assert!(controller::commitment_len(&suins) == 70, 0);
+            test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3631,22 +3422,21 @@ module suins::controller_tests {
             );
             let commitment = controller::test_make_commitment(SUI_REGISTRAR, b"label-1", FIRST_USER_ADDRESS, FIRST_SECRET);
             controller::commit(
-                &mut controller,
+                &mut suins,
                 commitment,
                 &mut ctx,
             );
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
-            std::debug::print(&controller::commitment_len(&controller));
-            assert!(controller::commitment_len(&controller) == 21, 0);
-            test_scenario::return_shared(controller);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            assert!(controller::commitment_len(&suins) == 21, 0);
+            test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3655,22 +3445,21 @@ module suins::controller_tests {
             );
             let commitment = controller::test_make_commitment(SUI_REGISTRAR, b"label-2", FIRST_USER_ADDRESS, FIRST_SECRET);
             controller::commit(
-                &mut controller,
+                &mut suins,
                 commitment,
                 &mut ctx,
             );
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
-
-            assert!(controller::commitment_len(&controller) == 2, 0);
-            test_scenario::return_shared(controller);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            assert!(controller::commitment_len(&suins) == 2, 0);
+            test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3679,18 +3468,17 @@ module suins::controller_tests {
             );
             let commitment = controller::test_make_commitment(SUI_REGISTRAR, b"label-3", FIRST_USER_ADDRESS, FIRST_SECRET);
             controller::commit(
-                &mut controller,
+                &mut suins,
                 commitment,
                 &mut ctx,
             );
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
-
-            assert!(controller::commitment_len(&controller) == 3, 0);
-            test_scenario::return_shared(controller);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            assert!(controller::commitment_len(&suins) == 3, 0);
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
@@ -3701,7 +3489,7 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3715,20 +3503,19 @@ module suins::controller_tests {
                 vector::push_back(&mut secret, i);
                 let commitment = controller::test_make_commitment(SUI_REGISTRAR, FIRST_LABEL, FIRST_USER_ADDRESS, secret);
                 controller::commit(
-                    &mut controller,
+                    &mut suins,
                     commitment,
                     &mut ctx,
                 );
 
                 i = i + 1;
             };
-
-            assert!(controller::commitment_len(&controller) == 40, 0);
-            test_scenario::return_shared(controller);
+            assert!(controller::commitment_len(&suins) == 40, 0);
+            test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3737,18 +3524,17 @@ module suins::controller_tests {
             );
             let commitment = controller::test_make_commitment(SUI_REGISTRAR, b"label-2", FIRST_USER_ADDRESS, FIRST_SECRET);
             controller::commit(
-                &mut controller,
+                &mut suins,
                 commitment,
                 &mut ctx,
             );
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
-
-            assert!(controller::commitment_len(&controller) == 1, 0);
-            test_scenario::return_shared(controller);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            assert!(controller::commitment_len(&suins) == 1, 0);
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
@@ -3760,7 +3546,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -3773,7 +3558,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register_with_image(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -3790,7 +3574,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -3805,7 +3588,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -3818,7 +3600,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register_with_image(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -3835,7 +3616,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -3850,7 +3630,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -3863,7 +3642,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register_with_image(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -3880,7 +3658,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -3895,7 +3672,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -3908,13 +3684,12 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(controller::balance(&controller) == 0, 0);
-            assert!(controller::commitment_len(&controller) == 1, 0);
+            assert!(controller::balance(&suins) == 0, 0);
+            assert!(controller::commitment_len(&suins) == 1, 0);
             assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
             controller::register_with_image(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -3930,10 +3705,9 @@ module suins::controller_tests {
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1000000, 0);
-            assert!(controller::commitment_len(&controller) == 0, 0);
+            assert!(controller::commitment_len(&suins) == 0, 0);
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -3941,14 +3715,13 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::balance(&controller) == 2000000, 0);
+            assert!(controller::balance(&suins) == 2000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"),
@@ -3965,7 +3738,6 @@ module suins::controller_tests {
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -3978,7 +3750,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -3992,11 +3763,10 @@ module suins::controller_tests {
 
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
-            assert!(controller::balance(&controller) == 0, 0);
+            assert!(controller::balance(&suins) == 0, 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
             controller::register_with_config_and_image(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -4015,7 +3785,6 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == 2000001, 0);
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -4023,14 +3792,13 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::balance(&controller) == 2000000, 0);
+            assert!(controller::balance(&suins) == 2000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"),
@@ -4047,23 +3815,22 @@ module suins::controller_tests {
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
 
         // withdraw
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(controller::balance(&controller) == 2000000, 0);
+            assert!(controller::balance(&suins) == 2000000, 0);
             assert!(!test_scenario::has_most_recent_for_sender<Coin<SUI>>(&mut scenario), 0);
 
-            controller::withdraw(&admin_cap, &mut controller, test_scenario::ctx(&mut scenario));
-            assert!(controller::balance(&controller) == 0, 0);
+            controller::withdraw(&admin_cap, &mut suins, test_scenario::ctx(&mut scenario));
+            assert!(controller::balance(&suins) == 0, 0);
 
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
 
@@ -4084,7 +3851,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -4097,7 +3863,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register_with_config_and_image(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -4115,7 +3880,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -4130,7 +3894,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -4143,7 +3906,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register_with_config_and_image(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -4161,7 +3923,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -4176,7 +3937,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -4189,7 +3949,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register_with_config_and_image(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -4207,7 +3966,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -4221,7 +3979,6 @@ module suins::controller_tests {
         make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -4234,14 +3991,13 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
-            assert!(controller::balance(&controller) == 0, 0);
+            assert!(controller::balance(&suins) == 0, 0);
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
             controller::register_with_code_and_image(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -4261,7 +4017,6 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == 1300000, 0);
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
@@ -4269,7 +4024,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -4283,7 +4037,7 @@ module suins::controller_tests {
                 0
             );
             assert!(coin::value(&coin) == 170000, 0);
-            assert!(controller::balance(&controller) == 1700000 - 170000, 0);
+            assert!(controller::balance(&suins) == 1700000 - 170000, 0);
 
             let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 21 + 730, 0);
@@ -4296,7 +4050,6 @@ module suins::controller_tests {
 
             coin::destroy_for_testing(coin);
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -4309,7 +4062,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -4322,7 +4074,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register_with_code_and_image(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -4341,7 +4092,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -4356,7 +4106,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -4369,7 +4118,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register_with_code_and_image(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -4388,7 +4136,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -4403,7 +4150,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -4416,7 +4162,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register_with_code_and_image(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -4435,7 +4180,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -4449,7 +4193,6 @@ module suins::controller_tests {
         make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -4461,14 +4204,13 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
-            assert!(controller::balance(&controller) == 0, 0);
+            assert!(controller::balance(&suins) == 0, 0);
             assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
             controller::register_with_config_and_code_and_image(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -4488,14 +4230,12 @@ module suins::controller_tests {
             );
             assert!(coin::value(&coin) == 1300000, 0);
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let coin = test_scenario::take_from_address<Coin<SUI>>(&mut scenario, SECOND_USER_ADDRESS);
@@ -4507,7 +4247,7 @@ module suins::controller_tests {
                 0
             );
             assert!(coin::value(&coin) == 170000, 0);
-            assert!(controller::balance(&controller) == 1700000 - 170000, 0);
+            assert!(controller::balance(&suins) == 1700000 - 170000, 0);
 
             let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 21 + 730, 0);
@@ -4520,7 +4260,6 @@ module suins::controller_tests {
 
             coin::destroy_for_testing(coin);
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -4532,7 +4271,6 @@ module suins::controller_tests {
         make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -4545,7 +4283,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register_with_config_and_code_and_image(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -4565,7 +4302,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -4579,7 +4315,6 @@ module suins::controller_tests {
         make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -4592,7 +4327,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register_with_config_and_code_and_image(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -4612,7 +4346,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -4626,7 +4359,6 @@ module suins::controller_tests {
         make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
@@ -4639,7 +4371,6 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             controller::register_with_config_and_code_and_image(
-                &mut controller,
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
@@ -4659,7 +4390,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(config);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -4674,20 +4404,19 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(controller::balance(&suins) == 1000000, 0);
             assert!(name == utf8(b"eastagile-123.sui"), 0);
             assert!(url == url::new_unsafe_from_bytes(b""), 0);
 
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, nft);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&scenario);
@@ -4695,12 +4424,11 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(2000001, ctx);
 
             assert!(base_registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 416, 0);
-            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(controller::balance(&suins) == 1000000, 0);
 
             controller::renew_with_image(
                 &mut suins,
                 SUI_REGISTRAR,
-                &mut controller,
                 &config,
                 FIRST_LABEL,
                 2,
@@ -4716,22 +4444,21 @@ module suins::controller_tests {
             assert!(base_registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 1146, 0);
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(&mut scenario, nft);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(controller::balance(&controller) == 3000000, 0);
+            assert!(controller::balance(&suins) == 3000000, 0);
             assert!(name == utf8(b"eastagile-123.sui"), 0);
             assert!(url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"), 0);
 
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, nft);
         };
         test_scenario::end(scenario);
@@ -4744,7 +4471,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&scenario);
@@ -4754,7 +4480,6 @@ module suins::controller_tests {
             controller::renew_with_image(
                 &mut suins,
                 SUI_REGISTRAR,
-                &mut controller,
                 &config,
                 FIRST_LABEL,
                 2,
@@ -4767,7 +4492,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -4782,7 +4506,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&scenario);
@@ -4792,7 +4515,6 @@ module suins::controller_tests {
             controller::renew_with_image(
                 &mut suins,
                 SUI_REGISTRAR,
-                &mut controller,
                 &config,
                 FIRST_LABEL,
                 2,
@@ -4805,7 +4527,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -4820,7 +4541,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&scenario);
@@ -4830,7 +4550,6 @@ module suins::controller_tests {
             controller::renew_with_image(
                 &mut suins,
                 SUI_REGISTRAR,
-                &mut controller,
                 &config,
                 FIRST_LABEL,
                 2,
@@ -4843,7 +4562,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -4858,7 +4576,6 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&scenario);
@@ -4875,7 +4592,6 @@ module suins::controller_tests {
             controller::renew_with_image(
                 &mut suins,
                 SUI_REGISTRAR,
-                &mut controller,
                 &config,
                 FIRST_LABEL,
                 2,
@@ -4888,7 +4604,6 @@ module suins::controller_tests {
             );
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -4903,20 +4618,19 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(controller::balance(&suins) == 1000000, 0);
             assert!(name == utf8(b"eastagile-123.sui"), 0);
             assert!(url == url::new_unsafe_from_bytes(b""), 0);
 
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, nft);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&scenario);
@@ -4929,12 +4643,11 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(2000001, &mut ctx);
 
             assert!(base_registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 416, 0);
-            assert!(controller::balance(&controller) == 1000000, 0);
+            assert!(controller::balance(&suins) == 1000000, 0);
 
             controller::renew_with_image(
                 &mut suins,
                 SUI_REGISTRAR,
-                &mut controller,
                 &config,
                 FIRST_LABEL,
                 2,
@@ -4950,22 +4663,21 @@ module suins::controller_tests {
             assert!(base_registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 1146, 0);
 
             coin::destroy_for_testing(coin);
-            test_scenario::return_shared(controller);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(&mut scenario, nft);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let controller = test_scenario::take_shared<BaseController>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = base_registrar::get_nft_fields(&nft);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(controller::balance(&controller) == 3000000, 0);
+            assert!(controller::balance(&suins) == 3000000, 0);
             assert!(name == utf8(b"eastagile-123.sui"), 0);
             assert!(url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"), 0);
 
-            test_scenario::return_shared(controller);
+            test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, nft);
         };
         test_scenario::end(scenario);

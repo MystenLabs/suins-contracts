@@ -4,7 +4,7 @@ module suins::reverse_registrar {
 
     use sui::event;
     use sui::tx_context::{TxContext, sender};
-    use suins::abc::{Self, SuiNS};
+    use suins::entity::{Self, SuiNS};
     use suins::base_registry::{Self, AdminCap};
     use suins::converter;
     use std::string;
@@ -24,7 +24,7 @@ module suins::reverse_registrar {
     /// Similar to `claim_with_resolver`. The only differrence is
     /// this function uses `default_name_resolver` property as resolver address.
     public entry fun claim(suins: &mut SuiNS, owner: address, ctx: &mut TxContext) {
-        let resolver = abc::default_name_resolver(suins);
+        let resolver = entity::default_resolver(suins);
         claim_with_resolver(suins, owner, resolver, ctx)
     }
 
@@ -53,7 +53,7 @@ module suins::reverse_registrar {
     /// #### Notice
     /// The admin uses this function to update `default_name_resolver`.
     public entry fun set_default_resolver(_: &AdminCap, suins: &mut SuiNS, resolver: address) {
-        *abc::default_name_resolver_mut(suins) = resolver;
+        *entity::default_resolver_mut(suins) = resolver;
         event::emit(DefaultResolverChangedEvent { resolver })
     }
 }

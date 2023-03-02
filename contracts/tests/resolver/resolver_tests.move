@@ -7,7 +7,7 @@ module suins::resolver_tests {
     use suins::base_registry;
     use suins::resolver::{Self, BaseResolver};
     use suins::base_registry_tests;
-    use suins::abc::{Self, SuiNS};
+    use suins::entity::{Self, SuiNS};
     use suins::converter::address_to_string;
     use suins::converter;
     use std::string::utf8;
@@ -31,7 +31,7 @@ module suins::resolver_tests {
         {
             let ctx = test_scenario::ctx(&mut scenario);
             base_registry::test_init(ctx);
-            abc::test_init(ctx);
+            entity::test_init(ctx);
             resolver::test_init(ctx);
         };
         scenario

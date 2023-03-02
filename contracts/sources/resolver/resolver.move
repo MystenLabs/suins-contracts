@@ -13,7 +13,7 @@ module suins::resolver {
     use std::string::{Self, String, utf8};
     use sui::vec_map::VecMap;
     use sui::vec_map;
-    use suins::abc::SuiNS;
+    use suins::entity::SuiNS;
 
     const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
     const NAME: vector<u8> = b"name";

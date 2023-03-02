@@ -35,7 +35,7 @@ module suins::controller {
     use std::vector;
     use std::option::{Self, Option};
     use sui::url::Url;
-    use suins::abc::{Self, SuiNS};
+    use suins::entity::{Self, SuiNS};
 
     // errors in the range of 301..400 indicate Sui Controller errors
     const EInvalidResolverAddress: u64 = 301;
@@ -83,7 +83,7 @@ module suins::controller {
     /// #### Params
     /// `resolver`: address of new default resolver.
     public entry fun set_default_resolver(_: &AdminCap, suins: &mut SuiNS, resolver: address) {
-        *abc::controller_default_addr_resolver_mut(suins) = resolver;
+        *entity::default_resolver_mut(suins) = resolver;
         event::emit(DefaultResolverChangedEvent { resolver })
     }
 
@@ -100,7 +100,7 @@ module suins::controller {
         commitment: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        let commitments = abc::controller_commitments_mut(suins);
+        let commitments = entity::controller_commitments_mut(suins);
         remove_outdated_commitments(commitments, ctx);
         linked_table::push_back(commitments, commitment, epoch(ctx));
     }
@@ -137,7 +137,7 @@ module suins::controller {
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext,
     ) {
-        let resolver = abc::controller_default_addr_resolver(suins);
+        let resolver = entity::default_resolver(suins);
         register_internal(
             suins,
             tld,
@@ -199,7 +199,7 @@ module suins::controller {
         ctx: &mut TxContext,
     ) {
         base_registrar::assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
-        let resolver = abc::controller_default_addr_resolver(suins);
+        let resolver = entity::default_resolver(suins);
 
         register_internal(
             suins,
@@ -342,7 +342,7 @@ module suins::controller {
         ctx: &mut TxContext,
     ) {
         let (referral_code, discount_code) = validate_codes(referral_code, discount_code);
-        let resolver = abc::controller_default_addr_resolver(suins);
+        let resolver = entity::default_resolver(suins);
 
         register_internal(
             suins,
@@ -399,7 +399,7 @@ module suins::controller {
     ) {
         base_registrar::assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
         let (referral_code, discount_code) = validate_codes(referral_code, discount_code);
-        let resolver = abc::controller_default_addr_resolver(suins);
+        let resolver = entity::default_resolver(suins);
 
         register_internal(
             suins,
@@ -588,7 +588,7 @@ module suins::controller {
     /// Panics
     /// Panics if no profits has been created.
     public entry fun withdraw(_: &AdminCap, suins: &mut SuiNS, ctx: &mut TxContext) {
-        let amount = balance::value(abc::controller_balance(suins));
+        let amount = balance::value(entity::controller_balance(suins));
         assert!(amount > 0, ENoProfits);
 
         coin_util::contract_transfer_to_address(suins, amount, sender(ctx), ctx);
@@ -749,7 +749,7 @@ module suins::controller {
         commitment: vector<u8>,
         ctx: &TxContext,
     ) {
-        let commitments = abc::controller_commitments_mut(suins);
+        let commitments = entity::controller_commitments_mut(suins);
         assert!(linked_table::contains(commitments, commitment), ECommitmentNotExists);
         // TODO: remove later when timestamp is introduced
         // assert!(
@@ -760,8 +760,8 @@ module suins::controller {
             *linked_table::borrow(commitments, commitment) + configuration::max_commitment_age() > epoch(ctx),
             ECommitmentTooOld
         );
-        assert!(base_registrar::is_available(suins, tld, string::utf8(label), ctx), ELabelUnAvailable);
         linked_table::remove(commitments, commitment);
+        assert!(base_registrar::is_available(suins, tld, string::utf8(label), ctx), ELabelUnAvailable);
     }
 
     fun make_commitment(tld: vector<u8>, label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
@@ -804,19 +804,19 @@ module suins::controller {
 
     #[test_only]
     public fun balance(suins: &SuiNS): u64 {
-        let contract_balance = abc::controller_balance(suins);
+        let contract_balance = entity::controller_balance(suins);
         balance::value(contract_balance)
     }
 
     #[test_only]
     public fun commitment_len(suins: &SuiNS): u64 {
-        let commitments = abc::controller_commitments(suins);
+        let commitments = entity::controller_commitments(suins);
         linked_table::length(commitments)
     }
 
     #[test_only]
     public fun get_default_resolver(suins: &SuiNS): address {
-        abc::controller_default_addr_resolver(suins)
+        entity::default_resolver(suins)
     }
 
     #[test_only]

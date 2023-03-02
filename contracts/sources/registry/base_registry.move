@@ -7,8 +7,8 @@ module suins::base_registry {
     use sui::transfer;
     use sui::tx_context::{TxContext, sender};
     use std::string::{Self, String};
-    use suins::abc::SuiNS;
-    use suins::abc::{
+    use suins::entity::SuiNS;
+    use suins::entity::{
         Self,
         name_record_owner,
         name_record_owner_mut,
@@ -127,10 +127,10 @@ module suins::base_registry {
     public entry fun set_resolver(suins: &mut SuiNS, node: vector<u8>, resolver: address, ctx: &mut TxContext) {
         authorised(suins, node, ctx);
         
-        let registry = abc::registry_mut(suins);
+        let registry = entity::registry_mut(suins);
         let node = string::utf8(node);
         let record = table::borrow_mut(registry, node);
-        *abc::name_record_resolver_mut(record) = resolver;
+        *entity::name_record_resolver_mut(record) = resolver;
         event::emit(NewResolverEvent { node, resolver });
     }
 
@@ -152,10 +152,10 @@ module suins::base_registry {
         // TODO: does this function have any use?
         authorised(suins, node, ctx);
 
-        let registry = abc::registry_mut(suins);
+        let registry = entity::registry_mut(suins);
         let node = string::utf8(node);
         let record = table::borrow_mut(registry, node);
-        *abc::name_record_ttl_mut(record) = ttl;
+        *entity::name_record_ttl_mut(record) = ttl;
         event::emit(NewTTLEvent { node, ttl });
     }
 
@@ -171,7 +171,7 @@ module suins::base_registry {
     /// Panics
     /// Panics if `node` doesn't exists.
     public fun owner(suins: &SuiNS, node: vector<u8>): address {
-        let registry = abc::registry(suins);
+        let registry = entity::registry(suins);
         let name_record = table::borrow(registry, string::utf8(node));
         *name_record_owner(name_record)
     }
@@ -186,7 +186,7 @@ module suins::base_registry {
     /// Panics
     /// Panics if `node` doesn't exists.
     public fun resolver(suins: &SuiNS, node: vector<u8>): address {
-        let registry = abc::registry(suins);
+        let registry = entity::registry(suins);
         let name_record = table::borrow(registry, string::utf8(node));
         *name_record_resolver(name_record)
     }
@@ -201,7 +201,7 @@ module suins::base_registry {
     /// Panics
     /// Panics if `node` doesn't exists.
     public fun ttl(suins: &SuiNS, node: vector<u8>): u64 {
-        let registry = abc::registry(suins);
+        let registry = entity::registry(suins);
         let name_record = table::borrow(registry, string::utf8(node));
         *name_record_ttl(name_record)
     }
@@ -216,7 +216,7 @@ module suins::base_registry {
     /// Panics
     /// Panics if `node` doesn't exists.
     public fun get_record_by_key(suins: &SuiNS, key: String): (address, address, u64) {
-        let registry = abc::registry(suins);
+        let registry = entity::registry(suins);
         let name_record = table::borrow(registry, key);
 
         (*name_record_owner(name_record), *name_record_resolver(name_record), *name_record_ttl(name_record))
@@ -230,7 +230,7 @@ module suins::base_registry {
     }
 
     public(friend) fun set_owner_internal(suins: &mut SuiNS, node: String, owner: address) {
-        let registry = abc::registry_mut(suins);
+        let registry = entity::registry_mut(suins);
         let name_record = table::borrow_mut(registry, node);
         *name_record_owner_mut(name_record) = owner
     }
@@ -243,7 +243,7 @@ module suins::base_registry {
         resolver: address,
         ttl: u64,
     ) {
-        let registry = abc::registry_mut(suins);
+        let registry = entity::registry_mut(suins);
         if (table::contains(registry, node)) {
             let record = table::borrow_mut(registry, node);
             *name_record_owner_mut(record) = owner;
@@ -273,7 +273,7 @@ module suins::base_registry {
         ttl: u64,
     ) {
         let record = new_name_record(owner, resolver, ttl);
-        let registry = abc::registry_mut(suins);
+        let registry = entity::registry_mut(suins);
         table::add(registry, node, record);
     }
 
@@ -289,7 +289,7 @@ module suins::base_registry {
 
     #[test_only]
     public fun record_exists(suins: &SuiNS, node: String): bool {
-        let registry = abc::registry(suins);
+        let registry = entity::registry(suins);
         table::contains(registry, node)
     }
 

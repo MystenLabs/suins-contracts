@@ -1,4 +1,4 @@
-module suins::abc {
+module suins::entity {
 
     use sui::tx_context::TxContext;
     use sui::object::{UID, ID};
@@ -28,7 +28,7 @@ module suins::abc {
         /// A registrar object can be created by calling `new_tld` and has a record with key `tld` to represent its tld.
         registrars: Table<String, Table<String, RegistrationRecord>>,
         /// Be used in `reverse_registrar.move`
-        default_name_resolver: address,
+        default_resolver: address,
         controller: Controller,
     }
 
@@ -47,9 +47,8 @@ module suins::abc {
 
     struct Controller has store {
         commitments: LinkedTable<vector<u8>, u64>,
-        // TODO: make it an outer field
         balance: Balance<SUI>,
-        default_addr_resolver: address,
+
     }
 
     public(friend) fun registry(suins: &SuiNS): &Table<String, NameRecord> {
@@ -76,12 +75,12 @@ module suins::abc {
         table::borrow_mut(&mut suins.registrars, tld)
     }
 
-    public(friend) fun default_name_resolver(suins: &SuiNS): address {
-        suins.default_name_resolver
+    public(friend) fun default_resolver(suins: &SuiNS): address {
+        suins.default_resolver
     }
 
-    public(friend) fun default_name_resolver_mut(suins: &mut SuiNS): &mut address {
-        &mut suins.default_name_resolver
+    public(friend) fun default_resolver_mut(suins: &mut SuiNS): &mut address {
+        &mut suins.default_resolver
     }
 
     public(friend) fun name_record_owner(name_record: &NameRecord): &address {
@@ -133,14 +132,6 @@ module suins::abc {
         RegistrationRecord { expiry, owner, nft_id }
     }
 
-    public(friend) fun controller_default_addr_resolver(suins: &SuiNS): address {
-        suins.controller.default_addr_resolver
-    }
-
-    public(friend) fun controller_default_addr_resolver_mut(suins: &mut SuiNS): &mut address {
-        &mut suins.controller.default_addr_resolver
-    }
-
     public(friend) fun controller_commitments(suins: &SuiNS): &LinkedTable<vector<u8>, u64> {
         &suins.controller.commitments
     }
@@ -164,14 +155,13 @@ module suins::abc {
         let controller = Controller {
             commitments: linked_table::new(ctx),
             balance: balance::zero(),
-            default_addr_resolver: @0x0,
         };
 
         transfer::share_object(SuiNS {
             id: object::new(ctx),
             registry,
             registrars,
-            default_name_resolver: @0x0,
+            default_resolver: @0x0,
             controller,
         })
     }
@@ -190,14 +180,13 @@ module suins::abc {
         let controller = Controller {
             commitments: linked_table::new(ctx),
             balance: balance::zero(),
-            default_addr_resolver: @0x0,
         };
 
         transfer::share_object(SuiNS {
             id: object::new(ctx),
             registry,
             registrars,
-            default_name_resolver: @0x0,
+            default_resolver: @0x0,
             controller,
         })
     }

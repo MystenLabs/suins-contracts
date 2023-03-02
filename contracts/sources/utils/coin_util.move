@@ -1,14 +1,13 @@
 module suins::coin_util {
 
-    use sui::coin;
-    use sui::balance::Balance;
+    use sui::balance;
+    use sui::coin::{Self, Coin};
     use sui::sui::SUI;
     use sui::tx_context::TxContext;
     use sui::transfer;
-    use sui::coin::Coin;
-    use sui::balance;
-    use suins::abc::SuiNS;
-    use suins::abc;
+    use suins::entity::{Self, SuiNS};
+    use suins::auction::Auction;
+    use sui::balance::Balance;
 
     friend suins::auction;
     friend suins::controller;
@@ -26,7 +25,13 @@ module suins::coin_util {
     public(friend) fun user_transfer_to_contract(payment: &mut Coin<SUI>, amount: u64, contract: &mut SuiNS) {
         let coin_balance = coin::balance_mut(payment);
         let paid = balance::split(coin_balance, amount);
-        balance::join(abc::controller_balance_mut(contract), paid);
+        balance::join(entity::controller_balance_mut(contract), paid);
+    }
+
+    public(friend) fun user_transfer_to_contract_2(payment: &mut Coin<SUI>, amount: u64, receiver: &mut Balance<SUI>) {
+        let coin_balance = coin::balance_mut(payment);
+        let paid = balance::split(coin_balance, amount);
+        balance::join(receiver, paid);
     }
 
     public(friend) fun contract_transfer_to_address(
@@ -35,7 +40,7 @@ module suins::coin_util {
         receiver: address,
         ctx: &mut TxContext
     ) {
-        let coin = coin::take(abc::controller_balance_mut(contract), amount, ctx);
+        let coin = coin::take(entity::controller_balance_mut(contract), amount, ctx);
         transfer::transfer(coin, receiver);
     }
 }

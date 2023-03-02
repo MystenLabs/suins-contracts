@@ -6,8 +6,8 @@ module suins::reverse_registrar_tests {
     use suins::reverse_registrar;
     use suins::base_registrar;
     use std::string::utf8;
-    use suins::abc::SuiNS;
-    use suins::abc;
+    use suins::entity::SuiNS;
+    use suins::entity;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -22,7 +22,7 @@ module suins::reverse_registrar_tests {
         {
             let ctx = test_scenario::ctx(&mut scenario);
             base_registry::test_init(ctx);
-            abc::test_init(ctx);
+            entity::test_init(ctx);
         };
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
@@ -142,7 +142,7 @@ module suins::reverse_registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let default_resolver = abc::default_name_resolver(&suins);
+            let default_resolver = entity::default_resolver(&suins);
             assert!(default_resolver == @0x0, 0);
 
             test_scenario::return_shared(suins);
@@ -167,7 +167,7 @@ module suins::reverse_registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let default_resolver = abc::default_name_resolver(&suins);
+            let default_resolver = entity::default_resolver(&suins);
             assert!(default_resolver == FIRST_RESOLVER_ADDRESS, 0);
 
             test_scenario::return_shared(suins);
