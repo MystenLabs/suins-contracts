@@ -20,7 +20,7 @@ module suins::auction {
     use suins::base_registry::AdminCap;
     use suins::configuration::{Self, Configuration};
     use suins::coin_util;
-    use suins::abc::SuiNS;
+    use suins::entity::SuiNS;
     // use suins::emoji;
 
     const MIN_PRICE: u64 = 1000;
@@ -205,7 +205,7 @@ module suins::auction {
         table::add(&mut auction.entries, label, entry);
         event::emit(AuctionStartedEvent { label, start_at });
 
-        coin_util::user_transfer_to_contract(payment, FEE_PER_YEAR, &mut auction.balance)
+        coin_util::user_transfer_to_auction(payment, FEE_PER_YEAR, &mut auction.balance)
     }
 
     /// #### Notice
@@ -257,7 +257,7 @@ module suins::auction {
         vector::push_back(bids_by_sender, bid);
         event::emit(NewBidEvent { bidder, sealed_bid, bid_value_mask });
 
-        coin_util::user_transfer_to_contract(payment, bid_value_mask, &mut auction.balance)
+        coin_util::user_transfer_to_auction(payment, bid_value_mask, &mut auction.balance)
     }
 
     /// #### Notice
@@ -409,18 +409,18 @@ module suins::auction {
             if (
                 entry.winner == detail.bidder
                     && entry.highest_bid == detail.bid_value
-                    && detail.bid_value_mask - detail.bid_value > 0
+                    // && detail.bid_value_mask - detail.bid_value > 0
             ) {
                 if (entry.second_highest_bid != 0) {
-                    coin_util::contract_transfer_to_address(
+                    coin_util::auction_transfer_to_address(
                         &mut auction.balance,
                         detail.bid_value_mask - entry.second_highest_bid,
                         detail.bidder,
                         ctx
                     );
-                } else {
+                } else if (detail.bid_value_mask - detail.bid_value > 0) {
                     // winner is the only one who bided
-                    coin_util::contract_transfer_to_address(
+                    coin_util::auction_transfer_to_address(
                         &mut auction.balance,
                         detail.bid_value_mask - detail.bid_value,
                         detail.bidder,
@@ -429,7 +429,8 @@ module suins::auction {
                 }
             } else {
                 // TODO: charge paymennt as punishmennt
-                coin_util::contract_transfer_to_address(
+                // not the winner
+                coin_util::auction_transfer_to_address(
                     &mut auction.balance,
                     detail.bid_value_mask,
                     detail.bidder,
@@ -486,7 +487,7 @@ module suins::auction {
                 };
             };
             // TODO: transfer all balances at once
-            coin_util::contract_transfer_to_address(
+            coin_util::auction_transfer_to_address(
                 &mut auction.balance,
                 detail.bid_value_mask,
                 detail.bidder,
@@ -633,6 +634,11 @@ module suins::auction {
     }
 
     // === Testing ===
+
+    #[test_only]
+    public fun get_balance(auction: &Auction): u64 {
+        balance::value(&auction.balance)
+    }
 
     #[test_only]
     public fun get_bids_by_bidder(auction: &Auction, bidder: address): vector<BidDetail> {
