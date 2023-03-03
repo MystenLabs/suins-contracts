@@ -416,7 +416,7 @@ module suins::auction {
                         detail.bidder,
                         ctx
                     );
-                }  else if (detail.bid_value_mask - detail.bid_value > 0) {
+                } else if (detail.bid_value_mask - detail.bid_value > 0) {
                     // winner is the only one who bided
                     coin_util::contract_transfer_to_address(
                         &mut auction.balance,
