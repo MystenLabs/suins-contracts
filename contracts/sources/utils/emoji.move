@@ -2,7 +2,7 @@ module suins::emoji {
 
     use std::string::{Self, String, utf8};
     use std::vector;
-    // use resources::emoji_resource;
+    use resources::emoji_resource;
 
     friend suins::configuration;
 
@@ -49,20 +49,20 @@ module suins::emoji {
     }
 
     public(friend) fun init_emoji_config(): EmojiConfiguration {
-        let one_character_emojis = vector[];
-        let two_character_emojis = vector[];
-        let three_character_emojis = vector[];
-        let four_character_emojis = vector[];
-        let five_character_emojis = vector[];
-        let six_character_emojis = vector[];
-        let seven_character_emojis = vector[];
-        let eight_character_emojis = vector[];
-        let two_character_skin_tone_emojis = vector[];
-        let four_character_skin_tone_emojis = vector[];
-        let five_character_skin_tone_emojis = vector[];
-        let seven_character_skin_tone_emojis = vector[];
-        let eight_character_skin_tone_emojis = vector[];
-        let ten_character_skin_tone_emojis = vector[];
+        let one_character_emojis = emoji_resource::one_character_emojis();
+        let two_character_emojis = emoji_resource::two_character_emojis();
+        let three_character_emojis = emoji_resource::three_character_emojis();
+        let four_character_emojis = emoji_resource::four_character_emojis();
+        let five_character_emojis = emoji_resource::five_character_emojis();
+        let six_character_emojis = emoji_resource::six_character_emojis();
+        let seven_character_emojis = emoji_resource::seven_character_emojis();
+        let eight_character_emojis = emoji_resource::eight_character_emojis();
+        let two_character_skin_tone_emojis = emoji_resource::two_character_skin_tone_emojis();
+        let four_character_skin_tone_emojis = emoji_resource::four_character_skin_tone_emojis();
+        let five_character_skin_tone_emojis = emoji_resource::five_character_skin_tone_emojis();
+        let seven_character_skin_tone_emojis = emoji_resource::seven_character_skin_tone_emojis();
+        let eight_character_skin_tone_emojis = emoji_resource::eight_character_skin_tone_emojis();
+        let ten_character_skin_tone_emojis = emoji_resource::ten_character_skin_tone_emojis();
         let skin_tones = vector[
             vector[240, 159, 143, 187], // light skin tone U+1F3FB
             vector[240, 159, 143, 188], // medium-light skin tone U+1F3FC
@@ -289,7 +289,7 @@ module suins::emoji {
         assert!(remaining_characters == 0, EInvalidLabel);
         result
     }
-    
+
     // Byte 1    Type
     // 0xxxxxxx  1 byte
     // 110xxxxx  2 bytes
@@ -559,6 +559,6 @@ module suins::emoji {
         false
     }
 
-    // #[test_only]
-    // friend suins::emoji_tests;
+    #[test_only]
+    friend suins::emoji_tests;
 }
