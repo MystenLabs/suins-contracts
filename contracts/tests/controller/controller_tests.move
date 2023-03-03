@@ -4007,8 +4007,8 @@ module suins::controller_tests {
                 FIRST_SECRET,
                 &mut coin,
                 x"",
-                x"127552ffa7fb7c3718ee61851c49eba03ef7d0dc0933c7c5802cdd98226f6006",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,375",
+                x"9e60301bec6f4b857eeaae141f3eb1373468500587d2798941b09e96ab390dc3",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,375,abc",
                 &mut ctx,
             );
 
@@ -4053,9 +4053,9 @@ module suins::controller_tests {
                 2,
                 FIRST_SECRET,
                 &mut coin,
-                x"6aab9920d59442c5478c3f5b29db45518b40a3d76f1b396b70c902b557e93b206b0ce9ab84ce44277d84055da9dd10ff77c490ba8473cd86ead37be874b9662f",
+                x"1ade6c7ae5e0e2a1a4396b51c9c9df854504232e6dbf70ceb15b45ba5ab974a05045cc6fa92ed5f0a8ecd17c8e55947b867834222dc69d68b0749dd46d6902a4",
                 x"",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,375",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,375,abc",
                 &mut ctx,
             );
 
@@ -4494,9 +4494,9 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 DISCOUNT_CODE,
-                x"b8d5c020ccf043fb1dde772067d54e254041ec4c8e137f5017158711e59e86933d1889cf4d9c6ad8ef57290cc00d99b7ba60da5c0db64a996f72af010acdd2b0",
-                x"64d1c3d80ac32235d4bf1c5499ac362fd28b88eba2984e81cc36924be09f5a2d",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,751",
+                x"47a547512876ed951e8a7ff05e0081517032882801592b1afdc822a98611583914ab16cb81f031c669a7650a8ff26c37429c7e85dd70c7068c8ab9f86dc4c667",
+                x"87a36f92452b4b32bf624bed5e587d2595105a071b96c80b5f7c697dbf1cddef",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,751,hmm",
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1300000, 0);
@@ -4735,9 +4735,9 @@ module suins::controller_tests {
                 &mut coin,
                 REFERRAL_CODE,
                 DISCOUNT_CODE,
-                x"b8d5c020ccf043fb1dde772067d54e254041ec4c8e137f5017158711e59e86933d1889cf4d9c6ad8ef57290cc00d99b7ba60da5c0db64a996f72af010acdd2b0",
-                x"64d1c3d80ac32235d4bf1c5499ac362fd28b88eba2984e81cc36924be09f5a2d",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,751",
+                x"f3a51aacb6bf3cf41e778772a97c0f5dcd7fa812e38bb8b50f5f1ea9fc1b8983524048cd11163ed8f6dbcef0892397b87bdeca192d5ab3f2cedf8ad445e27ab0",
+                x"dade7c2260ab75fb729a2d3b526e836c5408eb6a4e7bc59490b56a46c99e83f6",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,751,817",
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1300000, 0);
@@ -5210,9 +5210,9 @@ module suins::controller_tests {
                 2,
                 &mut coin,
                 &mut nft,
-                x"9d1b824b2c7c3649cc967465393cc00cfa3e4c8e542ef0175a0525f91cb80b8721370eb6ca3f36896e0b740f99ebd02ea3e50480b19ac66466045b3e4763b14f",
-                x"8ae97b7af21e857a343b93f0ca8a132819aa4edd4bedcee3e3a37d8f9bb89821",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,1146",
+                x"bc83dff092e33a66644781a5987298d705bfb6dd5e7ca1f94b32f24036e896976c9770178df149cedb577ada1e660adb4a2894570c7c5c063c9e6ef84718660c",
+                x"26b27673f1f87a943b887ffc6c5d2aa71a1ab6300c4a189f8b0212c94d6435b9",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,1146,abc",
                 &mut ctx,
             );
 

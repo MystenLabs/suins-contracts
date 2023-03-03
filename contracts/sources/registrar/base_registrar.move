@@ -9,7 +9,7 @@ module suins::base_registrar {
     use sui::transfer;
     use sui::tx_context::{TxContext, epoch, sender};
     use sui::url::Url;
-    use std::string::{Self, String};
+    use std::string::{Self, String, utf8};
     use std::option;
     use std::vector;
     use suins::base_registry::{Self, Registry, AdminCap};
@@ -84,6 +84,7 @@ module suins::base_registrar {
         sender: address,
         node: String,
         new_image: Url,
+        data: String,
     }
 
     /// #### Notice
@@ -179,7 +180,7 @@ module suins::base_registrar {
         assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
         assert_image_msg_match(config, signature, hashed_msg, raw_msg);
 
-        let (ipfs, node_msg, expiry) = remove_later::deserialize_image_msg(raw_msg);
+        let (ipfs, node_msg, expiry, additional_data) = remove_later::deserialize_image_msg(raw_msg);
 
         assert!(node_msg == nft.name, EInvalidImageMessage);
 
@@ -192,6 +193,7 @@ module suins::base_registrar {
             sender: sender(ctx),
             node: nft.name,
             new_image: nft.url,
+            data: additional_data,
         })
     }
 
@@ -313,7 +315,7 @@ module suins::base_registrar {
         resolver: address,
         ctx: &mut TxContext
     ): ID {
-        let (nft_id, _url) = register_with_image(
+        let (nft_id, _, _additional_data) = register_with_image(
             registrar,
             registry,
             config,
@@ -341,7 +343,7 @@ module suins::base_registrar {
         hashed_msg: vector<u8>,
         raw_msg: vector<u8>,
         ctx: &mut TxContext
-    ): (ID, Url) {
+    ): (ID, Url, String) {
         // the calling fuction is responsible for checking emptyness of msg
         assert!(duration > 0, EInvalidDuration);
         // TODO: label is already validated in Controller, consider removing this
@@ -356,17 +358,18 @@ module suins::base_registrar {
         string::append(&mut node, registrar.tld);
 
         let url;
+        let additional_data = utf8(vector[]);
         if (vector::is_empty(&hashed_msg) || vector::is_empty(&raw_msg) || vector::is_empty(&signature))
             url = url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY")
         else {
             assert_image_msg_match(config, signature, hashed_msg, raw_msg);
 
-            let (ipfs, node_msg, expiry_msg) = remove_later::deserialize_image_msg(raw_msg);
-
+            let (ipfs, node_msg, expiry_msg, data) = remove_later::deserialize_image_msg(raw_msg);
             assert!(node_msg == node, EInvalidImageMessage);
             assert!(expiry_msg == expiry, EInvalidImageMessage);
 
             url = url::new_unsafe(string::to_ascii(ipfs));
+            additional_data = data
         };
 
         let nft = RegistrationNFT {
@@ -386,7 +389,7 @@ module suins::base_registrar {
         transfer::transfer(nft, owner);
         base_registry::set_record_internal(registry, node, owner, resolver, 0);
 
-        (nft_id, url)
+        (nft_id, url, additional_data)
     }
 
     /// this function doesn't charge fee

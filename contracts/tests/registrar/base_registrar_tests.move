@@ -682,14 +682,13 @@ module suins::base_registrar_tests {
                 10,
                 0
             );
-            let signature = x"2a1e950f3f591a69249edfe144f36cee833963c5f1864182996d8dfe012af070389133ad07a2ae00709d3b60d090bc8d56b0c41d8f19aaeb662a1f556f81d452";
             base_registrar::update_image_url(
                 &mut registrar,
                 &config,
                 &mut nft,
-                signature,
-                x"3431f0a9e0fe14c885766842f37b43b774e60dbd96f8502cc327e1ac20d06257",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,475",
+                x"e35de3997a3f9f5614b207f4d7516ca1709e8d46bf2c45ada5ac0383c2939df050859994404b04cdc9f01aa200322b3af6738866347fe50d195b58982d5fa725",
+                x"fee40dbc963366e0d1eb8337bf2b491c2b96a6958d56aca077484861ef61cf89",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,475,abcc",
                 &mut ctx
             );
             test_scenario::return_shared(registrar);
@@ -717,14 +716,13 @@ module suins::base_registrar_tests {
                 10,
                 0
             );
-            let signature = x"74716e2b81ce8f982db8ab6c1b6e5d0c1df50d9ecad26dbc285b92f2721a35d7515f6e97d8eb5dba686af2a42d37c79622d89570bd55bdbb399fe0257f1c899e";
             base_registrar::update_image_url(
                 &mut registrar,
                 &config,
                 &mut nft,
-                signature,
-                x"7e7edd15b1a66887c5a18849bcb82180f339eb970c5c18e51d85c0c64d7ca587",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,0",
+                x"b7b041efd085fca2c51390c7b14a7435c03e34108db6fe246042122afdc2eb2c4c1854ef36648687caa544824430789b46600ba1b3f825238c0dc51398be470c",
+                x"94d2dee8cbd671f216dea04e603f48372ff53be37903db078ecc2a359489d74f",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,0,12323",
                 &mut ctx
             );
             test_scenario::return_shared(registrar);
@@ -752,14 +750,13 @@ module suins::base_registrar_tests {
                 10,
                 0
             );
-            let signature = x"9ac9dcb87c02f9c7d5a509aedef026a2581703a0403ad3e6bfa1013e8c21c80b5d91e5ab10ee641265f388c43517f61338c872cb6370fc2c13f3dfe0491db986";
             base_registrar::update_image_url(
                 &mut registrar,
                 &config,
                 &mut nft,
-                signature,
-                x"a397f397765a84c1885c046f3847cec6ca875b2c071d691e996edad3d845a7df",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,100",
+                x"b809099a3de92d522bee0c5b7d99b83c9a00655a2ac7a7362b565e01746fa086774d196101fdadaee4116c0e0e1a0b41fa4ca82a38704f6b7c80f329dba67544",
+                x"f19357bae95101a5cac9e88b28b8e46984d7d49bc999ccbe1c1e00ba5ee84ef1",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,100,020",
                 &mut ctx
             );
             test_scenario::return_shared(registrar);
@@ -1015,9 +1012,9 @@ module suins::base_registrar_tests {
         let scenario = test_init();
         register_with_image(
             &mut scenario,
-            x"1750ce9c94af251d3288589b4e98369ee09a41530b42f545eab96763ecbaa8b941f0a814e7440eacd803c507633825ca1f70dc9018b59cb3e49871ca6ddcf704",
-            x"c9cbb723ef1dce214552f05378404491ce9cb36429df9ca307b1619268f09335",
-            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,375",
+            x"acba9ddee8ee59cdbdf00cc67d3b9c7edea4dd438da6eb14a4e6f4e4092acf6f7ccd4227dde6fc47c446fa3223ff7c236ef66ec63d88ecb8b8abc1dda76a808c",
+            x"63051bdac22fbebcebb1ff3bf7bd9f1bb6bc5b318b47688d7eab9c4753eee4c3",
+            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,375,375",
         );
         test_scenario::end(scenario);
     }
@@ -1027,9 +1024,9 @@ module suins::base_registrar_tests {
         let scenario = test_init();
         register_with_image(
             &mut scenario,
-            x"6aab99201d259442c5478c3f5b29db45518b40a3d76f1b396b70c902b557e93b206b0ce9ab84ce44277d84055da9dd10ff77c490ba8473cd86ead37be874b9662f",
-            x"127552ffa7fb7c3718ee61851c49eba03ef7d0dc0933c7c5802cdd98226f6006",
-            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,375",
+            x"5d15c178ed2ba9aa8f31d014bfafbf891452d5688cd8361de8c8e41b5dfd9a3b4508b9dedfe8e7ca5db686d61e382f596dcd037e0adbf459898686852ec7680a",
+            x"ed22c86bed41e4bafc4f7dfd4b7061ec50b8b920cf319820325656d95b134298",
+            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,375,zzzz",
         );
         test_scenario::end(scenario);
     }
@@ -1051,9 +1048,9 @@ module suins::base_registrar_tests {
         let scenario = test_init();
         register_with_image(
             &mut scenario,
-            x"e9e1685a4f0c0ef26c4425705ca9e7828ef0c42ad2a5e563e83d109d1fafd9d10106131af6bae1d69c0d7669cac7da85839f536d7a7d9e467136f308927a7312",
-            x"849fdf5caead3e290f4adf2db7968fb5c5e0686a14a75f8da6e48292fd73a10e",
-            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b002,375",
+            x"654f29638be12f65e7ab956e6b7a853fe251fdd906fd26a85e7c2c0a3c818d733e4f28daad7237dc44a874cd03580b23e0b1df237790adcb32c6a24d061211a3",
+            x"dbb83d406751dab7a0d674454dcdf5622eda7a81093581c174c8d52f91a75273",
+            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b002,375,owner",
         );
         test_scenario::end(scenario);
     }
@@ -1063,9 +1060,9 @@ module suins::base_registrar_tests {
         let scenario = test_init();
         register_with_image(
             &mut scenario,
-            x"ea4abdb40e717429107b8b198436d574306444d87d505c7c3b0847b122af6b45239fe3e8ddbb561854ce78f73345a0dc9880dd0878046ff1be3f6a1df4dab287",
-            x"f6221e1f7a27baeab302011f89cfc863ae1b469c54dc4f2415e63369999c7ffe",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,00000000000000000000000b001,375",
+            x"53a7a61b7ed28b790c59394df858b95759687c2ce5f333e8bb2cb389753c48e5286c827aa6135ddfef84a14419afb3b9fb2138cd85d0131e29089afadbb91e81",
+            x"7019634e1149b310540db5256748f5428f45f0030b87f078fb9a7f7874fedadb",
+            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,00000000000000000000000b001,375,QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k",
         );
 
         test_scenario::end(scenario);
@@ -1076,9 +1073,9 @@ module suins::base_registrar_tests {
         let scenario = test_init();
         register_with_image(
             &mut scenario,
-            x"2a1e950f3f591a69249edfe144f36cee833963c5f1864182996d8dfe012af070389133ad07a2ae00709d3b60d090bc8d56b0c41d8f19aaeb662a1f556f81d452",
-            x"3431f0a9e0fe14c885766842f37b43b774e60dbd96f8502cc327e1ac20d06257",
-            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,475",
+            x"b85a85727edfce141b6e3e9a1aceb0d3b4e82e553a96b321f8af8038f77a9d943756be43355faa81c674c2ab319a2d4df38eccf6e20a5b4e58cc03c7df080adf",
+            x"e07a64047259b2ab6cab9be81bea78817f28304faf517e1f59581cf705ef22ce",
+            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,475,500",
         );
         test_scenario::end(scenario);
     }
@@ -1088,9 +1085,9 @@ module suins::base_registrar_tests {
         let scenario = test_init();
         register_with_image(
             &mut scenario,
-            x"74716e2b81ce8f982db8ab6c1b6e5d0c1df50d9ecad26dbc285b92f2721a35d7515f6e97d8eb5dba686af2a42d37c79622d89570bd55bdbb399fe0257f1c899e",
-            x"7e7edd15b1a66887c5a18849bcb82180f339eb970c5c18e51d85c0c64d7ca587",
-            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,0",
+            x"dc9abf416a15e326ba98759e729ba883b9e340a4b6a3a2482e6b5611301d8207173eb825019fd2716bb5a3273a546d5d8db6b5ddfadbd8ce13700b38991e391c",
+            x"0b772ef9ced4f7f3ad69ec3e481531b7308900c540c9c64f5519af00dd9d9058",
+            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,0,aaaa",
         );
         test_scenario::end(scenario);
     }
@@ -1113,15 +1110,13 @@ module suins::base_registrar_tests {
                 500,
                 0
             );
-            let signature = x"6aab9920d59442c5478c3f5b29db45518b40a3d76f1b396b70c902b557e93b206b0ce9ab84ce44277d84055da9dd10ff77c490ba8473cd86ead37be874b9662f";
-
             base_registrar::update_image_url(
                 &mut registrar,
                 &config,
                 &mut nft,
-                signature,
-                x"127552ffa7fb7c3718ee61851c49eba03ef7d0dc0933c7c5802cdd98226f6006",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,375",
+                x"b85eceafd8685ce006f9ec4f93ca5ffccc125b8720816a6f811cb72039a201870d07b4fa2bbbe1bd8d6e43550eaceda9ce9291535a90435784dbdd31f88d6d84",
+                x"88ef894aa6ed87392968c14d3287781517f3bf921b0bafb7e0cd54170b4d8f91",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,375,000000000000000000000000000000000000b001",
                 &mut ctx
             );
             test_scenario::return_shared(registrar);
