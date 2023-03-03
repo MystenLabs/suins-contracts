@@ -11,12 +11,13 @@ During auction period, only domains with 7 to 63 characters can be registered vi
 but after the auction has ended, all domains can be registered.
 
 
--  [Resource `BaseController`](#0x0_controller_BaseController)
 -  [Struct `NameRegisteredEvent`](#0x0_controller_NameRegisteredEvent)
 -  [Struct `DefaultResolverChangedEvent`](#0x0_controller_DefaultResolverChangedEvent)
 -  [Struct `NameRenewedEvent`](#0x0_controller_NameRenewedEvent)
+-  [Resource `BaseController`](#0x0_controller_BaseController)
 -  [Constants](#@Constants_0)
 -  [Function `set_default_resolver`](#0x0_controller_set_default_resolver)
+-  [Function `set_disable`](#0x0_controller_set_disable)
 -  [Function `commit`](#0x0_controller_commit)
 -  [Function `register`](#0x0_controller_register)
 -  [Function `register_with_image`](#0x0_controller_register_with_image)
@@ -30,9 +31,9 @@ but after the auction has ended, all domains can be registered.
 -  [Function `renew_with_image`](#0x0_controller_renew_with_image)
 -  [Function `withdraw`](#0x0_controller_withdraw)
 -  [Function `renew_internal`](#0x0_controller_renew_internal)
--  [Function `register_internal`](#0x0_controller_register_internal)
 -  [Function `apply_referral_code`](#0x0_controller_apply_referral_code)
 -  [Function `apply_discount_code`](#0x0_controller_apply_discount_code)
+-  [Function `register_internal`](#0x0_controller_register_internal)
 -  [Function `remove_outdated_commitments`](#0x0_controller_remove_outdated_commitments)
 -  [Function `consume_commitment`](#0x0_controller_consume_commitment)
 -  [Function `make_commitment`](#0x0_controller_make_commitment)
@@ -64,51 +65,6 @@ but after the auction has ended, all domains can be registered.
 </code></pre>
 
 
-
-<a name="0x0_controller_BaseController"></a>
-
-## Resource `BaseController`
-
-
-
-<pre><code><b>struct</b> <a href="controller.md#0x0_controller_BaseController">BaseController</a> <b>has</b> key
-</code></pre>
-
-
-
-<details>
-<summary>Fields</summary>
-
-
-<dl>
-<dt>
-<code>id: <a href="_UID">object::UID</a></code>
-</dt>
-<dd>
-
-</dd>
-<dt>
-<code>commitments: <a href="_LinkedTable">linked_table::LinkedTable</a>&lt;<a href="">vector</a>&lt;u8&gt;, u64&gt;</code>
-</dt>
-<dd>
-
-</dd>
-<dt>
-<code><a href="">balance</a>: <a href="_Balance">balance::Balance</a>&lt;<a href="_SUI">sui::SUI</a>&gt;</code>
-</dt>
-<dd>
-
-</dd>
-<dt>
-<code>default_addr_resolver: <b>address</b></code>
-</dt>
-<dd>
-
-</dd>
-</dl>
-
-
-</details>
 
 <a name="0x0_controller_NameRegisteredEvent"></a>
 
@@ -263,6 +219,57 @@ but after the auction has ended, all domains can be registered.
 
 </details>
 
+<a name="0x0_controller_BaseController"></a>
+
+## Resource `BaseController`
+
+
+
+<pre><code><b>struct</b> <a href="controller.md#0x0_controller_BaseController">BaseController</a> <b>has</b> key
+</code></pre>
+
+
+
+<details>
+<summary>Fields</summary>
+
+
+<dl>
+<dt>
+<code>id: <a href="_UID">object::UID</a></code>
+</dt>
+<dd>
+
+</dd>
+<dt>
+<code>commitments: <a href="_LinkedTable">linked_table::LinkedTable</a>&lt;<a href="">vector</a>&lt;u8&gt;, u64&gt;</code>
+</dt>
+<dd>
+
+</dd>
+<dt>
+<code><a href="">balance</a>: <a href="_Balance">balance::Balance</a>&lt;<a href="_SUI">sui::SUI</a>&gt;</code>
+</dt>
+<dd>
+
+</dd>
+<dt>
+<code>default_addr_resolver: <b>address</b></code>
+</dt>
+<dd>
+
+</dd>
+<dt>
+<code>disable: bool</code>
+</dt>
+<dd>
+ To turn off registration
+</dd>
+</dl>
+
+
+</details>
+
 <a name="@Constants_0"></a>
 
 ## Constants
@@ -277,11 +284,29 @@ but after the auction has ended, all domains can be registered.
 
 
 
+<a name="0x0_controller_EInvalidMessage"></a>
+
+
+
+<pre><code><b>const</b> <a href="controller.md#0x0_controller_EInvalidMessage">EInvalidMessage</a>: u64 = 313;
+</code></pre>
+
+
+
 <a name="0x0_controller_ELabelUnAvailable"></a>
 
 
 
 <pre><code><b>const</b> <a href="controller.md#0x0_controller_ELabelUnAvailable">ELabelUnAvailable</a>: u64 = 308;
+</code></pre>
+
+
+
+<a name="0x0_controller_FEE_PER_YEAR"></a>
+
+
+
+<pre><code><b>const</b> <a href="controller.md#0x0_controller_FEE_PER_YEAR">FEE_PER_YEAR</a>: u64 = 1000000;
 </code></pre>
 
 
@@ -358,6 +383,24 @@ but after the auction has ended, all domains can be registered.
 
 
 
+<a name="0x0_controller_MAX_COMMITMENT_AGE"></a>
+
+
+
+<pre><code><b>const</b> <a href="controller.md#0x0_controller_MAX_COMMITMENT_AGE">MAX_COMMITMENT_AGE</a>: u64 = 3;
+</code></pre>
+
+
+
+<a name="0x0_controller_NO_OUTDATED_COMMITMENT_TO_REMOVE"></a>
+
+
+
+<pre><code><b>const</b> <a href="controller.md#0x0_controller_NO_OUTDATED_COMMITMENT_TO_REMOVE">NO_OUTDATED_COMMITMENT_TO_REMOVE</a>: u64 = 50;
+</code></pre>
+
+
+
 <a name="0x0_controller_set_default_resolver"></a>
 
 ## Function `set_default_resolver`
@@ -404,26 +447,64 @@ The <code>default_addr_resolver</code> property of Controller share object is up
 
 </details>
 
-<a name="0x0_controller_commit"></a>
+<a name="0x0_controller_set_disable"></a>
 
-## Function `commit`
+## Function `set_disable`
 
 
 <a name="@Notice_4"></a>
 
 ###### Notice
 
+The admin uses this function to enable or disable registration.
+
+
+
+<a name="@Params_5"></a>
+
+###### Params
+
+<code>new_value</code>: false to enable registration, true to disable it.
+
+
+<pre><code><b>public</b> entry <b>fun</b> <a href="controller.md#0x0_controller_set_disable">set_disable</a>(_: &<a href="base_registry.md#0x0_base_registry_AdminCap">base_registry::AdminCap</a>, <a href="controller.md#0x0_controller">controller</a>: &<b>mut</b> <a href="controller.md#0x0_controller_BaseController">controller::BaseController</a>, new_value: bool)
+</code></pre>
+
+
+
+<details>
+<summary>Implementation</summary>
+
+
+<pre><code><b>public</b> entry <b>fun</b> <a href="controller.md#0x0_controller_set_disable">set_disable</a>(_: &AdminCap, <a href="controller.md#0x0_controller">controller</a>: &<b>mut</b> <a href="controller.md#0x0_controller_BaseController">BaseController</a>, new_value: bool) {
+    <a href="controller.md#0x0_controller">controller</a>.disable = new_value;
+}
+</code></pre>
+
+
+
+</details>
+
+<a name="0x0_controller_commit"></a>
+
+## Function `commit`
+
+
+<a name="@Notice_6"></a>
+
+###### Notice
+
 This function is the first step in the commit/reveal process, which is implemented to prevent front-running.
 
 
-<a name="@Dev_5"></a>
+<a name="@Dev_7"></a>
 
 ###### Dev
 
 This also removes outdated commentments.
 
 
-<a name="@Params_6"></a>
+<a name="@Params_8"></a>
 
 ###### Params
 
@@ -458,7 +539,7 @@ This also removes outdated commentments.
 ## Function `register`
 
 
-<a name="@Notice_7"></a>
+<a name="@Notice_9"></a>
 
 ###### Notice
 
@@ -466,14 +547,14 @@ This function is the second step in the commit/reveal process, which is implemen
 It acts as a gatekeeper for the <code>Registrar::Controller</code>, responsible for node validation and charging payment.
 
 
-<a name="@Dev_8"></a>
+<a name="@Dev_10"></a>
 
 ###### Dev
 
 This function uses default resolver address.
 
 
-<a name="@Params_9"></a>
+<a name="@Params_11"></a>
 
 ###### Params
 
@@ -482,11 +563,7 @@ This function uses default resolver address.
 <code>no_years</code>: in years
 <code>secret</code>: the value used to create commitment in the first step
 
-
-<a name="@Panic_10"></a>
-
-###### Panic
-
+Panic
 Panic if new registration is disabled
 or <code>label</code> contains characters that are not allowed
 or <code>label</code> is waiting to be finalized in auction
@@ -518,6 +595,7 @@ or either <code>referral_code</code> or <code>discount_code</code> is invalid
     ctx: &<b>mut</b> TxContext,
 ) {
     <b>let</b> <a href="resolver.md#0x0_resolver">resolver</a> = <a href="controller.md#0x0_controller">controller</a>.default_addr_resolver;
+
     <a href="controller.md#0x0_controller_register_internal">register_internal</a>(
         <a href="controller.md#0x0_controller">controller</a>,
         registrar,
@@ -549,7 +627,7 @@ or either <code>referral_code</code> or <code>discount_code</code> is invalid
 ## Function `register_with_image`
 
 
-<a name="@Notice_11"></a>
+<a name="@Notice_12"></a>
 
 ###### Notice
 
@@ -557,14 +635,14 @@ This function is the second step in the commit/reveal process, which is implemen
 It acts as a gatekeeper for the <code>Registrar::Controller</code>, responsible for node validation and charging payment.
 
 
-<a name="@Dev_12"></a>
+<a name="@Dev_13"></a>
 
 ###### Dev
 
 This function uses default resolver address.
 
 
-<a name="@Params_13"></a>
+<a name="@Params_14"></a>
 
 ###### Params
 
@@ -580,7 +658,7 @@ Note: <code>owner</code> is a 40 hexadecimal string without <code>0x</code> pref
 Panic
 Panic if new registration is disabled
 or <code>label</code> contains characters that are not allowed
-or <code>label</code> is pending to be finalized by the winner of auction
+or <code>label</code> is waiting to be finalized in auction
 or label length isn't outside of the permitted range
 or <code>payment</code> doesn't have enough coins
 or either <code>referral_code</code> or <code>discount_code</code> is invalid
@@ -611,7 +689,12 @@ or either <code>referral_code</code> or <code>discount_code</code> is invalid
     raw_msg: <a href="">vector</a>&lt;u8&gt;,
     ctx: &<b>mut</b> TxContext,
 ) {
-    <a href="base_registrar.md#0x0_base_registrar_assert_image_msg_not_empty">base_registrar::assert_image_msg_not_empty</a>(&signature, &hashed_msg, &raw_msg);
+    <b>assert</b>!(
+        !<a href="_is_empty">vector::is_empty</a>(&signature)
+            && !<a href="_is_empty">vector::is_empty</a>(&hashed_msg)
+            && !<a href="_is_empty">vector::is_empty</a>(&raw_msg),
+        <a href="controller.md#0x0_controller_EInvalidMessage">EInvalidMessage</a>
+    );
     <b>let</b> <a href="resolver.md#0x0_resolver">resolver</a> = <a href="controller.md#0x0_controller">controller</a>.default_addr_resolver;
 
     <a href="controller.md#0x0_controller_register_internal">register_internal</a>(
@@ -645,21 +728,21 @@ or either <code>referral_code</code> or <code>discount_code</code> is invalid
 ## Function `register_with_config`
 
 
-<a name="@Notice_14"></a>
+<a name="@Notice_15"></a>
 
 ###### Notice
 
 Similar to the <code>register</code> function, with an added <code><a href="resolver.md#0x0_resolver">resolver</a></code> parameter.
 
 
-<a name="@Dev_15"></a>
+<a name="@Dev_16"></a>
 
 ###### Dev
 
 Use <code><a href="resolver.md#0x0_resolver">resolver</a></code> parameter for resolver address.
 
 
-<a name="@Params_16"></a>
+<a name="@Params_17"></a>
 
 ###### Params
 
@@ -720,21 +803,21 @@ Use <code><a href="resolver.md#0x0_resolver">resolver</a></code> parameter for r
 ## Function `register_with_config_and_image`
 
 
-<a name="@Notice_17"></a>
+<a name="@Notice_18"></a>
 
 ###### Notice
 
 Similar to the <code>register_with_image</code> function, with an added <code><a href="resolver.md#0x0_resolver">resolver</a></code> parameter.
 
 
-<a name="@Dev_18"></a>
+<a name="@Dev_19"></a>
 
 ###### Dev
 
 Use <code><a href="resolver.md#0x0_resolver">resolver</a></code> parameter for resolver address.
 
 
-<a name="@Params_19"></a>
+<a name="@Params_20"></a>
 
 ###### Params
 
@@ -771,7 +854,12 @@ Note: <code>owner</code> is a 40 hexadecimal string without <code>0x</code> pref
     raw_msg: <a href="">vector</a>&lt;u8&gt;,
     ctx: &<b>mut</b> TxContext,
 ) {
-    <a href="base_registrar.md#0x0_base_registrar_assert_image_msg_not_empty">base_registrar::assert_image_msg_not_empty</a>(&signature, &hashed_msg, &raw_msg);
+    <b>assert</b>!(
+        !<a href="_is_empty">vector::is_empty</a>(&signature)
+            && !<a href="_is_empty">vector::is_empty</a>(&hashed_msg)
+            && !<a href="_is_empty">vector::is_empty</a>(&raw_msg),
+        <a href="controller.md#0x0_controller_EInvalidMessage">EInvalidMessage</a>
+    );
 
     <a href="controller.md#0x0_controller_register_internal">register_internal</a>(
         <a href="controller.md#0x0_controller">controller</a>,
@@ -804,7 +892,7 @@ Note: <code>owner</code> is a 40 hexadecimal string without <code>0x</code> pref
 ## Function `register_with_code`
 
 
-<a name="@Notice_20"></a>
+<a name="@Notice_21"></a>
 
 ###### Notice
 
@@ -813,7 +901,7 @@ Can use one or two codes at the same time.
 <code>discount_code</code> is applied first before <code>referral_code</code> if use both.
 
 
-<a name="@Dev_21"></a>
+<a name="@Dev_22"></a>
 
 ###### Dev
 
@@ -821,7 +909,7 @@ Use empty string for unused code, however, at least one code must be used.
 Remove <code>discount_code</code> after this function returns.
 
 
-<a name="@Params_22"></a>
+<a name="@Params_23"></a>
 
 ###### Params
 
@@ -887,7 +975,7 @@ Remove <code>discount_code</code> after this function returns.
 ## Function `register_with_code_and_image`
 
 
-<a name="@Notice_23"></a>
+<a name="@Notice_24"></a>
 
 ###### Notice
 
@@ -896,7 +984,7 @@ Can use one or two codes at the same time.
 <code>discount_code</code> is applied first before <code>referral_code</code> if use both.
 
 
-<a name="@Dev_24"></a>
+<a name="@Dev_25"></a>
 
 ###### Dev
 
@@ -904,7 +992,7 @@ Use empty string for unused code, however, at least one code must be used.
 Remove <code>discount_code</code> after this function returns.
 
 
-<a name="@Params_25"></a>
+<a name="@Params_26"></a>
 
 ###### Params
 
@@ -943,7 +1031,12 @@ Note: <code>owner</code> is a 40 hexadecimal string without <code>0x</code> pref
     raw_msg: <a href="">vector</a>&lt;u8&gt;,
     ctx: &<b>mut</b> TxContext,
 ) {
-    <a href="base_registrar.md#0x0_base_registrar_assert_image_msg_not_empty">base_registrar::assert_image_msg_not_empty</a>(&signature, &hashed_msg, &raw_msg);
+    <b>assert</b>!(
+        !<a href="_is_empty">vector::is_empty</a>(&signature)
+            && !<a href="_is_empty">vector::is_empty</a>(&hashed_msg)
+            && !<a href="_is_empty">vector::is_empty</a>(&raw_msg),
+        <a href="controller.md#0x0_controller_EInvalidMessage">EInvalidMessage</a>
+    );
     <b>let</b> (referral_code, discount_code) = <a href="controller.md#0x0_controller_validate_codes">validate_codes</a>(referral_code, discount_code);
     <b>let</b> <a href="resolver.md#0x0_resolver">resolver</a> = <a href="controller.md#0x0_controller">controller</a>.default_addr_resolver;
 
@@ -978,7 +1071,7 @@ Note: <code>owner</code> is a 40 hexadecimal string without <code>0x</code> pref
 ## Function `register_with_config_and_code`
 
 
-<a name="@Notice_26"></a>
+<a name="@Notice_27"></a>
 
 ###### Notice
 
@@ -987,7 +1080,7 @@ Can use one or two codes at the same time.
 <code>discount_code</code> is applied first before <code>referral_code</code> if use both.
 
 
-<a name="@Dev_27"></a>
+<a name="@Dev_28"></a>
 
 ###### Dev
 
@@ -995,7 +1088,7 @@ Use empty string for unused code, however, at least one code must be used.
 Remove <code>discount_code</code> after this function returns.
 
 
-<a name="@Params_28"></a>
+<a name="@Params_29"></a>
 
 ###### Params
 
@@ -1061,7 +1154,7 @@ Remove <code>discount_code</code> after this function returns.
 ## Function `register_with_config_and_code_and_image`
 
 
-<a name="@Notice_29"></a>
+<a name="@Notice_30"></a>
 
 ###### Notice
 
@@ -1070,7 +1163,7 @@ Can use one or two codes at the same time.
 <code>discount_code</code> is applied first before <code>referral_code</code> if use both.
 
 
-<a name="@Dev_30"></a>
+<a name="@Dev_31"></a>
 
 ###### Dev
 
@@ -1078,7 +1171,7 @@ Use empty string for unused code, however, at least one code must be used.
 Remove <code>discount_code</code> after this function returns.
 
 
-<a name="@Params_31"></a>
+<a name="@Params_32"></a>
 
 ###### Params
 
@@ -1118,7 +1211,12 @@ Note: <code>owner</code> is a 40 hexadecimal string without <code>0x</code> pref
     raw_msg: <a href="">vector</a>&lt;u8&gt;,
     ctx: &<b>mut</b> TxContext,
 ) {
-    <a href="base_registrar.md#0x0_base_registrar_assert_image_msg_not_empty">base_registrar::assert_image_msg_not_empty</a>(&signature, &hashed_msg, &raw_msg);
+    <b>assert</b>!(
+        !<a href="_is_empty">vector::is_empty</a>(&signature)
+            && !<a href="_is_empty">vector::is_empty</a>(&hashed_msg)
+            && !<a href="_is_empty">vector::is_empty</a>(&raw_msg),
+        <a href="controller.md#0x0_controller_EInvalidMessage">EInvalidMessage</a>
+    );
     <b>let</b> (referral_code, discount_code) = <a href="controller.md#0x0_controller_validate_codes">validate_codes</a>(referral_code, discount_code);
 
     <a href="controller.md#0x0_controller_register_internal">register_internal</a>(
@@ -1152,7 +1250,7 @@ Note: <code>owner</code> is a 40 hexadecimal string without <code>0x</code> pref
 ## Function `renew`
 
 
-<a name="@Notice_32"></a>
+<a name="@Notice_33"></a>
 
 ###### Notice
 
@@ -1160,7 +1258,7 @@ Anyone can use this function to extend expiration of a node. The TLD comes from 
 It acts as a gatekeeper for the <code>Registrar::Renew</code>, responsible for charging payment.
 
 
-<a name="@Params_33"></a>
+<a name="@Params_34"></a>
 
 ###### Params
 
@@ -1202,7 +1300,7 @@ or <code>payment</code> doesn't have enough coins
 ## Function `renew_with_image`
 
 
-<a name="@Notice_34"></a>
+<a name="@Notice_35"></a>
 
 ###### Notice
 
@@ -1211,7 +1309,7 @@ It acts as a gatekeeper for the <code>Registrar::renew</code>, responsible for c
 The image url of the <code>nft</code> is updated.
 
 
-<a name="@Params_35"></a>
+<a name="@Params_36"></a>
 
 ###### Params
 
@@ -1248,7 +1346,7 @@ or <code>msg</code> is empty
     raw_msg: <a href="">vector</a>&lt;u8&gt;,
     ctx: &<b>mut</b> TxContext,
 ) {
-    // NFT and imag_msg are validated in `update_image_url`
+    // nft is validated in `update_image_url`
     <a href="controller.md#0x0_controller_renew_internal">renew_internal</a>(<a href="controller.md#0x0_controller">controller</a>, registrar, label, no_years, payment, ctx);
     <a href="base_registrar.md#0x0_base_registrar_update_image_url">base_registrar::update_image_url</a>(registrar, config, nft, signature, hashed_msg, raw_msg, ctx);
 }
@@ -1263,17 +1361,13 @@ or <code>msg</code> is empty
 ## Function `withdraw`
 
 
-<a name="@Notice_36"></a>
+<a name="@Notice_37"></a>
 
 ###### Notice
 
 Admin use this function to withdraw the payment.
 
-
-<a name="@Panics_37"></a>
-
-###### Panics
-
+Panics
 Panics if no profits has been created.
 
 
@@ -1302,6 +1396,7 @@ Panics if no profits has been created.
 
 ## Function `renew_internal`
 
+Returns the epoch at which the <code>label</code> is expired
 
 
 <pre><code><b>fun</b> <a href="controller.md#0x0_controller_renew_internal">renew_internal</a>(<a href="controller.md#0x0_controller">controller</a>: &<b>mut</b> <a href="controller.md#0x0_controller_BaseController">controller::BaseController</a>, registrar: &<b>mut</b> <a href="base_registrar.md#0x0_base_registrar_BaseRegistrar">base_registrar::BaseRegistrar</a>, label: <a href="">vector</a>&lt;u8&gt;, no_years: u64, payment: &<b>mut</b> <a href="_Coin">coin::Coin</a>&lt;<a href="_SUI">sui::SUI</a>&gt;, ctx: &<b>mut</b> <a href="_TxContext">tx_context::TxContext</a>)
@@ -1321,7 +1416,7 @@ Panics if no profits has been created.
     payment: &<b>mut</b> Coin&lt;SUI&gt;,
     ctx: &<b>mut</b> TxContext
 ) {
-    <b>let</b> renew_fee = price_for_node(no_years);
+    <b>let</b> renew_fee = <a href="controller.md#0x0_controller_FEE_PER_YEAR">FEE_PER_YEAR</a> * no_years;
     <b>assert</b>!(<a href="_value">coin::value</a>(payment) &gt;= renew_fee, <a href="controller.md#0x0_controller_ENotEnoughFee">ENotEnoughFee</a>);
     <a href="coin_util.md#0x0_coin_util_user_transfer_to_contract">coin_util::user_transfer_to_contract</a>(payment, renew_fee, &<b>mut</b> <a href="controller.md#0x0_controller">controller</a>.<a href="">balance</a>);
 
@@ -1333,107 +1428,6 @@ Panics if no profits has been created.
         label: <a href="_utf8">string::utf8</a>(label),
         cost: renew_fee,
         duration,
-    });
-}
-</code></pre>
-
-
-
-</details>
-
-<a name="0x0_controller_register_internal"></a>
-
-## Function `register_internal`
-
-
-
-<pre><code><b>fun</b> <a href="controller.md#0x0_controller_register_internal">register_internal</a>(<a href="controller.md#0x0_controller">controller</a>: &<b>mut</b> <a href="controller.md#0x0_controller_BaseController">controller::BaseController</a>, registrar: &<b>mut</b> <a href="base_registrar.md#0x0_base_registrar_BaseRegistrar">base_registrar::BaseRegistrar</a>, registry: &<b>mut</b> <a href="base_registry.md#0x0_base_registry_Registry">base_registry::Registry</a>, config: &<b>mut</b> <a href="configuration.md#0x0_configuration_Configuration">configuration::Configuration</a>, <a href="auction.md#0x0_auction">auction</a>: &<a href="auction.md#0x0_auction_Auction">auction::Auction</a>, label: <a href="">vector</a>&lt;u8&gt;, owner: <b>address</b>, no_years: u64, secret: <a href="">vector</a>&lt;u8&gt;, <a href="resolver.md#0x0_resolver">resolver</a>: <b>address</b>, payment: &<b>mut</b> <a href="_Coin">coin::Coin</a>&lt;<a href="_SUI">sui::SUI</a>&gt;, referral_code: <a href="_Option">option::Option</a>&lt;<a href="_String">ascii::String</a>&gt;, discount_code: <a href="_Option">option::Option</a>&lt;<a href="_String">ascii::String</a>&gt;, signature: <a href="">vector</a>&lt;u8&gt;, hashed_msg: <a href="">vector</a>&lt;u8&gt;, raw_msg: <a href="">vector</a>&lt;u8&gt;, ctx: &<b>mut</b> <a href="_TxContext">tx_context::TxContext</a>)
-</code></pre>
-
-
-
-<details>
-<summary>Implementation</summary>
-
-
-<pre><code><b>fun</b> <a href="controller.md#0x0_controller_register_internal">register_internal</a>(
-    <a href="controller.md#0x0_controller">controller</a>: &<b>mut</b> <a href="controller.md#0x0_controller_BaseController">BaseController</a>,
-    registrar: &<b>mut</b> BaseRegistrar,
-    registry: &<b>mut</b> Registry,
-    config: &<b>mut</b> Configuration,
-    <a href="auction.md#0x0_auction">auction</a>: &Auction,
-    label: <a href="">vector</a>&lt;u8&gt;,
-    owner: <b>address</b>,
-    no_years: u64,
-    secret: <a href="">vector</a>&lt;u8&gt;,
-    <a href="resolver.md#0x0_resolver">resolver</a>: <b>address</b>,
-    payment: &<b>mut</b> Coin&lt;SUI&gt;,
-    referral_code: Option&lt;<a href="_String">ascii::String</a>&gt;,
-    discount_code: Option&lt;<a href="_String">ascii::String</a>&gt;,
-    signature: <a href="">vector</a>&lt;u8&gt;,
-    hashed_msg: <a href="">vector</a>&lt;u8&gt;,
-    raw_msg: <a href="">vector</a>&lt;u8&gt;,
-    ctx: &<b>mut</b> TxContext,
-) {
-    <b>assert</b>!(<a href="configuration.md#0x0_configuration_is_enable_controller">configuration::is_enable_controller</a>(config), <a href="controller.md#0x0_controller_ERegistrationIsDisabled">ERegistrationIsDisabled</a>);
-    <b>let</b> emoji_config = <a href="configuration.md#0x0_configuration_emoji_config">configuration::emoji_config</a>(config);
-    <b>let</b> label_str = utf8(label);
-
-    <b>if</b> (epoch(ctx) &lt;= <a href="auction.md#0x0_auction_auction_close_at">auction::auction_close_at</a>(<a href="auction.md#0x0_auction">auction</a>)) {
-        // <a href="auction.md#0x0_auction">auction</a> time, cann't register short names
-        validate_label_with_emoji(
-            emoji_config,
-            label,
-            min_non_auction_domain_length(config),
-            max_domain_length(config)
-        )
-    } <b>else</b> {
-        <b>assert</b>!(<a href="auction.md#0x0_auction_is_auction_label_available_for_controller">auction::is_auction_label_available_for_controller</a>(<a href="auction.md#0x0_auction">auction</a>, label_str, ctx), <a href="controller.md#0x0_controller_ELabelUnAvailable">ELabelUnAvailable</a>);
-        validate_label_with_emoji(emoji_config, label, min_domain_length(config), max_domain_length(config))
-    };
-    <b>let</b> commitment = <a href="controller.md#0x0_controller_make_commitment">make_commitment</a>(registrar, label, owner, secret);
-    <a href="controller.md#0x0_controller_consume_commitment">consume_commitment</a>(<a href="controller.md#0x0_controller">controller</a>, registrar, label, commitment, ctx);
-
-    <b>let</b> registration_fee = price_for_node(no_years);
-    <b>assert</b>!(<a href="_value">coin::value</a>(payment) &gt;= registration_fee, <a href="controller.md#0x0_controller_ENotEnoughFee">ENotEnoughFee</a>);
-
-    // can <b>apply</b> both discount and referral codes at the same time
-    <b>if</b> (<a href="_is_some">option::is_some</a>(&discount_code)) {
-        registration_fee =
-            <a href="controller.md#0x0_controller_apply_discount_code">apply_discount_code</a>(config, registration_fee, <a href="_borrow">option::borrow</a>(&discount_code), ctx);
-    };
-    <b>if</b> (<a href="_is_some">option::is_some</a>(&referral_code)) {
-        registration_fee =
-            <a href="controller.md#0x0_controller_apply_referral_code">apply_referral_code</a>(config, payment, registration_fee, <a href="_borrow">option::borrow</a>(&referral_code), ctx);
-    };
-
-    <b>let</b> duration = no_years * 365;
-    <b>let</b> (nft_id, <a href="">url</a>) = <a href="base_registrar.md#0x0_base_registrar_register_with_image">base_registrar::register_with_image</a>(
-        registrar,
-        registry,
-        config,
-        label,
-        owner,
-        duration,
-        <a href="resolver.md#0x0_resolver">resolver</a>,
-        signature,
-        hashed_msg,
-        raw_msg,
-        ctx
-    );
-    <a href="coin_util.md#0x0_coin_util_user_transfer_to_contract">coin_util::user_transfer_to_contract</a>(payment, registration_fee, &<b>mut</b> <a href="controller.md#0x0_controller">controller</a>.<a href="">balance</a>);
-
-    <a href="_emit">event::emit</a>(<a href="controller.md#0x0_controller_NameRegisteredEvent">NameRegisteredEvent</a> {
-        node: <a href="base_registrar.md#0x0_base_registrar_base_node">base_registrar::base_node</a>(registrar),
-        label: label_str,
-        owner,
-        cost: price_for_node(no_years),
-        expiry: epoch(ctx) + duration,
-        nft_id,
-        <a href="resolver.md#0x0_resolver">resolver</a>,
-        referral_code,
-        discount_code,
-        <a href="">url</a>,
     });
 }
 </code></pre>
@@ -1507,6 +1501,100 @@ Panics if no profits has been created.
 
 </details>
 
+<a name="0x0_controller_register_internal"></a>
+
+## Function `register_internal`
+
+
+
+<pre><code><b>fun</b> <a href="controller.md#0x0_controller_register_internal">register_internal</a>(<a href="controller.md#0x0_controller">controller</a>: &<b>mut</b> <a href="controller.md#0x0_controller_BaseController">controller::BaseController</a>, registrar: &<b>mut</b> <a href="base_registrar.md#0x0_base_registrar_BaseRegistrar">base_registrar::BaseRegistrar</a>, registry: &<b>mut</b> <a href="base_registry.md#0x0_base_registry_Registry">base_registry::Registry</a>, config: &<b>mut</b> <a href="configuration.md#0x0_configuration_Configuration">configuration::Configuration</a>, <a href="auction.md#0x0_auction">auction</a>: &<a href="auction.md#0x0_auction_Auction">auction::Auction</a>, label: <a href="">vector</a>&lt;u8&gt;, owner: <b>address</b>, no_years: u64, secret: <a href="">vector</a>&lt;u8&gt;, <a href="resolver.md#0x0_resolver">resolver</a>: <b>address</b>, payment: &<b>mut</b> <a href="_Coin">coin::Coin</a>&lt;<a href="_SUI">sui::SUI</a>&gt;, referral_code: <a href="_Option">option::Option</a>&lt;<a href="_String">ascii::String</a>&gt;, discount_code: <a href="_Option">option::Option</a>&lt;<a href="_String">ascii::String</a>&gt;, signature: <a href="">vector</a>&lt;u8&gt;, hashed_msg: <a href="">vector</a>&lt;u8&gt;, raw_msg: <a href="">vector</a>&lt;u8&gt;, ctx: &<b>mut</b> <a href="_TxContext">tx_context::TxContext</a>)
+</code></pre>
+
+
+
+<details>
+<summary>Implementation</summary>
+
+
+<pre><code><b>fun</b> <a href="controller.md#0x0_controller_register_internal">register_internal</a>(
+    <a href="controller.md#0x0_controller">controller</a>: &<b>mut</b> <a href="controller.md#0x0_controller_BaseController">BaseController</a>,
+    registrar: &<b>mut</b> BaseRegistrar,
+    registry: &<b>mut</b> Registry,
+    config: &<b>mut</b> Configuration,
+    <a href="auction.md#0x0_auction">auction</a>: &Auction,
+    label: <a href="">vector</a>&lt;u8&gt;,
+    owner: <b>address</b>,
+    no_years: u64,
+    secret: <a href="">vector</a>&lt;u8&gt;,
+    <a href="resolver.md#0x0_resolver">resolver</a>: <b>address</b>,
+    payment: &<b>mut</b> Coin&lt;SUI&gt;,
+    referral_code: Option&lt;<a href="_String">ascii::String</a>&gt;,
+    discount_code: Option&lt;<a href="_String">ascii::String</a>&gt;,
+    signature: <a href="">vector</a>&lt;u8&gt;,
+    hashed_msg: <a href="">vector</a>&lt;u8&gt;,
+    raw_msg: <a href="">vector</a>&lt;u8&gt;,
+    ctx: &<b>mut</b> TxContext,
+) {
+    <b>assert</b>!(!<a href="controller.md#0x0_controller">controller</a>.disable, <a href="controller.md#0x0_controller_ERegistrationIsDisabled">ERegistrationIsDisabled</a>);
+    <b>let</b> emoji_config = <a href="configuration.md#0x0_configuration_emoji_config">configuration::emoji_config</a>(config);
+    <b>let</b> label_str = utf8(label);
+
+    <b>if</b> (epoch(ctx) &lt;= <a href="auction.md#0x0_auction_auction_close_at">auction::auction_close_at</a>(<a href="auction.md#0x0_auction">auction</a>)) {
+        validate_label_with_emoji(emoji_config, label, 7, 63)
+    } <b>else</b> {
+        <b>assert</b>!(<a href="auction.md#0x0_auction_is_auctioned_label_available_for_controller">auction::is_auctioned_label_available_for_controller</a>(<a href="auction.md#0x0_auction">auction</a>, label_str, ctx), <a href="controller.md#0x0_controller_ELabelUnAvailable">ELabelUnAvailable</a>);
+        validate_label_with_emoji(emoji_config, label, 3, 63)
+    };
+    <b>let</b> registration_fee = <a href="controller.md#0x0_controller_FEE_PER_YEAR">FEE_PER_YEAR</a> * no_years;
+    <b>assert</b>!(<a href="_value">coin::value</a>(payment) &gt;= registration_fee, <a href="controller.md#0x0_controller_ENotEnoughFee">ENotEnoughFee</a>);
+
+    // can <b>apply</b> both discount and referral codes at the same time
+    <b>if</b> (<a href="_is_some">option::is_some</a>(&discount_code)) {
+        registration_fee =
+            <a href="controller.md#0x0_controller_apply_discount_code">apply_discount_code</a>(config, registration_fee, <a href="_borrow">option::borrow</a>(&discount_code), ctx);
+    };
+    <b>if</b> (<a href="_is_some">option::is_some</a>(&referral_code)) {
+        registration_fee =
+            <a href="controller.md#0x0_controller_apply_referral_code">apply_referral_code</a>(config, payment, registration_fee, <a href="_borrow">option::borrow</a>(&referral_code), ctx);
+    };
+    <b>let</b> commitment = <a href="controller.md#0x0_controller_make_commitment">make_commitment</a>(registrar, label, owner, secret);
+    <a href="controller.md#0x0_controller_consume_commitment">consume_commitment</a>(<a href="controller.md#0x0_controller">controller</a>, registrar, label, commitment, ctx);
+
+    <b>let</b> duration = no_years * 365;
+    <b>let</b> (nft_id, <a href="">url</a>) = <a href="base_registrar.md#0x0_base_registrar_register_with_image">base_registrar::register_with_image</a>(
+        registrar,
+        registry,
+        config,
+        label,
+        owner,
+        duration,
+        <a href="resolver.md#0x0_resolver">resolver</a>,
+        signature,
+        hashed_msg,
+        raw_msg,
+        ctx
+    );
+    <a href="coin_util.md#0x0_coin_util_user_transfer_to_contract">coin_util::user_transfer_to_contract</a>(payment, registration_fee, &<b>mut</b> <a href="controller.md#0x0_controller">controller</a>.<a href="">balance</a>);
+
+    <a href="_emit">event::emit</a>(<a href="controller.md#0x0_controller_NameRegisteredEvent">NameRegisteredEvent</a> {
+        node: <a href="base_registrar.md#0x0_base_registrar_base_node">base_registrar::base_node</a>(registrar),
+        label: label_str,
+        owner,
+        cost: <a href="controller.md#0x0_controller_FEE_PER_YEAR">FEE_PER_YEAR</a> * no_years,
+        expiry: epoch(ctx) + duration,
+        nft_id,
+        <a href="resolver.md#0x0_resolver">resolver</a>,
+        referral_code,
+        discount_code,
+        <a href="">url</a>,
+    });
+}
+</code></pre>
+
+
+
+</details>
+
 <a name="0x0_controller_remove_outdated_commitments"></a>
 
 ## Function `remove_outdated_commitments`
@@ -1526,11 +1614,11 @@ Panics if no profits has been created.
     <b>let</b> front_element = <a href="_front">linked_table::front</a>(&<a href="controller.md#0x0_controller">controller</a>.commitments);
     <b>let</b> i = 0;
 
-    <b>while</b> (<a href="_is_some">option::is_some</a>(front_element) && i &lt; no_outdated_commitments_to_remove()) {
+    <b>while</b> (<a href="_is_some">option::is_some</a>(front_element) && i &lt; <a href="controller.md#0x0_controller_NO_OUTDATED_COMMITMENT_TO_REMOVE">NO_OUTDATED_COMMITMENT_TO_REMOVE</a>) {
         i = i + 1;
 
         <b>let</b> created_at = <a href="_borrow">linked_table::borrow</a>(&<a href="controller.md#0x0_controller">controller</a>.commitments, *<a href="_borrow">option::borrow</a>(front_element));
-        <b>if</b> (*created_at + max_commitment_age() &lt;= epoch(ctx)) {
+        <b>if</b> (*created_at + <a href="controller.md#0x0_controller_MAX_COMMITMENT_AGE">MAX_COMMITMENT_AGE</a> &lt;= epoch(ctx)) {
             <a href="_pop_front">linked_table::pop_front</a>(&<b>mut</b> <a href="controller.md#0x0_controller">controller</a>.commitments);
             front_element = <a href="_front">linked_table::front</a>(&<a href="controller.md#0x0_controller">controller</a>.commitments);
         } <b>else</b> <b>break</b>;
@@ -1571,7 +1659,7 @@ Panics if no profits has been created.
     //     <a href="controller.md#0x0_controller_ECommitmentNotValid">ECommitmentNotValid</a>
     // );
     <b>assert</b>!(
-        *<a href="_borrow">linked_table::borrow</a>(&<a href="controller.md#0x0_controller">controller</a>.commitments, commitment) + <a href="configuration.md#0x0_configuration_max_commitment_age">configuration::max_commitment_age</a>() &gt; epoch(ctx),
+        *<a href="_borrow">linked_table::borrow</a>(&<a href="controller.md#0x0_controller">controller</a>.commitments, commitment) + <a href="controller.md#0x0_controller_MAX_COMMITMENT_AGE">MAX_COMMITMENT_AGE</a> &gt; epoch(ctx),
         <a href="controller.md#0x0_controller_ECommitmentTooOld">ECommitmentTooOld</a>
     );
     <b>assert</b>!(<a href="base_registrar.md#0x0_base_registrar_is_available">base_registrar::is_available</a>(registrar, <a href="_utf8">string::utf8</a>(label), ctx), <a href="controller.md#0x0_controller_ELabelUnAvailable">ELabelUnAvailable</a>);
@@ -1673,6 +1761,7 @@ Panics if no profits has been created.
         <a href="">balance</a>: <a href="_zero">balance::zero</a>(),
         // cannot get the ID of name_resolver in `init`, admin need <b>to</b> <b>update</b> this by calling `set_default_resolver`
         default_addr_resolver: @0x0,
+        disable: <b>false</b>,
     });
 }
 </code></pre>

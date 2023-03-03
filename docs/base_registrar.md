@@ -5,29 +5,27 @@
 
 Base structure for all kind of registrars except reverse one.
 Call <code>new_tld</code> to setup new registrar.
-All functions that have any logic to charge payment in this module aren't supposed to be called directly,
+All functions that involves payment charging in this module aren't supposed to be called directly,
 users must call the corresponding functions in <code>Controller</code>.
 
 
+-  [Struct `NameRenewedEvent`](#0x0_base_registrar_NameRenewedEvent)
+-  [Struct `NameReclaimedEvent`](#0x0_base_registrar_NameReclaimedEvent)
+-  [Struct `ImageUpdatedEvent`](#0x0_base_registrar_ImageUpdatedEvent)
 -  [Resource `RegistrationNFT`](#0x0_base_registrar_RegistrationNFT)
 -  [Struct `RegistrationDetail`](#0x0_base_registrar_RegistrationDetail)
 -  [Resource `BaseRegistrar`](#0x0_base_registrar_BaseRegistrar)
 -  [Resource `TLDList`](#0x0_base_registrar_TLDList)
--  [Struct `NameRenewedEvent`](#0x0_base_registrar_NameRenewedEvent)
--  [Struct `NameReclaimedEvent`](#0x0_base_registrar_NameReclaimedEvent)
--  [Struct `ImageUpdatedEvent`](#0x0_base_registrar_ImageUpdatedEvent)
 -  [Constants](#@Constants_0)
 -  [Function `new_tld`](#0x0_base_registrar_new_tld)
 -  [Function `reclaim_name`](#0x0_base_registrar_reclaim_name)
 -  [Function `update_image_url`](#0x0_base_registrar_update_image_url)
 -  [Function `is_available`](#0x0_base_registrar_is_available)
 -  [Function `is_expired`](#0x0_base_registrar_is_expired)
+-  [Function `validate_nft`](#0x0_base_registrar_validate_nft)
 -  [Function `name_expires_at`](#0x0_base_registrar_name_expires_at)
 -  [Function `base_node`](#0x0_base_registrar_base_node)
 -  [Function `base_node_bytes`](#0x0_base_registrar_base_node_bytes)
--  [Function `assert_nft_not_expires`](#0x0_base_registrar_assert_nft_not_expires)
--  [Function `assert_image_msg_not_empty`](#0x0_base_registrar_assert_image_msg_not_empty)
--  [Function `assert_image_msg_match`](#0x0_base_registrar_assert_image_msg_match)
 -  [Function `register`](#0x0_base_registrar_register)
 -  [Function `register_with_image`](#0x0_base_registrar_register_with_image)
 -  [Function `renew`](#0x0_base_registrar_renew)
@@ -53,6 +51,111 @@ users must call the corresponding functions in <code>Controller</code>.
 </code></pre>
 
 
+
+<a name="0x0_base_registrar_NameRenewedEvent"></a>
+
+## Struct `NameRenewedEvent`
+
+
+
+<pre><code><b>struct</b> <a href="base_registrar.md#0x0_base_registrar_NameRenewedEvent">NameRenewedEvent</a> <b>has</b> <b>copy</b>, drop
+</code></pre>
+
+
+
+<details>
+<summary>Fields</summary>
+
+
+<dl>
+<dt>
+<code>label: <a href="_String">string::String</a></code>
+</dt>
+<dd>
+
+</dd>
+<dt>
+<code>expiry: u64</code>
+</dt>
+<dd>
+
+</dd>
+</dl>
+
+
+</details>
+
+<a name="0x0_base_registrar_NameReclaimedEvent"></a>
+
+## Struct `NameReclaimedEvent`
+
+
+
+<pre><code><b>struct</b> <a href="base_registrar.md#0x0_base_registrar_NameReclaimedEvent">NameReclaimedEvent</a> <b>has</b> <b>copy</b>, drop
+</code></pre>
+
+
+
+<details>
+<summary>Fields</summary>
+
+
+<dl>
+<dt>
+<code>node: <a href="_String">string::String</a></code>
+</dt>
+<dd>
+
+</dd>
+<dt>
+<code>owner: <b>address</b></code>
+</dt>
+<dd>
+
+</dd>
+</dl>
+
+
+</details>
+
+<a name="0x0_base_registrar_ImageUpdatedEvent"></a>
+
+## Struct `ImageUpdatedEvent`
+
+
+
+<pre><code><b>struct</b> <a href="base_registrar.md#0x0_base_registrar_ImageUpdatedEvent">ImageUpdatedEvent</a> <b>has</b> <b>copy</b>, drop
+</code></pre>
+
+
+
+<details>
+<summary>Fields</summary>
+
+
+<dl>
+<dt>
+<code>sender: <b>address</b></code>
+</dt>
+<dd>
+
+</dd>
+<dt>
+<code>node: <a href="_String">string::String</a></code>
+</dt>
+<dd>
+
+</dd>
+<dt>
+<code>new_image: <a href="_Url">url::Url</a></code>
+</dt>
+<dd>
+
+</dd>
+</dl>
+
+
+</details>
 
 <a name="0x0_base_registrar_RegistrationNFT"></a>
 
@@ -209,111 +312,6 @@ list of all TLD managed by this registrar
 
 </details>
 
-<a name="0x0_base_registrar_NameRenewedEvent"></a>
-
-## Struct `NameRenewedEvent`
-
-
-
-<pre><code><b>struct</b> <a href="base_registrar.md#0x0_base_registrar_NameRenewedEvent">NameRenewedEvent</a> <b>has</b> <b>copy</b>, drop
-</code></pre>
-
-
-
-<details>
-<summary>Fields</summary>
-
-
-<dl>
-<dt>
-<code>label: <a href="_String">string::String</a></code>
-</dt>
-<dd>
-
-</dd>
-<dt>
-<code>expiry: u64</code>
-</dt>
-<dd>
-
-</dd>
-</dl>
-
-
-</details>
-
-<a name="0x0_base_registrar_NameReclaimedEvent"></a>
-
-## Struct `NameReclaimedEvent`
-
-
-
-<pre><code><b>struct</b> <a href="base_registrar.md#0x0_base_registrar_NameReclaimedEvent">NameReclaimedEvent</a> <b>has</b> <b>copy</b>, drop
-</code></pre>
-
-
-
-<details>
-<summary>Fields</summary>
-
-
-<dl>
-<dt>
-<code>node: <a href="_String">string::String</a></code>
-</dt>
-<dd>
-
-</dd>
-<dt>
-<code>owner: <b>address</b></code>
-</dt>
-<dd>
-
-</dd>
-</dl>
-
-
-</details>
-
-<a name="0x0_base_registrar_ImageUpdatedEvent"></a>
-
-## Struct `ImageUpdatedEvent`
-
-
-
-<pre><code><b>struct</b> <a href="base_registrar.md#0x0_base_registrar_ImageUpdatedEvent">ImageUpdatedEvent</a> <b>has</b> <b>copy</b>, drop
-</code></pre>
-
-
-
-<details>
-<summary>Fields</summary>
-
-
-<dl>
-<dt>
-<code>sender: <b>address</b></code>
-</dt>
-<dd>
-
-</dd>
-<dt>
-<code>node: <a href="_String">string::String</a></code>
-</dt>
-<dd>
-
-</dd>
-<dt>
-<code>new_image: <a href="_Url">url::Url</a></code>
-</dt>
-<dd>
-
-</dd>
-</dl>
-
-
-</details>
-
 <a name="@Constants_0"></a>
 
 ## Constants
@@ -373,11 +371,11 @@ list of all TLD managed by this registrar
 
 
 
-<a name="0x0_base_registrar_EInvalidImageMessage"></a>
+<a name="0x0_base_registrar_EInvalidMessage"></a>
 
 
 
-<pre><code><b>const</b> <a href="base_registrar.md#0x0_base_registrar_EInvalidImageMessage">EInvalidImageMessage</a>: u64 = 211;
+<pre><code><b>const</b> <a href="base_registrar.md#0x0_base_registrar_EInvalidMessage">EInvalidMessage</a>: u64 = 211;
 </code></pre>
 
 
@@ -547,7 +545,7 @@ or the NFT expired.
     owner: <b>address</b>,
     ctx: &<b>mut</b> TxContext,
 ) {
-    <a href="base_registrar.md#0x0_base_registrar_assert_nft_not_expires">assert_nft_not_expires</a>(registrar, nft, ctx);
+    <a href="base_registrar.md#0x0_base_registrar_validate_nft">validate_nft</a>(registrar, nft, ctx);
 
     <b>let</b> label = <a href="base_registrar.md#0x0_base_registrar_get_label_part">get_label_part</a>(&nft.name, &registrar.tld);
     <b>let</b> registration = field::borrow&lt;String, <a href="base_registrar.md#0x0_base_registrar_RegistrationDetail">RegistrationDetail</a>&gt;(&registrar.id, label);
@@ -613,17 +611,27 @@ or the data in NFTs don't match <code>raw_msg</code>
     raw_msg: <a href="">vector</a>&lt;u8&gt;,
     ctx: &<b>mut</b> TxContext,
 ) {
-    <a href="base_registrar.md#0x0_base_registrar_assert_nft_not_expires">assert_nft_not_expires</a>(registrar, nft, ctx);
-    <a href="base_registrar.md#0x0_base_registrar_assert_image_msg_not_empty">assert_image_msg_not_empty</a>(&signature, &hashed_msg, &raw_msg);
-    <a href="base_registrar.md#0x0_base_registrar_assert_image_msg_match">assert_image_msg_match</a>(config, signature, hashed_msg, raw_msg);
+    // TODO: <b>move</b> <b>to</b> a separate <b>module</b>
+    <b>assert</b>!(
+        !<a href="_is_empty">vector::is_empty</a>(&signature)
+            && !<a href="_is_empty">vector::is_empty</a>(&hashed_msg)
+            && !<a href="_is_empty">vector::is_empty</a>(&raw_msg),
+        <a href="base_registrar.md#0x0_base_registrar_EInvalidMessage">EInvalidMessage</a>
+    );
+    <a href="base_registrar.md#0x0_base_registrar_validate_nft">validate_nft</a>(registrar, nft, ctx);
+    <b>assert</b>!(sha2_256(raw_msg) == hashed_msg, <a href="base_registrar.md#0x0_base_registrar_EHashedMessageNotMatch">EHashedMessageNotMatch</a>);
+    <b>assert</b>!(
+        <a href="_secp256k1_verify">ecdsa_k1::secp256k1_verify</a>(&signature, <a href="configuration.md#0x0_configuration_public_key">configuration::public_key</a>(config), &hashed_msg),
+        <a href="base_registrar.md#0x0_base_registrar_ESignatureNotMatch">ESignatureNotMatch</a>
+    );
 
     <b>let</b> (ipfs, node_msg, expiry) = <a href="remove_later.md#0x0_remove_later_deserialize_image_msg">remove_later::deserialize_image_msg</a>(raw_msg);
 
-    <b>assert</b>!(node_msg == nft.name, <a href="base_registrar.md#0x0_base_registrar_EInvalidImageMessage">EInvalidImageMessage</a>);
+    <b>assert</b>!(node_msg == nft.name, <a href="base_registrar.md#0x0_base_registrar_EInvalidMessage">EInvalidMessage</a>);
 
     <b>let</b> label = <a href="base_registrar.md#0x0_base_registrar_get_label_part">get_label_part</a>(&nft.name, &registrar.tld);
 
-    <b>assert</b>!(expiry == <a href="base_registrar.md#0x0_base_registrar_name_expires_at">name_expires_at</a>(registrar, label), <a href="base_registrar.md#0x0_base_registrar_EInvalidImageMessage">EInvalidImageMessage</a>);
+    <b>assert</b>!(expiry == <a href="base_registrar.md#0x0_base_registrar_name_expires_at">name_expires_at</a>(registrar, label), <a href="base_registrar.md#0x0_base_registrar_EInvalidMessage">EInvalidMessage</a>);
 
     nft.<a href="">url</a> = <a href="_new_unsafe_from_bytes">url::new_unsafe_from_bytes</a>(*<a href="_bytes">string::bytes</a>(&ipfs));
     <a href="_emit">event::emit</a>(<a href="base_registrar.md#0x0_base_registrar_ImageUpdatedEvent">ImageUpdatedEvent</a> {
@@ -739,26 +747,73 @@ false if it's not
 
 </details>
 
-<a name="0x0_base_registrar_name_expires_at"></a>
+<a name="0x0_base_registrar_validate_nft"></a>
 
-## Function `name_expires_at`
+## Function `validate_nft`
 
 
 <a name="@Notice_13"></a>
 
 ###### Notice
 
-Returns the epoch after which the <code>label</code> is expired.
+Validate if <code>nft</code> is valid or not.
 
 
 <a name="@Params_14"></a>
 
 ###### Params
 
+<code>nft</code>: NFT to be checked
+
+Panic
+Panic if the NFT is longer stored in SC
+or the the data of the NFT mismatches the data stored in SC
+or the NFTs expired.
+
+
+<pre><code><b>public</b> <b>fun</b> <a href="base_registrar.md#0x0_base_registrar_validate_nft">validate_nft</a>(registrar: &<a href="base_registrar.md#0x0_base_registrar_BaseRegistrar">base_registrar::BaseRegistrar</a>, nft: &<a href="base_registrar.md#0x0_base_registrar_RegistrationNFT">base_registrar::RegistrationNFT</a>, ctx: &<b>mut</b> <a href="_TxContext">tx_context::TxContext</a>)
+</code></pre>
+
+
+
+<details>
+<summary>Implementation</summary>
+
+
+<pre><code><b>public</b> <b>fun</b> <a href="base_registrar.md#0x0_base_registrar_validate_nft">validate_nft</a>(registrar: &<a href="base_registrar.md#0x0_base_registrar_BaseRegistrar">BaseRegistrar</a>, nft: &<a href="base_registrar.md#0x0_base_registrar_RegistrationNFT">RegistrationNFT</a>, ctx: &<b>mut</b> TxContext) {
+    <b>let</b> label = <a href="base_registrar.md#0x0_base_registrar_get_label_part">get_label_part</a>(&nft.name, &registrar.tld);
+    <b>let</b> detail = field::borrow&lt;String, <a href="base_registrar.md#0x0_base_registrar_RegistrationDetail">RegistrationDetail</a>&gt;(&registrar.id, label);
+    // TODO: delete NFT <b>if</b> it expired
+    <b>assert</b>!(detail.owner == sender(ctx), <a href="base_registrar.md#0x0_base_registrar_ENFTExpired">ENFTExpired</a>);
+    <b>assert</b>!(detail.nft_id == uid_to_inner(&nft.id), <a href="base_registrar.md#0x0_base_registrar_ENFTExpired">ENFTExpired</a>);
+    <b>assert</b>!(!<a href="base_registrar.md#0x0_base_registrar_is_expired">is_expired</a>(registrar, label, ctx), <a href="base_registrar.md#0x0_base_registrar_ENFTExpired">ENFTExpired</a>);
+}
+</code></pre>
+
+
+
+</details>
+
+<a name="0x0_base_registrar_name_expires_at"></a>
+
+## Function `name_expires_at`
+
+
+<a name="@Notice_15"></a>
+
+###### Notice
+
+Returns the epoch after which the <code>label</code> is expired.
+
+
+<a name="@Params_16"></a>
+
+###### Params
+
 <code>label</code>: label to be checked
 
 
-<a name="@Returns_15"></a>
+<a name="@Returns_17"></a>
 
 ###### Returns
 
@@ -828,115 +883,6 @@ otherwise: the expiration date
 
 <pre><code><b>public</b> <b>fun</b> <a href="base_registrar.md#0x0_base_registrar_base_node_bytes">base_node_bytes</a>(registrar: &<a href="base_registrar.md#0x0_base_registrar_BaseRegistrar">BaseRegistrar</a>): <a href="">vector</a>&lt;u8&gt; {
     registrar.tld_bytes
-}
-</code></pre>
-
-
-
-</details>
-
-<a name="0x0_base_registrar_assert_nft_not_expires"></a>
-
-## Function `assert_nft_not_expires`
-
-
-<a name="@Notice_16"></a>
-
-###### Notice
-
-Validate if <code>nft</code> is valid or not.
-
-
-<a name="@Params_17"></a>
-
-###### Params
-
-<code>nft</code>: NFT to be checked
-
-Panic
-Panic if the NFT is longer stored in SC
-or the the data of the NFT mismatches the data stored in SC
-or the NFTs expired.
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="base_registrar.md#0x0_base_registrar_assert_nft_not_expires">assert_nft_not_expires</a>(registrar: &<a href="base_registrar.md#0x0_base_registrar_BaseRegistrar">base_registrar::BaseRegistrar</a>, nft: &<a href="base_registrar.md#0x0_base_registrar_RegistrationNFT">base_registrar::RegistrationNFT</a>, ctx: &<b>mut</b> <a href="_TxContext">tx_context::TxContext</a>)
-</code></pre>
-
-
-
-<details>
-<summary>Implementation</summary>
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="base_registrar.md#0x0_base_registrar_assert_nft_not_expires">assert_nft_not_expires</a>(registrar: &<a href="base_registrar.md#0x0_base_registrar_BaseRegistrar">BaseRegistrar</a>, nft: &<a href="base_registrar.md#0x0_base_registrar_RegistrationNFT">RegistrationNFT</a>, ctx: &<b>mut</b> TxContext) {
-    <b>let</b> label = <a href="base_registrar.md#0x0_base_registrar_get_label_part">get_label_part</a>(&nft.name, &registrar.tld);
-    <b>let</b> detail = field::borrow&lt;String, <a href="base_registrar.md#0x0_base_registrar_RegistrationDetail">RegistrationDetail</a>&gt;(&registrar.id, label);
-    // TODO: delete NFT <b>if</b> it expired
-    <b>assert</b>!(detail.owner == sender(ctx), <a href="base_registrar.md#0x0_base_registrar_ENFTExpired">ENFTExpired</a>);
-    <b>assert</b>!(detail.nft_id == uid_to_inner(&nft.id), <a href="base_registrar.md#0x0_base_registrar_ENFTExpired">ENFTExpired</a>);
-    <b>assert</b>!(!<a href="base_registrar.md#0x0_base_registrar_is_expired">is_expired</a>(registrar, label, ctx), <a href="base_registrar.md#0x0_base_registrar_ENFTExpired">ENFTExpired</a>);
-}
-</code></pre>
-
-
-
-</details>
-
-<a name="0x0_base_registrar_assert_image_msg_not_empty"></a>
-
-## Function `assert_image_msg_not_empty`
-
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="base_registrar.md#0x0_base_registrar_assert_image_msg_not_empty">assert_image_msg_not_empty</a>(signature: &<a href="">vector</a>&lt;u8&gt;, hashed_msg: &<a href="">vector</a>&lt;u8&gt;, raw_msg: &<a href="">vector</a>&lt;u8&gt;)
-</code></pre>
-
-
-
-<details>
-<summary>Implementation</summary>
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="base_registrar.md#0x0_base_registrar_assert_image_msg_not_empty">assert_image_msg_not_empty</a>(signature: &<a href="">vector</a>&lt;u8&gt;, hashed_msg: &<a href="">vector</a>&lt;u8&gt;, raw_msg: &<a href="">vector</a>&lt;u8&gt;) {
-    <b>assert</b>!(
-        !<a href="_is_empty">vector::is_empty</a>(signature)
-            && !<a href="_is_empty">vector::is_empty</a>(hashed_msg)
-            && !<a href="_is_empty">vector::is_empty</a>(raw_msg),
-        <a href="base_registrar.md#0x0_base_registrar_EInvalidImageMessage">EInvalidImageMessage</a>
-    );
-}
-</code></pre>
-
-
-
-</details>
-
-<a name="0x0_base_registrar_assert_image_msg_match"></a>
-
-## Function `assert_image_msg_match`
-
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="base_registrar.md#0x0_base_registrar_assert_image_msg_match">assert_image_msg_match</a>(config: &<a href="configuration.md#0x0_configuration_Configuration">configuration::Configuration</a>, signature: <a href="">vector</a>&lt;u8&gt;, hashed_msg: <a href="">vector</a>&lt;u8&gt;, raw_msg: <a href="">vector</a>&lt;u8&gt;)
-</code></pre>
-
-
-
-<details>
-<summary>Implementation</summary>
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="base_registrar.md#0x0_base_registrar_assert_image_msg_match">assert_image_msg_match</a>(
-    config: &Configuration,
-    signature: <a href="">vector</a>&lt;u8&gt;,
-    hashed_msg: <a href="">vector</a>&lt;u8&gt;,
-    raw_msg: <a href="">vector</a>&lt;u8&gt;
-) {
-    <b>assert</b>!(sha2_256(raw_msg) == hashed_msg, <a href="base_registrar.md#0x0_base_registrar_EHashedMessageNotMatch">EHashedMessageNotMatch</a>);
-    <b>assert</b>!(
-        <a href="_secp256k1_verify">ecdsa_k1::secp256k1_verify</a>(&signature, <a href="configuration.md#0x0_configuration_public_key">configuration::public_key</a>(config), &hashed_msg),
-        <a href="base_registrar.md#0x0_base_registrar_ESignatureNotMatch">ESignatureNotMatch</a>
-    );
 }
 </code></pre>
 
@@ -1035,14 +981,18 @@ this function doesn't charge fee
 
     <b>let</b> <a href="">url</a>;
     <b>if</b> (<a href="_is_empty">vector::is_empty</a>(&hashed_msg) || <a href="_is_empty">vector::is_empty</a>(&raw_msg) || <a href="_is_empty">vector::is_empty</a>(&signature))
-        <a href="">url</a> = <a href="_new_unsafe_from_bytes">url::new_unsafe_from_bytes</a>(<a href="">vector</a>[])
+        <a href="">url</a> = <a href="_new_unsafe_from_bytes">url::new_unsafe_from_bytes</a>(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY")
     <b>else</b> {
-        <a href="base_registrar.md#0x0_base_registrar_assert_image_msg_match">assert_image_msg_match</a>(config, signature, hashed_msg, raw_msg);
+        <b>assert</b>!(sha2_256(raw_msg) == hashed_msg, <a href="base_registrar.md#0x0_base_registrar_EHashedMessageNotMatch">EHashedMessageNotMatch</a>);
+        <b>assert</b>!(
+            <a href="_secp256k1_verify">ecdsa_k1::secp256k1_verify</a>(&signature, <a href="configuration.md#0x0_configuration_public_key">configuration::public_key</a>(config), &hashed_msg),
+            <a href="base_registrar.md#0x0_base_registrar_ESignatureNotMatch">ESignatureNotMatch</a>
+        );
 
         <b>let</b> (ipfs, node_msg, expiry_msg) = <a href="remove_later.md#0x0_remove_later_deserialize_image_msg">remove_later::deserialize_image_msg</a>(raw_msg);
 
-        <b>assert</b>!(node_msg == node, <a href="base_registrar.md#0x0_base_registrar_EInvalidImageMessage">EInvalidImageMessage</a>);
-        <b>assert</b>!(expiry_msg == expiry, <a href="base_registrar.md#0x0_base_registrar_EInvalidImageMessage">EInvalidImageMessage</a>);
+        <b>assert</b>!(node_msg == node, <a href="base_registrar.md#0x0_base_registrar_EInvalidMessage">EInvalidMessage</a>);
+        <b>assert</b>!(expiry_msg == expiry, <a href="base_registrar.md#0x0_base_registrar_EInvalidMessage">EInvalidMessage</a>);
 
         <a href="">url</a> = <a href="_new_unsafe">url::new_unsafe</a>(<a href="_to_ascii">string::to_ascii</a>(ipfs));
     };
