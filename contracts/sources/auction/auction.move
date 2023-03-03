@@ -590,11 +590,13 @@ module suins::auction {
     }
 
     // label is assumed to have 3-6 characters
-    public(friend) fun is_auction_label_available_for_controller(
+    public(friend) fun is_auctioned_label_available_for_controller(
         auction: &Auction,
         label: String,
         ctx: &TxContext
     ): bool {
+        // TODO: expect the admin to call `configurate_auction` right after deploymenting the contract,
+        // TODO: to force auctioned label to go through auction
         if (auction_close_at(auction) >= epoch(ctx)) return false;
         if (auction_close_at(auction) + EXTRA_PERIOD < epoch(ctx)) return true;
         if (table::contains(&auction.entries, label)) {

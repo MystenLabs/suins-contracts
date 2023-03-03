@@ -4,6 +4,7 @@
 # Module `0x0::auction`
 
 Implementation of auction module.
+More information in: ../../../docs
 
 
 -  [Struct `BidDetail`](#0x0_auction_BidDetail)
@@ -24,7 +25,7 @@ Implementation of auction module.
 -  [Function `get_entry`](#0x0_auction_get_entry)
 -  [Function `state`](#0x0_auction_state)
 -  [Function `auction_close_at`](#0x0_auction_auction_close_at)
--  [Function `is_auction_label_available_for_controller`](#0x0_auction_is_auction_label_available_for_controller)
+-  [Function `is_auctioned_label_available_for_controller`](#0x0_auction_is_auctioned_label_available_for_controller)
 -  [Function `init`](#0x0_auction_init)
 -  [Function `seal_bid_exists`](#0x0_auction_seal_bid_exists)
 
@@ -217,13 +218,13 @@ Metadata of auction for a domain name
 
 </dd>
 <dt>
-<code>open_at: u64</code>
+<code>start_auction_start_at: u64</code>
 </dt>
 <dd>
 
 </dd>
 <dt>
-<code>close_at: u64</code>
+<code>start_auction_end_at: u64</code>
 </dt>
 <dd>
  last epoch where auction for domains can be started
@@ -665,16 +666,12 @@ The <code>open_at</code> and <code>close_at</code> properties of Auction share o
 Once this epoch has passed, the entries that have a winner but haven't yet being finalized
 have an additional <code>EXTRA_CLAIM_PERIOD</code> epochs for the winner to finalize.
 
-
-<a name="@Panics_4"></a>
-
-###### Panics
-
+Panics
 Panics if <code>open_at</code> is less than <code>close_at</code>
 or current epoch is less than or equal <code>open_at</code>
 
 
-<pre><code><b>public</b> entry <b>fun</b> <a href="auction.md#0x0_auction_configure_auction">configure_auction</a>(_: &<a href="base_registry.md#0x0_base_registry_AdminCap">base_registry::AdminCap</a>, <a href="auction.md#0x0_auction">auction</a>: &<b>mut</b> <a href="auction.md#0x0_auction_Auction">auction::Auction</a>, open_at: u64, close_at: u64, ctx: &<b>mut</b> <a href="_TxContext">tx_context::TxContext</a>)
+<pre><code><b>public</b> entry <b>fun</b> <a href="auction.md#0x0_auction_configure_auction">configure_auction</a>(_: &<a href="base_registry.md#0x0_base_registry_AdminCap">base_registry::AdminCap</a>, <a href="auction.md#0x0_auction">auction</a>: &<b>mut</b> <a href="auction.md#0x0_auction_Auction">auction::Auction</a>, start_auction_start_at: u64, start_auction_end_at: u64, ctx: &<b>mut</b> <a href="_TxContext">tx_context::TxContext</a>)
 </code></pre>
 
 
@@ -686,15 +683,15 @@ or current epoch is less than or equal <code>open_at</code>
 <pre><code><b>public</b> entry <b>fun</b> <a href="auction.md#0x0_auction_configure_auction">configure_auction</a>(
     _: &AdminCap,
     <a href="auction.md#0x0_auction">auction</a>: &<b>mut</b> <a href="auction.md#0x0_auction_Auction">Auction</a>,
-    open_at: u64,
-    close_at: u64,
+    start_auction_start_at: u64,
+    start_auction_end_at: u64,
     ctx: &<b>mut</b> TxContext
 ) {
-    <b>assert</b>!(open_at &lt; close_at, <a href="auction.md#0x0_auction_EInvalidConfigParam">EInvalidConfigParam</a>);
-    <b>assert</b>!(epoch(ctx) &lt;= open_at, <a href="auction.md#0x0_auction_EInvalidConfigParam">EInvalidConfigParam</a>);
+    <b>assert</b>!(start_auction_start_at &lt; start_auction_end_at, <a href="auction.md#0x0_auction_EInvalidConfigParam">EInvalidConfigParam</a>);
+    <b>assert</b>!(epoch(ctx) &lt;= start_auction_start_at, <a href="auction.md#0x0_auction_EInvalidConfigParam">EInvalidConfigParam</a>);
 
-    <a href="auction.md#0x0_auction">auction</a>.open_at = open_at;
-    <a href="auction.md#0x0_auction">auction</a>.close_at = close_at;
+    <a href="auction.md#0x0_auction">auction</a>.start_auction_start_at = start_auction_start_at;
+    <a href="auction.md#0x0_auction">auction</a>.start_auction_end_at = start_auction_end_at;
 }
 </code></pre>
 
@@ -707,7 +704,7 @@ or current epoch is less than or equal <code>open_at</code>
 ## Function `start_an_auction`
 
 
-<a name="@Notice_5"></a>
+<a name="@Notice_4"></a>
 
 ###### Notice
 
@@ -718,7 +715,7 @@ In the next epoch, it moves to the <code>BIDDING</code> state.
 The caller also transfers a payment of coins worth <code><a href="auction.md#0x0_auction_FEE_PER_YEAR">FEE_PER_YEAR</a></code>.
 
 
-<a name="@Dev_6"></a>
+<a name="@Dev_5"></a>
 
 ###### Dev
 
@@ -726,17 +723,13 @@ New <code>Entry</code> record is created.
 If <code>Entry</code> record exists and in the <code>REOPENED</code> state, it is remove and reinitialize.
 
 
-<a name="@Params_7"></a>
+<a name="@Params_6"></a>
 
 ###### Params
 
 <code>label</code>: label of the node being auctioned, the node has the form <code>label</code>.sui
 
-
-<a name="@Panics_8"></a>
-
-###### Panics
-
+Panics
 Panics if current epoch is outside of auction time period
 or the node is already opened
 or the node is not eligible for auction.
@@ -759,9 +752,8 @@ or the length of the label must be within the range of 3-6 characters.
     payment: &<b>mut</b> Coin&lt;SUI&gt;,
     ctx: &<b>mut</b> TxContext
 ) {
-    // TODO: should we enforce the current epoch &lt;= <a href="auction.md#0x0_auction">auction</a>.close_at - <a href="auction.md#0x0_auction_BIDDING_PERIOD">BIDDING_PERIOD</a> - <a href="auction.md#0x0_auction_REVEAL_PERIOD">REVEAL_PERIOD</a>?
     <b>assert</b>!(
-        <a href="auction.md#0x0_auction">auction</a>.open_at &lt;= epoch(ctx) && epoch(ctx) &lt;= <a href="auction.md#0x0_auction">auction</a>.close_at,
+        <a href="auction.md#0x0_auction">auction</a>.start_auction_start_at &lt;= epoch(ctx) && epoch(ctx) &lt;= <a href="auction.md#0x0_auction">auction</a>.start_auction_end_at,
         <a href="auction.md#0x0_auction_EAuctionNotAvailable">EAuctionNotAvailable</a>,
     );
     <b>let</b> emoji_config = <a href="configuration.md#0x0_configuration_emoji_config">configuration::emoji_config</a>(config);
@@ -801,7 +793,7 @@ or the length of the label must be within the range of 3-6 characters.
 ## Function `place_bid`
 
 
-<a name="@Notice_9"></a>
+<a name="@Notice_7"></a>
 
 ###### Notice
 
@@ -809,25 +801,21 @@ Bidders use this function to place a new bid.
 They transfer a payment of coins with a value equal to the bid value mask to hide the actual bid amount.
 
 
-<a name="@Dev_10"></a>
+<a name="@Dev_8"></a>
 
 ###### Dev
 
 New bid detail is created.
 
 
-<a name="@Params_11"></a>
+<a name="@Params_9"></a>
 
 ###### Params
 
 <code>sealed_bid</code>: return value of <code>make_seal_bid</code>
 <code>bid_value_mask</code>: upper bound of actual bid value
 
-
-<a name="@Panics_12"></a>
-
-###### Panics
-
+Panics
 Panics if current epoch is less than end_at
 or <code>bid_value_mask</code> is less than <code><a href="auction.md#0x0_auction_MIN_PRICE">MIN_PRICE</a></code>
 or the sealed bid exists
@@ -850,9 +838,8 @@ or payment doesn't have enough coin
     payment: &<b>mut</b> Coin&lt;SUI&gt;,
     ctx: &<b>mut</b> TxContext
 ) {
-    // TODO: should we enforce the current epoch &lt;= <a href="auction.md#0x0_auction">auction</a>.close_at - <a href="auction.md#0x0_auction_REVEAL_PERIOD">REVEAL_PERIOD</a>?
     <b>assert</b>!(
-        <a href="auction.md#0x0_auction">auction</a>.open_at &lt;= epoch(ctx) && epoch(ctx) &lt;= <a href="auction.md#0x0_auction">auction</a>.close_at,
+        <a href="auction.md#0x0_auction">auction</a>.start_auction_start_at &lt;= epoch(ctx) && epoch(ctx) &lt;= <a href="auction.md#0x0_auction">auction</a>.start_auction_end_at + <a href="auction.md#0x0_auction_BIDDING_PERIOD">BIDDING_PERIOD</a>,
         <a href="auction.md#0x0_auction_EAuctionNotAvailable">EAuctionNotAvailable</a>,
     );
     <b>assert</b>!(bid_value_mask &gt;= <a href="auction.md#0x0_auction_MIN_PRICE">MIN_PRICE</a>, <a href="auction.md#0x0_auction_EInvalidBid">EInvalidBid</a>);
@@ -890,7 +877,7 @@ or payment doesn't have enough coin
 ## Function `reveal_bid`
 
 
-<a name="@Notice_13"></a>
+<a name="@Notice_10"></a>
 
 ###### Notice
 
@@ -899,7 +886,7 @@ No payment is returned in this function.
 Bidders can retrieve their payment by using either the <code>finalize_auction</code> or <code>withdraw</code> function.
 
 
-<a name="@Dev_14"></a>
+<a name="@Dev_11"></a>
 
 ###### Dev
 
@@ -908,7 +895,7 @@ or second highest value.
 The <code>label</code> and <code>bid_value</code> properties of the bid detail are updated.
 
 
-<a name="@Params_15"></a>
+<a name="@Params_12"></a>
 
 ###### Params
 
@@ -916,11 +903,7 @@ The <code>label</code> and <code>bid_value</code> properties of the bid detail a
 <code>value</code>: auctual value that bidder wants to spend
 <code>salt</code>: random string used when hashing the sealed bid
 
-
-<a name="@Panics_16"></a>
-
-###### Panics
-
+Panics
 Panics if auction is not in <code>REVEAL</code> state
 or sender has never ever placed a bid
 or the parameters don't match any sealed bid
@@ -945,7 +928,7 @@ or <code>label</code> hasn't been started
     ctx: &<b>mut</b> TxContext
 ) {
     <b>assert</b>!(
-        <a href="auction.md#0x0_auction">auction</a>.open_at &lt;= epoch(ctx) && epoch(ctx) &lt;= <a href="auction.md#0x0_auction">auction</a>.close_at,
+        <a href="auction.md#0x0_auction">auction</a>.start_auction_start_at &lt;= epoch(ctx) && epoch(ctx) &lt;= <a href="auction.md#0x0_auction">auction</a>.start_auction_end_at + <a href="auction.md#0x0_auction_BIDDING_PERIOD">BIDDING_PERIOD</a> + <a href="auction.md#0x0_auction_REVEAL_PERIOD">REVEAL_PERIOD</a>,
         <a href="auction.md#0x0_auction_EAuctionNotAvailable">EAuctionNotAvailable</a>,
     );
     // TODO: do we need <b>to</b> validate domain here?
@@ -1012,7 +995,7 @@ or <code>label</code> hasn't been started
 ## Function `finalize_auction`
 
 
-<a name="@Notice_17"></a>
+<a name="@Notice_13"></a>
 
 ###### Notice
 
@@ -1023,25 +1006,21 @@ If not the winner, he/she get back the payment that he/her deposited when place 
 We allow bidders to have multiple bids on one domain, this function checks every of them.
 
 
-<a name="@Dev_18"></a>
+<a name="@Dev_14"></a>
 
 ###### Dev
 
 All bid details that are considered in this function are removed.
 
 
-<a name="@Params_19"></a>
+<a name="@Params_15"></a>
 
 ###### Params
 
 label label of the node beinng auctioned, the node has the form <code>label</code>.sui
 resolver address of the resolver share object that the winner wants to set for his/her new NFT
 
-
-<a name="@Panics_20"></a>
-
-###### Panics
-
+Panics
 Panics if auction state is not <code>FINALIZING</code>, <code>REOPENED</code> or <code>OWNED</code>
 or sender has never ever placed a bid
 or <code>label</code> hasn't been started
@@ -1067,7 +1046,7 @@ or the auction has already been finalized and sender is the winner
     ctx: &<b>mut</b> TxContext
 ) {
     <b>assert</b>!(
-        <a href="auction.md#0x0_auction">auction</a>.open_at &lt;= epoch(ctx) && epoch(ctx) &lt;= <a href="auction.md#0x0_auction">auction</a>.close_at + <a href="auction.md#0x0_auction_EXTRA_PERIOD">EXTRA_PERIOD</a>,
+        <a href="auction.md#0x0_auction">auction</a>.start_auction_start_at &lt;= epoch(ctx) && epoch(ctx) &lt;= <a href="auction.md#0x0_auction_auction_close_at">auction_close_at</a>(<a href="auction.md#0x0_auction">auction</a>) + <a href="auction.md#0x0_auction_EXTRA_PERIOD">EXTRA_PERIOD</a>,
         <a href="auction.md#0x0_auction_EAuctionNotAvailable">EAuctionNotAvailable</a>,
     );
     <b>assert</b>!(<a href="base_registrar.md#0x0_base_registrar_base_node_bytes">base_registrar::base_node_bytes</a>(registrar) == b"<a href="">sui</a>", <a href="auction.md#0x0_auction_EInvalidRegistrar">EInvalidRegistrar</a>);
@@ -1101,7 +1080,6 @@ or the auction has already been finalized and sender is the winner
         <b>if</b> (
             entry.winner == detail.bidder
                 && entry.highest_bid == detail.bid_value
-                && detail.bid_value_mask - detail.bid_value &gt; 0
         ) {
             <b>if</b> (entry.second_highest_bid != 0) {
                 <a href="coin_util.md#0x0_coin_util_contract_transfer_to_address">coin_util::contract_transfer_to_address</a>(
@@ -1152,7 +1130,7 @@ or the auction has already been finalized and sender is the winner
 ## Function `withdraw`
 
 
-<a name="@Notice_21"></a>
+<a name="@Notice_16"></a>
 
 ###### Notice
 
@@ -1161,18 +1139,14 @@ If there is any entry in which the sender is the winner and not yet finalized an
 skip that winning bid (For these bids, bidders have to call <code>finalize_auction</code> to get their extra payment and NFT).
 
 
-<a name="@Dev_22"></a>
+<a name="@Dev_17"></a>
 
 ###### Dev
 
 The admin doesn't use this function to withdraw balance.
 All bid details that are considered are removed.
 
-
-<a name="@Panics_23"></a>
-
-###### Panics
-
+Panics
 Panics if current epoch is less than or equal end_at
 or sender has never ever placed a bid
 
@@ -1187,7 +1161,8 @@ or sender has never ever placed a bid
 
 
 <pre><code><b>public</b> entry <b>fun</b> <a href="auction.md#0x0_auction_withdraw">withdraw</a>(<a href="auction.md#0x0_auction">auction</a>: &<b>mut</b> <a href="auction.md#0x0_auction_Auction">Auction</a>, ctx: &<b>mut</b> TxContext) {
-    <b>assert</b>!(epoch(ctx) &gt; <a href="auction.md#0x0_auction">auction</a>.close_at, <a href="auction.md#0x0_auction_EInvalidPhase">EInvalidPhase</a>);
+    <b>let</b> auction_close_at = <a href="auction.md#0x0_auction_auction_close_at">auction_close_at</a>(<a href="auction.md#0x0_auction">auction</a>);
+    <b>assert</b>!(epoch(ctx) &gt; auction_close_at, <a href="auction.md#0x0_auction_EInvalidPhase">EInvalidPhase</a>);
 
     <b>let</b> bid_details = <a href="_borrow_mut">table::borrow_mut</a>(&<b>mut</b> <a href="auction.md#0x0_auction">auction</a>.bid_details_by_bidder, sender(ctx));
     <b>let</b> len = <a href="_length">vector::length</a>(bid_details);
@@ -1201,7 +1176,7 @@ or sender has never ever placed a bid
             <b>if</b> (
                 !entry.is_finalized
                     && entry.winner == sender(ctx)
-                    && <a href="auction.md#0x0_auction">auction</a>.close_at + <a href="auction.md#0x0_auction_EXTRA_PERIOD">EXTRA_PERIOD</a> &gt; epoch(ctx)
+                    && auction_close_at + <a href="auction.md#0x0_auction_EXTRA_PERIOD">EXTRA_PERIOD</a> &gt;= epoch(ctx)
                     && detail.bid_value == entry.highest_bid // bidder can bid multiple times on same domain
             ) {
                 index = index + 1;
@@ -1231,14 +1206,14 @@ or sender has never ever placed a bid
 ## Function `make_seal_bid`
 
 
-<a name="@Notice_24"></a>
+<a name="@Notice_18"></a>
 
 ###### Notice
 
 Generate the sealed bid that is used when placing a new bid
 
 
-<a name="@Params_25"></a>
+<a name="@Params_19"></a>
 
 ###### Params
 
@@ -1248,7 +1223,7 @@ Generate the sealed bid that is used when placing a new bid
 <code>salt</code>: a random string
 
 
-<a name="@Return_26"></a>
+<a name="@Return_20"></a>
 
 ###### Return
 
@@ -1283,21 +1258,21 @@ Hashed string using keccak256
 ## Function `get_entry`
 
 
-<a name="@Notice_27"></a>
+<a name="@Notice_21"></a>
 
 ###### Notice
 
 Get metadata of an auction
 
 
-<a name="@Params_28"></a>
+<a name="@Params_22"></a>
 
 ###### Params
 
 label label of the node being auctioned, the node has the form <code>label</code>.sui
 
 
-<a name="@Return_29"></a>
+<a name="@Return_23"></a>
 
 ###### Return
 
@@ -1341,22 +1316,22 @@ label label of the node being auctioned, the node has the form <code>label</code
 ## Function `state`
 
 
-<a name="@Notice_30"></a>
+<a name="@Notice_24"></a>
 
 ###### Notice
 
 Get state of an auction
-State transitions for node can be found at <code>../../../docs/README.md</code>
+State transitions for node can be found at <code>../../../docs/<a href="auction.md#0x0_auction">auction</a>.md</code>
 
 
-<a name="@Params_31"></a>
+<a name="@Params_25"></a>
 
 ###### Params
 
 label label of the node being auctioned, the node has the form <code>label</code>.sui
 
 
-<a name="@Return_32"></a>
+<a name="@Return_26"></a>
 
 ###### Return
 
@@ -1376,32 +1351,29 @@ AUCTION_STATE_REVEAL | AUCTION_STATE_FINALIZING | AUCTION_STATE_OWNED | AUCTION_
 
 
 <pre><code><b>public</b> <b>fun</b> <a href="auction.md#0x0_auction_state">state</a>(<a href="auction.md#0x0_auction">auction</a>: &<a href="auction.md#0x0_auction_Auction">Auction</a>, label: <a href="">vector</a>&lt;u8&gt;, current_epoch: u64): u8 {
+    <b>if</b> (
+        current_epoch &lt; <a href="auction.md#0x0_auction">auction</a>.start_auction_start_at
+            || current_epoch &gt; <a href="auction.md#0x0_auction_auction_close_at">auction_close_at</a>(<a href="auction.md#0x0_auction">auction</a>) + <a href="auction.md#0x0_auction_EXTRA_PERIOD">EXTRA_PERIOD</a>
+    ) <b>return</b> <a href="auction.md#0x0_auction_AUCTION_STATE_NOT_AVAILABLE">AUCTION_STATE_NOT_AVAILABLE</a>;
+
     <b>let</b> label = utf8(label);
-    <b>if</b> (current_epoch &lt; <a href="auction.md#0x0_auction">auction</a>.open_at || current_epoch &gt; <a href="auction.md#0x0_auction">auction</a>.close_at + <a href="auction.md#0x0_auction_EXTRA_PERIOD">EXTRA_PERIOD</a>) <b>return</b> <a href="auction.md#0x0_auction_AUCTION_STATE_NOT_AVAILABLE">AUCTION_STATE_NOT_AVAILABLE</a>;
-    <b>let</b> is_entry_existed = <a href="_contains">table::contains</a>(&<a href="auction.md#0x0_auction">auction</a>.entries, label);
-    // TODO: start_an_auction doesn't enforce the current epoch <b>to</b> guarantee a valid <a href="auction.md#0x0_auction">auction</a> entry.
-    <b>if</b> (current_epoch &gt; <a href="auction.md#0x0_auction">auction</a>.close_at && is_entry_existed) {
+    <b>if</b> (<a href="_contains">table::contains</a>(&<a href="auction.md#0x0_auction">auction</a>.entries, label)) {
         <b>let</b> entry = <a href="_borrow">table::borrow</a>(&<a href="auction.md#0x0_auction">auction</a>.entries, label);
-
         <b>if</b> (entry.is_finalized) <b>return</b> <a href="auction.md#0x0_auction_AUCTION_STATE_OWNED">AUCTION_STATE_OWNED</a>;
-        <b>if</b> (current_epoch &lt; entry.start_at + <a href="auction.md#0x0_auction_BIDDING_PERIOD">BIDDING_PERIOD</a> + <a href="auction.md#0x0_auction_REVEAL_PERIOD">REVEAL_PERIOD</a>) <b>return</b> <a href="auction.md#0x0_auction_AUCTION_STATE_NOT_AVAILABLE">AUCTION_STATE_NOT_AVAILABLE</a>;
-        <b>if</b> (entry.highest_bid == 0) <b>return</b> <a href="auction.md#0x0_auction_AUCTION_STATE_NOT_AVAILABLE">AUCTION_STATE_NOT_AVAILABLE</a>;
-        <b>return</b> <a href="auction.md#0x0_auction_AUCTION_STATE_FINALIZING">AUCTION_STATE_FINALIZING</a>
-    };
 
-    <b>if</b> (is_entry_existed) {
-        <b>let</b> entry = <a href="_borrow">table::borrow</a>(&<a href="auction.md#0x0_auction">auction</a>.entries, label);
-
-        <b>if</b> (entry.is_finalized) <b>return</b> <a href="auction.md#0x0_auction_AUCTION_STATE_OWNED">AUCTION_STATE_OWNED</a>;
-        <b>if</b> (current_epoch == entry.start_at - 1) <b>return</b> <a href="auction.md#0x0_auction_AUCTION_STATE_PENDING">AUCTION_STATE_PENDING</a>;
-        <b>if</b> (current_epoch &lt; entry.start_at + <a href="auction.md#0x0_auction_BIDDING_PERIOD">BIDDING_PERIOD</a>) <b>return</b> <a href="auction.md#0x0_auction_AUCTION_STATE_BIDDING">AUCTION_STATE_BIDDING</a>;
-        <b>if</b> (current_epoch &lt; entry.start_at + <a href="auction.md#0x0_auction_BIDDING_PERIOD">BIDDING_PERIOD</a> + <a href="auction.md#0x0_auction_REVEAL_PERIOD">REVEAL_PERIOD</a>) <b>return</b> <a href="auction.md#0x0_auction_AUCTION_STATE_REVEAL">AUCTION_STATE_REVEAL</a>;
-        // TODO: because <a href="auction.md#0x0_auction">auction</a> can be reopened, there is a case
-        // TODO: <b>where</b> only 1 user places bid and his bid is invalid
-        <b>if</b> (entry.highest_bid == 0) <b>return</b> <a href="auction.md#0x0_auction_AUCTION_STATE_REOPENED">AUCTION_STATE_REOPENED</a>;
-        <b>return</b> <a href="auction.md#0x0_auction_AUCTION_STATE_FINALIZING">AUCTION_STATE_FINALIZING</a>
-    };
-    <b>if</b> (current_epoch &gt; <a href="auction.md#0x0_auction">auction</a>.close_at) <b>return</b> <a href="auction.md#0x0_auction_AUCTION_STATE_NOT_AVAILABLE">AUCTION_STATE_NOT_AVAILABLE</a>;
+        <b>if</b> (current_epoch &gt; <a href="auction.md#0x0_auction_auction_close_at">auction_close_at</a>(<a href="auction.md#0x0_auction">auction</a>)) {
+            <b>if</b> (entry.highest_bid != 0) <b>return</b> <a href="auction.md#0x0_auction_AUCTION_STATE_FINALIZING">AUCTION_STATE_FINALIZING</a>;
+            <b>return</b> <a href="auction.md#0x0_auction_AUCTION_STATE_NOT_AVAILABLE">AUCTION_STATE_NOT_AVAILABLE</a>
+        } <b>else</b> {
+            <b>if</b> (current_epoch == entry.start_at - 1) <b>return</b> <a href="auction.md#0x0_auction_AUCTION_STATE_PENDING">AUCTION_STATE_PENDING</a>;
+            <b>if</b> (current_epoch &lt; entry.start_at + <a href="auction.md#0x0_auction_BIDDING_PERIOD">BIDDING_PERIOD</a>) <b>return</b> <a href="auction.md#0x0_auction_AUCTION_STATE_BIDDING">AUCTION_STATE_BIDDING</a>;
+            <b>if</b> (current_epoch &lt; entry.start_at + <a href="auction.md#0x0_auction_BIDDING_PERIOD">BIDDING_PERIOD</a> + <a href="auction.md#0x0_auction_REVEAL_PERIOD">REVEAL_PERIOD</a>) <b>return</b> <a href="auction.md#0x0_auction_AUCTION_STATE_REVEAL">AUCTION_STATE_REVEAL</a>;
+            // TODO: because <a href="auction.md#0x0_auction">auction</a> can be reopened, there is a case
+            // TODO: <b>where</b> only 1 user places bid and his bid is invalid
+            <b>if</b> (entry.highest_bid == 0) <b>return</b> <a href="auction.md#0x0_auction_AUCTION_STATE_REOPENED">AUCTION_STATE_REOPENED</a>;
+            <b>return</b> <a href="auction.md#0x0_auction_AUCTION_STATE_FINALIZING">AUCTION_STATE_FINALIZING</a>
+        }
+    } <b>else</b> <b>if</b> (current_epoch &gt; <a href="auction.md#0x0_auction_auction_close_at">auction_close_at</a>(<a href="auction.md#0x0_auction">auction</a>)) <b>return</b> <a href="auction.md#0x0_auction_AUCTION_STATE_NOT_AVAILABLE">AUCTION_STATE_NOT_AVAILABLE</a>;
     <a href="auction.md#0x0_auction_AUCTION_STATE_OPEN">AUCTION_STATE_OPEN</a>
 }
 </code></pre>
@@ -1426,7 +1398,7 @@ AUCTION_STATE_REVEAL | AUCTION_STATE_FINALIZING | AUCTION_STATE_OWNED | AUCTION_
 
 
 <pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="auction.md#0x0_auction_auction_close_at">auction_close_at</a>(<a href="auction.md#0x0_auction">auction</a>: &<a href="auction.md#0x0_auction_Auction">Auction</a>): u64 {
-    <a href="auction.md#0x0_auction">auction</a>.close_at
+    <a href="auction.md#0x0_auction">auction</a>.start_auction_end_at + <a href="auction.md#0x0_auction_BIDDING_PERIOD">BIDDING_PERIOD</a> + <a href="auction.md#0x0_auction_REVEAL_PERIOD">REVEAL_PERIOD</a>
 }
 </code></pre>
 
@@ -1434,13 +1406,13 @@ AUCTION_STATE_REVEAL | AUCTION_STATE_FINALIZING | AUCTION_STATE_OWNED | AUCTION_
 
 </details>
 
-<a name="0x0_auction_is_auction_label_available_for_controller"></a>
+<a name="0x0_auction_is_auctioned_label_available_for_controller"></a>
 
-## Function `is_auction_label_available_for_controller`
+## Function `is_auctioned_label_available_for_controller`
 
 
 
-<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="auction.md#0x0_auction_is_auction_label_available_for_controller">is_auction_label_available_for_controller</a>(<a href="auction.md#0x0_auction">auction</a>: &<a href="auction.md#0x0_auction_Auction">auction::Auction</a>, label: <a href="_String">string::String</a>, ctx: &<a href="_TxContext">tx_context::TxContext</a>): bool
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="auction.md#0x0_auction_is_auctioned_label_available_for_controller">is_auctioned_label_available_for_controller</a>(<a href="auction.md#0x0_auction">auction</a>: &<a href="auction.md#0x0_auction_Auction">auction::Auction</a>, label: <a href="_String">string::String</a>, ctx: &<a href="_TxContext">tx_context::TxContext</a>): bool
 </code></pre>
 
 
@@ -1449,9 +1421,15 @@ AUCTION_STATE_REVEAL | AUCTION_STATE_FINALIZING | AUCTION_STATE_OWNED | AUCTION_
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="auction.md#0x0_auction_is_auction_label_available_for_controller">is_auction_label_available_for_controller</a>(<a href="auction.md#0x0_auction">auction</a>: &<a href="auction.md#0x0_auction_Auction">Auction</a>, label: String, ctx: &TxContext): bool {
-    <b>if</b> (<a href="auction.md#0x0_auction">auction</a>.close_at &gt;= epoch(ctx)) <b>return</b> <b>false</b>;
-    <b>if</b> (<a href="auction.md#0x0_auction">auction</a>.close_at + <a href="auction.md#0x0_auction_EXTRA_PERIOD">EXTRA_PERIOD</a> &lt; epoch(ctx)) <b>return</b> <b>true</b>;
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="auction.md#0x0_auction_is_auctioned_label_available_for_controller">is_auctioned_label_available_for_controller</a>(
+    <a href="auction.md#0x0_auction">auction</a>: &<a href="auction.md#0x0_auction_Auction">Auction</a>,
+    label: String,
+    ctx: &TxContext
+): bool {
+    // TODO: expect the admin <b>to</b> call `configurate_auction` right after deploymenting the contract,
+    // TODO: <b>to</b> force auctioned label <b>to</b> go through <a href="auction.md#0x0_auction">auction</a>
+    <b>if</b> (<a href="auction.md#0x0_auction_auction_close_at">auction_close_at</a>(<a href="auction.md#0x0_auction">auction</a>) &gt;= epoch(ctx)) <b>return</b> <b>false</b>;
+    <b>if</b> (<a href="auction.md#0x0_auction_auction_close_at">auction_close_at</a>(<a href="auction.md#0x0_auction">auction</a>) + <a href="auction.md#0x0_auction_EXTRA_PERIOD">EXTRA_PERIOD</a> &lt; epoch(ctx)) <b>return</b> <b>true</b>;
     <b>if</b> (<a href="_contains">table::contains</a>(&<a href="auction.md#0x0_auction">auction</a>.entries, label)) {
         <b>let</b> entry = <a href="_borrow">table::borrow</a>(&<a href="auction.md#0x0_auction">auction</a>.entries, label);
         <b>if</b> (!entry.is_finalized) <b>return</b> <b>false</b>
@@ -1485,8 +1463,8 @@ AUCTION_STATE_REVEAL | AUCTION_STATE_FINALIZING | AUCTION_STATE_OWNED | AUCTION_
         bid_details_by_bidder: <a href="_new">table::new</a>(ctx),
         entries: <a href="_new">table::new</a>(ctx),
         <a href="">balance</a>: <a href="_zero">balance::zero</a>(),
-        open_at: 0,
-        close_at: 0,
+        start_auction_start_at: 0,
+        start_auction_end_at: 0,
     });
 }
 </code></pre>

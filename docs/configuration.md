@@ -3,11 +3,8 @@
 
 # Module `0x0::configuration`
 
-This module manages all contract's options, which can be accessed from any part of the codebase.
-These options can be modified dynamically at runtime by the admin.
 
 
--  [Resource `Configuration`](#0x0_configuration_Configuration)
 -  [Struct `NetworkFirstDayChangedEvent`](#0x0_configuration_NetworkFirstDayChangedEvent)
 -  [Struct `ReferralCodeAddedEvent`](#0x0_configuration_ReferralCodeAddedEvent)
 -  [Struct `DiscountCodeAddedEvent`](#0x0_configuration_DiscountCodeAddedEvent)
@@ -16,8 +13,8 @@ These options can be modified dynamically at runtime by the admin.
 -  [Struct `DiscountCodeRemovedEvent`](#0x0_configuration_DiscountCodeRemovedEvent)
 -  [Struct `ReferralValue`](#0x0_configuration_ReferralValue)
 -  [Struct `DiscountValue`](#0x0_configuration_DiscountValue)
+-  [Resource `Configuration`](#0x0_configuration_Configuration)
 -  [Constants](#@Constants_0)
--  [Function `set_enable_controller`](#0x0_configuration_set_enable_controller)
 -  [Function `set_public_key`](#0x0_configuration_set_public_key)
 -  [Function `new_reserve_domains`](#0x0_configuration_new_reserve_domains)
 -  [Function `remove_reserve_domains`](#0x0_configuration_remove_reserve_domains)
@@ -27,17 +24,10 @@ These options can be modified dynamically at runtime by the admin.
 -  [Function `new_discount_code_batch`](#0x0_configuration_new_discount_code_batch)
 -  [Function `remove_discount_code`](#0x0_configuration_remove_discount_code)
 -  [Function `remove_discount_code_batch`](#0x0_configuration_remove_discount_code_batch)
--  [Function `price_for_node`](#0x0_configuration_price_for_node)
--  [Function `max_commitment_age`](#0x0_configuration_max_commitment_age)
--  [Function `no_outdated_commitments_to_remove`](#0x0_configuration_no_outdated_commitments_to_remove)
--  [Function `public_key`](#0x0_configuration_public_key)
--  [Function `min_domain_length`](#0x0_configuration_min_domain_length)
--  [Function `min_non_auction_domain_length`](#0x0_configuration_min_non_auction_domain_length)
--  [Function `max_domain_length`](#0x0_configuration_max_domain_length)
--  [Function `is_enable_controller`](#0x0_configuration_is_enable_controller)
 -  [Function `use_discount_code`](#0x0_configuration_use_discount_code)
 -  [Function `use_referral_code`](#0x0_configuration_use_referral_code)
 -  [Function `emoji_config`](#0x0_configuration_emoji_config)
+-  [Function `public_key`](#0x0_configuration_public_key)
 -  [Function `init`](#0x0_configuration_init)
 
 
@@ -56,85 +46,6 @@ These options can be modified dynamically at runtime by the admin.
 </code></pre>
 
 
-
-<a name="0x0_configuration_Configuration"></a>
-
-## Resource `Configuration`
-
-This share object is the parent of reverse_domains
-The keys of dynamic child objects may or may not contain TLD.
-If it doesn't, it means we reserve both .sui and .move
-
-
-<pre><code><b>struct</b> <a href="configuration.md#0x0_configuration_Configuration">Configuration</a> <b>has</b> key
-</code></pre>
-
-
-
-<details>
-<summary>Fields</summary>
-
-
-<dl>
-<dt>
-<code>id: <a href="_UID">object::UID</a></code>
-</dt>
-<dd>
-
-</dd>
-<dt>
-<code>referral_codes: <a href="_VecMap">vec_map::VecMap</a>&lt;<a href="_String">ascii::String</a>, <a href="configuration.md#0x0_configuration_ReferralValue">configuration::ReferralValue</a>&gt;</code>
-</dt>
-<dd>
-
-</dd>
-<dt>
-<code>discount_codes: <a href="_VecMap">vec_map::VecMap</a>&lt;<a href="_String">ascii::String</a>, <a href="configuration.md#0x0_configuration_DiscountValue">configuration::DiscountValue</a>&gt;</code>
-</dt>
-<dd>
-
-</dd>
-<dt>
-<code>emoji_config: <a href="emoji.md#0x0_emoji_EmojiConfiguration">emoji::EmojiConfiguration</a></code>
-</dt>
-<dd>
-
-</dd>
-<dt>
-<code>public_key: <a href="">vector</a>&lt;u8&gt;</code>
-</dt>
-<dd>
-
-</dd>
-<dt>
-<code>enable_controller: bool</code>
-</dt>
-<dd>
-
-</dd>
-<dt>
-<code>min_domain_length: u64</code>
-</dt>
-<dd>
- Minimum length of domains.
-</dd>
-<dt>
-<code>min_non_auction_domain_length: u64</code>
-</dt>
-<dd>
- Minimum length of domains that can be registered directly in <code>Controller</code>.
- This field is only be used before the epoch at which the auction ends.
-</dd>
-<dt>
-<code>max_domain_length: u64</code>
-</dt>
-<dd>
-
-</dd>
-</dl>
-
-
-</details>
 
 <a name="0x0_configuration_NetworkFirstDayChangedEvent"></a>
 
@@ -388,6 +299,60 @@ If it doesn't, it means we reserve both .sui and .move
 
 </details>
 
+<a name="0x0_configuration_Configuration"></a>
+
+## Resource `Configuration`
+
+This share object is the parent of reverse_domains
+The keys of dynamic child objects may or may not contain TLD.
+If it doesn't, it means we reserve both .sui and .move
+
+
+<pre><code><b>struct</b> <a href="configuration.md#0x0_configuration_Configuration">Configuration</a> <b>has</b> key
+</code></pre>
+
+
+
+<details>
+<summary>Fields</summary>
+
+
+<dl>
+<dt>
+<code>id: <a href="_UID">object::UID</a></code>
+</dt>
+<dd>
+
+</dd>
+<dt>
+<code>referral_codes: <a href="_VecMap">vec_map::VecMap</a>&lt;<a href="_String">ascii::String</a>, <a href="configuration.md#0x0_configuration_ReferralValue">configuration::ReferralValue</a>&gt;</code>
+</dt>
+<dd>
+
+</dd>
+<dt>
+<code>discount_codes: <a href="_VecMap">vec_map::VecMap</a>&lt;<a href="_String">ascii::String</a>, <a href="configuration.md#0x0_configuration_DiscountValue">configuration::DiscountValue</a>&gt;</code>
+</dt>
+<dd>
+
+</dd>
+<dt>
+<code>emoji_config: <a href="emoji.md#0x0_emoji_EmojiConfiguration">emoji::EmojiConfiguration</a></code>
+</dt>
+<dd>
+
+</dd>
+<dt>
+<code>public_key: <a href="">vector</a>&lt;u8&gt;</code>
+</dt>
+<dd>
+
+</dd>
+</dl>
+
+
+</details>
+
 <a name="@Constants_0"></a>
 
 ## Constants
@@ -447,70 +412,14 @@ If it doesn't, it means we reserve both .sui and .move
 
 
 
-<a name="0x0_configuration_MAX_COMMITMENT_AGE"></a>
+<a name="0x0_configuration_EmojiConfig"></a>
 
 
 
-<pre><code><b>const</b> <a href="configuration.md#0x0_configuration_MAX_COMMITMENT_AGE">MAX_COMMITMENT_AGE</a>: u64 = 3;
+<pre><code><b>const</b> <a href="configuration.md#0x0_configuration_EmojiConfig">EmojiConfig</a>: <a href="">vector</a>&lt;u8&gt; = [101, 109, 111, 106, 105, 95, 99, 111, 110, 102, 105, 103];
 </code></pre>
 
 
-
-<a name="0x0_configuration_NO_OUTDATED_COMMITMENTS_TO_REMOVE"></a>
-
-
-
-<pre><code><b>const</b> <a href="configuration.md#0x0_configuration_NO_OUTDATED_COMMITMENTS_TO_REMOVE">NO_OUTDATED_COMMITMENTS_TO_REMOVE</a>: u64 = 50;
-</code></pre>
-
-
-
-<a name="0x0_configuration_PRICE_PER_YEAR"></a>
-
-
-
-<pre><code><b>const</b> <a href="configuration.md#0x0_configuration_PRICE_PER_YEAR">PRICE_PER_YEAR</a>: u64 = 1000000;
-</code></pre>
-
-
-
-<a name="0x0_configuration_set_enable_controller"></a>
-
-## Function `set_enable_controller`
-
-
-<a name="@Notice_1"></a>
-
-###### Notice
-
-The admin uses this function to enable or disable registration.
-
-
-
-<a name="@Params_2"></a>
-
-###### Params
-
-<code>new_value</code>: false to enable registration, true to disable it.
-
-
-<pre><code><b>public</b> entry <b>fun</b> <a href="configuration.md#0x0_configuration_set_enable_controller">set_enable_controller</a>(_: &<a href="base_registry.md#0x0_base_registry_AdminCap">base_registry::AdminCap</a>, config: &<b>mut</b> <a href="configuration.md#0x0_configuration_Configuration">configuration::Configuration</a>, new_value: bool)
-</code></pre>
-
-
-
-<details>
-<summary>Implementation</summary>
-
-
-<pre><code><b>public</b> entry <b>fun</b> <a href="configuration.md#0x0_configuration_set_enable_controller">set_enable_controller</a>(_: &AdminCap, config: &<b>mut</b> <a href="configuration.md#0x0_configuration_Configuration">Configuration</a>, new_value: bool) {
-    config.enable_controller = new_value;
-}
-</code></pre>
-
-
-
-</details>
 
 <a name="0x0_configuration_set_public_key"></a>
 
@@ -558,6 +467,7 @@ The admin uses this function to enable or disable registration.
 
     <b>while</b> (index &lt; len) {
         <b>let</b> domain = <a href="_borrow">vector::borrow</a>(&domains, index);
+        // TODO: validate or not?
         <b>if</b> (!field::exists_with_type&lt;String, bool&gt;(&config.id, *domain)) {
             field::add(&<b>mut</b> config.id, *domain, <b>true</b>);
         };
@@ -803,198 +713,6 @@ The admin uses this function to enable or disable registration.
 
 </details>
 
-<a name="0x0_configuration_price_for_node"></a>
-
-## Function `price_for_node`
-
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="configuration.md#0x0_configuration_price_for_node">price_for_node</a>(no_years: u64): u64
-</code></pre>
-
-
-
-<details>
-<summary>Implementation</summary>
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="configuration.md#0x0_configuration_price_for_node">price_for_node</a>(no_years: u64): u64 {
-    <a href="configuration.md#0x0_configuration_PRICE_PER_YEAR">PRICE_PER_YEAR</a> * no_years
-}
-</code></pre>
-
-
-
-</details>
-
-<a name="0x0_configuration_max_commitment_age"></a>
-
-## Function `max_commitment_age`
-
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="configuration.md#0x0_configuration_max_commitment_age">max_commitment_age</a>(): u64
-</code></pre>
-
-
-
-<details>
-<summary>Implementation</summary>
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="configuration.md#0x0_configuration_max_commitment_age">max_commitment_age</a>(): u64 {
-    <a href="configuration.md#0x0_configuration_MAX_COMMITMENT_AGE">MAX_COMMITMENT_AGE</a>
-}
-</code></pre>
-
-
-
-</details>
-
-<a name="0x0_configuration_no_outdated_commitments_to_remove"></a>
-
-## Function `no_outdated_commitments_to_remove`
-
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="configuration.md#0x0_configuration_no_outdated_commitments_to_remove">no_outdated_commitments_to_remove</a>(): u64
-</code></pre>
-
-
-
-<details>
-<summary>Implementation</summary>
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="configuration.md#0x0_configuration_no_outdated_commitments_to_remove">no_outdated_commitments_to_remove</a>(): u64 {
-    <a href="configuration.md#0x0_configuration_NO_OUTDATED_COMMITMENTS_TO_REMOVE">NO_OUTDATED_COMMITMENTS_TO_REMOVE</a>
-}
-</code></pre>
-
-
-
-</details>
-
-<a name="0x0_configuration_public_key"></a>
-
-## Function `public_key`
-
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="configuration.md#0x0_configuration_public_key">public_key</a>(config: &<a href="configuration.md#0x0_configuration_Configuration">configuration::Configuration</a>): &<a href="">vector</a>&lt;u8&gt;
-</code></pre>
-
-
-
-<details>
-<summary>Implementation</summary>
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="configuration.md#0x0_configuration_public_key">public_key</a>(config: &<a href="configuration.md#0x0_configuration_Configuration">Configuration</a>): &<a href="">vector</a>&lt;u8&gt; {
-    &config.public_key
-}
-</code></pre>
-
-
-
-</details>
-
-<a name="0x0_configuration_min_domain_length"></a>
-
-## Function `min_domain_length`
-
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="configuration.md#0x0_configuration_min_domain_length">min_domain_length</a>(config: &<a href="configuration.md#0x0_configuration_Configuration">configuration::Configuration</a>): u64
-</code></pre>
-
-
-
-<details>
-<summary>Implementation</summary>
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="configuration.md#0x0_configuration_min_domain_length">min_domain_length</a>(config: &<a href="configuration.md#0x0_configuration_Configuration">Configuration</a>): u64 {
-    config.min_domain_length
-}
-</code></pre>
-
-
-
-</details>
-
-<a name="0x0_configuration_min_non_auction_domain_length"></a>
-
-## Function `min_non_auction_domain_length`
-
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="configuration.md#0x0_configuration_min_non_auction_domain_length">min_non_auction_domain_length</a>(config: &<a href="configuration.md#0x0_configuration_Configuration">configuration::Configuration</a>): u64
-</code></pre>
-
-
-
-<details>
-<summary>Implementation</summary>
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="configuration.md#0x0_configuration_min_non_auction_domain_length">min_non_auction_domain_length</a>(config: &<a href="configuration.md#0x0_configuration_Configuration">Configuration</a>): u64 {
-    config.min_non_auction_domain_length
-}
-</code></pre>
-
-
-
-</details>
-
-<a name="0x0_configuration_max_domain_length"></a>
-
-## Function `max_domain_length`
-
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="configuration.md#0x0_configuration_max_domain_length">max_domain_length</a>(config: &<a href="configuration.md#0x0_configuration_Configuration">configuration::Configuration</a>): u64
-</code></pre>
-
-
-
-<details>
-<summary>Implementation</summary>
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="configuration.md#0x0_configuration_max_domain_length">max_domain_length</a>(config: &<a href="configuration.md#0x0_configuration_Configuration">Configuration</a>): u64 {
-    config.max_domain_length
-}
-</code></pre>
-
-
-
-</details>
-
-<a name="0x0_configuration_is_enable_controller"></a>
-
-## Function `is_enable_controller`
-
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="configuration.md#0x0_configuration_is_enable_controller">is_enable_controller</a>(config: &<a href="configuration.md#0x0_configuration_Configuration">configuration::Configuration</a>): bool
-</code></pre>
-
-
-
-<details>
-<summary>Implementation</summary>
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="configuration.md#0x0_configuration_is_enable_controller">is_enable_controller</a>(config: &<a href="configuration.md#0x0_configuration_Configuration">Configuration</a>): bool {
-    config.enable_controller
-}
-</code></pre>
-
-
-
-</details>
-
 <a name="0x0_configuration_use_discount_code"></a>
 
 ## Function `use_discount_code`
@@ -1078,6 +796,30 @@ The admin uses this function to enable or disable registration.
 
 </details>
 
+<a name="0x0_configuration_public_key"></a>
+
+## Function `public_key`
+
+
+
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="configuration.md#0x0_configuration_public_key">public_key</a>(config: &<a href="configuration.md#0x0_configuration_Configuration">configuration::Configuration</a>): &<a href="">vector</a>&lt;u8&gt;
+</code></pre>
+
+
+
+<details>
+<summary>Implementation</summary>
+
+
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="configuration.md#0x0_configuration_public_key">public_key</a>(config: &<a href="configuration.md#0x0_configuration_Configuration">Configuration</a>): &<a href="">vector</a>&lt;u8&gt; {
+    &config.public_key
+}
+</code></pre>
+
+
+
+</details>
+
 <a name="0x0_configuration_init"></a>
 
 ## Function `init`
@@ -1100,10 +842,6 @@ The admin uses this function to enable or disable registration.
         discount_codes: <a href="_empty">vec_map::empty</a>(),
         emoji_config: <a href="emoji.md#0x0_emoji_init_emoji_config">emoji::init_emoji_config</a>(),
         public_key: <a href="_empty">vector::empty</a>(),
-        enable_controller: <b>true</b>,
-        min_domain_length: 3,
-        min_non_auction_domain_length: 7,
-        max_domain_length: 63,
     });
 }
 </code></pre>

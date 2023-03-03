@@ -138,7 +138,7 @@ module suins::controller {
     /// Panic
     /// Panic if new registration is disabled
     /// or `label` contains characters that are not allowed
-    /// or `label is waiting to be finalized in auction
+    /// or `label` is waiting to be finalized in auction
     /// or label length isn't outside of the permitted range
     /// or `payment` doesn't have enough coins
     /// or either `referral_code` or `discount_code` is invalid
@@ -198,7 +198,7 @@ module suins::controller {
     /// Panic
     /// Panic if new registration is disabled
     /// or `label` contains characters that are not allowed
-    /// or `label is waiting to be finalized in auction
+    /// or `label` is waiting to be finalized in auction
     /// or label length isn't outside of the permitted range
     /// or `payment` doesn't have enough coins
     /// or either `referral_code` or `discount_code` is invalid
@@ -723,7 +723,7 @@ module suins::controller {
         if (epoch(ctx) <= auction::auction_close_at(auction)) {
             validate_label_with_emoji(emoji_config, label, 7, 63)
         } else {
-            assert!(auction::is_auction_label_available_for_controller(auction, label_str, ctx), ELabelUnAvailable);
+            assert!(auction::is_auctioned_label_available_for_controller(auction, label_str, ctx), ELabelUnAvailable);
             validate_label_with_emoji(emoji_config, label, 3, 63)
         };
         let registration_fee = FEE_PER_YEAR * no_years;
