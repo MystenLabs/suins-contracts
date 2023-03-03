@@ -1,7 +1,7 @@
 /// This module is intended to maintain records of domain names including the owner, resolver address and time to live (TTL).
 /// The owners of this only own the name, not own the registration.
 /// It primarily facilitates the lending and borrowing of domain names.
-module suins::base_registry {
+module suins::registry {
     use sui::event;
     use sui::object::{Self, UID};
     use sui::transfer;
@@ -20,7 +20,7 @@ module suins::base_registry {
     };
     use sui::table;
 
-    friend suins::base_registrar;
+    friend suins::registrar;
     friend suins::reverse_registrar;
     friend suins::controller;
     friend suins::resolver;
@@ -278,7 +278,7 @@ module suins::base_registry {
     }
 
     #[test_only]
-    friend suins::base_registry_tests;
+    friend suins::registry_tests;
     #[test_only]
     friend suins::resolver_tests;
 

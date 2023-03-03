@@ -16,8 +16,8 @@ module suins::auction {
     use std::string::{String, utf8};
     use std::vector;
     use std::bcs;
-    use suins::base_registrar;
-    use suins::base_registry::AdminCap;
+    use suins::registrar;
+    use suins::registry::AdminCap;
     use suins::configuration::{Self, Configuration};
     use suins::coin_util;
     use suins::entity::SuiNS;
@@ -441,7 +441,7 @@ module suins::auction {
         if (entry.winner != sender(ctx)) return;
         entry.is_finalized = true;
 
-        base_registrar::register(suins, tld, config, label, entry.winner, 365, resolver, ctx);
+        registrar::register(suins, tld, config, label, entry.winner, 365, resolver, ctx);
 
         event::emit(NodeRegisteredEvent {
             label: label_str,

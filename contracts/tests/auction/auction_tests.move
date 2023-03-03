@@ -17,8 +17,8 @@ module suins::auction_tests {
     withdraw,
     state
     };
-    use suins::base_registry::{Self, AdminCap};
-    use suins::base_registrar;
+    use suins::registry::{Self, AdminCap};
+    use suins::registrar;
     use suins::configuration::{Self, Configuration};
     use suins::entity::{Self, SuiNS};
     use suins::emoji;
@@ -88,7 +88,7 @@ module suins::auction_tests {
         {
             let ctx = ctx(&mut scenario);
             auction::test_init(ctx);
-            base_registry::test_init(ctx);
+            registry::test_init(ctx);
             configuration::test_init(ctx);
             entity::test_init(ctx);
         };
@@ -98,8 +98,8 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            base_registrar::new_tld(&admin_cap, &mut suins, MOVE_REGISTRAR, test_scenario::ctx(&mut scenario));
-            base_registrar::new_tld(&admin_cap, &mut suins, SUI_REGISTRAR, test_scenario::ctx(&mut scenario));
+            registrar::new_tld(&admin_cap, &mut suins, MOVE_REGISTRAR, test_scenario::ctx(&mut scenario));
+            registrar::new_tld(&admin_cap, &mut suins, SUI_REGISTRAR, test_scenario::ctx(&mut scenario));
 
             auction::configure_auction(
                 &admin_cap,
@@ -1029,7 +1029,7 @@ module suins::auction_tests {
             assert!(created_at == START_AN_AUCTION_AT + 1, 0);
             assert!(is_unsealed, 0);
 
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, NODE), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, NODE), 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -1079,15 +1079,15 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<Auction>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
-            assert!(base_registrar::record_exists(&suins, SUI_REGISTRAR, NODE), 0);
+            assert!(registrar::record_exists(&suins, SUI_REGISTRAR, NODE), 0);
             assert!(
-                base_registrar::name_expires_at(&suins, SUI_REGISTRAR, NODE)
+                registrar::name_expires_at(&suins, SUI_REGISTRAR, NODE)
                     == START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 365,
                 0
             );
-            assert!(base_registry::owner(&suins, NODE_SUI) == SECOND_USER_ADDRESS, 0);
-            assert!(base_registry::ttl(&suins, NODE_SUI) == 0, 0);
-            assert!(base_registry::resolver(&suins, NODE_SUI) == RESOLVER_ADDRESS, 0);
+            assert!(registry::owner(&suins, NODE_SUI) == SECOND_USER_ADDRESS, 0);
+            assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
+            assert!(registry::resolver(&suins, NODE_SUI) == RESOLVER_ADDRESS, 0);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
         };
@@ -1125,15 +1125,15 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<Auction>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
-            assert!(base_registrar::record_exists(&suins, SUI_REGISTRAR, NODE), 0);
+            assert!(registrar::record_exists(&suins, SUI_REGISTRAR, NODE), 0);
             assert!(
-                base_registrar::name_expires_at(&suins, SUI_REGISTRAR, NODE)
+                registrar::name_expires_at(&suins, SUI_REGISTRAR, NODE)
                     == START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 365,
                 0
             );
-            assert!(base_registry::owner(&suins, NODE_SUI) == SECOND_USER_ADDRESS, 0);
-            assert!(base_registry::ttl(&suins, NODE_SUI) == 0, 0);
-            assert!(base_registry::resolver(&suins, NODE_SUI) == RESOLVER_ADDRESS, 0);
+            assert!(registry::owner(&suins, NODE_SUI) == SECOND_USER_ADDRESS, 0);
+            assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
+            assert!(registry::resolver(&suins, NODE_SUI) == RESOLVER_ADDRESS, 0);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
         };
@@ -1566,15 +1566,15 @@ module suins::auction_tests {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
             get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1000, 0, FIRST_USER_ADDRESS, true);
-            assert!(base_registrar::record_exists(&suins, SUI_REGISTRAR, NODE), 0);
+            assert!(registrar::record_exists(&suins, SUI_REGISTRAR, NODE), 0);
             assert!(
-                base_registrar::name_expires_at(&suins, SUI_REGISTRAR, NODE)
+                registrar::name_expires_at(&suins, SUI_REGISTRAR, NODE)
                     == START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 365,
                 0
             );
-            assert!(base_registry::owner(&suins, NODE_SUI) == FIRST_USER_ADDRESS, 0);
-            assert!(base_registry::ttl(&suins, NODE_SUI) == 0, 0);
-            assert!(base_registry::resolver(&suins, NODE_SUI) == RESOLVER_ADDRESS, 0);
+            assert!(registry::owner(&suins, NODE_SUI) == FIRST_USER_ADDRESS, 0);
+            assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
+            assert!(registry::resolver(&suins, NODE_SUI) == RESOLVER_ADDRESS, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -1628,15 +1628,15 @@ module suins::auction_tests {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
             get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1000, 0, FIRST_USER_ADDRESS, true);
-            assert!(base_registrar::record_exists(&suins, SUI_REGISTRAR, NODE), 0);
+            assert!(registrar::record_exists(&suins, SUI_REGISTRAR, NODE), 0);
             assert!(
-                base_registrar::name_expires_at(&suins, SUI_REGISTRAR, NODE)
+                registrar::name_expires_at(&suins, SUI_REGISTRAR, NODE)
                     == START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 365,
                 0
             );
-            assert!(base_registry::owner(&suins, NODE_SUI) == FIRST_USER_ADDRESS, 0);
-            assert!(base_registry::ttl(&suins, NODE_SUI) == 0, 0);
-            assert!(base_registry::resolver(&suins, NODE_SUI) == RESOLVER_ADDRESS, 0);
+            assert!(registry::owner(&suins, NODE_SUI) == FIRST_USER_ADDRESS, 0);
+            assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
+            assert!(registry::resolver(&suins, NODE_SUI) == RESOLVER_ADDRESS, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -1807,15 +1807,15 @@ module suins::auction_tests {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
             get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1000, 0, FIRST_USER_ADDRESS, true);
-            assert!(base_registrar::record_exists(&suins, SUI_REGISTRAR, NODE), 0);
+            assert!(registrar::record_exists(&suins, SUI_REGISTRAR, NODE), 0);
             assert!(
-                base_registrar::name_expires_at(&suins, SUI_REGISTRAR, NODE)
+                registrar::name_expires_at(&suins, SUI_REGISTRAR, NODE)
                     == START_AUCTION_END_AT + 10 + 365,
                 0
             );
-            assert!(base_registry::owner(&suins, NODE_SUI) == FIRST_USER_ADDRESS, 0);
-            assert!(base_registry::ttl(&suins, NODE_SUI) == 0, 0);
-            assert!(base_registry::resolver(&suins, NODE_SUI) == RESOLVER_ADDRESS, 0);
+            assert!(registry::owner(&suins, NODE_SUI) == FIRST_USER_ADDRESS, 0);
+            assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
+            assert!(registry::resolver(&suins, NODE_SUI) == RESOLVER_ADDRESS, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -2083,15 +2083,15 @@ module suins::auction_tests {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
             get_entry_util(&mut auction, NODE, START_AUCTION_END_AT + 1, 1500, 0, FIRST_USER_ADDRESS, true);
-            assert!(base_registrar::record_exists(&suins, SUI_REGISTRAR, NODE), 0);
+            assert!(registrar::record_exists(&suins, SUI_REGISTRAR, NODE), 0);
             assert!(
-                base_registrar::name_expires_at(&suins, SUI_REGISTRAR, NODE)
+                registrar::name_expires_at(&suins, SUI_REGISTRAR, NODE)
                     == START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + EXTRA_PERIOD - 1 + 365,
                 0
             );
-            assert!(base_registry::owner(&suins, NODE_SUI) == FIRST_USER_ADDRESS, 0);
-            assert!(base_registry::ttl(&suins, NODE_SUI) == 0, 0);
-            assert!(base_registry::resolver(&suins, NODE_SUI) == RESOLVER_ADDRESS, 0);
+            assert!(registry::owner(&suins, NODE_SUI) == FIRST_USER_ADDRESS, 0);
+            assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
+            assert!(registry::resolver(&suins, NODE_SUI) == RESOLVER_ADDRESS, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin);
@@ -3807,6 +3807,8 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<Auction>(scenario);
+            assert!(auction::get_balance(&auction) == 11300, 0);
+
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
@@ -3829,6 +3831,7 @@ module suins::auction_tests {
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
             );
+            assert!(auction::get_balance(&auction) == 11000, 0);
             test_scenario::return_shared(auction);
         };
 
@@ -3854,6 +3857,7 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<Auction>(scenario);
             let coin = test_scenario::most_recent_id_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
             assert!(option::is_none(&coin), 0);
+            assert!(auction::get_balance(&auction) == 11300, 0);
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
@@ -3889,6 +3893,7 @@ module suins::auction_tests {
 
             withdraw(&mut auction, &mut ctx);
 
+            assert!(auction::get_balance(&auction) == 10000, 0);
             let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
             assert!(vector::length(&bids) == 0, 0);
             test_scenario::return_shared(auction);
@@ -3925,9 +3930,11 @@ module suins::auction_tests {
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<Auction>(scenario);
             let coin = coin::mint_for_testing<SUI>(30000, ctx);
+            assert!(auction::get_balance(&auction) == 10000, 0);
 
             auction::place_bid(&mut auction, seal_bid, 1300, &mut coin, ctx);
 
+            assert!(auction::get_balance(&auction) == 11300, 0);
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(auction);
         };
@@ -3968,6 +3975,7 @@ module suins::auction_tests {
 
             withdraw(&mut auction, &mut ctx);
 
+            assert!(auction::get_balance(&auction) == 10000, 0);
             let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
             assert!(vector::length(&bids) == 0, 0);
             test_scenario::return_shared(auction);
@@ -4011,9 +4019,11 @@ module suins::auction_tests {
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<Auction>(scenario);
             let coin = coin::mint_for_testing<SUI>(30000, ctx);
+            assert!(auction::get_balance(&auction) == 10000, 0);
 
             auction::place_bid(&mut auction, seal_bid, 30000, &mut coin, ctx);
 
+            assert!(auction::get_balance(&auction) == 40000, 0);
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(auction);
         };
@@ -4053,6 +4063,7 @@ module suins::auction_tests {
 
             withdraw(&mut auction, &mut ctx);
 
+            assert!(auction::get_balance(&auction) == 10000, 0);
             let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
             assert!(vector::length(&bids) == 0, 0);
             test_scenario::return_shared(auction);

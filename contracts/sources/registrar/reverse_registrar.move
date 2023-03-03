@@ -5,7 +5,7 @@ module suins::reverse_registrar {
     use sui::event;
     use sui::tx_context::{TxContext, sender};
     use suins::entity::{Self, SuiNS};
-    use suins::base_registry::{Self, AdminCap};
+    use suins::registry::{Self, AdminCap};
     use suins::converter;
     use std::string;
 
@@ -44,8 +44,8 @@ module suins::reverse_registrar {
         ctx: &mut TxContext
     ) {
         let label = converter::address_to_string(sender(ctx));
-        let node = base_registry::make_node(label, string::utf8(ADDR_REVERSE_BASE_NODE));
-        base_registry::set_record_internal(suins, node, owner, resolver, 0);
+        let node = registry::make_node(label, string::utf8(ADDR_REVERSE_BASE_NODE));
+        registry::set_record_internal(suins, node, owner, resolver, 0);
 
         event::emit(ReverseClaimedEvent { addr: sender(ctx), resolver })
     }

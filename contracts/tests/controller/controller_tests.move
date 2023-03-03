@@ -9,8 +9,8 @@ module suins::controller_tests {
     use suins::auction::{Auction, make_seal_bid};
     use suins::auction;
     use suins::auction_tests::{start_an_auction_util, place_bid_util, reveal_bid_util};
-    use suins::base_registrar::{Self, RegistrationNFT};
-    use suins::base_registry::{Self, AdminCap};
+    use suins::registrar::{Self, RegistrationNFT};
+    use suins::registry::{Self, AdminCap};
     use suins::configuration::{Self, Configuration};
     use suins::controller;
     use suins::emoji;
@@ -51,7 +51,7 @@ module suins::controller_tests {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
-            base_registry::test_init(ctx);
+            registry::test_init(ctx);
             configuration::test_init(ctx);
             entity::test_init(ctx);
             auction::test_init(ctx);
@@ -62,7 +62,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            base_registrar::new_tld(&admin_cap, &mut suins, SUI_REGISTRAR, test_scenario::ctx(&mut scenario));
+            registrar::new_tld(&admin_cap, &mut suins, SUI_REGISTRAR, test_scenario::ctx(&mut scenario));
             configuration::new_referral_code(&admin_cap, &mut config, REFERRAL_CODE, 10, SECOND_USER_ADDRESS);
             configuration::new_discount_code(&admin_cap, &mut config, DISCOUNT_CODE, 15, FIRST_USER_ADDRESS);
             configuration::set_public_key(
@@ -126,8 +126,8 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
 
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(controller::balance(&suins) == 0, 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(scenario), 0);
 
@@ -156,8 +156,8 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            let (name, url) = registrar::get_nft_fields(&nft);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
             assert!(controller::balance(&suins) == 1000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
@@ -166,11 +166,11 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 365, 0);
             assert!(owner== FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -219,10 +219,10 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(controller::balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
-            assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
+            assert!(!registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
             controller::register(
@@ -250,8 +250,8 @@ module suins::controller_tests {
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            let (name, url) = registrar::get_nft_fields(&nft);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
             assert!(controller::balance(&suins) == 2000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
@@ -260,11 +260,11 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 21 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -294,7 +294,7 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
 
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, SECOND_LABEL), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, SECOND_LABEL), 0);
 
             controller::register(
                 &mut suins,
@@ -335,7 +335,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
 
             controller::register(
                 &mut suins,
@@ -375,7 +375,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
 
             controller::register(
                 &mut suins,
@@ -588,8 +588,8 @@ module suins::controller_tests {
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            let (name, url) = registrar::get_nft_fields(&nft);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
             assert!(controller::balance(&suins) == 2000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
@@ -598,17 +598,17 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 600 + 365, 0);
             assert!(owner == SECOND_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
             assert!(owner == SECOND_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
 
-            let registrar = base_registrar::get_registrar(&suins, SUI_REGISTRAR);
-            base_registrar::assert_nft_not_expires(
+            let registrar = registrar::get_registrar(&suins, SUI_REGISTRAR);
+            registrar::assert_nft_not_expires(
                 registrar,
                 utf8(SUI_REGISTRAR),
                 &nft,
@@ -621,7 +621,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ENFTExpired)]
+    #[test, expected_failure(abort_code = registrar::ENFTExpired)]
     fun test_register_works_if_previous_registration_is_expired_2() {
         let scenario = test_init();
         register(&mut scenario);
@@ -690,8 +690,8 @@ module suins::controller_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let registrar = base_registrar::get_registrar(&suins, SUI_REGISTRAR);
-            base_registrar::assert_nft_not_expires(
+            let registrar = registrar::get_registrar(&suins, SUI_REGISTRAR);
+            registrar::assert_nft_not_expires(
                 registrar,
                 utf8(SUI_REGISTRAR),
                 &nft,
@@ -722,8 +722,8 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(4000001, &mut ctx);
 
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(controller::balance(&suins) == 0, 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
@@ -752,8 +752,8 @@ module suins::controller_tests {
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            let (name, url) = registrar::get_nft_fields(&nft);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
 
             assert!(controller::balance(&suins) == 2000000, 0);
@@ -763,11 +763,11 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
             assert!(owner== FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -1068,7 +1068,7 @@ module suins::controller_tests {
             let ctx = test_scenario::ctx(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(2000001, ctx);
 
-            assert!(base_registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 416, 0);
+            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 416, 0);
             assert!(controller::balance(&suins) == 1000000, 0);
 
             controller::renew(
@@ -1081,7 +1081,7 @@ module suins::controller_tests {
             );
 
             assert!(coin::value(&coin) == 1, 0);
-            assert!(base_registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 1146, 0);
+            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 1146, 0);
 
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(suins);
@@ -1096,7 +1096,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ELabelNotExists)]
+    #[test, expected_failure(abort_code = registrar::ELabelNotExists)]
     fun test_renew_abort_if_label_not_exists() {
         let scenario = test_init();
 
@@ -1106,7 +1106,7 @@ module suins::controller_tests {
             let ctx = test_scenario::ctx(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(1000001, ctx);
 
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
 
             controller::renew(
                 &mut suins,
@@ -1123,7 +1123,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ELabelExpired)]
+    #[test, expected_failure(abort_code = registrar::ELabelExpired)]
     fun test_renew_abort_if_label_expired() {
         let scenario = test_init();
         register(&mut scenario);
@@ -1164,7 +1164,7 @@ module suins::controller_tests {
             let ctx = test_scenario::ctx(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(4, ctx);
 
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
 
             controller::renew(
                 &mut suins,
@@ -1380,8 +1380,8 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             assert!(controller::balance(&suins) == 0, 0);
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
@@ -1412,10 +1412,10 @@ module suins::controller_tests {
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
             let coin = test_scenario::take_from_address<Coin<SUI>>(&mut scenario, SECOND_USER_ADDRESS);
 
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
@@ -1425,11 +1425,11 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == 200000, 0);
             assert!(controller::balance(&suins) == 1800000, 0);
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
             assert!(owner== FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -1460,8 +1460,8 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(4000000, &mut ctx);
 
             assert!(controller::balance(&suins) == 0, 0);
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
@@ -1490,11 +1490,11 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let coin = test_scenario::take_from_address<Coin<SUI>>(&mut scenario, SECOND_USER_ADDRESS);
 
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
@@ -1504,11 +1504,11 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == 300000, 0);
             assert!(controller::balance(&suins) == 2700000, 0);
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 1095, 0);
             assert!(owner== FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -1576,8 +1576,8 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             assert!(controller::balance(&suins) == 0, 0);
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
@@ -1607,10 +1607,10 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
             assert!(name == utf8(FIRST_NODE), 0);
@@ -1620,11 +1620,11 @@ module suins::controller_tests {
             );
             assert!(controller::balance(&suins) == 1700000, 0);
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
             assert!(owner== FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -1736,8 +1736,8 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             assert!(controller::balance(&suins) == 0, 0);
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
@@ -1767,10 +1767,10 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
             assert!(name == utf8(FIRST_NODE), 0);
@@ -1780,11 +1780,11 @@ module suins::controller_tests {
             );
             assert!(controller::balance(&suins) == 1700000, 0);
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
             assert!(owner== FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -1996,7 +1996,7 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
 
             controller::register_with_code(
                 &mut suins,
@@ -2043,7 +2043,7 @@ module suins::controller_tests {
                 2
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, SECOND_LABEL), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, SECOND_LABEL), 0);
 
             controller::register_with_code(
                 &mut suins,
@@ -2143,10 +2143,10 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(controller::balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
-            assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
+            assert!(!registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
             controller::register(
@@ -2172,10 +2172,10 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
             assert!(controller::balance(&suins) == 2000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
@@ -2184,11 +2184,11 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
             assert!(owner== FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -2218,8 +2218,8 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             assert!(controller::balance(&suins) == 0, 0);
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
@@ -2248,11 +2248,11 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let coin = test_scenario::take_from_address<Coin<SUI>>(&mut scenario, SECOND_USER_ADDRESS);
             
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
             
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
@@ -2262,11 +2262,11 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == 170000, 0);
             assert!(controller::balance(&suins) == 1700000 - 170000, 0);
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
             assert!(owner== FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -2295,7 +2295,7 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             controller::register_with_code(
                 &mut suins,
                 SUI_REGISTRAR,
@@ -2336,7 +2336,7 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             controller::register_with_code(
                 &mut suins,
                 SUI_REGISTRAR,
@@ -2378,8 +2378,8 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             assert!(controller::balance(&suins) == 0, 0);
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
@@ -2407,11 +2407,11 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let coin = test_scenario::take_from_address<Coin<SUI>>(&mut scenario, SECOND_USER_ADDRESS);
             
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
             
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
@@ -2421,11 +2421,11 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == 170000, 0);
             assert!(controller::balance(&suins) == 1700000 - 170000, 0);
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
             assert!(owner== FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -2454,7 +2454,7 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             controller::register_with_config_and_code(
                 &mut suins,
                 SUI_REGISTRAR,
@@ -2496,7 +2496,7 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             controller::register_with_config_and_code(
                 &mut suins,
                 SUI_REGISTRAR,
@@ -2621,9 +2621,9 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
 
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
             assert!(controller::balance(&suins) == 1000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
@@ -2632,11 +2632,11 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 21 + 365, 0);
             assert!(owner== FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -2727,9 +2727,9 @@ module suins::controller_tests {
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
 
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
             assert!(controller::balance(&suins) == 1000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
@@ -2738,11 +2738,11 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 365, 0);
             assert!(owner== FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -2817,9 +2817,9 @@ module suins::controller_tests {
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
 
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
             assert!(controller::balance(&suins) == 1000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
@@ -2828,11 +2828,11 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 221 + 365, 0);
             assert!(owner== FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -2906,10 +2906,10 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
             assert!(controller::balance(&suins) == 1000000, 0);
             assert!(name == utf8(AUCTIONED_NODE), 0);
@@ -2918,11 +2918,11 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
             assert!(expiry == 221 + 365, 0);
             assert!(owner== FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(AUCTIONED_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(AUCTIONED_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -2996,10 +2996,10 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
             assert!(controller::balance(&suins) == 1000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
@@ -3008,11 +3008,11 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 121 + 365, 0);
             assert!(owner== FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -3243,10 +3243,10 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
             assert!(controller::balance(&suins) == 1000000, 0);
             assert!(name == utf8(AUCTIONED_NODE), 0);
@@ -3255,11 +3255,11 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 221 + 365, 0);
             assert!(owner== FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(AUCTIONED_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(AUCTIONED_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -3353,10 +3353,10 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
             assert!(controller::balance(&suins) == 1000000, 0);
             assert!(name == utf8(AUCTIONED_NODE), 0);
@@ -3365,11 +3365,11 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
             assert!(expiry == 221 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(AUCTIONED_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(AUCTIONED_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -3539,7 +3539,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_register_with_image_aborts_with_empty_signature() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -3581,7 +3581,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_register_with_image_aborts_with_empty_hashed_message() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -3623,7 +3623,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_register_with_image_aborts_with_empty_raw_message() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -3683,10 +3683,10 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(controller::balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
-            assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
+            assert!(!registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
             controller::register_with_image(
@@ -3716,10 +3716,10 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
             assert!(controller::balance(&suins) == 2000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
@@ -3728,11 +3728,11 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 21 + 730, 0);
             assert!(owner== FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -3761,8 +3761,8 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(4000001, &mut ctx);
 
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(controller::balance(&suins) == 0, 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
@@ -3793,10 +3793,10 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
             assert!(controller::balance(&suins) == 2000000, 0);
             assert!(name == utf8(FIRST_NODE), 0);
@@ -3805,11 +3805,11 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 21 + 730, 0);
             assert!(owner== FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -3844,7 +3844,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_register_with_config_and_image_aborts_with_empty_raw_message() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -3887,7 +3887,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_register_with_config_and_image_aborts_with_empty_signature() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -3930,7 +3930,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_register_with_config_and_image_aborts_with_empty_hashed_message() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -3992,8 +3992,8 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             assert!(controller::balance(&suins) == 0, 0);
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
@@ -4025,11 +4025,11 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let coin = test_scenario::take_from_address<Coin<SUI>>(&mut scenario, SECOND_USER_ADDRESS);
 
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
@@ -4039,11 +4039,11 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == 170000, 0);
             assert!(controller::balance(&suins) == 1700000 - 170000, 0);
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 21 + 730, 0);
             assert!(owner== FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -4055,7 +4055,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_register_with_code_and_image_aborts_with_empty_signature() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -4099,7 +4099,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_register_with_code_and_image_aborts_with_empty_hashed_message() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -4143,7 +4143,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_register_with_code_and_image_aborts_with_empty_raw_message() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -4205,8 +4205,8 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
             assert!(controller::balance(&suins) == 0, 0);
-            assert!(!base_registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!base_registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
@@ -4239,7 +4239,7 @@ module suins::controller_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let coin = test_scenario::take_from_address<Coin<SUI>>(&mut scenario, SECOND_USER_ADDRESS);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
 
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
@@ -4249,11 +4249,11 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == 170000, 0);
             assert!(controller::balance(&suins) == 1700000 - 170000, 0);
 
-            let (expiry, owner) = base_registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 21 + 730, 0);
             assert!(owner== FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -4265,7 +4265,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_register_with_config_and_code_and_image_aborts_with_empty_signature() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -4309,7 +4309,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_register_with_config_and_code_and_image_aborts_with_empty_hashed_message() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -4353,7 +4353,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_register_with_config_and_code_and_image_aborts_with_empty_raw_message() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -4405,7 +4405,7 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             assert!(controller::balance(&suins) == 1000000, 0);
@@ -4423,7 +4423,7 @@ module suins::controller_tests {
             let ctx = test_scenario::ctx(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(2000001, ctx);
 
-            assert!(base_registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 416, 0);
+            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 416, 0);
             assert!(controller::balance(&suins) == 1000000, 0);
 
             controller::renew_with_image(
@@ -4441,7 +4441,7 @@ module suins::controller_tests {
             );
 
             assert!(coin::value(&coin) == 1, 0);
-            assert!(base_registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 1146, 0);
+            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 1146, 0);
 
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(suins);
@@ -4451,7 +4451,7 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             assert!(controller::balance(&suins) == 3000000, 0);
@@ -4464,7 +4464,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_renew_with_image_aborts_with_empty_signature() {
         let scenario = test_init();
         register(&mut scenario);
@@ -4499,7 +4499,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_renew_with_image_aborts_with_empty_hashed_msg() {
         let scenario = test_init();
         register(&mut scenario);
@@ -4534,7 +4534,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_renew_with_image_aborts_with_empty_raw_msg() {
         let scenario = test_init();
         register(&mut scenario);
@@ -4569,7 +4569,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ELabelExpired)]
+    #[test, expected_failure(abort_code = registrar::ELabelExpired)]
     fun test_renew_with_image_aborts_if_being_called_too_late() {
         let scenario = test_init();
         register(&mut scenario);
@@ -4587,7 +4587,7 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(2000001, &mut ctx);
 
-            assert!(base_registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 416, 0);
+            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 416, 0);
 
             controller::renew_with_image(
                 &mut suins,
@@ -4619,7 +4619,7 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             assert!(controller::balance(&suins) == 1000000, 0);
@@ -4642,7 +4642,7 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(2000001, &mut ctx);
 
-            assert!(base_registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 416, 0);
+            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 416, 0);
             assert!(controller::balance(&suins) == 1000000, 0);
 
             controller::renew_with_image(
@@ -4660,7 +4660,7 @@ module suins::controller_tests {
             );
 
             assert!(coin::value(&coin) == 1, 0);
-            assert!(base_registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 1146, 0);
+            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 1146, 0);
 
             coin::destroy_for_testing(coin);
             test_scenario::return_shared(suins);
@@ -4670,7 +4670,7 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             assert!(controller::balance(&suins) == 3000000, 0);

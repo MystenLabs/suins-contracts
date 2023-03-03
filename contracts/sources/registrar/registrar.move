@@ -2,7 +2,7 @@
 /// Call `new_tld` to setup new registrar.
 /// All functions that involves payment charging in this module aren't supposed to be called directly,
 /// users must call the corresponding functions in `Controller`.
-module suins::base_registrar {
+module suins::registrar {
     use sui::event;
     use sui::object::{Self, ID, UID, uid_to_inner};
     use sui::transfer;
@@ -11,7 +11,7 @@ module suins::base_registrar {
     use std::string::{Self, String, utf8};
     use std::option;
     use std::vector;
-    use suins::base_registry::{Self, AdminCap};
+    use suins::registry::{Self, AdminCap};
     use suins::configuration::{Self, Configuration};
     use sui::ecdsa_k1;
     use suins::remove_later;
@@ -115,7 +115,7 @@ module suins::base_registrar {
         let registration = table::borrow(registrar, label);
         assert!(entity::registration_record_expiry(registration) >= epoch(ctx), ELabelExpired);
 
-        base_registry::set_owner_internal(suins, nft.name, owner);
+        registry::set_owner_internal(suins, nft.name, owner);
         event::emit(NameReclaimedEvent {
             node: nft.name,
             owner,
@@ -284,7 +284,7 @@ module suins::base_registrar {
 
         table::add(registrar, label, record);
         transfer::transfer(nft, owner);
-        base_registry::set_record_internal(suins, node, owner, resolver, 0);
+        registry::set_record_internal(suins, node, owner, resolver, 0);
 
         (nft_id, url)
     }
@@ -393,7 +393,7 @@ module suins::base_registrar {
     // === Testing ===
 
     #[test_only]
-    friend suins::base_registrar_tests;
+    friend suins::registrar_tests;
     #[test_only]
     friend suins::controller_tests;
 

@@ -10,13 +10,13 @@ module suins::configuration {
     use sui::dynamic_field as field;
     use suins::remove_later;
     use suins::converter;
-    use suins::base_registry::AdminCap;
+    use suins::registry::AdminCap;
     use suins::emoji::{Self, EmojiConfiguration};
     use std::ascii;
     use std::vector;
     use std::string::{String};
 
-    friend suins::base_registrar;
+    friend suins::registrar;
     friend suins::controller;
     friend suins::auction;
 

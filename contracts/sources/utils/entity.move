@@ -13,8 +13,8 @@ module suins::entity {
     use sui::linked_table;
     use sui::balance;
 
-    friend suins::base_registry;
-    friend suins::base_registrar;
+    friend suins::registry;
+    friend suins::registrar;
     friend suins::reverse_registrar;
     friend suins::controller;
     friend suins::coin_util;
@@ -169,7 +169,7 @@ module suins::entity {
     // === Testing ===
 
     #[test_only]
-    friend suins::base_registry_tests;
+    friend suins::registry_tests;
     #[test_only]
     friend suins::reverse_registrar_tests;
 

@@ -8,7 +8,7 @@ module suins::remove_later {
     use suins::converter;
 
     friend suins::configuration;
-    friend suins::base_registrar;
+    friend suins::registrar;
 
     const EInvalidDiscountCodeBatch: u64 = 501;
 

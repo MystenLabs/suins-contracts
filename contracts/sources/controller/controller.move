@@ -14,8 +14,8 @@ module suins::controller {
     use sui::object::ID;
     use sui::tx_context::{TxContext, sender, epoch};
     use sui::sui::SUI;
-    use suins::base_registry::AdminCap;
-    use suins::base_registrar::{Self, RegistrationNFT};
+    use suins::registry::AdminCap;
+    use suins::registrar::{Self, RegistrationNFT};
     use suins::configuration::{
         Self,
         Configuration,
@@ -198,7 +198,7 @@ module suins::controller {
         raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        base_registrar::assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
+        registrar::assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
         let resolver = entity::default_resolver(suins);
 
         register_internal(
@@ -292,7 +292,7 @@ module suins::controller {
         raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        base_registrar::assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
+        registrar::assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
 
         register_internal(
             suins,
@@ -397,7 +397,7 @@ module suins::controller {
         raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        base_registrar::assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
+        registrar::assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
         let (referral_code, discount_code) = validate_codes(referral_code, discount_code);
         let resolver = entity::default_resolver(suins);
 
@@ -504,7 +504,7 @@ module suins::controller {
         raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        base_registrar::assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
+        registrar::assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
         let (referral_code, discount_code) = validate_codes(referral_code, discount_code);
 
         register_internal(
@@ -579,7 +579,7 @@ module suins::controller {
     ) {
         // NFT and imag_msg are validated in `update_image_url`
         renew_internal(suins, tld, label, no_years, payment, ctx);
-        base_registrar::update_image_url(suins, tld, config, nft, signature, hashed_msg, raw_msg, ctx);
+        registrar::update_image_url(suins, tld, config, nft, signature, hashed_msg, raw_msg, ctx);
     }
 
     /// #### Notice
@@ -609,7 +609,7 @@ module suins::controller {
         coin_util::user_transfer_to_contract(payment, renew_fee, suins);
 
         let duration = no_years * 365;
-        base_registrar::renew(suins, tld, label, duration, ctx);
+        registrar::renew(suins, tld, label, duration, ctx);
 
         event::emit(NameRenewedEvent {
             tld: utf8(tld),
@@ -642,7 +642,7 @@ module suins::controller {
         let label_str = utf8(label);
 
         if (epoch(ctx) <= auction::auction_close_at(auction)) {
-            // auction time, cann't register short names
+            // auction time, can't register short names
             validate_label_with_emoji(
                 emoji_config,
                 label,
@@ -670,7 +670,7 @@ module suins::controller {
         };
 
         let duration = no_years * 365;
-        let (nft_id, url) = base_registrar::register_with_image(
+        let (nft_id, url) = registrar::register_with_image(
             suins,
             tld,
             config,
@@ -761,7 +761,7 @@ module suins::controller {
             ECommitmentTooOld
         );
         linked_table::remove(commitments, commitment);
-        assert!(base_registrar::is_available(suins, tld, string::utf8(label), ctx), ELabelUnAvailable);
+        assert!(registrar::is_available(suins, tld, string::utf8(label), ctx), ELabelUnAvailable);
     }
 
     fun make_commitment(tld: vector<u8>, label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {

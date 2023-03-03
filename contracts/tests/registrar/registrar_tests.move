@@ -1,12 +1,12 @@
 #[test_only]
-module suins::base_registrar_tests {
+module suins::registrar_tests {
 
     use sui::test_scenario::{Self, Scenario};
     use sui::tx_context;
     use sui::url;
     use sui::dynamic_field;
-    use suins::base_registry::{Self, AdminCap};
-    use suins::base_registrar::{Self, RegistrationNFT, get_record_detail, assert_registrar_exists};
+    use suins::registry::{Self, AdminCap};
+    use suins::registrar::{Self, RegistrationNFT, get_record_detail, assert_registrar_exists};
     use suins::configuration::{Self, Configuration};
     use std::vector;
     use std::string::utf8;
@@ -29,7 +29,7 @@ module suins::base_registrar_tests {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
-            base_registry::test_init(ctx);
+            registry::test_init(ctx);
             entity::test_init(ctx);
             configuration::test_init(ctx);
         };
@@ -39,8 +39,8 @@ module suins::base_registrar_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            base_registrar::new_tld(&admin_cap, &mut suins, MOVE_REGISTRAR, test_scenario::ctx(&mut scenario));
-            base_registrar::new_tld(&admin_cap, &mut suins, SUI_REGISTRAR, test_scenario::ctx(&mut scenario));
+            registrar::new_tld(&admin_cap, &mut suins, MOVE_REGISTRAR, test_scenario::ctx(&mut scenario));
+            registrar::new_tld(&admin_cap, &mut suins, SUI_REGISTRAR, test_scenario::ctx(&mut scenario));
             configuration::set_public_key(
                 &admin_cap,
                 &mut config,
@@ -65,7 +65,7 @@ module suins::base_registrar_tests {
                 0
             );
 
-            base_registrar::register(
+            registrar::register(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -83,20 +83,20 @@ module suins::base_registrar_tests {
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
             let (expiry, owner) = get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
 
             assert!(expiry == 10 + 365, 0);
             assert!(owner == FIRST_USER, 0);
 
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER, 0);
             assert!(resolver == FIRST_RESOLVER, 0);
@@ -123,7 +123,7 @@ module suins::base_registrar_tests {
                 0
             );
 
-            base_registrar::register_with_image(
+            registrar::register_with_image(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -144,8 +144,8 @@ module suins::base_registrar_tests {
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
-            base_registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            let (name, url) = registrar::get_nft_fields(&nft);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
             let (expiry, owner) = get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
 
             assert!(expiry == 10 + 365, 0);
@@ -156,7 +156,7 @@ module suins::base_registrar_tests {
                 0
             );
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER, 0);
             assert!(resolver == FIRST_RESOLVER, 0);
@@ -177,10 +177,10 @@ module suins::base_registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             let label = utf8(b"eastagile");
-            assert!(!base_registrar::is_available(&suins, SUI_REGISTRAR, label, test_scenario::ctx(&mut scenario)), 0);
+            assert!(!registrar::is_available(&suins, SUI_REGISTRAR, label, test_scenario::ctx(&mut scenario)), 0);
 
             let label = utf8(b"ea");
-            assert!(base_registrar::is_available(&suins, SUI_REGISTRAR, label,test_scenario::ctx(&mut scenario)), 0);
+            assert!(registrar::is_available(&suins, SUI_REGISTRAR, label,test_scenario::ctx(&mut scenario)), 0);
 
             test_scenario::return_shared(suins);
         };
@@ -190,15 +190,15 @@ module suins::base_registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(base_registrar::name_expires_at(&suins, SUI_REGISTRAR, b"eastagile") == 10 + 365, 0);
-            assert!(base_registrar::name_expires_at(&suins, SUI_REGISTRAR, b"ea") == 0, 0);
+            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, b"eastagile") == 10 + 365, 0);
+            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, b"ea") == 0, 0);
 
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidLabel)]
+    #[test, expected_failure(abort_code = registrar::EInvalidLabel)]
     fun test_register_abort_with_invalid_utf8_label() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -209,7 +209,7 @@ module suins::base_registrar_tests {
             // 0xFE cannot appear in a correct UTF-8 string
             vector::push_back(&mut invalid_label, 0xFE);
 
-            base_registrar::register(
+            registrar::register(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -226,7 +226,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidDuration)]
+    #[test, expected_failure(abort_code = registrar::EInvalidDuration)]
     fun test_register_abort_with_zero_duration() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -234,7 +234,7 @@ module suins::base_registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let image = test_scenario::take_shared<Configuration>(&mut scenario);
 
-            base_registrar::register(
+            registrar::register(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -251,7 +251,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ELabelUnAvailable)]
+    #[test, expected_failure(abort_code = registrar::ELabelUnAvailable)]
     fun test_register_abort_if_label_unavailable() {
         let scenario = test_init();
         register(&mut scenario);
@@ -266,7 +266,7 @@ module suins::base_registrar_tests {
                 10,
             );
 
-            base_registrar::register(
+            registrar::register(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -291,9 +291,9 @@ module suins::base_registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(base_registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 375, 0);
-            let new_expiry = base_registrar::renew(&mut suins, SUI_REGISTRAR, FIRST_LABEL, 100, test_scenario::ctx(&mut scenario));
-            assert!(base_registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 475, 0);
+            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 375, 0);
+            let new_expiry = registrar::renew(&mut suins, SUI_REGISTRAR, FIRST_LABEL, 100, test_scenario::ctx(&mut scenario));
+            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 475, 0);
             assert!(new_expiry == 475, 0);
 
             test_scenario::return_shared(suins);
@@ -301,22 +301,22 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ELabelNotExists)]
+    #[test, expected_failure(abort_code = registrar::ELabelNotExists)]
     fun test_renew_abort_if_label_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(base_registrar::name_expires_at(&suins, SUI_REGISTRAR, b"SECOND_LABEL") == 0, 0);
+            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, b"SECOND_LABEL") == 0, 0);
 
-            base_registrar::renew(&mut suins, SUI_REGISTRAR, SECOND_LABEL, 100, test_scenario::ctx(&mut scenario));
+            registrar::renew(&mut suins, SUI_REGISTRAR, SECOND_LABEL, 100, test_scenario::ctx(&mut scenario));
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ELabelExpired)]
+    #[test, expected_failure(abort_code = registrar::ELabelExpired)]
     fun test_renew_abort_if_label_expired() {
         let scenario = test_init();
         register(&mut scenario);
@@ -330,8 +330,8 @@ module suins::base_registrar_tests {
                 0
             );
 
-            assert!(base_registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 375, 0);
-            base_registrar::renew(&mut suins, SUI_REGISTRAR, FIRST_LABEL, 100, &ctx);
+            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 375, 0);
+            registrar::renew(&mut suins, SUI_REGISTRAR, FIRST_LABEL, 100, &ctx);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -347,7 +347,7 @@ module suins::base_registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
 
-            base_registrar::reclaim_name(
+            registrar::reclaim_name(
                 &mut suins,
                 SUI_REGISTRAR,
                 &nft,
@@ -363,7 +363,7 @@ module suins::base_registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let owner = base_registry::owner(&suins, FIRST_NODE);
+            let owner = registry::owner(&suins, FIRST_NODE);
             assert!(SECOND_USER == owner, 0);
 
             test_scenario::return_shared(suins);
@@ -371,7 +371,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidBaseNode)]
+    #[test, expected_failure(abort_code = registrar::EInvalidBaseNode)]
     fun test_reclaim_name_by_nft_owner_abort_with_wrong_base_node() {
         let scenario = test_init();
         register(&mut scenario);
@@ -381,7 +381,7 @@ module suins::base_registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
 
-            base_registrar::reclaim_name(
+            registrar::reclaim_name(
                 &mut suins,
                 MOVE_REGISTRAR,
                 &nft,
@@ -404,9 +404,9 @@ module suins::base_registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            base_registrar::set_nft_domain(&mut nft, utf8(b"thisisadomain.sui"));
+            registrar::set_nft_domain(&mut nft, utf8(b"thisisadomain.sui"));
 
-            base_registrar::reclaim_name(
+            registrar::reclaim_name(
                 &mut suins,
                 SUI_REGISTRAR,
                 &nft,
@@ -420,7 +420,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ENFTExpired)]
+    #[test, expected_failure(abort_code = registrar::ENFTExpired)]
     fun test_reclaim_name_by_nft_owner_abort_if_nft_expired() {
         let scenario = test_init();
         register(&mut scenario);
@@ -436,7 +436,7 @@ module suins::base_registrar_tests {
                 0
             );
 
-            base_registrar::reclaim_name(
+            registrar::reclaim_name(
                 &mut suins,
                 SUI_REGISTRAR,
                 &nft,
@@ -459,7 +459,7 @@ module suins::base_registrar_tests {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            base_registrar::new_tld(
+            registrar::new_tld(
                 &admin_cap,
                 &mut suins,
                 b"com",
@@ -483,7 +483,7 @@ module suins::base_registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let image = test_scenario::take_shared<Configuration>(&mut scenario);
 
-            base_registrar::register(
+            registrar::register(
                 &mut suins,
                 b"com",
                 &image,
@@ -500,7 +500,7 @@ module suins::base_registrar_tests {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            base_registrar::assert_registrar_exists(&suins, b"com");
+            registrar::assert_registrar_exists(&suins, b"com");
 
             let (expiry, owner) = get_record_detail(&suins, b"com", FIRST_LABEL);
             assert!(expiry == 365, 0);
@@ -520,7 +520,7 @@ module suins::base_registrar_tests {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            base_registrar::new_tld(
+            registrar::new_tld(
                 &admin_cap,
                 &mut suins,
                 b"sui",
@@ -542,7 +542,7 @@ module suins::base_registrar_tests {
         test_scenario::next_tx(scenario, FIRST_USER);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
 
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
@@ -566,7 +566,7 @@ module suins::base_registrar_tests {
             let signature =
                 x"1750ce9c94af251d3288589b4e98369ee09a41530b42f545eab96763ecbaa8b941f0a814e7440eacd803c507633825ca1f70dc9018b59cb3e49871ca6ddcf704";
 
-            base_registrar::update_image_url(
+            registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
@@ -583,7 +583,7 @@ module suins::base_registrar_tests {
         test_scenario::next_tx(scenario, FIRST_USER);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
 
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
@@ -595,7 +595,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_incorrect_expiry() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -614,7 +614,7 @@ module suins::base_registrar_tests {
                 0
             );
             let signature = x"2a1e950f3f591a69249edfe144f36cee833963c5f1864182996d8dfe012af070389133ad07a2ae00709d3b60d090bc8d56b0c41d8f19aaeb662a1f556f81d452";
-            base_registrar::update_image_url(
+            registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
@@ -631,7 +631,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_incorrect_expiry_2() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -650,7 +650,7 @@ module suins::base_registrar_tests {
                 0
             );
             let signature = x"74716e2b81ce8f982db8ab6c1b6e5d0c1df50d9ecad26dbc285b92f2721a35d7515f6e97d8eb5dba686af2a42d37c79622d89570bd55bdbb399fe0257f1c899e";
-            base_registrar::update_image_url(
+            registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
@@ -667,7 +667,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_incorrect_expiry_3() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -686,7 +686,7 @@ module suins::base_registrar_tests {
                 0
             );
             let signature = x"9ac9dcb87c02f9c7d5a509aedef026a2581703a0403ad3e6bfa1013e8c21c80b5d91e5ab10ee641265f388c43517f61338c872cb6370fc2c13f3dfe0491db986";
-            base_registrar::update_image_url(
+            registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
@@ -703,7 +703,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_incorrect_owner() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -722,7 +722,7 @@ module suins::base_registrar_tests {
                 0
             );
             let signature = x"e9e1685a4f0c0ef26c4425705ca9e7828ef0c42ad2a5e563e83d109d1fafd9d10106131af6bae1d69c0d7669cac7da85839f536d7a7d9e467136f308927a7312";
-            base_registrar::update_image_url(
+            registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
@@ -739,7 +739,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_incorrect_owner_2() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -758,7 +758,7 @@ module suins::base_registrar_tests {
                 0
             );
             let signature = x"05c15ea13b1f91cb4aed4fdd288e61d58d49392f4a12ccbdc4e0ff0c262559250315f37eec7f0b39b6bdd01d40ae9c130b4efbf6136d6ed35d2038b184ee3d2c";
-            base_registrar::update_image_url(
+            registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
@@ -775,7 +775,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ESignatureNotMatch)]
+    #[test, expected_failure(abort_code = registrar::ESignatureNotMatch)]
     fun test_update_image_url_aborts_with_incorrect_signature() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -794,7 +794,7 @@ module suins::base_registrar_tests {
                 0
             );
             let signature = x"6aab992032d59442c5418c3f5b29db45518b40a3d76f1b396b70c902b557e93b206b0ce9ab84ce44277d84055da9dd10ff77c490ba8473cd86ead37be874b9662f";
-            base_registrar::update_image_url(
+            registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
@@ -811,7 +811,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EHashedMessageNotMatch)]
+    #[test, expected_failure(abort_code = registrar::EHashedMessageNotMatch)]
     fun test_update_image_url_aborts_with_incorrect_hashed_message() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -829,7 +829,7 @@ module suins::base_registrar_tests {
                 10,
                 0
             );
-            base_registrar::update_image_url(
+            registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
@@ -846,7 +846,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_empty_signature() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -864,7 +864,7 @@ module suins::base_registrar_tests {
                 10,
                 0
             );
-            base_registrar::update_image_url(
+            registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
@@ -881,7 +881,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_empty_hashed_msg() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -899,7 +899,7 @@ module suins::base_registrar_tests {
                 10,
                 0
             );
-            base_registrar::update_image_url(
+            registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
@@ -916,7 +916,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_empty_raw_msg() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -934,7 +934,7 @@ module suins::base_registrar_tests {
                 10,
                 0
             );
-            base_registrar::update_image_url(
+            registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
@@ -963,7 +963,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ESignatureNotMatch)]
+    #[test, expected_failure(abort_code = registrar::ESignatureNotMatch)]
     fun test_register_with_image_aborts_with_incorrect_signature() {
         let scenario = test_init();
         register_with_image(
@@ -975,7 +975,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EHashedMessageNotMatch)]
+    #[test, expected_failure(abort_code = registrar::EHashedMessageNotMatch)]
     fun test_register_with_image_aborts_with_incorrect_hash_msg() {
         let scenario = test_init();
         register_with_image(
@@ -987,7 +987,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_register_with_image_aborts_with_incorrect_owner() {
         let scenario = test_init();
         register_with_image(
@@ -999,7 +999,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_register_with_image_aborts_with_incorrect_owner_2() {
         let scenario = test_init();
         register_with_image(
@@ -1012,7 +1012,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_register_with_image_aborts_with_incorrect_expiry() {
         let scenario = test_init();
         register_with_image(
@@ -1024,7 +1024,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_register_with_image_aborts_with_incorrect_expiry_2() {
         let scenario = test_init();
         register_with_image(
@@ -1036,7 +1036,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ENFTExpired)]
+    #[test, expected_failure(abort_code = registrar::ENFTExpired)]
     fun test_update_image_url_aborts_if_nft_expired() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -1056,7 +1056,7 @@ module suins::base_registrar_tests {
             );
             let signature = x"6aab9920d59442c5478c3f5b29db45518b40a3d76f1b396b70c902b557e93b206b0ce9ab84ce44277d84055da9dd10ff77c490ba8473cd86ead37be874b9662f";
 
-            base_registrar::update_image_url(
+            registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
@@ -1073,7 +1073,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ENFTExpired)]
+    #[test, expected_failure(abort_code = registrar::ENFTExpired)]
     fun test_update_image_url_aborts_if_nft_expired_2() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -1093,7 +1093,7 @@ module suins::base_registrar_tests {
             );
             let signature = x"35fe21d14e11f1df853296a6d3002216a88f1a92a369f85b8ac42e78b2e72f680ab249f808a758a5b0f104a62755f44f212225998fc1368130f6a25270e5cefe";
 
-            base_registrar::update_image_url(
+            registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
@@ -1110,7 +1110,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ENFTExpired)]
+    #[test, expected_failure(abort_code = registrar::ENFTExpired)]
     fun test_update_image_url_aborts_if_previous_owner_uses_hashed_msg_of_new_owner() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -1127,7 +1127,7 @@ module suins::base_registrar_tests {
                 10
             );
 
-            base_registrar::register(
+            registrar::register(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1153,7 +1153,7 @@ module suins::base_registrar_tests {
                 0
             );
 
-            base_registrar::update_image_url(
+            registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
@@ -1187,7 +1187,7 @@ module suins::base_registrar_tests {
                 10
             );
 
-            base_registrar::register(
+            registrar::register(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1213,7 +1213,7 @@ module suins::base_registrar_tests {
                 0
             );
 
-            base_registrar::update_image_url(
+            registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
@@ -1247,7 +1247,7 @@ module suins::base_registrar_tests {
                 10
             );
 
-            base_registrar::register(
+            registrar::register(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1273,7 +1273,7 @@ module suins::base_registrar_tests {
                 0
             );
 
-            base_registrar::update_image_url(
+            registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
@@ -1291,7 +1291,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ENFTExpired)]
+    #[test, expected_failure(abort_code = registrar::ENFTExpired)]
     fun test_update_image_url_works_if_user_has_2_nfts_same_domain_and_uses_expired_one() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -1308,7 +1308,7 @@ module suins::base_registrar_tests {
                 10
             );
 
-            base_registrar::register(
+            registrar::register(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1334,7 +1334,7 @@ module suins::base_registrar_tests {
                 0
             );
 
-            base_registrar::update_image_url(
+            registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
@@ -1369,7 +1369,7 @@ module suins::base_registrar_tests {
                 10
             );
 
-            base_registrar::register(
+            registrar::register(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1395,7 +1395,7 @@ module suins::base_registrar_tests {
                 0
             );
 
-            base_registrar::update_image_url(
+            registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
@@ -1413,7 +1413,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_update_image_url_works_if_user_owns_2_nfts_and_uses_wrong_one() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -1430,7 +1430,7 @@ module suins::base_registrar_tests {
                 10
             );
 
-            base_registrar::register(
+            registrar::register(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1456,7 +1456,7 @@ module suins::base_registrar_tests {
                 0
             );
 
-            base_registrar::update_image_url(
+            registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
@@ -1489,7 +1489,7 @@ module suins::base_registrar_tests {
                 10
             );
 
-            base_registrar::register(
+            registrar::register(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1509,7 +1509,7 @@ module suins::base_registrar_tests {
             let new_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let old_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
 
-            base_registrar::reclaim_name(
+            registrar::reclaim_name(
                 &mut suins,
                 SUI_REGISTRAR,
                 &new_nft,
@@ -1526,7 +1526,7 @@ module suins::base_registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let owner = base_registry::owner(&suins, FIRST_NODE);
+            let owner = registry::owner(&suins, FIRST_NODE);
             assert!(SECOND_USER == owner, 0);
 
             test_scenario::return_shared(suins);
@@ -1534,7 +1534,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ENFTExpired)]
+    #[test, expected_failure(abort_code = registrar::ENFTExpired)]
     fun test_reclaim_aborts_if_user_has_2_nfts_of_same_domains_and_uses_old_one() {
         let scenario = test_init();
         register(&mut scenario);
@@ -1549,7 +1549,7 @@ module suins::base_registrar_tests {
                 10
             );
 
-            base_registrar::register(
+            registrar::register(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1569,7 +1569,7 @@ module suins::base_registrar_tests {
             let new_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let old_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
 
-            base_registrar::reclaim_name(
+            registrar::reclaim_name(
                 &mut suins,
                 SUI_REGISTRAR,
                 &old_nft,
@@ -1599,7 +1599,7 @@ module suins::base_registrar_tests {
                 20
             );
 
-            base_registrar::register(
+            registrar::register(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1618,7 +1618,7 @@ module suins::base_registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
 
-            base_registrar::reclaim_name(
+            registrar::reclaim_name(
                 &mut suins,
                 SUI_REGISTRAR,
                 &nft,
@@ -1634,7 +1634,7 @@ module suins::base_registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let owner = base_registry::owner(&suins, FIRST_NODE);
+            let owner = registry::owner(&suins, FIRST_NODE);
             assert!(SECOND_USER == owner, 0);
 
             test_scenario::return_shared(suins);
@@ -1642,7 +1642,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ENFTExpired)]
+    #[test, expected_failure(abort_code = registrar::ENFTExpired)]
     fun test_reclaim_works_if_being_called_by_old_owner() {
         let scenario = test_init();
         register(&mut scenario);
@@ -1657,7 +1657,7 @@ module suins::base_registrar_tests {
                 20
             );
 
-            base_registrar::register(
+            registrar::register(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1676,7 +1676,7 @@ module suins::base_registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
 
-            base_registrar::reclaim_name(
+            registrar::reclaim_name(
                 &mut suins,
                 SUI_REGISTRAR,
                 &nft,
