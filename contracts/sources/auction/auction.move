@@ -408,7 +408,6 @@ module suins::auction {
             if (
                 entry.winner == detail.bidder
                     && entry.highest_bid == detail.bid_value
-                    && detail.bid_value_mask - detail.bid_value > 0
             ) {
                 if (entry.second_highest_bid != 0) {
                     coin_util::contract_transfer_to_address(
@@ -417,7 +416,7 @@ module suins::auction {
                         detail.bidder,
                         ctx
                     );
-                } else {
+                }  else if (detail.bid_value_mask - detail.bid_value > 0) {
                     // winner is the only one who bided
                     coin_util::contract_transfer_to_address(
                         &mut auction.balance,
