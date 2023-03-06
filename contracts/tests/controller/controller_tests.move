@@ -3526,7 +3526,7 @@ module suins::controller_tests {
             test_scenario::return_shared(controller);
             test_scenario::return_shared(registrar);
             test_scenario::return_shared(registry);
-		};
+        };
         test_scenario::end(scenario);
     }
 
