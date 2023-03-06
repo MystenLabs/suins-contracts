@@ -34,7 +34,7 @@ module suins::remove_later {
         // `msg` now: expiry,data
         msg = string::sub_string(&msg, index_of_next_comma + 1, string::length(&msg));
         index_of_next_comma = string::index_of(&msg, &comma);
-        let expiry = string::sub_string(&msg, index_of_next_comma + 1, string::length(&msg));
+        let expiry = string::sub_string(&msg, 0, index_of_next_comma);
 
         // `msg` now: data
         msg = string::sub_string(&msg, index_of_next_comma + 1, string::length(&msg));
