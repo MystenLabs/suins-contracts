@@ -214,7 +214,7 @@ module suins::resolver {
     }
 
     /// #### Notice
-    /// This funtions allows owner of `sender_addr`.addr.reverse` to set default domain name which is mapped to the sender address.
+    /// This funtions allows owner of `sender_addr.addr.reverse` to set default domain name which is mapped to the sender address.
     /// The node is identified by the sender address with format: `sender_addr`.addr.reverse.
     ///
     /// #### Dev

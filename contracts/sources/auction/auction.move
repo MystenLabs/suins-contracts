@@ -409,7 +409,6 @@ module suins::auction {
             if (
                 entry.winner == detail.bidder
                     && entry.highest_bid == detail.bid_value
-                    // && detail.bid_value_mask - detail.bid_value > 0
             ) {
                 if (entry.second_highest_bid != 0) {
                     coin_util::auction_transfer_to_address(
@@ -418,7 +417,7 @@ module suins::auction {
                         detail.bidder,
                         ctx
                     );
-                } else if (detail.bid_value_mask - detail.bid_value > 0) {
+                } else {
                     // winner is the only one who bided
                     coin_util::auction_transfer_to_address(
                         &mut auction.balance,
@@ -598,6 +597,8 @@ module suins::auction {
         label: String,
         ctx: &TxContext
     ): bool {
+        // TODO: expect the admin to call `configurate_auction` right after deploymenting the contract,
+        // TODO: to force auctioned label to go through auction
         if (auction_close_at(auction) >= epoch(ctx)) return false;
         if (auction_close_at(auction) + EXTRA_PERIOD < epoch(ctx)) return true;
         if (table::contains(&auction.entries, label)) {

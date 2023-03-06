@@ -16,16 +16,7 @@ module suins::controller {
     use sui::sui::SUI;
     use suins::registry::AdminCap;
     use suins::registrar::{Self, RegistrationNFT};
-    use suins::configuration::{
-        Self,
-        Configuration,
-        max_domain_length,
-        min_domain_length,
-        min_non_auction_domain_length,
-        price_for_node,
-        max_commitment_age,
-        no_outdated_commitments_to_remove,
-    };
+    use suins::configuration::{Self, Configuration};
     use suins::emoji::validate_label_with_emoji;
     use suins::coin_util;
     use suins::auction::{Self, Auction};
@@ -121,7 +112,7 @@ module suins::controller {
     /// Panic
     /// Panic if new registration is disabled
     /// or `label` contains characters that are not allowed
-    /// or `label is waiting to be finalized in auction
+    /// or `label` is waiting to be finalized in auction
     /// or label length isn't outside of the permitted range
     /// or `payment` doesn't have enough coins
     /// or either `referral_code` or `discount_code` is invalid
@@ -179,7 +170,7 @@ module suins::controller {
     /// Panic
     /// Panic if new registration is disabled
     /// or `label` contains characters that are not allowed
-    /// or `label is waiting to be finalized in auction
+    /// or `label` is waiting to be finalized in auction
     /// or label length isn't outside of the permitted range
     /// or `payment` doesn't have enough coins
     /// or either `referral_code` or `discount_code` is invalid
@@ -604,7 +595,7 @@ module suins::controller {
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext
     ) {
-        let renew_fee = price_for_node(no_years);
+        let renew_fee = configuration::price_for_node(no_years);
         assert!(coin::value(payment) >= renew_fee, ENotEnoughFee);
         coin_util::user_transfer_to_contract(payment, renew_fee, suins);
 
@@ -646,17 +637,22 @@ module suins::controller {
             validate_label_with_emoji(
                 emoji_config,
                 label,
-                min_non_auction_domain_length(config),
-                max_domain_length(config)
+                configuration::min_non_auction_domain_length(config),
+                configuration::max_domain_length(config)
             )
         } else {
             assert!(auction::is_auctioned_label_available_for_controller(auction, label_str, ctx), ELabelUnAvailable);
-            validate_label_with_emoji(emoji_config, label, min_domain_length(config), max_domain_length(config))
+            validate_label_with_emoji(
+                emoji_config,
+                label,
+                configuration::min_domain_length(config),
+                configuration::max_domain_length(config),
+            )
         };
         let commitment = make_commitment(tld, label, owner, secret);
         consume_commitment(suins, tld, label, commitment, ctx);
 
-        let registration_fee = price_for_node(no_years);
+        let registration_fee = configuration::price_for_node(no_years);
         assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
 
         // can apply both discount and referral codes at the same time
@@ -688,7 +684,7 @@ module suins::controller {
             tld: utf8(tld),
             label: label_str,
             owner,
-            cost: price_for_node(no_years),
+            cost: configuration::price_for_node(no_years),
             expiry: epoch(ctx) + duration,
             nft_id,
             resolver,
@@ -731,11 +727,11 @@ module suins::controller {
         let front_element = linked_table::front(commitments);
         let i = 0;
 
-        while (option::is_some(front_element) && i < no_outdated_commitments_to_remove()) {
+        while (option::is_some(front_element) && i < configuration::no_outdated_commitments_to_remove()) {
             i = i + 1;
 
             let created_at = linked_table::borrow(commitments, *option::borrow(front_element));
-            if (*created_at + max_commitment_age() <= epoch(ctx)) {
+            if (*created_at + configuration::max_commitment_age() <= epoch(ctx)) {
                 linked_table::pop_front(commitments);
                 front_element = linked_table::front(commitments);
             } else break;

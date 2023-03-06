@@ -332,11 +332,7 @@ The <code>node</code> can have multiple levels.
 <code>node</code>: node to be updated
 <code>owner</code>: new owner address
 
-
-<a name="@Panics_4"></a>
-
-###### Panics
-
+Panics
 Panics if caller isn't the owner of <code>node</code>
 or <code>node</code> doesn't exists.
 
@@ -368,7 +364,7 @@ or <code>node</code> doesn't exists.
 ## Function `set_subnode_owner`
 
 
-<a name="@Notice_5"></a>
+<a name="@Notice_4"></a>
 
 ###### Notice
 
@@ -377,14 +373,14 @@ The <code>node</code> can have multiple levels.
 The subnode which is created by <code>label</code>.<code>node</code> must exist.
 
 
-<a name="@Dev_6"></a>
+<a name="@Dev_5"></a>
 
 ###### Dev
 
 <code><a href="base_registry.md#0x0_base_registry_Record">Record</a></code> indexed by <code>label</code>.<code>node</code> is updated.
 
 
-<a name="@Params_7"></a>
+<a name="@Params_6"></a>
 
 ###### Params
 
@@ -392,11 +388,7 @@ The subnode which is created by <code>label</code>.<code>node</code> must exist.
 <code>label</code>: label of subnode
 <code>owner</code>: new owner address
 
-
-<a name="@Panics_8"></a>
-
-###### Panics
-
+Panics
 Panics if caller isn't the owner of <code>node</code>
 or <code>subnode</code> doesn't exists.
 
@@ -437,7 +429,7 @@ or <code>subnode</code> doesn't exists.
 ## Function `set_resolver`
 
 
-<a name="@Notice_9"></a>
+<a name="@Notice_7"></a>
 
 ###### Notice
 
@@ -445,25 +437,21 @@ This funtions allows owner of <code>node</code> to reassign resolver address of 
 The <code>node</code> can have multiple levels.
 
 
-<a name="@Dev_10"></a>
+<a name="@Dev_8"></a>
 
 ###### Dev
 
 <code><a href="base_registry.md#0x0_base_registry_Record">Record</a></code> indexed by <code>node</code> is updated.
 
 
-<a name="@Params_11"></a>
+<a name="@Params_9"></a>
 
 ###### Params
 
 <code>node</code>: node to get subnode
 <code><a href="resolver.md#0x0_resolver">resolver</a></code>: new resolver address
 
-
-<a name="@Panics_12"></a>
-
-###### Panics
-
+Panics
 Panics if caller isn't the owner of <code>node</code>
 or <code>node</code> doesn't exists.
 
@@ -496,7 +484,7 @@ or <code>node</code> doesn't exists.
 ## Function `set_TTL`
 
 
-<a name="@Notice_13"></a>
+<a name="@Notice_10"></a>
 
 ###### Notice
 
@@ -504,25 +492,21 @@ This funtions allows owner of <code>node</code> to reassign ttl address of this 
 The <code>node</code> can have multiple levels.
 
 
-<a name="@Dev_14"></a>
+<a name="@Dev_11"></a>
 
 ###### Dev
 
 <code><a href="base_registry.md#0x0_base_registry_Record">Record</a></code> indexed by <code>node</code> is updated.
 
 
-<a name="@Params_15"></a>
+<a name="@Params_12"></a>
 
 ###### Params
 
 <code>node</code>: node to get subnode
 <code>ttl</code>: new TTL address
 
-
-<a name="@Panics_16"></a>
-
-###### Panics
-
+Panics
 Panics if caller isn't the owner of <code>node</code>
 or <code>node</code> doesn't exists.
 
@@ -556,7 +540,7 @@ or <code>node</code> doesn't exists.
 ## Function `owner`
 
 
-<a name="@Notice_17"></a>
+<a name="@Notice_13"></a>
 
 ###### Notice
 
@@ -564,17 +548,13 @@ Get owner address of a <code>node</code>.
 The <code>node</code> can have multiple levels.
 
 
-<a name="@Params_18"></a>
+<a name="@Params_14"></a>
 
 ###### Params
 
 <code>node</code>: node to find the owner
 
-
-<a name="@Panics_19"></a>
-
-###### Panics
-
+Panics
 Panics if <code>node</code> doesn't exists.
 
 
@@ -601,7 +581,7 @@ Panics if <code>node</code> doesn't exists.
 ## Function `resolver`
 
 
-<a name="@Notice_20"></a>
+<a name="@Notice_15"></a>
 
 ###### Notice
 
@@ -609,17 +589,13 @@ Get resolver address of a <code>node</code>.
 The <code>node</code> can have multiple levels.
 
 
-<a name="@Params_21"></a>
+<a name="@Params_16"></a>
 
 ###### Params
 
 <code>node</code>: node to find the resolver address
 
-
-<a name="@Panics_22"></a>
-
-###### Panics
-
+Panics
 Panics if <code>node</code> doesn't exists.
 
 
@@ -646,7 +622,7 @@ Panics if <code>node</code> doesn't exists.
 ## Function `ttl`
 
 
-<a name="@Notice_23"></a>
+<a name="@Notice_17"></a>
 
 ###### Notice
 
@@ -654,17 +630,13 @@ Get ttl of a <code>node</code>.
 The <code>node</code> can have multiple levels.
 
 
-<a name="@Params_24"></a>
+<a name="@Params_18"></a>
 
 ###### Params
 
 <code>node</code>: node to find the ttl
 
-
-<a name="@Panics_25"></a>
-
-###### Panics
-
+Panics
 Panics if <code>node</code> doesn't exists.
 
 
@@ -691,7 +663,7 @@ Panics if <code>node</code> doesn't exists.
 ## Function `get_record_by_key`
 
 
-<a name="@Notice_26"></a>
+<a name="@Notice_19"></a>
 
 ###### Notice
 
@@ -699,17 +671,13 @@ Get <code>(owner, <a href="resolver.md#0x0_resolver">resolver</a>, ttl)</code> o
 The <code>node</code> can have multiple levels.
 
 
-<a name="@Params_27"></a>
+<a name="@Params_20"></a>
 
 ###### Params
 
 <code>node</code>: node to find the ttl
 
-
-<a name="@Panics_28"></a>
-
-###### Panics
-
+Panics
 Panics if <code>node</code> doesn't exists.
 
 

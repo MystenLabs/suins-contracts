@@ -41,10 +41,10 @@ module suins::controller_tests {
     const DISCOUNT_CODE: vector<u8> = b"DC12345";
     const BIDDING_PERIOD: u64 = 3;
     const REVEAL_PERIOD: u64 = 3;
-    const AUCTION_START_AT: u64 = 50;
-    const AUCTION_END_AT: u64 = 120;
-    const EXTRA_PERIOD: u64 = 30;
+    const START_AUCTION_START_AT: u64 = 50;
+    const START_AUCTION_END_AT: u64 = 120;
     const START_AN_AUCTION_AT: u64 = 110;
+    const EXTRA_PERIOD: u64 = 30;
     const SUI_REGISTRAR: vector<u8> = b"sui";
 
     fun test_init(): Scenario {
@@ -2529,8 +2529,8 @@ module suins::controller_tests {
             auction::configure_auction(
                 &admin_cap,
                 &mut auction,
-                AUCTION_START_AT,
-                AUCTION_END_AT,
+                START_AUCTION_START_AT,
+                START_AUCTION_END_AT,
                 test_scenario::ctx(scenario)
             );
 
@@ -3037,7 +3037,7 @@ module suins::controller_tests {
 
             reveal_bid_util(
                 &mut auction,
-                110 + 1 + BIDDING_PERIOD,
+                START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 AUCTIONED_LABEL,
                 1000,
                 b"CnRGhPvfCu",
@@ -3080,7 +3080,7 @@ module suins::controller_tests {
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + 1,
+                START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + 1,
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
@@ -3117,7 +3117,7 @@ module suins::controller_tests {
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                AUCTION_END_AT + 1,
+                START_AUCTION_END_AT + 1,
                 0
             );
             let commitment = controller::test_make_commitment(
@@ -3144,7 +3144,7 @@ module suins::controller_tests {
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                AUCTION_END_AT + 2,
+                START_AUCTION_END_AT + 2,
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
@@ -3179,9 +3179,103 @@ module suins::controller_tests {
         {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-
             configuration::set_enable_controller(&admin_cap, &mut config, false);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
+            test_scenario::return_shared(config);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                220,
+                0
+            );
+            let commitment = controller::test_make_commitment(
+                SUI_REGISTRAR,
+                AUCTIONED_LABEL,
+                FIRST_USER_ADDRESS,
+                FIRST_SECRET
+            );
 
+            controller::commit(
+                &mut suins,
+                commitment,
+                &mut ctx,
+            );
+
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                221,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+
+            controller::register(
+                &mut suins,
+                SUI_REGISTRAR,
+                &mut config,
+                &auction,
+                AUCTIONED_LABEL,
+                FIRST_USER_ADDRESS,
+                1,
+                FIRST_SECRET,
+                &mut coin,
+                &mut ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = registrar::get_nft_fields(&nft);
+
+            assert!(controller::balance(&suins) == 1000000, 0);
+            assert!(name == utf8(AUCTIONED_NODE), 0);
+            assert!(
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
+                0
+            );
+
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            assert!(expiry == 221 + 365, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
+
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(AUCTIONED_NODE));
+            assert!(owner == FIRST_USER_ADDRESS, 0);
+            assert!(resolver == @0x0, 0);
+            assert!(ttl == 0, 0);
+
+            test_scenario::return_to_sender(&mut scenario, nft);
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = controller::ERegistrationIsDisabled)]
+    fun test_register_abort_if_registration_is_disabled_2() {
+        let scenario = test_init();
+        set_auction_config(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            configuration::set_enable_controller(&admin_cap, &mut config, false);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
             test_scenario::return_shared(config);
         };
@@ -4679,6 +4773,194 @@ module suins::controller_tests {
 
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, nft);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = controller::ELabelUnAvailable)]
+    fun test_register_works_if_name_are_waiting_for_being_finalized_and_extra_time_not_passes() {
+        let scenario = test_init();
+        set_auction_config(&mut scenario);
+        start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
+        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000, b"CnRGhPvfCu");
+        place_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER_ADDRESS);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            reveal_bid_util(
+                &mut auction,
+                START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
+                AUCTIONED_LABEL,
+                1000,
+                b"CnRGhPvfCu",
+                FIRST_USER_ADDRESS,
+                2
+            );
+            test_scenario::return_shared(auction);
+        };
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                START_AUCTION_END_AT + EXTRA_PERIOD,
+                0
+            );
+            let commitment = controller::test_make_commitment(
+                SUI_REGISTRAR,
+                AUCTIONED_LABEL,
+                FIRST_USER_ADDRESS,
+                FIRST_SECRET
+            );
+            controller::commit(
+                &mut suins,
+                commitment,
+                &mut ctx,
+            );
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                START_AUCTION_END_AT + EXTRA_PERIOD + 1,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+
+            controller::register(
+                &mut suins,
+                SUI_REGISTRAR,
+                &mut config,
+                &auction,
+                AUCTIONED_LABEL,
+                FIRST_USER_ADDRESS,
+                1,
+                FIRST_SECRET,
+                &mut coin,
+                &mut ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_register_works_if_name_are_waiting_for_being_finalized_and_extra_time_passes() {
+        let scenario = test_init();
+        set_auction_config(&mut scenario);
+        start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
+        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000, b"CnRGhPvfCu");
+        place_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER_ADDRESS);
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            reveal_bid_util(
+                &mut auction,
+                START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
+                AUCTIONED_LABEL,
+                1000,
+                b"CnRGhPvfCu",
+                FIRST_USER_ADDRESS,
+                2
+            );
+            test_scenario::return_shared(auction);
+        };
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + EXTRA_PERIOD,
+                0
+            );
+            let commitment = controller::test_make_commitment(
+                SUI_REGISTRAR,
+                AUCTIONED_LABEL,
+                FIRST_USER_ADDRESS,
+                FIRST_SECRET
+            );
+            controller::commit(
+                &mut suins,
+                commitment,
+                &mut ctx,
+            );
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + EXTRA_PERIOD + 1,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+
+            controller::register(
+                &mut suins,
+                SUI_REGISTRAR,
+                &mut config,
+                &auction,
+                AUCTIONED_LABEL,
+                FIRST_USER_ADDRESS,
+                1,
+                FIRST_SECRET,
+                &mut coin,
+                &mut ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = registrar::get_nft_fields(&nft);
+
+            assert!(controller::balance(&suins) == 1000000, 0);
+            assert!(name == utf8(AUCTIONED_NODE), 0);
+            assert!(
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
+                0
+            );
+
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
+            assert!(
+                expiry ==
+                    START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + EXTRA_PERIOD + 1 + 365,
+                0
+            );
+            assert!(owner == FIRST_USER_ADDRESS, 0);
+
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(AUCTIONED_NODE));
+
+            assert!(owner == FIRST_USER_ADDRESS, 0);
+            assert!(resolver == @0x0, 0);
+            assert!(ttl == 0, 0);
+
+            test_scenario::return_to_sender(&mut scenario, nft);
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
