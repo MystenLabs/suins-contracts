@@ -26,7 +26,6 @@ module suins::base_registrar {
     const GRACE_PERIOD: u8 = 90;
     const MAX_TTL: u64 = 0x100000;
 
-    // TODO: move all error code to a single file
     const EUnauthorized: u64 = 101;
     // errors in the range of 201..300 indicate Registrar errors
     const EInvalidLabel: u64 = 203;
@@ -37,25 +36,9 @@ module suins::base_registrar {
     const ETLDExists: u64 = 208;
     const EInvalidBaseNode: u64 = 209;
     const ESignatureNotMatch: u64 = 210;
-    const EInvalidMessage: u64 = 211;
+    const EInvalidImageMessage: u64 = 211;
     const EHashedMessageNotMatch: u64 = 212;
     const ENFTExpired: u64 = 213;
-
-    struct NameRenewedEvent has copy, drop {
-        label: String,
-        expiry: u64,
-    }
-
-    struct NameReclaimedEvent has copy, drop {
-        node: String,
-        owner: address,
-    }
-
-    struct ImageUpdatedEvent has copy, drop {
-        sender: address,
-        node: String,
-        new_image: Url,
-    }
 
     /// NFT representing ownership of a domain
     struct RegistrationNFT has key, store {
@@ -66,8 +49,6 @@ module suins::base_registrar {
         url: Url,
     }
 
-    // TODO: this struct has only 1 field, consider removing it
-    // TODO: we don't know the address of owner in SC
     struct RegistrationDetail has store, drop {
         expiry: u64,
         owner: address,
@@ -87,6 +68,22 @@ module suins::base_registrar {
     struct TLDList has key {
         id: UID,
         tlds: vector<String>,
+    }
+
+    struct NameRenewedEvent has copy, drop {
+        label: String,
+        expiry: u64,
+    }
+
+    struct NameReclaimedEvent has copy, drop {
+        node: String,
+        owner: address,
+    }
+
+    struct ImageUpdatedEvent has copy, drop {
+        sender: address,
+        node: String,
+        new_image: Url,
     }
 
     /// #### Notice
@@ -140,7 +137,7 @@ module suins::base_registrar {
         owner: address,
         ctx: &mut TxContext,
     ) {
-        validate_nft(registrar, nft, ctx);
+        assert_nft_not_expires(registrar, nft, ctx);
 
         let label = get_label_part(&nft.name, &registrar.tld);
         let registration = field::borrow<String, RegistrationDetail>(&registrar.id, label);
@@ -178,27 +175,17 @@ module suins::base_registrar {
         raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        // TODO: move to a separate module
-        assert!(
-            !vector::is_empty(&signature)
-                && !vector::is_empty(&hashed_msg)
-                && !vector::is_empty(&raw_msg),
-            EInvalidMessage
-        );
-        validate_nft(registrar, nft, ctx);
-        assert!(sha2_256(raw_msg) == hashed_msg, EHashedMessageNotMatch);
-        assert!(
-            ecdsa_k1::secp256k1_verify(&signature, configuration::public_key(config), &hashed_msg),
-            ESignatureNotMatch
-        );
+        assert_nft_not_expires(registrar, nft, ctx);
+        assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
+        assert_image_msg_match(config, signature, hashed_msg, raw_msg);
 
         let (ipfs, node_msg, expiry) = remove_later::deserialize_image_msg(raw_msg);
 
-        assert!(node_msg == nft.name, EInvalidMessage);
+        assert!(node_msg == nft.name, EInvalidImageMessage);
 
         let label = get_label_part(&nft.name, &registrar.tld);
 
-        assert!(expiry == name_expires_at(registrar, label), EInvalidMessage);
+        assert!(expiry == name_expires_at(registrar, label), EInvalidImageMessage);
 
         nft.url = url::new_unsafe_from_bytes(*string::bytes(&ipfs));
         event::emit(ImageUpdatedEvent {
@@ -247,26 +234,6 @@ module suins::base_registrar {
         true
     }
 
-    // TODO: every functions that take RegistrationNFT must call this
-    /// #### Notice
-    /// Validate if `nft` is valid or not.
-    ///
-    /// #### Params
-    /// `nft`: NFT to be checked
-    ///
-    /// Panic
-    /// Panic if the NFT is longer stored in SC
-    /// or the the data of the NFT mismatches the data stored in SC
-    /// or the NFTs expired.
-    public fun validate_nft(registrar: &BaseRegistrar, nft: &RegistrationNFT, ctx: &mut TxContext) {
-        let label = get_label_part(&nft.name, &registrar.tld);
-        let detail = field::borrow<String, RegistrationDetail>(&registrar.id, label);
-        // TODO: delete NFT if it expired
-        assert!(detail.owner == sender(ctx), ENFTExpired);
-        assert!(detail.nft_id == uid_to_inner(&nft.id), ENFTExpired);
-        assert!(!is_expired(registrar, label, ctx), ENFTExpired);
-    }
-
     /// #### Notice
     /// Returns the epoch after which the `label` is expired.
     ///
@@ -289,6 +256,47 @@ module suins::base_registrar {
 
     public fun base_node_bytes(registrar: &BaseRegistrar): vector<u8> {
         registrar.tld_bytes
+    }
+
+    /// #### Notice
+    /// Validate if `nft` is valid or not.
+    ///
+    /// #### Params
+    /// `nft`: NFT to be checked
+    ///
+    /// Panic
+    /// Panic if the NFT is longer stored in SC
+    /// or the the data of the NFT mismatches the data stored in SC
+    /// or the NFTs expired.
+    public fun assert_nft_not_expires(registrar: &BaseRegistrar, nft: &RegistrationNFT, ctx: &mut TxContext) {
+        let label = get_label_part(&nft.name, &registrar.tld);
+        let detail = field::borrow<String, RegistrationDetail>(&registrar.id, label);
+        // TODO: delete NFT if it expired
+        assert!(detail.owner == sender(ctx), ENFTExpired);
+        assert!(detail.nft_id == uid_to_inner(&nft.id), ENFTExpired);
+        assert!(!is_expired(registrar, label, ctx), ENFTExpired);
+    }
+
+    public fun assert_image_msg_not_empty(signature: &vector<u8>, hashed_msg: &vector<u8>, raw_msg: &vector<u8>) {
+        assert!(
+            !vector::is_empty(signature)
+                && !vector::is_empty(hashed_msg)
+                && !vector::is_empty(raw_msg),
+            EInvalidImageMessage
+        );
+    }
+
+    public fun assert_image_msg_match(
+        config: &Configuration,
+        signature: vector<u8>,
+        hashed_msg: vector<u8>,
+        raw_msg: vector<u8>
+    ) {
+        assert!(sha2_256(raw_msg) == hashed_msg, EHashedMessageNotMatch);
+        assert!(
+            ecdsa_k1::secp256k1_verify(&signature, configuration::public_key(config), &hashed_msg),
+            ESignatureNotMatch
+        );
     }
 
     // === Friend and Private Functions ===
@@ -351,16 +359,12 @@ module suins::base_registrar {
         if (vector::is_empty(&hashed_msg) || vector::is_empty(&raw_msg) || vector::is_empty(&signature))
             url = url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY")
         else {
-            assert!(sha2_256(raw_msg) == hashed_msg, EHashedMessageNotMatch);
-            assert!(
-                ecdsa_k1::secp256k1_verify(&signature, configuration::public_key(config), &hashed_msg),
-                ESignatureNotMatch
-            );
+            assert_image_msg_match(config, signature, hashed_msg, raw_msg);
 
             let (ipfs, node_msg, expiry_msg) = remove_later::deserialize_image_msg(raw_msg);
 
-            assert!(node_msg == node, EInvalidMessage);
-            assert!(expiry_msg == expiry, EInvalidMessage);
+            assert!(node_msg == node, EInvalidImageMessage);
+            assert!(expiry_msg == expiry, EInvalidImageMessage);
 
             url = url::new_unsafe(string::to_ascii(ipfs));
         };

@@ -664,7 +664,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_incorrect_expiry() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -699,7 +699,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_incorrect_expiry_2() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -734,7 +734,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_incorrect_expiry_3() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -769,7 +769,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_incorrect_owner() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -804,7 +804,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_incorrect_owner_2() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -908,7 +908,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_empty_signature() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -942,7 +942,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_empty_hashed_msg() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -976,7 +976,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_empty_raw_msg() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -1046,7 +1046,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_register_with_image_aborts_with_incorrect_owner() {
         let scenario = test_init();
         register_with_image(
@@ -1058,7 +1058,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_register_with_image_aborts_with_incorrect_owner_2() {
         let scenario = test_init();
         register_with_image(
@@ -1071,7 +1071,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_register_with_image_aborts_with_incorrect_expiry() {
         let scenario = test_init();
         register_with_image(
@@ -1083,7 +1083,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_register_with_image_aborts_with_incorrect_expiry_2() {
         let scenario = test_init();
         register_with_image(
@@ -1475,7 +1475,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidMessage)]
+    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
     fun test_update_image_url_works_if_user_owns_2_nfts_and_uses_wrong_one() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
