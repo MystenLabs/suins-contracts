@@ -720,12 +720,9 @@ module suins::controller {
         let emoji_config = configuration::emoji_config(config);
         let label_str = utf8(label);
 
-        if (epoch(ctx) <= auction::auction_close_at(auction)) {
-            validate_label_with_emoji(emoji_config, label, 7, 63)
-        } else {
-            assert!(auction::is_auction_label_available_for_controller(auction, label_str, ctx), ELabelUnAvailable);
-            validate_label_with_emoji(emoji_config, label, 3, 63)
-        };
+        if (!auction::is_label_available_for_controller(auction, label_str, ctx)) validate_label_with_emoji(emoji_config, label, 7, 63)
+        else validate_label_with_emoji(emoji_config, label, 3, 63);
+
         let registration_fee = FEE_PER_YEAR * no_years;
         assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
 
