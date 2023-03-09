@@ -92,6 +92,7 @@ module suins::auction {
         start_auction_start_at: u64,
         /// last epoch where auction for domains can be started
         /// the auction really ends at = start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD + FINALIZING_PERIOD
+        /// this property acts as a toggle flag to turn off auction, set this field to 0 to turn off auction
         start_auction_end_at: u64,
     }
 
@@ -596,7 +597,7 @@ module suins::auction {
         label: String,
         ctx: &TxContext
     ): bool {
-        if (auction.start_auction_end_at == 0) return true; // not yet `configure_auction`, allow all domains to be registered
+        if (auction.start_auction_end_at == 0) return true; // aucton is disabled, allows all domains to be registered
         if (auction_close_at(auction) >= epoch(ctx)) return false;
         if (auction_close_at(auction) + EXTRA_PERIOD < epoch(ctx)) return true;
         if (table::contains(&auction.entries, label)) {
