@@ -91,7 +91,6 @@ module suins::entity {
         &mut name_record.owner
     }
 
-
     public(friend) fun name_record_resolver(name_record: &NameRecord): &address {
         &name_record.resolver
     }

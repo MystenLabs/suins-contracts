@@ -5,7 +5,7 @@ module suins::reverse_registrar {
     use sui::event;
     use sui::tx_context::{TxContext, sender};
     use suins::entity::{Self, SuiNS};
-    use suins::registry::{Self, AdminCap};
+    use suins::registry;
     use suins::converter;
     use std::string;
 
@@ -13,10 +13,6 @@ module suins::reverse_registrar {
 
     struct ReverseClaimedEvent has copy, drop {
         addr: address,
-        resolver: address,
-    }
-
-    struct DefaultResolverChangedEvent has copy, drop {
         resolver: address,
     }
 
@@ -48,12 +44,5 @@ module suins::reverse_registrar {
         registry::set_record_internal(suins, node, owner, resolver, 0);
 
         event::emit(ReverseClaimedEvent { addr: sender(ctx), resolver })
-    }
-
-    /// #### Notice
-    /// The admin uses this function to update `default_name_resolver`.
-    public entry fun set_default_resolver(_: &AdminCap, suins: &mut SuiNS, resolver: address) {
-        *entity::default_resolver_mut(suins) = resolver;
-        event::emit(DefaultResolverChangedEvent { resolver })
     }
 }

@@ -133,45 +133,4 @@ module suins::reverse_registrar_tests {
         };
         test_scenario::end(scenario);
     }
-
-    #[test]
-    fun test_set_default_resolver() {
-        let scenario = test_init();
-
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-
-            let default_resolver = entity::default_resolver(&suins);
-            assert!(default_resolver == @0x0, 0);
-
-            test_scenario::return_shared(suins);
-        };
-
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-
-            reverse_registrar::set_default_resolver(
-                &admin_cap,
-                &mut suins,
-                FIRST_RESOLVER_ADDRESS,
-            );
-
-            test_scenario::return_shared(suins);
-            test_scenario::return_to_sender(&mut scenario, admin_cap);
-        };
-
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-
-            let default_resolver = entity::default_resolver(&suins);
-            assert!(default_resolver == FIRST_RESOLVER_ADDRESS, 0);
-
-            test_scenario::return_shared(suins);
-       };
-        test_scenario::end(scenario);
-    }
 }
