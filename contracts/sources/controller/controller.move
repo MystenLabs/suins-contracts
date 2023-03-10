@@ -632,23 +632,9 @@ module suins::controller {
         let emoji_config = configuration::emoji_config(config);
         let label_str = utf8(label);
 
-        if (epoch(ctx) <= auction::auction_close_at(auction)) {
-            // auction time, can't register short names
-            validate_label_with_emoji(
-                emoji_config,
-                label,
-                configuration::min_non_auction_domain_length(config),
-                configuration::max_domain_length(config)
-            )
-        } else {
-            assert!(auction::is_auctioned_label_available_for_controller(auction, label_str, ctx), ELabelUnAvailable);
-            validate_label_with_emoji(
-                emoji_config,
-                label,
-                configuration::min_domain_length(config),
-                configuration::max_domain_length(config),
-            )
-        };
+        if (!auction::is_label_available_for_controller(auction, label_str, ctx)) validate_label_with_emoji(emoji_config, label, 7, 63)
+        else validate_label_with_emoji(emoji_config, label, 3, 63);
+
         let commitment = make_commitment(tld, label, owner, secret);
         consume_commitment(suins, tld, label, commitment, ctx);
 

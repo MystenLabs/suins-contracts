@@ -93,6 +93,7 @@ module suins::auction {
         start_auction_start_at: u64,
         /// last epoch where auction for domains can be started
         /// the auction really ends at = start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD + FINALIZING_PERIOD
+        /// this property acts as a toggle flag to turn off auction, set this field to 0 to turn off auction
         start_auction_end_at: u64,
     }
 
@@ -592,13 +593,14 @@ module suins::auction {
     }
 
     // label is assumed to have 3-6 characters
-    public(friend) fun is_auctioned_label_available_for_controller(
+    public(friend) fun is_label_available_for_controller(
         auction: &Auction,
         label: String,
         ctx: &TxContext
     ): bool {
         // TODO: expect the admin to call `configurate_auction` right after deploymenting the contract,
         // TODO: to force auctioned label to go through auction
+        if (auction.start_auction_end_at == 0) return true; // aucton is disabled, allows all domains to be registered
         if (auction_close_at(auction) >= epoch(ctx)) return false;
         if (auction_close_at(auction) + EXTRA_PERIOD < epoch(ctx)) return true;
         if (table::contains(&auction.entries, label)) {

@@ -960,6 +960,7 @@ module suins::controller_tests {
     #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
     fun test_register_abort_if_label_is_reserved_for_auction() {
         let scenario = test_init();
+        set_auction_config(&mut scenario);
         make_commitment(&mut scenario, option::none());
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -967,7 +968,7 @@ module suins::controller_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let auction = test_scenario::take_shared<Auction>(&mut scenario);
-            let coin = coin::mint_for_testing<SUI>(1000001, test_scenario::ctx(&mut scenario));
+            let coin = coin::mint_for_testing<SUI>(10000001, test_scenario::ctx(&mut scenario));
 
             controller::register(
                 &mut suins,
@@ -3023,7 +3024,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = controller::ELabelUnAvailable)]
+    #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
     fun test_register_abort_if_name_are_waiting_for_being_finalized() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
@@ -4777,12 +4778,12 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = controller::ELabelUnAvailable)]
+    #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
     fun test_register_works_if_name_are_waiting_for_being_finalized_and_extra_time_not_passes() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
         start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
-        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000, b"CnRGhPvfCu");
+        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER_ADDRESS);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -4793,7 +4794,7 @@ module suins::controller_tests {
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 AUCTIONED_LABEL,
                 1000,
-                b"CnRGhPvfCu",
+                FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
             );
