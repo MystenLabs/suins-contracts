@@ -5242,12 +5242,12 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = controller::ELabelUnAvailable)]
+    #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
     fun test_register_works_if_name_are_waiting_for_being_finalized_and_extra_time_not_passes() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
         start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
-        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000, b"CnRGhPvfCu");
+        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER_ADDRESS);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -5258,7 +5258,7 @@ module suins::controller_tests {
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 AUCTIONED_LABEL,
                 1000,
-                b"CnRGhPvfCu",
+                FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
             );
