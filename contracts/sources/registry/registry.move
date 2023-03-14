@@ -1,22 +1,33 @@
 /// This module is intended to maintain records of domain names including the owner, resolver address and time to live (TTL).
 /// The owners of this only own the name, not own the registration.
 /// It primarily facilitates the lending and borrowing of domain names.
-module suins::base_registry {
+module suins::registry {
     use sui::event;
     use sui::object::{Self, UID};
     use sui::transfer;
     use sui::tx_context::{TxContext, sender};
-    use sui::dynamic_field as field;
     use std::string::{Self, String};
+    use suins::entity::SuiNS;
+    use suins::entity::{
+        Self,
+        name_record_owner,
+        name_record_owner_mut,
+        name_record_resolver,
+        name_record_resolver_mut,
+        name_record_ttl,
+        name_record_ttl_mut,
+        new_name_record
+    };
+    use sui::table;
 
-    friend suins::base_registrar;
+    friend suins::registrar;
     friend suins::reverse_registrar;
     friend suins::controller;
     friend suins::resolver;
 
     const MAX_TTL: u64 = 0x100000;
 
-    // errors in the range of 101..200 indicate Registry errors
+    // errors in the range of 101..200 indicate SuiNS errors
     const EUnauthorized: u64 = 101;
 
     // https://examples.sui.io/patterns/capability.html
@@ -44,19 +55,6 @@ module suins::base_registry {
         ttl: u64,
     }
 
-    /// name records that correspond to registration records in `Registrar`
-    struct Record has store, copy, drop {
-        owner: address,
-        resolver: address,
-        ttl: u64,
-    }
-
-    /// Mapping domain name to name record (instance of `Record`).
-    /// Each name record is a dynamic field of this share object,.
-    struct Registry has key {
-        id: UID,
-    }
-
     /// #### Notice
     /// This funtions allows owner of `node` to reassign ownership of this node.
     /// The `node` can have multiple levels.
@@ -71,11 +69,11 @@ module suins::base_registry {
     /// Panics
     /// Panics if caller isn't the owner of `node`
     /// or `node` doesn't exists.
-    public entry fun set_owner(registry: &mut Registry, node: vector<u8>, owner: address, ctx: &mut TxContext) {
-        authorised(registry, node, ctx);
+    public entry fun set_owner(suins: &mut SuiNS, node: vector<u8>, owner: address, ctx: &mut TxContext) {
+        authorised(suins, node, ctx);
 
         let node = string::utf8(node);
-        set_owner_internal(registry, node, owner);
+        set_owner_internal(suins, node, owner);
         event::emit(NewOwnerEvent { node, owner });
     }
 
@@ -96,7 +94,7 @@ module suins::base_registry {
     /// Panics if caller isn't the owner of `node`
     /// or `subnode` doesn't exists.
     public entry fun set_subnode_owner(
-        registry: &mut Registry,
+        suins: &mut SuiNS,
         node: vector<u8>,
         label: vector<u8>,
         owner: address,
@@ -104,11 +102,11 @@ module suins::base_registry {
     ) {
         // TODO: `node` can have multiple levels, should disable it because we don't support subdomain atm
         // FIXME: only allow nodes of 2 levels to reassign
-        authorised(registry, node, ctx);
+        authorised(suins, node, ctx);
 
         let subnode = make_node(label, string::utf8(node));
         // requires both node and subnode to exist
-        set_owner_internal(registry, subnode, owner);
+        set_owner_internal(suins, subnode, owner);
         event::emit(NewOwnerEvent { node: subnode, owner });
     }
 
@@ -126,12 +124,13 @@ module suins::base_registry {
     /// Panics
     /// Panics if caller isn't the owner of `node`
     /// or `node` doesn't exists.
-    public entry fun set_resolver(registry: &mut Registry, node: vector<u8>, resolver: address, ctx: &mut TxContext) {
-        authorised(registry, node, ctx);
-
+    public entry fun set_resolver(suins: &mut SuiNS, node: vector<u8>, resolver: address, ctx: &mut TxContext) {
+        authorised(suins, node, ctx);
+        
+        let registry = entity::registry_mut(suins);
         let node = string::utf8(node);
-        let record = field::borrow_mut<String, Record>(&mut registry.id, node);
-        record.resolver = resolver;
+        let record = table::borrow_mut(registry, node);
+        *entity::name_record_resolver_mut(record) = resolver;
         event::emit(NewResolverEvent { node, resolver });
     }
 
@@ -149,13 +148,14 @@ module suins::base_registry {
     /// Panics
     /// Panics if caller isn't the owner of `node`
     /// or `node` doesn't exists.
-    public entry fun set_TTL(registry: &mut Registry, node: vector<u8>, ttl: u64, ctx: &mut TxContext) {
+    public entry fun set_TTL(suins: &mut SuiNS, node: vector<u8>, ttl: u64, ctx: &mut TxContext) {
         // TODO: does this function have any use?
-        authorised(registry, node, ctx);
+        authorised(suins, node, ctx);
 
+        let registry = entity::registry_mut(suins);
         let node = string::utf8(node);
-        let record = field::borrow_mut<String, Record>(&mut registry.id, node);
-        record.ttl = ttl;
+        let record = table::borrow_mut(registry, node);
+        *entity::name_record_ttl_mut(record) = ttl;
         event::emit(NewTTLEvent { node, ttl });
     }
 
@@ -170,8 +170,10 @@ module suins::base_registry {
     ///
     /// Panics
     /// Panics if `node` doesn't exists.
-    public fun owner(registry: &Registry, node: vector<u8>): address {
-        field::borrow<String, Record>(&registry.id, string::utf8(node)).owner
+    public fun owner(suins: &SuiNS, node: vector<u8>): address {
+        let registry = entity::registry(suins);
+        let name_record = table::borrow(registry, string::utf8(node));
+        *name_record_owner(name_record)
     }
 
     /// #### Notice
@@ -183,8 +185,10 @@ module suins::base_registry {
     ///
     /// Panics
     /// Panics if `node` doesn't exists.
-    public fun resolver(registry: &Registry, node: vector<u8>): address {
-        field::borrow<String, Record>(&registry.id, string::utf8(node)).resolver
+    public fun resolver(suins: &SuiNS, node: vector<u8>): address {
+        let registry = entity::registry(suins);
+        let name_record = table::borrow(registry, string::utf8(node));
+        *name_record_resolver(name_record)
     }
 
     /// #### Notice
@@ -196,8 +200,10 @@ module suins::base_registry {
     ///
     /// Panics
     /// Panics if `node` doesn't exists.
-    public fun ttl(registry: &Registry, node: vector<u8>): u64 {
-        field::borrow<String, Record>(&registry.id, string::utf8(node)).ttl
+    public fun ttl(suins: &SuiNS, node: vector<u8>): u64 {
+        let registry = entity::registry(suins);
+        let name_record = table::borrow(registry, string::utf8(node));
+        *name_record_ttl(name_record)
     }
 
     /// #### Notice
@@ -209,38 +215,41 @@ module suins::base_registry {
     ///
     /// Panics
     /// Panics if `node` doesn't exists.
-    public fun get_record_by_key(registry: &Registry, key: String): (address, address, u64) {
-        let record = field::borrow<String, Record>(&registry.id, key);
+    public fun get_record_by_key(suins: &SuiNS, key: String): (address, address, u64) {
+        let registry = entity::registry(suins);
+        let name_record = table::borrow(registry, key);
 
-        (record.owner, record.resolver, record.ttl)
+        (*name_record_owner(name_record), *name_record_resolver(name_record), *name_record_ttl(name_record))
     }
 
     // === Friend and Private Functions ===
 
-    public(friend) fun authorised(registry: &Registry, node: vector<u8>, ctx: &TxContext) {
-        let owner = owner(registry, node);
+    public(friend) fun authorised(suins: &SuiNS, node: vector<u8>, ctx: &TxContext) {
+        let owner = owner(suins, node);
         assert!(sender(ctx) == owner, EUnauthorized);
     }
 
-    public(friend) fun set_owner_internal(registry: &mut Registry, node: String, owner: address) {
-        let record = field::borrow_mut<String, Record>(&mut registry.id, node);
-        record.owner = owner;
+    public(friend) fun set_owner_internal(suins: &mut SuiNS, node: String, owner: address) {
+        let registry = entity::registry_mut(suins);
+        let name_record = table::borrow_mut(registry, node);
+        *name_record_owner_mut(name_record) = owner
     }
 
     // this function is intended to be called by the Registrar, no need to check for owner
     public(friend) fun set_record_internal(
-        registry: &mut Registry,
+        suins: &mut SuiNS,
         node: String,
         owner: address,
         resolver: address,
         ttl: u64,
     ) {
-        if (field::exists_with_type<String, Record>(&registry.id, node)) {
-            let record = field::borrow_mut<String, Record>(&mut registry.id, node);
-            record.owner = owner;
-            record.resolver = resolver;
-            record.ttl = ttl;
-        } else new_record(registry, node, owner, resolver, ttl);
+        let registry = entity::registry_mut(suins);
+        if (table::contains(registry, node)) {
+            let record = table::borrow_mut(registry, node);
+            *name_record_owner_mut(record) = owner;
+            *name_record_resolver_mut(record) = resolver;
+            *name_record_ttl_mut(record) = ttl;
+        } else new_record(suins, node, owner, resolver, ttl);
     }
 
     public(friend) fun make_node(label: vector<u8>, base_node: String): String {
@@ -251,59 +260,42 @@ module suins::base_registry {
     }
 
     fun init(ctx: &mut TxContext) {
-        transfer::share_object(Registry {
-            id: object::new(ctx),
-        });
         transfer::transfer(AdminCap {
             id: object::new(ctx)
         }, sender(ctx));
     }
 
     fun new_record(
-        registry: &mut Registry,
+        suins: &mut SuiNS,
         node: String,
         owner: address,
         resolver: address,
         ttl: u64,
     ) {
-        let record = Record {
-            owner,
-            resolver,
-            ttl,
-        };
-        field::add(&mut registry.id, node, record);
+        let record = new_name_record(owner, resolver, ttl);
+        let registry = entity::registry_mut(suins);
+        table::add(registry, node, record);
     }
 
     #[test_only]
-    friend suins::base_registry_tests;
+    friend suins::registry_tests;
     #[test_only]
     friend suins::resolver_tests;
 
     #[test_only]
-    public fun get_record_owner(record: &Record): address { record.owner }
-
-    #[test_only]
-    public fun get_record_resolver(record: &Record): address { record.resolver }
-
-    #[test_only]
-    public fun get_record_ttl(record: &Record): u64 { record.ttl }
-
-    #[test_only]
-    public fun new_record_test(registry: &mut Registry, node: String, owner: address) {
-        new_record(registry, node, owner, @0x0, 0);
+    public fun new_record_test(suins: &mut SuiNS, node: String, owner: address) {
+        new_record(suins, node, owner, @0x0, 0);
     }
 
     #[test_only]
-    public fun record_exists(registry: &Registry, node: String): bool {
-        field::exists_with_type<String, Record>(&registry.id, node)
+    public fun record_exists(suins: &SuiNS, node: String): bool {
+        let registry = entity::registry(suins);
+        table::contains(registry, node)
     }
 
     #[test_only]
     /// Wrapper of module initializer for testing
     public fun test_init(ctx: &mut TxContext) {
-        transfer::share_object(Registry {
-            id: object::new(ctx),
-        });
         transfer::transfer(AdminCap {
             id: object::new(ctx)
         }, sender(ctx));

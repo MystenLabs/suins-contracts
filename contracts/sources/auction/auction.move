@@ -16,10 +16,11 @@ module suins::auction {
     use std::string::{String, utf8};
     use std::vector;
     use std::bcs;
-    use suins::base_registrar::{Self, BaseRegistrar};
-    use suins::base_registry::{Registry, AdminCap};
+    use suins::registrar;
+    use suins::registry::AdminCap;
     use suins::configuration::{Self, Configuration};
     use suins::coin_util;
+    use suins::entity::SuiNS;
     use suins::emoji;
 
     const MIN_PRICE: u64 = 1000;
@@ -205,7 +206,7 @@ module suins::auction {
         table::add(&mut auction.entries, label, entry);
         event::emit(AuctionStartedEvent { label, start_at });
 
-        coin_util::user_transfer_to_contract(payment, FEE_PER_YEAR, &mut auction.balance)
+        coin_util::user_transfer_to_auction(payment, FEE_PER_YEAR, &mut auction.balance)
     }
 
     /// #### Notice
@@ -257,7 +258,7 @@ module suins::auction {
         vector::push_back(bids_by_sender, bid);
         event::emit(NewBidEvent { bidder, sealed_bid, bid_value_mask });
 
-        coin_util::user_transfer_to_contract(payment, bid_value_mask, &mut auction.balance)
+        coin_util::user_transfer_to_auction(payment, bid_value_mask, &mut auction.balance)
     }
 
     /// #### Notice
@@ -367,8 +368,8 @@ module suins::auction {
     /// or the auction has already been finalized and sender is the winner
     public entry fun finalize_auction(
         auction: &mut Auction,
-        registrar: &mut BaseRegistrar,
-        registry: &mut Registry,
+        suins: &mut SuiNS,
+        tld: vector<u8>,
         config: &Configuration,
         label: vector<u8>,
         resolver: address,
@@ -378,7 +379,7 @@ module suins::auction {
             auction.start_auction_start_at <= epoch(ctx) && epoch(ctx) <= auction_close_at(auction) + EXTRA_PERIOD,
             EAuctionNotAvailable,
         );
-        assert!(base_registrar::base_node_bytes(registrar) == b"sui", EInvalidRegistrar);
+        assert!(tld == b"sui", EInvalidRegistrar);
         let auction_state = state(auction, label, epoch(ctx));
         // the reveal phase is over in all of these phases and have received bids
         assert!(
@@ -411,7 +412,7 @@ module suins::auction {
                     && entry.highest_bid == detail.bid_value
             ) {
                 if (entry.second_highest_bid != 0) {
-                    coin_util::contract_transfer_to_address(
+                    coin_util::auction_transfer_to_address(
                         &mut auction.balance,
                         detail.bid_value_mask - entry.second_highest_bid,
                         detail.bidder,
@@ -419,7 +420,7 @@ module suins::auction {
                     );
                 } else {
                     // winner is the only one who bided
-                    coin_util::contract_transfer_to_address(
+                    coin_util::auction_transfer_to_address(
                         &mut auction.balance,
                         detail.bid_value_mask - detail.bid_value,
                         detail.bidder,
@@ -428,7 +429,8 @@ module suins::auction {
                 }
             } else {
                 // TODO: charge paymennt as punishmennt
-                coin_util::contract_transfer_to_address(
+                // not the winner
+                coin_util::auction_transfer_to_address(
                     &mut auction.balance,
                     detail.bid_value_mask,
                     detail.bidder,
@@ -439,7 +441,7 @@ module suins::auction {
         if (entry.winner != sender(ctx)) return;
         entry.is_finalized = true;
 
-        base_registrar::register(registrar, registry, config, label, entry.winner, 365, resolver, ctx);
+        registrar::register(suins, tld, config, label, entry.winner, 365, resolver, ctx);
 
         event::emit(NodeRegisteredEvent {
             label: label_str,
@@ -485,7 +487,7 @@ module suins::auction {
                 };
             };
             // TODO: transfer all balances at once
-            coin_util::contract_transfer_to_address(
+            coin_util::auction_transfer_to_address(
                 &mut auction.balance,
                 detail.bid_value_mask,
                 detail.bidder,
@@ -635,6 +637,11 @@ module suins::auction {
     }
 
     // === Testing ===
+
+    #[test_only]
+    public fun get_balance(auction: &Auction): u64 {
+        balance::value(&auction.balance)
+    }
 
     #[test_only]
     public fun get_bids_by_bidder(auction: &Auction, bidder: address): vector<BidDetail> {
