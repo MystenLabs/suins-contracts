@@ -1,15 +1,17 @@
 #[test_only]
-module suins::base_registrar_tests {
+module suins::registrar_tests {
 
     use sui::test_scenario::{Self, Scenario};
     use sui::tx_context;
     use sui::url;
     use sui::dynamic_field;
-    use suins::base_registry::{Self, Registry, AdminCap};
-    use suins::base_registrar::{Self, BaseRegistrar, RegistrationNFT, TLDList};
+    use suins::registry::{Self, AdminCap};
+    use suins::registrar::{Self, RegistrationNFT, get_record_detail, assert_registrar_exists};
     use suins::configuration::{Self, Configuration};
     use std::vector;
     use std::string::utf8;
+    use suins::entity::SuiNS;
+    use suins::entity;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER: address = @0xB001;
@@ -20,30 +22,32 @@ module suins::base_registrar_tests {
     const FIRST_NODE: vector<u8> = b"eastagile.sui";
     const SECOND_LABEL: vector<u8> = b"ea";
     const THIRD_LABEL: vector<u8> = b"eastagil";
+    const MOVE_REGISTRAR: vector<u8> = b"move";
+    const SUI_REGISTRAR: vector<u8> = b"sui";
 
     fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
-            base_registry::test_init(ctx);
-            base_registrar::test_init(ctx);
+            registry::test_init(ctx);
+            entity::test_init(ctx);
             configuration::test_init(ctx);
         };
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            base_registrar::new_tld(&admin_cap, &mut tlds_list, b"move", test_scenario::ctx(&mut scenario));
-            base_registrar::new_tld(&admin_cap, &mut tlds_list, b"sui", test_scenario::ctx(&mut scenario));
+            registrar::new_tld(&admin_cap, &mut suins, MOVE_REGISTRAR, test_scenario::ctx(&mut scenario));
+            registrar::new_tld(&admin_cap, &mut suins, SUI_REGISTRAR, test_scenario::ctx(&mut scenario));
             configuration::set_public_key(
                 &admin_cap,
                 &mut config,
                 x"0445e28df251d0ec0f66f284f7d5598db7e68b1a196396e4e13a3942d1364812ae5ed65ebb3d20cbf073ad50c6bbafa92505dc9b306e30476e57919a63ac824cab"
             );
-            test_scenario::return_shared(tlds_list);
             test_scenario::return_shared(config);
+            test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
         scenario
@@ -52,8 +56,7 @@ module suins::base_registrar_tests {
     fun register(scenario: &mut Scenario) {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let image = test_scenario::take_shared<Configuration>(scenario);
             let ctx = tx_context::new(
                 @0x0,
@@ -62,9 +65,9 @@ module suins::base_registrar_tests {
                 0
             );
 
-            base_registrar::register(
-                &mut registrar,
-                &mut registry,
+            registrar::register(
+                &mut suins,
+                SUI_REGISTRAR,
                 &image,
                 FIRST_LABEL,
                 FIRST_USER,
@@ -72,36 +75,34 @@ module suins::base_registrar_tests {
                 FIRST_RESOLVER,
                 &mut ctx
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(image);
-            test_scenario::return_shared(registrar);
         };
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
-            let registry = test_scenario::take_shared<Registry>(scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, uid) = base_registrar::get_registrar(&registrar);
-            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            let (expiry, owner) = get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
 
-            assert!(base_registrar::get_registration_expiry(detail) == 10 + 365, 0);
-            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER, 0);
+            assert!(expiry == 10 + 365, 0);
+            assert!(owner == FIRST_USER, 0);
+
+            let (name, url) = registrar::get_nft_fields(&nft);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER, 0);
             assert!(resolver == FIRST_RESOLVER, 0);
             assert!(ttl == 0, 0);
             test_scenario::return_to_sender(scenario, nft);
-            test_scenario::return_shared(registry);
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
         };
     }
 
@@ -113,8 +114,7 @@ module suins::base_registrar_tests {
     ) {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let image = test_scenario::take_shared<Configuration>(scenario);
             let ctx = tx_context::new(
                 @0x0,
@@ -123,9 +123,9 @@ module suins::base_registrar_tests {
                 0
             );
 
-            base_registrar::register_with_image(
-                &mut registrar,
-                &mut registry,
+            registrar::register_with_image(
+                &mut suins,
+                SUI_REGISTRAR,
                 &image,
                 FIRST_LABEL,
                 FIRST_USER,
@@ -136,36 +136,33 @@ module suins::base_registrar_tests {
                 raw_msg,
                 &mut ctx
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(image);
-            test_scenario::return_shared(registrar);
         };
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
-            let registry = test_scenario::take_shared<Registry>(scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
-            let (_, _, uid) = base_registrar::get_registrar(&registrar);
-            let detail = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            let (name, url) = registrar::get_nft_fields(&nft);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+            let (expiry, owner) = get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
 
-            assert!(base_registrar::get_registration_expiry(detail) == 10 + 365, 0);
-            assert!(base_registrar::get_registration_owner(detail) == FIRST_USER, 0);
+            assert!(expiry == 10 + 365, 0);
+            assert!(owner == FIRST_USER, 0);
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"),
                 0
             );
 
-            let (owner, resolver, ttl) = base_registry::get_record_by_key(&registry, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
 
             assert!(owner == FIRST_USER, 0);
             assert!(resolver == FIRST_RESOLVER, 0);
             assert!(ttl == 0, 0);
             test_scenario::return_to_sender(scenario, nft);
-            test_scenario::return_shared(registry);
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
         };
     }
 
@@ -177,48 +174,44 @@ module suins::base_registrar_tests {
         // test `available` function
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             let label = utf8(b"eastagile");
-            assert!(!base_registrar::is_available(&registrar, label, test_scenario::ctx(&mut scenario)), 0);
+            assert!(!registrar::is_available(&suins, SUI_REGISTRAR, label, test_scenario::ctx(&mut scenario)), 0);
 
             let label = utf8(b"ea");
-            assert!(base_registrar::is_available(&registrar, label, test_scenario::ctx(&mut scenario)), 0);
+            assert!(registrar::is_available(&suins, SUI_REGISTRAR, label,test_scenario::ctx(&mut scenario)), 0);
 
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
         };
 
         // test `name_expires` function
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let label = utf8(b"eastagile");
-            assert!(base_registrar::name_expires_at(&registrar, label) == 10 + 365, 0);
+            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, b"eastagile") == 10 + 365, 0);
+            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, b"ea") == 0, 0);
 
-            let label = utf8(b"ea");
-            assert!(base_registrar::name_expires_at(&registrar, label) == 0, 0);
-
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidLabel)]
+    #[test, expected_failure(abort_code = registrar::EInvalidLabel)]
     fun test_register_abort_with_invalid_utf8_label() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let image = test_scenario::take_shared<Configuration>(&mut scenario);
             let invalid_label = vector::empty<u8>();
             // 0xFE cannot appear in a correct UTF-8 string
             vector::push_back(&mut invalid_label, 0xFE);
 
-            base_registrar::register(
-                &mut registrar,
-                &mut registry,
+            registrar::register(
+                &mut suins,
+                SUI_REGISTRAR,
                 &image,
                 invalid_label,
                 FIRST_USER,
@@ -227,25 +220,23 @@ module suins::base_registrar_tests {
                 test_scenario::ctx(&mut scenario)
             );
 
-            test_scenario::return_shared(registry);
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(image);
         };
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidDuration)]
+    #[test, expected_failure(abort_code = registrar::EInvalidDuration)]
     fun test_register_abort_with_zero_duration() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let image = test_scenario::take_shared<Configuration>(&mut scenario);
 
-            base_registrar::register(
-                &mut registrar,
-                &mut registry,
+            registrar::register(
+                &mut suins,
+                SUI_REGISTRAR,
                 &image,
                 FIRST_LABEL,
                 FIRST_USER,
@@ -254,21 +245,19 @@ module suins::base_registrar_tests {
                 test_scenario::ctx(&mut scenario)
             );
 
-            test_scenario::return_shared(registry);
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(image);
         };
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ELabelUnAvailable)]
+    #[test, expected_failure(abort_code = registrar::ELabelUnAvailable)]
     fun test_register_abort_if_label_unavailable() {
         let scenario = test_init();
         register(&mut scenario);
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let image = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
@@ -277,9 +266,9 @@ module suins::base_registrar_tests {
                 10,
             );
 
-            base_registrar::register(
-                &mut registrar,
-                &mut registry,
+            registrar::register(
+                &mut suins,
+                SUI_REGISTRAR,
                 &image,
                 FIRST_LABEL,
                 FIRST_USER,
@@ -288,8 +277,7 @@ module suins::base_registrar_tests {
                 &mut ctx,
             );
 
-            test_scenario::return_shared(registry);
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(image);
         };
         test_scenario::end(scenario);
@@ -301,39 +289,40 @@ module suins::base_registrar_tests {
         register(&mut scenario);
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(base_registrar::name_expires_at(&registrar, utf8(FIRST_LABEL)) == 375, 0);
-            let new_expiry = base_registrar::renew(&mut registrar, FIRST_LABEL, 100, test_scenario::ctx(&mut scenario));
-            assert!(base_registrar::name_expires_at(&registrar, utf8(FIRST_LABEL)) == 475, 0);
+            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 375, 0);
+            let new_expiry = registrar::renew(&mut suins, SUI_REGISTRAR, FIRST_LABEL, 100, test_scenario::ctx(&mut scenario));
+            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 475, 0);
             assert!(new_expiry == 475, 0);
 
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ELabelNotExists)]
+    #[test, expected_failure(abort_code = registrar::ELabelNotExists)]
     fun test_renew_abort_if_label_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
-            assert!(base_registrar::name_expires_at(&registrar, utf8(SECOND_LABEL)) == 0, 0);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            base_registrar::renew(&mut registrar, SECOND_LABEL, 100, test_scenario::ctx(&mut scenario));
-            test_scenario::return_shared(registrar);
+            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, b"SECOND_LABEL") == 0, 0);
+
+            registrar::renew(&mut suins, SUI_REGISTRAR, SECOND_LABEL, 100, test_scenario::ctx(&mut scenario));
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ELabelExpired)]
+    #[test, expected_failure(abort_code = registrar::ELabelExpired)]
     fun test_renew_abort_if_label_expired() {
         let scenario = test_init();
         register(&mut scenario);
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -341,9 +330,9 @@ module suins::base_registrar_tests {
                 0
             );
 
-            assert!(base_registrar::name_expires_at(&registrar, utf8(FIRST_LABEL)) == 375, 0);
-            base_registrar::renew(&mut registrar, FIRST_LABEL, 100, &ctx);
-            test_scenario::return_shared(registrar);
+            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 375, 0);
+            registrar::renew(&mut suins, SUI_REGISTRAR, FIRST_LABEL, 100, &ctx);
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
@@ -355,59 +344,53 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
 
-            base_registrar::reclaim_name(
-                &registrar,
-                &mut registry,
+            registrar::reclaim_name(
+                &mut suins,
+                SUI_REGISTRAR,
                 &nft,
                 SECOND_USER,
                 test_scenario::ctx(&mut scenario)
             );
 
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(registry);
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
         };
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let owner = base_registry::owner(&registry, FIRST_NODE);
+            let owner = registry::owner(&suins, FIRST_NODE);
             assert!(SECOND_USER == owner, 0);
 
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidBaseNode)]
+    #[test, expected_failure(abort_code = registrar::EInvalidBaseNode)]
     fun test_reclaim_name_by_nft_owner_abort_with_wrong_base_node() {
         let scenario = test_init();
         register(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let sui_registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
-            let move_registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
 
-            base_registrar::reclaim_name(
-                &move_registrar,
-                &mut registry,
+            registrar::reclaim_name(
+                &mut suins,
+                MOVE_REGISTRAR,
                 &nft,
                 SECOND_USER,
                 test_scenario::ctx(&mut scenario)
             );
 
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(registry);
-            test_scenario::return_shared(move_registrar);
-            test_scenario::return_shared(sui_registrar);
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
@@ -419,35 +402,32 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let sui_registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            base_registrar::set_nft_domain(&mut nft, utf8(b"thisisadomain.sui"));
+            registrar::set_nft_domain(&mut nft, utf8(b"thisisadomain.sui"));
 
-            base_registrar::reclaim_name(
-                &sui_registrar,
-                &mut registry,
+            registrar::reclaim_name(
+                &mut suins,
+                SUI_REGISTRAR,
                 &nft,
                 SECOND_USER,
                 test_scenario::ctx(&mut scenario)
             );
 
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(registry);
-            test_scenario::return_shared(sui_registrar);
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ENFTExpired)]
+    #[test, expected_failure(abort_code = registrar::ENFTExpired)]
     fun test_reclaim_name_by_nft_owner_abort_if_nft_expired() {
         let scenario = test_init();
         register(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let move_registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
@@ -456,17 +436,16 @@ module suins::base_registrar_tests {
                 0
             );
 
-            base_registrar::reclaim_name(
-                &move_registrar,
-                &mut registry,
+            registrar::reclaim_name(
+                &mut suins,
+                SUI_REGISTRAR,
                 &nft,
                 SECOND_USER,
                 &mut ctx,
             );
 
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(registry);
-            test_scenario::return_shared(move_registrar);
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
@@ -477,63 +456,36 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
-            let tlds = base_registrar::get_tlds(&tlds_list);
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-
-            assert!(vector::length(tlds) == 2, 0);
-
-            test_scenario::return_shared(tlds_list);
-            test_scenario::return_shared(registry);
-        };
-
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
-        {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            base_registrar::new_tld(
+            registrar::new_tld(
                 &admin_cap,
-                &mut tlds_list,
+                &mut suins,
                 b"com",
                 test_scenario::ctx(&mut scenario)
             );
 
+            test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
-            test_scenario::return_shared(tlds_list);
         };
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
-            let tlds = base_registrar::get_tlds(&tlds_list);
-            let com_registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(vector::length(tlds) == 3, 0);
-            assert!(vector::borrow(tlds, 2) == &utf8(b"com"), 0);
-
-            let (base_node, base_node_bytes, _) =
-                base_registrar::get_registrar(&com_registrar);
-            assert!(base_node == &utf8(b"com"), 0);
-            assert!(base_node_bytes == &b"com", 0);
-
-            test_scenario::return_shared(tlds_list);
-            test_scenario::return_shared(com_registrar);
-            test_scenario::return_shared(registry);
+            assert_registrar_exists(&suins, b"com");
+            test_scenario::return_shared(suins);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
-            let registry =
-                test_scenario::take_shared<Registry>(&mut scenario);
-            let com_registrar =
-                test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let image = test_scenario::take_shared<Configuration>(&mut scenario);
 
-            base_registrar::register(
-                &mut com_registrar,
-                &mut registry,
+            registrar::register(
+                &mut suins,
+                b"com",
                 &image,
                 FIRST_LABEL,
                 FIRST_USER,
@@ -541,64 +493,42 @@ module suins::base_registrar_tests {
                 FIRST_RESOLVER,
                 test_scenario::ctx(&mut scenario)
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(image);
-            test_scenario::return_shared(com_registrar);
         };
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let com_registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
-            let (_, _, uid) = base_registrar::get_registrar(&com_registrar);
-            let value = dynamic_field::borrow(uid, utf8(FIRST_LABEL));
-            assert!(base_registrar::get_registration_expiry(value) == 365, 0);
-            assert!(base_registrar::get_registration_owner(value) == FIRST_USER, 0);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            registrar::assert_registrar_exists(&suins, b"com");
 
-            test_scenario::return_shared(com_registrar);
+            let (expiry, owner) = get_record_detail(&suins, b"com", FIRST_LABEL);
+            assert!(expiry == 365, 0);
+            assert!(owner == FIRST_USER, 0);
+
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ETLDExists)]
+    #[test, expected_failure(abort_code = dynamic_field::EFieldAlreadyExists)]
     fun test_new_tld_abort_with_duplicated_tld() {
         let scenario = test_init();
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            base_registrar::new_tld(
+            registrar::new_tld(
                 &admin_cap,
-                &mut tlds_list,
+                &mut suins,
                 b"sui",
                 test_scenario::ctx(&mut scenario)
             );
 
             test_scenario::return_to_sender(&mut scenario, admin_cap);
-            test_scenario::return_shared(tlds_list);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test, expected_failure(abort_code = base_registrar::ETLDExists)]
-    fun test_admin_set_new_tld() {
-        let scenario = test_init();
-
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
-        {
-            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let tlds_list = test_scenario::take_shared<TLDList>(&mut scenario);
-
-            base_registrar::new_tld(
-                &admin_cap,
-                &mut tlds_list,
-                b"sui",
-                test_scenario::ctx(&mut scenario)
-            );
-
-            test_scenario::return_to_sender(&mut scenario, admin_cap);
-            test_scenario::return_shared(tlds_list);
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
@@ -612,7 +542,7 @@ module suins::base_registrar_tests {
         test_scenario::next_tx(scenario, FIRST_USER);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
 
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
@@ -624,7 +554,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
             let ctx = tx_context::new(
@@ -636,8 +566,9 @@ module suins::base_registrar_tests {
             let signature =
                 x"1750ce9c94af251d3288589b4e98369ee09a41530b42f545eab96763ecbaa8b941f0a814e7440eacd803c507633825ca1f70dc9018b59cb3e49871ca6ddcf704";
 
-            base_registrar::update_image_url(
-                &mut registrar,
+            registrar::update_image_url(
+                &mut suins,
+                SUI_REGISTRAR,
                 &config,
                 &mut nft,
                 signature,
@@ -645,14 +576,14 @@ module suins::base_registrar_tests {
                 b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,375",
                 &mut ctx
             );
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, nft);
         };
         test_scenario::next_tx(scenario, FIRST_USER);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
-            let (name, url) = base_registrar::get_nft_fields(&nft);
+            let (name, url) = registrar::get_nft_fields(&nft);
 
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
@@ -664,7 +595,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_incorrect_expiry() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -672,7 +603,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
@@ -682,8 +613,9 @@ module suins::base_registrar_tests {
                 10,
                 0
             );
-            base_registrar::update_image_url(
-                &mut registrar,
+            registrar::update_image_url(
+                &mut suins,
+                SUI_REGISTRAR,
                 &config,
                 &mut nft,
                 x"e35de3997a3f9f5614b207f4d7516ca1709e8d46bf2c45ada5ac0383c2939df050859994404b04cdc9f01aa200322b3af6738866347fe50d195b58982d5fa725",
@@ -691,14 +623,14 @@ module suins::base_registrar_tests {
                 b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,475,abcc",
                 &mut ctx
             );
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, nft);
         };
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_incorrect_expiry_2() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -706,7 +638,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
@@ -716,8 +648,9 @@ module suins::base_registrar_tests {
                 10,
                 0
             );
-            base_registrar::update_image_url(
-                &mut registrar,
+            registrar::update_image_url(
+                &mut suins,
+                SUI_REGISTRAR,
                 &config,
                 &mut nft,
                 x"b7b041efd085fca2c51390c7b14a7435c03e34108db6fe246042122afdc2eb2c4c1854ef36648687caa544824430789b46600ba1b3f825238c0dc51398be470c",
@@ -725,14 +658,14 @@ module suins::base_registrar_tests {
                 b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,0,12323",
                 &mut ctx
             );
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, nft);
         };
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_incorrect_expiry_3() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -740,7 +673,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
@@ -750,8 +683,9 @@ module suins::base_registrar_tests {
                 10,
                 0
             );
-            base_registrar::update_image_url(
-                &mut registrar,
+            registrar::update_image_url(
+                &mut suins,
+                SUI_REGISTRAR,
                 &config,
                 &mut nft,
                 x"b809099a3de92d522bee0c5b7d99b83c9a00655a2ac7a7362b565e01746fa086774d196101fdadaee4116c0e0e1a0b41fa4ca82a38704f6b7c80f329dba67544",
@@ -759,14 +693,14 @@ module suins::base_registrar_tests {
                 b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,100,020",
                 &mut ctx
             );
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, nft);
         };
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_incorrect_owner() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -774,7 +708,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
@@ -785,8 +719,9 @@ module suins::base_registrar_tests {
                 0
             );
             let signature = x"e9e1685a4f0c0ef26c4425705ca9e7828ef0c42ad2a5e563e83d109d1fafd9d10106131af6bae1d69c0d7669cac7da85839f536d7a7d9e467136f308927a7312";
-            base_registrar::update_image_url(
-                &mut registrar,
+            registrar::update_image_url(
+                &mut suins,
+                SUI_REGISTRAR,
                 &config,
                 &mut nft,
                 signature,
@@ -794,14 +729,14 @@ module suins::base_registrar_tests {
                 b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b002,375",
                 &mut ctx
             );
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, nft);
         };
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_incorrect_owner_2() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -809,7 +744,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
@@ -820,8 +755,9 @@ module suins::base_registrar_tests {
                 0
             );
             let signature = x"05c15ea13b1f91cb4aed4fdd288e61d58d49392f4a12ccbdc4e0ff0c262559250315f37eec7f0b39b6bdd01d40ae9c130b4efbf6136d6ed35d2038b184ee3d2c";
-            base_registrar::update_image_url(
-                &mut registrar,
+            registrar::update_image_url(
+                &mut suins,
+                SUI_REGISTRAR,
                 &config,
                 &mut nft,
                 signature,
@@ -829,14 +765,14 @@ module suins::base_registrar_tests {
                     b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,b001,375",
                 &mut ctx
             );
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, nft);
         };
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ESignatureNotMatch)]
+    #[test, expected_failure(abort_code = registrar::ESignatureNotMatch)]
     fun test_update_image_url_aborts_with_incorrect_signature() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -844,7 +780,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
@@ -855,8 +791,9 @@ module suins::base_registrar_tests {
                 0
             );
             let signature = x"6aab992032d59442c5418c3f5b29db45518b40a3d76f1b396b70c902b557e93b206b0ce9ab84ce44277d84055da9dd10ff77c490ba8473cd86ead37be874b9662f";
-            base_registrar::update_image_url(
-                &mut registrar,
+            registrar::update_image_url(
+                &mut suins,
+                SUI_REGISTRAR,
                 &config,
                 &mut nft,
                 signature,
@@ -864,14 +801,14 @@ module suins::base_registrar_tests {
                 b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,375",
                 &mut ctx
             );
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, nft);
         };
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EHashedMessageNotMatch)]
+    #[test, expected_failure(abort_code = registrar::EHashedMessageNotMatch)]
     fun test_update_image_url_aborts_with_incorrect_hashed_message() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -879,7 +816,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
@@ -889,8 +826,9 @@ module suins::base_registrar_tests {
                 10,
                 0
             );
-            base_registrar::update_image_url(
-                &mut registrar,
+            registrar::update_image_url(
+                &mut suins,
+                SUI_REGISTRAR,
                 &config,
                 &mut nft,
                 x"6aab9920d59442c5478c3f5b29db45518b40a3d76f1b396b70c902b557e93b206b0ce9ab84ce44277d84055da9dd10ff77c490ba8473cd86ead37be874b9662f",
@@ -898,14 +836,14 @@ module suins::base_registrar_tests {
                 b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,375",
                 &mut ctx
             );
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, nft);
         };
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_empty_signature() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -913,7 +851,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
@@ -923,8 +861,9 @@ module suins::base_registrar_tests {
                 10,
                 0
             );
-            base_registrar::update_image_url(
-                &mut registrar,
+            registrar::update_image_url(
+                &mut suins,
+                SUI_REGISTRAR,
                 &config,
                 &mut nft,
                 x"",
@@ -932,14 +871,14 @@ module suins::base_registrar_tests {
                 b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,475",
                 &mut ctx
             );
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, nft);
         };
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_empty_hashed_msg() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -947,7 +886,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
@@ -957,8 +896,9 @@ module suins::base_registrar_tests {
                 10,
                 0
             );
-            base_registrar::update_image_url(
-                &mut registrar,
+            registrar::update_image_url(
+                &mut suins,
+                SUI_REGISTRAR,
                 &config,
                 &mut nft,
                 x"6aab9920d59442c5478c3f5b29db45518b40a3d76f1b396b70c902b557e93b206b0ce9ab84ce44277d84055da9dd10ff77c490ba8473cd86ead37be874b9662f",
@@ -966,14 +906,14 @@ module suins::base_registrar_tests {
                 b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,475",
                 &mut ctx
             );
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, nft);
         };
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_update_image_url_aborts_with_empty_raw_msg() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -981,7 +921,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
@@ -991,8 +931,9 @@ module suins::base_registrar_tests {
                 10,
                 0
             );
-            base_registrar::update_image_url(
-                &mut registrar,
+            registrar::update_image_url(
+                &mut suins,
+                SUI_REGISTRAR,
                 &config,
                 &mut nft,
                 x"6aab9920d59442c5478c3f5b29db45518b40a3d76f1b396b70c902b557e93b206b0ce9ab84ce44277d84055da9dd10ff77c490ba8473cd86ead37be874b9662f",
@@ -1000,7 +941,7 @@ module suins::base_registrar_tests {
                 b"",
                 &mut ctx
             );
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, nft);
         };
@@ -1019,7 +960,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ESignatureNotMatch)]
+    #[test, expected_failure(abort_code = registrar::ESignatureNotMatch)]
     fun test_register_with_image_aborts_with_incorrect_signature() {
         let scenario = test_init();
         register_with_image(
@@ -1031,7 +972,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EHashedMessageNotMatch)]
+    #[test, expected_failure(abort_code = registrar::EHashedMessageNotMatch)]
     fun test_register_with_image_aborts_with_incorrect_hash_msg() {
         let scenario = test_init();
         register_with_image(
@@ -1043,7 +984,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_register_with_image_aborts_with_incorrect_owner() {
         let scenario = test_init();
         register_with_image(
@@ -1055,7 +996,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_register_with_image_aborts_with_incorrect_owner_2() {
         let scenario = test_init();
         register_with_image(
@@ -1068,7 +1009,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_register_with_image_aborts_with_incorrect_expiry() {
         let scenario = test_init();
         register_with_image(
@@ -1080,7 +1021,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_register_with_image_aborts_with_incorrect_expiry_2() {
         let scenario = test_init();
         register_with_image(
@@ -1092,7 +1033,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ENFTExpired)]
+    #[test, expected_failure(abort_code = registrar::ENFTExpired)]
     fun test_update_image_url_aborts_if_nft_expired() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -1100,7 +1041,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
@@ -1110,8 +1051,9 @@ module suins::base_registrar_tests {
                 500,
                 0
             );
-            base_registrar::update_image_url(
-                &mut registrar,
+            registrar::update_image_url(
+                &mut suins,
+                SUI_REGISTRAR,
                 &config,
                 &mut nft,
                 x"b85eceafd8685ce006f9ec4f93ca5ffccc125b8720816a6f811cb72039a201870d07b4fa2bbbe1bd8d6e43550eaceda9ce9291535a90435784dbdd31f88d6d84",
@@ -1119,14 +1061,14 @@ module suins::base_registrar_tests {
                 b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,375,000000000000000000000000000000000000b001",
                 &mut ctx
             );
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, nft);
         };
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ENFTExpired)]
+    #[test, expected_failure(abort_code = registrar::ENFTExpired)]
     fun test_update_image_url_aborts_if_nft_expired_2() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -1134,7 +1076,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
@@ -1146,8 +1088,9 @@ module suins::base_registrar_tests {
             );
             let signature = x"35fe21d14e11f1df853296a6d3002216a88f1a92a369f85b8ac42e78b2e72f680ab249f808a758a5b0f104a62755f44f212225998fc1368130f6a25270e5cefe";
 
-            base_registrar::update_image_url(
-                &mut registrar,
+            registrar::update_image_url(
+                &mut suins,
+                SUI_REGISTRAR,
                 &config,
                 &mut nft,
                 signature,
@@ -1155,14 +1098,14 @@ module suins::base_registrar_tests {
                 b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,675",
                 &mut ctx
             );
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, nft);
         };
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ENFTExpired)]
+    #[test, expected_failure(abort_code = registrar::ENFTExpired)]
     fun test_update_image_url_aborts_if_previous_owner_uses_hashed_msg_of_new_owner() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -1170,8 +1113,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, SECOND_USER);
         {
-            let registry = test_scenario::take_shared<Registry>(scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let image = test_scenario::take_shared<Configuration>(scenario);
             let ctx = tx_context::new(
                 @0x0,
@@ -1180,9 +1122,9 @@ module suins::base_registrar_tests {
                 10
             );
 
-            base_registrar::register(
-                &mut registrar,
-                &mut registry,
+            registrar::register(
+                &mut suins,
+                SUI_REGISTRAR,
                 &image,
                 FIRST_LABEL,
                 SECOND_USER,
@@ -1190,13 +1132,12 @@ module suins::base_registrar_tests {
                 FIRST_RESOLVER,
                 &mut ctx
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(image);
-            test_scenario::return_shared(registrar);
         };
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
@@ -1207,8 +1148,9 @@ module suins::base_registrar_tests {
                 0
             );
 
-            base_registrar::update_image_url(
-                &mut registrar,
+            registrar::update_image_url(
+                &mut suins,
+                SUI_REGISTRAR,
                 &config,
                 &mut nft,
                 x"868d254e6ed4599a3c1bb93492008d2c8995233a02136c88a5f52b606383a7f46b1b4a83f9bf155852fd7e393421131d4b3ef9e5f8a02fd79c4c8a9b37bf67d7",
@@ -1216,7 +1158,7 @@ module suins::base_registrar_tests {
                 b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,895",
                 &mut ctx
             );
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, nft);
         };
@@ -1231,8 +1173,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, SECOND_USER);
         {
-            let registry = test_scenario::take_shared<Registry>(scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let image = test_scenario::take_shared<Configuration>(scenario);
             let ctx = tx_context::new(
                 @0x0,
@@ -1241,9 +1182,9 @@ module suins::base_registrar_tests {
                 10
             );
 
-            base_registrar::register(
-                &mut registrar,
-                &mut registry,
+            registrar::register(
+                &mut suins,
+                SUI_REGISTRAR,
                 &image,
                 FIRST_LABEL,
                 SECOND_USER,
@@ -1251,13 +1192,12 @@ module suins::base_registrar_tests {
                 FIRST_RESOLVER,
                 &mut ctx
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(image);
-            test_scenario::return_shared(registrar);
         };
         test_scenario::next_tx(scenario, SECOND_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
@@ -1268,8 +1208,9 @@ module suins::base_registrar_tests {
                 0
             );
 
-            base_registrar::update_image_url(
-                &mut registrar,
+            registrar::update_image_url(
+                &mut suins,
+                SUI_REGISTRAR,
                 &config,
                 &mut nft,
                 x"868d254e6ed4599a3c1bb93492008d2c8995233a02136c88a5f52b606383a7f46b1b4a83f9bf155852fd7e393421131d4b3ef9e5f8a02fd79c4c8a9b37bf67d7",
@@ -1277,7 +1218,7 @@ module suins::base_registrar_tests {
                 b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,895",
                 &mut ctx,
             );
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, nft);
         };
@@ -1292,8 +1233,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registry = test_scenario::take_shared<Registry>(scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let image = test_scenario::take_shared<Configuration>(scenario);
             let ctx = tx_context::new(
                 @0x0,
@@ -1302,9 +1242,9 @@ module suins::base_registrar_tests {
                 10
             );
 
-            base_registrar::register(
-                &mut registrar,
-                &mut registry,
+            registrar::register(
+                &mut suins,
+                SUI_REGISTRAR,
                 &image,
                 FIRST_LABEL,
                 FIRST_USER,
@@ -1312,13 +1252,12 @@ module suins::base_registrar_tests {
                 FIRST_RESOLVER,
                 &mut ctx
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(image);
-            test_scenario::return_shared(registrar);
         };
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let new_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
             let old_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
@@ -1329,8 +1268,9 @@ module suins::base_registrar_tests {
                 0
             );
 
-            base_registrar::update_image_url(
-                &mut registrar,
+            registrar::update_image_url(
+                &mut suins,
+                SUI_REGISTRAR,
                 &config,
                 &mut new_nft,
                 x"868d254e6ed4599a3c1bb93492008d2c8995233a02136c88a5f52b606383a7f46b1b4a83f9bf155852fd7e393421131d4b3ef9e5f8a02fd79c4c8a9b37bf67d7",
@@ -1338,7 +1278,7 @@ module suins::base_registrar_tests {
                 b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,895",
                 &mut ctx
             );
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, old_nft);
             test_scenario::return_to_sender(scenario, new_nft);
@@ -1346,7 +1286,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ENFTExpired)]
+    #[test, expected_failure(abort_code = registrar::ENFTExpired)]
     fun test_update_image_url_works_if_user_has_2_nfts_same_domain_and_uses_expired_one() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -1354,8 +1294,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registry = test_scenario::take_shared<Registry>(scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let image = test_scenario::take_shared<Configuration>(scenario);
             let ctx = tx_context::new(
                 @0x0,
@@ -1364,9 +1303,9 @@ module suins::base_registrar_tests {
                 10
             );
 
-            base_registrar::register(
-                &mut registrar,
-                &mut registry,
+            registrar::register(
+                &mut suins,
+                SUI_REGISTRAR,
                 &image,
                 FIRST_LABEL,
                 FIRST_USER,
@@ -1374,13 +1313,12 @@ module suins::base_registrar_tests {
                 FIRST_RESOLVER,
                 &mut ctx
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(image);
-            test_scenario::return_shared(registrar);
         };
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let new_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
             let old_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
@@ -1391,8 +1329,9 @@ module suins::base_registrar_tests {
                 0
             );
 
-            base_registrar::update_image_url(
-                &mut registrar,
+            registrar::update_image_url(
+                &mut suins,
+                SUI_REGISTRAR,
                 &config,
                 &mut old_nft,
                 x"868d254e6ed4599a3c1bb93492008d2c8995233a02136c88a5f52b606383a7f46b1b4a83f9bf155852fd7e393421131d4b3ef9e5f8a02fd79c4c8a9b37bf67d7",
@@ -1400,7 +1339,7 @@ module suins::base_registrar_tests {
                 b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,895",
                 &mut ctx
             );
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, old_nft);
             test_scenario::return_to_sender(scenario, new_nft);
@@ -1409,15 +1348,14 @@ module suins::base_registrar_tests {
     }
 
     #[test]
-    fun test_update_image_url_works_if_user_owns_2_nfts_different_domains_and_uses_right_one() {
+    fun test_update_image_url_works_if_user_owns_2_different_nft_domains_and_uses_right_one() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         register(scenario);
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registry = test_scenario::take_shared<Registry>(scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let image = test_scenario::take_shared<Configuration>(scenario);
             let ctx = tx_context::new(
                 @0x0,
@@ -1426,9 +1364,9 @@ module suins::base_registrar_tests {
                 10
             );
 
-            base_registrar::register(
-                &mut registrar,
-                &mut registry,
+            registrar::register(
+                &mut suins,
+                SUI_REGISTRAR,
                 &image,
                 THIRD_LABEL,
                 FIRST_USER,
@@ -1436,13 +1374,12 @@ module suins::base_registrar_tests {
                 FIRST_RESOLVER,
                 &mut ctx
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(image);
-            test_scenario::return_shared(registrar);
         };
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let second_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
             let first_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
@@ -1453,8 +1390,9 @@ module suins::base_registrar_tests {
                 0
             );
 
-            base_registrar::update_image_url(
-                &mut registrar,
+            registrar::update_image_url(
+                &mut suins,
+                SUI_REGISTRAR,
                 &config,
                 &mut first_nft,
                 x"1750ce9c94af251d3288589b4e98369ee09a41530b42f545eab96763ecbaa8b941f0a814e7440eacd803c507633825ca1f70dc9018b59cb3e49871ca6ddcf704",
@@ -1462,7 +1400,7 @@ module suins::base_registrar_tests {
                 b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,375",
                 &mut ctx
             );
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, first_nft);
             test_scenario::return_to_sender(scenario, second_nft);
@@ -1470,7 +1408,7 @@ module suins::base_registrar_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::EInvalidImageMessage)]
+    #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
     fun test_update_image_url_works_if_user_owns_2_nfts_and_uses_wrong_one() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -1478,8 +1416,7 @@ module suins::base_registrar_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registry = test_scenario::take_shared<Registry>(scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let image = test_scenario::take_shared<Configuration>(scenario);
             let ctx = tx_context::new(
                 @0x0,
@@ -1488,9 +1425,9 @@ module suins::base_registrar_tests {
                 10
             );
 
-            base_registrar::register(
-                &mut registrar,
-                &mut registry,
+            registrar::register(
+                &mut suins,
+                SUI_REGISTRAR,
                 &image,
                 THIRD_LABEL,
                 FIRST_USER,
@@ -1498,13 +1435,12 @@ module suins::base_registrar_tests {
                 FIRST_RESOLVER,
                 &mut ctx
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(image);
-            test_scenario::return_shared(registrar);
         };
         test_scenario::next_tx(scenario, FIRST_USER);
         {
-            let registrar = test_scenario::take_shared<BaseRegistrar>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let second_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
             let first_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
@@ -1515,8 +1451,9 @@ module suins::base_registrar_tests {
                 0
             );
 
-            base_registrar::update_image_url(
-                &mut registrar,
+            registrar::update_image_url(
+                &mut suins,
+                SUI_REGISTRAR,
                 &config,
                 &mut second_nft,
                 x"1750ce9c94af251d3288589b4e98369ee09a41530b42f545eab96763ecbaa8b941f0a814e7440eacd803c507633825ca1f70dc9018b59cb3e49871ca6ddcf704",
@@ -1524,7 +1461,7 @@ module suins::base_registrar_tests {
                 b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,375",
                 &mut ctx
             );
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, first_nft);
             test_scenario::return_to_sender(scenario, second_nft);
@@ -1538,8 +1475,7 @@ module suins::base_registrar_tests {
         register(&mut scenario);
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let image = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
@@ -1548,9 +1484,9 @@ module suins::base_registrar_tests {
                 10
             );
 
-            base_registrar::register(
-                &mut registrar,
-                &mut registry,
+            registrar::register(
+                &mut suins,
+                SUI_REGISTRAR,
                 &image,
                 FIRST_LABEL,
                 FIRST_USER,
@@ -1558,21 +1494,19 @@ module suins::base_registrar_tests {
                 FIRST_RESOLVER,
                 &mut ctx
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(image);
-            test_scenario::return_shared(registrar);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let new_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let old_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
 
-            base_registrar::reclaim_name(
-                &registrar,
-                &mut registry,
+            registrar::reclaim_name(
+                &mut suins,
+                SUI_REGISTRAR,
                 &new_nft,
                 SECOND_USER,
                 test_scenario::ctx(&mut scenario)
@@ -1580,30 +1514,28 @@ module suins::base_registrar_tests {
 
             test_scenario::return_to_sender(&mut scenario, new_nft);
             test_scenario::return_to_sender(&mut scenario, old_nft);
-            test_scenario::return_shared(registry);
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
         };
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let owner = base_registry::owner(&registry, FIRST_NODE);
+            let owner = registry::owner(&suins, FIRST_NODE);
             assert!(SECOND_USER == owner, 0);
 
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ENFTExpired)]
+    #[test, expected_failure(abort_code = registrar::ENFTExpired)]
     fun test_reclaim_aborts_if_user_has_2_nfts_of_same_domains_and_uses_old_one() {
         let scenario = test_init();
         register(&mut scenario);
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let image = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
@@ -1612,9 +1544,9 @@ module suins::base_registrar_tests {
                 10
             );
 
-            base_registrar::register(
-                &mut registrar,
-                &mut registry,
+            registrar::register(
+                &mut suins,
+                SUI_REGISTRAR,
                 &image,
                 FIRST_LABEL,
                 FIRST_USER,
@@ -1622,21 +1554,19 @@ module suins::base_registrar_tests {
                 FIRST_RESOLVER,
                 &mut ctx
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(image);
-            test_scenario::return_shared(registrar);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let new_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let old_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
 
-            base_registrar::reclaim_name(
-                &registrar,
-                &mut registry,
+            registrar::reclaim_name(
+                &mut suins,
+                SUI_REGISTRAR,
                 &old_nft,
                 SECOND_USER,
                 test_scenario::ctx(&mut scenario)
@@ -1644,8 +1574,7 @@ module suins::base_registrar_tests {
 
             test_scenario::return_to_sender(&mut scenario, new_nft);
             test_scenario::return_to_sender(&mut scenario, old_nft);
-            test_scenario::return_shared(registry);
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
@@ -1656,8 +1585,7 @@ module suins::base_registrar_tests {
         register(&mut scenario);
         test_scenario::next_tx(&mut scenario, SECOND_USER);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let image = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
@@ -1666,9 +1594,9 @@ module suins::base_registrar_tests {
                 20
             );
 
-            base_registrar::register(
-                &mut registrar,
-                &mut registry,
+            registrar::register(
+                &mut suins,
+                SUI_REGISTRAR,
                 &image,
                 FIRST_LABEL,
                 SECOND_USER,
@@ -1676,50 +1604,46 @@ module suins::base_registrar_tests {
                 FIRST_RESOLVER,
                 &mut ctx
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(image);
-            test_scenario::return_shared(registrar);
         };
 
         test_scenario::next_tx(&mut scenario, SECOND_USER);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
 
-            base_registrar::reclaim_name(
-                &registrar,
-                &mut registry,
+            registrar::reclaim_name(
+                &mut suins,
+                SUI_REGISTRAR,
                 &nft,
                 SECOND_USER,
                 test_scenario::ctx(&mut scenario)
             );
 
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(registry);
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
         };
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let owner = base_registry::owner(&registry, FIRST_NODE);
+            let owner = registry::owner(&suins, FIRST_NODE);
             assert!(SECOND_USER == owner, 0);
 
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = base_registrar::ENFTExpired)]
+    #[test, expected_failure(abort_code = registrar::ENFTExpired)]
     fun test_reclaim_works_if_being_called_by_old_owner() {
         let scenario = test_init();
         register(&mut scenario);
         test_scenario::next_tx(&mut scenario, SECOND_USER);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let image = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
@@ -1728,9 +1652,9 @@ module suins::base_registrar_tests {
                 20
             );
 
-            base_registrar::register(
-                &mut registrar,
-                &mut registry,
+            registrar::register(
+                &mut suins,
+                SUI_REGISTRAR,
                 &image,
                 FIRST_LABEL,
                 SECOND_USER,
@@ -1738,28 +1662,25 @@ module suins::base_registrar_tests {
                 FIRST_RESOLVER,
                 &mut ctx
             );
-            test_scenario::return_shared(registry);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(image);
-            test_scenario::return_shared(registrar);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
-            let registry = test_scenario::take_shared<Registry>(&mut scenario);
-            let registrar = test_scenario::take_shared<BaseRegistrar>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
 
-            base_registrar::reclaim_name(
-                &registrar,
-                &mut registry,
+            registrar::reclaim_name(
+                &mut suins,
+                SUI_REGISTRAR,
                 &nft,
                 SECOND_USER,
                 test_scenario::ctx(&mut scenario)
             );
 
             test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(registry);
-            test_scenario::return_shared(registrar);
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }

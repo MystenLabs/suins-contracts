@@ -1,7 +1,7 @@
 module resources::emoji_resource {
 
     use std::vector;
-    
+
     public fun one_character_emojis(): vector<vector<u8>> {
         let emojis: vector<vector<u8>> = vector[];
         vector::push_back(&mut emojis, vector[ 240, 159, 152, 128 ]);
