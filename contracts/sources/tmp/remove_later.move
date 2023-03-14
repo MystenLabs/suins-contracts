@@ -38,7 +38,7 @@ module suins::remove_later {
 
         // `msg` now: data
         msg = string::sub_string(&msg, index_of_next_comma + 1, string::length(&msg));
-
+        // TODO: should we check that these data are non blank?
         (ipfs, node, converter::string_to_number(expiry), msg)
     }
 

@@ -3794,9 +3794,9 @@ module suins::controller_tests {
                 2,
                 FIRST_SECRET,
                 &mut coin,
-                x"b8d5c020ccf043fb1dde772067d54e254041ec4c8e137f5017158711e59e86933d1889cf4d9c6ad8ef57290cc00d99b7ba60da5c0db64a996f72af010acdd2b0",
-                x"64d1c3d80ac32235d4bf1c5499ac362fd28b88eba2984e81cc36924be09f5a2d",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,751",
+                x"5509745079e180107d5b744dd460838bbe304fe4dcd1dc8e8e01c8377e3c30976efbc9d475844a1862fe88c01d2ba03a1bd3efeb4098788aad55a595111c7a3c",
+                x"6c81f7ed6add6686c5048d4a6252deaa3e2b6bf38ee26f442cc801dce2338fae",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,751,aa",
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1000000, 0);
@@ -3872,9 +3872,9 @@ module suins::controller_tests {
                 FIRST_SECRET,
                 FIRST_RESOLVER_ADDRESS,
                 &mut coin,
-                x"b8d5c020ccf043fb1dde772067d54e254041ec4c8e137f5017158711e59e86933d1889cf4d9c6ad8ef57290cc00d99b7ba60da5c0db64a996f72af010acdd2b0",
-                x"64d1c3d80ac32235d4bf1c5499ac362fd28b88eba2984e81cc36924be09f5a2d",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,751",
+                x"3b3344937c2733eb37d60c24c4c5bb5b3fdc2305af9d9301c643b70d003852a5327b05a9a9bd66ad088282bc12a34b749648190f7863de6cd69ab3a19204d6ed",
+                x"b6c60386fc06fa819113d904d866c4b2c8797a93785ae93b674fd24402686e4b",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,751,;;;;",
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 2000001, 0);
@@ -4529,9 +4529,9 @@ module suins::controller_tests {
                 2,
                 &mut coin,
                 &mut nft,
-                x"9d1b824b2c7c3649cc967465393cc00cfa3e4c8e542ef0175a0525f91cb80b8721370eb6ca3f36896e0b740f99ebd02ea3e50480b19ac66466045b3e4763b14f",
-                x"8ae97b7af21e857a343b93f0ca8a132819aa4edd4bedcee3e3a37d8f9bb89821",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,1146",
+                x"146512d5ef5775a6d0135bdb27c4e2f1dc2fb58e55d9a98458fc4360fe21f683422b29e94fdb9ea71a6206cf91bd29f2d4dbb65fc8cccf5203e8ba638e7cd863",
+                x"9432a8cd00cd6218e282ccc847b0432d4f0e7d33c8bb91d2e4283be0a2a7d0e1",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile-123.sui,1146,everywhere",
                 ctx,
             );
 
