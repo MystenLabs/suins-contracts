@@ -8,11 +8,12 @@ module suins::resolver {
     use sui::object::{Self, UID};
     use sui::transfer;
     use sui::tx_context::TxContext;
-    use suins::base_registry::{Self, Registry};
+    use suins::registry;
     use suins::converter;
     use std::string::{Self, String, utf8};
     use sui::vec_map::VecMap;
     use sui::vec_map;
+    use suins::entity::SuiNS;
 
     const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
     const NAME: vector<u8> = b"name";
@@ -72,7 +73,7 @@ module suins::resolver {
     /// 'ab123.addr.reverse': {
     ///   'name': 'suins.sui',
     /// }
-    struct BaseResolver has key {
+    struct Resolver has key {
         id: UID,
     }
 
@@ -90,19 +91,19 @@ module suins::resolver {
     /// Panics
     /// Panics if caller isn't the owner of `node`
     public entry fun set_contenthash(
-        base_resolver: &mut BaseResolver,
-        registry: &Registry,
+        resolver: &mut Resolver,
+        suins: &SuiNS,
         node: vector<u8>,
         hash: vector<u8>,
         ctx: &mut TxContext
     ) {
-        base_registry::authorised(registry, node, ctx);
+        registry::authorised(suins, node, ctx);
         let node = utf8(node);
         let new_hash = utf8(hash);
         let key = utf8(CONTENTHASH);
 
-        if (field::exists_with_type<String, VecMap<String, String>>(&base_resolver.id, node)) {
-            let record = field::borrow_mut<String, VecMap<String, String>>(&mut base_resolver.id, node);
+        if (field::exists_with_type<String, VecMap<String, String>>(&resolver.id, node)) {
+            let record = field::borrow_mut<String, VecMap<String, String>>(&mut resolver.id, node);
             if (vec_map::contains(record, &key)) {
                 // `node` and `contenthash` exist
                 let current_contenthash = vec_map::get_mut(record, &key);
@@ -115,7 +116,7 @@ module suins::resolver {
             // `node` not exist
             let new_record = vec_map::empty<String, String>();
             vec_map::insert(&mut new_record, key, new_hash);
-            field::add(&mut base_resolver.id, node, new_record);
+            field::add(&mut resolver.id, node, new_record);
         };
 
         event::emit(ContenthashChangedEvent { node, contenthash: new_hash });
@@ -131,15 +132,15 @@ module suins::resolver {
     /// Panics if caller isn't the owner of `node`
     /// or `node` doesn't exist.
     public entry fun unset_contenthash(
-        base_resolver: &mut BaseResolver,
-        registry: &Registry,
+        resolver: &mut Resolver,
+        suins: &SuiNS,
         node: vector<u8>,
         ctx: &mut TxContext
     ) {
-        base_registry::authorised(registry, node, ctx);
+        registry::authorised(suins, node, ctx);
 
         let node = utf8(node);
-        let record = field::borrow_mut<String, VecMap<String, String>>(&mut base_resolver.id, node);
+        let record = field::borrow_mut<String, VecMap<String, String>>(&mut resolver.id, node);
         vec_map::remove(record, &utf8(CONTENTHASH));
         event::emit(ContenthashRemovedEvent { node });
     }
@@ -157,20 +158,20 @@ module suins::resolver {
     /// Panics
     /// Panics if caller isn't the owner of `node`
     public entry fun set_avatar(
-        base_resolver: &mut BaseResolver,
-        registry: &Registry,
+        resolver: &mut Resolver,
+        suins: &SuiNS,
         node: vector<u8>,
         hash: vector<u8>,
         ctx: &mut TxContext
     ) {
         // TODO: group avatar, contenthash,... into 1 function
-        base_registry::authorised(registry, node, ctx);
+        registry::authorised(suins, node, ctx);
         let node = utf8(node);
         let new_hash = utf8(hash);
         let key = utf8(AVATAR);
 
-        if (field::exists_with_type<String, VecMap<String, String>>(&base_resolver.id, node)) {
-            let record = field::borrow_mut<String, VecMap<String, String>>(&mut base_resolver.id, node);
+        if (field::exists_with_type<String, VecMap<String, String>>(&resolver.id, node)) {
+            let record = field::borrow_mut<String, VecMap<String, String>>(&mut resolver.id, node);
             if (vec_map::contains(record, &key)) {
                 // `node` and `contenthash` exist
                 let current_contenthash = vec_map::get_mut(record, &key);
@@ -183,7 +184,7 @@ module suins::resolver {
             // `node` not exist
             let new_record = vec_map::empty<String, String>();
             vec_map::insert(&mut new_record, key, new_hash);
-            field::add(&mut base_resolver.id, node, new_record);
+            field::add(&mut resolver.id, node, new_record);
         };
 
         event::emit(ContenthashChangedEvent { node, contenthash: new_hash });
@@ -199,21 +200,21 @@ module suins::resolver {
     /// Panics if caller isn't the owner of `node`
     /// or `node` doesn't exist.
     public entry fun unset_avatar(
-        base_resolver: &mut BaseResolver,
-        registry: &Registry,
+        resolver: &mut Resolver,
+        suins: &SuiNS,
         node: vector<u8>,
         ctx: &mut TxContext
     ) {
-        base_registry::authorised(registry, node, ctx);
+        registry::authorised(suins, node, ctx);
 
         let node = utf8(node);
-        let record = field::borrow_mut<String, VecMap<String, String>>(&mut base_resolver.id, node);
+        let record = field::borrow_mut<String, VecMap<String, String>>(&mut resolver.id, node);
         vec_map::remove(record, &utf8(AVATAR));
         event::emit(AvatarRemovedEvent { node });
     }
 
     /// #### Notice
-    /// This funtions allows owner of `sender_addr`.addr.reverse` to set default domain name which is mapped to the sender address.
+    /// This funtions allows owner of `sender_addr.addr.reverse` to set default domain name which is mapped to the sender address.
     /// The node is identified by the sender address with format: `sender_addr`.addr.reverse.
     ///
     /// #### Dev
@@ -227,22 +228,22 @@ module suins::resolver {
     /// Panics
     /// Panics if caller isn't the owner of `sender_addr`.addr.reverse.
     public entry fun set_name(
-        base_resolver: &mut BaseResolver,
-        registry: &Registry,
+        resolver: &mut Resolver,
+        suins: &SuiNS,
         addr: address,
         new_name: vector<u8>,
         ctx: &mut TxContext
     ) {
         let label = converter::address_to_string(addr);
-        let node = base_registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
+        let node = registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
         // TODO: do we have to authorised this?
-        base_registry::authorised(registry, *string::bytes(&node), ctx);
+        registry::authorised(suins, *string::bytes(&node), ctx);
 
         let new_name = utf8(new_name);
         let key = utf8(NAME);
 
-        if (field::exists_with_type<String, VecMap<String, String>>(&base_resolver.id, node)) {
-            let record = field::borrow_mut<String, VecMap<String, String>>(&mut base_resolver.id, node);
+        if (field::exists_with_type<String, VecMap<String, String>>(&resolver.id, node)) {
+            let record = field::borrow_mut<String, VecMap<String, String>>(&mut resolver.id, node);
             if (vec_map::contains(record, &key)) {
                 // `node` and `name` exist
                 let current_name = vec_map::get_mut(record, &key);
@@ -255,7 +256,7 @@ module suins::resolver {
             // `node` not exist
             let new_record = vec_map::empty<String, String>();
             vec_map::insert(&mut new_record, key, new_name);
-            field::add(&mut base_resolver.id, node, new_record);
+            field::add(&mut resolver.id, node, new_record);
         };
 
         event::emit(NameChangedEvent { addr, name: new_name });
@@ -271,15 +272,15 @@ module suins::resolver {
     /// Panics if caller isn't the owner of `node`
     /// or `addr`.addr.reverse doesn't exist.
     public entry fun unset_name(
-        base_resolver: &mut BaseResolver,
-        registry: &Registry,
+        resolver: &mut Resolver,
+        suins: &SuiNS,
         addr: address,
         ctx: &mut TxContext
     ) {
         let label = converter::address_to_string(addr);
-        let node = base_registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
-        base_registry::authorised(registry, *string::bytes(&node), ctx);
-        let record = field::borrow_mut(&mut base_resolver.id, node);
+        let node = registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
+        registry::authorised(suins, *string::bytes(&node), ctx);
+        let record = field::borrow_mut(&mut resolver.id, node);
         vec_map::remove<String, String>(record, &utf8(NAME));
 
         event::emit(NameRemovedEvent { addr });
@@ -297,8 +298,8 @@ module suins::resolver {
     /// Panics
     /// Panics if caller isn't the owner of `node`
     public entry fun set_text(
-        base_resolver: &mut BaseResolver,
-        registry: &Registry,
+        resolver: &mut Resolver,
+        suins: &SuiNS,
         node: vector<u8>,
         key: vector<u8>,
         new_value: vector<u8>,
@@ -306,13 +307,13 @@ module suins::resolver {
     ) {
         assert!(key != CONTENTHASH && key != ADDR && key != AVATAR && key != NAME, EInvalidKey);
         // TODO: we don't have unset_text function
-        base_registry::authorised(registry, node, ctx);
+        registry::authorised(suins, node, ctx);
         let node = utf8(node);
         let new_value = utf8(new_value);
         let key = utf8(key);
 
-        if (field::exists_with_type<String, VecMap<String, String>>(&base_resolver.id, node)) {
-            let record = field::borrow_mut<String, VecMap<String, String>>(&mut base_resolver.id, node);
+        if (field::exists_with_type<String, VecMap<String, String>>(&resolver.id, node)) {
+            let record = field::borrow_mut<String, VecMap<String, String>>(&mut resolver.id, node);
             if (vec_map::contains(record, &key)) {
                 // `node` and `key` exist
                 let current_value = vec_map::get_mut(record, &key);
@@ -325,7 +326,7 @@ module suins::resolver {
             // `node` not exist
             let new_record = vec_map::empty<String, String>();
             vec_map::insert(&mut new_record, key, new_value);
-            field::add(&mut base_resolver.id, node, new_record);
+            field::add(&mut resolver.id, node, new_record);
         };
 
         event::emit(TextRecordChangedEvent { node, key, value: new_value });
@@ -341,20 +342,20 @@ module suins::resolver {
     /// Panics
     /// Panics if caller isn't the owner of `node`
     public entry fun set_addr(
-        base_resolver: &mut BaseResolver,
-        registry: &Registry,
+        resolver: &mut Resolver,
+        suins: &SuiNS,
         node: vector<u8>,
         new_addr: address,
         ctx: &mut TxContext
     ) {
         // TODO: we don't have unset_addr function
-        base_registry::authorised(registry, node, ctx);
+        registry::authorised(suins, node, ctx);
         let node = utf8(node);
         let key = utf8(ADDR);
         let new_addr = utf8(converter::address_to_string(new_addr));
 
-        if (field::exists_with_type<String, VecMap<String, String>>(&base_resolver.id, node)) {
-            let record = field::borrow_mut<String, VecMap<String, String>>(&mut base_resolver.id, node);
+        if (field::exists_with_type<String, VecMap<String, String>>(&resolver.id, node)) {
+            let record = field::borrow_mut<String, VecMap<String, String>>(&mut resolver.id, node);
             if (vec_map::contains(record, &key)) {
                 let current_addr = vec_map::get_mut(record, &key);
                 *current_addr = new_addr;
@@ -365,7 +366,7 @@ module suins::resolver {
         } else {
             let new_record = vec_map::empty<String, String>();
             vec_map::insert(&mut new_record, key, new_addr);
-            field::add(&mut base_resolver.id, node, new_record);
+            field::add(&mut resolver.id, node, new_record);
         };
 
         event::emit(AddrChangedEvent { node, addr: new_addr });
@@ -381,12 +382,12 @@ module suins::resolver {
     ///
     /// #### Params
     /// `node`: node to find the content hash
-    public fun contenthash(base_resolver: &BaseResolver, node: vector<u8>): String {
+    public fun contenthash(resolver: &Resolver, node: vector<u8>): String {
         let key = utf8(CONTENTHASH);
         let node = utf8(node);
 
-        if (field::exists_with_type<String, VecMap<String, String>>(&base_resolver.id, node)) {
-            let record = field::borrow<String, VecMap<String, String>>(&base_resolver.id, node);
+        if (field::exists_with_type<String, VecMap<String, String>>(&resolver.id, node)) {
+            let record = field::borrow<String, VecMap<String, String>>(&resolver.id, node);
             if (vec_map::contains(record, &key)) {
                 return *vec_map::get(record, &key)
             };
@@ -402,12 +403,12 @@ module suins::resolver {
     ///
     /// #### Params
     /// `node`: node to find the content hash
-    public fun avatar(base_resolver: &BaseResolver, node: vector<u8>): String {
+    public fun avatar(resolver: &Resolver, node: vector<u8>): String {
         let key = utf8(AVATAR);
         let node = utf8(node);
 
-        if (field::exists_with_type<String, VecMap<String, String>>(&base_resolver.id, node)) {
-            let record = field::borrow<String, VecMap<String, String>>(&base_resolver.id, node);
+        if (field::exists_with_type<String, VecMap<String, String>>(&resolver.id, node)) {
+            let record = field::borrow<String, VecMap<String, String>>(&resolver.id, node);
             if (vec_map::contains(record, &key)) {
                 return *vec_map::get(record, &key)
             };
@@ -423,13 +424,13 @@ module suins::resolver {
     ///
     /// #### Params
     /// `node`: node to find the default name
-    public fun name(base_resolver: &BaseResolver, addr: address): String {
+    public fun name(resolver: &Resolver, addr: address): String {
         let label = converter::address_to_string(addr);
-        let node = base_registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
+        let node = registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
         let key = utf8(NAME);
 
-        if (field::exists_with_type<String, VecMap<String, String>>(&base_resolver.id, node)) {
-            let record = field::borrow<String, VecMap<String, String>>(&base_resolver.id, node);
+        if (field::exists_with_type<String, VecMap<String, String>>(&resolver.id, node)) {
+            let record = field::borrow<String, VecMap<String, String>>(&resolver.id, node);
             if (vec_map::contains(record, &key)) {
                 return *vec_map::get(record, &key)
             };
@@ -445,12 +446,12 @@ module suins::resolver {
     ///
     /// #### Params
     /// `node`: node to find the text record key.
-    public fun text(base_resolver: &BaseResolver, node: vector<u8>, key: vector<u8>): String {
+    public fun text(resolver: &Resolver, node: vector<u8>, key: vector<u8>): String {
         let key = utf8(key);
         let node = utf8(node);
 
-        if (field::exists_with_type<String, VecMap<String, String>>(&base_resolver.id, node)) {
-            let record = field::borrow<String, VecMap<String, String>>(&base_resolver.id, node);
+        if (field::exists_with_type<String, VecMap<String, String>>(&resolver.id, node)) {
+            let record = field::borrow<String, VecMap<String, String>>(&resolver.id, node);
             if (vec_map::contains(record, &key)) {
                 return *vec_map::get(record, &key)
             };
@@ -466,12 +467,12 @@ module suins::resolver {
     ///
     /// #### Params
     /// `node`: node to find the default addr.
-    public fun addr(base_resolver: &BaseResolver, node: vector<u8>): String {
+    public fun addr(resolver: &Resolver, node: vector<u8>): String {
         let node = utf8(node);
         let key = utf8(ADDR);
 
-        if (field::exists_with_type<String, VecMap<String, String>>(&base_resolver.id, node)) {
-            let record = field::borrow<String, VecMap<String, String>>(&base_resolver.id, node);
+        if (field::exists_with_type<String, VecMap<String, String>>(&resolver.id, node)) {
+            let record = field::borrow<String, VecMap<String, String>>(&resolver.id, node);
             if (vec_map::contains(record, &key)) {
                 return *vec_map::get(record, &key)
             };
@@ -488,14 +489,14 @@ module suins::resolver {
     /// #### Params
     /// `node`: node to find the data.
     public fun all_data(
-        base_resolver: &BaseResolver,
+        resolver: &Resolver,
         node: vector<u8>,
     ): (String, String, String, String) {
         let empty_str = utf8(b"");
         let node = utf8(node);
 
-        if (field::exists_with_type<String, VecMap<String, String>>(&base_resolver.id, node)) {
-            let record = field::borrow<String, VecMap<String, String>>(&base_resolver.id, node);
+        if (field::exists_with_type<String, VecMap<String, String>>(&resolver.id, node)) {
+            let record = field::borrow<String, VecMap<String, String>>(&resolver.id, node);
 
             let contenthash = empty_str;
             if (vec_map::contains(record, &utf8(CONTENTHASH))) {
@@ -524,7 +525,7 @@ module suins::resolver {
     // === Private Functions ===
 
     fun init(ctx: &mut TxContext) {
-        transfer::share_object(BaseResolver {
+        transfer::share_object(Resolver {
             id: object::new(ctx),
         });
     }
@@ -532,15 +533,15 @@ module suins::resolver {
     // === Testing Functions ===
 
     #[test_only]
-    public fun is_contenthash_existed(base_resolver: &BaseResolver, node: vector<u8>): bool {
-        let record = field::borrow<String, VecMap<String, String>>(&base_resolver.id, utf8(node));
+    public fun is_contenthash_existed(resolver: &Resolver, node: vector<u8>): bool {
+        let record = field::borrow<String, VecMap<String, String>>(&resolver.id, utf8(node));
         vec_map::contains(record, &utf8(CONTENTHASH))
     }
 
     #[test_only]
     /// Wrapper of module initializer for testing
     public fun test_init(ctx: &mut TxContext) {
-        transfer::share_object(BaseResolver {
+        transfer::share_object(Resolver {
             id: object::new(ctx),
         });
     }

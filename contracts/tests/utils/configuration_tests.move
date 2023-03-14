@@ -5,7 +5,7 @@ module suins::configuration_tests {
     use sui::test_scenario::Scenario;
     use sui::vec_map;
     use suins::configuration::{Self, Configuration};
-    use suins::base_registry::{Self, AdminCap};
+    use suins::registry::{Self, AdminCap};
     use std::ascii;
     use std::option;
 
@@ -28,7 +28,7 @@ module suins::configuration_tests {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
-            base_registry::test_init(ctx);
+            registry::test_init(ctx);
             configuration::test_init(ctx);
         };
         scenario

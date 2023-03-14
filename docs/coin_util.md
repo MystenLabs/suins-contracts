@@ -35,6 +35,7 @@
 
 
 <pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="coin_util.md#0x0_coin_util_user_transfer_to_address">user_transfer_to_address</a>(payment: &<b>mut</b> Coin&lt;SUI&gt;, amount: u64, receiver: <b>address</b>, ctx: &<b>mut</b> TxContext) {
+    <b>if</b> (amount == 0) <b>return</b>;
     <b>let</b> paid = <a href="_split">coin::split</a>(payment, amount, ctx);
     <a href="_transfer">transfer::transfer</a>(paid, receiver);
 }
@@ -60,6 +61,7 @@
 
 
 <pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="coin_util.md#0x0_coin_util_user_transfer_to_contract">user_transfer_to_contract</a>(payment: &<b>mut</b> Coin&lt;SUI&gt;, amount: u64, receiver: &<b>mut</b> Balance&lt;SUI&gt;) {
+    <b>if</b> (amount == 0) <b>return</b>;
     <b>let</b> coin_balance = <a href="_balance_mut">coin::balance_mut</a>(payment);
     <b>let</b> paid = <a href="_split">balance::split</a>(coin_balance, amount);
     <a href="_join">balance::join</a>(receiver, paid);
@@ -86,6 +88,7 @@
 
 
 <pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="coin_util.md#0x0_coin_util_contract_transfer_to_address">contract_transfer_to_address</a>(<a href="">balance</a>: &<b>mut</b> Balance&lt;SUI&gt;, amount: u64, receiver: <b>address</b>, ctx: &<b>mut</b> TxContext) {
+    <b>if</b> (amount == 0) <b>return</b>;
     <b>let</b> <a href="">coin</a> = <a href="_take">coin::take</a>(<a href="">balance</a>, amount, ctx);
     <a href="_transfer">transfer::transfer</a>(<a href="">coin</a>, receiver);
 }

@@ -289,7 +289,7 @@ module suins::emoji {
         assert!(remaining_characters == 0, EInvalidLabel);
         result
     }
-    
+
     // Byte 1    Type
     // 0xxxxxxx  1 byte
     // 110xxxxx  2 bytes

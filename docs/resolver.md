@@ -425,11 +425,7 @@ Create 'contenthash' key if not exist.
 <code>node</code>: node to be updated
 <code><a href="">hash</a></code>: content hash url
 
-
-<a name="@Panics_4"></a>
-
-###### Panics
-
+Panics
 Panics if caller isn't the owner of <code>node</code>
 
 
@@ -484,24 +480,20 @@ Panics if caller isn't the owner of <code>node</code>
 ## Function `unset_contenthash`
 
 
-<a name="@Notice_5"></a>
+<a name="@Notice_4"></a>
 
 ###### Notice
 
 This funtions allows owner of <code>node</code> to unset content hash url.
 
 
-<a name="@Params_6"></a>
+<a name="@Params_5"></a>
 
 ###### Params
 
 <code>node</code>: node to be updated
 
-
-<a name="@Panics_7"></a>
-
-###### Panics
-
+Panics
 Panics if caller isn't the owner of <code>node</code>
 or <code>node</code> doesn't exist.
 
@@ -539,32 +531,28 @@ or <code>node</code> doesn't exist.
 ## Function `set_avatar`
 
 
-<a name="@Notice_8"></a>
+<a name="@Notice_6"></a>
 
 ###### Notice
 
 This funtions allows owner of <code>node</code> to set avatar url.
 
 
-<a name="@Dev_9"></a>
+<a name="@Dev_7"></a>
 
 ###### Dev
 
 Create 'avatar' key if not exist.
 
 
-<a name="@Params_10"></a>
+<a name="@Params_8"></a>
 
 ###### Params
 
 <code>node</code>: node to be updated
 <code>avatar</code>: avatar url
 
-
-<a name="@Panics_11"></a>
-
-###### Panics
-
+Panics
 Panics if caller isn't the owner of <code>node</code>
 
 
@@ -620,24 +608,20 @@ Panics if caller isn't the owner of <code>node</code>
 ## Function `unset_avatar`
 
 
-<a name="@Notice_12"></a>
+<a name="@Notice_9"></a>
 
 ###### Notice
 
 This funtions allows owner of <code>node</code> to unset avatar url.
 
 
-<a name="@Params_13"></a>
+<a name="@Params_10"></a>
 
 ###### Params
 
 <code>node</code>: node to be updated
 
-
-<a name="@Panics_14"></a>
-
-###### Panics
-
+Panics
 Panics if caller isn't the owner of <code>node</code>
 or <code>node</code> doesn't exist.
 
@@ -675,7 +659,7 @@ or <code>node</code> doesn't exist.
 ## Function `set_name`
 
 
-<a name="@Notice_15"></a>
+<a name="@Notice_11"></a>
 
 ###### Notice
 
@@ -683,26 +667,22 @@ This funtions allows owner of <code>sender_addr.addr.reverse</code> to set defau
 The node is identified by the sender address with format: <code>sender_addr</code>.addr.reverse.
 
 
-<a name="@Dev_16"></a>
+<a name="@Dev_12"></a>
 
 ###### Dev
 
-Create <code>name</code> key if not exist.
+Create 'name' key if not exist.
 <code>new_name</code> isn't validated.
 
 
-<a name="@Params_17"></a>
+<a name="@Params_13"></a>
 
 ###### Params
 
 <code>node</code>: node to be updated
 <code>new_name</code>: new domain name to be set
 
-
-<a name="@Panics_18"></a>
-
-###### Panics
-
+Panics
 Panics if caller isn't the owner of <code>sender_addr</code>.addr.reverse.
 
 
@@ -760,24 +740,20 @@ Panics if caller isn't the owner of <code>sender_addr</code>.addr.reverse.
 ## Function `unset_name`
 
 
-<a name="@Notice_19"></a>
+<a name="@Notice_14"></a>
 
 ###### Notice
 
 This funtions allows owner of <code>addr</code>.addr.reverse to unset default name.
 
 
-<a name="@Params_20"></a>
+<a name="@Params_15"></a>
 
 ###### Params
 
 <code>addr</code>: node to be unset with format <code>addr</code>.addr.reverse.
 
-
-<a name="@Panics_21"></a>
-
-###### Panics
-
+Panics
 Panics if caller isn't the owner of <code>node</code>
 or <code>addr</code>.addr.reverse doesn't exist.
 
@@ -816,7 +792,7 @@ or <code>addr</code>.addr.reverse doesn't exist.
 ## Function `set_text`
 
 
-<a name="@Notice_22"></a>
+<a name="@Notice_16"></a>
 
 ###### Notice
 
@@ -824,7 +800,7 @@ This funtions allows owner of <code>node</code> to set text record.
 Text record is an object.
 
 
-<a name="@Params_23"></a>
+<a name="@Params_17"></a>
 
 ###### Params
 
@@ -832,11 +808,7 @@ Text record is an object.
 <code>key</code>: key of text record object
 <code>new_value</code>: new value for the key
 
-
-<a name="@Panics_24"></a>
-
-###### Panics
-
+Panics
 Panics if caller isn't the owner of <code>node</code>
 
 
@@ -894,25 +866,21 @@ Panics if caller isn't the owner of <code>node</code>
 ## Function `set_addr`
 
 
-<a name="@Notice_25"></a>
+<a name="@Notice_18"></a>
 
 ###### Notice
 
 This funtions allows owner of <code>node</code> to set default addr.
 
 
-<a name="@Params_26"></a>
+<a name="@Params_19"></a>
 
 ###### Params
 
 <code>node</code>: node to be updated
 <code>new_addr</code>: new address value
 
-
-<a name="@Panics_27"></a>
-
-###### Panics
-
+Panics
 Panics if caller isn't the owner of <code>node</code>
 
 
@@ -966,21 +934,21 @@ Panics if caller isn't the owner of <code>node</code>
 ## Function `contenthash`
 
 
-<a name="@Notice_28"></a>
+<a name="@Notice_20"></a>
 
 ###### Notice
 
 Get content hash of a <code>node</code>.
 
 
-<a name="@Dev_29"></a>
+<a name="@Dev_21"></a>
 
 ###### Dev
 
 Returns empty string if <code>node</code> or <code>contenthash</code> key doesn't exist.
 
 
-<a name="@Params_30"></a>
+<a name="@Params_22"></a>
 
 ###### Params
 
@@ -1019,21 +987,21 @@ Returns empty string if <code>node</code> or <code>contenthash</code> key doesn'
 ## Function `avatar`
 
 
-<a name="@Notice_31"></a>
+<a name="@Notice_23"></a>
 
 ###### Notice
 
 Get avatar of a <code>node</code>.
 
 
-<a name="@Dev_32"></a>
+<a name="@Dev_24"></a>
 
 ###### Dev
 
 Returns empty string if <code>node</code> or <code>avatar</code> key doesn't exist.
 
 
-<a name="@Params_33"></a>
+<a name="@Params_25"></a>
 
 ###### Params
 
@@ -1072,21 +1040,21 @@ Returns empty string if <code>node</code> or <code>avatar</code> key doesn't exi
 ## Function `name`
 
 
-<a name="@Notice_34"></a>
+<a name="@Notice_26"></a>
 
 ###### Notice
 
 Get default name of a <code>node</code>.
 
 
-<a name="@Dev_35"></a>
+<a name="@Dev_27"></a>
 
 ###### Dev
 
 Returns empty string if <code>node</code> or <code>name</code> key doesn't exist.
 
 
-<a name="@Params_36"></a>
+<a name="@Params_28"></a>
 
 ###### Params
 
@@ -1126,21 +1094,21 @@ Returns empty string if <code>node</code> or <code>name</code> key doesn't exist
 ## Function `text`
 
 
-<a name="@Notice_37"></a>
+<a name="@Notice_29"></a>
 
 ###### Notice
 
 Get value of a key in text record object.
 
 
-<a name="@Dev_38"></a>
+<a name="@Dev_30"></a>
 
 ###### Dev
 
 Returns empty string if not exists.
 
 
-<a name="@Params_39"></a>
+<a name="@Params_31"></a>
 
 ###### Params
 
@@ -1179,21 +1147,21 @@ Returns empty string if not exists.
 ## Function `addr`
 
 
-<a name="@Notice_40"></a>
+<a name="@Notice_32"></a>
 
 ###### Notice
 
 Get <code>addr</code> of a <code>node</code>.
 
 
-<a name="@Dev_41"></a>
+<a name="@Dev_33"></a>
 
 ###### Dev
 
 Returns @0x0 address if not exists.
 
 
-<a name="@Params_42"></a>
+<a name="@Params_34"></a>
 
 ###### Params
 
@@ -1232,21 +1200,21 @@ Returns @0x0 address if not exists.
 ## Function `all_data`
 
 
-<a name="@Notice_43"></a>
+<a name="@Notice_35"></a>
 
 ###### Notice
 
 Get <code>(contenthash, addr, avatar, name)</code> of a <code>node</code>.
 
 
-<a name="@Dev_44"></a>
+<a name="@Dev_36"></a>
 
 ###### Dev
 
 Returns empty string and @0x0 address if not exists.
 
 
-<a name="@Params_45"></a>
+<a name="@Params_37"></a>
 
 ###### Params
 
