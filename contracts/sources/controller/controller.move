@@ -583,7 +583,7 @@ module suins::controller {
         let amount = balance::value(entity::controller_balance(suins));
         assert!(amount > 0, ENoProfits);
 
-        coin_util::contract_transfer_to_address(suins, amount, sender(ctx), ctx);
+        coin_util::suins_transfer_to_address(suins, amount, sender(ctx), ctx);
     }
 
     // === Private Functions ===
@@ -681,7 +681,7 @@ module suins::controller {
             data: additional_data,
         });
 
-        coin_util::user_transfer_to_contract(payment, registration_fee, suins);
+        coin_util::user_transfer_to_suins(payment, registration_fee, suins);
     }
 
     // returns remaining_fee

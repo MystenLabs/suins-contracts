@@ -396,7 +396,6 @@ module suins::auction {
         let bids_of_sender = table::borrow_mut(&mut auction.bid_details_by_bidder, sender(ctx));
 
         // Refund all the bids
-        // TODO: consider removing bids_of_sender if being empty
         let len = vector::length(bids_of_sender);
         let index = 0;
         while (index < len) {
@@ -407,10 +406,7 @@ module suins::auction {
 
             let detail = vector::remove(bids_of_sender, index);
             len = len - 1;
-            if (
-                entry.winner == detail.bidder
-                    && entry.highest_bid == detail.bid_value
-            ) {
+            if (entry.winner == detail.bidder && entry.highest_bid == detail.bid_value) {
                 if (entry.second_highest_bid != 0) {
                     coin_util::auction_transfer_to_address(
                         &mut auction.balance,
@@ -418,6 +414,7 @@ module suins::auction {
                         detail.bidder,
                         ctx
                     );
+                    coin_util::auction_transfer_to_suins(&mut auction.balance, entry.second_highest_bid, suins);
                 } else {
                     // winner is the only one who bided
                     coin_util::auction_transfer_to_address(
@@ -426,6 +423,7 @@ module suins::auction {
                         detail.bidder,
                         ctx
                     );
+                    coin_util::auction_transfer_to_suins(&mut auction.balance, detail.bid_value, suins);
                 }
             } else {
                 // TODO: charge paymennt as punishmennt
