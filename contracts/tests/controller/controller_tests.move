@@ -12,6 +12,8 @@ module suins::controller_tests {
     use suins::registrar::{Self, RegistrationNFT};
     use suins::registry::{Self, AdminCap};
     use suins::configuration::{Self, Configuration};
+    use suins::entity::{Self, SuiNS};
+    use suins::registrar_tests::{Self, register_with_image_util};
     use suins::controller;
     use suins::emoji;
     use std::option::{Self, Option, some};
@@ -497,7 +499,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
-            assert!(controller::balance(&suins) == 1000000, 0);
+            assert!(controller::get_balance(&suins) == 1000000, 0);
 
             controller::register(
                 &mut suins,
@@ -563,7 +565,7 @@ module suins::controller_tests {
                 20
             );
             let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
-            assert!(controller::balance(&suins) == 1000000, 0);
+            assert!(controller::get_balance(&suins) == 1000000, 0);
 
             controller::register(
                 &mut suins,
@@ -664,7 +666,7 @@ module suins::controller_tests {
                 20
             );
             let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
-            assert!(controller::balance(&suins) == 1000000, 0);
+            assert!(controller::get_balance(&suins) == 1000000, 0);
 
             controller::register(
                 &mut suins,
@@ -782,11 +784,11 @@ module suins::controller_tests {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(controller::balance(&suins) == 2000000, 0);
+            assert!(controller::get_balance(&suins) == 2000000, 0);
             assert!(!test_scenario::has_most_recent_for_sender<Coin<SUI>>(&mut scenario), 0);
 
             controller::withdraw(&admin_cap, &mut suins, test_scenario::ctx(&mut scenario));
-            assert!(controller::balance(&suins) == 0, 0);
+            assert!(controller::get_balance(&suins) == 0, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
@@ -1091,7 +1093,7 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            assert!(controller::balance(&suins) == 3000000, 0);
+            assert!(controller::get_balance(&suins) == 3000000, 0);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -1424,7 +1426,7 @@ module suins::controller_tests {
                 0
             );
             assert!(coin::value(&coin) == 200000, 0);
-            assert!(controller::balance(&suins) == 1800000, 0);
+            assert!(controller::get_balance(&suins) == 1800000, 0);
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
@@ -1503,7 +1505,7 @@ module suins::controller_tests {
                 0
             );
             assert!(coin::value(&coin) == 300000, 0);
-            assert!(controller::balance(&suins) == 2700000, 0);
+            assert!(controller::get_balance(&suins) == 2700000, 0);
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 1095, 0);
@@ -1619,7 +1621,7 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
-            assert!(controller::balance(&suins) == 1700000, 0);
+            assert!(controller::get_balance(&suins) == 1700000, 0);
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
@@ -1779,7 +1781,7 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
-            assert!(controller::balance(&suins) == 1700000, 0);
+            assert!(controller::get_balance(&suins) == 1700000, 0);
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
@@ -2025,7 +2027,7 @@ module suins::controller_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             assert!(coin::value(&coin) == 200000, 0);
-            assert!(controller::balance(&suins) == 1800000, 0);
+            assert!(controller::get_balance(&suins) == 1800000, 0);
 
             test_scenario::return_to_address(SECOND_USER_ADDRESS, coin);
             test_scenario::return_shared(suins);
@@ -2075,7 +2077,7 @@ module suins::controller_tests {
 
             assert!(coin::value(&coin1) == 100000, 0);
             assert!(coin::value(&coin2) == 200000, 0);
-            assert!(controller::balance(&suins) == 2700000, 0);
+            assert!(controller::get_balance(&suins) == 2700000, 0);
 
             test_scenario::return_to_address(SECOND_USER_ADDRESS, coin2);
             test_scenario::return_shared(suins);
@@ -2261,7 +2263,7 @@ module suins::controller_tests {
                 0
             );
             assert!(coin::value(&coin) == 170000, 0);
-            assert!(controller::balance(&suins) == 1700000 - 170000, 0);
+            assert!(controller::get_balance(&suins) == 1700000 - 170000, 0);
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
@@ -2420,7 +2422,7 @@ module suins::controller_tests {
                 0
             );
             assert!(coin::value(&coin) == 170000, 0);
-            assert!(controller::balance(&suins) == 1700000 - 170000, 0);
+            assert!(controller::get_balance(&suins) == 1700000 - 170000, 0);
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
@@ -2912,7 +2914,7 @@ module suins::controller_tests {
 
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::balance(&suins) == 1000000, 0);
+            assert!(controller::get_balance(&suins) == 1000000, 0);
             assert!(name == utf8(AUCTIONED_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -3245,7 +3247,7 @@ module suins::controller_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = registrar::get_nft_fields(&nft);
 
-            assert!(controller::balance(&suins) == 1000000, 0);
+            assert!(controller::get_balance(&suins) == 1000000, 0);
             assert!(name == utf8(AUCTIONED_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -3343,7 +3345,7 @@ module suins::controller_tests {
 
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::balance(&suins) == 1000000, 0);
+            assert!(controller::get_balance(&suins) == 1000000, 0);
             assert!(name == utf8(AUCTIONED_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b""),
@@ -3453,7 +3455,7 @@ module suins::controller_tests {
 
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::balance(&suins) == 1000000, 0);
+            assert!(controller::get_balance(&suins) == 1000000, 0);
             assert!(name == utf8(AUCTIONED_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -3919,11 +3921,11 @@ module suins::controller_tests {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(controller::balance(&suins) == 2000000, 0);
+            assert!(controller::get_balance(&suins) == 2000000, 0);
             assert!(!test_scenario::has_most_recent_for_sender<Coin<SUI>>(&mut scenario), 0);
 
             controller::withdraw(&admin_cap, &mut suins, test_scenario::ctx(&mut scenario));
-            assert!(controller::balance(&suins) == 0, 0);
+            assert!(controller::get_balance(&suins) == 0, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
@@ -4132,7 +4134,7 @@ module suins::controller_tests {
                 0
             );
             assert!(coin::value(&coin) == 170000, 0);
-            assert!(controller::balance(&suins) == 1700000 - 170000, 0);
+            assert!(controller::get_balance(&suins) == 1700000 - 170000, 0);
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 21 + 730, 0);
@@ -4342,7 +4344,7 @@ module suins::controller_tests {
                 0
             );
             assert!(coin::value(&coin) == 170000, 0);
-            assert!(controller::balance(&suins) == 1700000 - 170000, 0);
+            assert!(controller::get_balance(&suins) == 1700000 - 170000, 0);
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 21 + 730, 0);
@@ -4939,7 +4941,7 @@ module suins::controller_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = registrar::get_nft_fields(&nft);
 
-            assert!(controller::balance(&suins) == 1000000, 0);
+            assert!(controller::get_balance(&suins) == 1000000, 0);
             assert!(name == utf8(AUCTIONED_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),

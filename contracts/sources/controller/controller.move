@@ -787,7 +787,7 @@ module suins::controller {
     }
 
     #[test_only]
-    public fun balance(suins: &SuiNS): u64 {
+    public fun get_balance(suins: &SuiNS): u64 {
         let contract_balance = entity::controller_balance(suins);
         balance::value(contract_balance)
     }
