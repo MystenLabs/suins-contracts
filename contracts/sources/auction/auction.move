@@ -51,6 +51,7 @@ module suins::auction {
     const EAlreadyFinalized: u64 = 811;
     const EAlreadyUnsealed: u64 = 812;
     const ESealBidNotExists: u64 = 813;
+    const EAuctionNotHasWinner: u64 = 814;
 
     friend suins::controller;
 
@@ -443,6 +444,86 @@ module suins::auction {
 
         event::emit(NodeRegisteredEvent {
             label: label_str,
+            tld: utf8(b"sui"),
+            winner: entry.winner,
+            amount: entry.second_highest_bid
+        })
+    }
+
+    public entry fun finalize_auction_by_admin(
+        auction: &mut Auction,
+        suins: &mut SuiNS,
+        config: &Configuration,
+        label: vector<u8>,
+        resolver: address,
+        ctx: &mut TxContext
+    ) {
+        assert!(
+            auction.start_auction_start_at <= epoch(ctx) && epoch(ctx) <= auction_close_at(auction) + EXTRA_PERIOD,
+            EAuctionNotAvailable,
+        );
+        let auction_state = state(auction, label, epoch(ctx));
+        assert!(auction_state == AUCTION_STATE_FINALIZING, EInvalidPhase);
+
+        let label = utf8(label);
+        let entry = table::borrow_mut(&mut auction.entries, label);
+        assert!(!entry.is_finalized, EAlreadyFinalized);
+        assert!(entry.winner != @0x0, EAuctionNotHasWinner);
+
+        let bids_of_winner = table::borrow_mut(&mut auction.bid_details_by_bidder, entry.winner);
+
+        let len = vector::length(bids_of_winner);
+        let index = 0;
+        while (index < len) {
+            if (vector::borrow(bids_of_winner, index).label != label) {
+                index = index + 1;
+                continue
+            };
+
+            let detail = vector::borrow(bids_of_winner, index);
+            // TODO: winner can have multiple bid with the same highest value,
+            // TODO: however, because we are using the vector, the early bid comes first.
+            if (entry.highest_bid == detail.bid_value) {
+                if (entry.second_highest_bid != 0) {
+                    coin_util::auction_transfer_to_address(
+                        &mut auction.balance,
+                        detail.bid_value_mask - entry.second_highest_bid,
+                        detail.bidder,
+                        ctx
+                    );
+                    coin_util::auction_transfer_to_suins(&mut auction.balance, entry.second_highest_bid, suins);
+                } else {
+                    // winner is the only one who bided
+                    coin_util::auction_transfer_to_address(
+                        &mut auction.balance,
+                        detail.bid_value_mask - detail.bid_value,
+                        detail.bidder,
+                        ctx
+                    );
+                    coin_util::auction_transfer_to_suins(&mut auction.balance, detail.bid_value, suins);
+                };
+                vector::remove(bids_of_winner, index);
+                break
+            };
+            index = index + 1;
+        };
+        entry.is_finalized = true;
+
+        registrar::register_with_image_internal(
+            suins,
+            utf8(b"sui"),
+            config,
+            label,
+            entry.winner,
+            365,
+            resolver,
+            vector[],
+            vector[],
+            vector[],
+            ctx
+        );
+        event::emit(NodeRegisteredEvent {
+            label,
             tld: utf8(b"sui"),
             winner: entry.winner,
             amount: entry.second_highest_bid
