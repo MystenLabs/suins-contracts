@@ -2068,12 +2068,7 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1500, SECRET);
-            let ctx = tx_context::new(
-                FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                START_AUCTION_END_AT + BIDDING_PERIOD,
-                20
-            );
+            let ctx = ctx_util(FIRST_USER_ADDRESS, START_AUCTION_END_AT + BIDDING_PERIOD, 20);
             let auction = test_scenario::take_shared<Auction>(scenario);
             let coin = coin::mint_for_testing<SUI>(30000, &mut ctx);
 
@@ -2293,12 +2288,7 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<Auction>(scenario);
-            let ctx = tx_context::new(
-                FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                START_AN_AUCTION_AT + 200,
-                0
-            );
+            let ctx = ctx_util(FIRST_USER_ADDRESS, START_AN_AUCTION_AT + 200, 0);
             let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
             assert!(vector::length(&bids) == 2, 0);
 
@@ -2351,12 +2341,7 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<Auction>(scenario);
-            let ctx = tx_context::new(
-                FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + 1,
-                0
-            );
+            let ctx = ctx_util(FIRST_USER_ADDRESS, START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + 1, 0);
             let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
             assert!(vector::length(&bids) == 1, 0);
             assert!(auction::get_balance(&auction) == 12000, 0);
@@ -3989,8 +3974,7 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<Auction>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            assert!(state_util(&auction, NODE, START_AN_AUCTION_AT + 1) == AUCTION_STATE_OWNED, 0);
-
+            assert!(state_util(&auction, NODE, START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD) == AUCTION_STATE_OWNED, 0);
             assert!(auction::get_balance(&auction) == 10000, 0);
             assert!(controller::get_balance(&suins) == 1000, 0);
 
@@ -5583,4 +5567,58 @@ module suins::auction_tests {
         test_scenario::end(scenario_val);
     }
 
+    #[test]
+    fun test_finalized_by_admin_entry_has_state_of_owned() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        start_an_auction_util(scenario, NODE);
+        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, SECRET);
+        place_bid_util(scenario, seal_bid, 1300, FIRST_USER_ADDRESS);
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            assert!(auction::get_balance(&auction) == 11300, 0);
+
+            reveal_bid_util(
+                &mut auction,
+                START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
+                NODE,
+                1000,
+                SECRET,
+                FIRST_USER_ADDRESS,
+                2
+            );
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            let config = test_scenario::take_shared<Configuration>(scenario);
+            finalize_auction_by_admin(
+                &mut auction,
+                &mut suins,
+                &config,
+                NODE,
+                RESOLVER_ADDRESS,
+                &mut ctx_util(FIRST_USER_ADDRESS, START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD, 20),
+            );
+            test_scenario::return_shared(auction);
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(config);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+
+            assert!(state_util(&auction, NODE, START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD) == AUCTION_STATE_OWNED, 0);
+            assert!(auction::get_balance(&auction) == 10000, 0);
+            assert!(controller::get_balance(&suins) == 1000, 0);
+
+            test_scenario::return_shared(auction);
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::end(scenario_val);
+    }
 }
