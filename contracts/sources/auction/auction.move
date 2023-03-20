@@ -12,16 +12,16 @@ module suins::auction {
     use sui::hash::keccak256;
     use sui::coin::Coin;
     use sui::event;
-    use std::option::{Self, Option, none, some};
-    use std::string::{String, utf8};
-    use std::vector;
-    use std::bcs;
     use suins::registrar;
     use suins::registry::AdminCap;
     use suins::configuration::{Self, Configuration};
     use suins::coin_util;
     use suins::entity::SuiNS;
     use suins::emoji;
+    use std::option::{Self, Option, none, some};
+    use std::string::{String, utf8};
+    use std::vector;
+    use std::bcs;
 
     const MIN_PRICE: u64 = 1000;
     const FEE_PER_YEAR: u64 = 10000;
@@ -408,24 +408,7 @@ module suins::auction {
             let detail = vector::remove(bids_of_sender, index);
             len = len - 1;
             if (entry.winner == detail.bidder && entry.highest_bid == detail.bid_value) {
-                if (entry.second_highest_bid != 0) {
-                    coin_util::auction_transfer_to_address(
-                        &mut auction.balance,
-                        detail.bid_value_mask - entry.second_highest_bid,
-                        detail.bidder,
-                        ctx
-                    );
-                    coin_util::auction_transfer_to_suins(&mut auction.balance, entry.second_highest_bid, suins);
-                } else {
-                    // winner is the only one who bided
-                    coin_util::auction_transfer_to_address(
-                        &mut auction.balance,
-                        detail.bid_value_mask - detail.bid_value,
-                        detail.bidder,
-                        ctx
-                    );
-                    coin_util::auction_transfer_to_suins(&mut auction.balance, detail.bid_value, suins);
-                }
+                handle_winning_bid(&mut auction.balance, suins, entry, &detail, ctx);
             } else {
                 // TODO: charge paymennt as punishmennt
                 // not the winner
@@ -484,24 +467,7 @@ module suins::auction {
             // TODO: winner can have multiple bid with the same highest value,
             // TODO: however, because we are using the vector, the early bid comes first.
             if (entry.highest_bid == detail.bid_value) {
-                if (entry.second_highest_bid != 0) {
-                    coin_util::auction_transfer_to_address(
-                        &mut auction.balance,
-                        detail.bid_value_mask - entry.second_highest_bid,
-                        detail.bidder,
-                        ctx
-                    );
-                    coin_util::auction_transfer_to_suins(&mut auction.balance, entry.second_highest_bid, suins);
-                } else {
-                    // winner is the only one who bided
-                    coin_util::auction_transfer_to_address(
-                        &mut auction.balance,
-                        detail.bid_value_mask - detail.bid_value,
-                        detail.bidder,
-                        ctx
-                    );
-                    coin_util::auction_transfer_to_suins(&mut auction.balance, detail.bid_value, suins);
-                };
+                handle_winning_bid(&mut auction.balance, suins, entry, detail, ctx);
                 vector::remove(bids_of_winner, index);
                 break
             };
@@ -687,6 +653,33 @@ module suins::auction {
             if (!entry.is_finalized) return false
         };
         true
+    }
+
+    fun handle_winning_bid(
+        auction_balance: &mut Balance<SUI>,
+        suins: &mut SuiNS,
+        entry: &AuctionEntry,
+        bid_detail: &BidDetail,
+        ctx: &mut TxContext
+    ) {
+        if (entry.second_highest_bid != 0) {
+            coin_util::auction_transfer_to_address(
+                auction_balance,
+                bid_detail.bid_value_mask - entry.second_highest_bid,
+                bid_detail.bidder,
+                ctx
+            );
+            coin_util::auction_transfer_to_suins(auction_balance, entry.second_highest_bid, suins);
+        } else {
+            // winner is the only one who bided
+            coin_util::auction_transfer_to_address(
+                auction_balance,
+                bid_detail.bid_value_mask - bid_detail.bid_value,
+                bid_detail.bidder,
+                ctx
+            );
+            coin_util::auction_transfer_to_suins(auction_balance, bid_detail.bid_value, suins);
+        };
     }
 
     fun init(ctx: &mut TxContext) {
