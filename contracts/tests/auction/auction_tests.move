@@ -2316,7 +2316,7 @@ module suins::auction_tests {
     }
 
     #[test]
-    fun test_withdraw_winning_bid() {
+    fun test_cannt_withdraw_winning_bid() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, NODE);
@@ -2369,20 +2369,15 @@ module suins::auction_tests {
             withdraw(&mut auction, &mut ctx);
 
             let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
-            assert!(vector::length(&bids) == 0, 0);
-            assert!(auction::get_balance(&auction) == 10000, 0);
+            assert!(vector::length(&bids) == 1, 0);
+            assert!(auction::get_balance(&auction) == 12000, 0);
             test_scenario::return_shared(auction);
         };
 
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let ids = test_scenario::ids_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
-            assert!(vector::length(&ids) == 1, 0);
-
-            let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin) == 2000, 0);
-
-            test_scenario::return_to_address(FIRST_USER_ADDRESS, coin);
+            assert!(vector::length(&ids) == 0, 0);
         };
         test_scenario::end(scenario_val);
     }
@@ -3696,28 +3691,31 @@ module suins::auction_tests {
 
             withdraw(&mut auction, &mut ctx);
 
-            assert!(auction::get_balance(&auction) == 10000, 0);
             let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
-            assert!(vector::length(&bids) == 0, 0);
+            assert!(vector::length(&bids) == 1, 0);
+            assert!(auction::get_balance(&auction) == 20200, 0);
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<Auction>(scenario);
             let ids = test_scenario::ids_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
-            assert!(vector::length(&ids) == 3, 0);
+            assert!(vector::length(&ids) == 2, 0);
             let coin1 = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin1) == 10200, 0);
+            assert!(coin::value(&coin1) == 12200, 0);
             let coin2 = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin2) == 12200, 0);
-            let coin3 = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin3) == 1300, 0);
+            assert!(coin::value(&coin2) == 1300, 0);
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin1);
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin2);
-            test_scenario::return_to_address(FIRST_USER_ADDRESS, coin3);
 
             let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
-            assert!(vector::length(&bids) == 0, 0);
+            assert!(vector::length(&bids) == 1, 0);
+            let bid_detail = vector::borrow(&bids, 0);
+            let (bidder, mask, created_at, is_unsealed) = get_bid_detail_fields(bid_detail);
+            assert!(bidder == FIRST_USER_ADDRESS, 0);
+            assert!(mask == 10200, 0);
+            assert!(created_at == START_AN_AUCTION_AT + 1, 0);
+            assert!(is_unsealed, 0);
 
             test_scenario::return_shared(auction);
         };
@@ -4816,7 +4814,7 @@ module suins::auction_tests {
     }
 
     #[test]
-    fun test_not_yet_finalized_bid_cannot_withdraw_2() {
+    fun test_not_yet_finalized_bid_cannot_be_withdrawed_2() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, NODE);
@@ -4897,7 +4895,7 @@ module suins::auction_tests {
     }
 
     #[test]
-    fun test_not_yet_finalized_bid_can_be_withdrawed_after_extra_time() {
+    fun test_not_yet_finalized_bid_cannt_be_withdrawed_after_extra_time_if_it_is_the_winning() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, NODE);
@@ -4931,7 +4929,72 @@ module suins::auction_tests {
             assert!(vector::length(&ids) == 0, 0);
             let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
             assert!(vector::length(&bids) == 1, 0);
+            withdraw(&mut auction, &mut ctx);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            let ids = test_scenario::ids_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
+            assert!(vector::length(&ids) == 0, 0);
+            let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
+            assert!(vector::length(&bids) == 1, 0);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::end(scenario_val);
+    }
 
+    #[test]
+    fun test_not_yet_finalized_bid_cannt_be_withdrawed_after_extra_time_if_it_isnt_the_winning() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        start_an_auction_util(scenario, NODE);
+
+        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, SECRET);
+        place_bid_util(scenario, seal_bid, 1100, FIRST_USER_ADDRESS);
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            reveal_bid_util(
+                &mut auction,
+                START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
+                NODE,
+                1000,
+                SECRET,
+                FIRST_USER_ADDRESS,
+                5
+            );
+            test_scenario::return_shared(auction);
+        };
+        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 2000, SECRET);
+        place_bid_util(scenario, seal_bid, 2100, FIRST_USER_ADDRESS);
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            reveal_bid_util(
+                &mut auction,
+                START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
+                NODE,
+                2000,
+                SECRET,
+                FIRST_USER_ADDRESS,
+                5
+            );
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<Auction>(scenario);
+            let ctx = tx_context::new(
+                FIRST_USER_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + 30 + 1,
+                10
+            );
+            let ids = test_scenario::ids_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
+            assert!(vector::length(&ids) == 0, 0);
+            let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
+            assert!(vector::length(&bids) == 2, 0);
             withdraw(&mut auction, &mut ctx);
             test_scenario::return_shared(auction);
         };
@@ -4940,12 +5003,11 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<Auction>(scenario);
             let ids = test_scenario::ids_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
             assert!(vector::length(&ids) == 1, 0);
-
             let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
             assert!(coin::value(&coin) == 1100, 0);
 
             let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
-            assert!(vector::length(&bids) == 0, 0);
+            assert!(vector::length(&bids) == 1, 0);
 
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin);
             test_scenario::return_shared(auction);

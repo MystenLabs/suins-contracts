@@ -521,12 +521,8 @@ module suins::auction {
 
             if (table::contains(&auction.entries, detail.label)) {
                 let entry = table::borrow(&auction.entries, detail.label);
-                if (
-                    !entry.is_finalized
-                        && entry.winner == sender(ctx)
-                        && auction_close_at + EXTRA_PERIOD >= epoch(ctx)
-                        && detail.bid_value == entry.highest_bid // bidder can bid multiple times on same domain
-                ) {
+                // TODO: has 2 bids with the same value that are the highest
+                if (entry.winner == sender(ctx) && detail.bid_value == entry.highest_bid) {
                     index = index + 1;
                     continue
                 };
