@@ -522,7 +522,7 @@ module suins::auction {
             if (table::contains(&auction.entries, detail.label)) {
                 let entry = table::borrow(&auction.entries, detail.label);
                 // TODO: has 2 bids with the same value that are the highest
-                if (entry.winner == sender(ctx) && detail.bid_value == entry.highest_bid) {
+                if (entry.winner == sender(ctx) && detail.bid_value == entry.highest_bid && !entry.is_finalized) {
                     index = index + 1;
                     continue
                 };
