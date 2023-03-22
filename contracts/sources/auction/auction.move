@@ -458,15 +458,10 @@ module suins::auction {
         let len = vector::length(bids_of_winner);
         let index = 0;
         while (index < len) {
-            if (vector::borrow(bids_of_winner, index).label != label) {
-                index = index + 1;
-                continue
-            };
-
             let detail = vector::borrow(bids_of_winner, index);
             // TODO: winner can have multiple bid with the same highest value,
-            // TODO: however, because we are using the vector, the early bid comes first.
-            if (entry.highest_bid == detail.bid_value) {
+            // TODO: however, we are using the vector, the early bid comes first.
+            if (detail.label == label && entry.highest_bid == detail.bid_value) {
                 handle_winning_bid(&mut auction.balance, suins, entry, detail, ctx);
                 vector::remove(bids_of_winner, index);
                 break
