@@ -5,13 +5,12 @@ module suins::registrar_tests {
     use sui::tx_context;
     use sui::url;
     use sui::dynamic_field;
+    use suins::entity::{Self, SuiNS};
     use suins::registry::{Self, AdminCap};
     use suins::registrar::{Self, RegistrationNFT, get_record_detail, assert_registrar_exists};
     use suins::configuration::{Self, Configuration};
     use std::vector;
-    use std::string::utf8;
-    use suins::entity::SuiNS;
-    use suins::entity;
+    use std::string::{Self, utf8};
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER: address = @0xB001;
@@ -563,17 +562,15 @@ module suins::registrar_tests {
                 10,
                 0
             );
-            let signature =
-                x"1750ce9c94af251d3288589b4e98369ee09a41530b42f545eab96763ecbaa8b941f0a814e7440eacd803c507633825ca1f70dc9018b59cb3e49871ca6ddcf704";
 
             registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
                 &mut nft,
-                signature,
-                x"c9cbb723ef1dce214552f05378404491ce9cb36429df9ca307b1619268f09335",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,375",
+                x"e041acf25defbb7dd21a7e016eb9e729597eb1cdc3bba31492f5345143ad0d3f7a1e6362ca1ed9902af5600ab08a4fece9125847402ad4b3c2c9298eca436bd5",
+                x"48edd2317fd8150bd29b17eaa8837403295f03092e89f3c28e6ddc88ceef9b72",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,375,,,,,,,",
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -613,15 +610,14 @@ module suins::registrar_tests {
                 10,
                 0
             );
-            let signature = x"2a1e950f3f591a69249edfe144f36cee833963c5f1864182996d8dfe012af070389133ad07a2ae00709d3b60d090bc8d56b0c41d8f19aaeb662a1f556f81d452";
             registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
                 &mut nft,
-                signature,
-                x"3431f0a9e0fe14c885766842f37b43b774e60dbd96f8502cc327e1ac20d06257",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,475",
+                x"e35de3997a3f9f5614b207f4d7516ca1709e8d46bf2c45ada5ac0383c2939df050859994404b04cdc9f01aa200322b3af6738866347fe50d195b58982d5fa725",
+                x"fee40dbc963366e0d1eb8337bf2b491c2b96a6958d56aca077484861ef61cf89",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,475,abcc",
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -649,15 +645,14 @@ module suins::registrar_tests {
                 10,
                 0
             );
-            let signature = x"74716e2b81ce8f982db8ab6c1b6e5d0c1df50d9ecad26dbc285b92f2721a35d7515f6e97d8eb5dba686af2a42d37c79622d89570bd55bdbb399fe0257f1c899e";
             registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
                 &mut nft,
-                signature,
-                x"7e7edd15b1a66887c5a18849bcb82180f339eb970c5c18e51d85c0c64d7ca587",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,0",
+                x"b7b041efd085fca2c51390c7b14a7435c03e34108db6fe246042122afdc2eb2c4c1854ef36648687caa544824430789b46600ba1b3f825238c0dc51398be470c",
+                x"94d2dee8cbd671f216dea04e603f48372ff53be37903db078ecc2a359489d74f",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,0,12323",
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -685,15 +680,14 @@ module suins::registrar_tests {
                 10,
                 0
             );
-            let signature = x"9ac9dcb87c02f9c7d5a509aedef026a2581703a0403ad3e6bfa1013e8c21c80b5d91e5ab10ee641265f388c43517f61338c872cb6370fc2c13f3dfe0491db986";
             registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
                 &mut nft,
-                signature,
-                x"a397f397765a84c1885c046f3847cec6ca875b2c071d691e996edad3d845a7df",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,100",
+                x"b809099a3de92d522bee0c5b7d99b83c9a00655a2ac7a7362b565e01746fa086774d196101fdadaee4116c0e0e1a0b41fa4ca82a38704f6b7c80f329dba67544",
+                x"f19357bae95101a5cac9e88b28b8e46984d7d49bc999ccbe1c1e00ba5ee84ef1",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,100,020",
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -721,15 +715,14 @@ module suins::registrar_tests {
                 10,
                 0
             );
-            let signature = x"e9e1685a4f0c0ef26c4425705ca9e7828ef0c42ad2a5e563e83d109d1fafd9d10106131af6bae1d69c0d7669cac7da85839f536d7a7d9e467136f308927a7312";
             registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
                 &mut nft,
-                signature,
-                x"849fdf5caead3e290f4adf2db7968fb5c5e0686a14a75f8da6e48292fd73a10e",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b002,375",
+                x"a72170513be09f7056bbf852aff30e7f2c3fb08b14df517930cd54d3639205fb4703e76db29aebbcce96bcbf29a6807847a56dfc94e862fe0aefd90c865f5c96",
+                x"915f955c6b0ecf13650ec6f25acaf136e61bebda53a8805cc33e77775e890a63",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b002,375,adasdasdsd,",
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -757,15 +750,14 @@ module suins::registrar_tests {
                 10,
                 0
             );
-            let signature = x"05c15ea13b1f91cb4aed4fdd288e61d58d49392f4a12ccbdc4e0ff0c262559250315f37eec7f0b39b6bdd01d40ae9c130b4efbf6136d6ed35d2038b184ee3d2c";
             registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
                 &mut nft,
-                signature,
-                x"92c9867de4f4961482b7ca66e19141e641d193f56d244e4403f1335b37b67891",
-                    b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,b001,375",
+                x"8bb0345d636835e8a782afaae4083dbeba33eb0557b6f771263f95c6999e8cee0aea6345454e98a58b3d1d2b2eb90a4b1e0d319ccea196ec47e02cf6698a7b6c",
+                x"0ae1392cec5d3773213c4fb351aa755b6ced6387428feb3ac00d350c8914026a",
+                    b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,b001,375,1,",
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -956,9 +948,9 @@ module suins::registrar_tests {
         let scenario = test_init();
         register_with_image(
             &mut scenario,
-            x"1750ce9c94af251d3288589b4e98369ee09a41530b42f545eab96763ecbaa8b941f0a814e7440eacd803c507633825ca1f70dc9018b59cb3e49871ca6ddcf704",
-            x"c9cbb723ef1dce214552f05378404491ce9cb36429df9ca307b1619268f09335",
-            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,375",
+            x"acba9ddee8ee59cdbdf00cc67d3b9c7edea4dd438da6eb14a4e6f4e4092acf6f7ccd4227dde6fc47c446fa3223ff7c236ef66ec63d88ecb8b8abc1dda76a808c",
+            x"63051bdac22fbebcebb1ff3bf7bd9f1bb6bc5b318b47688d7eab9c4753eee4c3",
+            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,375,375",
         );
         test_scenario::end(scenario);
     }
@@ -968,9 +960,9 @@ module suins::registrar_tests {
         let scenario = test_init();
         register_with_image(
             &mut scenario,
-            x"6aab99201d259442c5478c3f5b29db45518b40a3d76f1b396b70c902b557e93b206b0ce9ab84ce44277d84055da9dd10ff77c490ba8473cd86ead37be874b9662f",
-            x"127552ffa7fb7c3718ee61851c49eba03ef7d0dc0933c7c5802cdd98226f6006",
-            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,375",
+            x"98f11a9c73c4eba070b0064f21ac9de4cf2db745ce18332ec294d69f7cb0f12e03741eff428df8ed6a35219887eb2b2effbb3cad40b59021c6c311884df48d21",
+            x"1ebe7ce341df8b5c1c56ad54af85924b00ffe38a32e7300d73b65005f3d2b4f4",
+            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,375,zzzz",
         );
         test_scenario::end(scenario);
     }
@@ -992,9 +984,9 @@ module suins::registrar_tests {
         let scenario = test_init();
         register_with_image(
             &mut scenario,
-            x"e9e1685a4f0c0ef26c4425705ca9e7828ef0c42ad2a5e563e83d109d1fafd9d10106131af6bae1d69c0d7669cac7da85839f536d7a7d9e467136f308927a7312",
-            x"849fdf5caead3e290f4adf2db7968fb5c5e0686a14a75f8da6e48292fd73a10e",
-            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b002,375",
+            x"654f29638be12f65e7ab956e6b7a853fe251fdd906fd26a85e7c2c0a3c818d733e4f28daad7237dc44a874cd03580b23e0b1df237790adcb32c6a24d061211a3",
+            x"dbb83d406751dab7a0d674454dcdf5622eda7a81093581c174c8d52f91a75273",
+            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b002,375,owner",
         );
         test_scenario::end(scenario);
     }
@@ -1004,9 +996,9 @@ module suins::registrar_tests {
         let scenario = test_init();
         register_with_image(
             &mut scenario,
-            x"ea4abdb40e717429107b8b198436d574306444d87d505c7c3b0847b122af6b45239fe3e8ddbb561854ce78f73345a0dc9880dd0878046ff1be3f6a1df4dab287",
-            x"f6221e1f7a27baeab302011f89cfc863ae1b469c54dc4f2415e63369999c7ffe",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,00000000000000000000000b001,375",
+            x"53a7a61b7ed28b790c59394df858b95759687c2ce5f333e8bb2cb389753c48e5286c827aa6135ddfef84a14419afb3b9fb2138cd85d0131e29089afadbb91e81",
+            x"7019634e1149b310540db5256748f5428f45f0030b87f078fb9a7f7874fedadb",
+            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,00000000000000000000000b001,375,QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k",
         );
 
         test_scenario::end(scenario);
@@ -1017,9 +1009,9 @@ module suins::registrar_tests {
         let scenario = test_init();
         register_with_image(
             &mut scenario,
-            x"2a1e950f3f591a69249edfe144f36cee833963c5f1864182996d8dfe012af070389133ad07a2ae00709d3b60d090bc8d56b0c41d8f19aaeb662a1f556f81d452",
-            x"3431f0a9e0fe14c885766842f37b43b774e60dbd96f8502cc327e1ac20d06257",
-            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,475",
+            x"b85a85727edfce141b6e3e9a1aceb0d3b4e82e553a96b321f8af8038f77a9d943756be43355faa81c674c2ab319a2d4df38eccf6e20a5b4e58cc03c7df080adf",
+            x"e07a64047259b2ab6cab9be81bea78817f28304faf517e1f59581cf705ef22ce",
+            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,475,500",
         );
         test_scenario::end(scenario);
     }
@@ -1029,9 +1021,9 @@ module suins::registrar_tests {
         let scenario = test_init();
         register_with_image(
             &mut scenario,
-            x"74716e2b81ce8f982db8ab6c1b6e5d0c1df50d9ecad26dbc285b92f2721a35d7515f6e97d8eb5dba686af2a42d37c79622d89570bd55bdbb399fe0257f1c899e",
-            x"7e7edd15b1a66887c5a18849bcb82180f339eb970c5c18e51d85c0c64d7ca587",
-            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,0",
+            x"dc9abf416a15e326ba98759e729ba883b9e340a4b6a3a2482e6b5611301d8207173eb825019fd2716bb5a3273a546d5d8db6b5ddfadbd8ce13700b38991e391c",
+            x"0b772ef9ced4f7f3ad69ec3e481531b7308900c540c9c64f5519af00dd9d9058",
+            b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,0,aaaa",
         );
         test_scenario::end(scenario);
     }
@@ -1054,16 +1046,14 @@ module suins::registrar_tests {
                 500,
                 0
             );
-            let signature = x"6aab9920d59442c5478c3f5b29db45518b40a3d76f1b396b70c902b557e93b206b0ce9ab84ce44277d84055da9dd10ff77c490ba8473cd86ead37be874b9662f";
-
             registrar::update_image_url(
                 &mut suins,
                 SUI_REGISTRAR,
                 &config,
                 &mut nft,
-                signature,
-                x"127552ffa7fb7c3718ee61851c49eba03ef7d0dc0933c7c5802cdd98226f6006",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,375",
+                x"b85eceafd8685ce006f9ec4f93ca5ffccc125b8720816a6f811cb72039a201870d07b4fa2bbbe1bd8d6e43550eaceda9ce9291535a90435784dbdd31f88d6d84",
+                x"88ef894aa6ed87392968c14d3287781517f3bf921b0bafb7e0cd54170b4d8f91",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,000000000000000000000000000000000000b001,375,000000000000000000000000000000000000b001",
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1218,9 +1208,9 @@ module suins::registrar_tests {
                 SUI_REGISTRAR,
                 &config,
                 &mut nft,
-                x"868d254e6ed4599a3c1bb93492008d2c8995233a02136c88a5f52b606383a7f46b1b4a83f9bf155852fd7e393421131d4b3ef9e5f8a02fd79c4c8a9b37bf67d7",
-                x"3fc956b60da3d565cee6c7cc66efa0034bb32ef777b40982191e34b9c76191d8",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,895",
+                x"4f23a349f88e07b26b246fb34e81983c3ce70e8e2c82ce217e433ed7baf2d7152685b713318839cc092e8bd38807a8531196ada8c2502103852381ecd763e91e",
+                x"4367073bdc58860b472e5381074b3691ef9aec24ac9b82a615922bf98b3a64ec",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,895,QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k",
                 &mut ctx,
             );
             test_scenario::return_shared(suins);
@@ -1278,9 +1268,9 @@ module suins::registrar_tests {
                 SUI_REGISTRAR,
                 &config,
                 &mut new_nft,
-                x"868d254e6ed4599a3c1bb93492008d2c8995233a02136c88a5f52b606383a7f46b1b4a83f9bf155852fd7e393421131d4b3ef9e5f8a02fd79c4c8a9b37bf67d7",
-                x"3fc956b60da3d565cee6c7cc66efa0034bb32ef777b40982191e34b9c76191d8",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,895",
+                x"5f786520119ea7e0c73e95d779f2a0d8e686101d52dfa83818fa1b8cb2d3ec796c7215479bc9c089818d1b5587e86f3d85ebf151eb7c1d2523646c6593f648dd",
+                x"5e37331f6d756fe9df668a8a6f2ead1e121a6f5f35f4c5c7dfd9cd06a5b268dd",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,895,aaaaz",
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1400,9 +1390,131 @@ module suins::registrar_tests {
                 SUI_REGISTRAR,
                 &config,
                 &mut first_nft,
+                x"09aedbb41c34fcf9d085667d1aeb650d7dedf7a99d4ef7394b0f9d79b66ce6294f14ccc0a0dc09f14d107c0ba3c76a134763098d1aae2a95df041e421678ffd8",
+                x"9a31f44c103a90bb61da20d92c47ee09fb46f0bca2e4c0cbc73de2b5fb1f66eb",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,375,zz123asd-asd",
+                &mut ctx
+            );
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(scenario, first_nft);
+            test_scenario::return_to_sender(scenario, second_nft);
+        };
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = string::EINVALID_INDEX)]
+    fun test_update_image_url_aborts_if_msg_has_wrong_format() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        register(scenario);
+
+        test_scenario::next_tx(scenario, FIRST_USER);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            let image = test_scenario::take_shared<Configuration>(scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                30,
+                10
+            );
+
+            registrar::register(
+                &mut suins,
+                SUI_REGISTRAR,
+                &image,
+                THIRD_LABEL,
+                FIRST_USER,
+                365,
+                FIRST_RESOLVER,
+                &mut ctx
+            );
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(image);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            let config = test_scenario::take_shared<Configuration>(scenario);
+            let second_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
+            let first_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
+            let ctx = tx_context::new(
+                FIRST_USER,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                0
+            );
+
+            registrar::update_image_url(
+                &mut suins,
+                SUI_REGISTRAR,
+                &config,
+                &mut first_nft,
                 x"1750ce9c94af251d3288589b4e98369ee09a41530b42f545eab96763ecbaa8b941f0a814e7440eacd803c507633825ca1f70dc9018b59cb3e49871ca6ddcf704",
                 x"c9cbb723ef1dce214552f05378404491ce9cb36429df9ca307b1619268f09335",
                 b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,375",
+                &mut ctx
+            );
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(scenario, first_nft);
+            test_scenario::return_to_sender(scenario, second_nft);
+        };
+        test_scenario::end(scenario_val);
+    }
+
+    // #[test, expected_failure(abort_code = string::EINVALID_INDEX)]
+    fun test_update_image_url_aborts_if_msg_has_wrong_format_2() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        register(scenario);
+
+        test_scenario::next_tx(scenario, FIRST_USER);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            let image = test_scenario::take_shared<Configuration>(scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                30,
+                10
+            );
+
+            registrar::register(
+                &mut suins,
+                SUI_REGISTRAR,
+                &image,
+                THIRD_LABEL,
+                FIRST_USER,
+                365,
+                FIRST_RESOLVER,
+                &mut ctx
+            );
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(image);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            let config = test_scenario::take_shared<Configuration>(scenario);
+            let second_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
+            let first_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
+            let ctx = tx_context::new(
+                FIRST_USER,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                0
+            );
+
+            registrar::update_image_url(
+                &mut suins,
+                SUI_REGISTRAR,
+                &config,
+                &mut first_nft,
+                x"9bbb7c130c2ac253b04db7db32479a560e4403681d4d5b4c4a3fcb672ee460d41d5b167026a6d810600d73de6003e8dad1f673b0d76913fc3d3b068f73d1a5c4",
+                x"fa8e8a76d078cb5143e264aa249afc3c1a321e923a30b60881e786f51ffc732b",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,375,",
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1461,9 +1573,9 @@ module suins::registrar_tests {
                 SUI_REGISTRAR,
                 &config,
                 &mut second_nft,
-                x"1750ce9c94af251d3288589b4e98369ee09a41530b42f545eab96763ecbaa8b941f0a814e7440eacd803c507633825ca1f70dc9018b59cb3e49871ca6ddcf704",
-                x"c9cbb723ef1dce214552f05378404491ce9cb36429df9ca307b1619268f09335",
-                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,375",
+                x"d20dcb2b1a42690935bd7c81bcb43484fe05522eaf46dae633f0a9f8a14fb2bf0f8751c31de29ca34fe161584dca874938e0c6c036b459b7ae7d45811260095b",
+                x"d0eae9ebf64029567b1afd715b14c7dc4cac40fe89391c55e5230335a7c5e00a",
+                b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k,eastagile.sui,375,hmm",
                 &mut ctx
             );
             test_scenario::return_shared(suins);

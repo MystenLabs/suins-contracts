@@ -51,6 +51,7 @@ module suins::controller {
         referral_code: Option<ascii::String>,
         discount_code: Option<ascii::String>,
         url: Url,
+        data: String,
     }
 
     struct DefaultResolverChangedEvent has copy, drop {
@@ -652,7 +653,7 @@ module suins::controller {
         };
 
         let duration = no_years * 365;
-        let (nft_id, url) = registrar::register_with_image(
+        let (nft_id, url, additional_data) = registrar::register_with_image(
             suins,
             tld,
             config,
@@ -677,6 +678,7 @@ module suins::controller {
             referral_code,
             discount_code,
             url,
+            data: additional_data,
         });
 
         coin_util::user_transfer_to_contract(payment, registration_fee, suins);
