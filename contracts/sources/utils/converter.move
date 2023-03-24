@@ -1,10 +1,12 @@
 module suins::converter {
 
+    use sui::tx_context::TxContext;
+    use sui::object::{Self, ID};
     use std::bcs;
     use std::vector;
-    use std::string;
-    use std::string::String;
+    use std::string::{Self, String};
 
+    friend suins::auction;
     friend suins::reverse_registrar;
     friend suins::resolver;
     friend suins::controller;
@@ -61,6 +63,13 @@ module suins::converter {
             index = index - 1;
         };
         result
+    }
+
+    public(friend) fun new_id(ctx: &mut TxContext): ID {
+        let new_uid = object::new(ctx);
+        let new_id = object::uid_to_inner(&new_uid);
+        object::delete(new_uid);
+        new_id
     }
 
     #[test_only]

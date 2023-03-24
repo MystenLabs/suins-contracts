@@ -2,7 +2,7 @@
 /// More information in: ../../../docs
 module suins::auction {
 
-    use sui::object::UID;
+    use sui::object::{UID, ID};
     use sui::table::{Self, Table};
     use sui::tx_context::{TxContext, epoch, sender};
     use sui::sui::SUI;
@@ -25,6 +25,7 @@ module suins::auction {
     use sui::linked_table;
     use sui::linked_table::LinkedTable;
     use std::string;
+    use suins::converter;
 
     const MIN_PRICE: u64 = 1000;
     const FEE_PER_YEAR: u64 = 10000;
@@ -59,6 +60,7 @@ module suins::auction {
     friend suins::controller;
 
     struct BidDetail has store, copy, drop {
+        uid: ID,
         bidder: address,
         // upper limit of the actual bid value to hide the real value
         bid_value_mask: u64,
@@ -82,6 +84,8 @@ module suins::auction {
         /// the created_at property of the current winning bid
         /// if 2 bidders bid same value, we choose the one who called `new_bid` first
         bid_detail_created_at: u64,
+        /// object::id_from_address(@0x0) if winner hasn't been determined
+        winning_bid_uid: ID,
     }
 
     struct Auction has key {
@@ -206,6 +210,7 @@ module suins::auction {
             winner: @0x0,
             is_finalized: false,
             bid_detail_created_at: 0,
+            winning_bid_uid: object::id_from_address(@0x0),
         };
         linked_table::push_back(&mut auction.entries, label, entry);
         event::emit(AuctionStartedEvent { label, start_at });
@@ -251,6 +256,7 @@ module suins::auction {
 
         let bidder = sender(ctx);
         let bid = BidDetail {
+            uid: converter::new_id(ctx),
             bidder,
             bid_value_mask,
             bid_value: 0,
@@ -332,6 +338,7 @@ module suins::auction {
             entry.highest_bid = value;
             entry.winner = bid_detail.bidder;
             entry.bid_detail_created_at = bid_detail.created_at;
+            entry.winning_bid_uid = bid_detail.uid;
         } else if (value == entry.highest_bid && bid_detail.created_at < entry.bid_detail_created_at) {
             // if same value and same created_at, we choose first one who reveals bid.
             // TODO: could be combined with the previous check
@@ -339,6 +346,7 @@ module suins::auction {
             entry.highest_bid = value;
             entry.winner = bid_detail.bidder;
             entry.bid_detail_created_at = bid_detail.created_at;
+            entry.winning_bid_uid = bid_detail.uid;
         } else if (value > entry.second_highest_bid) {
             // not winner, but affects second place
             entry.second_highest_bid = value;
@@ -408,23 +416,24 @@ module suins::auction {
                 continue
             };
 
-            let detail = vector::remove(bids_of_sender, index);
+            let bid_detail = vector::remove(bids_of_sender, index);
             len = len - 1;
-            if (entry.winner == detail.bidder && entry.highest_bid == detail.bid_value) {
-                handle_winning_bid(&mut auction.balance, suins, entry, &detail, ctx);
+            std::debug::print(&bid_detail);
+            if (entry.winning_bid_uid == bid_detail.uid) {
+                handle_winning_bid(&mut auction.balance, suins, entry, &bid_detail, ctx);
+                entry.is_finalized = true;
             } else {
                 // TODO: charge paymennt as punishmennt
                 // not the winner
                 coin_util::auction_transfer_to_address(
                     &mut auction.balance,
-                    detail.bid_value_mask,
-                    detail.bidder,
+                    bid_detail.bid_value_mask,
+                    bid_detail.bidder,
                     ctx
                 );
             };
         };
         if (entry.winner != sender(ctx)) return;
-        entry.is_finalized = true;
 
         registrar::register(suins, tld, config, label, entry.winner, 365, resolver, ctx);
 
@@ -584,7 +593,7 @@ module suins::auction {
             if (linked_table::contains(&auction.entries, detail.label)) {
                 let entry = linked_table::borrow(&auction.entries, detail.label);
                 // TODO: has 2 bids with the same value that are the highest
-                if (entry.winner == sender(ctx) && detail.bid_value == entry.highest_bid && !entry.is_finalized) {
+                if (entry.winning_bid_uid == detail.uid) {
                     index = index + 1;
                     continue
                 };

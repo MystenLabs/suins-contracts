@@ -3031,8 +3031,8 @@ module suins::controller_tests {
         let scenario = test_init();
         set_auction_config(&mut scenario);
         start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
-        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000, b"CnRGhPvfCu");
-        place_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER_ADDRESS);
+        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER, 1000, b"CnRGhPvfCu");
+        place_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER, option::none());
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -4785,8 +4785,8 @@ module suins::controller_tests {
         let scenario = test_init();
         set_auction_config(&mut scenario);
         start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
-        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
-        place_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER_ADDRESS);
+        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER, 1000, FIRST_SECRET);
+        place_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER, option::none());
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -4864,8 +4864,8 @@ module suins::controller_tests {
         let scenario = test_init();
         set_auction_config(&mut scenario);
         start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
-        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000, b"CnRGhPvfCu");
-        place_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER_ADDRESS);
+        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER, 1000, b"CnRGhPvfCu");
+        place_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER, option::none());
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
