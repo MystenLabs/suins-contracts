@@ -418,7 +418,6 @@ module suins::auction {
 
             let bid_detail = vector::remove(bids_of_sender, index);
             len = len - 1;
-            std::debug::print(&bid_detail);
             if (entry.winning_bid_uid == bid_detail.uid) {
                 handle_winning_bid(&mut auction.balance, suins, entry, &bid_detail, ctx);
                 entry.is_finalized = true;
@@ -470,11 +469,11 @@ module suins::auction {
         let len = vector::length(bids_of_winner);
         let index = 0;
         while (index < len) {
-            let detail = vector::borrow(bids_of_winner, index);
+            let bid_detail = vector::borrow(bids_of_winner, index);
             // TODO: winner can have multiple bid with the same highest value,
             // TODO: however, we are using the vector, the early bid comes first.
-            if (detail.label == label && entry.highest_bid == detail.bid_value) {
-                handle_winning_bid(&mut auction.balance, suins, entry, detail, ctx);
+            if (bid_detail.label == label && entry.winning_bid_uid == bid_detail.uid) {
+                handle_winning_bid(&mut auction.balance, suins, entry, bid_detail, ctx);
                 vector::remove(bids_of_winner, index);
                 break
             };
@@ -528,11 +527,11 @@ module suins::auction {
                 let index = 0;
 
                 while (index < len) {
-                    let detail = vector::borrow(bids_of_winner, index);
+                    let bid_detail = vector::borrow(bids_of_winner, index);
                     // TODO: winner can have multiple bid with the same highest value,
                     // TODO: however, we are using the vector, the early bid comes first.
-                    if (detail.label == label && entry.highest_bid == detail.bid_value) {
-                        handle_winning_bid(&mut auction.balance, suins, entry, detail, ctx);
+                    if (bid_detail.label == label && entry.winning_bid_uid == bid_detail.uid) {
+                        handle_winning_bid(&mut auction.balance, suins, entry, bid_detail, ctx);
 
                         vector::remove(bids_of_winner, index);
                         entry.is_finalized = true;
