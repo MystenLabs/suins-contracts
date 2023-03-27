@@ -4963,4 +4963,86 @@ module suins::controller_tests {
         };
         test_scenario::end(scenario);
     }
+
+    #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
+    fun test_register_auctioned_label_aborts_if_in_extra_period_but_admin_calls_finalize_all_auctions_and_in_same_epoch() {
+        let scenario = test_init();
+        set_auction_config(&mut scenario);
+        start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+
+            finalize_all_auctions_by_admin(
+                &admin_cap,
+                &mut auction,
+                &mut suins,
+                &config,
+                FIRST_RESOLVER,
+                &mut auction_tests::ctx_util(SUINS_ADDRESS, EXTRA_PERIOD_START_AT, 20),
+            );
+
+            test_scenario::return_shared(auction);
+            test_scenario::return_shared(suins);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
+            test_scenario::return_shared(config);
+        };
+
+        test_scenario::next_tx(&mut scenario, FIRST_USER);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                EXTRA_PERIOD_START_AT - 1,
+                0
+            );
+            let commitment = controller::test_make_commitment(
+                SUI_REGISTRAR,
+                AUCTIONED_LABEL,
+                FIRST_USER,
+                FIRST_SECRET
+            );
+            controller::commit(
+                &mut suins,
+                commitment,
+                &mut ctx,
+            );
+
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = tx_context::new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                EXTRA_PERIOD_START_AT,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+
+            controller::register(
+                &mut suins,
+                SUI_REGISTRAR,
+                &mut config,
+                AUCTIONED_LABEL,
+                FIRST_USER,
+                1,
+                FIRST_SECRET,
+                &mut coin,
+                &mut ctx,
+            );
+
+            coin::destroy_for_testing(coin);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::end(scenario);
+    }
 }
