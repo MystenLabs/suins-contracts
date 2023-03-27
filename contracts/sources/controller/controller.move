@@ -616,7 +616,7 @@ module suins::controller {
         let emoji_config = configuration::emoji_config(config);
         let label_str = utf8(label);
 
-        if (epoch(ctx) <= entity::controller_auction_house_extra_epoch_at(suins)) validate_label_with_emoji(emoji_config, label, 7, 63)
+        if (epoch(ctx) <= entity::controller_auction_house_finalized_at(suins)) validate_label_with_emoji(emoji_config, label, 7, 63)
         else validate_label_with_emoji(emoji_config, label, 3, 63);
 
         let commitment = make_commitment(tld, label, owner, secret);

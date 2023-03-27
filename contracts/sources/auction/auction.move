@@ -156,7 +156,7 @@ module suins::auction {
 
         auction_house.start_auction_start_at = start_auction_start_at;
         auction_house.start_auction_end_at = start_auction_end_at;
-        *entity::controller_auction_house_extra_epoch_at_mut(suins) = auction_close_at(auction_house) + EXTRA_PERIOD;
+        *entity::controller_auction_house_finalized_at_mut(suins) = auction_close_at(auction_house) + EXTRA_PERIOD;
     }
 
     /// #### Notice
@@ -442,6 +442,7 @@ module suins::auction {
     }
 
     public entry fun finalize_auction_by_admin(
+        _: &AdminCap,
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
         config: &Configuration,
@@ -497,6 +498,7 @@ module suins::auction {
     }
 
     public entry fun finalize_all_auctions_by_admin(
+        _: &AdminCap,
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
         config: &Configuration,
@@ -504,7 +506,7 @@ module suins::auction {
         ctx: &mut TxContext
     ) {
         assert!(
-            auction_house.start_auction_start_at <= epoch(ctx) && epoch(ctx) <= auction_close_at(auction_house) + EXTRA_PERIOD,
+            auction_close_at(auction_house) < epoch(ctx) && epoch(ctx) <= auction_close_at(auction_house) + EXTRA_PERIOD,
             EAuctionNotAvailable,
         );
 
@@ -554,7 +556,7 @@ module suins::auction {
             };
             next_label = *linked_table::next(&auction_house.entries, label);
         };
-
+        *entity::controller_auction_house_finalized_at_mut(suins) = epoch(ctx);
     }
 
     /// #### Notice

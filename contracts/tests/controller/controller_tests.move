@@ -6,7 +6,7 @@ module suins::controller_tests {
     use sui::tx_context;
     use sui::sui::SUI;
     use sui::url;
-    use suins::auction::{make_seal_bid, AuctionHouse};
+    use suins::auction::{make_seal_bid, AuctionHouse, finalize_all_auctions_by_admin};
     use suins::auction_tests::{start_an_auction_util, place_bid_util, reveal_bid_util};
     use suins::registrar::{Self, RegistrationNFT};
     use suins::registry::{Self, AdminCap};
@@ -17,7 +17,9 @@ module suins::controller_tests {
     use std::option::{Self, Option, some};
     use std::string::utf8;
     use std::vector;
-    
+    use suins::auction;
+    use suins::auction_tests;
+
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
     const SECOND_USER_ADDRESS: address = @0xB002;
@@ -41,6 +43,7 @@ module suins::controller_tests {
     const REVEAL_PERIOD: u64 = 3;
     const START_AUCTION_START_AT: u64 = 50;
     const START_AUCTION_END_AT: u64 = 120;
+    const EXTRA_PERIOD_START_AT: u64 = 127;
     const START_AN_AUCTION_AT: u64 = 110;
     const EXTRA_PERIOD: u64 = 30;
     const SUI_REGISTRAR: vector<u8> = b"sui";
