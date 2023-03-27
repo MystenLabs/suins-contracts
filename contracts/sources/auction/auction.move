@@ -24,6 +24,7 @@ module suins::auction {
     use std::vector;
     use std::bcs;
     use suins::converter;
+    use suins::entity;
 
     const MIN_PRICE: u64 = 1000;
     const START_AN_AUCTION_FEE: u64 = 10000;
@@ -54,8 +55,6 @@ module suins::auction {
     const EAlreadyUnsealed: u64 = 812;
     const ESealBidNotExists: u64 = 813;
     const EAuctionNotHasWinner: u64 = 814;
-
-    friend suins::controller;
 
     struct BidDetail has store, copy, drop {
         uid: ID,
@@ -147,6 +146,7 @@ module suins::auction {
     public entry fun configure_auction(
         _: &AdminCap,
         auction_house: &mut AuctionHouse,
+        suins: &mut SuiNS,
         start_auction_start_at: u64,
         start_auction_end_at: u64,
         ctx: &mut TxContext
@@ -156,6 +156,7 @@ module suins::auction {
 
         auction_house.start_auction_start_at = start_auction_start_at;
         auction_house.start_auction_end_at = start_auction_end_at;
+        *entity::controller_auction_house_extra_epoch_at_mut(suins) = auction_close_at(auction_house) + EXTRA_PERIOD;
     }
 
     /// #### Notice
@@ -691,24 +692,6 @@ module suins::auction {
 
     public(friend) fun auction_close_at(auction: &AuctionHouse): u64 {
         auction.start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD
-    }
-
-    // label is assumed to have 3-6 characters
-    public(friend) fun is_label_available_for_controller(
-        auction_house: &AuctionHouse,
-        label: String,
-        ctx: &TxContext
-    ): bool {
-        // TODO: expect the admin to call `configurate_auction` right after deploymenting the contract,
-        // TODO: to force auctioned label to go through auction
-        if (auction_house.start_auction_end_at == 0) return true; // aucton is disabled, allows all domains to be registered
-        if (auction_close_at(auction_house) >= epoch(ctx)) return false;
-        if (auction_close_at(auction_house) + EXTRA_PERIOD < epoch(ctx)) return true;
-        if (linked_table::contains(&auction_house.entries, label)) {
-            let entry = linked_table::borrow(&auction_house.entries, label);
-            if (!entry.is_finalized) return false
-        };
-        true
     }
 
     fun handle_winning_bid(

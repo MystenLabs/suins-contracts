@@ -99,6 +99,7 @@ module suins::auction_tests {
             auction::configure_auction(
                 &admin_cap,
                 &mut auction,
+                &mut suins,
                 START_AUCTION_START_AT,
                 START_AUCTION_END_AT,
                 ctx(&mut scenario)
@@ -3283,8 +3284,10 @@ module suins::auction_tests {
             );
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            auction::configure_auction(&admin_cap, &mut auction, 3000, 3001, &mut ctx);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            auction::configure_auction(&admin_cap, &mut auction, &mut suins, 3000, 3001, &mut ctx);
             test_scenario::return_shared(auction);
+            test_scenario::return_shared(suins);
             test_scenario::return_to_sender(scenario, admin_cap);
         };
         test_scenario::end(scenario_val);
@@ -3304,8 +3307,10 @@ module suins::auction_tests {
             );
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            auction::configure_auction(&admin_cap, &mut auction, 3001, 3000, &mut ctx);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            auction::configure_auction(&admin_cap, &mut auction, &mut suins,3001, 3000, &mut ctx);
             test_scenario::return_shared(auction);
+            test_scenario::return_shared(suins);
             test_scenario::return_to_sender(scenario, admin_cap);
         };
         test_scenario::end(scenario_val);
@@ -3325,8 +3330,10 @@ module suins::auction_tests {
             );
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            auction::configure_auction(&admin_cap, &mut auction, 3000, 3000, &mut ctx);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            auction::configure_auction(&admin_cap, &mut auction, &mut suins, 3000, 3000, &mut ctx);
             test_scenario::return_shared(auction);
+            test_scenario::return_shared(suins);
             test_scenario::return_to_sender(scenario, admin_cap);
         };
         test_scenario::end(scenario_val);
@@ -3346,7 +3353,9 @@ module suins::auction_tests {
             );
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            auction::configure_auction(&admin_cap, &mut auction, 100, 300, &mut ctx);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            auction::configure_auction(&admin_cap, &mut auction, &mut suins, 100, 300, &mut ctx);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
             test_scenario::return_to_sender(scenario, admin_cap);
         };

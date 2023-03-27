@@ -18,6 +18,7 @@ module suins::entity {
     friend suins::reverse_registrar;
     friend suins::controller;
     friend suins::coin_util;
+    friend suins::auction;
 
     struct SuiNS has key {
         id: UID,
@@ -48,7 +49,9 @@ module suins::entity {
     struct Controller has store {
         commitments: LinkedTable<vector<u8>, u64>,
         balance: Balance<SUI>,
-
+        /// set by `configure_auction`
+        /// the last epoch when bidder can call `finalize_auction`
+        auction_house_extra_epoch_at: u64,
     }
 
     public(friend) fun registry(suins: &SuiNS): &Table<String, NameRecord> {
@@ -148,12 +151,21 @@ module suins::entity {
         &mut suins.controller.balance
     }
 
+    public(friend) fun controller_auction_house_extra_epoch_at(suins: &mut SuiNS): u64 {
+        suins.controller.auction_house_extra_epoch_at
+    }
+
+    public(friend) fun controller_auction_house_extra_epoch_at_mut(suins: &mut SuiNS): &mut u64 {
+        &mut suins.controller.auction_house_extra_epoch_at
+    }
+
     fun init(ctx: &mut TxContext) {
         let registry = table::new(ctx);
         let registrars = table::new(ctx);
         let controller = Controller {
             commitments: linked_table::new(ctx),
             balance: balance::zero(),
+            auction_house_extra_epoch_at: 0,
         };
 
         transfer::share_object(SuiNS {
@@ -179,6 +191,7 @@ module suins::entity {
         let controller = Controller {
             commitments: linked_table::new(ctx),
             balance: balance::zero(),
+            auction_house_extra_epoch_at: 0,
         };
 
         transfer::share_object(SuiNS {
