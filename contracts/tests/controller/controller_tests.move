@@ -6,7 +6,7 @@ module suins::controller_tests {
     use sui::tx_context;
     use sui::sui::SUI;
     use sui::url;
-    use suins::auction::{Auction, make_seal_bid};
+    use suins::auction::{AuctionHouse, make_seal_bid};
     use suins::auction;
     use suins::auction_tests::{start_an_auction_util, place_bid_util, reveal_bid_util};
     use suins::registrar::{Self, RegistrationNFT};
@@ -118,7 +118,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
-            let auction = test_scenario::take_shared<Auction>(scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
@@ -212,7 +212,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -286,7 +286,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
@@ -328,7 +328,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
@@ -369,7 +369,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -409,7 +409,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             // simulate user call `register` in the same epoch as `commit`
             let ctx = tx_context::new(
                 @0x0,
@@ -449,7 +449,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
@@ -490,7 +490,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
@@ -556,7 +556,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
@@ -657,7 +657,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
@@ -715,7 +715,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -813,7 +813,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(10001, test_scenario::ctx(&mut scenario));
 
             controller::register_with_config(
@@ -848,7 +848,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(1000001, test_scenario::ctx(&mut scenario));
 
             controller::register_with_config(
@@ -883,7 +883,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(10001, test_scenario::ctx(&mut scenario));
 
             controller::register_with_config(
@@ -918,7 +918,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(1000001, test_scenario::ctx(&mut scenario));
 
             controller::register_with_config(
@@ -969,7 +969,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(10000001, test_scenario::ctx(&mut scenario));
 
             controller::register(
@@ -1029,7 +1029,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1328,7 +1328,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
@@ -1373,7 +1373,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1453,7 +1453,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1569,7 +1569,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1647,7 +1647,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 SECOND_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1688,7 +1688,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1729,7 +1729,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1807,7 +1807,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 SECOND_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1849,7 +1849,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1891,7 +1891,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1950,7 +1950,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -1990,7 +1990,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2037,7 +2037,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
@@ -2094,7 +2094,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2136,7 +2136,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 @0x0,
@@ -2210,7 +2210,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
@@ -2289,7 +2289,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2330,7 +2330,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2371,7 +2371,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2448,7 +2448,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2490,7 +2490,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2527,7 +2527,7 @@ module suins::controller_tests {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-            let auction = test_scenario::take_shared<Auction>(scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(scenario);
 
             auction::configure_auction(
                 &admin_cap,
@@ -2552,7 +2552,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2592,7 +2592,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2659,7 +2659,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2699,7 +2699,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2789,7 +2789,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2879,7 +2879,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2969,7 +2969,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3036,7 +3036,7 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
 
             reveal_bid_util(
                 &mut auction,
@@ -3079,7 +3079,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3143,7 +3143,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3214,7 +3214,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3310,7 +3310,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3420,7 +3420,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3645,7 +3645,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3687,7 +3687,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3729,7 +3729,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3771,7 +3771,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3849,7 +3849,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3950,7 +3950,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -3993,7 +3993,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -4036,7 +4036,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -4078,7 +4078,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
@@ -4161,7 +4161,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -4205,7 +4205,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -4249,7 +4249,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -4292,7 +4292,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -4370,7 +4370,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -4414,7 +4414,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -4458,7 +4458,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -4790,7 +4790,7 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
@@ -4829,7 +4829,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -4869,7 +4869,7 @@ module suins::controller_tests {
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
@@ -4908,7 +4908,7 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let auction = test_scenario::take_shared<Auction>(&mut scenario);
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
