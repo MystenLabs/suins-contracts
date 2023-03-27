@@ -26,6 +26,7 @@ module suins::auction {
     use suins::converter;
 
     const MIN_PRICE: u64 = 1000;
+    const START_AN_AUCTION_FEE: u64 = 10000;
     const BIDDING_PERIOD: u64 = 3;
     const REVEAL_PERIOD: u64 = 3;
     /// time period from end_at, so winner have time to claim their winning
@@ -212,7 +213,7 @@ module suins::auction {
         linked_table::push_back(&mut auction_house.entries, label, entry);
         event::emit(AuctionStartedEvent { label, start_at });
 
-        coin_util::user_transfer_to_auction(payment, FEE_PER_YEAR, &mut auction.balance)
+        coin_util::user_transfer_to_auction(payment, START_AN_AUCTION_FEE, &mut auction_house.balance)
     }
 
     /// #### Notice

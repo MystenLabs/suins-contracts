@@ -218,7 +218,7 @@ module suins::auction_tests {
         );
         let suins = test_scenario::take_shared<SuiNS>(scenario);
         let config = test_scenario::take_shared<Configuration>(scenario);
-        finalize_auction(auction, &mut suins, SUI_REGISTRAR, &config, node, RESOLVER_ADDRESS, &mut ctx);
+        finalize_auction(auction, &mut suins, &config, node, RESOLVER_ADDRESS, &mut ctx);
         test_scenario::return_shared(suins);
         test_scenario::return_shared(config);
     }
