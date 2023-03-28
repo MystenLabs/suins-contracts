@@ -328,7 +328,7 @@ module suins::registrar {
     ) {
         assert!(sha2_256(raw_msg) == hashed_msg, EHashedMessageNotMatch);
         assert!(
-            ecdsa_k1::secp256k1_verify(&signature, configuration::public_key(config), &hashed_msg),
+            ecdsa_k1::secp256k1_verify(&signature, configuration::public_key(config), &raw_msg, 1),
             ESignatureNotMatch
         );
     }

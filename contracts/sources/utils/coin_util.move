@@ -18,7 +18,7 @@ module suins::coin_util {
     ) {
         if (amount == 0) return;
         let paid = coin::split(user_payment, amount, ctx);
-        transfer::transfer(paid, receiver);
+        transfer::public_transfer(paid, receiver);
     }
 
     public(friend) fun user_transfer_to_suins(user_payment: &mut Coin<SUI>, amount: u64, suins: &mut SuiNS) {
@@ -42,8 +42,8 @@ module suins::coin_util {
         ctx: &mut TxContext
     ) {
         if (amount == 0) return;
-        let coin = coin::take(entity::controller_balance_mut(suins), amount, ctx);
-        transfer::transfer(coin, user_addr);
+        let coin = coin::take(entity::controller_balance_mut(contract), amount, ctx);
+        transfer::public_transfer(coin, user_addr);
     }
 
     public(friend) fun auction_transfer_to_address(
@@ -54,7 +54,7 @@ module suins::coin_util {
     ) {
         if (amount == 0) return;
         let coin = coin::take(auction, amount, ctx);
-        transfer::transfer(coin, user_addr);
+        transfer::public_transfer(coin, user_addr);
     }
 
     public(friend) fun auction_transfer_to_suins(
