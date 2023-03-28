@@ -42,7 +42,7 @@ module suins::coin_util {
         ctx: &mut TxContext
     ) {
         if (amount == 0) return;
-        let coin = coin::take(entity::controller_balance_mut(contract), amount, ctx);
+        let coin = coin::take(entity::controller_balance_mut(suins), amount, ctx);
         transfer::public_transfer(coin, user_addr);
     }
 

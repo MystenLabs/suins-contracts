@@ -403,7 +403,6 @@ module suins::auction {
         assert!(!(entry.is_finalized && entry.winner == sender(ctx)), EAlreadyFinalized);
 
         let bids_of_sender = table::borrow_mut(&mut auction_house.bid_details_by_bidder, sender(ctx));
-
         // Refund all the bids
         let len = vector::length(bids_of_sender);
         let index = 0;
@@ -572,16 +571,13 @@ module suins::auction {
     /// Panics if current epoch is less than or equal end_at
     /// or sender has never ever placed a bid
     public entry fun withdraw(auction_house: &mut AuctionHouse, ctx: &mut TxContext) {
-        let auction_close_at = auction_close_at(auction_house);
-        assert!(epoch(ctx) > auction_close_at, EInvalidPhase);
+        assert!(epoch(ctx) > auction_close_at(auction_house), EInvalidPhase);
 
         let bid_details = table::borrow_mut(&mut auction_house.bid_details_by_bidder, sender(ctx));
         let len = vector::length(bid_details);
         let index = 0;
-
         while (index < len) {
             let detail = vector::borrow(bid_details, index);
-
             if (linked_table::contains(&auction_house.entries, detail.label)) {
                 let entry = linked_table::borrow(&auction_house.entries, detail.label);
                 // TODO: has 2 bids with the same value that are the highest

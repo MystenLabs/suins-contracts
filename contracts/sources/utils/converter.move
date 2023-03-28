@@ -2,6 +2,9 @@ module suins::converter {
 
     use std::vector;
     use std::string::{Self, String};
+    use sui::tx_context::TxContext;
+    use sui::object::ID;
+    use sui::object;
 
     friend suins::auction;
     friend suins::reverse_registrar;
