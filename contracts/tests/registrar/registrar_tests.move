@@ -2,7 +2,6 @@
 module suins::registrar_tests {
 
     use sui::test_scenario::{Self, Scenario};
-    use sui::tx_context;
     use sui::url;
     use sui::dynamic_field;
     use suins::registry::{Self, AdminCap};
@@ -12,6 +11,7 @@ module suins::registrar_tests {
     use std::string::utf8;
     use suins::entity::SuiNS;
     use suins::entity;
+    use suins::auction_tests::ctx_new;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER: address = @0xB001;
@@ -58,7 +58,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let image = test_scenario::take_shared<Configuration>(scenario);
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 10,
@@ -116,7 +116,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let image = test_scenario::take_shared<Configuration>(scenario);
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 10,
@@ -259,7 +259,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let image = test_scenario::take_shared<Configuration>(&mut scenario);
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 10,
@@ -323,7 +323,7 @@ module suins::registrar_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 500,
@@ -429,7 +429,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 500,
@@ -557,7 +557,7 @@ module suins::registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 FIRST_USER,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 10,
@@ -607,7 +607,7 @@ module suins::registrar_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 FIRST_USER,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 10,
@@ -643,7 +643,7 @@ module suins::registrar_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 FIRST_USER,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 10,
@@ -679,7 +679,7 @@ module suins::registrar_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 FIRST_USER,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 10,
@@ -715,7 +715,7 @@ module suins::registrar_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 FIRST_USER,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 10,
@@ -751,7 +751,7 @@ module suins::registrar_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 FIRST_USER,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 10,
@@ -787,7 +787,7 @@ module suins::registrar_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 FIRST_USER,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 10,
@@ -823,7 +823,7 @@ module suins::registrar_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 FIRST_USER,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 10,
@@ -858,7 +858,7 @@ module suins::registrar_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 FIRST_USER,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 10,
@@ -893,7 +893,7 @@ module suins::registrar_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 FIRST_USER,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 10,
@@ -928,7 +928,7 @@ module suins::registrar_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 FIRST_USER,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 10,
@@ -1048,7 +1048,7 @@ module suins::registrar_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 FIRST_USER,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 500,
@@ -1085,7 +1085,7 @@ module suins::registrar_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 FIRST_USER,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 500,
@@ -1120,7 +1120,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let image = test_scenario::take_shared<Configuration>(scenario);
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 530,
@@ -1146,7 +1146,7 @@ module suins::registrar_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 FIRST_USER,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 600,
@@ -1180,7 +1180,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let image = test_scenario::take_shared<Configuration>(scenario);
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 530,
@@ -1206,7 +1206,7 @@ module suins::registrar_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
 
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 SECOND_USER,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 600,
@@ -1240,7 +1240,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let image = test_scenario::take_shared<Configuration>(scenario);
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 530,
@@ -1266,7 +1266,7 @@ module suins::registrar_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let new_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
             let old_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 FIRST_USER,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 600,
@@ -1301,7 +1301,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let image = test_scenario::take_shared<Configuration>(scenario);
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 530,
@@ -1327,7 +1327,7 @@ module suins::registrar_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let new_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
             let old_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 FIRST_USER,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 600,
@@ -1362,7 +1362,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let image = test_scenario::take_shared<Configuration>(scenario);
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 30,
@@ -1388,7 +1388,7 @@ module suins::registrar_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let second_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
             let first_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 FIRST_USER,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 50,
@@ -1423,7 +1423,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let image = test_scenario::take_shared<Configuration>(scenario);
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 30,
@@ -1449,7 +1449,7 @@ module suins::registrar_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let second_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
             let first_nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 FIRST_USER,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 50,
@@ -1482,7 +1482,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let image = test_scenario::take_shared<Configuration>(&mut scenario);
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 466,
@@ -1542,7 +1542,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let image = test_scenario::take_shared<Configuration>(&mut scenario);
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 466,
@@ -1592,7 +1592,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let image = test_scenario::take_shared<Configuration>(&mut scenario);
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 466,
@@ -1650,7 +1650,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let image = test_scenario::take_shared<Configuration>(&mut scenario);
-            let ctx = tx_context::new(
+            let ctx = ctx_new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 466,
