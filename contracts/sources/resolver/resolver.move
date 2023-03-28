@@ -9,11 +9,12 @@ module suins::resolver {
     use sui::transfer;
     use sui::tx_context::TxContext;
     use suins::registry;
-    use suins::converter;
     use std::string::{Self, String, utf8};
     use sui::vec_map::VecMap;
     use sui::vec_map;
     use suins::entity::SuiNS;
+    use sui::address;
+    use sui::hex;
 
     const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
     const NAME: vector<u8> = b"name";
@@ -234,7 +235,7 @@ module suins::resolver {
         new_name: vector<u8>,
         ctx: &mut TxContext
     ) {
-        let label = converter::address_to_string(addr);
+        let label = hex::encode(address::to_bytes(addr));
         let node = registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
         // TODO: do we have to authorised this?
         registry::authorised(suins, *string::bytes(&node), ctx);
@@ -277,7 +278,7 @@ module suins::resolver {
         addr: address,
         ctx: &mut TxContext
     ) {
-        let label = converter::address_to_string(addr);
+        let label = hex::encode(address::to_bytes(addr));
         let node = registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
         registry::authorised(suins, *string::bytes(&node), ctx);
         let record = field::borrow_mut(&mut resolver.id, node);
@@ -352,7 +353,7 @@ module suins::resolver {
         registry::authorised(suins, node, ctx);
         let node = utf8(node);
         let key = utf8(ADDR);
-        let new_addr = utf8(converter::address_to_string(new_addr));
+        let new_addr = utf8(hex::encode(address::to_bytes(new_addr)));
 
         if (field::exists_with_type<String, VecMap<String, String>>(&resolver.id, node)) {
             let record = field::borrow_mut<String, VecMap<String, String>>(&mut resolver.id, node);
@@ -425,7 +426,7 @@ module suins::resolver {
     /// #### Params
     /// `node`: node to find the default name
     public fun name(resolver: &Resolver, addr: address): String {
-        let label = converter::address_to_string(addr);
+        let label = hex::encode(address::to_bytes(addr));
         let node = registry::make_node(label, utf8(ADDR_REVERSE_BASE_NODE));
         let key = utf8(NAME);
 

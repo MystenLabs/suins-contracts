@@ -9,7 +9,6 @@ module suins::configuration {
     use sui::tx_context::{TxContext, sender};
     use sui::dynamic_field as field;
     use suins::remove_later;
-    use suins::converter;
     use suins::registry::AdminCap;
     use suins::emoji::{Self, EmojiConfiguration};
     use std::ascii;
@@ -161,7 +160,7 @@ module suins::configuration {
         let code = ascii::string(code);
         assert!(ascii::all_characters_printable(&code), EInvalidDiscountCode);
 
-        let owner = ascii::string(converter::address_to_string(owner));
+        let owner = ascii::string(hex::encode(address::to_bytes(owner)));
         let new_value = DiscountValue { rate, owner };
         if (vec_map::contains(&config.discount_codes, &code)) {
             let current_value = vec_map::get_mut(&mut config.discount_codes, &code);
@@ -254,7 +253,7 @@ module suins::configuration {
 
         let value = vec_map::get(&config.discount_codes, code);
         let owner = value.owner;
-        let sender = converter::address_to_string(sender(ctx));
+        let sender = hex::encode(address::to_bytes(sender(ctx)));
         assert!(owner == ascii::string(sender), EOwnerUnauthorized);
 
         let rate = value.rate;
@@ -294,6 +293,8 @@ module suins::configuration {
     use std::option::{Self, Option};
     #[test_only]
     use std::string;
+    use sui::address;
+    use sui::hex;
 
     #[test_only]
     public(friend) fun get_discount_rate(discount_value: &DiscountValue): u8 {
