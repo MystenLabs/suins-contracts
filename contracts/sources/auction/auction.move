@@ -398,7 +398,7 @@ module suins::auction {
         );
 
         let label_str = utf8(label);
-        let entry = table::borrow_mut(&mut auction.entries, label_str);
+        let entry = linked_table::borrow_mut(&mut auction_house.entries, label_str);
         assert!(!(entry.is_finalized && entry.winner == sender(ctx)), EAlreadyFinalized);
 
         let bids_of_sender = table::borrow_mut(&mut auction_house.bid_details_by_bidder, sender(ctx));
@@ -430,12 +430,11 @@ module suins::auction {
         };
         if (entry.winner != sender(ctx)) return;
 
-        let sui_tld = utf8(b"sui");
-        registrar::register(suins, sui_tld, config, label, entry.winner, 365, resolver, ctx);
+        registrar::register(suins, b"sui", config, label, entry.winner, 365, resolver, ctx);
 
         event::emit(NodeRegisteredEvent {
-            label,
-            tld: sui_tld,
+            label: label_str,
+            tld: utf8(b"sui"),
             winner: entry.winner,
             amount: entry.second_highest_bid
         })
@@ -478,23 +477,19 @@ module suins::auction {
         };
         entry.is_finalized = true;
 
-        let sui_tld = utf8(b"sui");
-        registrar::register_with_image_internal(
+        registrar::register(
             suins,
-            sui_tld,
+            b"sui",
             config,
-            label,
+            *string::bytes(&label),
             entry.winner,
             365,
             resolver,
-            vector[],
-            vector[],
-            vector[],
             ctx
         );
         event::emit(NodeRegisteredEvent {
             label,
-            tld: sui_tld,
+            tld: utf8(b"sui"),
             winner: entry.winner,
             amount: entry.second_highest_bid
         })
@@ -534,23 +529,19 @@ module suins::auction {
                         vector::remove(bids_of_winner, index);
                         entry.is_finalized = true;
 
-                        let sui_tld = utf8(b"sui");
-                        registrar::register_with_image_internal(
+                        registrar::register(
                             suins,
-                            sui_tld,
+                            b"sui",
                             config,
-                            label,
+                            *string::bytes(&label),
                             entry.winner,
                             365,
                             resolver,
-                            vector[],
-                            vector[],
-                            vector[],
                             ctx
                         );
                         event::emit(NodeRegisteredEvent {
                             label,
-                            tld: sui_tld,
+                            tld: utf8(b"sui"),
                             winner: entry.winner,
                             amount: entry.second_highest_bid
                         });

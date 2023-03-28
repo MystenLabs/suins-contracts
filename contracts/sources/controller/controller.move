@@ -27,7 +27,7 @@ module suins::controller {
     use std::vector;
     use std::option::{Self, Option};
     use sui::url::Url;
-    use suins::entity::{Self, SuiNS};
+    use std::string;
 
     // errors in the range of 301..400 indicate Sui Controller errors
     const EInvalidResolverAddress: u64 = 301;
@@ -599,7 +599,7 @@ module suins::controller {
     ) {
         let renew_fee = configuration::price_for_node(no_years);
         assert!(coin::value(payment) >= renew_fee, ENotEnoughFee);
-        coin_util::user_transfer_to_contract(payment, renew_fee, suins);
+        coin_util::user_transfer_to_suins(payment, renew_fee, suins);
 
         let duration = no_years * 365;
         registrar::renew(suins, tld, label, duration, ctx);
