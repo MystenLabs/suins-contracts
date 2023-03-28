@@ -13,13 +13,13 @@ jobs:
           command: cargo build --package sui --bin sui
           working_directory: ./sui
       - run: 
-          command: ./sui/target/debug/sui move build
+          command: ../sui/target/debug/sui move build
           working_directory: ./contracts
       - run: 
-          command: ./sui/target/debug/sui move test --coverage
+          command: ../sui/target/debug/sui move test --coverage
           working_directory: ./contracts
       - run: 
-          command: ./sui/target/debug/sui move coverage summary --summarize-functions
+          command: ../sui/target/debug/sui move coverage summary --summarize-functions
           working_directory: ./contracts
 workflows:
   version: 2
