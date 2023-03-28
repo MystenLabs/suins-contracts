@@ -26,7 +26,6 @@ module suins::controller {
     use std::vector;
     use std::option::{Self, Option};
     use sui::url::Url;
-    use std::string;
 
     // errors in the range of 301..400 indicate Sui Controller errors
     const EInvalidResolverAddress: u64 = 301;

@@ -95,7 +95,7 @@ module suins::registrar_tests {
                 0
             );
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
 
             assert!(owner == FIRST_USER, 0);
             assert!(resolver == FIRST_RESOLVER, 0);
@@ -155,7 +155,7 @@ module suins::registrar_tests {
                 0
             );
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
 
             assert!(owner == FIRST_USER, 0);
             assert!(resolver == FIRST_RESOLVER, 0);

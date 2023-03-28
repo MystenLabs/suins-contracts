@@ -106,7 +106,7 @@ module suins::controller_tests {
             assert!(controller::commitment_len(&suins) - no_of_commitments == 1, 0);
 
             test_scenario::return_shared(suins);
-            };
+        };
     }
 
     fun register(scenario: &mut Scenario) {
@@ -135,7 +135,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 1,
@@ -167,9 +166,9 @@ module suins::controller_tests {
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 365, 0);
-            assert!(owner== FIRST_USER_ADDRESS, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -227,7 +226,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -261,7 +259,7 @@ module suins::controller_tests {
             assert!(expiry == 21 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -407,7 +405,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 1,
@@ -444,7 +441,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 1,
@@ -483,7 +479,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 1,
@@ -527,7 +522,7 @@ module suins::controller_tests {
             );
 
             test_scenario::return_shared(suins);
-            };
+        };
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
@@ -546,7 +541,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 SECOND_USER_ADDRESS,
                 1,
@@ -578,7 +572,7 @@ module suins::controller_tests {
             assert!(expiry == 600 + 365, 0);
             assert!(owner == SECOND_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
             assert!(owner == SECOND_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -625,7 +619,7 @@ module suins::controller_tests {
             );
 
             test_scenario::return_shared(suins);
-            };
+        };
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
@@ -644,7 +638,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 SECOND_USER_ADDRESS,
                 1,
@@ -703,7 +696,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -736,9 +728,9 @@ module suins::controller_tests {
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
-            assert!(owner== FIRST_USER_ADDRESS, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -1338,7 +1330,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -1375,9 +1366,9 @@ module suins::controller_tests {
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
-            assert!(owner== FIRST_USER_ADDRESS, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -1416,7 +1407,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 3,
@@ -1452,9 +1442,9 @@ module suins::controller_tests {
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 1095, 0);
-            assert!(owner== FIRST_USER_ADDRESS, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -1530,7 +1520,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -1566,9 +1555,9 @@ module suins::controller_tests {
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
-            assert!(owner== FIRST_USER_ADDRESS, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -1600,7 +1589,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -1639,7 +1627,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -1684,7 +1671,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -1707,7 +1693,7 @@ module suins::controller_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            
+
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
@@ -1720,9 +1706,9 @@ module suins::controller_tests {
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
-            assert!(owner== FIRST_USER_ADDRESS, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -1754,7 +1740,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -1794,7 +1779,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -1834,7 +1818,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -1873,7 +1856,7 @@ module suins::controller_tests {
             );
 
             test_scenario::return_shared(suins);
-            };
+        };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -1930,7 +1913,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -2026,7 +2008,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -2103,9 +2084,9 @@ module suins::controller_tests {
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
-            assert!(owner== FIRST_USER_ADDRESS, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -2142,7 +2123,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -2165,9 +2145,9 @@ module suins::controller_tests {
             let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let coin = test_scenario::take_from_address<Coin<SUI>>(&mut scenario, SECOND_USER_ADDRESS);
-            
+
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
-            
+
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -2178,9 +2158,9 @@ module suins::controller_tests {
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
-            assert!(owner== FIRST_USER_ADDRESS, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -2213,7 +2193,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -2252,7 +2231,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -2296,7 +2274,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -2318,9 +2295,9 @@ module suins::controller_tests {
             let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let coin = test_scenario::take_from_address<Coin<SUI>>(&mut scenario, SECOND_USER_ADDRESS);
-            
+
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
-            
+
             assert!(name == utf8(FIRST_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -2331,9 +2308,9 @@ module suins::controller_tests {
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 730, 0);
-            assert!(owner== FIRST_USER_ADDRESS, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -2366,7 +2343,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -2406,7 +2382,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -2503,7 +2478,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 1,
@@ -2534,9 +2508,9 @@ module suins::controller_tests {
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 21 + 365, 0);
-            assert!(owner== FIRST_USER_ADDRESS, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -2605,7 +2579,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 1,
@@ -2635,9 +2608,9 @@ module suins::controller_tests {
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 51 + 365, 0);
-            assert!(owner== FIRST_USER_ADDRESS, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -2691,7 +2664,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 1,
@@ -2721,9 +2693,9 @@ module suins::controller_tests {
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 221 + 365, 0);
-            assert!(owner== FIRST_USER_ADDRESS, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -2808,9 +2780,9 @@ module suins::controller_tests {
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
             assert!(expiry == 221 + 365, 0);
-            assert!(owner== FIRST_USER_ADDRESS, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(AUCTIONED_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, AUCTIONED_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -2866,7 +2838,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 1,
@@ -2896,9 +2867,9 @@ module suins::controller_tests {
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 121 + 365, 0);
-            assert!(owner== FIRST_USER_ADDRESS, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -3056,18 +3027,16 @@ module suins::controller_tests {
         {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            configuration::set_enable_controller(&admin_cap, &mut config, false);
+            configuration::set_enable_controller(&admin_cap, &mut config, true);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
             test_scenario::return_shared(config);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                220,
                 START_AUCTION_END_AT + EXTRA_PERIOD + BIDDING_PERIOD + REVEAL_PERIOD,
                 0
             );
@@ -3075,7 +3044,6 @@ module suins::controller_tests {
                 SUI_REGISTRAR,
                 AUCTIONED_LABEL,
                 FIRST_USER_ADDRESS,
-                FIRST_USER,
                 FIRST_SECRET
             );
 
@@ -3088,7 +3056,6 @@ module suins::controller_tests {
             test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
@@ -3096,7 +3063,6 @@ module suins::controller_tests {
             let ctx = tx_context::new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                221,
                 START_AUCTION_END_AT + EXTRA_PERIOD + BIDDING_PERIOD + REVEAL_PERIOD + 1,
                 0
             );
@@ -3106,10 +3072,8 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 AUCTIONED_LABEL,
                 FIRST_USER_ADDRESS,
-                FIRST_USER,
                 1,
                 FIRST_SECRET,
                 &mut coin,
@@ -3122,9 +3086,7 @@ module suins::controller_tests {
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        test_scenario::next_tx(&mut scenario, FIRST_USER);
         {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let (name, url) = registrar::get_nft_fields(&nft);
@@ -3137,17 +3099,12 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
-            assert!(expiry == 221 + 365, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
             assert!(expiry == START_AUCTION_END_AT + EXTRA_PERIOD + BIDDING_PERIOD + REVEAL_PERIOD + 1 + 365, 0);
-            assert!(owner == FIRST_USER, 0);
-
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(AUCTIONED_NODE));
             assert!(owner == FIRST_USER_ADDRESS, 0);
+
             let (owner, resolver, ttl) = registry::get_record_by_key(&suins, AUCTIONED_NODE);
-            assert!(owner == FIRST_USER, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
 
@@ -3163,7 +3120,7 @@ module suins::controller_tests {
         set_auction_config(&mut scenario);
         start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
 
-        test_scenario::next_tx(&mut scenario, FIRST_USER);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
@@ -3175,7 +3132,7 @@ module suins::controller_tests {
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 AUCTIONED_LABEL,
-                FIRST_USER,
+                FIRST_USER_ADDRESS,
                 FIRST_SECRET
             );
             controller::commit(
@@ -3186,7 +3143,7 @@ module suins::controller_tests {
 
             test_scenario::return_shared(suins);
         };
-        test_scenario::next_tx(&mut scenario, FIRST_USER);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
@@ -3203,7 +3160,7 @@ module suins::controller_tests {
                 SUI_REGISTRAR,
                 &mut config,
                 AUCTIONED_LABEL,
-                FIRST_USER,
+                FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
                 &mut coin,
@@ -3299,7 +3256,7 @@ module suins::controller_tests {
             assert!(expiry == 221 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(AUCTIONED_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, AUCTIONED_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -3390,8 +3347,12 @@ module suins::controller_tests {
                 0
             );
 
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_NODE);
             assert!(expiry == 221 + 365, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
 
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, AUCTIONED_NODE);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
 
@@ -3426,6 +3387,7 @@ module suins::controller_tests {
             test_scenario::return_to_sender(&mut scenario, admin_cap);
             test_scenario::return_shared(config);
         };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
@@ -3437,6 +3399,7 @@ module suins::controller_tests {
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 AUCTIONED_LABEL,
+                FIRST_USER_ADDRESS,
                 FIRST_SECRET
             );
 
@@ -3448,6 +3411,7 @@ module suins::controller_tests {
 
             test_scenario::return_shared(suins);
         };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
@@ -3464,6 +3428,7 @@ module suins::controller_tests {
                 SUI_REGISTRAR,
                 &mut config,
                 AUCTIONED_LABEL,
+                FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
                 &mut coin,
@@ -3474,6 +3439,7 @@ module suins::controller_tests {
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
         };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = registrar::get_nft_fields(&nft);
@@ -3485,15 +3451,6 @@ module suins::controller_tests {
             assert!(name == utf8(AUCTIONED_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
-            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
-            assert!(owner== FIRST_USER_ADDRESS, 0);
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(AUCTIONED_NODE));
-            assert!(owner == FIRST_USER_ADDRESS, 0);
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-                FIRST_USER_ADDRESS,
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-                FIRST_USER_ADDRESS,
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
                 0
             );
 
@@ -3501,7 +3458,7 @@ module suins::controller_tests {
             assert!(expiry == 221 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(AUCTIONED_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, AUCTIONED_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -3530,7 +3487,12 @@ module suins::controller_tests {
             while (i < 70) {
                 let secret = FIRST_SECRET;
                 vector::push_back(&mut secret, i);
-                let commitment = controller::test_make_commitment(SUI_REGISTRAR, FIRST_LABEL, FIRST_USER_ADDRESS, secret);
+                let commitment = controller::test_make_commitment(
+                    SUI_REGISTRAR,
+                    FIRST_LABEL,
+                    FIRST_USER_ADDRESS,
+                    secret
+                );
                 controller::commit(
                     &mut suins,
                     commitment,
@@ -3552,7 +3514,12 @@ module suins::controller_tests {
                 50,
                 0
             );
-            let commitment = controller::test_make_commitment(SUI_REGISTRAR, b"label-1", FIRST_USER_ADDRESS, FIRST_SECRET);
+            let commitment = controller::test_make_commitment(
+                SUI_REGISTRAR,
+                b"label-1",
+                FIRST_USER_ADDRESS,
+                FIRST_SECRET
+            );
             controller::commit(
                 &mut suins,
                 commitment,
@@ -3575,7 +3542,12 @@ module suins::controller_tests {
                 50,
                 0
             );
-            let commitment = controller::test_make_commitment(SUI_REGISTRAR, b"label-2", FIRST_USER_ADDRESS, FIRST_SECRET);
+            let commitment = controller::test_make_commitment(
+                SUI_REGISTRAR,
+                b"label-2",
+                FIRST_USER_ADDRESS,
+                FIRST_SECRET
+            );
             controller::commit(
                 &mut suins,
                 commitment,
@@ -3598,7 +3570,12 @@ module suins::controller_tests {
                 51,
                 0
             );
-            let commitment = controller::test_make_commitment(SUI_REGISTRAR, b"label-3", FIRST_USER_ADDRESS, FIRST_SECRET);
+            let commitment = controller::test_make_commitment(
+                SUI_REGISTRAR,
+                b"label-3",
+                FIRST_USER_ADDRESS,
+                FIRST_SECRET
+            );
             controller::commit(
                 &mut suins,
                 commitment,
@@ -3633,7 +3610,12 @@ module suins::controller_tests {
             while (i < 40) {
                 let secret = FIRST_SECRET;
                 vector::push_back(&mut secret, i);
-                let commitment = controller::test_make_commitment(SUI_REGISTRAR, FIRST_LABEL, FIRST_USER_ADDRESS, secret);
+                let commitment = controller::test_make_commitment(
+                    SUI_REGISTRAR,
+                    FIRST_LABEL,
+                    FIRST_USER_ADDRESS,
+                    secret
+                );
                 controller::commit(
                     &mut suins,
                     commitment,
@@ -3654,7 +3636,12 @@ module suins::controller_tests {
                 50,
                 0
             );
-            let commitment = controller::test_make_commitment(SUI_REGISTRAR, b"label-2", FIRST_USER_ADDRESS, FIRST_SECRET);
+            let commitment = controller::test_make_commitment(
+                SUI_REGISTRAR,
+                b"label-2",
+                FIRST_USER_ADDRESS,
+                FIRST_SECRET
+            );
             controller::commit(
                 &mut suins,
                 commitment,
@@ -3692,7 +3679,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -3732,7 +3718,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -3772,7 +3757,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -3818,7 +3802,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -3854,9 +3837,9 @@ module suins::controller_tests {
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 21 + 730, 0);
-            assert!(owner== FIRST_USER_ADDRESS, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -3893,7 +3876,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -3929,9 +3911,9 @@ module suins::controller_tests {
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 21 + 730, 0);
-            assert!(owner== FIRST_USER_ADDRESS, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -3987,7 +3969,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -4028,7 +4009,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -4069,7 +4049,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -4115,7 +4094,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -4154,9 +4132,9 @@ module suins::controller_tests {
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 21 + 730, 0);
-            assert!(owner== FIRST_USER_ADDRESS, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -4189,7 +4167,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -4231,7 +4208,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -4273,7 +4249,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -4320,7 +4295,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -4356,9 +4330,9 @@ module suins::controller_tests {
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expiry == 21 + 730, 0);
-            assert!(owner== FIRST_USER_ADDRESS, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(FIRST_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -4390,7 +4364,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -4432,7 +4405,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -4474,7 +4446,6 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                &auction,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
                 2,
@@ -4952,7 +4923,7 @@ module suins::controller_tests {
             );
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, utf8(AUCTIONED_NODE));
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, AUCTIONED_NODE);
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
@@ -4965,7 +4936,8 @@ module suins::controller_tests {
     }
 
     #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
-    fun test_register_auctioned_label_aborts_if_in_extra_period_but_admin_calls_finalize_all_auctions_and_in_same_epoch() {
+    fun test_register_auctioned_label_aborts_if_in_extra_period_but_admin_calls_finalize_all_auctions_and_in_same_epoch(
+    ) {
         let scenario = test_init();
         set_auction_config(&mut scenario);
         start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
@@ -4982,7 +4954,7 @@ module suins::controller_tests {
                 &mut auction,
                 &mut suins,
                 &config,
-                FIRST_RESOLVER,
+                FIRST_RESOLVER_ADDRESS,
                 &mut auction_tests::ctx_util(SUINS_ADDRESS, EXTRA_PERIOD_START_AT, 20),
             );
 
@@ -4992,7 +4964,7 @@ module suins::controller_tests {
             test_scenario::return_shared(config);
         };
 
-        test_scenario::next_tx(&mut scenario, FIRST_USER);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = tx_context::new(
@@ -5004,7 +4976,7 @@ module suins::controller_tests {
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 AUCTIONED_LABEL,
-                FIRST_USER,
+                FIRST_USER_ADDRESS,
                 FIRST_SECRET
             );
             controller::commit(
@@ -5015,7 +4987,7 @@ module suins::controller_tests {
 
             test_scenario::return_shared(suins);
         };
-        test_scenario::next_tx(&mut scenario, FIRST_USER);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
@@ -5032,7 +5004,7 @@ module suins::controller_tests {
                 SUI_REGISTRAR,
                 &mut config,
                 AUCTIONED_LABEL,
-                FIRST_USER,
+                FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
                 &mut coin,
