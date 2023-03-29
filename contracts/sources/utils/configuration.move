@@ -7,13 +7,13 @@ module suins::configuration {
     use sui::transfer;
     use sui::event;
     use sui::tx_context::{TxContext, sender};
-    use sui::dynamic_field as field;
     use suins::remove_later;
     use suins::registry::AdminCap;
     use suins::emoji::{Self, EmojiConfiguration};
     use std::ascii;
     use std::vector;
-    use std::string::{String};
+    use sui::address;
+    use sui::hex;
 
     friend suins::registrar;
     friend suins::controller;
@@ -65,10 +65,6 @@ module suins::configuration {
         owner: ascii::String,
     }
 
-    struct ReserveDomainAddedEvent has copy, drop {
-        domain: String,
-    }
-
     struct ReferralCodeRemovedEvent has copy, drop {
         code: ascii::String,
     }
@@ -99,37 +95,6 @@ module suins::configuration {
 
     public entry fun set_public_key(_: &AdminCap, config: &mut Configuration, new_public_key: vector<u8>) {
         config.public_key = new_public_key
-    }
-
-    // TODO: handle .sui and .move separately
-    public entry fun new_reserve_domains(_: &AdminCap, config: &mut Configuration, domains: vector<u8>) {
-        let domains = remove_later::deserialize_reserve_domains(domains);
-        let len = vector::length(&domains);
-        let index = 0;
-
-        while (index < len) {
-            let domain = vector::borrow(&domains, index);
-            if (!field::exists_with_type<String, bool>(&config.id, *domain)) {
-                field::add(&mut config.id, *domain, true);
-            };
-            event::emit(ReserveDomainAddedEvent { domain: *domain });
-            index = index + 1;
-        };
-    }
-
-    public entry fun remove_reserve_domains(_: &AdminCap, config: &mut Configuration, domains: vector<u8>) {
-        let domains = remove_later::deserialize_reserve_domains(domains);
-        let len = vector::length(&domains);
-        let index = 0;
-
-        while (index < len) {
-            let domain = vector::borrow(&domains, index);
-            if (field::exists_with_type<String, bool>(&config.id, *domain)) {
-                field::remove<String, bool>(&mut config.id, *domain);
-            };
-            event::emit(ReserveDomainAddedEvent { domain: *domain });
-            index = index + 1;
-        };
     }
 
     // rate in percentage, e.g. discount = 10 means 10%;
@@ -291,10 +256,6 @@ module suins::configuration {
 
     #[test_only]
     use std::option::{Self, Option};
-    #[test_only]
-    use std::string;
-    use sui::address;
-    use sui::hex;
 
     #[test_only]
     public(friend) fun get_discount_rate(discount_value: &DiscountValue): u8 {
@@ -318,11 +279,6 @@ module suins::configuration {
             return option::some(ReferralValue { rate: value.rate, partner: value.partner })
         };
         option::none()
-    }
-
-    #[test_only]
-    public(friend) fun is_label_reserved(config: &Configuration, label: vector<u8>): bool {
-        field::exists_with_type<String, bool>(&config.id, string::utf8(label))
     }
 
     #[test_only]

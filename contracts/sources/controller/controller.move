@@ -635,7 +635,7 @@ module suins::controller {
         };
 
         let duration = no_years * 365;
-        let (nft_id, url, additional_data) = registrar::register_with_image(
+        let (nft_id, url, additional_data) = registrar::register_with_image_internal(
             suins,
             tld,
             config,
@@ -727,7 +727,7 @@ module suins::controller {
             ECommitmentTooOld
         );
         linked_table::remove(commitments, commitment);
-        assert!(registrar::is_available(suins, tld, string::utf8(label), ctx), ELabelUnAvailable);
+        assert!(registrar::is_available(suins, utf8(tld), utf8(label), ctx), ELabelUnAvailable);
     }
 
     fun make_commitment(tld: vector<u8>, label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
