@@ -440,62 +440,6 @@ module suins::auction {
         })
     }
 
-    public entry fun finalize_auction_by_admin(
-        _: &AdminCap,
-        auction_house: &mut AuctionHouse,
-        suins: &mut SuiNS,
-        config: &Configuration,
-        label: vector<u8>,
-        resolver: address,
-        ctx: &mut TxContext
-    ) {
-        assert!(
-            auction_house.start_auction_start_at <= epoch(ctx) && epoch(ctx) <= auction_close_at(auction_house) + EXTRA_PERIOD,
-            EAuctionNotAvailable,
-        );
-        let auction_state = state(auction_house, label, epoch(ctx));
-        assert!(auction_state == AUCTION_STATE_FINALIZING, EInvalidPhase);
-
-        let label = utf8(label);
-        let entry = linked_table::borrow_mut(&mut auction_house.entries, label);
-        assert!(!entry.is_finalized, EAlreadyFinalized);
-        assert!(entry.winner != @0x0, EAuctionNotHasWinner);
-
-        let bids_of_winner = table::borrow_mut(&mut auction_house.bid_details_by_bidder, entry.winner);
-
-        let len = vector::length(bids_of_winner);
-        let index = 0;
-        while (index < len) {
-            let bid_detail = vector::borrow(bids_of_winner, index);
-            // TODO: winner can have multiple bid with the same highest value,
-            // TODO: however, we are using the vector, the early bid comes first.
-            if (bid_detail.label == label && entry.winning_bid_uid == bid_detail.uid) {
-                handle_winning_bid(&mut auction_house.balance, suins, entry, bid_detail, ctx);
-                vector::remove(bids_of_winner, index);
-                break
-            };
-            index = index + 1;
-        };
-        entry.is_finalized = true;
-
-        registrar::register(
-            suins,
-            b"sui",
-            config,
-            *string::bytes(&label),
-            entry.winner,
-            365,
-            resolver,
-            ctx
-        );
-        event::emit(NodeRegisteredEvent {
-            label,
-            tld: utf8(b"sui"),
-            winner: entry.winner,
-            amount: entry.second_highest_bid
-        })
-    }
-
     public entry fun finalize_all_auctions_by_admin(
         _: &AdminCap,
         auction_house: &mut AuctionHouse,
