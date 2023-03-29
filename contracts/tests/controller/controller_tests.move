@@ -2046,8 +2046,9 @@ module suins::controller_tests {
     #[test]
     fun test_register_with_emoji() {
         let scenario = test_init();
-        let label = vector[104, 109, 109, 109, 49, 240, 159, 145, 180];
-        make_commitment(&mut scenario, option::some(label));
+        let node = vector[104, 109, 109, 109, 49, 240, 159, 145, 180];
+        let domain_name = vector[104, 109, 109, 109, 49, 240, 159, 145, 180, 46, 115, 117, 105];
+        make_commitment(&mut scenario, option::some(node));
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -2062,17 +2063,17 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
 
-            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, node), 0);
             assert!(controller::get_balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
+            assert!(!registry::record_exists(&suins, utf8(domain_name)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
             controller::register(
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                label,
+                node,
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -2095,19 +2096,19 @@ module suins::controller_tests {
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
             assert!(controller::get_balance(&suins) == 2000000, 0);
-            assert!(name == utf8(FIRST_NODE), 0);
+            assert!(name == utf8(domain_name), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
 
-            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, node);
             assert!(expiry == 51 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, domain_name);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
+            assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
