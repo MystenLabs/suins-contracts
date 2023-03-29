@@ -1827,7 +1827,7 @@ module suins::registrar_tests {
             assert!(!registry::record_exists(&suins, utf8(b"abcdefghijk.sui")), 0);
             assert!(!registry::record_exists(&suins, utf8(b"abcdefghijk.move")), 0);
 
-            registrar::new_reserved_domains(&admin_cap, &mut suins, &config, b"abcde.sui;abcde.move;abcdefghijk.sui", ctx);
+            registrar::new_reserved_domains(&admin_cap, &mut suins, &config, b"abcde.sui;abcde.move;abcdefghijk.sui", @0x0, ctx);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(config);

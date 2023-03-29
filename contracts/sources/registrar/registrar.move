@@ -175,32 +175,31 @@ module suins::registrar {
         })
     }
 
-    public entry fun new_reserved_domains(_: &AdminCap, suins: &mut SuiNS, config: &Configuration, domains: vector<u8>, ctx: &mut TxContext) {
+    public entry fun new_reserved_domains(_: &AdminCap, suins: &mut SuiNS, config: &Configuration, domains: vector<u8>, owner: address, ctx: &mut TxContext) {
+        if (owner == @0x0) owner = tx_context::sender(ctx);
         let domains = remove_later::deserialize_reserve_domains(domains);
         let len = vector::length(&domains);
         let index = 0;
         let dot = utf8(b".");
-        let sui_tld = utf8(b"sui");
-        let move_tld = utf8(b"move");
 
         while (index < len) {
             let domain = vector::borrow(&domains, index);
             index = index + 1;
 
             let index_of_dot = string::index_of(domain, &dot);
+            // TODO: abort
             if (index_of_dot == string::length(domain)) continue;
 
             let node = string::sub_string(domain, 0, index_of_dot - 1);
             let tld = string::sub_string(domain, index_of_dot, string::length(domain));
-            if (tld != sui_tld && tld != move_tld) continue;
             // TODO: duration?
             register_internal(
                 suins,
                 *string::bytes(&tld),
                 config,
                 *string::bytes(&node),
-                @0x0,
-                3650,
+                owner,
+                365,
                 @0x0,
                 ctx,
             );
