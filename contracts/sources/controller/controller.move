@@ -19,14 +19,13 @@ module suins::controller {
     use suins::configuration::{Self, Configuration};
     use suins::emoji::validate_label_with_emoji;
     use suins::coin_util;
-    use suins::auction::{Self, Auction};
+    use suins::entity::{Self, SuiNS};
     use std::string::{Self, String, utf8};
     use std::ascii;
     use std::bcs;
     use std::vector;
     use std::option::{Self, Option};
     use sui::url::Url;
-    use suins::entity::{Self, SuiNS};
 
     // errors in the range of 301..400 indicate Sui Controller errors
     const EInvalidResolverAddress: u64 = 301;
@@ -121,8 +120,7 @@ module suins::controller {
         suins: &mut SuiNS,
         tld: vector<u8>,
         config: &mut Configuration,
-        auction: &Auction,
-        label: vector<u8>,
+        label: vector<u8>, // `label` is 1 level
         owner: address,
         no_years: u64,
         secret: vector<u8>,
@@ -134,7 +132,6 @@ module suins::controller {
             suins,
             tld,
             config,
-            auction,
             label,
             owner,
             no_years,
@@ -179,8 +176,7 @@ module suins::controller {
         suins: &mut SuiNS,
         tld: vector<u8>,
         config: &mut Configuration,
-        auction: &Auction,
-        label: vector<u8>,
+        label: vector<u8>, // `label` is 1 level
         owner: address,
         no_years: u64,
         secret: vector<u8>,
@@ -197,7 +193,6 @@ module suins::controller {
             suins,
             tld,
             config,
-            auction,
             label,
             owner,
             no_years,
@@ -226,8 +221,7 @@ module suins::controller {
         suins: &mut SuiNS,
         tld: vector<u8>,
         config: &mut Configuration,
-        auction: &Auction,
-        label: vector<u8>,
+        label: vector<u8>, // `label` is 1 level
         owner: address,
         no_years: u64,
         secret: vector<u8>,
@@ -239,7 +233,6 @@ module suins::controller {
             suins,
             tld,
             config,
-            auction,
             label,
             owner,
             no_years,
@@ -272,8 +265,7 @@ module suins::controller {
         suins: &mut SuiNS,
         tld: vector<u8>,
         config: &mut Configuration,
-        auction: &Auction,
-        label: vector<u8>,
+        label: vector<u8>, // `label` is 1 level
         owner: address,
         no_years: u64,
         secret: vector<u8>,
@@ -290,7 +282,6 @@ module suins::controller {
             suins,
             tld,
             config,
-            auction,
             label,
             owner,
             no_years,
@@ -323,8 +314,7 @@ module suins::controller {
         suins: &mut SuiNS,
         tld: vector<u8>,
         config: &mut Configuration,
-        auction: &Auction,
-        label: vector<u8>,
+        label: vector<u8>, // `label` is 1 level
         owner: address,
         no_years: u64,
         secret: vector<u8>,
@@ -340,7 +330,6 @@ module suins::controller {
             suins,
             tld,
             config,
-            auction,
             label,
             owner,
             no_years,
@@ -376,8 +365,7 @@ module suins::controller {
         suins: &mut SuiNS,
         tld: vector<u8>,
         config: &mut Configuration,
-        auction: &Auction,
-        label: vector<u8>,
+        label: vector<u8>, // `label` is 1 level
         owner: address,
         no_years: u64,
         secret: vector<u8>,
@@ -397,7 +385,6 @@ module suins::controller {
             suins,
             tld,
             config,
-            auction,
             label,
             owner,
             no_years,
@@ -429,8 +416,7 @@ module suins::controller {
         suins: &mut SuiNS,
         tld: vector<u8>,
         config: &mut Configuration,
-        auction: &Auction,
-        label: vector<u8>,
+        label: vector<u8>, // `label` is 1 level
         owner: address,
         no_years: u64,
         secret: vector<u8>,
@@ -446,7 +432,6 @@ module suins::controller {
             suins,
             tld,
             config,
-            auction,
             label,
             owner,
             no_years,
@@ -482,8 +467,7 @@ module suins::controller {
         suins: &mut SuiNS,
         tld: vector<u8>,
         config: &mut Configuration,
-        auction: &Auction,
-        label: vector<u8>,
+        label: vector<u8>, // `label` is 1 level
         owner: address,
         no_years: u64,
         secret: vector<u8>,
@@ -503,7 +487,6 @@ module suins::controller {
             suins,
             tld,
             config,
-            auction,
             label,
             owner,
             no_years,
@@ -583,7 +566,7 @@ module suins::controller {
         let amount = balance::value(entity::controller_balance(suins));
         assert!(amount > 0, ENoProfits);
 
-        coin_util::contract_transfer_to_address(suins, amount, sender(ctx), ctx);
+        coin_util::suins_transfer_to_address(suins, amount, sender(ctx), ctx);
     }
 
     // === Private Functions ===
@@ -598,7 +581,7 @@ module suins::controller {
     ) {
         let renew_fee = configuration::price_for_node(no_years);
         assert!(coin::value(payment) >= renew_fee, ENotEnoughFee);
-        coin_util::user_transfer_to_contract(payment, renew_fee, suins);
+        coin_util::user_transfer_to_suins(payment, renew_fee, suins);
 
         let duration = no_years * 365;
         registrar::renew(suins, tld, label, duration, ctx);
@@ -615,8 +598,7 @@ module suins::controller {
         suins: &mut SuiNS,
         tld: vector<u8>,
         config: &mut Configuration,
-        auction: &Auction,
-        label: vector<u8>,
+        label: vector<u8>, // label has only 1 level
         owner: address,
         no_years: u64,
         secret: vector<u8>,
@@ -633,7 +615,7 @@ module suins::controller {
         let emoji_config = configuration::emoji_config(config);
         let label_str = utf8(label);
 
-        if (!auction::is_label_available_for_controller(auction, label_str, ctx)) validate_label_with_emoji(emoji_config, label, 7, 63)
+        if (epoch(ctx) <= entity::controller_auction_house_finalized_at(suins)) validate_label_with_emoji(emoji_config, label, 7, 63)
         else validate_label_with_emoji(emoji_config, label, 3, 63);
 
         let commitment = make_commitment(tld, label, owner, secret);
@@ -681,7 +663,7 @@ module suins::controller {
             data: additional_data,
         });
 
-        coin_util::user_transfer_to_contract(payment, registration_fee, suins);
+        coin_util::user_transfer_to_suins(payment, registration_fee, suins);
     }
 
     // returns remaining_fee
@@ -787,7 +769,7 @@ module suins::controller {
     }
 
     #[test_only]
-    public fun balance(suins: &SuiNS): u64 {
+    public fun get_balance(suins: &SuiNS): u64 {
         let contract_balance = entity::controller_balance(suins);
         balance::value(contract_balance)
     }
