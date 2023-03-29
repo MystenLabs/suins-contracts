@@ -64,7 +64,7 @@ module suins::registrar_tests {
                 0
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -122,7 +122,7 @@ module suins::registrar_tests {
                 0
             );
 
-            registrar::register_with_image(
+            registrar::register_with_image_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -176,10 +176,10 @@ module suins::registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             let label = utf8(b"eastagile");
-            assert!(!registrar::is_available(&suins, SUI_REGISTRAR, label, test_scenario::ctx(&mut scenario)), 0);
+            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR), label, test_scenario::ctx(&mut scenario)), 0);
 
             let label = utf8(b"ea");
-            assert!(registrar::is_available(&suins, SUI_REGISTRAR, label,test_scenario::ctx(&mut scenario)), 0);
+            assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), label,test_scenario::ctx(&mut scenario)), 0);
 
             test_scenario::return_shared(suins);
         };
@@ -208,7 +208,7 @@ module suins::registrar_tests {
             // 0xFE cannot appear in a correct UTF-8 string
             vector::push_back(&mut invalid_label, 0xFE);
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -233,7 +233,7 @@ module suins::registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let image = test_scenario::take_shared<Configuration>(&mut scenario);
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -265,7 +265,7 @@ module suins::registrar_tests {
                 10,
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -482,7 +482,7 @@ module suins::registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let image = test_scenario::take_shared<Configuration>(&mut scenario);
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 b"com",
                 &image,
@@ -1117,7 +1117,7 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1177,7 +1177,7 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1237,7 +1237,7 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1298,7 +1298,7 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1359,7 +1359,7 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1420,7 +1420,7 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1481,7 +1481,7 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1542,7 +1542,7 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1601,7 +1601,7 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1661,7 +1661,7 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1711,7 +1711,7 @@ module suins::registrar_tests {
                 20
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1769,7 +1769,7 @@ module suins::registrar_tests {
                 20
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1797,6 +1797,63 @@ module suins::registrar_tests {
             );
 
             test_scenario::return_to_sender(&mut scenario, nft);
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_new_reserved_domains() {
+        let scenario = test_init();
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = &mut ctx_new(
+                SUINS_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                0
+            );
+
+            assert!(registrar::is_available(&suins, utf8(b"sui"),utf8(b"abcde"), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(b"move"),utf8(b"abcde"), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(b"sui"),utf8(b"abcdefghijk"), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(b"move"),utf8(b"abcdefghijk"), ctx), 0);
+
+            assert!(!registry::record_exists(&suins, utf8(b"abcde.sui")), 0);
+            assert!(!registry::record_exists(&suins, utf8(b"abcde.move")), 0);
+            assert!(!registry::record_exists(&suins, utf8(b"abcdefghijk.sui")), 0);
+            assert!(!registry::record_exists(&suins, utf8(b"abcdefghijk.move")), 0);
+
+            registrar::new_reserved_domains(&admin_cap, &mut suins, &config, b"abcde.sui;abcde.move;abcdefghijk.sui", ctx);
+
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
+        };
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let ctx = &mut ctx_new(
+                SUINS_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                0
+            );
+
+            assert!(!registrar::is_available(&suins, utf8(b"sui"),utf8(b"abcde"), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(b"move"),utf8(b"abcde"), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(b"sui"),utf8(b"abcdefghijk"), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(b"move"),utf8(b"abcdefghijk"), ctx), 0);
+
+            assert!(registry::record_exists(&suins, utf8(b"abcde.sui")), 0);
+            assert!(registry::record_exists(&suins, utf8(b"abcde.move")), 0);
+            assert!(registry::record_exists(&suins, utf8(b"abcdefghijk.sui")), 0);
+            assert!(!registry::record_exists(&suins, utf8(b"abcdefghijk.move")), 0);
+
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);

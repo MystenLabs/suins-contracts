@@ -4,9 +4,8 @@
 /// users must call the corresponding functions in `Controller`.
 module suins::registrar {
     use sui::event;
-    use sui::object::{Self, ID, UID, uid_to_inner};
-    use sui::transfer;
-    use sui::tx_context::{TxContext, epoch, sender};
+    use sui::object::{Self, UID, uid_to_inner, ID};
+    use sui::tx_context::TxContext;
     use sui::url::Url;
     use std::string::{Self, String, utf8};
     use std::option;
@@ -21,6 +20,8 @@ module suins::registrar {
     use sui::table;
     use suins::entity;
     use sui::table::Table;
+    use sui::tx_context;
+    use sui::transfer;
 
     friend suins::controller;
     friend suins::auction;
@@ -114,7 +115,7 @@ module suins::registrar {
         let label = assert_nft_not_expires(registrar, tld, nft, ctx);
 
         let registration = table::borrow(registrar, label);
-        assert!(entity::registration_record_expiry(registration) >= epoch(ctx), ELabelExpired);
+        assert!(entity::registration_record_expiry(registration) >= tx_context::epoch(ctx), ELabelExpired);
 
         registry::set_owner_internal(suins, nft.name, owner);
         event::emit(NameReclaimedEvent {
@@ -167,11 +168,45 @@ module suins::registrar {
 
         nft.url = url::new_unsafe_from_bytes(*string::bytes(&ipfs));
         event::emit(ImageUpdatedEvent {
-            sender: sender(ctx),
+            sender: tx_context::sender(ctx),
             node: nft.name,
             new_image: nft.url,
             data: additional_data,
         })
+    }
+
+    public entry fun new_reserved_domains(_: &AdminCap, suins: &mut SuiNS, config: &Configuration, domains: vector<u8>, ctx: &mut TxContext) {
+        let domains = remove_later::deserialize_reserve_domains(domains);
+        let len = vector::length(&domains);
+        let index = 0;
+        let dot = utf8(b".");
+        let sui_tld = utf8(b"sui");
+        let move_tld = utf8(b"move");
+
+        while (index < len) {
+            let domain = vector::borrow(&domains, index);
+            index = index + 1;
+
+            let index_of_dot = string::index_of(domain, &dot);
+            if (index_of_dot == string::length(domain)) continue;
+
+            let node = string::sub_string(domain, 0, index_of_dot - 1);
+            let tld = string::sub_string(domain, index_of_dot, string::length(domain));
+            if (tld != sui_tld && tld != move_tld) continue;
+            // TODO: duration?
+            register_internal(
+                suins,
+                *string::bytes(&tld),
+                config,
+                *string::bytes(&node),
+                @0x0,
+                3650,
+                @0x0,
+                ctx,
+            );
+
+            // event::emit(ReserveDomainAddedEvent { domain: *domain });
+        };
     }
 
     // === Public Functions ===
@@ -199,23 +234,22 @@ module suins::registrar {
 
     // === Friend and Private Functions ===
 
-    /// label can have multiple levels, e.g. 'dn.suins' or 'suins'
     /// this function doesn't charge fee
-    public(friend) fun register(
+    public(friend) fun register_internal(
         suins: &mut SuiNS,
         tld: vector<u8>,
         config: &Configuration,
-        label: vector<u8>,
+        node: vector<u8>,
         owner: address,
         duration: u64,
         resolver: address,
         ctx: &mut TxContext
     ): ID {
-        let (nft_id, _, _) = register_with_image(
+        let (nft_id, _, _) = register_with_image_internal(
             suins,
             tld,
             config,
-            label,
+            node,
             owner,
             duration,
             resolver,
@@ -227,11 +261,11 @@ module suins::registrar {
         nft_id
     }
 
-    public(friend) fun register_with_image(
+    public(friend) fun register_with_image_internal(
         suins: &mut SuiNS,
         tld: vector<u8>,
         config: &Configuration,
-        label: vector<u8>,
+        node: vector<u8>,
         owner: address,
         duration: u64,
         resolver: address,
@@ -243,7 +277,7 @@ module suins::registrar {
         // the calling fuction is responsible for checking emptyness of msg
         assert!(duration > 0, EInvalidDuration);
         // TODO: label is already validated in Controller, consider removing this
-        let label = string::try_utf8(label);
+        let label = string::try_utf8(node);
         assert!(option::is_some(&label), EInvalidLabel);
 
         let label = option::extract(&mut label);
@@ -252,7 +286,7 @@ module suins::registrar {
 
         assert!(is_available_internal(registrar, label, ctx), ELabelUnAvailable);
 
-        let expiry = epoch(ctx) + duration;
+        let expiry = tx_context::epoch(ctx) + duration;
         let node = label;
         string::append_utf8(&mut node, b".");
         string::append(&mut node, tld);
@@ -301,7 +335,7 @@ module suins::registrar {
         let expiry = name_expires_at_internal(registrar, label);
 
         assert!(expiry > 0, ELabelNotExists);
-        assert!(expiry + (GRACE_PERIOD as u64) >= epoch(ctx), ELabelExpired);
+        assert!(expiry + (GRACE_PERIOD as u64) >= tx_context::epoch(ctx), ELabelExpired);
 
         let record: &mut RegistrationRecord = table::borrow_mut(registrar, label);
         let new_expiry = entity::registration_record_expiry(record) + duration;
@@ -345,8 +379,7 @@ module suins::registrar {
     /// #### Returns
     /// true if this node is available for registration
     /// false otherwise
-    public(friend) fun is_available(suins: &SuiNS, tld: vector<u8>, label: String, ctx: &TxContext): bool {
-        let tld = utf8(tld);
+    public(friend) fun is_available(suins: &SuiNS, tld: String, label: String, ctx: &TxContext): bool {
         let registrar = entity::registrar(suins, tld);
         is_available_internal(registrar, label, ctx)
     }
@@ -358,14 +391,14 @@ module suins::registrar {
         nft: &RegistrationNFT,
         ctx: &mut TxContext,
     ): String {
-        let label = get_label_part(&nft.name, &tld);
+        let label = get_node_part(&nft.name, &tld);
         let record = table::borrow(registrar, label);
         // TODO: delete NFT if it expired
-        assert!(entity::registration_record_owner(record) == sender(ctx), ENFTExpired);
+        assert!(entity::registration_record_owner(record) == tx_context::sender(ctx), ENFTExpired);
         assert!(entity::registration_record_nft_id(record) == uid_to_inner(&nft.id), ENFTExpired);
 
         let expiry = name_expires_at_internal(registrar, label);
-        assert!(expiry != 0 && expiry >= epoch(ctx), ENFTExpired);
+        assert!(expiry != 0 && expiry >= tx_context::epoch(ctx), ENFTExpired);
 
         label
     }
@@ -381,12 +414,12 @@ module suins::registrar {
     fun is_available_internal(registrar: &Table<String, RegistrationRecord>, label: String, ctx: &TxContext): bool {
         let expiry = name_expires_at_internal(registrar, label);
         if (expiry != 0) {
-            return expiry + (GRACE_PERIOD as u64) < epoch(ctx)
+            return expiry + (GRACE_PERIOD as u64) < tx_context::epoch(ctx)
         };
         true
     }
 
-    fun get_label_part(node: &String, tld: &String): String {
+    fun get_node_part(node: &String, tld: &String): String {
         let index_of_dot = string::index_of(node, tld);
         assert!(index_of_dot == string::length(node) - string::length(tld), EInvalidBaseNode);
 
