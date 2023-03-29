@@ -4966,8 +4966,7 @@ module suins::controller_tests {
     }
 
     #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
-    fun test_register_auctioned_label_aborts_if_in_extra_period_but_admin_calls_finalize_all_auctions_and_in_same_epoch(
-    ) {
+    fun test_register_auctioned_label_aborts_if_in_extra_period_but_admin_calls_finalize_all_and_in_same_epoch() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
         start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
@@ -5026,7 +5025,7 @@ module suins::controller_tests {
             let ctx = ctx_new(
                 @0x0,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                EXTRA_PERIOD_START_AT + 1,
+                EXTRA_PERIOD_START_AT,
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
