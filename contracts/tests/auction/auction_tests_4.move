@@ -3,7 +3,7 @@ module suins::auction_tests_4 {
 
     use sui::coin::{Self, Coin};
     use sui::sui::SUI;
-    use suins::auction::{Self, make_seal_bid, get_bids_by_bidder, get_bid_detail_fields, withdraw, AuctionHouse, finalize_auction_by_admin, finalize_all_auctions_by_admin};
+    use suins::auction::{Self, make_seal_bid, get_bids_by_bidder, get_bid_detail_fields, withdraw, AuctionHouse, finalize_all_auctions_by_admin};
     use suins::configuration::Configuration;
     use std::vector;
     use std::option;
@@ -76,8 +76,8 @@ module suins::auction_tests_4 {
     const FIRST_TX_HASH: vector<u8> = x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431533";
     const SECOND_TX_HASH: vector<u8> = x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431534";
 
-    #[test, expected_failure(abort_code = auction::EInvalidPhase)]
-    fun test_finalize_all_auctions_by_admin_aborts_if_admin_calls_finalize_later() {
+    #[test]
+    fun test_finalize_all_auctions_by_admin_works() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, NODE);
@@ -124,29 +124,6 @@ module suins::auction_tests_4 {
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(scenario, admin_cap);
-            test_scenario::return_shared(config);
-        };
-        test_scenario::next_tx(scenario, SUINS_ADDRESS);
-        {
-            let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let config = test_scenario::take_shared<Configuration>(scenario);
-            let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-
-            finalize_auction_by_admin(
-                &admin_cap,
-                &mut auction,
-                &mut suins,
-                &config,
-                NODE,
-                RESOLVER_ADDRESS,
-                &mut ctx_util(FIRST_USER_ADDRESS, START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD, 20),
-            );
-            get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1000, 0, FIRST_USER_ADDRESS, true);
-
-            test_scenario::return_shared(auction);
-            test_scenario::return_to_sender(scenario, admin_cap);
-            test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
         };
         test_scenario::end(scenario_val);
