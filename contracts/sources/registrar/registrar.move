@@ -449,12 +449,12 @@ module suins::registrar {
     }
 
     #[test_only]
-    public fun get_record_detail(suins: &SuiNS, tld: vector<u8>, label: vector<u8>): (u64, address) {
+    public fun get_record_detail(suins: &SuiNS, tld: vector<u8>, node: vector<u8>): (u64, address) {
         let tld = utf8(tld);
         let registrar = entity::registrar(suins, tld);
-        let label = utf8(label);
+        let node = utf8(node);
 
-        let record = table::borrow(registrar, label);
+        let record = table::borrow(registrar, node);
 
         (entity::registration_record_expiry(record), entity::registration_record_owner(record))
     }

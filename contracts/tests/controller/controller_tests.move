@@ -167,7 +167,7 @@ module suins::controller_tests {
             assert!(expiry == 51 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -258,7 +258,7 @@ module suins::controller_tests {
             assert!(expiry == 21 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -575,7 +575,7 @@ module suins::controller_tests {
             assert!(expiry == 600 + 365, 0);
             assert!(owner == SECOND_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
             assert!(owner == SECOND_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -734,7 +734,7 @@ module suins::controller_tests {
             assert!(expiry == 51 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -1375,7 +1375,7 @@ module suins::controller_tests {
             assert!(expiry == 51 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -1451,7 +1451,7 @@ module suins::controller_tests {
             assert!(expiry == 51 + 1095, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -1566,7 +1566,7 @@ module suins::controller_tests {
             assert!(expiry == 51 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -1721,7 +1721,7 @@ module suins::controller_tests {
             assert!(expiry == 51 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -2106,7 +2106,7 @@ module suins::controller_tests {
             assert!(expiry == 51 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, domain_name);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, domain_name);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -2183,7 +2183,7 @@ module suins::controller_tests {
             assert!(expiry == 51 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -2335,7 +2335,7 @@ module suins::controller_tests {
             assert!(expiry == 51 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -2535,7 +2535,7 @@ module suins::controller_tests {
             assert!(expiry == 21 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -2635,7 +2635,7 @@ module suins::controller_tests {
             assert!(expiry == 51 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -2720,7 +2720,7 @@ module suins::controller_tests {
             assert!(expiry == 221 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -2807,7 +2807,7 @@ module suins::controller_tests {
             assert!(expiry == 221 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, AUCTIONED_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, AUCTIONED_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -2894,7 +2894,7 @@ module suins::controller_tests {
             assert!(expiry == 121 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -3129,7 +3129,7 @@ module suins::controller_tests {
             assert!(expiry == START_AUCTION_END_AT + EXTRA_PERIOD + BIDDING_PERIOD + REVEAL_PERIOD + 1 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, AUCTIONED_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, AUCTIONED_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -3282,7 +3282,7 @@ module suins::controller_tests {
             assert!(expiry == 221 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, AUCTIONED_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, AUCTIONED_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -3377,7 +3377,7 @@ module suins::controller_tests {
             assert!(expiry == 221 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, AUCTIONED_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, AUCTIONED_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -3484,7 +3484,7 @@ module suins::controller_tests {
             assert!(expiry == 221 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, AUCTIONED_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, AUCTIONED_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -3865,7 +3865,7 @@ module suins::controller_tests {
             assert!(expiry == 21 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -3939,7 +3939,7 @@ module suins::controller_tests {
             assert!(expiry == 21 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -4163,7 +4163,7 @@ module suins::controller_tests {
             assert!(expiry == 21 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -4361,7 +4361,7 @@ module suins::controller_tests {
             assert!(expiry == 21 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -4953,7 +4953,7 @@ module suins::controller_tests {
             );
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, AUCTIONED_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, AUCTIONED_NODE);
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
@@ -5064,7 +5064,7 @@ module suins::controller_tests {
             assert!(expiry == EXTRA_PERIOD_START_AT + 1 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, AUCTIONED_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, AUCTIONED_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);

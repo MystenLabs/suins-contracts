@@ -244,6 +244,7 @@ module suins::configuration {
             discount_codes: vec_map::empty(),
             emoji_config: emoji::init_emoji_config(),
             public_key: vector::empty(),
+            // TODO: set it to false
             enable_controller: true,
             min_domain_length: 3,
             min_non_auction_domain_length: 7,

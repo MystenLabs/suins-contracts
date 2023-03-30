@@ -61,7 +61,7 @@ module suins::reverse_registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -83,7 +83,7 @@ module suins::reverse_registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
             assert!(owner == SECOND_USER_ADDRESS, 0);
             assert!(resolver == SECOND_RESOLVER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -119,7 +119,7 @@ module suins::reverse_registrar_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(resolver == @0x0, 0);
             assert!(ttl == 0, 0);
