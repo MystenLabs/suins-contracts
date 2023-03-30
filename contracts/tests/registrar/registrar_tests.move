@@ -95,7 +95,7 @@ module suins::registrar_tests {
                 0
             );
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
 
             assert!(owner == FIRST_USER, 0);
             assert!(resolver == FIRST_RESOLVER, 0);
@@ -155,7 +155,7 @@ module suins::registrar_tests {
                 0
             );
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
 
             assert!(owner == FIRST_USER, 0);
             assert!(resolver == FIRST_RESOLVER, 0);
@@ -1805,6 +1805,13 @@ module suins::registrar_tests {
     #[test]
     fun test_new_reserved_domains() {
         let scenario = test_init();
+        let first_node = b"abcde";
+        let first_domain_name_sui = b"abcde.sui";
+        let first_domain_name_move = b"abcde.move";
+        let second_node = b"abcdefghijk";
+        let second_domain_name_sui = b"abcdefghijk.sui";
+        let second_domain_name_move = b"abcdefghijk.move";
+
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
@@ -1817,17 +1824,17 @@ module suins::registrar_tests {
                 0
             );
 
-            assert!(registrar::is_available(&suins, utf8(b"sui"),utf8(b"abcde"), ctx), 0);
-            assert!(registrar::is_available(&suins, utf8(b"move"),utf8(b"abcde"), ctx), 0);
-            assert!(registrar::is_available(&suins, utf8(b"sui"),utf8(b"abcdefghijk"), ctx), 0);
-            assert!(registrar::is_available(&suins, utf8(b"move"),utf8(b"abcdefghijk"), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(first_node), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(first_node), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(second_node), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR),utf8(second_node), ctx), 0);
 
-            assert!(!registry::record_exists(&suins, utf8(b"abcde.sui")), 0);
-            assert!(!registry::record_exists(&suins, utf8(b"abcde.move")), 0);
-            assert!(!registry::record_exists(&suins, utf8(b"abcdefghijk.sui")), 0);
-            assert!(!registry::record_exists(&suins, utf8(b"abcdefghijk.move")), 0);
+            assert!(!registry::record_exists(&suins, utf8(first_domain_name_sui)), 0);
+            assert!(!registry::record_exists(&suins, utf8(first_domain_name_move)), 0);
+            assert!(!registry::record_exists(&suins, utf8(second_domain_name_sui)), 0);
+            assert!(!registry::record_exists(&suins, utf8(second_domain_name_move)), 0);
 
-            registrar::new_reserved_domains(&admin_cap, &mut suins, &config, b"abcde.sui;abcde.move;abcdefghijk.sui", @0x0, ctx);
+            registrar::new_reserved_domains(&admin_cap, &mut suins, &config, b"abcde.sui;abcde.move;abcdefghijk.sui;", @0x0, ctx);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
@@ -1844,17 +1851,87 @@ module suins::registrar_tests {
                 0
             );
 
-            assert!(!registrar::is_available(&suins, utf8(b"sui"),utf8(b"abcde"), ctx), 0);
-            assert!(!registrar::is_available(&suins, utf8(b"move"),utf8(b"abcde"), ctx), 0);
-            assert!(!registrar::is_available(&suins, utf8(b"sui"),utf8(b"abcdefghijk"), ctx), 0);
-            assert!(registrar::is_available(&suins, utf8(b"move"),utf8(b"abcdefghijk"), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR),utf8(first_node), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(MOVE_REGISTRAR),utf8(first_node), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR),utf8(second_node), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR),utf8(second_node), ctx), 0);
 
-            assert!(registry::record_exists(&suins, utf8(b"abcde.sui")), 0);
-            assert!(registry::record_exists(&suins, utf8(b"abcde.move")), 0);
-            assert!(registry::record_exists(&suins, utf8(b"abcdefghijk.sui")), 0);
-            assert!(!registry::record_exists(&suins, utf8(b"abcdefghijk.move")), 0);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, first_node);
+            assert!(expiry == 415, 0);
+            assert!(owner == SUINS_ADDRESS, 0);
+            let (expiry, owner) = registrar::get_record_detail(&suins, MOVE_REGISTRAR, first_node);
+            assert!(expiry == 415, 0);
+            assert!(owner == SUINS_ADDRESS, 0);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, second_node);
+            assert!(expiry == 415, 0);
+            assert!(owner == SUINS_ADDRESS, 0);
+
+            assert!(registry::record_exists(&suins, utf8(first_domain_name_sui)), 0);
+            assert!(registry::record_exists(&suins, utf8(first_domain_name_move)), 0);
+            assert!(registry::record_exists(&suins, utf8(second_domain_name_sui)), 0);
+            assert!(!registry::record_exists(&suins, utf8(second_domain_name_move)), 0);
+
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, first_domain_name_sui);
+            assert!(owner == SUINS_ADDRESS, 0);
+            assert!(resolver == @0x0, 0);
+            assert!(ttl == 0, 0);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, first_domain_name_move);
+            assert!(owner == SUINS_ADDRESS, 0);
+            assert!(resolver == @0x0, 0);
+            assert!(ttl == 0, 0);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, second_domain_name_sui);
+            assert!(owner == SUINS_ADDRESS, 0);
+            assert!(resolver == @0x0, 0);
+            assert!(ttl == 0, 0);
+
+            let first_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = registrar::get_nft_fields(&first_nft);
+            assert!(name == utf8(second_domain_name_sui), 0);
+            assert!(
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
+                0
+            );
+            let second_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = registrar::get_nft_fields(&second_nft);
+            assert!(name == utf8(first_domain_name_move), 0);
+            assert!(
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
+                0
+            );
+            let third_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = registrar::get_nft_fields(&third_nft);
+            std::debug::print(&name);
+            assert!(
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
+                0
+            );
+
+            test_scenario::return_to_sender(&mut scenario, first_nft);
+            test_scenario::return_to_sender(&mut scenario, second_nft);
+            test_scenario::return_to_sender(&mut scenario, third_nft);
+            test_scenario::return_shared(suins);
+        };
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = &mut ctx_new(
+                SUINS_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                0
+            );
+
+            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR),utf8(second_node), ctx), 0);
+            assert!(!registry::record_exists(&suins, utf8(second_domain_name_move)), 0);
+
+            registrar::new_reserved_domains(&admin_cap, &mut suins, &config, b"abcdefghijk.move", @0x0, ctx);
 
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
         test_scenario::end(scenario);
     }

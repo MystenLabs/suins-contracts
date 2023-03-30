@@ -44,6 +44,7 @@ module suins::registrar {
     const EInvalidImageMessage: u64 = 211;
     const EHashedMessageNotMatch: u64 = 212;
     const ENFTExpired: u64 = 213;
+    const EInvalidDomain: u64 = 214;
 
     /// NFT representing ownership of a domain
     struct RegistrationNFT has key, store {
@@ -187,12 +188,10 @@ module suins::registrar {
             index = index + 1;
 
             let index_of_dot = string::index_of(domain, &dot);
-            // TODO: abort
-            if (index_of_dot == string::length(domain)) continue;
+            assert!(index_of_dot != string::length(domain), EInvalidDomain);
 
-            let node = string::sub_string(domain, 0, index_of_dot - 1);
-            let tld = string::sub_string(domain, index_of_dot, string::length(domain));
-            // TODO: duration?
+            let node = string::sub_string(domain, 0, index_of_dot);
+            let tld = string::sub_string(domain, index_of_dot + 1, string::length(domain));
             register_internal(
                 suins,
                 *string::bytes(&tld),
@@ -203,8 +202,6 @@ module suins::registrar {
                 @0x0,
                 ctx,
             );
-
-            // event::emit(ReserveDomainAddedEvent { domain: *domain });
         };
     }
 
@@ -282,7 +279,6 @@ module suins::registrar {
         let label = option::extract(&mut label);
         let tld = utf8(tld);
         let registrar = entity::registrar_mut(suins, tld);
-
         assert!(is_available_internal(registrar, label, ctx), ELabelUnAvailable);
 
         let expiry = tx_context::epoch(ctx) + duration;
