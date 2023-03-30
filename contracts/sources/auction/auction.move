@@ -77,6 +77,7 @@ module suins::auction {
         highest_bid: u64,
         second_highest_bid: u64,
         winner: address,
+        second_highest_bidder: address,
         is_finalized: bool,
         /// the created_at property of the current winning bid
         /// if 2 bidders bid same value, we choose the one who called `new_bid` first
@@ -208,6 +209,7 @@ module suins::auction {
             highest_bid: 0,
             second_highest_bid: 0,
             winner: @0x0,
+            second_highest_bidder: @0x0,
             is_finalized: false,
             bid_detail_created_at: 0,
             winning_bid_uid: object::id_from_address(@0x0),
@@ -335,6 +337,7 @@ module suins::auction {
         } else if (value > entry.highest_bid) {
             // Vickrey auction, winner pays the second highest_bid
             entry.second_highest_bid = entry.highest_bid;
+            entry.second_highest_bidder = entry.winner;
             entry.highest_bid = value;
             entry.winner = bid_detail.bidder;
             entry.bid_detail_created_at = bid_detail.created_at;
@@ -343,6 +346,7 @@ module suins::auction {
             // if same value and same created_at, we choose first one who reveals bid.
             // TODO: could be combined with the previous check
             entry.second_highest_bid = entry.highest_bid;
+            entry.second_highest_bidder = entry.winner;
             entry.highest_bid = value;
             entry.winner = bid_detail.bidder;
             entry.bid_detail_created_at = bid_detail.created_at;
@@ -350,6 +354,7 @@ module suins::auction {
         } else if (value > entry.second_highest_bid) {
             // not winner, but affects second place
             entry.second_highest_bid = value;
+            entry.second_highest_bidder = sender(ctx);
         } else {
             // bid doesn't affect auction
             // TODO: what to do now?
@@ -644,14 +649,22 @@ module suins::auction {
         bid_detail: &BidDetail,
         ctx: &mut TxContext
     ) {
-        if (entry.second_highest_bid != 0) {
+        if (entry.second_highest_bid != 0 && entry.second_highest_bidder != @0x0) {
             coin_util::auction_transfer_to_address(
                 auction_balance,
                 bid_detail.bid_value_mask - entry.second_highest_bid,
                 bid_detail.bidder,
                 ctx
             );
-            coin_util::auction_transfer_to_suins(auction_balance, entry.second_highest_bid, suins);
+            // it rounds down
+            let second_highest_bidder_take = (entry.second_highest_bid / 100) * 5;
+            coin_util::auction_transfer_to_suins(auction_balance, entry.second_highest_bid - second_highest_bidder_take, suins);
+            coin_util::auction_transfer_to_address(
+                auction_balance,
+                second_highest_bidder_take,
+                entry.second_highest_bidder,
+                ctx,
+            );
         } else {
             // winner is the only one who bided
             coin_util::auction_transfer_to_address(
