@@ -27,6 +27,7 @@ module suins::auction {
     use suins::entity;
 
     const MIN_PRICE: u64 = 1000;
+    const BIDDING_FEE: u64 = 5;
     const START_AN_AUCTION_FEE: u64 = 10000;
     const BIDDING_PERIOD: u64 = 3;
     const REVEAL_PERIOD: u64 = 3;
@@ -238,6 +239,7 @@ module suins::auction {
     /// or payment doesn't have enough coin
     public entry fun place_bid(
         auction_house: &mut AuctionHouse,
+        suins: &mut SuiNS,
         sealed_bid: vector<u8>,
         bid_value_mask: u64,
         payment: &mut Coin<SUI>,
@@ -270,7 +272,8 @@ module suins::auction {
         vector::push_back(bids_by_sender, bid);
         event::emit(NewBidEvent { bidder, sealed_bid, bid_value_mask });
 
-        coin_util::user_transfer_to_auction(payment, bid_value_mask, &mut auction_house.balance)
+        coin_util::user_transfer_to_auction(payment, bid_value_mask, &mut auction_house.balance);
+        coin_util::user_transfer_to_suins(payment, BIDDING_FEE, suins);
     }
 
     /// #### Notice
