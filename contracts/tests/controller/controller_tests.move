@@ -5,6 +5,7 @@ module suins::controller_tests {
     use sui::test_scenario::{Self, Scenario};
     use sui::sui::SUI;
     use sui::url;
+    use sui::dynamic_field;
     use suins::auction::{make_seal_bid, finalize_all_auctions_by_admin, AuctionHouse};
     use suins::auction;
     use suins::auction_tests::{start_an_auction_util, place_bid_util, reveal_bid_util, ctx_new};
@@ -46,6 +47,7 @@ module suins::controller_tests {
     const START_AN_AUCTION_AT: u64 = 110;
     const EXTRA_PERIOD: u64 = 30;
     const SUI_REGISTRAR: vector<u8> = b"sui";
+    const MOVE_REGISTRAR: vector<u8> = b"move";
 
     fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
@@ -63,6 +65,7 @@ module suins::controller_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             registrar::new_tld(&admin_cap, &mut suins, SUI_REGISTRAR, test_scenario::ctx(&mut scenario));
+            registrar::new_tld(&admin_cap, &mut suins, MOVE_REGISTRAR, test_scenario::ctx(&mut scenario));
             configuration::new_referral_code(&admin_cap, &mut config, REFERRAL_CODE, 10, SECOND_USER_ADDRESS);
             configuration::new_discount_code(&admin_cap, &mut config, DISCOUNT_CODE, 15, FIRST_USER_ADDRESS);
             configuration::set_public_key(
@@ -5071,6 +5074,405 @@ module suins::controller_tests {
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_new_reserved_domains() {
+        let scenario = test_init();
+        let first_node = b"abcde";
+        let first_domain_name_sui = b"abcde.sui";
+        let first_domain_name_move = b"abcde.move";
+        let second_node = b"abcdefghijk";
+        let second_domain_name_sui = b"abcdefghijk.sui";
+        let second_domain_name_move = b"abcdefghijk.move";
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = &mut ctx_new(
+                SUINS_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                2
+            );
+
+            assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(first_node), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(first_node), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(second_node), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR),utf8(second_node), ctx), 0);
+
+            assert!(!registry::record_exists(&suins, utf8(first_domain_name_sui)), 0);
+            assert!(!registry::record_exists(&suins, utf8(first_domain_name_move)), 0);
+            assert!(!registry::record_exists(&suins, utf8(second_domain_name_sui)), 0);
+            assert!(!registry::record_exists(&suins, utf8(second_domain_name_move)), 0);
+
+            controller::new_reserved_domains(&admin_cap, &mut suins, &config, b"abcde.sui;abcde.move;abcdefghijk.sui;", @0x0, ctx);
+
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
+        };
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let ctx = &mut ctx_new(
+                SUINS_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                10
+            );
+
+            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR),utf8(first_node), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(MOVE_REGISTRAR),utf8(first_node), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR),utf8(second_node), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR),utf8(second_node), ctx), 0);
+
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, first_node);
+            assert!(expiry == 415, 0);
+            assert!(owner == SUINS_ADDRESS, 0);
+            let (expiry, owner) = registrar::get_record_detail(&suins, MOVE_REGISTRAR, first_node);
+            assert!(expiry == 415, 0);
+            assert!(owner == SUINS_ADDRESS, 0);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, second_node);
+            assert!(expiry == 415, 0);
+            assert!(owner == SUINS_ADDRESS, 0);
+
+            assert!(registry::record_exists(&suins, utf8(first_domain_name_sui)), 0);
+            assert!(registry::record_exists(&suins, utf8(first_domain_name_move)), 0);
+            assert!(registry::record_exists(&suins, utf8(second_domain_name_sui)), 0);
+            assert!(!registry::record_exists(&suins, utf8(second_domain_name_move)), 0);
+
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, first_domain_name_sui);
+            assert!(owner == SUINS_ADDRESS, 0);
+            assert!(resolver == @0x0, 0);
+            assert!(ttl == 0, 0);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, first_domain_name_move);
+            assert!(owner == SUINS_ADDRESS, 0);
+            assert!(resolver == @0x0, 0);
+            assert!(ttl == 0, 0);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, second_domain_name_sui);
+            assert!(owner == SUINS_ADDRESS, 0);
+            assert!(resolver == @0x0, 0);
+            assert!(ttl == 0, 0);
+
+            let first_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = registrar::get_nft_fields(&first_nft);
+            assert!(name == utf8(second_domain_name_sui), 0);
+            assert!(
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
+                0
+            );
+            let second_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = registrar::get_nft_fields(&second_nft);
+            assert!(name == utf8(first_domain_name_move), 0);
+            assert!(
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
+                0
+            );
+            let third_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = registrar::get_nft_fields(&third_nft);
+            assert!(name == utf8(first_domain_name_sui), 0);
+            assert!(
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
+                0
+            );
+
+            test_scenario::return_to_sender(&mut scenario, third_nft);
+            test_scenario::return_to_sender(&mut scenario, second_nft);
+            test_scenario::return_to_sender(&mut scenario, first_nft);
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = &mut ctx_new(
+                SUINS_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                52,
+                20
+            );
+
+            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR),utf8(second_node), ctx), 0);
+            assert!(!registry::record_exists(&suins, utf8(second_domain_name_move)), 0);
+
+            controller::new_reserved_domains(&admin_cap, &mut suins, &config, b"abcdefghijk.move", @0x0B, ctx);
+
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
+        };
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let ctx = &mut ctx_new(
+                SUINS_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                30
+            );
+
+            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR),utf8(first_node), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(MOVE_REGISTRAR),utf8(first_node), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR),utf8(second_node), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(MOVE_REGISTRAR),utf8(second_node), ctx), 0);
+
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, first_node);
+            assert!(expiry == 415, 0);
+            assert!(owner == SUINS_ADDRESS, 0);
+            let (expiry, owner) = registrar::get_record_detail(&suins, MOVE_REGISTRAR, first_node);
+            assert!(expiry == 415, 0);
+            assert!(owner == SUINS_ADDRESS, 0);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, second_node);
+            assert!(expiry == 415, 0);
+            assert!(owner == SUINS_ADDRESS, 0);
+            let (expiry, owner) = registrar::get_record_detail(&suins, MOVE_REGISTRAR, second_node);
+            assert!(expiry == 417, 0);
+            assert!(owner == @0x0B, 0);
+
+            assert!(registry::record_exists(&suins, utf8(first_domain_name_sui)), 0);
+            assert!(registry::record_exists(&suins, utf8(first_domain_name_move)), 0);
+            assert!(registry::record_exists(&suins, utf8(second_domain_name_sui)), 0);
+            assert!(registry::record_exists(&suins, utf8(second_domain_name_move)), 0);
+
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, first_domain_name_sui);
+            assert!(owner == SUINS_ADDRESS, 0);
+            assert!(resolver == @0x0, 0);
+            assert!(ttl == 0, 0);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, first_domain_name_move);
+            assert!(owner == SUINS_ADDRESS, 0);
+            assert!(resolver == @0x0, 0);
+            assert!(ttl == 0, 0);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, second_domain_name_sui);
+            assert!(owner == SUINS_ADDRESS, 0);
+            assert!(resolver == @0x0, 0);
+            assert!(ttl == 0, 0);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, second_domain_name_move);
+            assert!(owner == @0x0B, 0);
+            assert!(resolver == @0x0, 0);
+            assert!(ttl == 0, 0);
+
+            let first_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = registrar::get_nft_fields(&first_nft);
+            assert!(name == utf8(second_domain_name_sui), 0);
+            assert!(
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
+                0
+            );
+            let second_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = registrar::get_nft_fields(&second_nft);
+            assert!(name == utf8(first_domain_name_move), 0);
+            assert!(
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
+                0
+            );
+            let third_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = registrar::get_nft_fields(&third_nft);
+            assert!(name == utf8(first_domain_name_sui), 0);
+            assert!(
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
+                0
+            );
+
+            test_scenario::return_to_sender(&mut scenario, first_nft);
+            test_scenario::return_to_sender(&mut scenario, second_nft);
+            test_scenario::return_to_sender(&mut scenario, third_nft);
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, @0x0B);
+        {
+            let first_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let (name, url) = registrar::get_nft_fields(&first_nft);
+            assert!(name == utf8(second_domain_name_move), 0);
+            assert!(
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
+                0
+            );
+            test_scenario::return_to_sender(&mut scenario, first_nft);
+        };
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = &mut ctx_new(
+                SUINS_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                52,
+                20
+            );
+            let emoji_node = vector[104, 109, 109, 109, 49, 240, 159, 145, 180];
+            let emoji_domain_name = vector[104, 109, 109, 109, 49, 240, 159, 145, 180, 46, 115, 117, 105];
+
+            assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR),utf8(emoji_node), ctx), 0);
+            assert!(!registry::record_exists(&suins, utf8(emoji_domain_name)), 0);
+
+            controller::new_reserved_domains(&admin_cap, &mut suins, &config, emoji_domain_name, @0x0C, ctx);
+
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = registrar::ELabelUnAvailable)]
+    fun test_new_reserved_domains_aborts_with_dupdated_domain_names() {
+        let scenario = test_init();
+        let first_node = b"abcde";
+        let first_domain_name_sui = b"abcde.sui";
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = &mut ctx_new(
+                SUINS_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                2
+            );
+
+            assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(first_node), ctx), 0);
+            assert!(!registry::record_exists(&suins, utf8(first_domain_name_sui)), 0);
+
+            controller::new_reserved_domains(&admin_cap, &mut suins, &config, b"abcde.sui;abcde.sui;", @0x0, ctx);
+
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
+    fun test_new_reserved_domains_aborts_with_malformed_domains() {
+        let scenario = test_init();
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = &mut ctx_new(
+                SUINS_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                2
+            );
+
+            controller::new_reserved_domains(&admin_cap, &mut suins, &config, b"abcde..sui;", @0x0, ctx);
+
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
+    fun test_new_reserved_domains_aborts_with_non_existence_tld() {
+        let scenario = test_init();
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = &mut ctx_new(
+                SUINS_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                2
+            );
+
+            controller::new_reserved_domains(&admin_cap, &mut suins, &config, b"abcde.suins;", @0x0, ctx);
+
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
+    fun test_new_reserved_domains_aborts_with_leading_dash_character() {
+        let scenario = test_init();
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = &mut ctx_new(
+                SUINS_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                2
+            );
+
+            controller::new_reserved_domains(&admin_cap, &mut suins, &config, b"-abcde.sui;", @0x0, ctx);
+
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
+    fun test_new_reserved_domains_aborts_with_trailing_dash_character() {
+        let scenario = test_init();
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = &mut ctx_new(
+                SUINS_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                2
+            );
+
+            controller::new_reserved_domains(&admin_cap, &mut suins, &config, b"abcde-.move;", @0x0, ctx);
+
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = emoji::EInvalidEmojiSequence)]
+    fun test_new_reserved_domains_aborts_with_invalid_emoji() {
+        let scenario = test_init();
+        let invalid_emoji_domain_name = vector[241, 159, 152, 135, 119, 109, 109, 49, 240, 159, 145, 180, 46, 115, 117, 105];
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = &mut ctx_new(
+                SUINS_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                2
+            );
+
+            controller::new_reserved_domains(&admin_cap, &mut suins, &config, invalid_emoji_domain_name, @0x0, ctx);
+
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
         test_scenario::end(scenario);
     }

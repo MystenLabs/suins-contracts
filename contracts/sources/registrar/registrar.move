@@ -44,7 +44,6 @@ module suins::registrar {
     const EInvalidImageMessage: u64 = 211;
     const EHashedMessageNotMatch: u64 = 212;
     const ENFTExpired: u64 = 213;
-    const EInvalidDomain: u64 = 214;
 
     /// NFT representing ownership of a domain
     struct RegistrationNFT has key, store {
@@ -174,35 +173,6 @@ module suins::registrar {
             new_image: nft.url,
             data: additional_data,
         })
-    }
-
-    public entry fun new_reserved_domains(_: &AdminCap, suins: &mut SuiNS, config: &Configuration, domains: vector<u8>, owner: address, ctx: &mut TxContext) {
-        if (owner == @0x0) owner = tx_context::sender(ctx);
-        let domains = remove_later::deserialize_reserve_domains(domains);
-        let len = vector::length(&domains);
-        let index = 0;
-        let dot = utf8(b".");
-
-        while (index < len) {
-            let domain = vector::borrow(&domains, index);
-            index = index + 1;
-
-            let index_of_dot = string::index_of(domain, &dot);
-            assert!(index_of_dot != string::length(domain), EInvalidDomain);
-
-            let node = string::sub_string(domain, 0, index_of_dot);
-            let tld = string::sub_string(domain, index_of_dot + 1, string::length(domain));
-            register_internal(
-                suins,
-                *string::bytes(&tld),
-                config,
-                *string::bytes(&node),
-                owner,
-                365,
-                @0x0,
-                ctx,
-            );
-        };
     }
 
     // === Public Functions ===
