@@ -3065,6 +3065,7 @@ module suins::controller_tests {
                 START_AUCTION_END_AT + EXTRA_PERIOD + BIDDING_PERIOD + REVEAL_PERIOD,
                 0
             );
+            assert!(controller::get_balance(&suins) == 10000, 0);
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 AUCTIONED_LABEL,
@@ -3117,7 +3118,7 @@ module suins::controller_tests {
             let (name, url) = registrar::get_nft_fields(&nft);
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == 1000000, 0);
+            assert!(controller::get_balance(&suins) == 1010000, 0);
             assert!(name == utf8(AUCTIONED_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -4862,7 +4863,7 @@ module suins::controller_tests {
         let scenario = test_init();
         set_auction_config(&mut scenario);
         start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
-        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000, b"CnRGhPvfCu");
+        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER_ADDRESS, option::none());
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -4873,7 +4874,7 @@ module suins::controller_tests {
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 AUCTIONED_LABEL,
                 1000,
-                b"CnRGhPvfCu",
+                FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
             );
@@ -4889,6 +4890,7 @@ module suins::controller_tests {
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + EXTRA_PERIOD,
                 0
             );
+            assert!(controller::get_balance(&suins) == 10000, 0);
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 AUCTIONED_LABEL,
@@ -4936,7 +4938,7 @@ module suins::controller_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = registrar::get_nft_fields(&nft);
 
-            assert!(controller::get_balance(&suins) == 1000000, 0);
+            assert!(controller::get_balance(&suins) == 1010000, 0);
             assert!(name == utf8(AUCTIONED_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -4964,8 +4966,7 @@ module suins::controller_tests {
     }
 
     #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
-    fun test_register_auctioned_label_aborts_if_in_extra_period_but_admin_calls_finalize_all_auctions_and_in_same_epoch(
-    ) {
+    fun test_register_auctioned_label_aborts_if_in_extra_period_but_admin_calls_finalize_all_and_in_same_epoch() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
         start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
@@ -4976,6 +4977,7 @@ module suins::controller_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            assert!(controller::get_balance(&suins) == 10000, 0);
 
             finalize_all_auctions_by_admin(
                 &admin_cap,
@@ -4986,6 +4988,7 @@ module suins::controller_tests {
                 &mut auction_tests::ctx_util(SUINS_ADDRESS, EXTRA_PERIOD_START_AT, 20),
             );
 
+            assert!(controller::get_balance(&suins) == 10000, 0);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
@@ -5041,6 +5044,32 @@ module suins::controller_tests {
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(config);
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let (name, url) = registrar::get_nft_fields(&nft);
+            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
+
+            assert!(controller::get_balance(&suins) == 1010000, 0);
+            assert!(name == utf8(AUCTIONED_NODE), 0);
+            assert!(
+                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
+                0
+            );
+
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
+            assert!(expiry == EXTRA_PERIOD_START_AT + 1 + 365, 0);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
+
+            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, AUCTIONED_NODE);
+            assert!(owner == FIRST_USER_ADDRESS, 0);
+            assert!(resolver == @0x0, 0);
+            assert!(ttl == 0, 0);
+
+            test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);

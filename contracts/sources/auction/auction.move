@@ -180,6 +180,7 @@ module suins::auction {
     /// or the length of the label must be within the range of 3-6 characters.
     public entry fun start_an_auction(
         auction_house: &mut AuctionHouse,
+        suins: &mut SuiNS,
         config: &Configuration,
         label: vector<u8>,
         payment: &mut Coin<SUI>,
@@ -214,7 +215,7 @@ module suins::auction {
         linked_table::push_back(&mut auction_house.entries, label, entry);
         event::emit(AuctionStartedEvent { label, start_at });
 
-        coin_util::user_transfer_to_auction(payment, START_AN_AUCTION_FEE, &mut auction_house.balance)
+        coin_util::user_transfer_to_suins(payment, START_AN_AUCTION_FEE, suins)
     }
 
     /// #### Notice
