@@ -12,6 +12,7 @@ module suins::auction {
     use sui::hash::keccak256;
     use sui::coin::Coin;
     use sui::event;
+    use sui::clock::{Self, Clock};
     use sui::linked_table::{Self, LinkedTable};
     use suins::registrar;
     use suins::registry::AdminCap;
@@ -66,7 +67,7 @@ module suins::auction {
         // empty for unknowned value
         // label for .sui node
         label: String,
-        created_at: u64,
+        created_at_in_ms: u64,
         sealed_bid: vector<u8>,
         is_unsealed: bool,
     }
@@ -80,7 +81,7 @@ module suins::auction {
         is_finalized: bool,
         /// the created_at property of the current winning bid
         /// if 2 bidders bid same value, we choose the one who called `new_bid` first
-        bid_detail_created_at: u64,
+        bid_detail_created_at_in_ms: u64,
         /// object::id_from_address(@0x0) if winner hasn't been determined
         winning_bid_uid: ID,
     }
@@ -209,7 +210,7 @@ module suins::auction {
             second_highest_bid: 0,
             winner: @0x0,
             is_finalized: false,
-            bid_detail_created_at: 0,
+            bid_detail_created_at_in_ms: 0,
             winning_bid_uid: object::id_from_address(@0x0),
         };
         linked_table::push_back(&mut auction_house.entries, label, entry);
@@ -239,6 +240,7 @@ module suins::auction {
         sealed_bid: vector<u8>,
         bid_value_mask: u64,
         payment: &mut Coin<SUI>,
+        clock: &Clock,
         ctx: &mut TxContext
     ) {
         assert!(
@@ -261,7 +263,7 @@ module suins::auction {
             bid_value_mask,
             bid_value: 0,
             label: utf8(vector[]),
-            created_at: epoch(ctx),
+            created_at_in_ms: clock::timestamp_ms(clock),
             sealed_bid,
             is_unsealed: false,
         };
@@ -320,15 +322,15 @@ module suins::auction {
             label,
             bidder: sender(ctx),
             bid_value: value,
-            created_at: bid_detail.created_at,
+            created_at: bid_detail.created_at_in_ms,
         });
 
         let entry = linked_table::borrow_mut(&mut auction_house.entries, *&label);
         if (
             bid_detail.bid_value_mask < value
                 || value < MIN_PRICE
-                || bid_detail.created_at < entry.start_at
-                || entry.start_at + BIDDING_PERIOD <= bid_detail.created_at
+                || bid_detail.created_at_in_ms < entry.start_at
+                || entry.start_at + BIDDING_PERIOD <= bid_detail.created_at_in_ms
         ) {
             // invalid bid
             // TODO: what to do now?
@@ -337,15 +339,15 @@ module suins::auction {
             entry.second_highest_bid = entry.highest_bid;
             entry.highest_bid = value;
             entry.winner = bid_detail.bidder;
-            entry.bid_detail_created_at = bid_detail.created_at;
+            entry.bid_detail_created_at_in_ms = bid_detail.created_at_in_ms;
             entry.winning_bid_uid = bid_detail.uid;
-        } else if (value == entry.highest_bid && bid_detail.created_at < entry.bid_detail_created_at) {
+        } else if (value == entry.highest_bid && bid_detail.created_at_in_ms < entry.bid_detail_created_at_in_ms) {
             // if same value and same created_at, we choose first one who reveals bid.
             // TODO: could be combined with the previous check
             entry.second_highest_bid = entry.highest_bid;
             entry.highest_bid = value;
             entry.winner = bid_detail.bidder;
-            entry.bid_detail_created_at = bid_detail.created_at;
+            entry.bid_detail_created_at_in_ms = bid_detail.created_at_in_ms;
             entry.winning_bid_uid = bid_detail.uid;
         } else if (value > entry.second_highest_bid) {
             // not winner, but affects second place
@@ -720,7 +722,7 @@ module suins::auction {
 
     #[test_only]
     public fun get_bid_detail_fields(bid_detail: &BidDetail): (address, u64, u64, bool) {
-        (bid_detail.bidder, bid_detail.bid_value_mask, bid_detail.created_at, bid_detail.is_unsealed)
+        (bid_detail.bidder, bid_detail.bid_value_mask, bid_detail.created_at_in_ms, bid_detail.is_unsealed)
     }
 
     #[test_only]

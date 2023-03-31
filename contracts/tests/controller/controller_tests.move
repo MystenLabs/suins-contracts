@@ -5,6 +5,7 @@ module suins::controller_tests {
     use sui::test_scenario::{Self, Scenario};
     use sui::sui::SUI;
     use sui::url;
+    use sui::clock;
     use sui::dynamic_field;
     use suins::auction::{make_seal_bid, finalize_all_auctions_by_admin, AuctionHouse};
     use suins::auction;
@@ -57,6 +58,7 @@ module suins::controller_tests {
             configuration::test_init(ctx);
             entity::test_init(ctx);
             auction::test_init(ctx);
+            clock::create_for_testing(ctx);
         };
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
