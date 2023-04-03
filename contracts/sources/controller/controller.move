@@ -12,7 +12,7 @@ module suins::controller {
     use sui::event;
     use sui::linked_table::{Self, LinkedTable};
     use sui::object::ID;
-    use sui::tx_context::{TxContext, sender, epoch};
+    use sui::tx_context::{Self, TxContext};
     use sui::sui::SUI;
     use suins::registry::AdminCap;
     use suins::registrar::{Self, RegistrationNFT};
@@ -26,8 +26,9 @@ module suins::controller {
     use std::vector;
     use std::option::{Self, Option};
     use sui::url::Url;
-    use sui::tx_context;
     use suins::remove_later;
+    use sui::clock::Clock;
+    use sui::clock;
 
     // errors in the range of 301..400 indicate Sui Controller errors
     const EInvalidResolverAddress: u64 = 301;
@@ -89,14 +90,10 @@ module suins::controller {
     ///
     /// #### Params
     /// `commitment`: hash from `make_commitment`
-    public entry fun commit(
-        suins: &mut SuiNS,
-        commitment: vector<u8>,
-        ctx: &mut TxContext,
-    ) {
+    public entry fun commit(suins: &mut SuiNS, commitment: vector<u8>, clock: &Clock) {
         let commitments = entity::controller_commitments_mut(suins);
-        remove_outdated_commitments(commitments, ctx);
-        linked_table::push_back(commitments, commitment, epoch(ctx));
+        remove_outdated_commitments(commitments, clock);
+        linked_table::push_back(commitments, commitment, clock::timestamp_ms(clock));
     }
 
     /// #### Notice
@@ -569,7 +566,7 @@ module suins::controller {
         let amount = balance::value(entity::controller_balance(suins));
         assert!(amount > 0, ENoProfits);
 
-        coin_util::suins_transfer_to_address(suins, amount, sender(ctx), ctx);
+        coin_util::suins_transfer_to_address(suins, amount, tx_context::sender(ctx), ctx);
     }
 
     public entry fun new_reserved_domains(
@@ -661,12 +658,13 @@ module suins::controller {
         let emoji_config = configuration::emoji_config(config);
         let label_str = utf8(label);
 
-        if (epoch(ctx) <= entity::controller_auction_house_finalized_at(suins)) validate_label_with_emoji(
-            emoji_config,
-            label,
-            configuration::min_non_auction_domain_length(),
-            configuration::max_domain_length(),
-        )
+        if (tx_context::epoch(ctx) <= entity::controller_auction_house_finalized_at(suins))
+            validate_label_with_emoji(
+                emoji_config,
+                label,
+                configuration::min_non_auction_domain_length(),
+                configuration::max_domain_length(),
+            )
         else validate_label_with_emoji(
             emoji_config,
             label,
@@ -710,7 +708,7 @@ module suins::controller {
             label: label_str,
             owner,
             cost: configuration::price_for_node(no_years),
-            expiry: epoch(ctx) + duration,
+            expiry: tx_context::epoch(ctx) + duration,
             nft_id,
             resolver,
             referral_code,
@@ -749,7 +747,7 @@ module suins::controller {
         (original_fee / 100) * (100 - rate as u64)
     }
 
-    fun remove_outdated_commitments(commitments: &mut LinkedTable<vector<u8>, u64>, ctx: &mut TxContext) {
+    fun remove_outdated_commitments(commitments: &mut LinkedTable<vector<u8>, u64>, clock: &Clock) {
         let front_element = linked_table::front(commitments);
         let i = 0;
 
@@ -757,7 +755,7 @@ module suins::controller {
             i = i + 1;
 
             let created_at = linked_table::borrow(commitments, *option::borrow(front_element));
-            if (*created_at + configuration::max_commitment_age() <= epoch(ctx)) {
+            if (*created_at + configuration::max_commitment_age_in_ms() <= clock::timestamp_ms(clock)) {
                 linked_table::pop_front(commitments);
                 front_element = linked_table::front(commitments);
             } else break;
@@ -779,7 +777,8 @@ module suins::controller {
         //     ECommitmentNotValid
         // );
         assert!(
-            *linked_table::borrow(commitments, commitment) + configuration::max_commitment_age() > epoch(ctx),
+            *linked_table::borrow(commitments, commitment) + configuration::max_commitment_age_in_ms()
+                > tx_context::epoch(ctx),
             ECommitmentTooOld
         );
         linked_table::remove(commitments, commitment);

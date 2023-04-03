@@ -20,6 +20,7 @@ module suins::controller_tests {
     use std::string::utf8;
     use std::vector;
     use suins::auction_tests;
+    use sui::clock::Clock;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -89,12 +90,8 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let no_of_commitments = controller::commitment_len(&suins);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                50,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(scenario);
+
             if (option::is_none(&label)) label = option::some(FIRST_LABEL);
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
@@ -103,14 +100,11 @@ module suins::controller_tests {
                 FIRST_SECRET
             );
 
-            controller::commit(
-                &mut suins,
-                commitment,
-                &mut ctx,
-            );
+            controller::commit(&mut suins, commitment, &clock);
             assert!(controller::commitment_len(&suins) - no_of_commitments == 1, 0);
 
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
     }
 
@@ -510,26 +504,22 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                599,
-                10
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 FIRST_LABEL,
                 SECOND_USER_ADDRESS,
                 FIRST_SECRET
             );
-
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
 
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
@@ -608,26 +598,22 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                599,
-                10
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 FIRST_LABEL,
                 SECOND_USER_ADDRESS,
                 FIRST_SECRET
             );
-
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
 
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
 
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
@@ -957,15 +943,9 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                50,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
 
             assert!(controller::commitment_len(&suins) == 0, 0);
-
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 FIRST_INVALID_LABEL,
@@ -975,10 +955,12 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
             assert!(controller::commitment_len(&suins) == 1, 0);
+
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -1173,15 +1155,9 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                10,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
 
             assert!(controller::commitment_len(&suins) == 0, 0);
-
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 FIRST_LABEL,
@@ -1191,23 +1167,18 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
 
             assert!(controller::commitment_len(&suins) == 1, 0);
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
-
         // outdated commitment
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                30,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
 
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
@@ -1218,22 +1189,17 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
             assert!(controller::commitment_len(&suins) == 1, 0);
 
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                48,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
 
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
@@ -1244,22 +1210,18 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
             assert!(controller::commitment_len(&suins) == 1, 0);
 
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                50,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
 
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
@@ -1270,11 +1232,12 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
             assert!(controller::commitment_len(&suins) == 2, 0);
 
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -1857,26 +1820,18 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                60,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 SECOND_LABEL,
                 FIRST_USER_ADDRESS,
                 FIRST_SECRET
             );
-
-            controller::commit(
-                &mut suins,
-                commitment,
-                &mut ctx,
-            );
+            controller::commit(&mut suins, commitment, &clock, );
 
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -2660,12 +2615,8 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                220,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 FIRST_LABEL,
@@ -2675,9 +2626,11 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
+
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -2745,12 +2698,8 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                220,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 AUCTIONED_LABEL,
@@ -2761,10 +2710,11 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
 
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -2832,12 +2782,8 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                120,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 FIRST_LABEL,
@@ -2848,10 +2794,11 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
 
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -2937,12 +2884,8 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 FIRST_LABEL,
@@ -2952,9 +2895,10 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -2995,12 +2939,8 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                START_AUCTION_END_AT + 1,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 FIRST_LABEL,
@@ -3011,10 +2951,11 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
 
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -3065,12 +3006,8 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                START_AUCTION_END_AT + EXTRA_PERIOD + BIDDING_PERIOD + REVEAL_PERIOD,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+
             assert!(controller::get_balance(&suins) == 10000, 0);
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
@@ -3082,10 +3019,11 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
 
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -3155,12 +3093,8 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 AUCTIONED_LABEL,
@@ -3170,10 +3104,11 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
 
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -3222,12 +3157,8 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                220,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 AUCTIONED_LABEL,
@@ -3238,10 +3169,11 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
 
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -3315,12 +3247,8 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                220,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 AUCTIONED_LABEL,
@@ -3331,10 +3259,11 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
 
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -3422,12 +3351,8 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                220,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 AUCTIONED_LABEL,
@@ -3438,10 +3363,11 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
 
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -3508,12 +3434,7 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                47,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let i: u8 = 0;
 
             while (i < 70) {
@@ -3528,7 +3449,7 @@ module suins::controller_tests {
                 controller::commit(
                     &mut suins,
                     commitment,
-                    &mut ctx,
+                    &clock,
                 );
 
                 i = i + 1;
@@ -3536,16 +3457,13 @@ module suins::controller_tests {
 
             assert!(controller::commitment_len(&suins) == 70, 0);
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                50,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 b"label-1",
@@ -3555,9 +3473,11 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
+
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -3568,12 +3488,8 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                50,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 b"label-2",
@@ -3583,9 +3499,11 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
+
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -3596,12 +3514,8 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                51,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 b"label-3",
@@ -3611,9 +3525,11 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
+
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -3631,12 +3547,7 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                47,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let i: u8 = 0;
 
             while (i < 40) {
@@ -3651,23 +3562,20 @@ module suins::controller_tests {
                 controller::commit(
                     &mut suins,
                     commitment,
-                    &mut ctx,
+                    &clock,
                 );
 
                 i = i + 1;
             };
             assert!(controller::commitment_len(&suins) == 40, 0);
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                50,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 b"label-2",
@@ -3677,9 +3585,11 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
+
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -4814,12 +4724,8 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                START_AUCTION_END_AT + EXTRA_PERIOD,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 AUCTIONED_LABEL,
@@ -4829,9 +4735,11 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
+
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -4890,12 +4798,8 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + EXTRA_PERIOD,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+
             assert!(controller::get_balance(&suins) == 10000 + BIDDING_FEE, 0);
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
@@ -4906,9 +4810,10 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -5004,12 +4909,8 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                EXTRA_PERIOD_START_AT - 1,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 AUCTIONED_LABEL,
@@ -5019,10 +4920,11 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
 
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -5561,12 +5463,8 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let no_of_commitments = controller::commitment_len(&suins);
-            let ctx = ctx_new(
-                @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                50,
-                0
-            );
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+
             let commitment = controller::test_make_commitment(
                 MOVE_REGISTRAR,
                 first_node,
@@ -5577,11 +5475,12 @@ module suins::controller_tests {
             controller::commit(
                 &mut suins,
                 commitment,
-                &mut ctx,
+                &clock,
             );
             assert!(controller::commitment_len(&suins) - no_of_commitments == 1, 0);
 
             test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
