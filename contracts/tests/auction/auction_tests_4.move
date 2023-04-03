@@ -77,7 +77,7 @@ module suins::auction_tests_4 {
     const DEFAULT_TX_HASH: vector<u8> = x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532";
     const FIRST_TX_HASH: vector<u8> = x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431533";
     const SECOND_TX_HASH: vector<u8> = x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431534";
-    const BIDDING_FEE: u64 = 5;
+    const BIDDING_FEE: u64 = 1000000000;
 
     #[test]
     fun test_finalize_all_auctions_by_admin_works() {

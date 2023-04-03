@@ -27,7 +27,7 @@ module suins::auction {
     use suins::entity;
 
     const MIN_PRICE: u64 = 1000;
-    const BIDDING_FEE: u64 = 5;
+    const BIDDING_FEE: u64 = 1000000000;
     const START_AN_AUCTION_FEE: u64 = 10000;
     const BIDDING_PERIOD: u64 = 3;
     const REVEAL_PERIOD: u64 = 3;

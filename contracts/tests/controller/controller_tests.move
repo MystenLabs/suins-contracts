@@ -46,7 +46,7 @@ module suins::controller_tests {
     const START_AN_AUCTION_AT: u64 = 110;
     const EXTRA_PERIOD: u64 = 30;
     const SUI_REGISTRAR: vector<u8> = b"sui";
-    const BIDDING_FEE: u64 = 5;
+    const BIDDING_FEE: u64 = 1000000000;
 
     fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
