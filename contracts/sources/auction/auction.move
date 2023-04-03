@@ -318,6 +318,10 @@ module suins::auction {
         assert!(!bid_detail.is_unsealed, EAlreadyUnsealed);
 
         let label = utf8(label);
+        bid_detail.bid_value = value;
+        bid_detail.label = label;
+        bid_detail.is_unsealed = true;
+
         event::emit(BidRevealedEvent {
             label,
             bidder: sender(ctx),
@@ -336,21 +340,10 @@ module suins::auction {
             // TODO: what to do now?
         } else if (value > entry.highest_bid) {
             // Vickrey auction, winner pays the second highest_bid
-            entry.second_highest_bid = entry.highest_bid;
-            entry.second_highest_bidder = entry.winner;
-            entry.highest_bid = value;
-            entry.winner = bid_detail.bidder;
-            entry.bid_detail_created_at = bid_detail.created_at;
-            entry.winning_bid_uid = bid_detail.uid;
+            new_winning_bid(entry, bid_detail);
         } else if (value == entry.highest_bid && bid_detail.created_at < entry.bid_detail_created_at) {
             // if same value and same created_at, we choose first one who reveals bid.
-            // TODO: could be combined with the previous check
-            entry.second_highest_bid = entry.highest_bid;
-            entry.second_highest_bidder = entry.winner;
-            entry.highest_bid = value;
-            entry.winner = bid_detail.bidder;
-            entry.bid_detail_created_at = bid_detail.created_at;
-            entry.winning_bid_uid = bid_detail.uid;
+            new_winning_bid(entry, bid_detail);
         } else if (value > entry.second_highest_bid) {
             // not winner, but affects second place
             entry.second_highest_bid = value;
@@ -359,9 +352,6 @@ module suins::auction {
             // bid doesn't affect auction
             // TODO: what to do now?
         };
-        bid_detail.bid_value = value;
-        bid_detail.label = label;
-        bid_detail.is_unsealed = true;
     }
 
     /// #### Notice
@@ -640,6 +630,15 @@ module suins::auction {
 
     public(friend) fun auction_close_at(auction: &AuctionHouse): u64 {
         auction.start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD
+    }
+
+    fun new_winning_bid(entry: &mut AuctionEntry, winning_bid_detail: &BidDetail) {
+        entry.second_highest_bid = entry.highest_bid;
+        entry.second_highest_bidder = entry.winner;
+        entry.highest_bid = winning_bid_detail.bid_value;
+        entry.winner = winning_bid_detail.bidder;
+        entry.bid_detail_created_at = winning_bid_detail.created_at;
+        entry.winning_bid_uid = winning_bid_detail.uid;
     }
 
     fun handle_winning_bid(
