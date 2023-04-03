@@ -77,6 +77,7 @@ module suins::auction_tests_4 {
     const DEFAULT_TX_HASH: vector<u8> = x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532";
     const FIRST_TX_HASH: vector<u8> = x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431533";
     const SECOND_TX_HASH: vector<u8> = x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431534";
+    const BIDDING_FEE: u64 = 1000000000;
 
     #[test]
     fun test_finalize_all_auctions_by_admin_works() {
@@ -245,7 +246,7 @@ module suins::auction_tests_4 {
             assert!(coin::value(&coin1) == 300, 0);
 
             assert!(auction::get_balance(&auction) == 12200, 0);
-            assert!(controller::get_balance(&suins) == 11000, 0);
+            assert!(controller::get_balance(&suins) == 11000 + BIDDING_FEE * 2, 0);
 
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin1);
             test_scenario::return_shared(auction);
@@ -287,7 +288,7 @@ module suins::auction_tests_4 {
             assert!(vector::length(&bids) == 0, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(controller::get_balance(&suins) == 11000, 0);
+            assert!(controller::get_balance(&suins) == 11000 + BIDDING_FEE * 2, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -459,7 +460,7 @@ module suins::auction_tests_4 {
             assert!(coin::value(&coin1) == 7200, 0);
 
             assert!(auction::get_balance(&auction) == 13500, 0);
-            assert!(controller::get_balance(&suins) == 13000, 0);
+            assert!(controller::get_balance(&suins) == 13000 + BIDDING_FEE * 3, 0);
 
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin1);
             test_scenario::return_shared(auction);
@@ -501,7 +502,7 @@ module suins::auction_tests_4 {
             assert!(vector::length(&bids) == 0, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(controller::get_balance(&suins) == 13000, 0);
+            assert!(controller::get_balance(&suins) == 13000 + BIDDING_FEE * 3, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -656,7 +657,7 @@ module suins::auction_tests_4 {
             assert!(coin::value(&second_coin) == 11200, 0);
 
             assert!(auction::get_balance(&auction) == 1300, 0);
-            assert!(controller::get_balance(&suins) == 10950, 0);
+            assert!(controller::get_balance(&suins) == 10950 + BIDDING_FEE * 2, 0);
 
             test_scenario::return_to_address(FIRST_USER_ADDRESS, first_coin);
             test_scenario::return_to_address(SECOND_USER_ADDRESS, second_coin);
@@ -701,7 +702,7 @@ module suins::auction_tests_4 {
             assert!(vector::length(&bids) == 0, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(controller::get_balance(&suins) == 10950, 0);
+            assert!(controller::get_balance(&suins) == 10950 + BIDDING_FEE * 2, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -833,7 +834,7 @@ module suins::auction_tests_4 {
             assert!(coin::value(&coin2) == 1300, 0);
 
             assert!(auction::get_balance(&auction) == 12200, 0);
-            assert!(controller::get_balance(&suins) == 11900, 0);
+            assert!(controller::get_balance(&suins) == 11900 + BIDDING_FEE * 2, 0);
 
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin1);
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin2);
@@ -876,7 +877,7 @@ module suins::auction_tests_4 {
             assert!(vector::length(&bids) == 0, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(controller::get_balance(&suins) == 11900, 0);
+            assert!(controller::get_balance(&suins) == 11900 + BIDDING_FEE * 2, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -1008,7 +1009,7 @@ module suins::auction_tests_4 {
             assert!(coin::value(&coin2) == 10200, 0);
 
             assert!(auction::get_balance(&auction) == 3300, 0);
-            assert!(controller::get_balance(&suins) == 11900, 0);
+            assert!(controller::get_balance(&suins) == 11900 + BIDDING_FEE * 2, 0);
 
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin1);
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin2);
@@ -1051,7 +1052,7 @@ module suins::auction_tests_4 {
             assert!(vector::length(&bids) == 0, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(controller::get_balance(&suins) == 11900, 0);
+            assert!(controller::get_balance(&suins) == 11900 + BIDDING_FEE * 2, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -1192,7 +1193,7 @@ module suins::auction_tests_4 {
             assert!(coin::value(&coin2) == 11200, 0);
 
             assert!(auction::get_balance(&auction) == 1300, 0);
-            assert!(controller::get_balance(&suins) == 10950, 0);
+            assert!(controller::get_balance(&suins) == 10950 + BIDDING_FEE * 2, 0);
 
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin1);
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin2);
@@ -1235,7 +1236,7 @@ module suins::auction_tests_4 {
             assert!(vector::length(&bids) == 0, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(controller::get_balance(&suins) == 10950, 0);
+            assert!(controller::get_balance(&suins) == 10950 + BIDDING_FEE * 2, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -1314,7 +1315,7 @@ module suins::auction_tests_4 {
             assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
             assert!(registry::resolver(&suins, NODE_SUI) == RESOLVER_ADDRESS, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(controller::get_balance(&suins) == 11000, 0);
+            assert!(controller::get_balance(&suins) == 11000 + BIDDING_FEE, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
