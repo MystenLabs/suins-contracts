@@ -5476,4 +5476,137 @@ module suins::controller_tests {
         };
         test_scenario::end(scenario);
     }
+
+    #[test, expected_failure(abort_code = controller::ELabelUnAvailable)]
+    fun test_register_aborts_if_sui_name_is_reserved() {
+        let scenario = test_init();
+        let first_node = b"abcde";
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = &mut ctx_new(
+                SUINS_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                2
+            );
+
+            controller::new_reserved_domains(&admin_cap, &mut suins, &config, b"abcde.sui;", SUINS_ADDRESS, ctx);
+
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
+        };
+        make_commitment(&mut scenario, option::some(first_node));
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = ctx_new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                21,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+
+            controller::register(
+                &mut suins,
+                SUI_REGISTRAR,
+                &mut config,
+                first_node,
+                FIRST_USER_ADDRESS,
+                2,
+                FIRST_SECRET,
+                &mut coin,
+                &mut ctx,
+            );
+            coin::burn_for_testing(coin);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = controller::ELabelUnAvailable)]
+    fun test_register_aborts_if_move_name_is_reserved() {
+        let scenario = test_init();
+        let first_node = b"abcdefghijk";
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = &mut ctx_new(
+                SUINS_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                2
+            );
+
+            controller::new_reserved_domains(&admin_cap, &mut suins, &config, b"abcdefghijk.move;", SUINS_ADDRESS, ctx);
+
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let no_of_commitments = controller::commitment_len(&suins);
+            let ctx = ctx_new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                0
+            );
+            let commitment = controller::test_make_commitment(
+                MOVE_REGISTRAR,
+                first_node,
+                FIRST_USER_ADDRESS,
+                FIRST_SECRET
+            );
+
+            controller::commit(
+                &mut suins,
+                commitment,
+                &mut ctx,
+            );
+            assert!(controller::commitment_len(&suins) - no_of_commitments == 1, 0);
+
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = ctx_new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                21,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+
+            controller::register(
+                &mut suins,
+                MOVE_REGISTRAR,
+                &mut config,
+                first_node,
+                FIRST_USER_ADDRESS,
+                2,
+                FIRST_SECRET,
+                &mut coin,
+                &mut ctx,
+            );
+            coin::burn_for_testing(coin);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::end(scenario);
+    }
 }
