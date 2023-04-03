@@ -78,7 +78,7 @@ module suins::auction_tests {
     const DEFAULT_TX_HASH: vector<u8> = x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532";
     const FIRST_TX_HASH: vector<u8> = x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431533";
     const SECOND_TX_HASH: vector<u8> = x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431534";
-    const BIDDING_FEE: u64 = 5;
+    const BIDDING_FEE: u64 = 1000000000;
 
     public fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
@@ -271,7 +271,7 @@ module suins::auction_tests {
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let coin = coin::mint_for_testing<SUI>(30000, ctx);
+            let coin = coin::mint_for_testing<SUI>(BIDDING_FEE * 3, ctx);
             let amount = auction::get_seal_bid_by_bidder(&auction, seal_bid, bidder);
             assert!(option::is_none(&amount), 0);
 
@@ -279,7 +279,7 @@ module suins::auction_tests {
 
             let amount = auction::get_seal_bid_by_bidder(&auction, seal_bid, bidder);
             assert!(option::extract(&mut amount) == value, 0);
-            assert!(coin::value(&coin) == 30000 - value - BIDDING_FEE, 0);
+            assert!(coin::value(&coin) == BIDDING_FEE * 2 - value, 0);
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -417,8 +417,11 @@ module suins::auction_tests {
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let coin = coin::mint_for_testing<SUI>(10000, ctx);
+            let coin = coin::mint_for_testing<SUI>(10000 + BIDDING_FEE, ctx);
+
             auction::place_bid(&mut auction, &mut suins, HASH, 1000, &mut coin, ctx);
+            assert!(coin::value(&coin) == 9000, 0);
+
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -554,11 +557,11 @@ module suins::auction_tests {
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let coin = coin::mint_for_testing<SUI>(10000, ctx);
+            let coin = coin::mint_for_testing<SUI>(1000 + BIDDING_FEE, ctx);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-
             auction::place_bid(&mut auction, &mut suins, HASH, 1000, &mut coin, ctx);
+
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -1264,12 +1267,13 @@ module suins::auction_tests {
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let coin = coin::mint_for_testing<SUI>(30000, ctx);
+            let coin = coin::mint_for_testing<SUI>(30000 + BIDDING_FEE, ctx);
+
             assert!(auction::get_balance(&auction) == 0, 0);
-
             auction::place_bid(&mut auction, &mut suins, seal_bid, 1100, &mut coin, ctx);
-
             assert!(auction::get_balance(&auction) == 1100, 0);
+            assert!(coin::value(&coin) == 28900, 0);
+
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -1300,13 +1304,13 @@ module suins::auction_tests {
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let coin = coin::mint_for_testing<SUI>(30000, ctx);
+            let coin = coin::mint_for_testing<SUI>(1100 + BIDDING_FEE, ctx);
+
             assert!(auction::get_balance(&auction) == 1100, 0);
-
             auction::place_bid(&mut auction, &mut suins, seal_bid, 1100, &mut coin, ctx);
-
             assert!(controller::get_balance(&suins) == 10000 + BIDDING_FEE * 2, 0);
             assert!(auction::get_balance(&auction) == 2200, 0);
+            assert!(coin::value(&coin) == 0, 0);
 
             test_scenario::return_shared(suins);
             coin::burn_for_testing(coin);
@@ -1361,11 +1365,12 @@ module suins::auction_tests {
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let coin = coin::mint_for_testing<SUI>(30000, ctx);
+            let coin = coin::mint_for_testing<SUI>(1100 + BIDDING_FEE, ctx);
 
             assert!(auction::get_balance(&auction) == 0, 0);
             auction::place_bid(&mut auction, &mut suins, seal_bid, 1100, &mut coin, ctx);
             assert!(auction::get_balance(&auction) == 1100, 0);
+            assert!(coin::value(&coin) == 0, 0);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
@@ -1397,11 +1402,12 @@ module suins::auction_tests {
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let coin = coin::mint_for_testing<SUI>(30000, ctx);
+            let coin = coin::mint_for_testing<SUI>(1100 + BIDDING_FEE, ctx);
 
             assert!(auction::get_balance(&auction) == 1100, 0);
             auction::place_bid(&mut auction, &mut suins, seal_bid, 1100, &mut coin, ctx);
             assert!(auction::get_balance(&auction) == 2200, 0);
+            assert!(coin::value(&coin) == 0, 0);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
@@ -2176,10 +2182,11 @@ module suins::auction_tests {
             );
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let coin = coin::mint_for_testing<SUI>(30000, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(30000 + BIDDING_FEE, &mut ctx);
 
             auction::place_bid(&mut auction, &mut suins, seal_bid, 2000, &mut coin, &mut ctx);
             assert!(auction::get_balance(&auction) == 2000, 0);
+            assert!(coin::value(&coin) == 28000, 0);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
@@ -2262,10 +2269,11 @@ module suins::auction_tests {
             );
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let coin = coin::mint_for_testing<SUI>(30000, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(2000 + BIDDING_FEE, &mut ctx);
 
             auction::place_bid(&mut auction, &mut suins, seal_bid, 2000, &mut coin, &mut ctx);
             assert!(auction::get_balance(&auction) == 2000, 0);
+            assert!(coin::value(&coin) == 0, 0);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
@@ -2386,12 +2394,13 @@ module suins::auction_tests {
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let coin = coin::mint_for_testing<SUI>(30000, ctx);
+            let coin = coin::mint_for_testing<SUI>(2000 + BIDDING_FEE, ctx);
             let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1100, FIRST_SECRET);
 
             assert!(auction::get_balance(&auction) == 2000, 0);
             auction::place_bid(&mut auction, &mut suins, seal_bid, 1300, &mut coin, ctx);
             assert!(auction::get_balance(&auction) == 3300, 0);
+            assert!(coin::value(&coin) == 700, 0);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
