@@ -27,15 +27,15 @@ module suins::auction_tests_3 {
         97, // 'a'
         98, // 'b'
         99, // 'c'
-        // 240, 159, 146, 150, // 1f496
-        // 240, 159, 145, 168, // 1f468_200d_2764_fe0f_200d_1f48b_200d_1f468
-        // 226, 128, 141,
-        // 226, 157, 164,
-        // 239, 184, 143,
-        // 226, 128, 141,
-        // 240, 159, 146, 139,
-        // 226, 128, 141,
-        // 240, 159, 145, 168,
+        240, 159, 146, 150, // 1f496
+        240, 159, 145, 168, // 1f468_200d_2764_fe0f_200d_1f48b_200d_1f468
+        226, 128, 141,
+        226, 157, 164,
+        239, 184, 143,
+        226, 128, 141,
+        240, 159, 146, 139,
+        226, 128, 141,
+        240, 159, 145, 168,
     ];
     const SECOND_NODE: vector<u8> = b"suins2";
     const THIRD_NODE: vector<u8> = b"suins3";
@@ -43,15 +43,15 @@ module suins::auction_tests_3 {
         97, // 'a'
         98, // 'b'
         99, // 'c'
-        // 240, 159, 146, 150, // 1f496
-        // 240, 159, 145, 168, // 1f468_200d_2764_fe0f_200d_1f48b_200d_1f468
-        // 226, 128, 141,
-        // 226, 157, 164,
-        // 239, 184, 143,
-        // 226, 128, 141,
-        // 240, 159, 146, 139,
-        // 226, 128, 141,
-        // 240, 159, 145, 168,
+        240, 159, 146, 150, // 1f496
+        240, 159, 145, 168, // 1f468_200d_2764_fe0f_200d_1f48b_200d_1f468
+        226, 128, 141,
+        226, 157, 164,
+        239, 184, 143,
+        226, 128, 141,
+        240, 159, 146, 139,
+        226, 128, 141,
+        240, 159, 145, 168,
         46, // .
         115, // s
         117, // u
@@ -79,6 +79,7 @@ module suins::auction_tests_3 {
     const DEFAULT_TX_HASH: vector<u8> = x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532";
     const FIRST_TX_HASH: vector<u8> = x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431533";
     const SECOND_TX_HASH: vector<u8> = x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431534";
+    const BIDDING_FEE: u64 = 1000000000;
 
     #[test]
     fun test_place_bid_aborts_if_exists() {
@@ -197,7 +198,7 @@ module suins::auction_tests_3 {
             assert!(vector::length(&bids) == 1, 0);
 
             assert!(auction::get_balance(&auction) == 3300, 0);
-            assert!(controller::get_balance(&suins) == 10000, 0);
+            assert!(controller::get_balance(&suins) == 10000 + BIDDING_FEE * 2, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -224,12 +225,14 @@ module suins::auction_tests_3 {
                 15,
             );
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            let coin = coin::mint_for_testing<SUI>(30000, &mut ctx);
-            let clock = test_scenario::take_shared<Clock>(scenario);
-            auction::place_bid(&mut auction, seal_bid, 12200, &mut coin, &clock, &mut ctx);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            let coin = coin::mint_for_testing<SUI>(12222 + BIDDING_FEE, &mut ctx);
+            auction::place_bid(&mut auction, &mut suins, seal_bid, 12200, &mut coin, &mut ctx);
+            assert!(coin::value(&coin) == 22, 0);
+
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
-            test_scenario::return_shared(clock);
+            test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -324,7 +327,7 @@ module suins::auction_tests_3 {
             assert!(vector::length(&bids) == 1, 0);
 
             assert!(auction::get_balance(&auction) == 3300, 0);
-            assert!(controller::get_balance(&suins) == 10000, 0);
+            assert!(controller::get_balance(&suins) == 10000 + BIDDING_FEE * 2, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -351,12 +354,13 @@ module suins::auction_tests_3 {
                 15,
             );
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            let coin = coin::mint_for_testing<SUI>(30000, &mut ctx);
-            let clock = test_scenario::take_shared<Clock>(scenario);
-            auction::place_bid(&mut auction, seal_bid, 3300, &mut coin, &clock, &mut ctx);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            let coin = coin::mint_for_testing<SUI>(3301 + BIDDING_FEE, &mut ctx);
+            auction::place_bid(&mut auction, &mut suins, seal_bid, 3300, &mut coin, &mut ctx);
+            assert!(coin::value(&coin) == 1, 0);
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
-            test_scenario::return_shared(clock);
+            test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -451,7 +455,7 @@ module suins::auction_tests_3 {
             assert!(vector::length(&bids) == 1, 0);
 
             assert!(auction::get_balance(&auction) == 12200, 0);
-            assert!(controller::get_balance(&suins) == 10000, 0);
+            assert!(controller::get_balance(&suins) == 10000 + BIDDING_FEE * 2, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -531,7 +535,7 @@ module suins::auction_tests_3 {
             assert!(vector::length(&bids) == 0, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(controller::get_balance(&suins) == 10000, 0);
+            assert!(controller::get_balance(&suins) == 10000 + BIDDING_FEE * 2, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -639,7 +643,7 @@ module suins::auction_tests_3 {
             assert!(vector::length(&bids) == 0, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(controller::get_balance(&suins) == 10000, 0);
+            assert!(controller::get_balance(&suins) == 10000 + BIDDING_FEE * 2, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -717,7 +721,7 @@ module suins::auction_tests_3 {
             assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
             assert!(registry::resolver(&suins, NODE_SUI) == RESOLVER_ADDRESS, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(controller::get_balance(&suins) == 11000, 0);
+            assert!(controller::get_balance(&suins) == 11000 + BIDDING_FEE, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -1361,16 +1365,17 @@ module suins::auction_tests_3 {
             );
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            let clock = test_scenario::take_shared<Clock>(scenario);
-            let coin = coin::mint_for_testing<SUI>(30000, ctx);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            let coin = coin::mint_for_testing<SUI>(1300 + BIDDING_FEE, ctx);
+
             assert!(auction::get_balance(&auction) == 0, 0);
-
-            auction::place_bid(&mut auction, seal_bid, 1300, &mut coin, &clock, ctx);
-
+            auction::place_bid(&mut auction, &mut suins, seal_bid, 1300, &mut coin, ctx);
             assert!(auction::get_balance(&auction) == 1300, 0);
+            assert!(coin::value(&coin) == 0, 0);
+
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
-            test_scenario::return_shared(clock);
+            test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -1431,7 +1436,7 @@ module suins::auction_tests_3 {
             assert!(option::extract(&mut is_finalized) == false, 0);
 
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            assert!(controller::get_balance(&suins) == 10000, 0);
+            assert!(controller::get_balance(&suins) == 10000 + BIDDING_FEE, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -1457,16 +1462,17 @@ module suins::auction_tests_3 {
             );
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            let clock = test_scenario::take_shared<Clock>(scenario);
-            let coin = coin::mint_for_testing<SUI>(30000, ctx);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            let coin = coin::mint_for_testing<SUI>(30000 + BIDDING_FEE, ctx);
+
             assert!(auction::get_balance(&auction) == 0, 0);
-
-            auction::place_bid(&mut auction, seal_bid, 30000, &mut coin, &clock, ctx);
-
+            auction::place_bid(&mut auction, &mut suins, seal_bid, 30000, &mut coin, ctx);
             assert!(auction::get_balance(&auction) == 30000, 0);
+            assert!(coin::value(&coin) == 0, 0);
+
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
-            test_scenario::return_shared(clock);
+            test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -1509,7 +1515,7 @@ module suins::auction_tests_3 {
             assert!(vector::length(&bids) == 0, 0);
 
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            assert!(controller::get_balance(&suins) == 10000, 0);
+            assert!(controller::get_balance(&suins) == 10000 + BIDDING_FEE, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -1790,10 +1796,16 @@ module suins::auction_tests_3 {
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let ids = test_scenario::ids_for_address<Coin<SUI>>(SECOND_USER_ADDRESS);
-            assert!(vector::length(&ids) == 1, 0);
-            let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
-            assert!(coin::value(&coin) == 2000, 0);
-            test_scenario::return_to_address(SECOND_USER_ADDRESS, coin);
+            assert!(vector::length(&ids) == 2, 0);
+
+            let first_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
+            std::debug::print(&coin::value(&first_coin));
+            assert!(coin::value(&first_coin) == 2000, 0);
+            let second_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
+            assert!(coin::value(&second_coin) == 75, 0);
+
+            test_scenario::return_to_address(SECOND_USER_ADDRESS, first_coin);
+            test_scenario::return_to_address(SECOND_USER_ADDRESS, second_coin);
         };
         test_scenario::next_tx(scenario, THIRD_USER_ADDRESS);
         {
@@ -1999,11 +2011,12 @@ module suins::auction_tests_3 {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let ids = test_scenario::ids_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
-            assert!(vector::length(&ids) == 1, 0);
+            assert!(vector::length(&ids) == 2, 0);
 
-            let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin) == 1100, 0);
-            test_scenario::return_to_address(FIRST_USER_ADDRESS, coin);
+            let first_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
+            assert!(coin::value(&first_coin) == 50, 0);
+            let second_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
+            assert!(coin::value(&second_coin) == 1100, 0);
 
             let ids = test_scenario::ids_for_address<Coin<SUI>>(SECOND_USER_ADDRESS);
             assert!(vector::length(&ids) == 1, 0);
@@ -2011,6 +2024,8 @@ module suins::auction_tests_3 {
             let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
             assert!(coin::value(&coin) == 2300, 0);
             test_scenario::return_to_address(SECOND_USER_ADDRESS, coin);
+            test_scenario::return_to_address(FIRST_USER_ADDRESS, first_coin);
+            test_scenario::return_to_address(FIRST_USER_ADDRESS, second_coin);
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -2028,11 +2043,12 @@ module suins::auction_tests_3 {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let ids = test_scenario::ids_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
-            assert!(vector::length(&ids) == 1, 0);
+            assert!(vector::length(&ids) == 2, 0);
 
-            let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin) == 1100, 0);
-            test_scenario::return_to_address(FIRST_USER_ADDRESS, coin);
+            let first_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
+            assert!(coin::value(&first_coin) == 1100, 0);
+            let second_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
+            assert!(coin::value(&second_coin) == 50, 0);
 
             let ids = test_scenario::ids_for_address<Coin<SUI>>(SECOND_USER_ADDRESS);
             assert!(vector::length(&ids) == 1, 0);
@@ -2040,6 +2056,8 @@ module suins::auction_tests_3 {
             let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
             assert!(coin::value(&coin) == 2300, 0);
             test_scenario::return_to_address(SECOND_USER_ADDRESS, coin);
+            test_scenario::return_to_address(FIRST_USER_ADDRESS, first_coin);
+            test_scenario::return_to_address(FIRST_USER_ADDRESS, second_coin);
         };
         test_scenario::end(scenario_val);
     }
@@ -2183,7 +2201,7 @@ module suins::auction_tests_3 {
             let first_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
             assert!(coin::value(&first_coin) == 200, 0);
             assert!(auction::get_balance(&auction) == 13500, 0);
-            assert!(controller::get_balance(&suins) == 32000, 0);
+            assert!(controller::get_balance(&suins) == 32000 + BIDDING_FEE * 3, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -2207,7 +2225,7 @@ module suins::auction_tests_3 {
             let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
             assert!(vector::length(&bids) == 0, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(controller::get_balance(&suins) == 32000, 0);
+            assert!(controller::get_balance(&suins) == 32000 + BIDDING_FEE * 3, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -2387,7 +2405,7 @@ module suins::auction_tests_3 {
             assert!(mask == 10200, 0);
             assert!(created_at == START_AN_AUCTION_AT + 1, 0);
             assert!(is_unsealed, 0);
-            assert!(controller::get_balance(&suins) == 10000, 0);
+            assert!(controller::get_balance(&suins) == 10000 + BIDDING_FEE * 3, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -2549,7 +2567,7 @@ module suins::auction_tests_3 {
             assert!(coin::value(&coin1) == 7200, 0);
 
             assert!(auction::get_balance(&auction) == 13500, 0);
-            assert!(controller::get_balance(&suins) == 13000, 0);
+            assert!(controller::get_balance(&suins) == 13000 + BIDDING_FEE * 3, 0);
 
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin1);
             test_scenario::return_shared(auction);
@@ -2591,7 +2609,7 @@ module suins::auction_tests_3 {
             assert!(vector::length(&bids) == 0, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(controller::get_balance(&suins) == 13000, 0);
+            assert!(controller::get_balance(&suins) == 13000 + BIDDING_FEE * 3, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -2699,19 +2717,21 @@ module suins::auction_tests_3 {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let ids = test_scenario::ids_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
-            assert!(vector::length(&ids) == 2, 0);
+            assert!(vector::length(&ids) == 3, 0);
 
-            let coin1 = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin1) == 12200, 0);
-
-            let coin2 = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin2) == 1300, 0);
+            let first_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
+            assert!(coin::value(&first_coin) == 12200, 0);
+            let second_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
+            assert!(coin::value(&second_coin) == 100, 0);
+            let third_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
+            assert!(coin::value(&third_coin) == 1300, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(controller::get_balance(&suins) == 12000, 0);
+            assert!(controller::get_balance(&suins) == 11900 + BIDDING_FEE * 2, 0);
 
-            test_scenario::return_to_address(FIRST_USER_ADDRESS, coin1);
-            test_scenario::return_to_address(FIRST_USER_ADDRESS, coin2);
+            test_scenario::return_to_address(FIRST_USER_ADDRESS, first_coin);
+            test_scenario::return_to_address(FIRST_USER_ADDRESS, second_coin);
+            test_scenario::return_to_address(FIRST_USER_ADDRESS, third_coin);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
         };
@@ -2769,7 +2789,7 @@ module suins::auction_tests_3 {
                 0
             );
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(controller::get_balance(&suins) == 11000, 0);
+            assert!(controller::get_balance(&suins) == 11000 + BIDDING_FEE, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -2840,7 +2860,7 @@ module suins::auction_tests_3 {
             assert!(coin::value(&coin) == 1300, 0);
 
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            assert!(controller::get_balance(&suins) == 10000, 0);
+            assert!(controller::get_balance(&suins) == 10000 + BIDDING_FEE, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);

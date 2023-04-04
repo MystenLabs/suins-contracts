@@ -25,15 +25,15 @@ module suins::auction_tests_2 {
         97, // 'a'
         98, // 'b'
         99, // 'c'
-        // 240, 159, 146, 150, // 1f496
-        // 240, 159, 145, 168, // 1f468_200d_2764_fe0f_200d_1f48b_200d_1f468
-        // 226, 128, 141,
-        // 226, 157, 164,
-        // 239, 184, 143,
-        // 226, 128, 141,
-        // 240, 159, 146, 139,
-        // 226, 128, 141,
-        // 240, 159, 145, 168,
+        240, 159, 146, 150, // 1f496
+        240, 159, 145, 168, // 1f468_200d_2764_fe0f_200d_1f48b_200d_1f468
+        226, 128, 141,
+        226, 157, 164,
+        239, 184, 143,
+        226, 128, 141,
+        240, 159, 146, 139,
+        226, 128, 141,
+        240, 159, 145, 168,
     ];
     const SECOND_NODE: vector<u8> = b"suins2";
     const THIRD_NODE: vector<u8> = b"suins3";
@@ -41,15 +41,15 @@ module suins::auction_tests_2 {
         97, // 'a'
         98, // 'b'
         99, // 'c'
-        // 240, 159, 146, 150, // 1f496
-        // 240, 159, 145, 168, // 1f468_200d_2764_fe0f_200d_1f48b_200d_1f468
-        // 226, 128, 141,
-        // 226, 157, 164,
-        // 239, 184, 143,
-        // 226, 128, 141,
-        // 240, 159, 146, 139,
-        // 226, 128, 141,
-        // 240, 159, 145, 168,
+        240, 159, 146, 150, // 1f496
+        240, 159, 145, 168, // 1f468_200d_2764_fe0f_200d_1f48b_200d_1f468
+        226, 128, 141,
+        226, 157, 164,
+        239, 184, 143,
+        226, 128, 141,
+        240, 159, 146, 139,
+        226, 128, 141,
+        240, 159, 145, 168,
         46, // .
         115, // s
         117, // u
@@ -77,6 +77,7 @@ module suins::auction_tests_2 {
     const DEFAULT_TX_HASH: vector<u8> = x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532";
     const FIRST_TX_HASH: vector<u8> = x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431533";
     const SECOND_TX_HASH: vector<u8> = x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431534";
+    const BIDDING_FEE: u64 = 1000000000;
 
     #[test]
     fun test_reveal_bid_handle_low_value_bid() {
@@ -1310,7 +1311,7 @@ module suins::auction_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
             assert!(auction::get_balance(&auction) == 10230, 0);
-            assert!(controller::get_balance(&suins) == 10000, 0);
+            assert!(controller::get_balance(&suins) == 10000 + BIDDING_FEE, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -1357,7 +1358,7 @@ module suins::auction_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
             assert!(auction::get_balance(&auction) == 10230, 0);
-            assert!(controller::get_balance(&suins) == 10000, 0);
+            assert!(controller::get_balance(&suins) == 10000 + BIDDING_FEE, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);

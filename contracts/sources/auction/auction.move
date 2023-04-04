@@ -29,6 +29,7 @@ module suins::auction {
     use sui::tx_context;
 
     const MIN_PRICE: u64 = 1000;
+    const BIDDING_FEE: u64 = 1000000000;
     const START_AN_AUCTION_FEE: u64 = 10000;
     const BIDDING_PERIOD: u64 = 3;
     const REVEAL_PERIOD: u64 = 3;
@@ -80,6 +81,7 @@ module suins::auction {
         highest_bid: u64,
         second_highest_bid: u64,
         winner: address,
+        second_highest_bidder: address,
         is_finalized: bool,
         /// the created_at property of the current winning bid
         /// if 2 bidders bid same value, we choose the one who called `new_bid` first
@@ -211,6 +213,7 @@ module suins::auction {
             highest_bid: 0,
             second_highest_bid: 0,
             winner: @0x0,
+            second_highest_bidder: @0x0,
             is_finalized: false,
             winning_bid_created_at_in_ms: 0,
             winning_bid_uid: object::id_from_address(@0x0),
@@ -239,6 +242,7 @@ module suins::auction {
     /// or payment doesn't have enough coin
     public entry fun place_bid(
         auction_house: &mut AuctionHouse,
+        suins: &mut SuiNS,
         sealed_bid: vector<u8>,
         bid_value_mask: u64,
         payment: &mut Coin<SUI>,
@@ -246,7 +250,8 @@ module suins::auction {
         ctx: &mut TxContext
     ) {
         assert!(
-            auction_house.start_auction_start_at <= tx_context::epoch(ctx) && tx_context::epoch(ctx) <= auction_house.start_auction_end_at + BIDDING_PERIOD,
+            auction_house.start_auction_start_at <= epoch(ctx) && epoch(ctx)
+                <= auction_house.start_auction_end_at + BIDDING_PERIOD,
             EAuctionNotAvailable,
         );
         assert!(bid_value_mask >= MIN_PRICE, EInvalidBid);
@@ -273,7 +278,8 @@ module suins::auction {
         vector::push_back(bids_by_sender, bid);
         event::emit(NewBidEvent { bidder, sealed_bid, bid_value_mask });
 
-        coin_util::user_transfer_to_auction(payment, bid_value_mask, &mut auction_house.balance)
+        coin_util::user_transfer_to_auction(payment, bid_value_mask, &mut auction_house.balance);
+        coin_util::user_transfer_to_suins(payment, BIDDING_FEE, suins);
     }
 
     /// #### Notice
@@ -305,7 +311,8 @@ module suins::auction {
         ctx: &mut TxContext
     ) {
         assert!(
-            auction_house.start_auction_start_at <= tx_context::epoch(ctx) && tx_context::epoch(ctx) <= auction_house.start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD,
+            auction_house.start_auction_start_at <= epoch(ctx) && epoch(ctx)
+                <= auction_house.start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD,
             EAuctionNotAvailable,
         );
         // TODO: do we need to validate domain here?
@@ -321,6 +328,10 @@ module suins::auction {
         assert!(!bid_detail.is_unsealed, EAlreadyUnsealed);
 
         let label = utf8(label);
+        bid_detail.bid_value = value;
+        bid_detail.label = label;
+        bid_detail.is_unsealed = true;
+
         event::emit(BidRevealedEvent {
             label,
             bidder: tx_context::sender(ctx),
@@ -339,31 +350,17 @@ module suins::auction {
             // TODO: what to do now?
         } else if (value > entry.highest_bid) {
             // Vickrey auction, winner pays the second highest_bid
-            entry.second_highest_bid = entry.highest_bid;
-            entry.highest_bid = value;
-            entry.winner = bid_detail.bidder;
-            entry.winning_bid_created_at_in_ms = bid_detail.created_at_in_ms;
-            entry.winning_bid_uid = bid_detail.uid;
-        } else if (value == entry.highest_bid && bid_detail.created_at_in_ms < entry.winning_bid_created_at_in_ms) {
-            std::debug::print(&entry.winner);
-            std::debug::print(&bid_detail.bidder);
+            new_winning_bid(entry, bid_detail);
+        } else if (value == entry.highest_bid && bid_detail.created_at < entry.bid_detail_created_at) {
             // if same value and same created_at, we choose first one who reveals bid.
-            // TODO: could be combined with the previous check
-            entry.second_highest_bid = entry.highest_bid;
-            entry.highest_bid = value;
-            entry.winner = bid_detail.bidder;
-            entry.winning_bid_created_at_in_ms = bid_detail.created_at_in_ms;
-            entry.winning_bid_uid = bid_detail.uid;
+            new_winning_bid(entry, bid_detail);
         } else if (value > entry.second_highest_bid) {
             // not winner, but affects second place
-            entry.second_highest_bid = value;
+            new_second_highest_bid(entry, value, sender(ctx));
         } else {
             // bid doesn't affect auction
             // TODO: what to do now?
         };
-        bid_detail.bid_value = value;
-        bid_detail.label = label;
-        bid_detail.is_unsealed = true;
     }
 
     /// #### Notice
@@ -394,7 +391,8 @@ module suins::auction {
         ctx: &mut TxContext
     ) {
         assert!(
-            auction_house.start_auction_start_at <= tx_context::epoch(ctx) && tx_context::epoch(ctx) <= auction_close_at(auction_house) + EXTRA_PERIOD,
+            auction_house.start_auction_start_at <= epoch(ctx) && epoch(ctx)
+                <= auction_close_at(auction_house) + EXTRA_PERIOD,
             EAuctionNotAvailable,
         );
         let auction_state = state(auction_house, label, tx_context::epoch(ctx));
@@ -457,7 +455,8 @@ module suins::auction {
         ctx: &mut TxContext
     ) {
         assert!(
-            auction_close_at(auction_house) < tx_context::epoch(ctx) && tx_context::epoch(ctx) <= auction_close_at(auction_house) + EXTRA_PERIOD,
+            auction_close_at(auction_house) < epoch(ctx) && epoch(ctx)
+                <= auction_close_at(auction_house) + EXTRA_PERIOD,
             EAuctionNotAvailable,
         );
 
@@ -644,6 +643,26 @@ module suins::auction {
         auction.start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD
     }
 
+    fun new_winning_bid(entry: &mut AuctionEntry, winning_bid_detail: &BidDetail) {
+        let new_second_highest_bid = entry.highest_bid;
+        let new_second_highest_bidder = entry.winner;
+        new_second_highest_bid(entry, new_second_highest_bid, new_second_highest_bidder);
+
+        entry.highest_bid = winning_bid_detail.bid_value;
+        entry.winner = winning_bid_detail.bidder;
+        entry.bid_detail_created_at = winning_bid_detail.created_at;
+        entry.winning_bid_uid = winning_bid_detail.uid;
+    }
+
+    fun new_second_highest_bid(
+        entry: &mut AuctionEntry,
+        new_second_highest_value: u64,
+        new_second_highest_bidder: address
+    ) {
+        entry.second_highest_bid = new_second_highest_value;
+        entry.second_highest_bidder = new_second_highest_bidder;
+    }
+
     fun handle_winning_bid(
         auction_balance: &mut Balance<SUI>,
         suins: &mut SuiNS,
@@ -651,14 +670,26 @@ module suins::auction {
         bid_detail: &BidDetail,
         ctx: &mut TxContext
     ) {
-        if (entry.second_highest_bid != 0) {
+        if (entry.second_highest_bid != 0 && entry.second_highest_bidder != @0x0) {
             coin_util::auction_transfer_to_address(
                 auction_balance,
                 bid_detail.bid_value_mask - entry.second_highest_bid,
                 bid_detail.bidder,
                 ctx
             );
-            coin_util::auction_transfer_to_suins(auction_balance, entry.second_highest_bid, suins);
+            // it rounds down
+            let second_highest_bidder_take = (entry.second_highest_bid / 100) * 5;
+            coin_util::auction_transfer_to_suins(
+                auction_balance,
+                entry.second_highest_bid - second_highest_bidder_take,
+                suins
+            );
+            coin_util::auction_transfer_to_address(
+                auction_balance,
+                second_highest_bidder_take,
+                entry.second_highest_bidder,
+                ctx,
+            );
         } else {
             // winner is the only one who bided
             coin_util::auction_transfer_to_address(
@@ -713,7 +744,11 @@ module suins::auction {
     }
 
     #[test_only]
-    public fun get_seal_bid_by_bidder(auction_house: &AuctionHouse, seal_bid: vector<u8>, bidder: address): Option<u64> {
+    public fun get_seal_bid_by_bidder(
+        auction_house: &AuctionHouse,
+        seal_bid: vector<u8>,
+        bidder: address
+    ): Option<u64> {
         if (table::contains(&auction_house.bid_details_by_bidder, bidder)) {
             let bids_by_bidder = table::borrow(&auction_house.bid_details_by_bidder, bidder);
             let index = seal_bid_exists(bids_by_bidder, seal_bid);
