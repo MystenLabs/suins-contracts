@@ -431,7 +431,7 @@ module suins::auction {
         };
         if (entry.winner != sender(ctx)) return;
 
-        registrar::register(suins, b"sui", config, label, entry.winner, 365, resolver, ctx);
+        registrar::register_internal(suins, b"sui", config, label, entry.winner, 365, resolver, ctx);
 
         event::emit(NodeRegisteredEvent {
             label: label_str,
@@ -477,7 +477,7 @@ module suins::auction {
                         vector::remove(bids_of_winner, index);
                         entry.is_finalized = true;
 
-                        registrar::register(
+                        registrar::register_internal(
                             suins,
                             b"sui",
                             config,

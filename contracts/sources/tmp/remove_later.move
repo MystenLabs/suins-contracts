@@ -9,6 +9,7 @@ module suins::remove_later {
 
     friend suins::configuration;
     friend suins::registrar;
+    friend suins::controller;
 
     const EInvalidDiscountCodeBatch: u64 = 501;
 

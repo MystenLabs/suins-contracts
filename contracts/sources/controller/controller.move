@@ -26,6 +26,8 @@ module suins::controller {
     use std::vector;
     use std::option::{Self, Option};
     use sui::url::Url;
+    use sui::tx_context;
+    use suins::remove_later;
 
     // errors in the range of 301..400 indicate Sui Controller errors
     const EInvalidResolverAddress: u64 = 301;
@@ -38,6 +40,7 @@ module suins::controller {
     const ENoProfits: u64 = 310;
     const EInvalidCode: u64 = 311;
     const ERegistrationIsDisabled: u64 = 312;
+    const EInvalidDomain: u64 = 314;
 
     struct NameRegisteredEvent has copy, drop {
         tld: String,
@@ -569,6 +572,49 @@ module suins::controller {
         coin_util::suins_transfer_to_address(suins, amount, sender(ctx), ctx);
     }
 
+    public entry fun new_reserved_domains(
+        _: &AdminCap,
+        suins: &mut SuiNS,
+        config: &Configuration,
+        domains: vector<u8>,
+        owner: address,
+        ctx: &mut TxContext
+    ) {
+        if (owner == @0x0) owner = tx_context::sender(ctx);
+        let domains = remove_later::deserialize_reserve_domains(domains);
+        let len = vector::length(&domains);
+        let index = 0;
+        let dot = utf8(b".");
+        let emoji_config = configuration::emoji_config(config);
+
+        while (index < len) {
+            let domain = vector::borrow(&domains, index);
+            index = index + 1;
+
+            let index_of_dot = string::index_of(domain, &dot);
+            assert!(index_of_dot != string::length(domain), EInvalidDomain);
+            // TODO: validate node
+            let node = string::sub_string(domain, 0, index_of_dot);
+            validate_label_with_emoji(
+                emoji_config,
+                *string::bytes(&node),
+                configuration::min_domain_length(),
+                configuration::max_domain_length()
+            );
+            let tld = string::sub_string(domain, index_of_dot + 1, string::length(domain));
+            registrar::register_internal(
+                suins,
+                *string::bytes(&tld),
+                config,
+                *string::bytes(&node),
+                owner,
+                365,
+                @0x0,
+                ctx,
+            );
+        };
+    }
+
     // === Private Functions ===
 
     fun renew_internal(
@@ -615,8 +661,18 @@ module suins::controller {
         let emoji_config = configuration::emoji_config(config);
         let label_str = utf8(label);
 
-        if (epoch(ctx) <= entity::controller_auction_house_finalized_at(suins)) validate_label_with_emoji(emoji_config, label, 7, 63)
-        else validate_label_with_emoji(emoji_config, label, 3, 63);
+        if (epoch(ctx) <= entity::controller_auction_house_finalized_at(suins)) validate_label_with_emoji(
+            emoji_config,
+            label,
+            configuration::min_non_auction_domain_length(),
+            configuration::max_domain_length(),
+        )
+        else validate_label_with_emoji(
+            emoji_config,
+            label,
+            configuration::min_domain_length(),
+            configuration::max_domain_length()
+        );
 
         let commitment = make_commitment(tld, label, owner, secret);
         consume_commitment(suins, tld, label, commitment, ctx);
@@ -635,7 +691,7 @@ module suins::controller {
         };
 
         let duration = no_years * 365;
-        let (nft_id, url, additional_data) = registrar::register_with_image(
+        let (nft_id, url, additional_data) = registrar::register_with_image_internal(
             suins,
             tld,
             config,
@@ -727,7 +783,7 @@ module suins::controller {
             ECommitmentTooOld
         );
         linked_table::remove(commitments, commitment);
-        assert!(registrar::is_available(suins, tld, string::utf8(label), ctx), ELabelUnAvailable);
+        assert!(registrar::is_available(suins, utf8(tld), utf8(label), ctx), ELabelUnAvailable);
     }
 
     fun make_commitment(tld: vector<u8>, label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {

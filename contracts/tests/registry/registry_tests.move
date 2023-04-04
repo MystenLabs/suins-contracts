@@ -91,7 +91,7 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_SUB_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_SUB_NODE);
 
             assert!(owner == SECOND_USER_ADDRESS, 0);
             assert!(resolver == SECOND_RESOLVER_ADDRESS, 0);
@@ -307,7 +307,7 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let (owner, _, _) = registry::get_record_by_key(&suins, THIRD_SUB_NODE);
+            let (owner, _, _) = registry::get_record_by_domain_name(&suins, THIRD_SUB_NODE);
             assert!(owner == SECOND_USER_ADDRESS, 0);
 
             test_scenario::return_shared(suins);

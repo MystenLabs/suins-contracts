@@ -64,7 +64,7 @@ module suins::registrar_tests {
                 0
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -95,7 +95,7 @@ module suins::registrar_tests {
                 0
             );
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
 
             assert!(owner == FIRST_USER, 0);
             assert!(resolver == FIRST_RESOLVER, 0);
@@ -122,7 +122,7 @@ module suins::registrar_tests {
                 0
             );
 
-            registrar::register_with_image(
+            registrar::register_with_image_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -155,7 +155,7 @@ module suins::registrar_tests {
                 0
             );
 
-            let (owner, resolver, ttl) = registry::get_record_by_key(&suins, FIRST_NODE);
+            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
 
             assert!(owner == FIRST_USER, 0);
             assert!(resolver == FIRST_RESOLVER, 0);
@@ -176,10 +176,10 @@ module suins::registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             let label = utf8(b"eastagile");
-            assert!(!registrar::is_available(&suins, SUI_REGISTRAR, label, test_scenario::ctx(&mut scenario)), 0);
+            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR), label, test_scenario::ctx(&mut scenario)), 0);
 
             let label = utf8(b"ea");
-            assert!(registrar::is_available(&suins, SUI_REGISTRAR, label,test_scenario::ctx(&mut scenario)), 0);
+            assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), label,test_scenario::ctx(&mut scenario)), 0);
 
             test_scenario::return_shared(suins);
         };
@@ -208,7 +208,7 @@ module suins::registrar_tests {
             // 0xFE cannot appear in a correct UTF-8 string
             vector::push_back(&mut invalid_label, 0xFE);
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -233,7 +233,7 @@ module suins::registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let image = test_scenario::take_shared<Configuration>(&mut scenario);
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -265,7 +265,7 @@ module suins::registrar_tests {
                 10,
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -482,7 +482,7 @@ module suins::registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let image = test_scenario::take_shared<Configuration>(&mut scenario);
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 b"com",
                 &image,
@@ -1117,7 +1117,7 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1177,7 +1177,7 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1237,7 +1237,7 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1298,7 +1298,7 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1359,7 +1359,7 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1420,7 +1420,7 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1481,7 +1481,7 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1542,7 +1542,7 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1601,7 +1601,7 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1661,7 +1661,7 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1711,7 +1711,7 @@ module suins::registrar_tests {
                 20
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
@@ -1769,7 +1769,7 @@ module suins::registrar_tests {
                 20
             );
 
-            registrar::register(
+            registrar::register_internal(
                 &mut suins,
                 SUI_REGISTRAR,
                 &image,
