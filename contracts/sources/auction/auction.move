@@ -639,8 +639,10 @@ module suins::auction {
     }
 
     fun new_winning_bid(entry: &mut AuctionEntry, winning_bid_detail: &BidDetail) {
-        entry.second_highest_bid = entry.highest_bid;
-        entry.second_highest_bidder = entry.winner;
+        let new_second_highest_bid = entry.highest_bid;
+        let new_second_highest_bidder = entry.winner;
+        new_second_highest_bid(entry, new_second_highest_bid, new_second_highest_bidder);
+
         entry.highest_bid = winning_bid_detail.bid_value;
         entry.winner = winning_bid_detail.bidder;
         entry.bid_detail_created_at = winning_bid_detail.created_at;
