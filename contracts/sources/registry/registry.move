@@ -6,7 +6,7 @@ module suins::registry {
     use sui::object::{Self, UID};
     use sui::transfer;
     use sui::tx_context::{TxContext, sender};
-    use std::string::{Self, String};
+    use std::string::{Self, String, utf8};
     use suins::entity::SuiNS;
     use suins::entity::{
         Self,
@@ -215,9 +215,9 @@ module suins::registry {
     ///
     /// Panics
     /// Panics if `node` doesn't exists.
-    public fun get_record_by_key(suins: &SuiNS, key: String): (address, address, u64) {
+    public fun get_record_by_domain_name(suins: &SuiNS, domain_name: vector<u8>): (address, address, u64) {
         let registry = entity::registry(suins);
-        let name_record = table::borrow(registry, key);
+        let name_record = table::borrow(registry, utf8(domain_name));
 
         (*name_record_owner(name_record), *name_record_resolver(name_record), *name_record_ttl(name_record))
     }

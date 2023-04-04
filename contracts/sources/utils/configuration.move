@@ -7,13 +7,13 @@ module suins::configuration {
     use sui::transfer;
     use sui::event;
     use sui::tx_context::{TxContext, sender};
-    use sui::dynamic_field as field;
     use suins::remove_later;
     use suins::registry::AdminCap;
     use suins::emoji::{Self, EmojiConfiguration};
     use std::ascii;
     use std::vector;
-    use std::string::{String};
+    use sui::address;
+    use sui::hex;
 
     friend suins::registrar;
     friend suins::controller;
@@ -22,6 +22,9 @@ module suins::configuration {
     const PRICE_PER_YEAR: u64 = 1000000;
     const MAX_COMMITMENT_AGE: u64 = 3;
     const NO_OUTDATED_COMMITMENTS_TO_REMOVE: u64 = 50;
+    const MAX_DOMAIN_LENGTH: u64 = 63;
+    const MIN_DOMAIN_LENGTH: u64 = 3;
+    const MIN_NON_AUCTIONDOMAIN_LENGTH: u64 = 7;
 
     const EInvalidRate: u64 = 401;
     const EInvalidReferralCode: u64 = 402;
@@ -29,7 +32,6 @@ module suins::configuration {
     const EOwnerUnauthorized: u64 = 404;
     const EDiscountCodeNotExists: u64 = 405;
     const EReferralCodeNotExists: u64 = 406;
-
 
     /// This share object is the parent of reverse_domains
     /// The keys of dynamic child objects may or may not contain TLD.
@@ -41,12 +43,6 @@ module suins::configuration {
         emoji_config: EmojiConfiguration,
         public_key: vector<u8>,
         enable_controller: bool,
-        /// Minimum length of domains.
-        min_domain_length: u64,
-        /// Minimum length of domains that can be registered directly in `Controller`.
-        /// This field is only be used before the epoch at which the auction ends.
-        min_non_auction_domain_length: u64,
-        max_domain_length: u64,
     }
 
     struct NetworkFirstDayChangedEvent has copy, drop {
@@ -63,10 +59,6 @@ module suins::configuration {
         code: ascii::String,
         rate: u8,
         owner: ascii::String,
-    }
-
-    struct ReserveDomainAddedEvent has copy, drop {
-        domain: String,
     }
 
     struct ReferralCodeRemovedEvent has copy, drop {
@@ -99,37 +91,6 @@ module suins::configuration {
 
     public entry fun set_public_key(_: &AdminCap, config: &mut Configuration, new_public_key: vector<u8>) {
         config.public_key = new_public_key
-    }
-
-    // TODO: handle .sui and .move separately
-    public entry fun new_reserve_domains(_: &AdminCap, config: &mut Configuration, domains: vector<u8>) {
-        let domains = remove_later::deserialize_reserve_domains(domains);
-        let len = vector::length(&domains);
-        let index = 0;
-
-        while (index < len) {
-            let domain = vector::borrow(&domains, index);
-            if (!field::exists_with_type<String, bool>(&config.id, *domain)) {
-                field::add(&mut config.id, *domain, true);
-            };
-            event::emit(ReserveDomainAddedEvent { domain: *domain });
-            index = index + 1;
-        };
-    }
-
-    public entry fun remove_reserve_domains(_: &AdminCap, config: &mut Configuration, domains: vector<u8>) {
-        let domains = remove_later::deserialize_reserve_domains(domains);
-        let len = vector::length(&domains);
-        let index = 0;
-
-        while (index < len) {
-            let domain = vector::borrow(&domains, index);
-            if (field::exists_with_type<String, bool>(&config.id, *domain)) {
-                field::remove<String, bool>(&mut config.id, *domain);
-            };
-            event::emit(ReserveDomainAddedEvent { domain: *domain });
-            index = index + 1;
-        };
     }
 
     // rate in percentage, e.g. discount = 10 means 10%;
@@ -230,16 +191,16 @@ module suins::configuration {
         &config.public_key
     }
 
-    public fun min_domain_length(config: &Configuration): u64 {
-        config.min_domain_length
+    public fun min_domain_length(): u64 {
+        MIN_DOMAIN_LENGTH
     }
 
-    public fun min_non_auction_domain_length(config: &Configuration): u64 {
-        config.min_non_auction_domain_length
+    public fun min_non_auction_domain_length(): u64 {
+        MIN_NON_AUCTIONDOMAIN_LENGTH
     }
 
-    public fun max_domain_length(config: &Configuration): u64 {
-        config.max_domain_length
+    public fun max_domain_length(): u64 {
+        MAX_DOMAIN_LENGTH
     }
 
     public fun is_enable_controller(config: &Configuration): bool {
@@ -279,10 +240,8 @@ module suins::configuration {
             discount_codes: vec_map::empty(),
             emoji_config: emoji::init_emoji_config(),
             public_key: vector::empty(),
+            // TODO: set it to false
             enable_controller: true,
-            min_domain_length: 3,
-            min_non_auction_domain_length: 7,
-            max_domain_length: 63,
         });
     }
 
@@ -291,10 +250,6 @@ module suins::configuration {
 
     #[test_only]
     use std::option::{Self, Option};
-    #[test_only]
-    use std::string;
-    use sui::address;
-    use sui::hex;
 
     #[test_only]
     public(friend) fun get_discount_rate(discount_value: &DiscountValue): u8 {
@@ -318,11 +273,6 @@ module suins::configuration {
             return option::some(ReferralValue { rate: value.rate, partner: value.partner })
         };
         option::none()
-    }
-
-    #[test_only]
-    public(friend) fun is_label_reserved(config: &Configuration, label: vector<u8>): bool {
-        field::exists_with_type<String, bool>(&config.id, string::utf8(label))
     }
 
     #[test_only]
@@ -354,9 +304,6 @@ module suins::configuration {
             emoji_config: emoji::init_emoji_config(),
             public_key: vector::empty(),
             enable_controller: true,
-            min_domain_length: 3,
-            min_non_auction_domain_length: 7,
-            max_domain_length: 63,
         });
     }
 }

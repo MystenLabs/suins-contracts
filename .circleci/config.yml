@@ -1,4 +1,5 @@
 version: 2.1
+# TODO: refactor
 
 jobs:
   build-and-test:
