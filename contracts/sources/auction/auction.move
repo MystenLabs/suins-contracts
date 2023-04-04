@@ -250,7 +250,7 @@ module suins::auction {
         ctx: &mut TxContext
     ) {
         assert!(
-            auction_house.start_auction_start_at <= epoch(ctx) && epoch(ctx)
+            auction_house.start_auction_start_at <= tx_context::epoch(ctx) && tx_context::epoch(ctx)
                 <= auction_house.start_auction_end_at + BIDDING_PERIOD,
             EAuctionNotAvailable,
         );
@@ -311,7 +311,7 @@ module suins::auction {
         ctx: &mut TxContext
     ) {
         assert!(
-            auction_house.start_auction_start_at <= epoch(ctx) && epoch(ctx)
+            auction_house.start_auction_start_at <= tx_context::epoch(ctx) && tx_context::epoch(ctx)
                 <= auction_house.start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD,
             EAuctionNotAvailable,
         );
@@ -351,12 +351,12 @@ module suins::auction {
         } else if (value > entry.highest_bid) {
             // Vickrey auction, winner pays the second highest_bid
             new_winning_bid(entry, bid_detail);
-        } else if (value == entry.highest_bid && bid_detail.created_at < entry.bid_detail_created_at) {
+        } else if (value == entry.highest_bid && bid_detail.created_at_in_ms < entry.winning_bid_created_at_in_ms) {
             // if same value and same created_at, we choose first one who reveals bid.
             new_winning_bid(entry, bid_detail);
         } else if (value > entry.second_highest_bid) {
             // not winner, but affects second place
-            new_second_highest_bid(entry, value, sender(ctx));
+            new_second_highest_bid(entry, value, tx_context::sender(ctx));
         } else {
             // bid doesn't affect auction
             // TODO: what to do now?
@@ -391,7 +391,7 @@ module suins::auction {
         ctx: &mut TxContext
     ) {
         assert!(
-            auction_house.start_auction_start_at <= epoch(ctx) && epoch(ctx)
+            auction_house.start_auction_start_at <= tx_context::epoch(ctx) && tx_context::epoch(ctx)
                 <= auction_close_at(auction_house) + EXTRA_PERIOD,
             EAuctionNotAvailable,
         );
@@ -455,7 +455,7 @@ module suins::auction {
         ctx: &mut TxContext
     ) {
         assert!(
-            auction_close_at(auction_house) < epoch(ctx) && epoch(ctx)
+            auction_close_at(auction_house) < tx_context::epoch(ctx) && tx_context::epoch(ctx)
                 <= auction_close_at(auction_house) + EXTRA_PERIOD,
             EAuctionNotAvailable,
         );
@@ -650,7 +650,7 @@ module suins::auction {
 
         entry.highest_bid = winning_bid_detail.bid_value;
         entry.winner = winning_bid_detail.bidder;
-        entry.bid_detail_created_at = winning_bid_detail.created_at;
+        entry.winning_bid_created_at_in_ms = winning_bid_detail.created_at_in_ms;
         entry.winning_bid_uid = winning_bid_detail.uid;
     }
 
