@@ -572,7 +572,14 @@ module suins::controller {
         coin_util::suins_transfer_to_address(suins, amount, sender(ctx), ctx);
     }
 
-    public entry fun new_reserved_domains(_: &AdminCap, suins: &mut SuiNS, config: &Configuration, domains: vector<u8>, owner: address, ctx: &mut TxContext) {
+    public entry fun new_reserved_domains(
+        _: &AdminCap,
+        suins: &mut SuiNS,
+        config: &Configuration,
+        domains: vector<u8>,
+        owner: address,
+        ctx: &mut TxContext
+    ) {
         if (owner == @0x0) owner = tx_context::sender(ctx);
         let domains = remove_later::deserialize_reserve_domains(domains);
         let len = vector::length(&domains);
@@ -588,7 +595,12 @@ module suins::controller {
             assert!(index_of_dot != string::length(domain), EInvalidDomain);
             // TODO: validate node
             let node = string::sub_string(domain, 0, index_of_dot);
-            validate_label_with_emoji(emoji_config, *string::bytes(&node), 3, 63);
+            validate_label_with_emoji(
+                emoji_config,
+                *string::bytes(&node),
+                configuration::min_domain_length(),
+                configuration::max_domain_length()
+            );
             let tld = string::sub_string(domain, index_of_dot + 1, string::length(domain));
             registrar::register_internal(
                 suins,
@@ -649,8 +661,18 @@ module suins::controller {
         let emoji_config = configuration::emoji_config(config);
         let label_str = utf8(label);
 
-        if (epoch(ctx) <= entity::controller_auction_house_finalized_at(suins)) validate_label_with_emoji(emoji_config, label, 7, 63)
-        else validate_label_with_emoji(emoji_config, label, 3, 63);
+        if (epoch(ctx) <= entity::controller_auction_house_finalized_at(suins)) validate_label_with_emoji(
+            emoji_config,
+            label,
+            configuration::min_non_auction_domain_length(),
+            configuration::max_domain_length(),
+        )
+        else validate_label_with_emoji(
+            emoji_config,
+            label,
+            configuration::min_domain_length(),
+            configuration::max_domain_length()
+        );
 
         let commitment = make_commitment(tld, label, owner, secret);
         consume_commitment(suins, tld, label, commitment, ctx);

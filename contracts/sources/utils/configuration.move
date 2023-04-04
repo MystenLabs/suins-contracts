@@ -22,6 +22,9 @@ module suins::configuration {
     const PRICE_PER_YEAR: u64 = 1000000;
     const MAX_COMMITMENT_AGE: u64 = 3;
     const NO_OUTDATED_COMMITMENTS_TO_REMOVE: u64 = 50;
+    const MAX_DOMAIN_LENGTH: u64 = 63;
+    const MIN_DOMAIN_LENGTH: u64 = 3;
+    const MIN_NON_AUCTIONDOMAIN_LENGTH: u64 = 7;
 
     const EInvalidRate: u64 = 401;
     const EInvalidReferralCode: u64 = 402;
@@ -29,7 +32,6 @@ module suins::configuration {
     const EOwnerUnauthorized: u64 = 404;
     const EDiscountCodeNotExists: u64 = 405;
     const EReferralCodeNotExists: u64 = 406;
-
 
     /// This share object is the parent of reverse_domains
     /// The keys of dynamic child objects may or may not contain TLD.
@@ -41,12 +43,6 @@ module suins::configuration {
         emoji_config: EmojiConfiguration,
         public_key: vector<u8>,
         enable_controller: bool,
-        /// Minimum length of domains.
-        min_domain_length: u64,
-        /// Minimum length of domains that can be registered directly in `Controller`.
-        /// This field is only be used before the epoch at which the auction ends.
-        min_non_auction_domain_length: u64,
-        max_domain_length: u64,
     }
 
     struct NetworkFirstDayChangedEvent has copy, drop {
@@ -195,16 +191,16 @@ module suins::configuration {
         &config.public_key
     }
 
-    public fun min_domain_length(config: &Configuration): u64 {
-        config.min_domain_length
+    public fun min_domain_length(): u64 {
+        MIN_DOMAIN_LENGTH
     }
 
-    public fun min_non_auction_domain_length(config: &Configuration): u64 {
-        config.min_non_auction_domain_length
+    public fun min_non_auction_domain_length(): u64 {
+        MIN_NON_AUCTIONDOMAIN_LENGTH
     }
 
-    public fun max_domain_length(config: &Configuration): u64 {
-        config.max_domain_length
+    public fun max_domain_length(): u64 {
+        MAX_DOMAIN_LENGTH
     }
 
     public fun is_enable_controller(config: &Configuration): bool {
@@ -246,9 +242,6 @@ module suins::configuration {
             public_key: vector::empty(),
             // TODO: set it to false
             enable_controller: true,
-            min_domain_length: 3,
-            min_non_auction_domain_length: 7,
-            max_domain_length: 63,
         });
     }
 
@@ -311,9 +304,6 @@ module suins::configuration {
             emoji_config: emoji::init_emoji_config(),
             public_key: vector::empty(),
             enable_controller: true,
-            min_domain_length: 3,
-            min_non_auction_domain_length: 7,
-            max_domain_length: 63,
         });
     }
 }
