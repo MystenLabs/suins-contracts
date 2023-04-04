@@ -179,14 +179,6 @@ module suins::configuration {
         PRICE_PER_YEAR * no_years
     }
 
-    public fun max_commitment_age_in_ms(): u64 {
-        MAX_COMMITMENT_AGE_IN_MS
-    }
-
-    public fun no_outdated_commitments_to_remove(): u64 {
-        NO_OUTDATED_COMMITMENTS_TO_REMOVE
-    }
-
     public fun public_key(config: &Configuration): &vector<u8> {
         &config.public_key
     }
