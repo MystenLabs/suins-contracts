@@ -14,6 +14,7 @@ module suins::auction_tests_4 {
     use sui::test_scenario;
     use suins::registrar;
     use suins::registry;
+    use sui::clock::Clock;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -1405,6 +1406,161 @@ module suins::auction_tests_4 {
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(scenario, admin_cap);
             test_scenario::return_shared(config);
+        };
+        test_scenario::end(scenario_val);
+    }
+
+    #[test]
+    fun test_set_bidding_fee_works() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        start_an_auction_util(scenario, NODE);
+        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1300, FIRST_USER_ADDRESS, 0, option::none());
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+
+            assert!(auction::get_balance(&auction_house) == 1300, 0);
+            assert!(controller::get_balance(&suins) == 10000 + BIDDING_FEE, 0);
+
+            test_scenario::return_shared(auction_house);
+            test_scenario::return_shared(suins);
+        };
+        let new_bidding_fee = 1200000000;
+        test_scenario::next_tx(scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
+            let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+
+            auction::set_bidding_fee(&admin_cap, &mut auction_house, new_bidding_fee);
+
+            test_scenario::return_to_sender(scenario, admin_cap);
+            test_scenario::return_shared(auction_house);
+        };
+        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 2000, FIRST_SECRET);
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let ctx = &mut ctx_new(
+                FIRST_USER_ADDRESS,
+                DEFAULT_TX_HASH,
+                START_AN_AUCTION_AT + 1,
+                15
+            );
+            let auction = test_scenario::take_shared<AuctionHouse>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            let coin = coin::mint_for_testing<SUI>(new_bidding_fee * 3, ctx);
+            let clock = test_scenario::take_shared<Clock>(scenario);
+
+            auction::place_bid(&mut auction, &mut suins, seal_bid, 1200, &mut coin, &clock, ctx);
+            assert!(coin::value(&coin) == new_bidding_fee * 2 - 1200, 0);
+
+            coin::burn_for_testing(coin);
+            test_scenario::return_shared(auction);
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+
+            assert!(auction::get_balance(&auction_house) == 2500, 0);
+            assert!(controller::get_balance(&suins) == 10000 + BIDDING_FEE + new_bidding_fee, 0);
+
+            test_scenario::return_shared(auction_house);
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::end(scenario_val);
+    }
+
+    #[test]
+    fun test_set_bidding_fee_works_2() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        start_an_auction_util(scenario, NODE);
+        let new_bidding_fee = 1200000000;
+        test_scenario::next_tx(scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
+            let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+
+            auction::set_bidding_fee(&admin_cap, &mut auction_house, new_bidding_fee);
+
+            test_scenario::return_to_sender(scenario, admin_cap);
+            test_scenario::return_shared(auction_house);
+        };
+        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 2000, FIRST_SECRET);
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let ctx = &mut ctx_new(
+                FIRST_USER_ADDRESS,
+                DEFAULT_TX_HASH,
+                START_AN_AUCTION_AT + 1,
+                15
+            );
+            let auction = test_scenario::take_shared<AuctionHouse>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            let coin = coin::mint_for_testing<SUI>(new_bidding_fee * 3, ctx);
+            let clock = test_scenario::take_shared<Clock>(scenario);
+
+            auction::place_bid(&mut auction, &mut suins, seal_bid, 1200, &mut coin, &clock, ctx);
+            assert!(coin::value(&coin) == new_bidding_fee * 2 - 1200, 0);
+
+            coin::burn_for_testing(coin);
+            test_scenario::return_shared(auction);
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(clock);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+
+            assert!(auction::get_balance(&auction_house) == 1200, 0);
+            assert!(controller::get_balance(&suins) == 10000 + new_bidding_fee, 0);
+
+            test_scenario::return_shared(auction_house);
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = auction::EInvalidBiddingFee)]
+    fun test_set_bidding_fee_aborts_if_new_value_is_too_low() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        start_an_auction_util(scenario, NODE);
+        let new_bidding_fee = BIDDING_FEE - 1;
+        test_scenario::next_tx(scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
+            let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+
+            auction::set_bidding_fee(&admin_cap, &mut auction_house, new_bidding_fee);
+
+            test_scenario::return_to_sender(scenario, admin_cap);
+            test_scenario::return_shared(auction_house);
+        };
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = auction::EInvalidBiddingFee)]
+    fun test_set_bidding_fee_aborts_if_new_value_is_too_high() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        start_an_auction_util(scenario, NODE);
+        let new_bidding_fee = 1000000000000001;
+        test_scenario::next_tx(scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
+            let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+
+            auction::set_bidding_fee(&admin_cap, &mut auction_house, new_bidding_fee);
+
+            test_scenario::return_to_sender(scenario, admin_cap);
+            test_scenario::return_shared(auction_house);
         };
         test_scenario::end(scenario_val);
     }

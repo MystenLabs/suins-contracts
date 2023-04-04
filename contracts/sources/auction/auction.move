@@ -29,8 +29,6 @@ module suins::auction {
     use sui::tx_context;
 
     const MIN_PRICE: u64 = 1000;
-    const BIDDING_FEE: u64 = 1000000000;
-    const START_AN_AUCTION_FEE: u64 = 10000;
     const BIDDING_PERIOD: u64 = 3;
     const REVEAL_PERIOD: u64 = 3;
     /// time period from end_at, so winner have time to claim their winning
@@ -58,6 +56,7 @@ module suins::auction {
     const EAlreadyUnsealed: u64 = 812;
     const ESealBidNotExists: u64 = 813;
     const EAuctionNotHasWinner: u64 = 814;
+    const EInvalidBiddingFee: u64 = 815;
 
     struct BidDetail has store, copy, drop {
         uid: ID,
@@ -105,6 +104,8 @@ module suins::auction {
         /// the auction really ends at = start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD + FINALIZING_PERIOD
         /// this property acts as a toggle flag to turn off auction, set this field to 0 to turn off auction
         start_auction_end_at: u64,
+        bidding_fee: u64,
+        start_an_auction_fee: u64,
     }
 
     struct NodeRegisteredEvent has copy, drop {
@@ -221,7 +222,7 @@ module suins::auction {
         linked_table::push_back(&mut auction_house.entries, label, entry);
         event::emit(AuctionStartedEvent { label, start_at: started_at });
 
-        coin_util::user_transfer_to_suins(payment, START_AN_AUCTION_FEE, suins)
+        coin_util::user_transfer_to_suins(payment, auction_house.start_an_auction_fee, suins)
     }
 
     /// #### Notice
@@ -279,7 +280,7 @@ module suins::auction {
         event::emit(NewBidEvent { bidder, sealed_bid, bid_value_mask });
 
         coin_util::user_transfer_to_auction(payment, bid_value_mask, &mut auction_house.balance);
-        coin_util::user_transfer_to_suins(payment, BIDDING_FEE, suins);
+        coin_util::user_transfer_to_suins(payment, auction_house.bidding_fee, suins);
     }
 
     /// #### Notice
@@ -550,6 +551,11 @@ module suins::auction {
         // TODO: consider removing `tx_context::sender(ctx)` key from `bid_details_by_bidder` if `bid_details` is empty
     }
 
+    public entry fun set_bidding_fee(_: &AdminCap, auction_house: &mut AuctionHouse, new_bidding_fee: u64) {
+        assert!(1000000000 <= new_bidding_fee && new_bidding_fee <= 1000000000000000, EInvalidBiddingFee);
+        auction_house.bidding_fee = new_bidding_fee;
+    }
+
     // === Public Functions ===
 
     /// #### Notice
@@ -710,6 +716,8 @@ module suins::auction {
             balance: balance::zero(),
             start_auction_start_at: 0,
             start_auction_end_at: 0,
+            bidding_fee: 1000000000,
+            start_an_auction_fee: 10000,
         });
     }
 
@@ -775,6 +783,8 @@ module suins::auction {
             balance: balance::zero(),
             start_auction_start_at: 0,
             start_auction_end_at: 0,
+            bidding_fee: 1000000000,
+            start_an_auction_fee: 10000000000,
         });
     }
 }
