@@ -246,7 +246,8 @@ module suins::auction {
         ctx: &mut TxContext
     ) {
         assert!(
-            auction_house.start_auction_start_at <= epoch(ctx) && epoch(ctx) <= auction_house.start_auction_end_at + BIDDING_PERIOD,
+            auction_house.start_auction_start_at <= epoch(ctx) && epoch(ctx)
+                <= auction_house.start_auction_end_at + BIDDING_PERIOD,
             EAuctionNotAvailable,
         );
         assert!(bid_value_mask >= MIN_PRICE, EInvalidBid);
@@ -305,7 +306,8 @@ module suins::auction {
         ctx: &mut TxContext
     ) {
         assert!(
-            auction_house.start_auction_start_at <= epoch(ctx) && epoch(ctx) <= auction_house.start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD,
+            auction_house.start_auction_start_at <= epoch(ctx) && epoch(ctx)
+                <= auction_house.start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD,
             EAuctionNotAvailable,
         );
         // TODO: do we need to validate domain here?
@@ -349,8 +351,7 @@ module suins::auction {
             new_winning_bid(entry, bid_detail);
         } else if (value > entry.second_highest_bid) {
             // not winner, but affects second place
-            entry.second_highest_bid = value;
-            entry.second_highest_bidder = sender(ctx);
+            new_second_highest_bid(entry, value, sender(ctx));
         } else {
             // bid doesn't affect auction
             // TODO: what to do now?
@@ -385,7 +386,8 @@ module suins::auction {
         ctx: &mut TxContext
     ) {
         assert!(
-            auction_house.start_auction_start_at <= epoch(ctx) && epoch(ctx) <= auction_close_at(auction_house) + EXTRA_PERIOD,
+            auction_house.start_auction_start_at <= epoch(ctx) && epoch(ctx)
+                <= auction_close_at(auction_house) + EXTRA_PERIOD,
             EAuctionNotAvailable,
         );
         let auction_state = state(auction_house, label, epoch(ctx));
@@ -448,7 +450,8 @@ module suins::auction {
         ctx: &mut TxContext
     ) {
         assert!(
-            auction_close_at(auction_house) < epoch(ctx) && epoch(ctx) <= auction_close_at(auction_house) + EXTRA_PERIOD,
+            auction_close_at(auction_house) < epoch(ctx) && epoch(ctx)
+                <= auction_close_at(auction_house) + EXTRA_PERIOD,
             EAuctionNotAvailable,
         );
 
@@ -644,6 +647,15 @@ module suins::auction {
         entry.winning_bid_uid = winning_bid_detail.uid;
     }
 
+    fun new_second_highest_bid(
+        entry: &mut AuctionEntry,
+        new_second_highest_value: u64,
+        new_second_highest_bidder: address
+    ) {
+        entry.second_highest_bid = new_second_highest_value;
+        entry.second_highest_bidder = new_second_highest_bidder;
+    }
+
     fun handle_winning_bid(
         auction_balance: &mut Balance<SUI>,
         suins: &mut SuiNS,
@@ -660,7 +672,11 @@ module suins::auction {
             );
             // it rounds down
             let second_highest_bidder_take = (entry.second_highest_bid / 100) * 5;
-            coin_util::auction_transfer_to_suins(auction_balance, entry.second_highest_bid - second_highest_bidder_take, suins);
+            coin_util::auction_transfer_to_suins(
+                auction_balance,
+                entry.second_highest_bid - second_highest_bidder_take,
+                suins
+            );
             coin_util::auction_transfer_to_address(
                 auction_balance,
                 second_highest_bidder_take,
@@ -721,7 +737,11 @@ module suins::auction {
     }
 
     #[test_only]
-    public fun get_seal_bid_by_bidder(auction_house: &AuctionHouse, seal_bid: vector<u8>, bidder: address): Option<u64> {
+    public fun get_seal_bid_by_bidder(
+        auction_house: &AuctionHouse,
+        seal_bid: vector<u8>,
+        bidder: address
+    ): Option<u64> {
         if (table::contains(&auction_house.bid_details_by_bidder, bidder)) {
             let bids_by_bidder = table::borrow(&auction_house.bid_details_by_bidder, bidder);
             let index = seal_bid_exists(bids_by_bidder, seal_bid);
