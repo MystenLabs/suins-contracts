@@ -558,6 +558,11 @@ module suins::auction {
         auction_house.bidding_fee = new_bidding_fee;
     }
 
+    public entry fun set_start_an_auction_fee(_: &AdminCap, auction_house: &mut AuctionHouse, new_fee: u64) {
+        assert!(MIST_PER_SUI <= new_fee && new_fee <= 1_000_000 * MIST_PER_SUI, EInvalidBiddingFee);
+        auction_house.start_an_auction_fee = new_fee;
+    }
+
     // === Public Functions ===
 
     /// #### Notice
