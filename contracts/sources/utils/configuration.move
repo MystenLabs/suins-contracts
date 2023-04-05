@@ -19,10 +19,10 @@ module suins::configuration {
     friend suins::controller;
     friend suins::auction;
 
-    const PRICE_PER_YEAR: u64 = 1000000;
     const MAX_DOMAIN_LENGTH: u64 = 63;
     const MIN_DOMAIN_LENGTH: u64 = 3;
     const MIN_NON_AUCTIONDOMAIN_LENGTH: u64 = 7;
+    const MIST_PER_SUI: u64 = 1_000_000_000;
 
     const EInvalidRate: u64 = 401;
     const EInvalidReferralCode: u64 = 402;
@@ -30,6 +30,7 @@ module suins::configuration {
     const EOwnerUnauthorized: u64 = 404;
     const EDiscountCodeNotExists: u64 = 405;
     const EReferralCodeNotExists: u64 = 406;
+    const EInvalidLabelLength: u64 = 407;
 
     /// This share object is the parent of reverse_domains
     /// The keys of dynamic child objects may or may not contain TLD.
@@ -41,6 +42,9 @@ module suins::configuration {
         emoji_config: EmojiConfiguration,
         public_key: vector<u8>,
         enable_controller: bool,
+        price_of_three_character_domain: u64,
+        price_of_four_character_domain: u64,
+        price_of_five_and_above_character_domain: u64,
     }
 
     struct NetworkFirstDayChangedEvent has copy, drop {
@@ -173,8 +177,14 @@ module suins::configuration {
         };
     }
 
-    public fun price_for_node(no_years: u64): u64 {
-        PRICE_PER_YEAR * no_years
+    public fun price_for_node(config: &Configuration, label_length: u64, no_years: u64): u64 {
+        assert!(label_length > 2, EInvalidLabelLength);
+        let price_per_year =
+            if (label_length == 3) config.price_of_three_character_domain
+            else if (label_length == 4) config.price_of_four_character_domain
+            else config.price_of_five_and_above_character_domain;
+
+        price_per_year * no_years
     }
 
     public fun public_key(config: &Configuration): &vector<u8> {
@@ -223,6 +233,10 @@ module suins::configuration {
         &config.emoji_config
     }
 
+    public(friend) fun mist_per_sui(): u64 {
+        MIST_PER_SUI
+    }
+
     fun init(ctx: &mut TxContext) {
         transfer::share_object(Configuration {
             id: object::new(ctx),
@@ -232,6 +246,9 @@ module suins::configuration {
             public_key: vector::empty(),
             // TODO: set it to false
             enable_controller: true,
+            price_of_three_character_domain: 1200 * MIST_PER_SUI,
+            price_of_four_character_domain: 200 * MIST_PER_SUI,
+            price_of_five_and_above_character_domain: 50 * MIST_PER_SUI,
         });
     }
 
@@ -294,6 +311,9 @@ module suins::configuration {
             emoji_config: emoji::init_emoji_config(),
             public_key: vector::empty(),
             enable_controller: true,
+            price_of_three_character_domain: 1200 * MIST_PER_SUI,
+            price_of_four_character_domain: 200 * MIST_PER_SUI,
+            price_of_five_and_above_character_domain: 50 * MIST_PER_SUI,
         });
     }
 }
