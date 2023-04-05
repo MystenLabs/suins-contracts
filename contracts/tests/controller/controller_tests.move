@@ -50,6 +50,7 @@ module suins::controller_tests {
     const SUI_REGISTRAR: vector<u8> = b"sui";
     const MOVE_REGISTRAR: vector<u8> = b"move";
     const BIDDING_FEE: u64 = 1000000000;
+    const START_AN_AUCTION_FEE: u64 = 10_000_000_000;
     const MIN_COMMITMENT_AGE_IN_MS: u64 = 300_000;
 
     fun test_init(): Scenario {
@@ -3155,7 +3156,7 @@ module suins::controller_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
 
-            assert!(controller::get_balance(&suins) == 10000, 0);
+            assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE, 0);
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 AUCTIONED_LABEL,
@@ -3212,7 +3213,7 @@ module suins::controller_tests {
             let (name, url) = registrar::get_nft_fields(&nft);
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == 1010000, 0);
+            assert!(controller::get_balance(&suins) == 1000000 + START_AN_AUCTION_FEE, 0);
             assert!(name == utf8(AUCTIONED_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -5016,7 +5017,7 @@ module suins::controller_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
 
-            assert!(controller::get_balance(&suins) == 10000 + BIDDING_FEE, 0);
+            assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE, 0);
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 AUCTIONED_LABEL,
@@ -5069,7 +5070,7 @@ module suins::controller_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = registrar::get_nft_fields(&nft);
 
-            assert!(controller::get_balance(&suins) == 1010000 + BIDDING_FEE, 0);
+            assert!(controller::get_balance(&suins) == 1000000 + START_AN_AUCTION_FEE + BIDDING_FEE, 0);
             assert!(name == utf8(AUCTIONED_NODE), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -5108,8 +5109,8 @@ module suins::controller_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            assert!(controller::get_balance(&suins) == 10000, 0);
 
+            assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE, 0);
             finalize_all_auctions_by_admin(
                 &admin_cap,
                 &mut auction,
@@ -5118,8 +5119,8 @@ module suins::controller_tests {
                 FIRST_RESOLVER_ADDRESS,
                 &mut auction_tests::ctx_util(SUINS_ADDRESS, EXTRA_PERIOD_START_AT, 20),
             );
+            assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE, 0);
 
-            assert!(controller::get_balance(&suins) == 10000, 0);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);

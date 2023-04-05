@@ -78,6 +78,7 @@ module suins::auction_tests_2 {
     const FIRST_TX_HASH: vector<u8> = x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431533";
     const SECOND_TX_HASH: vector<u8> = x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431534";
     const BIDDING_FEE: u64 = 1000000000;
+    const START_AN_AUCTION_FEE: u64 = 10_000_000_000;
 
     #[test, expected_failure(abort_code = auction::EInvalidPhase)]
     fun test_finalize_bid_abort_if_too_early() {
@@ -608,7 +609,7 @@ module suins::auction_tests_2 {
                 START_AUCTION_END_AT,
                 10
             );
-            let coin = coin::mint_for_testing<SUI>(30000, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, &mut ctx);
 
             auction::start_an_auction(&mut auction, &mut suins, &config, NODE, &mut coin, &mut ctx);
 
@@ -1036,7 +1037,7 @@ module suins::auction_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
             assert!(auction::get_balance(&auction) == 10230, 0);
-            assert!(controller::get_balance(&suins) == 10000 + BIDDING_FEE, 0);
+            assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -1083,7 +1084,7 @@ module suins::auction_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
             assert!(auction::get_balance(&auction) == 10230, 0);
-            assert!(controller::get_balance(&suins) == 10000 + BIDDING_FEE, 0);
+            assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);

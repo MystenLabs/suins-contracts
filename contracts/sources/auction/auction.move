@@ -29,6 +29,8 @@ module suins::auction {
     use sui::tx_context;
 
     const MIN_PRICE: u64 = 1000;
+    // must always up-to-date with sui::sui::MIST_PER_SUI
+    const MIST_PER_SUI: u64 = 1_000_000_000;
     const BIDDING_PERIOD: u64 = 3;
     const REVEAL_PERIOD: u64 = 3;
     /// time period from end_at, so winner have time to claim their winning
@@ -552,7 +554,7 @@ module suins::auction {
     }
 
     public entry fun set_bidding_fee(_: &AdminCap, auction_house: &mut AuctionHouse, new_bidding_fee: u64) {
-        assert!(1000000000 <= new_bidding_fee && new_bidding_fee <= 1000000000000000, EInvalidBiddingFee);
+        assert!(MIST_PER_SUI <= new_bidding_fee && new_bidding_fee <= 1_000_000 * MIST_PER_SUI, EInvalidBiddingFee);
         auction_house.bidding_fee = new_bidding_fee;
     }
 
@@ -716,8 +718,8 @@ module suins::auction {
             balance: balance::zero(),
             start_auction_start_at: 0,
             start_auction_end_at: 0,
-            bidding_fee: 1000000000,
-            start_an_auction_fee: 10000,
+            bidding_fee: MIST_PER_SUI ,
+            start_an_auction_fee: 10 * MIST_PER_SUI,
         });
     }
 
@@ -783,8 +785,8 @@ module suins::auction {
             balance: balance::zero(),
             start_auction_start_at: 0,
             start_auction_end_at: 0,
-            bidding_fee: 1000000000,
-            start_an_auction_fee: 10000000000,
+            bidding_fee: MIST_PER_SUI,
+            start_an_auction_fee: 10 * MIST_PER_SUI,
         });
     }
 }
