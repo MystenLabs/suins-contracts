@@ -5,6 +5,7 @@ module suins::controller_tests {
     use sui::test_scenario::{Self, Scenario};
     use sui::sui::SUI;
     use sui::url;
+    use sui::clock;
     use sui::dynamic_field;
     use suins::auction::{make_seal_bid, finalize_all_auctions_by_admin, AuctionHouse};
     use suins::auction;
@@ -58,6 +59,7 @@ module suins::controller_tests {
             configuration::test_init(ctx);
             entity::test_init(ctx);
             auction::test_init(ctx);
+            clock::create_for_testing(ctx);
         };
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
@@ -2915,7 +2917,7 @@ module suins::controller_tests {
         set_auction_config(&mut scenario);
         start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
         let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000, b"CnRGhPvfCu");
-        place_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER_ADDRESS, option::none());
+        place_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER_ADDRESS, 0, option::none());
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -4792,7 +4794,7 @@ module suins::controller_tests {
         set_auction_config(&mut scenario);
         start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
         let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
-        place_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER_ADDRESS, option::none());
+        place_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER_ADDRESS, 0, option::none());
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -4868,7 +4870,7 @@ module suins::controller_tests {
         set_auction_config(&mut scenario);
         start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
         let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
-        place_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER_ADDRESS, option::none());
+        place_bid_util(&mut scenario, seal_bid, 1100, FIRST_USER_ADDRESS, 0, option::none());
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
