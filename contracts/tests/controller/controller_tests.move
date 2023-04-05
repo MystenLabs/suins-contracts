@@ -50,6 +50,7 @@ module suins::controller_tests {
     const SUI_REGISTRAR: vector<u8> = b"sui";
     const MOVE_REGISTRAR: vector<u8> = b"move";
     const BIDDING_FEE: u64 = 1000000000;
+    const MIN_COMMITMENT_AGE_IN_MS: u64 = 300_000;
 
     fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
@@ -124,6 +125,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS + 1);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
@@ -204,7 +206,6 @@ module suins::controller_tests {
     fun test_register() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -217,6 +218,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(controller::get_balance(&suins) == 0, 0);
@@ -436,7 +438,6 @@ module suins::controller_tests {
     fun test_register_abort_if_not_enough_fee() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -450,6 +451,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(9999, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             controller::register(
                 &mut suins,
@@ -477,7 +479,6 @@ module suins::controller_tests {
         let scenario = test_init();
         register(&mut scenario);
         make_commitment(&mut scenario, option::none());
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -491,8 +492,9 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
-            assert!(controller::get_balance(&suins) == 1000000, 0);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
+            assert!(controller::get_balance(&suins) == 1000000, 0);
             controller::register(
                 &mut suins,
                 SUI_REGISTRAR,
@@ -553,8 +555,9 @@ module suins::controller_tests {
                 20
             );
             let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
-            assert!(controller::get_balance(&suins) == 1000000, 0);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
+            assert!(controller::get_balance(&suins) == 1000000, 0);
             controller::register(
                 &mut suins,
                 SUI_REGISTRAR,
@@ -650,8 +653,9 @@ module suins::controller_tests {
                 20
             );
             let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
-            assert!(controller::get_balance(&suins) == 1000000, 0);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
+            assert!(controller::get_balance(&suins) == 1000000, 0);
             controller::register(
                 &mut suins,
                 SUI_REGISTRAR,
@@ -694,7 +698,6 @@ module suins::controller_tests {
     fun test_register_with_config() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -707,6 +710,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(4000001, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
@@ -1263,7 +1267,6 @@ module suins::controller_tests {
             test_scenario::return_shared(suins);
             test_scenario::return_shared(clock);
         };
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -1286,7 +1289,6 @@ module suins::controller_tests {
             test_scenario::return_shared(suins);
             test_scenario::return_shared(clock);
         };
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
@@ -1301,6 +1303,7 @@ module suins::controller_tests {
             );
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(2000001, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(controller::commitment_len(&suins) == 2, 0);
             controller::register(
@@ -1332,7 +1335,6 @@ module suins::controller_tests {
     fun test_register_with_referral_code() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
@@ -1345,6 +1347,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(controller::get_balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
@@ -1412,7 +1415,6 @@ module suins::controller_tests {
     fun test_register_with_config_referral_code() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
@@ -1425,6 +1427,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(4000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(controller::get_balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
@@ -1528,7 +1531,6 @@ module suins::controller_tests {
     fun test_register_with_discount_code() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
@@ -1542,6 +1544,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(controller::get_balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
@@ -1608,7 +1611,6 @@ module suins::controller_tests {
     fun test_register_with_discount_code_abort_if_unauthorized() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
-
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
@@ -1622,6 +1624,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             controller::register_with_code(
                 &mut suins,
@@ -1651,7 +1654,6 @@ module suins::controller_tests {
     fun test_register_with_discount_code_abort_with_invalid_code() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
@@ -1664,6 +1666,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             controller::register_with_code(
                 &mut suins,
@@ -1692,7 +1695,6 @@ module suins::controller_tests {
     fun test_register_with_config_and_discount_code() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
@@ -1706,6 +1708,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(controller::get_balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
@@ -1772,7 +1775,6 @@ module suins::controller_tests {
     fun test_register_with_config_and_discount_code_abort_if_unauthorized() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
-
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -1785,6 +1787,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             controller::register_with_config_and_code(
                 &mut suins,
@@ -1814,7 +1817,6 @@ module suins::controller_tests {
     fun test_register_with_config_and_discount_code_abort_with_invalid_code() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -1827,6 +1829,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             controller::register_with_config_and_code(
                 &mut suins,
@@ -1856,7 +1859,6 @@ module suins::controller_tests {
     fun test_register_with_discount_code_abort_if_being_used_twice() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -1870,6 +1872,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             controller::register_with_code(
                 &mut suins,
@@ -1892,7 +1895,6 @@ module suins::controller_tests {
             test_scenario::return_shared(clock);
             test_scenario::return_shared(suins);
         };
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -1909,7 +1911,6 @@ module suins::controller_tests {
             test_scenario::return_shared(suins);
             test_scenario::return_shared(clock);
         };
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -1922,6 +1923,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             controller::register_with_code(
                 &mut suins,
@@ -1962,9 +1964,9 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-
             controller::register_with_code(
                 &mut suins,
                 SUI_REGISTRAR,
@@ -1980,6 +1982,7 @@ module suins::controller_tests {
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 1000000, 0);
+
             coin::burn_for_testing(coin);
             test_scenario::return_shared(config);
             test_scenario::return_shared(clock);
@@ -2010,8 +2013,9 @@ module suins::controller_tests {
                 2
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
-            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, SECOND_LABEL), 0);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, SECOND_LABEL), 0);
             controller::register_with_code(
                 &mut suins,
                 SUI_REGISTRAR,
@@ -2027,6 +2031,7 @@ module suins::controller_tests {
                 &mut ctx,
             );
             assert!(coin::value(&coin) == 2000000, 0);
+
             coin::burn_for_testing(coin);
             test_scenario::return_shared(config);
             test_scenario::return_shared(clock);
@@ -2067,6 +2072,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             controller::register_with_code(
                 &mut suins,
@@ -2098,7 +2104,6 @@ module suins::controller_tests {
         let node = vector[104, 109, 109, 109, 49, 240, 159, 145, 180];
         let domain_name = vector[104, 109, 109, 109, 49, 240, 159, 145, 180, 46, 115, 117, 105];
         make_commitment(&mut scenario, option::some(node));
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
@@ -2112,6 +2117,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, node), 0);
             assert!(controller::get_balance(&suins) == 0, 0);
@@ -2187,6 +2193,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(controller::get_balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
@@ -2267,6 +2274,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             controller::register_with_code(
@@ -2309,6 +2317,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             controller::register_with_code(
@@ -2350,6 +2359,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(controller::get_balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
@@ -2427,6 +2437,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             controller::register_with_config_and_code(
@@ -2469,6 +2480,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             controller::register_with_config_and_code(
@@ -2558,7 +2570,6 @@ module suins::controller_tests {
     fun test_register_work_if_register_long_domain_while_auction_not_start_yet() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
-
         make_commitment(&mut scenario, option::none());
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -2572,6 +2583,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             controller::register(
                 &mut suins,
@@ -2665,7 +2677,6 @@ module suins::controller_tests {
     fun test_register_work_if_register_lonng_domain_while_auction_is_happening() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
-
         make_commitment(&mut scenario, some(FIRST_LABEL));
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -2679,6 +2690,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             controller::register(
                 &mut suins,
@@ -2765,6 +2777,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             controller::register(
                 &mut suins,
@@ -2818,7 +2831,6 @@ module suins::controller_tests {
     fun test_register_work_for_short_domain_if_auction_is_over() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -2830,7 +2842,6 @@ module suins::controller_tests {
                 FIRST_USER_ADDRESS,
                 FIRST_SECRET
             );
-
             controller::commit(
                 &mut suins,
                 commitment,
@@ -2852,6 +2863,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             controller::register(
                 &mut suins,
@@ -2905,7 +2917,6 @@ module suins::controller_tests {
     fun test_register_work_if_name_not_wait_for_being_finalized() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -2917,7 +2928,6 @@ module suins::controller_tests {
                 FIRST_USER_ADDRESS,
                 FIRST_SECRET
             );
-
             controller::commit(
                 &mut suins,
                 commitment,
@@ -2939,6 +2949,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             controller::register(
                 &mut suins,
@@ -3151,7 +3162,6 @@ module suins::controller_tests {
                 FIRST_USER_ADDRESS,
                 FIRST_SECRET
             );
-
             controller::commit(
                 &mut suins,
                 commitment,
@@ -3174,6 +3184,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             controller::register(
                 &mut suins,
@@ -3529,6 +3540,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             controller::register(
                 &mut suins,
@@ -3882,7 +3894,6 @@ module suins::controller_tests {
     fun test_register_with_image() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -3895,6 +3906,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(controller::get_balance(&suins) == 0, 0);
@@ -3960,7 +3972,6 @@ module suins::controller_tests {
     fun test_register_with_config_and_image() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -3973,6 +3984,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(4000001, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_NODE)), 0);
@@ -4204,6 +4216,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(controller::get_balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
@@ -4418,6 +4431,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(controller::get_balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
@@ -4830,7 +4844,6 @@ module suins::controller_tests {
     fun test_renew_with_image_works_if_being_called_in_grace_time() {
         let scenario = test_init();
         register(&mut scenario);
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
@@ -5030,6 +5043,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             controller::register(
                 &mut suins,
@@ -5217,14 +5231,21 @@ module suins::controller_tests {
             assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(first_node), ctx), 0);
             assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(first_node), ctx), 0);
             assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(second_node), ctx), 0);
-            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR),utf8(second_node), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(second_node), ctx), 0);
 
             assert!(!registry::record_exists(&suins, utf8(first_domain_name_sui)), 0);
             assert!(!registry::record_exists(&suins, utf8(first_domain_name_move)), 0);
             assert!(!registry::record_exists(&suins, utf8(second_domain_name_sui)), 0);
             assert!(!registry::record_exists(&suins, utf8(second_domain_name_move)), 0);
 
-            controller::new_reserved_domains(&admin_cap, &mut suins, &config, b"abcde.sui;abcde.move;abcdefghijk.sui;", @0x0, ctx);
+            controller::new_reserved_domains(
+                &admin_cap,
+                &mut suins,
+                &config,
+                b"abcde.sui;abcde.move;abcdefghijk.sui;",
+                @0x0,
+                ctx
+            );
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
@@ -5240,10 +5261,10 @@ module suins::controller_tests {
                 10
             );
 
-            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR),utf8(first_node), ctx), 0);
-            assert!(!registrar::is_available(&suins, utf8(MOVE_REGISTRAR),utf8(first_node), ctx), 0);
-            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR),utf8(second_node), ctx), 0);
-            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR),utf8(second_node), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(first_node), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(first_node), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(second_node), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(second_node), ctx), 0);
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, first_node);
             assert!(expiry == 415, 0);
@@ -5312,7 +5333,7 @@ module suins::controller_tests {
                 20
             );
 
-            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR),utf8(second_node), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(second_node), ctx), 0);
             assert!(!registry::record_exists(&suins, utf8(second_domain_name_move)), 0);
 
             controller::new_reserved_domains(&admin_cap, &mut suins, &config, b"abcdefghijk.move", @0x0B, ctx);
@@ -5331,10 +5352,10 @@ module suins::controller_tests {
                 30
             );
 
-            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR),utf8(first_node), ctx), 0);
-            assert!(!registrar::is_available(&suins, utf8(MOVE_REGISTRAR),utf8(first_node), ctx), 0);
-            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR),utf8(second_node), ctx), 0);
-            assert!(!registrar::is_available(&suins, utf8(MOVE_REGISTRAR),utf8(second_node), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(first_node), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(first_node), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(second_node), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(second_node), ctx), 0);
 
             let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, first_node);
             assert!(expiry == 415, 0);
@@ -5423,9 +5444,8 @@ module suins::controller_tests {
             let emoji_node = vector[104, 109, 109, 109, 49, 240, 159, 145, 180];
             let emoji_domain_name = vector[104, 109, 109, 109, 49, 240, 159, 145, 180, 46, 115, 117, 105];
 
-            assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR),utf8(emoji_node), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(emoji_node), ctx), 0);
             assert!(!registry::record_exists(&suins, utf8(emoji_domain_name)), 0);
-
             controller::new_reserved_domains(&admin_cap, &mut suins, &config, emoji_domain_name, @0x0C, ctx);
 
             test_scenario::return_shared(suins);
@@ -5627,6 +5647,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             controller::register(
                 &mut suins,
@@ -5683,7 +5704,6 @@ module suins::controller_tests {
                 FIRST_USER_ADDRESS,
                 FIRST_SECRET
             );
-
             controller::commit(
                 &mut suins,
                 commitment,
@@ -5706,6 +5726,7 @@ module suins::controller_tests {
                 0
             );
             let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
+            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             controller::register(
                 &mut suins,
@@ -5874,6 +5895,39 @@ module suins::controller_tests {
 
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, nft);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = controller::ECommitmentTooSoon)]
+    fun test_register_aborts_if_called_too_soon() {
+        let scenario = test_init();
+        make_commitment(&mut scenario, option::none());
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+            let ctx = test_scenario::ctx(&mut scenario);
+            let coin = coin::mint_for_testing<SUI>(3000000, ctx);
+
+            controller::register(
+                &mut suins,
+                SUI_REGISTRAR,
+                &mut config,
+                FIRST_LABEL,
+                FIRST_USER_ADDRESS,
+                2,
+                FIRST_SECRET,
+                &mut coin,
+                &clock,
+                ctx,
+            );
+
+            coin::burn_for_testing(coin);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(clock);
+            test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }

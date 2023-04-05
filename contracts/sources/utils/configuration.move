@@ -20,8 +20,6 @@ module suins::configuration {
     friend suins::auction;
 
     const PRICE_PER_YEAR: u64 = 1000000;
-    const MAX_COMMITMENT_AGE_IN_MS: u64 = 259200000;
-    const NO_OUTDATED_COMMITMENTS_TO_REMOVE: u64 = 50;
     const MAX_DOMAIN_LENGTH: u64 = 63;
     const MIN_DOMAIN_LENGTH: u64 = 3;
     const MIN_NON_AUCTIONDOMAIN_LENGTH: u64 = 7;

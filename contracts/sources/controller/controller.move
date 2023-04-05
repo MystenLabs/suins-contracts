@@ -30,8 +30,9 @@ module suins::controller {
     use sui::clock::Clock;
     use sui::clock;
 
-    const MAX_COMMITMENT_AGE_IN_MS: u64 = 259200000;
-    const NO_OUTDATED_COMMITMENTS_TO_REMOVE: u64 = 50;
+    const MAX_COMMITMENT_AGE_IN_MS: u64 = 259_200_000;
+    const MIN_COMMITMENT_AGE_IN_MS: u64 = 300_000;
+    const MAX_OUTDATED_COMMITMENTS_TO_REMOVE: u64 = 50;
 
     // errors in the range of 301..400 indicate Sui Controller errors
     const EInvalidResolverAddress: u64 = 301;
@@ -45,6 +46,7 @@ module suins::controller {
     const EInvalidCode: u64 = 311;
     const ERegistrationIsDisabled: u64 = 312;
     const EInvalidDomain: u64 = 314;
+    const ECommitmentTooSoon: u64 = 315;
 
     struct NameRegisteredEvent has copy, drop {
         tld: String,
@@ -771,7 +773,7 @@ module suins::controller {
         let front_element = linked_table::front(commitments);
         let i = 0;
 
-        while (option::is_some(front_element) && i < NO_OUTDATED_COMMITMENTS_TO_REMOVE) {
+        while (option::is_some(front_element) && i < MAX_OUTDATED_COMMITMENTS_TO_REMOVE) {
             i = i + 1;
 
             let created_at = linked_table::borrow(commitments, *option::borrow(front_element));
@@ -792,11 +794,10 @@ module suins::controller {
     ) {
         let commitments = entity::controller_commitments_mut(suins);
         assert!(linked_table::contains(commitments, commitment), ECommitmentNotExists);
-        // TODO: remove later when timestamp is introduced
-        // assert!(
-        //     *vec_map::get(&controller.commitments, &commitment) + MIN_COMMITMENT_AGE <= tx_context::epoch(ctx),
-        //     ECommitmentNotValid
-        // );
+        assert!(
+            *linked_table::borrow(commitments, commitment) + MIN_COMMITMENT_AGE_IN_MS <= clock::timestamp_ms(clock),
+            ECommitmentTooSoon
+        );
         assert!(
             *linked_table::borrow(commitments, commitment) + MAX_COMMITMENT_AGE_IN_MS > clock::timestamp_ms(clock),
             ECommitmentTooOld
