@@ -83,8 +83,8 @@ module suins::auction {
         winner: address,
         second_highest_bidder: address,
         is_finalized: bool,
-        /// the created_at property of the current winning bid
-        /// if 2 bidders bid same value, we choose the one who called `new_bid` first
+        /// the created_at_in_ms property of the current winning bid
+        /// if 2 bidders have the same value, we choose the one who called `place_bid` first
         winning_bid_created_at_in_ms: u64,
         /// object::id_from_address(@0x0) if winner hasn't been determined
         winning_bid_uid: ID,
@@ -107,9 +107,10 @@ module suins::auction {
         start_auction_end_at: u64,
     }
 
-    struct NodeRegisteredEvent has copy, drop {
-        label: String,
+    // TODO: use Controller::NameRegisteredEvent
+    struct NameRegisteredEvent has copy, drop {
         tld: String,
+        label: String,
         winner: address,
         amount: u64,
     }
@@ -124,7 +125,8 @@ module suins::auction {
         label: String,
         bidder: address,
         bid_value: u64,
-        created_at: u64,
+        created_at_in_ms: u64,
+        sealed_bid: vector<u8>,
     }
 
     struct AuctionStartedEvent has copy, drop {
@@ -319,9 +321,9 @@ module suins::auction {
         let auction_state = state(auction_house, label, tx_context::epoch(ctx));
         assert!(auction_state == AUCTION_STATE_REVEAL, EInvalidPhase);
 
-        let seal_bid = make_seal_bid(label, tx_context::sender(ctx), value, salt); // hash from label, owner, value, salt
+        let sealed_bid = make_seal_bid(label, tx_context::sender(ctx), value, salt); // hash from label, owner, value, salt
         let bids_by_sender = table::borrow_mut(&mut auction_house.bid_details_by_bidder, tx_context::sender(ctx));
-        let index = seal_bid_exists(bids_by_sender, seal_bid);
+        let index = seal_bid_exists(bids_by_sender, sealed_bid);
         assert!(option::is_some(&index), ESealBidNotExists);
 
         let bid_detail = vector::borrow_mut(bids_by_sender, option::extract(&mut index));
@@ -336,7 +338,8 @@ module suins::auction {
             label,
             bidder: tx_context::sender(ctx),
             bid_value: value,
-            created_at: bid_detail.created_at_in_epoch,
+            created_at_in_ms: bid_detail.created_at_in_ms,
+            sealed_bid,
         });
 
         let entry = linked_table::borrow_mut(&mut auction_house.entries, *&label);
@@ -352,7 +355,6 @@ module suins::auction {
             // Vickrey auction, winner pays the second highest_bid
             new_winning_bid(entry, bid_detail);
         } else if (value == entry.highest_bid && bid_detail.created_at_in_ms < entry.winning_bid_created_at_in_ms) {
-            // if same value and same created_at, we choose first one who reveals bid.
             new_winning_bid(entry, bid_detail);
         } else if (value > entry.second_highest_bid) {
             // not winner, but affects second place
@@ -438,7 +440,7 @@ module suins::auction {
 
         registrar::register_internal(suins, b"sui", config, label, entry.winner, 365, resolver, ctx);
 
-        event::emit(NodeRegisteredEvent {
+        event::emit(NameRegisteredEvent {
             label: label_str,
             tld: utf8(b"sui"),
             winner: entry.winner,
@@ -492,7 +494,7 @@ module suins::auction {
                             resolver,
                             ctx
                         );
-                        event::emit(NodeRegisteredEvent {
+                        event::emit(NameRegisteredEvent {
                             label,
                             tld: utf8(b"sui"),
                             winner: entry.winner,
