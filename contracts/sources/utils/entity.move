@@ -181,7 +181,8 @@ module suins::entity {
         let controller = Controller {
             commitments: linked_table::new(ctx),
             balance: balance::zero(),
-            auction_house_finalized_at: 0,
+            // TODO: same as configuration::MAX_U64
+            auction_house_finalized_at: 18446744073709551615,
         };
 
         transfer::share_object(SuiNS {
