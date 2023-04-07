@@ -7,6 +7,7 @@ module suins::reverse_registrar_tests {
     use suins::registrar;
     use suins::entity::SuiNS;
     use suins::entity;
+    use std::string;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -38,91 +39,28 @@ module suins::reverse_registrar_tests {
         scenario
     }
 
-    #[test]
-    fun test_claim_with_resolver() {
-        let scenario = test_init();
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            reverse_registrar::claim_with_resolver(
-                &mut suins,
-                FIRST_USER_ADDRESS,
-                FIRST_RESOLVER_ADDRESS,
-                test_scenario::ctx(&mut scenario),
-            );
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-
-            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
-            assert!(ttl == 0, 0);
-
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            reverse_registrar::claim_with_resolver(
-                &mut suins,
-                SECOND_USER_ADDRESS,
-                SECOND_RESOLVER_ADDRESS,
-                test_scenario::ctx(&mut scenario),
-            );
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-
-            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
-            assert!(owner == SECOND_USER_ADDRESS, 0);
-            assert!(resolver == SECOND_RESOLVER_ADDRESS, 0);
-            assert!(ttl == 0, 0);
-
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
 
     #[test]
     fun test_claim() {
         let scenario = test_init();
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            test_scenario::return_shared(suins);
-        };
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-
             reverse_registrar::claim(
                 &mut suins,
                 FIRST_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
-
             test_scenario::return_shared(suins);
         };
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
+            let (owner, addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(resolver == @0x0, 0);
+            assert!(addr == @0x0, 0);
             assert!(ttl == 0, 0);
+            assert!(name == string::utf8(b""), 0);
 
             test_scenario::return_shared(suins);
         };

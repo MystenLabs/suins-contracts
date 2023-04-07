@@ -389,7 +389,6 @@ module suins::auction {
         suins: &mut SuiNS,
         config: &Configuration,
         label: vector<u8>,
-        resolver: address,
         ctx: &mut TxContext
     ) {
         assert!(
@@ -438,7 +437,7 @@ module suins::auction {
         };
         if (entry.winner != tx_context::sender(ctx)) return;
 
-        registrar::register_internal(suins, b"sui", config, label, entry.winner, 365, resolver, ctx);
+        registrar::register_internal(suins, b"sui", config, label, entry.winner, 365, ctx);
 
         event::emit(NodeRegisteredEvent {
             label: label_str,
@@ -453,7 +452,6 @@ module suins::auction {
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
         config: &Configuration,
-        resolver: address,
         ctx: &mut TxContext
     ) {
         assert!(
@@ -491,7 +489,6 @@ module suins::auction {
                             *string::bytes(&label),
                             entry.winner,
                             365,
-                            resolver,
                             ctx
                         );
                         event::emit(NodeRegisteredEvent {

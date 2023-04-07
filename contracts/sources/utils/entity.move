@@ -3,7 +3,7 @@ module suins::entity {
     use sui::tx_context::TxContext;
     use sui::object::{UID, ID};
     use sui::table::Table;
-    use std::string::String;
+    use std::string::{String, utf8};
     use sui::table;
     use sui::transfer;
     use sui::object;
@@ -28,15 +28,15 @@ module suins::entity {
         /// Registrar object is a mapping of domain names to registration records (instance of `RegistrationRecord`).
         /// A registrar object can be created by calling `new_tld` and has a record with key `tld` to represent its tld.
         registrars: Table<String, Table<String, RegistrationRecord>>,
-        /// Be used in `reverse_registrar.move`
-        default_resolver: address,
         controller: Controller,
     }
 
-    struct NameRecord has store, copy, drop {
+    struct NameRecord has store {
         owner: address,
-        resolver: address,
+        linked_addr: address,
         ttl: u64,
+        default_domain_name: String, // for reverse domain
+        data: Table<String, String>,
     }
 
     /// each registration records has a corresponding name records
@@ -78,40 +78,54 @@ module suins::entity {
         table::borrow_mut(&mut suins.registrars, tld)
     }
 
-    public(friend) fun default_resolver(suins: &SuiNS): address {
-        suins.default_resolver
-    }
-
-    public(friend) fun default_resolver_mut(suins: &mut SuiNS): &mut address {
-        &mut suins.default_resolver
-    }
-
-    public(friend) fun name_record_owner(name_record: &NameRecord): &address {
-        &name_record.owner
+    public(friend) fun name_record_owner(name_record: &NameRecord): address {
+        name_record.owner
     }
 
     public(friend) fun name_record_owner_mut(name_record: &mut NameRecord): &mut address {
         &mut name_record.owner
     }
 
-    public(friend) fun name_record_resolver(name_record: &NameRecord): &address {
-        &name_record.resolver
-    }
-
-    public(friend) fun name_record_resolver_mut(name_record: &mut NameRecord): &mut address {
-        &mut name_record.resolver
-    }
-
-    public(friend) fun name_record_ttl(name_record: &NameRecord): &u64 {
-        &name_record.ttl
+    public(friend) fun name_record_ttl(name_record: &NameRecord): u64 {
+        name_record.ttl
     }
 
     public(friend) fun name_record_ttl_mut(name_record: &mut NameRecord): &mut u64 {
         &mut name_record.ttl
     }
 
-    public(friend) fun new_name_record(owner: address, resolver: address, ttl: u64): NameRecord {
-        NameRecord { owner, resolver, ttl }
+    public(friend) fun name_record_linked_addr(name_record: &NameRecord): address {
+        name_record.linked_addr
+    }
+
+    public(friend) fun name_record_linked_addr_mut(name_record: &mut NameRecord): &mut address {
+        &mut name_record.linked_addr
+    }
+
+    public(friend) fun name_record_default_domain_name(name_record: &NameRecord): String {
+        name_record.default_domain_name
+    }
+
+    public(friend) fun name_record_default_domain_name_mut(name_record: &mut NameRecord): &mut String {
+        &mut name_record.default_domain_name
+    }
+
+    public(friend) fun name_record_data(name_record: &NameRecord): &Table<String, String> {
+        &name_record.data
+    }
+
+    public(friend) fun name_record_data_mut(name_record: &mut NameRecord): &mut Table<String, String> {
+        &mut name_record.data
+    }
+
+    public(friend) fun new_name_record(owner: address, ttl: u64, ctx: &mut TxContext): NameRecord {
+        NameRecord {
+            owner,
+            ttl,
+            linked_addr: @0x0,
+            default_domain_name: utf8(b""),
+            data: table::new(ctx),
+        }
     }
 
     public(friend) fun registration_record_expiry(record: &RegistrationRecord): u64 {
@@ -172,7 +186,6 @@ module suins::entity {
             id: object::new(ctx),
             registry,
             registrars,
-            default_resolver: @0x0,
             controller,
         })
     }
@@ -198,7 +211,6 @@ module suins::entity {
             id: object::new(ctx),
             registry,
             registrars,
-            default_resolver: @0x0,
             controller,
         })
     }
