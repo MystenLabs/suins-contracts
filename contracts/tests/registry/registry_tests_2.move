@@ -6,8 +6,6 @@ module suins::registry_tests_2 {
     use suins::registry_tests;
     use suins::entity::{Self, SuiNS};
     use std::string::utf8;
-    use sui::address;
-    use std::string;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_NAME: vector<u8> = b"sui";
@@ -36,18 +34,13 @@ module suins::registry_tests_2 {
         scenario
     }
 
-    fun set_name(scenario: &mut Scenario) {
+    fun set_default_name(scenario: &mut Scenario) {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let domain_name = registry::make_subdomain_name(
-                *string::bytes(&address::to_string(FIRST_USER_ADDRESS)),
-                utf8(ADDR_REVERSE_BASE_NODE),
-            );
-            registry::new_record_test(&mut suins, domain_name, FIRST_USER_ADDRESS, test_scenario::ctx(scenario));
+            registry::new_record_test(&mut suins, utf8(FIRST_REVERSE_DOMAIN), FIRST_USER_ADDRESS, test_scenario::ctx(scenario));
             test_scenario::return_shared(suins);
         };
-
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
@@ -57,22 +50,21 @@ module suins::registry_tests_2 {
     }
 
     #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
-    fun test_get_name_aborts_if_reverse_domain_name_not_exists() {
+    fun test_get_default_name_aborts_if_reverse_domain_name_not_exists() {
         let scenario = test_init();
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::default_domain_name(&suins, b"FIRST_USER_ADDRESS");
+            registry::default_domain_name(&suins, FIRST_REVERSE_DOMAIN);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
 
     #[test]
-    fun test_set_name() {
+    fun test_set_default_name() {
         let scenario = test_init();
-        set_name(&mut scenario);
+        set_default_name(&mut scenario);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -85,16 +77,15 @@ module suins::registry_tests_2 {
     }
 
     #[test]
-    fun test_name_returns_emprt_if_already_being_removed() {
+    fun test_get_name_returns_empty_if_already_being_unset() {
         let scenario = test_init();
-        set_name(&mut scenario);
+        set_default_name(&mut scenario);
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::unset_default_domain_name(&mut suins, test_scenario::ctx(&mut scenario));
             test_scenario::return_shared(suins);
         };
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -108,7 +99,7 @@ module suins::registry_tests_2 {
     #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
     fun test_unset_name_abort_if_unauthorized() {
         let scenario = test_init();
-        set_name(&mut scenario);
+        set_default_name(&mut scenario);
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -119,16 +110,34 @@ module suins::registry_tests_2 {
     }
 
     #[test]
-    fun test_unset_name_abort_if_being_called_twice() {
+    fun test_unset_name_works_if_being_called_twice() {
         let scenario = test_init();
-        set_name(&mut scenario);
+        set_default_name(&mut scenario);
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::unset_default_domain_name(&mut suins, test_scenario::ctx(&mut scenario));
             test_scenario::return_shared(suins);
         };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            registry::unset_default_domain_name(&mut suins, test_scenario::ctx(&mut scenario));
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let name = registry::default_domain_name(&suins, FIRST_REVERSE_DOMAIN);
+            assert!(name == utf8(b""), 0);
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::end(scenario);
+    }
 
+    #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
+    fun test_unset_name_abort_if_domain_name_not_exists() {
+        let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -141,7 +150,7 @@ module suins::registry_tests_2 {
     #[test]
     fun test_set_name_override_value_if_exists() {
         let scenario = test_init();
-        set_name(&mut scenario);
+        set_default_name(&mut scenario);
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -152,7 +161,6 @@ module suins::registry_tests_2 {
             );
             test_scenario::return_shared(suins);
         };
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -194,7 +202,6 @@ module suins::registry_tests_2 {
     fun test_set_addr() {
         let scenario = test_init();
         registry_tests::mint_record(&mut scenario);
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -206,7 +213,6 @@ module suins::registry_tests_2 {
             );
             test_scenario::return_shared(suins);
         };
-
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -254,26 +260,6 @@ module suins::registry_tests_2 {
     }
 
     #[test, expected_failure(abort_code = registry::EUnauthorized)]
-    fun test_set_avatar_abort_if_unauthorized() {
-        let scenario = test_init();
-        registry_tests::mint_record(&mut scenario);
-
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_data(
-                &mut suins,
-                FIRST_SUB_NODE,
-                AVATAR,
-                FIRST_AVATAR,
-                test_scenario::ctx(&mut scenario),
-            );
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test, expected_failure(abort_code = registry::EUnauthorized)]
     fun test_set_address_aborts_if_unauthorized() {
         let scenario = test_init();
         registry_tests::mint_record(&mut scenario);
@@ -303,8 +289,28 @@ module suins::registry_tests_2 {
         test_scenario::end(scenario);
     }
 
+    #[test, expected_failure(abort_code = registry::EUnauthorized)]
+    fun test_set_data_abort_if_unauthorized() {
+        let scenario = test_init();
+        registry_tests::mint_record(&mut scenario);
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            registry::set_data(
+                &mut suins,
+                FIRST_SUB_NODE,
+                AVATAR,
+                FIRST_AVATAR,
+                test_scenario::ctx(&mut scenario),
+            );
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::end(scenario);
+    }
+
     #[test]
-    fun test_set_avatar() {
+    fun test_set_data() {
         let scenario = test_init();
         registry_tests::mint_record(&mut scenario);
 
@@ -332,7 +338,7 @@ module suins::registry_tests_2 {
     }
 
     #[test, expected_failure(abort_code = registry::EKeyNotExists)]
-    fun test_set_avatar_returns_empty_with_wrong_node() {
+    fun test_set_data_returns_empty_with_wrong_node() {
         let scenario = test_init();
         registry_tests::mint_record(&mut scenario);
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -579,7 +585,7 @@ module suins::registry_tests_2 {
     #[test]
     fun test_all_data() {
         let scenario = test_init();
-        set_name(&mut scenario);
+        set_default_name(&mut scenario);
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);

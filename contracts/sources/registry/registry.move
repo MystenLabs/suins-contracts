@@ -244,6 +244,7 @@ module suins::registry {
         ctx: &mut TxContext,
     ) {
         authorised(suins, domain_name, ctx);
+
         let domain_name = utf8(domain_name);
         let name_record = get_name_record_mut(suins, domain_name);
 
@@ -251,12 +252,13 @@ module suins::registry {
         event::emit(LinkedAddrChangedEvent { domain_name, new_addr });
     }
 
-    public entry fun unset_addr(
+    public entry fun unset_linked_addr(
         suins: &mut SuiNS,
         domain_name: vector<u8>,
         ctx: &mut TxContext,
     ) {
         authorised(suins, domain_name, ctx);
+
         let domain_name = utf8(domain_name);
         let name_record = get_name_record_mut(suins, domain_name);
 
@@ -273,7 +275,7 @@ module suins::registry {
         let domain_name = make_subdomain_name(label, utf8(ADDR_REVERSE_TLD));
         let name_record = get_name_record_mut(suins, domain_name);
         let new_default_domain_name = utf8(new_default_domain_name);
-        // TODO: validate `new_default_domain_name`
+
         *entity::name_record_default_domain_name_mut(name_record) = new_default_domain_name;
         event::emit(DefaultDomainNameChangedEvent { domain_name, new_default_domain_name });
     }
