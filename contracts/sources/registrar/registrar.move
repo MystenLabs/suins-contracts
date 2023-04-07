@@ -381,11 +381,14 @@ module suins::registrar {
         true
     }
 
-    fun get_node_part(node: &String, tld: &String): String {
-        let index_of_dot = string::index_of(node, tld);
-        assert!(index_of_dot == string::length(node) - string::length(tld), EInvalidBaseNode);
+    fun get_node_part(domain_name: &String, tld: &String): String {
+        let dot_tld = utf8(b".");
+        string::append(&mut dot_tld, *tld);
 
-        string::sub_string(node, 0, index_of_dot - 1)
+        let index_of_dot = string::index_of(domain_name, &dot_tld);
+        assert!(index_of_dot == string::length(domain_name) - string::length(&dot_tld), EInvalidBaseNode);
+
+        string::sub_string(domain_name, 0, index_of_dot)
     }
 
     // === Testing ===

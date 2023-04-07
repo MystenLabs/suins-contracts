@@ -23,7 +23,6 @@ module suins::configuration {
     const MIN_DOMAIN_LENGTH: u64 = 3;
     const MIN_NON_AUCTIONDOMAIN_LENGTH: u64 = 7;
     const MIST_PER_SUI: u64 = 1_000_000_000;
-    const MAX_U64: u64 = 18446744073709551615;
 
     const EInvalidRate: u64 = 401;
     const EInvalidReferralCode: u64 = 402;
@@ -236,10 +235,6 @@ module suins::configuration {
 
     public(friend) fun mist_per_sui(): u64 {
         MIST_PER_SUI
-    }
-
-    public(friend) fun max_u64(): u64 {
-        MAX_U64
     }
 
     fun init(ctx: &mut TxContext) {

@@ -36,8 +36,8 @@ module suins::auction_tests_3 {
         226, 128, 141,
         240, 159, 145, 168,
     ];
-    const SECOND_NODE: vector<u8> = b"suins2";
-    const THIRD_NODE: vector<u8> = b"suins3";
+    const SECOND_DOMAIN_NAME: vector<u8> = b"suins2";
+    const THIRD_DOMAIN_NAME: vector<u8> = b"suins3";
     const NODE_SUI: vector<u8> = vector[
         97, // 'a'
         98, // 'b'
@@ -2121,7 +2121,7 @@ module suins::auction_tests_3 {
 
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, SECOND_NODE, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, SECOND_DOMAIN_NAME, &mut coin, ctx);
             assert!(controller::get_balance(&suins) == 2 * START_AN_AUCTION_FEE, 0);
             assert!(coin::value(&coin) == 2 * START_AN_AUCTION_FEE, 0);
 
@@ -2144,7 +2144,7 @@ module suins::auction_tests_3 {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, THIRD_NODE, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, THIRD_DOMAIN_NAME, &mut coin, ctx);
             assert!(controller::get_balance(&suins) == 3 * START_AN_AUCTION_FEE, 0);
             assert!(coin::value(&coin) == 2 * START_AN_AUCTION_FEE, 0);
 
@@ -2156,9 +2156,9 @@ module suins::auction_tests_3 {
 
         let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1300, FIRST_USER_ADDRESS, 0, option::none());
-        let seal_bid = make_seal_bid(SECOND_NODE, FIRST_USER_ADDRESS, 2000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(SECOND_DOMAIN_NAME, FIRST_USER_ADDRESS, 2000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 2200, FIRST_USER_ADDRESS, 0, option::none());
-        let seal_bid = make_seal_bid(THIRD_NODE, FIRST_USER_ADDRESS, 3000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(THIRD_DOMAIN_NAME, FIRST_USER_ADDRESS, 3000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 12200, FIRST_USER_ADDRESS, 0, option::none());
 
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
@@ -2196,7 +2196,7 @@ module suins::auction_tests_3 {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                SECOND_NODE,
+                SECOND_DOMAIN_NAME,
                 2000,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -2221,7 +2221,7 @@ module suins::auction_tests_3 {
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                SECOND_NODE,
+                SECOND_DOMAIN_NAME,
                 FIRST_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
