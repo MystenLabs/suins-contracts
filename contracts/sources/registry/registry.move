@@ -425,7 +425,7 @@ module suins::registry {
     #[test_only]
     friend suins::registry_tests;
     #[test_only]
-    friend suins::resolver_tests;
+    friend suins::registry_tests_2;
 
     #[test_only]
     public fun new_record_test(suins: &mut SuiNS, domain_name: String, owner: address, ctx: &mut TxContext) {

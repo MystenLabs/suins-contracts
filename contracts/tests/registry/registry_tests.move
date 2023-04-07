@@ -2,14 +2,13 @@
 module suins::registry_tests {
 
     use sui::test_scenario::{Self, Scenario};
-    use sui::dynamic_field;
     use suins::registry::{Self, AdminCap};
     use suins::registrar;
     use std::string::utf8;
     use suins::entity::SuiNS;
     use suins::entity;
 
-    friend suins::resolver_tests;
+    friend suins::registry_tests_2;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -51,8 +50,8 @@ module suins::registry_tests {
                 &mut suins,
                 utf8(FIRST_SUB_NODE),
                 FIRST_USER_ADDRESS,
-                FIRST_RESOLVER_ADDRESS,
                 10,
+                test_scenario::ctx(scenario),
             );
             test_scenario::return_shared(suins);
         };
@@ -69,7 +68,6 @@ module suins::registry_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             assert!(registry::owner(&suins, FIRST_SUB_NODE) == FIRST_USER_ADDRESS, 0);
-            assert!(registry::resolver(&suins, FIRST_SUB_NODE) == FIRST_RESOLVER_ADDRESS, 0);
             assert!(registry::ttl(&suins, FIRST_SUB_NODE) == 10, 0);
 
             test_scenario::return_shared(suins);
@@ -82,8 +80,8 @@ module suins::registry_tests {
                 &mut suins,
                 utf8(FIRST_SUB_NODE),
                 SECOND_USER_ADDRESS,
-                SECOND_RESOLVER_ADDRESS,
                 20,
+                test_scenario::ctx(&mut scenario),
             );
             test_scenario::return_shared(suins);
         };
@@ -91,11 +89,12 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_SUB_NODE);
+            let (owner, addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_SUB_NODE);
 
             assert!(owner == SECOND_USER_ADDRESS, 0);
-            assert!(resolver == SECOND_RESOLVER_ADDRESS, 0);
+            assert!(addr == @0x0, 0);
             assert!(ttl == 20, 0);
+            assert!(name == utf8(b""), 0);
 
             test_scenario::return_shared(suins);
         };
@@ -128,7 +127,7 @@ module suins::registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
+    #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
     fun test_set_owner_abort_if_node_not_exists() {
         let scenario = test_init();
         mint_record(&mut scenario);
@@ -179,8 +178,8 @@ module suins::registry_tests {
                 &mut suins,
                 utf8(THIRD_SUB_NODE),
                 FIRST_USER_ADDRESS,
-                FIRST_RESOLVER_ADDRESS,
                 10,
+                test_scenario::ctx(&mut scenario),
             );
             test_scenario::return_shared(suins);
         };
@@ -188,7 +187,7 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_subnode_owner(
+            registry::set_subdomain_name_owner(
                 &mut suins,
                 FIRST_SUB_NODE,
                 b"ea",
@@ -208,7 +207,7 @@ module suins::registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
+    #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
     fun test_set_subnode_owner_abort_if_node_not_exists() {
         let scenario = test_init();
         mint_record(&mut scenario);
@@ -216,7 +215,7 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_subnode_owner(
+            registry::set_subdomain_name_owner(
                 &mut suins,
                 SECOND_SUB_NODE,
                 b"ea",
@@ -228,7 +227,7 @@ module suins::registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
+    #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
     fun test_set_subnode_owner_abort_if_subnode_not_exists() {
         let scenario = test_init();
         mint_record(&mut scenario);
@@ -236,7 +235,7 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_subnode_owner(
+            registry::set_subdomain_name_owner(
                 &mut suins,
                 FIRST_SUB_NODE,
                 b"ea",
@@ -257,7 +256,7 @@ module suins::registry_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            registry::set_subnode_owner(
+            registry::set_subdomain_name_owner(
                 &mut suins,
                 FIRST_SUB_NODE,
                 b"ea",
@@ -283,8 +282,8 @@ module suins::registry_tests {
                 &mut suins,
                 utf8(THIRD_SUB_NODE),
                 FIRST_USER_ADDRESS,
-                FIRST_RESOLVER_ADDRESS,
                 10,
+                test_scenario::ctx(&mut scenario),
             );
             test_scenario::return_shared(suins);
         };
@@ -293,7 +292,7 @@ module suins::registry_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            registry::set_subnode_owner(
+            registry::set_subdomain_name_owner(
                 &mut suins,
                 FIRST_SUB_NODE,
                 b"ea",
@@ -307,95 +306,9 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let (owner, _, _) = registry::get_record_by_domain_name(&suins, THIRD_SUB_NODE);
+            let (owner, _, _, _) = registry::get_name_record_all_fields(&suins, THIRD_SUB_NODE);
             assert!(owner == SECOND_USER_ADDRESS, 0);
 
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test]
-    fun test_set_resolver() {
-        let scenario = test_init();
-        mint_record(&mut scenario);
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_resolver(
-                &mut suins,
-                FIRST_SUB_NODE,
-                SECOND_RESOLVER_ADDRESS,
-                test_scenario::ctx(&mut scenario),
-            );
-            test_scenario::return_shared(suins);
-        };
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            assert!(registry::resolver(&suins, FIRST_SUB_NODE) == SECOND_RESOLVER_ADDRESS, 0);
-            test_scenario::return_shared(suins);
-        };
-
-        // new resolver == current resolver
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-
-            registry::set_resolver(
-                &mut suins,
-                FIRST_SUB_NODE,
-                SECOND_RESOLVER_ADDRESS,
-                test_scenario::ctx(&mut scenario),
-            );
-
-            test_scenario::return_shared(suins);
-        };
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            assert!(registry::resolver(&suins, FIRST_SUB_NODE) == SECOND_RESOLVER_ADDRESS, 0);
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test, expected_failure(abort_code = registry::EUnauthorized)]
-    fun test_set_resolver_abort_if_unauthorised() {
-        let scenario = test_init();
-        mint_record(&mut scenario);
-
-        test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_resolver(
-                &mut suins,
-                FIRST_SUB_NODE,
-                SECOND_RESOLVER_ADDRESS,
-                test_scenario::ctx(&mut scenario),
-            );
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
-    fun test_set_resolver_abort_if_node_not_exists() {
-        let scenario = test_init();
-        mint_record(&mut scenario);
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_resolver(
-                &mut suins,
-                SECOND_SUB_NODE,
-                SECOND_RESOLVER_ADDRESS,
-                test_scenario::ctx(&mut scenario),
-            );
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -409,7 +322,7 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_TTL(&mut suins, FIRST_SUB_NODE, 20, test_scenario::ctx(&mut scenario));
+            registry::set_ttl(&mut suins, FIRST_SUB_NODE, 20, test_scenario::ctx(&mut scenario));
             test_scenario::return_shared(suins);
         };
 
@@ -424,7 +337,7 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_TTL(&mut suins, FIRST_SUB_NODE, 20, test_scenario::ctx(&mut scenario));
+            registry::set_ttl(&mut suins, FIRST_SUB_NODE, 20, test_scenario::ctx(&mut scenario));
             test_scenario::return_shared(suins);
         };
 
@@ -446,13 +359,13 @@ module suins::registry_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            registry::set_TTL(&mut suins, FIRST_SUB_NODE, 20, test_scenario::ctx(&mut scenario));
+            registry::set_ttl(&mut suins, FIRST_SUB_NODE, 20, test_scenario::ctx(&mut scenario));
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
+    #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
     fun test_set_ttl_abort_if_node_not_exists() {
         let scenario = test_init();
         mint_record(&mut scenario);
@@ -460,34 +373,7 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_TTL(&mut suins, SECOND_SUB_NODE, 20, test_scenario::ctx(&mut scenario));
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test]
-    fun test_get_resolver() {
-        let scenario = test_init();
-        mint_record(&mut scenario);
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let resolver = registry::resolver(&suins, FIRST_SUB_NODE);
-            assert!(resolver == FIRST_RESOLVER_ADDRESS, 0);
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
-    fun test_get_resolver_if_node_not_exists() {
-        let scenario = test_init();
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::resolver(&suins, FIRST_SUB_NODE);
+            registry::set_ttl(&mut suins, SECOND_SUB_NODE, 20, test_scenario::ctx(&mut scenario));
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -508,7 +394,7 @@ module suins::registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
+    #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
     fun test_get_ttl_if_node_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
