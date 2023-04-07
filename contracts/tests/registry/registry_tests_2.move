@@ -8,14 +8,12 @@ module suins::registry_tests_2 {
     use std::string::utf8;
 
     const SUINS_ADDRESS: address = @0xA001;
-    const FIRST_NAME: vector<u8> = b"sui";
-    const SECOND_NAME: vector<u8> = b"move";
     const FIRST_USER_ADDRESS: address = @0xB001;
     const FIRST_REVERSE_DOMAIN: vector<u8> = b"000000000000000000000000000000000000000000000000000000000000b001.addr.reverse";
     const SECOND_USER_ADDRESS: address = @0xB002;
     const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
-    const FIRST_SUB_NODE: vector<u8> = b"eastagile.sui";
-    const SECOND_SUB_NODE: vector<u8> = b"suins.sui";
+    const FIRST_DOMAIN_NAME: vector<u8> = b"eastagile.sui";
+    const SECOND_DOMAIN_NAME: vector<u8> = b"suins.sui";
     const FIRST_AVATAR: vector<u8> = b"QmfWrgbTZqwzqsvdeNc3NKacggMuTaN83sQ8V7Bs2nXKRD";
     const FIRST_CONTENTHASH: vector<u8> = b"QmfWrgbTZqwzqsvdeNc3NKacggMuTaN83sQ8V7Bs2nXKRD";
     const ADDR: vector<u8> = b"addr";
@@ -38,13 +36,26 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            registry::new_record_test(&mut suins, utf8(FIRST_REVERSE_DOMAIN), FIRST_USER_ADDRESS, test_scenario::ctx(scenario));
+            registry::new_record_test(
+                &mut suins,
+                utf8(FIRST_REVERSE_DOMAIN),
+                FIRST_USER_ADDRESS,
+                test_scenario::ctx(scenario)
+            );
+            registry::set_default_domain_name(&mut suins, FIRST_DOMAIN_NAME, test_scenario::ctx(scenario));
             test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            registry::set_default_domain_name(&mut suins, FIRST_NAME, test_scenario::ctx(scenario));
+            registry::set_record_internal(
+                &mut suins,
+                utf8(FIRST_DOMAIN_NAME),
+                FIRST_USER_ADDRESS,
+                10,
+                test_scenario::ctx(scenario),
+            );
+            registry::set_linked_addr(&mut suins, FIRST_DOMAIN_NAME, FIRST_USER_ADDRESS, test_scenario::ctx(scenario));
             test_scenario::return_shared(suins);
         };
     }
@@ -55,7 +66,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::default_domain_name(&suins, FIRST_REVERSE_DOMAIN);
+            registry::default_domain_name(&suins, FIRST_USER_ADDRESS);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -65,12 +76,92 @@ module suins::registry_tests_2 {
     fun test_set_default_name() {
         let scenario = test_init();
         set_default_name(&mut scenario);
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let name= registry::default_domain_name(&suins, FIRST_REVERSE_DOMAIN);
-            assert!(name == utf8(FIRST_NAME), 0);
+            let name= registry::default_domain_name_test(&suins, FIRST_USER_ADDRESS);
+            assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_set_default_domain_name_to_differnt_owned_one() {
+        let scenario = test_init();
+        set_default_name(&mut scenario);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let name = registry::default_domain_name_test(&suins, FIRST_USER_ADDRESS);
+            assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
+
+            let name = registry::default_domain_name(&suins, FIRST_USER_ADDRESS);
+            assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            registry::set_default_domain_name(&mut suins, SECOND_DOMAIN_NAME, test_scenario::ctx(&mut scenario));
+            registry::set_record_internal(
+                &mut suins,
+                utf8(SECOND_DOMAIN_NAME),
+                FIRST_USER_ADDRESS,
+                10,
+                test_scenario::ctx(&mut scenario),
+            );
+            registry::set_linked_addr(&mut suins, SECOND_DOMAIN_NAME, FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let name = registry::default_domain_name_test(&suins, FIRST_USER_ADDRESS);
+            assert!(name == utf8(SECOND_DOMAIN_NAME), 0);
+
+            let name = registry::default_domain_name(&suins, FIRST_USER_ADDRESS);
+            assert!(name == utf8(SECOND_DOMAIN_NAME), 0);
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = registry::EDefaultDomainNameNotMatch)]
+    fun test_set_default_domain_name_aborts_if_set_to_non_owned_one() {
+        let scenario = test_init();
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            registry::new_record_test(
+                &mut suins,
+                utf8(FIRST_REVERSE_DOMAIN),
+                FIRST_USER_ADDRESS,
+                test_scenario::ctx(&mut scenario)
+            );
+            registry::set_default_domain_name(&mut suins, FIRST_DOMAIN_NAME, test_scenario::ctx(&mut scenario));
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            registry::set_record_internal(
+                &mut suins,
+                utf8(FIRST_DOMAIN_NAME),
+                FIRST_USER_ADDRESS,
+                10,
+                test_scenario::ctx(&mut scenario),
+            );
+            registry::set_linked_addr(&mut suins, FIRST_DOMAIN_NAME, SECOND_USER_ADDRESS, test_scenario::ctx(&mut scenario));
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let name = registry::default_domain_name_test(&suins, FIRST_USER_ADDRESS);
+            assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
+
+            registry::default_domain_name(&suins, FIRST_USER_ADDRESS);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -89,7 +180,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let name = registry::default_domain_name(&suins, FIRST_REVERSE_DOMAIN);
+            let name = registry::default_domain_name_test(&suins, FIRST_USER_ADDRESS);
             assert!(name == utf8(b""), 0);
             test_scenario::return_shared(suins);
         };
@@ -128,8 +219,27 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let name = registry::default_domain_name(&suins, FIRST_REVERSE_DOMAIN);
+            let name = registry::default_domain_name_test(&suins, FIRST_USER_ADDRESS);
             assert!(name == utf8(b""), 0);
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
+    fun test_get_default_name_aborts_if_unset() {
+        let scenario = test_init();
+        set_default_name(&mut scenario);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            registry::unset_default_domain_name(&mut suins, test_scenario::ctx(&mut scenario));
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            registry::default_domain_name(&suins, FIRST_USER_ADDRESS);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -156,7 +266,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::set_default_domain_name(
                 &mut suins,
-                SECOND_NAME,
+                SECOND_DOMAIN_NAME,
                 test_scenario::ctx(&mut scenario)
             );
             test_scenario::return_shared(suins);
@@ -165,9 +275,32 @@ module suins::registry_tests_2 {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let name = registry::default_domain_name(&suins, FIRST_REVERSE_DOMAIN);
-            assert!(name == utf8(SECOND_NAME), 0);
+            let name = registry::default_domain_name_test(&suins, FIRST_USER_ADDRESS);
+            assert!(name == utf8(SECOND_DOMAIN_NAME), 0);
 
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
+    fun test_get_name_aborts_if_not_own_the_name() {
+        let scenario = test_init();
+        set_default_name(&mut scenario);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            registry::set_default_domain_name(
+                &mut suins,
+                SECOND_DOMAIN_NAME,
+                test_scenario::ctx(&mut scenario)
+            );
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            registry::default_domain_name(&suins, FIRST_USER_ADDRESS);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -179,7 +312,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_default_domain_name(&mut suins, FIRST_NAME, test_scenario::ctx(&mut scenario));
+            registry::set_default_domain_name(&mut suins, FIRST_DOMAIN_NAME, test_scenario::ctx(&mut scenario));
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -191,7 +324,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let addr = registry::linked_addr(&suins, FIRST_SUB_NODE);
+            let addr = registry::linked_addr(&suins, FIRST_DOMAIN_NAME);
             assert!(addr == @0x0, 0);
             test_scenario::return_shared(suins);
         };
@@ -207,7 +340,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::set_linked_addr(
                 &mut suins,
-                FIRST_SUB_NODE,
+                FIRST_DOMAIN_NAME,
                 FIRST_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
@@ -216,7 +349,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let addr = registry::linked_addr(&suins, FIRST_SUB_NODE);
+            let addr = registry::linked_addr(&suins, FIRST_DOMAIN_NAME);
             assert!(addr == FIRST_USER_ADDRESS, 0);
             test_scenario::return_shared(suins);
         };
@@ -232,7 +365,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::set_linked_addr(
                 &mut suins,
-                FIRST_SUB_NODE,
+                FIRST_DOMAIN_NAME,
                 FIRST_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
@@ -243,7 +376,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::set_linked_addr(
                 &mut suins,
-                FIRST_SUB_NODE,
+                FIRST_DOMAIN_NAME,
                 SECOND_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
@@ -252,7 +385,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let addr = registry::linked_addr(&suins, FIRST_SUB_NODE);
+            let addr = registry::linked_addr(&suins, FIRST_DOMAIN_NAME);
             assert!(addr == SECOND_USER_ADDRESS, 0);
             test_scenario::return_shared(suins);
         };
@@ -269,7 +402,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::set_linked_addr(
                 &mut suins,
-                FIRST_SUB_NODE,
+                FIRST_DOMAIN_NAME,
                 FIRST_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario)
             );
@@ -280,7 +413,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::set_linked_addr(
                 &mut suins,
-                FIRST_SUB_NODE,
+                FIRST_DOMAIN_NAME,
                 SECOND_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario)
             );
@@ -299,7 +432,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::set_data(
                 &mut suins,
-                FIRST_SUB_NODE,
+                FIRST_DOMAIN_NAME,
                 AVATAR,
                 FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
@@ -319,7 +452,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::set_data(
                 &mut suins,
-                FIRST_SUB_NODE,
+                FIRST_DOMAIN_NAME,
                 AVATAR,
                 FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
@@ -330,7 +463,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let avatar = registry::get_name_record_data(&suins, FIRST_SUB_NODE, AVATAR);
+            let avatar = registry::get_name_record_data(&suins, FIRST_DOMAIN_NAME, AVATAR);
             assert!(avatar == utf8(FIRST_AVATAR), 0);
             test_scenario::return_shared(suins);
         };
@@ -346,7 +479,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::set_record_internal(
                 &mut suins,
-                utf8(SECOND_SUB_NODE),
+                utf8(SECOND_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,
                 10,
                 test_scenario::ctx(&mut scenario),
@@ -358,7 +491,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::set_data(
                 &mut suins,
-                FIRST_SUB_NODE,
+                FIRST_DOMAIN_NAME,
                 AVATAR,
                 FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
@@ -368,7 +501,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let avatar = registry::get_name_record_data(&suins, SECOND_SUB_NODE, AVATAR);
+            let avatar = registry::get_name_record_data(&suins, SECOND_DOMAIN_NAME, AVATAR);
             assert!(avatar == utf8(b""), 0);
             test_scenario::return_shared(suins);
         };
@@ -384,7 +517,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::set_data(
                 &mut suins,
-                FIRST_SUB_NODE,
+                FIRST_DOMAIN_NAME,
                 CONTENTHASH,
                 FIRST_CONTENT_HASH,
                 test_scenario::ctx(&mut scenario),
@@ -395,7 +528,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let hash = registry::get_name_record_data(&suins, FIRST_SUB_NODE, CONTENTHASH);
+            let hash = registry::get_name_record_data(&suins, FIRST_DOMAIN_NAME, CONTENTHASH);
             assert!(hash == utf8(FIRST_CONTENT_HASH), 0);
             test_scenario::return_shared(suins);
         };
@@ -411,7 +544,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::set_data(
                 &mut suins,
-                FIRST_SUB_NODE,
+                FIRST_DOMAIN_NAME,
                 CONTENTHASH,
                 FIRST_CONTENT_HASH,
                 test_scenario::ctx(&mut scenario),
@@ -429,7 +562,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::set_data(
                 &mut suins,
-                FIRST_SUB_NODE,
+                FIRST_DOMAIN_NAME,
                 CONTENTHASH,
                 FIRST_CONTENT_HASH,
                 test_scenario::ctx(&mut scenario),
@@ -445,7 +578,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::get_name_record_data(&suins, FIRST_SUB_NODE, CONTENTHASH);
+            registry::get_name_record_data(&suins, FIRST_DOMAIN_NAME, CONTENTHASH);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -460,7 +593,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::set_data(
                 &mut suins,
-                FIRST_SUB_NODE,
+                FIRST_DOMAIN_NAME,
                 CONTENTHASH,
                 FIRST_CONTENTHASH,
                 test_scenario::ctx(&mut scenario),
@@ -470,7 +603,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let content_hash = registry::get_name_record_data(&suins, SECOND_SUB_NODE, CONTENTHASH);
+            let content_hash = registry::get_name_record_data(&suins, SECOND_DOMAIN_NAME, CONTENTHASH);
             assert!(content_hash == utf8(b""), 0);
             test_scenario::return_shared(suins);
         };
@@ -485,7 +618,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::set_data(
                 &mut suins,
-                FIRST_SUB_NODE,
+                FIRST_DOMAIN_NAME,
                 AVATAR,
                 FIRST_AVATAR,
                 test_scenario::ctx(&mut scenario),
@@ -504,7 +637,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::set_data(
                 &mut suins,
-                FIRST_SUB_NODE,
+                FIRST_DOMAIN_NAME,
                 CONTENTHASH,
                 FIRST_CONTENTHASH,
                 test_scenario::ctx(&mut scenario),
@@ -516,7 +649,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::unset_data(
                 &mut suins,
-                FIRST_SUB_NODE,
+                FIRST_DOMAIN_NAME,
                 CONTENTHASH,
                 test_scenario::ctx(&mut scenario),
             );
@@ -526,7 +659,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let contenthash = registry::get_name_record_data(&suins, FIRST_SUB_NODE, CONTENTHASH);
+            let contenthash = registry::get_name_record_data(&suins, FIRST_DOMAIN_NAME, CONTENTHASH);
             assert!(contenthash == utf8(b""), 0);
             test_scenario::return_shared(suins);
         };
@@ -541,7 +674,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::unset_data(
                 &mut suins,
-                FIRST_SUB_NODE,
+                FIRST_DOMAIN_NAME,
                 CONTENTHASH,
                 test_scenario::ctx(&mut scenario),
             );
@@ -559,7 +692,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::set_data(
                 &mut suins,
-                FIRST_SUB_NODE,
+                FIRST_DOMAIN_NAME,
                 CONTENTHASH,
                 FIRST_CONTENTHASH,
                 test_scenario::ctx(&mut scenario),
@@ -572,7 +705,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::unset_data(
                 &mut suins,
-                FIRST_SUB_NODE,
+                FIRST_DOMAIN_NAME,
                 CONTENTHASH,
                 test_scenario::ctx(&mut scenario),
             );
@@ -597,7 +730,7 @@ module suins::registry_tests_2 {
             );
             registry::set_default_domain_name(
                 &mut suins,
-                SECOND_NAME,
+                SECOND_DOMAIN_NAME,
                 test_scenario::ctx(&mut scenario),
             );
             test_scenario::return_shared(suins);
@@ -610,7 +743,7 @@ module suins::registry_tests_2 {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(addr == SECOND_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
-            assert!(name == utf8(SECOND_NAME), 0);
+            assert!(name == utf8(SECOND_DOMAIN_NAME), 0);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -622,7 +755,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::get_name_record_all_fields(&suins, FIRST_SUB_NODE);
+            registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -635,7 +768,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let (owner, addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_SUB_NODE);
+            let (owner, addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(addr == @0x0, 0);
             assert!(ttl == 10, 0);
@@ -652,7 +785,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let hash = registry::get_name_record_data(&suins, FIRST_SUB_NODE, CONTENTHASH);
+            let hash = registry::get_name_record_data(&suins, FIRST_DOMAIN_NAME, CONTENTHASH);
             assert!(hash == utf8(b""), 0);
             test_scenario::return_shared(suins);
         };
@@ -666,7 +799,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let addr = registry::linked_addr(&suins, FIRST_SUB_NODE);
+            let addr = registry::linked_addr(&suins, FIRST_DOMAIN_NAME);
             assert!(addr == @0x0, 0);
             test_scenario::return_shared(suins);
         };

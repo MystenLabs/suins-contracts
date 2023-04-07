@@ -37,6 +37,7 @@ module suins::registry {
     const EUnauthorized: u64 = 101;
     const EDomainNameNotExists: u64 = 102;
     const EKeyNotExists: u64 = 103;
+    const EDefaultDomainNameNotMatch: u64 = 104;
 
     // https://examples.sui.io/patterns/capability.html
     struct AdminCap has key, store { id: UID }
@@ -271,25 +272,25 @@ module suins::registry {
         new_default_domain_name: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        let label = hex::encode(address::to_bytes(sender(ctx)));
-        let domain_name = make_subdomain_name(label, utf8(ADDR_REVERSE_TLD));
-        let name_record = get_name_record_mut(suins, domain_name);
+        let reverse_label = hex::encode(address::to_bytes(sender(ctx)));
+        let reverse_domain_name = make_subdomain_name(reverse_label, utf8(ADDR_REVERSE_TLD));
+        let name_record = get_name_record_mut(suins, reverse_domain_name);
         let new_default_domain_name = utf8(new_default_domain_name);
 
         *entity::name_record_default_domain_name_mut(name_record) = new_default_domain_name;
-        event::emit(DefaultDomainNameChangedEvent { domain_name, new_default_domain_name });
+        event::emit(DefaultDomainNameChangedEvent { domain_name: reverse_domain_name, new_default_domain_name });
     }
 
     public entry fun unset_default_domain_name(
         suins: &mut SuiNS,
         ctx: &mut TxContext,
     ) {
-        let label = hex::encode(address::to_bytes(sender(ctx)));
-        let domain_name = make_subdomain_name(label, utf8(ADDR_REVERSE_TLD));
-        let name_record = get_name_record_mut(suins, domain_name);
+        let reverse_label = hex::encode(address::to_bytes(sender(ctx)));
+        let reverse_domain_name = make_subdomain_name(reverse_label, utf8(ADDR_REVERSE_TLD));
+        let name_record = get_name_record_mut(suins, reverse_domain_name);
 
         *entity::name_record_default_domain_name_mut(name_record) = utf8(b"");
-        event::emit(DefaultDomainNameRemovedEvent { domain_name });
+        event::emit(DefaultDomainNameRemovedEvent { domain_name: reverse_domain_name });
     }
 
     // === Public Functions ===
@@ -327,9 +328,16 @@ module suins::registry {
         name_record_linked_addr(name_record)
     }
 
-    public fun default_domain_name(suins: &SuiNS, domain_name: vector<u8>): String {
-        let name_record = get_name_record(suins, utf8(domain_name));
-        name_record_default_domain_name(name_record)
+    public fun default_domain_name(suins: &SuiNS, addr: address): String {
+        let reverse_label = hex::encode(address::to_bytes(addr));
+        let reverse_domain_name = make_subdomain_name(reverse_label, utf8(ADDR_REVERSE_TLD));
+        let reverse_name_record = get_name_record(suins, reverse_domain_name);
+
+        let default_domain_name = name_record_default_domain_name(reverse_name_record);
+        let default_domain_name_record = get_name_record(suins, default_domain_name);
+        assert!(name_record_linked_addr(default_domain_name_record) == addr, EDefaultDomainNameNotMatch);
+
+        default_domain_name
     }
 
     /// #### Notice
@@ -438,6 +446,15 @@ module suins::registry {
     public fun record_exists(suins: &SuiNS, node: String): bool {
         let registry = entity::registry(suins);
         table::contains(registry, node)
+    }
+
+    #[test_only]
+    public fun default_domain_name_test(suins: &SuiNS, addr: address): String {
+        let reverse_label = hex::encode(address::to_bytes(addr));
+        let reverse_domain_name = make_subdomain_name(reverse_label, utf8(ADDR_REVERSE_TLD));
+        let reverse_name_record = get_name_record(suins, reverse_domain_name);
+
+        name_record_default_domain_name(reverse_name_record)
     }
 
     #[test_only]
