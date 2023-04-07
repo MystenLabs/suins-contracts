@@ -8,7 +8,6 @@ module suins::converter {
 
     friend suins::auction;
     friend suins::reverse_registrar;
-    friend suins::resolver;
     friend suins::controller;
     friend suins::configuration;
     friend suins::remove_later;
