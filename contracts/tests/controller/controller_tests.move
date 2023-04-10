@@ -2373,7 +2373,7 @@ module suins::controller_tests {
 
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == 2000000, 0);
+            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2, 0);
             assert!(name == utf8(domain_name), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
