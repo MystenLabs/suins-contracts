@@ -86,7 +86,7 @@ module suins::auction_tests_4 {
         start_an_auction_util(scenario, NODE);
 
         let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 10230, FIRST_USER_ADDRESS, option::none());
+        place_bid_util(scenario, seal_bid, 10230, FIRST_USER_ADDRESS, 0, option::none());
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -138,9 +138,9 @@ module suins::auction_tests_4 {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, NODE);
         let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1300, FIRST_USER_ADDRESS, option::none());
+        place_bid_util(scenario, seal_bid, 1300, FIRST_USER_ADDRESS, 0, option::none());
         let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 2000, FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 12200, SECOND_USER_ADDRESS, option::none());
+        place_bid_util(scenario, seal_bid, 12200, SECOND_USER_ADDRESS, 0, option::none());
 
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -303,11 +303,11 @@ module suins::auction_tests_4 {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, NODE);
         let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1300, FIRST_USER_ADDRESS, option::none());
+        place_bid_util(scenario, seal_bid, 1300, FIRST_USER_ADDRESS, 0, option::none());
         let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 2000, FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 12200, FIRST_USER_ADDRESS, option::none());
+        place_bid_util(scenario, seal_bid, 12200, FIRST_USER_ADDRESS, 0, option::none());
         let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 3000, FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 10200, FIRST_USER_ADDRESS, option::none());
+        place_bid_util(scenario, seal_bid, 10200, FIRST_USER_ADDRESS, 0, option::none());
 
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -519,9 +519,9 @@ module suins::auction_tests_4 {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, NODE);
         let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1300, FIRST_USER_ADDRESS, option::none());
+        place_bid_util(scenario, seal_bid, 1300, FIRST_USER_ADDRESS, 0, option::none());
         let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 2000, FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 12200, SECOND_USER_ADDRESS, option::some(FIRST_TX_HASH));
+        place_bid_util(scenario, seal_bid, 12200, SECOND_USER_ADDRESS, 0, option::some(FIRST_TX_HASH));
 
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -720,9 +720,9 @@ module suins::auction_tests_4 {
         start_an_auction_util(scenario, NODE);
 
         let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 2000, FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 3300, FIRST_USER_ADDRESS, option::none());
+        place_bid_util(scenario, seal_bid, 3300, FIRST_USER_ADDRESS, 0, option::none());
         let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 2000, SECOND_SECRET);
-        place_bid_util(scenario, seal_bid, 12200, FIRST_USER_ADDRESS, option::some(FIRST_TX_HASH));
+        place_bid_util(scenario, seal_bid, 12200, FIRST_USER_ADDRESS, 0, option::some(FIRST_TX_HASH));
 
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -895,9 +895,9 @@ module suins::auction_tests_4 {
         start_an_auction_util(scenario, NODE);
 
         let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 2000, FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 3300, FIRST_USER_ADDRESS, option::none());
+        place_bid_util(scenario, seal_bid, 3300, FIRST_USER_ADDRESS, 0, option::none());
         let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 2000, SECOND_SECRET);
-        place_bid_util(scenario, seal_bid, 12200, FIRST_USER_ADDRESS, option::some(FIRST_TX_HASH));
+        place_bid_util(scenario, seal_bid, 12200, FIRST_USER_ADDRESS, 0, option::some(FIRST_TX_HASH));
 
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -1069,9 +1069,9 @@ module suins::auction_tests_4 {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, NODE);
         let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1300, FIRST_USER_ADDRESS, option::none());
+        place_bid_util(scenario, seal_bid, 1300, FIRST_USER_ADDRESS, 0, option::none());
         let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 2000, FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 12200, FIRST_USER_ADDRESS, option::some(FIRST_TX_HASH));
+        place_bid_util(scenario, seal_bid, 12200, FIRST_USER_ADDRESS, 0, option::some(FIRST_TX_HASH));
 
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -1254,7 +1254,7 @@ module suins::auction_tests_4 {
         start_an_auction_util(scenario, NODE);
 
         let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 10230, FIRST_USER_ADDRESS, option::none());
+        place_bid_util(scenario, seal_bid, 10230, FIRST_USER_ADDRESS, 0, option::none());
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -1330,7 +1330,7 @@ module suins::auction_tests_4 {
         start_an_auction_util(scenario, NODE);
 
         let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 10230, FIRST_USER_ADDRESS, option::none());
+        place_bid_util(scenario, seal_bid, 10230, FIRST_USER_ADDRESS, 0, option::none());
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
