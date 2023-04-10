@@ -47,6 +47,7 @@ module suins::controller {
     const EInvalidDomain: u64 = 314;
     const ECommitmentTooSoon: u64 = 315;
     const EAuctionNotEndYet: u64 = 316;
+    const EInvalidNoYears: u64 = 317;
 
     struct NameRegisteredEvent has copy, drop {
         tld: String,
@@ -608,6 +609,8 @@ module suins::controller {
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext
     ) {
+        // TODO: renew many times, total years > 5
+        assert!(0 < no_years && no_years <= 5, EInvalidNoYears);
         let emoji_config = configuration::emoji_config(config);
         let renew_fee = configuration::price_for_node(config, emoji::len_of_label(emoji_config, label), no_years);
         assert!(coin::value(payment) >= renew_fee, ENotEnoughFee);
@@ -641,6 +644,7 @@ module suins::controller {
         clock: &Clock,
         ctx: &mut TxContext,
     ) {
+        assert!(0 < no_years && no_years <= 5, EInvalidNoYears);
         assert!(configuration::is_enable_controller(config), ERegistrationIsDisabled);
         assert!(tx_context::epoch(ctx) > entity::controller_auction_house_finalized_at(suins), EAuctionNotEndYet);
 

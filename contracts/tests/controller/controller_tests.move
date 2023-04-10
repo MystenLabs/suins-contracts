@@ -6270,4 +6270,74 @@ module suins::controller_tests {
         };
         test_scenario::end(scenario);
     }
+
+    #[test, expected_failure(abort_code = controller::EInvalidNoYears)]
+    fun test_register_aborts_if_more_than_5_years() {
+        let scenario = test_init();
+        set_auction_config(&mut scenario);
+        make_commitment(&mut scenario, option::none());
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let clock = test_scenario::take_shared<Clock>(&mut scenario);
+            let ctx = ctx_new(
+                @0x0,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                EXTRA_PERIOD_END_AT + 1,
+                0
+            );
+            let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2, &mut ctx);
+            clock::increment_for_testing(&mut clock, controller::max_commitment_age_in_ms() - 1);
+
+            assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
+            controller::register(
+                &mut suins,
+                SUI_REGISTRAR,
+                &mut config,
+                FIRST_LABEL,
+                FIRST_USER_ADDRESS,
+                6,
+                FIRST_SECRET,
+                &mut coin,
+                &clock,
+                &mut ctx,
+            );
+
+            coin::burn_for_testing(coin);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(clock);
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = controller::EInvalidNoYears)]
+    fun test_renew_aborts_if_more_than_5_years() {
+        let scenario = test_init();
+        set_auction_config(&mut scenario);
+        register(&mut scenario);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = test_scenario::ctx(&mut scenario);
+            let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2 + 1, ctx);
+
+            controller::renew(
+                &mut suins,
+                &config,
+                SUI_REGISTRAR,
+                FIRST_LABEL,
+                6,
+                &mut coin,
+                ctx,
+            );
+
+            coin::burn_for_testing(coin);
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(config);
+        };
+        test_scenario::end(scenario);
+    }
 }
