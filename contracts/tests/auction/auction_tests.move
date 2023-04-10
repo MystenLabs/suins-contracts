@@ -457,7 +457,7 @@ module suins::auction_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::EAuctionNotAvailable)]
+    #[test, expected_failure(abort_code = auction::EInvalidPhase)]
     fun test_place_bid_abort_if_too_early() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -484,7 +484,7 @@ module suins::auction_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::EAuctionNotAvailable)]
+    #[test, expected_failure(abort_code = auction::EInvalidPhase)]
     fun test_place_bid_aborts_if_too_late() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -511,7 +511,7 @@ module suins::auction_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::EAuctionNotAvailable)]
+    #[test, expected_failure(abort_code = auction::EInvalidPhase)]
     fun test_place_bid_abort_if_too_late_2() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -634,7 +634,7 @@ module suins::auction_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::EAuctionNotAvailable)]
+    #[test, expected_failure(abort_code = auction::EInvalidPhase)]
     fun test_start_an_auction_aborts_if_too_early() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -662,7 +662,7 @@ module suins::auction_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::EAuctionNotAvailable)]
+    #[test, expected_failure(abort_code = auction::EInvalidPhase)]
     fun test_start_an_auction_aborts_if_too_late() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -2344,7 +2344,7 @@ module suins::auction_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::EAuctionNotAvailable)]
+    #[test, expected_failure(abort_code = auction::EInvalidPhase)]
     fun test_reveal_bid_late_2() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -2437,7 +2437,7 @@ module suins::auction_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::EAuctionNotAvailable)]
+    #[test, expected_failure(abort_code = auction::EInvalidPhase)]
     fun test_finalize_auction_late() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -3970,6 +3970,7 @@ module suins::auction_tests {
             auction::test_init(ctx);
             configuration::test_init(ctx);
             entity::test_init(ctx);
+            registry::test_init(ctx);
             clock::create_for_testing(ctx);
         };
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -4012,6 +4013,103 @@ module suins::auction_tests {
             );
             let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             auction::withdraw(&mut auction, &mut ctx);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = auction::ELabelUnavailable)]
+    fun test_start_an_auction_aborts_if_label_is_reserved() {
+        let scenario = test_init();
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = &mut ctx_new(
+                SUINS_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                50,
+                2
+            );
+            controller::new_reserved_domains(
+                &admin_cap,
+                &mut suins,
+                &config,
+                b"abcde.sui",
+                @0x0,
+                ctx
+            );
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(config);
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let ctx = ctx_new(
+                FIRST_USER_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                START_AN_AUCTION_AT,
+                10
+            );
+            let ctx = &mut ctx;
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
+
+            auction::start_an_auction(&mut auction, &mut suins, &config, b"abcde", &mut coin, ctx);
+
+            test_scenario::return_shared(auction);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(suins);
+            coin::burn_for_testing(coin);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_start_an_auction_works_if_label_is_not_reserved() {
+        let scenario = test_init();
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let ctx = ctx_new(
+                FIRST_USER_ADDRESS,
+                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                START_AN_AUCTION_AT,
+                10
+            );
+            let ctx = &mut ctx;
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
+
+            auction::start_an_auction(&mut auction, &mut suins, &config, b"abcde", &mut coin, ctx);
+
+            test_scenario::return_shared(auction);
+            test_scenario::return_shared(config);
+            test_scenario::return_shared(suins);
+            coin::burn_for_testing(coin);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
+
+            let state = state_util(
+                &auction,
+                b"abcde",
+                START_AN_AUCTION_AT,
+            );
+            assert!(state == AUCTION_STATE_PENDING, 0);
+            let (start_at, highest_bid, second_highest_bid, winner, is_finalized) =
+                auction::get_entry(&auction, b"abcde");
+            assert!(option::extract(&mut start_at) == START_AN_AUCTION_AT + 1, 0);
+            assert!(option::extract(&mut highest_bid) == 0, 0);
+            assert!(option::extract(&mut second_highest_bid) == 0, 0);
+            assert!(option::extract(&mut winner) == @0x0, 0);
+            assert!(option::extract(&mut is_finalized) == false, 0);
+
             test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario);

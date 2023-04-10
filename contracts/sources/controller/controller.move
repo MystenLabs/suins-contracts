@@ -570,7 +570,6 @@ module suins::controller {
         let index = 0;
         let dot = utf8(b".");
         let emoji_config = configuration::emoji_config(config);
-
         while (index < len) {
             let domain = vector::borrow(&domains, index);
             index = index + 1;

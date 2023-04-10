@@ -1091,7 +1091,7 @@ module suins::auction_tests_2 {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::EAuctionNotAvailable)]
+    #[test, expected_failure(abort_code = auction::EInvalidPhase)]
     fun test_finalize_all_auctions_by_admin_aborts_if_too_early() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
