@@ -177,8 +177,8 @@ module suins::entity {
         &mut suins.controller.auction_house_finalized_at
     }
 
-    public(friend) fun max_u64(): u64 {
-        MAX_U64
+    public(friend) fun max_epoch_allowed(): u64 {
+        MAX_U64 - 365
     }
 
     fun init(ctx: &mut TxContext) {
@@ -188,7 +188,7 @@ module suins::entity {
             commitments: linked_table::new(ctx),
             balance: balance::zero(),
             // TODO: same as configuration::MAX_U64
-            auction_house_finalized_at: MAX_U64,
+            auction_house_finalized_at: max_epoch_allowed(),
         };
 
         transfer::share_object(SuiNS {
@@ -213,7 +213,7 @@ module suins::entity {
         let controller = Controller {
             commitments: linked_table::new(ctx),
             balance: balance::zero(),
-            auction_house_finalized_at: MAX_U64,
+            auction_house_finalized_at: max_epoch_allowed(),
         };
 
         transfer::share_object(SuiNS {
