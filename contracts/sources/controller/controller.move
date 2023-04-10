@@ -12,7 +12,7 @@ module suins::controller {
     use sui::event;
     use sui::linked_table::{Self, LinkedTable};
     use sui::object::ID;
-    use sui::tx_context::{TxContext, sender, epoch};
+    use sui::tx_context::{Self, TxContext};
     use sui::sui::SUI;
     use suins::registry::AdminCap;
     use suins::registrar::{Self, RegistrationNFT};
@@ -26,8 +26,13 @@ module suins::controller {
     use std::vector;
     use std::option::{Self, Option};
     use sui::url::Url;
-    use sui::tx_context;
     use suins::remove_later;
+    use sui::clock::Clock;
+    use sui::clock;
+
+    const MAX_COMMITMENT_AGE_IN_MS: u64 = 259_200_000;
+    const MIN_COMMITMENT_AGE_IN_MS: u64 = 120_000;
+    const MAX_OUTDATED_COMMITMENTS_TO_REMOVE: u64 = 50;
 
     // errors in the range of 301..400 indicate Sui Controller errors
     const EInvalidResolverAddress: u64 = 301;
@@ -41,6 +46,7 @@ module suins::controller {
     const EInvalidCode: u64 = 311;
     const ERegistrationIsDisabled: u64 = 312;
     const EInvalidDomain: u64 = 314;
+    const ECommitmentTooSoon: u64 = 315;
 
     struct NameRegisteredEvent has copy, drop {
         tld: String,
@@ -89,14 +95,10 @@ module suins::controller {
     ///
     /// #### Params
     /// `commitment`: hash from `make_commitment`
-    public entry fun commit(
-        suins: &mut SuiNS,
-        commitment: vector<u8>,
-        ctx: &mut TxContext,
-    ) {
+    public entry fun commit(suins: &mut SuiNS, commitment: vector<u8>, clock: &Clock) {
         let commitments = entity::controller_commitments_mut(suins);
-        remove_outdated_commitments(commitments, ctx);
-        linked_table::push_back(commitments, commitment, epoch(ctx));
+        remove_outdated_commitments(commitments, clock);
+        linked_table::push_back(commitments, commitment, clock::timestamp_ms(clock));
     }
 
     /// #### Notice
@@ -128,6 +130,7 @@ module suins::controller {
         no_years: u64,
         secret: vector<u8>,
         payment: &mut Coin<SUI>,
+        clock: &Clock,
         ctx: &mut TxContext,
     ) {
         let resolver = entity::default_resolver(suins);
@@ -146,6 +149,7 @@ module suins::controller {
             vector[],
             vector[],
             vector[],
+            clock,
             ctx,
         );
     }
@@ -187,6 +191,7 @@ module suins::controller {
         signature: vector<u8>,
         hashed_msg: vector<u8>,
         raw_msg: vector<u8>,
+        clock: &Clock,
         ctx: &mut TxContext,
     ) {
         registrar::assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
@@ -207,6 +212,7 @@ module suins::controller {
             signature,
             hashed_msg,
             raw_msg,
+            clock,
             ctx,
         );
     }
@@ -230,6 +236,7 @@ module suins::controller {
         secret: vector<u8>,
         resolver: address,
         payment: &mut Coin<SUI>,
+        clock: &Clock,
         ctx: &mut TxContext,
     ) {
         register_internal(
@@ -247,6 +254,7 @@ module suins::controller {
             vector[],
             vector[],
             vector[],
+            clock,
             ctx
         );
     }
@@ -277,6 +285,7 @@ module suins::controller {
         signature: vector<u8>,
         hashed_msg: vector<u8>,
         raw_msg: vector<u8>,
+        clock: &Clock,
         ctx: &mut TxContext,
     ) {
         registrar::assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
@@ -296,6 +305,7 @@ module suins::controller {
             signature,
             hashed_msg,
             raw_msg,
+            clock,
             ctx
         );
     }
@@ -324,6 +334,7 @@ module suins::controller {
         payment: &mut Coin<SUI>,
         referral_code: vector<u8>,
         discount_code: vector<u8>,
+        clock: &Clock,
         ctx: &mut TxContext,
     ) {
         let (referral_code, discount_code) = validate_codes(referral_code, discount_code);
@@ -344,6 +355,7 @@ module suins::controller {
             vector[],
             vector[],
             vector[],
+            clock,
             ctx,
         );
     }
@@ -378,6 +390,7 @@ module suins::controller {
         signature: vector<u8>,
         hashed_msg: vector<u8>,
         raw_msg: vector<u8>,
+        clock: &Clock,
         ctx: &mut TxContext,
     ) {
         registrar::assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
@@ -399,6 +412,7 @@ module suins::controller {
             signature,
             hashed_msg,
             raw_msg,
+            clock,
             ctx,
         );
     }
@@ -427,6 +441,7 @@ module suins::controller {
         payment: &mut Coin<SUI>,
         referral_code: vector<u8>,
         discount_code: vector<u8>,
+        clock: &Clock,
         ctx: &mut TxContext,
     ) {
         let (referral_code, discount_code) = validate_codes(referral_code, discount_code);
@@ -446,6 +461,7 @@ module suins::controller {
             vector[],
             vector[],
             vector[],
+            clock,
             ctx,
         );
     }
@@ -481,6 +497,7 @@ module suins::controller {
         signature: vector<u8>,
         hashed_msg: vector<u8>,
         raw_msg: vector<u8>,
+        clock: &Clock,
         ctx: &mut TxContext,
     ) {
         registrar::assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
@@ -501,6 +518,7 @@ module suins::controller {
             signature,
             hashed_msg,
             raw_msg,
+            clock,
             ctx,
         );
     }
@@ -569,7 +587,7 @@ module suins::controller {
         let amount = balance::value(entity::controller_balance(suins));
         assert!(amount > 0, ENoProfits);
 
-        coin_util::suins_transfer_to_address(suins, amount, sender(ctx), ctx);
+        coin_util::suins_transfer_to_address(suins, amount, tx_context::sender(ctx), ctx);
     }
 
     public entry fun new_reserved_domains(
@@ -655,18 +673,20 @@ module suins::controller {
         signature: vector<u8>,
         hashed_msg: vector<u8>,
         raw_msg: vector<u8>,
+        clock: &Clock,
         ctx: &mut TxContext,
     ) {
         assert!(configuration::is_enable_controller(config), ERegistrationIsDisabled);
         let emoji_config = configuration::emoji_config(config);
         let label_str = utf8(label);
 
-        if (epoch(ctx) <= entity::controller_auction_house_finalized_at(suins)) validate_label_with_emoji(
-            emoji_config,
-            label,
-            configuration::min_non_auction_domain_length(),
-            configuration::max_domain_length(),
-        )
+        if (tx_context::epoch(ctx) <= entity::controller_auction_house_finalized_at(suins))
+            validate_label_with_emoji(
+                emoji_config,
+                label,
+                configuration::min_non_auction_domain_length(),
+                configuration::max_domain_length(),
+            )
         else validate_label_with_emoji(
             emoji_config,
             label,
@@ -675,7 +695,7 @@ module suins::controller {
         );
 
         let commitment = make_commitment(tld, label, owner, secret);
-        consume_commitment(suins, tld, label, commitment, ctx);
+        consume_commitment(suins, tld, label, commitment, clock, ctx);
 
         let registration_fee = configuration::price_for_node(no_years);
         assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
@@ -710,7 +730,7 @@ module suins::controller {
             label: label_str,
             owner,
             cost: configuration::price_for_node(no_years),
-            expiry: epoch(ctx) + duration,
+            expiry: tx_context::epoch(ctx) + duration,
             nft_id,
             resolver,
             referral_code,
@@ -749,15 +769,15 @@ module suins::controller {
         (original_fee / 100) * (100 - rate as u64)
     }
 
-    fun remove_outdated_commitments(commitments: &mut LinkedTable<vector<u8>, u64>, ctx: &mut TxContext) {
+    fun remove_outdated_commitments(commitments: &mut LinkedTable<vector<u8>, u64>, clock: &Clock) {
         let front_element = linked_table::front(commitments);
         let i = 0;
 
-        while (option::is_some(front_element) && i < configuration::no_outdated_commitments_to_remove()) {
+        while (option::is_some(front_element) && i < MAX_OUTDATED_COMMITMENTS_TO_REMOVE) {
             i = i + 1;
 
             let created_at = linked_table::borrow(commitments, *option::borrow(front_element));
-            if (*created_at + configuration::max_commitment_age() <= epoch(ctx)) {
+            if (*created_at + MAX_COMMITMENT_AGE_IN_MS <= clock::timestamp_ms(clock)) {
                 linked_table::pop_front(commitments);
                 front_element = linked_table::front(commitments);
             } else break;
@@ -769,17 +789,17 @@ module suins::controller {
         tld: vector<u8>,
         label: vector<u8>,
         commitment: vector<u8>,
+        clock: &Clock,
         ctx: &TxContext,
     ) {
         let commitments = entity::controller_commitments_mut(suins);
         assert!(linked_table::contains(commitments, commitment), ECommitmentNotExists);
-        // TODO: remove later when timestamp is introduced
-        // assert!(
-        //     *vec_map::get(&controller.commitments, &commitment) + MIN_COMMITMENT_AGE <= tx_context::epoch(ctx),
-        //     ECommitmentNotValid
-        // );
         assert!(
-            *linked_table::borrow(commitments, commitment) + configuration::max_commitment_age() > epoch(ctx),
+            *linked_table::borrow(commitments, commitment) + MIN_COMMITMENT_AGE_IN_MS <= clock::timestamp_ms(clock),
+            ECommitmentTooSoon
+        );
+        assert!(
+            *linked_table::borrow(commitments, commitment) + MAX_COMMITMENT_AGE_IN_MS > clock::timestamp_ms(clock),
             ECommitmentTooOld
         );
         linked_table::remove(commitments, commitment);
@@ -812,6 +832,11 @@ module suins::controller {
         if (discount_len > 0) discount = option::some(ascii::string(discount_code));
 
         (referral, discount)
+    }
+
+    #[test_only]
+    public fun max_commitment_age_in_ms(): u64 {
+        MAX_COMMITMENT_AGE_IN_MS
     }
 
     #[test_only]
