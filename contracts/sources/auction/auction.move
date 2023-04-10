@@ -27,6 +27,7 @@ module suins::auction {
     use suins::converter;
     use suins::entity;
     use sui::tx_context;
+    use sui::coin;
 
     const MIN_PRICE: u64 = 1000;
     const SUI_TLD: vector<u8> = b"sui";
@@ -58,6 +59,7 @@ module suins::auction {
     const EAuctionNotHasWinner: u64 = 814;
     const EInvalidBiddingFee: u64 = 815;
     const ELabelUnavailable: u64 = 816;
+    const EPaymentNotEnough: u64 = 817;
 
     struct BidDetail has store, copy, drop {
         uid: ID,
@@ -281,6 +283,9 @@ module suins::auction {
         };
         vector::push_back(bids_by_sender, bid);
         event::emit(NewBidEvent { bidder, sealed_bid, bid_value_mask });
+
+        let bidder_value = coin::value(payment);
+        assert!(bidder_value >= bid_value_mask + auction_house.bidding_fee, EPaymentNotEnough);
 
         coin_util::user_transfer_to_auction(payment, bid_value_mask, &mut auction_house.balance);
         coin_util::user_transfer_to_suins(payment, auction_house.bidding_fee, suins);
