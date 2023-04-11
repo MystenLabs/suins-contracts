@@ -17,7 +17,7 @@ module suins::controller {
     use suins::registry::AdminCap;
     use suins::registrar::{Self, RegistrationNFT};
     use suins::configuration::{Self, Configuration};
-    use suins::emoji::validate_label_with_emoji;
+    use suins::emoji;
     use suins::coin_util;
     use suins::entity::{Self, SuiNS};
     use std::string::{Self, String, utf8};
@@ -536,13 +536,14 @@ module suins::controller {
     /// or `payment` doesn't have enough coins
     public entry fun renew(
         suins: &mut SuiNS,
+        config: &Configuration,
         tld: vector<u8>,
         label: vector<u8>,
         no_years: u64,
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext,
     ) {
-        renew_internal(suins, tld, label, no_years, payment, ctx)
+        renew_internal(suins, config, tld, label, no_years, payment, ctx)
     }
 
     /// #### Notice
@@ -574,7 +575,7 @@ module suins::controller {
         ctx: &mut TxContext,
     ) {
         // NFT and imag_msg are validated in `update_image_url`
-        renew_internal(suins, tld, label, no_years, payment, ctx);
+        renew_internal(suins, config, tld, label, no_years, payment, ctx);
         registrar::update_image_url(suins, tld, config, nft, signature, hashed_msg, raw_msg, ctx);
     }
 
@@ -613,7 +614,7 @@ module suins::controller {
             assert!(index_of_dot != string::length(domain), EInvalidDomain);
             // TODO: validate node
             let node = string::sub_string(domain, 0, index_of_dot);
-            validate_label_with_emoji(
+            emoji::validate_label_with_emoji(
                 emoji_config,
                 *string::bytes(&node),
                 configuration::min_domain_length(),
@@ -637,13 +638,15 @@ module suins::controller {
 
     fun renew_internal(
         suins: &mut SuiNS,
+        config: &Configuration,
         tld: vector<u8>,
         label: vector<u8>,
         no_years: u64,
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext
     ) {
-        let renew_fee = configuration::price_for_node(no_years);
+        let emoji_config = configuration::emoji_config(config);
+        let renew_fee = configuration::price_for_node(config, emoji::len_of_label(emoji_config, label), no_years);
         assert!(coin::value(payment) >= renew_fee, ENotEnoughFee);
         coin_util::user_transfer_to_suins(payment, renew_fee, suins);
 
@@ -680,24 +683,26 @@ module suins::controller {
         let emoji_config = configuration::emoji_config(config);
         let label_str = utf8(label);
 
-        if (tx_context::epoch(ctx) <= entity::controller_auction_house_finalized_at(suins))
-            validate_label_with_emoji(
-                emoji_config,
-                label,
-                configuration::min_non_auction_domain_length(),
-                configuration::max_domain_length(),
-            )
-        else validate_label_with_emoji(
-            emoji_config,
-            label,
-            configuration::min_domain_length(),
-            configuration::max_domain_length()
-        );
+        let len_of_label =
+            if (tx_context::epoch(ctx) <= entity::controller_auction_house_finalized_at(suins))
+                 emoji::validate_label_with_emoji(
+                    emoji_config,
+                    label,
+                    configuration::min_non_auction_domain_length(),
+                    configuration::max_domain_length(),
+                )
+            else
+                emoji::validate_label_with_emoji(
+                    emoji_config,
+                    label,
+                    configuration::min_domain_length(),
+                    configuration::max_domain_length()
+                );
 
         let commitment = make_commitment(tld, label, owner, secret);
         consume_commitment(suins, tld, label, commitment, clock, ctx);
 
-        let registration_fee = configuration::price_for_node(no_years);
+        let registration_fee = configuration::price_for_node(config, len_of_label, no_years);
         assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
 
         // can apply both discount and referral codes at the same time
@@ -729,7 +734,8 @@ module suins::controller {
             tld: utf8(tld),
             label: label_str,
             owner,
-            cost: configuration::price_for_node(no_years),
+            // TODO: reduce cost when using discount code
+            cost: configuration::price_for_node(config, len_of_label, no_years),
             expiry: tx_context::epoch(ctx) + duration,
             nft_id,
             resolver,
