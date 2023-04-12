@@ -124,7 +124,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -217,7 +217,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -294,7 +294,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -336,7 +336,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -376,7 +376,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -451,7 +451,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 52,
                 0
             );
@@ -492,7 +492,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -555,7 +555,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 600,
                 20
             );
@@ -654,7 +654,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 600,
                 20
             );
@@ -711,7 +711,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -1017,7 +1017,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -1126,7 +1126,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 1051,
                 0
             );
@@ -1279,7 +1279,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -1323,7 +1323,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -1403,7 +1403,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -1519,7 +1519,7 @@ module suins::controller_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -1599,7 +1599,7 @@ module suins::controller_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = ctx_new(
                 SECOND_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -1641,7 +1641,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -1683,7 +1683,7 @@ module suins::controller_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -1761,7 +1761,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 SECOND_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -1802,7 +1802,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -1844,7 +1844,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -1895,7 +1895,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 61,
                 0
             );
@@ -1936,7 +1936,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -1985,7 +1985,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 20
             );
@@ -2044,7 +2044,7 @@ module suins::controller_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -2089,7 +2089,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -2165,7 +2165,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -2246,7 +2246,7 @@ module suins::controller_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -2289,7 +2289,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -2331,7 +2331,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -2407,7 +2407,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -2449,7 +2449,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -2512,7 +2512,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -2551,7 +2551,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -2619,7 +2619,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 71,
                 0
             );
@@ -2658,7 +2658,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -2745,7 +2745,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 221,
                 0
             );
@@ -2831,7 +2831,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 221,
                 0
             );
@@ -2917,7 +2917,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 121,
                 0
             );
@@ -3021,7 +3021,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + 1,
                 0
             );
@@ -3082,7 +3082,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 START_AUCTION_END_AT + 2,
                 0
             );
@@ -3152,7 +3152,7 @@ module suins::controller_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 START_AUCTION_END_AT + EXTRA_PERIOD + BIDDING_PERIOD + REVEAL_PERIOD + 1,
                 0
             );
@@ -3240,7 +3240,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + 1,
                 0
             );
@@ -3308,7 +3308,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 221,
                 0
             );
@@ -3401,7 +3401,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 221,
                 0
             );
@@ -3506,7 +3506,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 221,
                 0
             );
@@ -3747,7 +3747,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -3789,7 +3789,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -3831,7 +3831,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -3872,7 +3872,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -3950,7 +3950,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4051,7 +4051,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4093,7 +4093,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4135,7 +4135,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4178,7 +4178,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4262,7 +4262,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4306,7 +4306,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4350,7 +4350,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4393,7 +4393,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4470,7 +4470,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4513,7 +4513,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4557,7 +4557,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4771,7 +4771,7 @@ module suins::controller_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 600,
                 0
             );
@@ -4825,7 +4825,7 @@ module suins::controller_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 450,
                 0
             );
@@ -4922,7 +4922,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 START_AUCTION_END_AT + EXTRA_PERIOD + 1,
                 0
             );
@@ -4999,7 +4999,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + EXTRA_PERIOD + 1,
                 0
             );
@@ -5113,7 +5113,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_START_AT,
                 0
             );
@@ -5183,7 +5183,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 50,
                 2
             );
@@ -5216,7 +5216,7 @@ module suins::controller_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 50,
                 10
             );
@@ -5288,7 +5288,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 52,
                 20
             );
@@ -5307,7 +5307,7 @@ module suins::controller_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 50,
                 30
             );
@@ -5401,7 +5401,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 52,
                 20
             );
@@ -5432,7 +5432,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 50,
                 2
             );
@@ -5460,7 +5460,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 50,
                 2
             );
@@ -5485,7 +5485,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 50,
                 2
             );
@@ -5510,7 +5510,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 50,
                 2
             );
@@ -5535,7 +5535,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 50,
                 2
             );
@@ -5561,7 +5561,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 50,
                 2
             );
@@ -5587,7 +5587,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 50,
                 2
             );
@@ -5606,7 +5606,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -5645,7 +5645,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 50,
                 2
             );
@@ -5685,7 +5685,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -5724,7 +5724,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -5762,7 +5762,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -5819,7 +5819,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 121,
                 0
             );
