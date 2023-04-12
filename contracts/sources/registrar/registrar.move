@@ -208,7 +208,6 @@ module suins::registrar {
         node: vector<u8>,
         owner: address,
         duration: u64,
-        resolver: address,
         ctx: &mut TxContext
     ): ID {
         let (nft_id, _, _) = register_with_image_internal(
@@ -218,7 +217,6 @@ module suins::registrar {
             node,
             owner,
             duration,
-            resolver,
             vector[],
             vector[],
             vector[],
@@ -234,7 +232,6 @@ module suins::registrar {
         node: vector<u8>,
         owner: address,
         duration: u64,
-        resolver: address,
         signature: vector<u8>,
         hashed_msg: vector<u8>,
         raw_msg: vector<u8>,
@@ -286,7 +283,7 @@ module suins::registrar {
 
         table::add(registrar, label, record);
         transfer::transfer(nft, owner);
-        registry::set_record_internal(suins, node, owner, resolver, 0);
+        registry::set_record_internal(suins, node, owner, 0, ctx);
 
         (nft_id, url, additional_data)
     }

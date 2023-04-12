@@ -35,7 +35,6 @@ module suins::controller {
     const MAX_OUTDATED_COMMITMENTS_TO_REMOVE: u64 = 50;
 
     // errors in the range of 301..400 indicate Sui Controller errors
-    const EInvalidResolverAddress: u64 = 301;
     const ECommitmentNotExists: u64 = 302;
     const ECommitmentNotValid: u64 = 303;
     const ECommitmentTooOld: u64 = 304;
@@ -55,15 +54,10 @@ module suins::controller {
         cost: u64,
         expiry: u64,
         nft_id: ID,
-        resolver: address,
         referral_code: Option<ascii::String>,
         discount_code: Option<ascii::String>,
         url: Url,
         data: String,
-    }
-
-    struct DefaultResolverChangedEvent has copy, drop {
-        resolver: address,
     }
 
     struct NameRenewedEvent has copy, drop {
@@ -71,20 +65,6 @@ module suins::controller {
         label: String,
         cost: u64,
         duration: u64,
-    }
-
-    /// #### Notice
-    /// The admin uses this function to set default resolver address,
-    /// which is the default value when registering without config.
-    ///
-    /// #### Dev
-    /// The `default_addr_resolver` property of Controller share object is updated.
-    ///
-    /// #### Params
-    /// `resolver`: address of new default resolver.
-    public entry fun set_default_resolver(_: &AdminCap, suins: &mut SuiNS, resolver: address) {
-        *entity::default_resolver_mut(suins) = resolver;
-        event::emit(DefaultResolverChangedEvent { resolver })
     }
 
     /// #### Notice
@@ -133,7 +113,6 @@ module suins::controller {
         clock: &Clock,
         ctx: &mut TxContext,
     ) {
-        let resolver = entity::default_resolver(suins);
         register_internal(
             suins,
             tld,
@@ -142,7 +121,6 @@ module suins::controller {
             owner,
             no_years,
             secret,
-            resolver,
             payment,
             option::none(),
             option::none(),
@@ -195,7 +173,6 @@ module suins::controller {
         ctx: &mut TxContext,
     ) {
         registrar::assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
-        let resolver = entity::default_resolver(suins);
 
         register_internal(
             suins,
@@ -205,7 +182,6 @@ module suins::controller {
             owner,
             no_years,
             secret,
-            resolver,
             payment,
             option::none(),
             option::none(),
@@ -234,7 +210,6 @@ module suins::controller {
         owner: address,
         no_years: u64,
         secret: vector<u8>,
-        resolver: address,
         payment: &mut Coin<SUI>,
         clock: &Clock,
         ctx: &mut TxContext,
@@ -247,7 +222,6 @@ module suins::controller {
             owner,
             no_years,
             secret,
-            resolver,
             payment,
             option::none(),
             option::none(),
@@ -280,7 +254,6 @@ module suins::controller {
         owner: address,
         no_years: u64,
         secret: vector<u8>,
-        resolver: address,
         payment: &mut Coin<SUI>,
         signature: vector<u8>,
         hashed_msg: vector<u8>,
@@ -298,7 +271,6 @@ module suins::controller {
             owner,
             no_years,
             secret,
-            resolver,
             payment,
             option::none(),
             option::none(),
@@ -338,7 +310,6 @@ module suins::controller {
         ctx: &mut TxContext,
     ) {
         let (referral_code, discount_code) = validate_codes(referral_code, discount_code);
-        let resolver = entity::default_resolver(suins);
 
         register_internal(
             suins,
@@ -348,7 +319,6 @@ module suins::controller {
             owner,
             no_years,
             secret,
-            resolver,
             payment,
             referral_code,
             discount_code,
@@ -395,7 +365,6 @@ module suins::controller {
     ) {
         registrar::assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
         let (referral_code, discount_code) = validate_codes(referral_code, discount_code);
-        let resolver = entity::default_resolver(suins);
 
         register_internal(
             suins,
@@ -405,7 +374,6 @@ module suins::controller {
             owner,
             no_years,
             secret,
-            resolver,
             payment,
             referral_code,
             discount_code,
@@ -437,7 +405,6 @@ module suins::controller {
         owner: address,
         no_years: u64,
         secret: vector<u8>,
-        resolver: address,
         payment: &mut Coin<SUI>,
         referral_code: vector<u8>,
         discount_code: vector<u8>,
@@ -454,7 +421,6 @@ module suins::controller {
             owner,
             no_years,
             secret,
-            resolver,
             payment,
             referral_code,
             discount_code,
@@ -490,7 +456,6 @@ module suins::controller {
         owner: address,
         no_years: u64,
         secret: vector<u8>,
-        resolver: address,
         payment: &mut Coin<SUI>,
         referral_code: vector<u8>,
         discount_code: vector<u8>,
@@ -511,7 +476,6 @@ module suins::controller {
             owner,
             no_years,
             secret,
-            resolver,
             payment,
             referral_code,
             discount_code,
@@ -628,7 +592,6 @@ module suins::controller {
                 *string::bytes(&node),
                 owner,
                 365,
-                @0x0,
                 ctx,
             );
         };
@@ -669,7 +632,6 @@ module suins::controller {
         owner: address,
         no_years: u64,
         secret: vector<u8>,
-        resolver: address,
         payment: &mut Coin<SUI>,
         referral_code: Option<ascii::String>,
         discount_code: Option<ascii::String>,
@@ -723,7 +685,6 @@ module suins::controller {
             label,
             owner,
             duration,
-            resolver,
             signature,
             hashed_msg,
             raw_msg,
@@ -738,7 +699,6 @@ module suins::controller {
             cost: configuration::price_for_node(config, len_of_label, no_years),
             expiry: tx_context::epoch(ctx) + duration,
             nft_id,
-            resolver,
             referral_code,
             discount_code,
             url,
@@ -865,11 +825,6 @@ module suins::controller {
     public fun commitment_len(suins: &SuiNS): u64 {
         let commitments = entity::controller_commitments(suins);
         linked_table::length(commitments)
-    }
-
-    #[test_only]
-    public fun get_default_resolver(suins: &SuiNS): address {
-        entity::default_resolver(suins)
     }
 
     #[test_only]

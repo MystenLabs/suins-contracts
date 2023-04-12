@@ -1065,7 +1065,6 @@ module suins::auction_tests_2 {
                 &mut auction,
                 &mut suins,
                 &config,
-                RESOLVER_ADDRESS,
                 &mut ctx_util(FIRST_USER_ADDRESS, EXTRA_PERIOD_START_AT, 20),
             );
             get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 0, 0, @0x0, false);
@@ -1113,7 +1112,6 @@ module suins::auction_tests_2 {
                 &mut auction,
                 &mut suins,
                 &config,
-                RESOLVER_ADDRESS,
                 &mut ctx_util(FIRST_USER_ADDRESS, START_AN_AUCTION_AT + 1, 20),
             );
 

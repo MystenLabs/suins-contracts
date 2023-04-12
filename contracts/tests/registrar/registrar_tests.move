@@ -15,7 +15,6 @@ module suins::registrar_tests {
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER: address = @0xB001;
     const SECOND_USER: address = @0xB002;
-    const FIRST_RESOLVER: address = @0xC001;
     const SECOND_RESOLVER: address = @0xC002;
     const FIRST_LABEL: vector<u8> = b"eastagile";
     const FIRST_NODE: vector<u8> = b"eastagile.sui";
@@ -71,7 +70,6 @@ module suins::registrar_tests {
                 FIRST_LABEL,
                 FIRST_USER,
                 365,
-                FIRST_RESOLVER,
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -95,11 +93,12 @@ module suins::registrar_tests {
                 0
             );
 
-            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_NODE);
 
             assert!(owner == FIRST_USER, 0);
-            assert!(resolver == FIRST_RESOLVER, 0);
+            assert!(linked_addr == FIRST_USER, 0);
             assert!(ttl == 0, 0);
+            assert!(name == utf8(b""), 0);
             test_scenario::return_to_sender(scenario, nft);
             test_scenario::return_shared(suins);
         };
@@ -129,7 +128,6 @@ module suins::registrar_tests {
                 FIRST_LABEL,
                 FIRST_USER,
                 365,
-                FIRST_RESOLVER,
                 signature,
                 hashed_msg,
                 raw_msg,
@@ -155,11 +153,12 @@ module suins::registrar_tests {
                 0
             );
 
-            let (owner, resolver, ttl) = registry::get_record_by_domain_name(&suins, FIRST_NODE);
-
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER, 0);
-            assert!(resolver == FIRST_RESOLVER, 0);
+            assert!(linked_addr == FIRST_USER, 0);
             assert!(ttl == 0, 0);
+            assert!(name == utf8(b""), 0);
+
             test_scenario::return_to_sender(scenario, nft);
             test_scenario::return_shared(suins);
         };
@@ -215,7 +214,6 @@ module suins::registrar_tests {
                 invalid_label,
                 FIRST_USER,
                 365,
-                FIRST_RESOLVER,
                 test_scenario::ctx(&mut scenario)
             );
 
@@ -240,7 +238,6 @@ module suins::registrar_tests {
                 FIRST_LABEL,
                 FIRST_USER,
                 0,
-                FIRST_RESOLVER,
                 test_scenario::ctx(&mut scenario)
             );
 
@@ -272,7 +269,6 @@ module suins::registrar_tests {
                 FIRST_LABEL,
                 FIRST_USER,
                 365,
-                FIRST_RESOLVER,
                 &mut ctx,
             );
 
@@ -489,7 +485,6 @@ module suins::registrar_tests {
                 FIRST_LABEL,
                 FIRST_USER,
                 365,
-                FIRST_RESOLVER,
                 test_scenario::ctx(&mut scenario)
             );
             test_scenario::return_shared(suins);
@@ -1124,7 +1119,6 @@ module suins::registrar_tests {
                 FIRST_LABEL,
                 SECOND_USER,
                 365,
-                FIRST_RESOLVER,
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1184,7 +1178,6 @@ module suins::registrar_tests {
                 FIRST_LABEL,
                 SECOND_USER,
                 365,
-                FIRST_RESOLVER,
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1244,7 +1237,6 @@ module suins::registrar_tests {
                 FIRST_LABEL,
                 FIRST_USER,
                 365,
-                FIRST_RESOLVER,
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1305,7 +1297,6 @@ module suins::registrar_tests {
                 FIRST_LABEL,
                 FIRST_USER,
                 365,
-                FIRST_RESOLVER,
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1366,7 +1357,6 @@ module suins::registrar_tests {
                 THIRD_LABEL,
                 FIRST_USER,
                 365,
-                FIRST_RESOLVER,
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1427,7 +1417,6 @@ module suins::registrar_tests {
                 THIRD_LABEL,
                 FIRST_USER,
                 365,
-                FIRST_RESOLVER,
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1488,7 +1477,6 @@ module suins::registrar_tests {
                 THIRD_LABEL,
                 FIRST_USER,
                 365,
-                FIRST_RESOLVER,
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1549,7 +1537,6 @@ module suins::registrar_tests {
                 THIRD_LABEL,
                 FIRST_USER,
                 365,
-                FIRST_RESOLVER,
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1608,7 +1595,6 @@ module suins::registrar_tests {
                 FIRST_LABEL,
                 FIRST_USER,
                 365,
-                FIRST_RESOLVER,
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1668,7 +1654,6 @@ module suins::registrar_tests {
                 FIRST_LABEL,
                 FIRST_USER,
                 365,
-                FIRST_RESOLVER,
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1718,7 +1703,6 @@ module suins::registrar_tests {
                 FIRST_LABEL,
                 SECOND_USER,
                 365,
-                FIRST_RESOLVER,
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1776,7 +1760,6 @@ module suins::registrar_tests {
                 FIRST_LABEL,
                 SECOND_USER,
                 365,
-                FIRST_RESOLVER,
                 &mut ctx
             );
             test_scenario::return_shared(suins);

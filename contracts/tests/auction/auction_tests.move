@@ -91,7 +91,7 @@ module suins::auction_tests {
             registry::test_init(ctx);
             configuration::test_init(ctx);
             entity::test_init(ctx);
-            clock::create_for_testing(ctx);
+            clock::share_for_testing(clock::create_for_testing(ctx));
         };
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
@@ -238,7 +238,7 @@ module suins::auction_tests {
         );
         let suins = test_scenario::take_shared<SuiNS>(scenario);
         let config = test_scenario::take_shared<Configuration>(scenario);
-        finalize_auction(auction, &mut suins, &config, node, RESOLVER_ADDRESS, &mut ctx);
+        finalize_auction(auction, &mut suins, &config, node, &mut ctx);
         test_scenario::return_shared(suins);
         test_scenario::return_shared(config);
     }
@@ -1207,7 +1207,6 @@ module suins::auction_tests {
             );
             assert!(registry::owner(&suins, NODE_SUI) == SECOND_USER_ADDRESS, 0);
             assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
-            assert!(registry::resolver(&suins, NODE_SUI) == RESOLVER_ADDRESS, 0);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
         };
@@ -1265,7 +1264,6 @@ module suins::auction_tests {
             );
             assert!(registry::owner(&suins, NODE_SUI) == SECOND_USER_ADDRESS, 0);
             assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
-            assert!(registry::resolver(&suins, NODE_SUI) == RESOLVER_ADDRESS, 0);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
         };
@@ -1944,7 +1942,6 @@ module suins::auction_tests {
             );
             assert!(registry::owner(&suins, NODE_SUI) == FIRST_USER_ADDRESS, 0);
             assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
-            assert!(registry::resolver(&suins, NODE_SUI) == RESOLVER_ADDRESS, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1000 + BIDDING_FEE, 0);
 
@@ -2007,7 +2004,6 @@ module suins::auction_tests {
             );
             assert!(registry::owner(&suins, NODE_SUI) == FIRST_USER_ADDRESS, 0);
             assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
-            assert!(registry::resolver(&suins, NODE_SUI) == RESOLVER_ADDRESS, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1000 + BIDDING_FEE, 0);
@@ -2317,7 +2313,6 @@ module suins::auction_tests {
             );
             assert!(registry::owner(&suins, NODE_SUI) == FIRST_USER_ADDRESS, 0);
             assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
-            assert!(registry::resolver(&suins, NODE_SUI) == RESOLVER_ADDRESS, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1000 + BIDDING_FEE, 0);
 
@@ -2560,7 +2555,6 @@ module suins::auction_tests {
             );
             assert!(registry::owner(&suins, NODE_SUI) == FIRST_USER_ADDRESS, 0);
             assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
-            assert!(registry::resolver(&suins, NODE_SUI) == RESOLVER_ADDRESS, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1500 + BIDDING_FEE, 0);

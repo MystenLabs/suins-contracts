@@ -697,7 +697,6 @@ module suins::auction_tests_3 {
                 &mut auction,
                 &mut suins,
                 &config,
-                RESOLVER_ADDRESS,
                 &mut ctx_util(FIRST_USER_ADDRESS, EXTRA_PERIOD_START_AT, 20),
             );
             get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1000, 0, FIRST_USER_ADDRESS, true);
@@ -723,7 +722,7 @@ module suins::auction_tests_3 {
             );
             assert!(registry::owner(&suins, NODE_SUI) == FIRST_USER_ADDRESS, 0);
             assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
-            assert!(registry::resolver(&suins, NODE_SUI) == RESOLVER_ADDRESS, 0);
+            assert!(registry::linked_addr(&suins, NODE_SUI) == FIRST_USER_ADDRESS, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1000 + BIDDING_FEE, 0);
 
@@ -773,7 +772,6 @@ module suins::auction_tests_3 {
                 &mut auction,
                 &mut suins,
                 &config,
-                RESOLVER_ADDRESS,
                 &mut ctx_util(FIRST_USER_ADDRESS, EXTRA_PERIOD_START_AT, 20),
             );
             get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1000, 0, FIRST_USER_ADDRESS, true);
