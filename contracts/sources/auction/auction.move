@@ -454,23 +454,6 @@ module suins::auction {
         register_winning_auction(suins, config, label, entry.winner, entry.second_highest_bid, ctx)
     }
 
-    fun register_winning_auction(
-        suins: &mut SuiNS,
-        config: &Configuration,
-        label: vector<u8>,
-        winner: address,
-        winning_amount: u64,
-        ctx: &mut TxContext
-    ) {
-        registrar::register_internal(suins, SUI_TLD, config, label, winner, 365, ctx);
-        event::emit(NameRegisteredEvent {
-            label: utf8(label),
-            tld: utf8(SUI_TLD),
-            winner,
-            amount: winning_amount
-        })
-    }
-
     public entry fun finalize_all_auctions_by_admin(
         _: &AdminCap,
         auction_house: &mut AuctionHouse,
@@ -478,7 +461,8 @@ module suins::auction {
         config: &Configuration,
         ctx: &mut TxContext
     ) {
-        assert!(auction_close_at(auction_house) < tx_context::epoch(ctx), EInvalidPhase);
+        let auction_close_at = auction_close_at(auction_house);
+        assert!(auction_close_at < tx_context::epoch(ctx), EInvalidPhase);
         // tx_context::epoch(ctx) <= auction_close_at(auction_house) + EXTRA_PERIOD
         // copy the `option` because we need mutable reference to `entries` later
         let next_label = *linked_table::front(&auction_house.entries);
@@ -487,7 +471,14 @@ module suins::auction {
             let auction_state = state(auction_house, *string::bytes(&label), tx_context::epoch(ctx));
             let entry = linked_table::borrow_mut(&mut auction_house.entries, label);
 
-            if (!entry.is_finalized && entry.winner != @0x0 && auction_state == AUCTION_STATE_FINALIZING) {
+            if (
+                !entry.is_finalized
+                    && entry.winner != @0x0
+                    && (
+                        auction_state == AUCTION_STATE_FINALIZING && tx_context::epoch(ctx) <= auction_close_at + EXTRA_PERIOD
+                            || auction_state == AUCTION_STATE_NOT_AVAILABLE && tx_context::epoch(ctx) > auction_close_at + EXTRA_PERIOD
+                        )
+            ) {
                 let bids_of_winner = table::borrow_mut(&mut auction_house.bid_details_by_bidder, entry.winner);
                 let len = vector::length(bids_of_winner);
                 let index = 0;
@@ -501,15 +492,17 @@ module suins::auction {
 
                         vector::remove(bids_of_winner, index);
                         entry.is_finalized = true;
-                        
-                        register_winning_auction(
-                            suins,
-                            config,
-                            *string::bytes(&label),
-                            entry.winner,
-                            entry.second_highest_bid,
-                            ctx,
-                        );
+
+                        if (tx_context::epoch(ctx) <= auction_close_at + EXTRA_PERIOD)
+                            register_winning_auction(
+                                suins,
+                                config,
+                                *string::bytes(&label),
+                                entry.winner,
+                                entry.second_highest_bid,
+                                ctx,
+                            );
+
                         break
                     };
                     index = index + 1;
@@ -690,6 +683,23 @@ module suins::auction {
     ) {
         entry.second_highest_bid = new_second_highest_value;
         entry.second_highest_bidder = new_second_highest_bidder;
+    }
+
+    fun register_winning_auction(
+        suins: &mut SuiNS,
+        config: &Configuration,
+        label: vector<u8>,
+        winner: address,
+        winning_amount: u64,
+        ctx: &mut TxContext
+    ) {
+        registrar::register_internal(suins, SUI_TLD, config, label, winner, 365, ctx);
+        event::emit(NameRegisteredEvent {
+            label: utf8(label),
+            tld: utf8(SUI_TLD),
+            winner,
+            amount: winning_amount
+        })
     }
 
     fun handle_winning_bid(

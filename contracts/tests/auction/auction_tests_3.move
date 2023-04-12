@@ -13,10 +13,8 @@ module suins::auction_tests_3 {
     use suins::controller;
     use suins::registry::{Self, AdminCap};
     use sui::test_scenario;
-    use suins::registrar;
     use sui::clock::Clock;
-    use std::string::utf8;
-    use suins::registrar::RegistrationNFT;
+    use suins::registrar;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -2918,7 +2916,7 @@ module suins::auction_tests_3 {
 
 
     #[test]
-    fun test_abc_7() {
+    fun test_finalize_all_auctions_by_admin_after_extra_period_with_no_auction() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
@@ -2939,11 +2937,33 @@ module suins::auction_tests_3 {
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(scenario, admin_cap);
         };
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<AuctionHouse>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+
+            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(auction::get_balance(&auction) == 0, 0);
+
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(auction);
+        };
+        test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
+        {
+            let auction = test_scenario::take_shared<AuctionHouse>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+
+            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(auction::get_balance(&auction) == 0, 0);
+
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(auction);
+        };
         test_scenario::end(scenario_val);
     }
 
     #[test]
-    fun test_abc_8() {
+    fun test_finalize_all_auctions_by_admin_after_extra_period_being_called_twice() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
