@@ -93,18 +93,24 @@ module suins::emoji {
         }
     }
 
+    public fun len_of_label(emoji_config: &EmojiConfiguration, label: vector<u8>): u64 {
+        let emojis = to_emoji_sequences(emoji_config, label);
+        vector::length(&emojis)
+    }
+
     /// Valid labels have 3 to 63 characters and contain only: lowercase (a-z), numbers (0-9), hyphen (-).
     /// A name may not start or end with a hyphen
     ///
     /// Domains registered through `controller` have different length contraint than auctioned ones
+    /// Returns length of the `label`
     public fun validate_label_with_emoji(
         emoji_config: &EmojiConfiguration,
-        str: vector<u8>,
+        label: vector<u8>,
         min_characters: u64,
         max_characters: u64
-    ) {
-        let emojis = to_emoji_sequences(emoji_config, str);
-        let str = utf8(str);
+    ): u64 {
+        let emojis = to_emoji_sequences(emoji_config, label);
+        let str = utf8(label);
         let len = vector::length(&emojis);
         let index = 0;
         assert!(min_characters <= len && len <= max_characters, EInvalidLabel);
@@ -202,6 +208,7 @@ module suins::emoji {
             };
             index = index + 1;
         };
+        len
     }
 
     fun to_emoji_sequences(emoji_config: &EmojiConfiguration, bytes: vector<u8>): vector<UTF8Emoji> {
