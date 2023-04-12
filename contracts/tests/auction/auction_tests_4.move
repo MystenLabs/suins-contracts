@@ -1307,7 +1307,7 @@ module suins::auction_tests_4 {
             );
             assert!(registry::owner(&suins, NODE_SUI) == FIRST_USER_ADDRESS, 0);
             assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
-            assert!(registry::linked_addr(&suins, NODE_SUI) == @0x0, 0);
+            assert!(registry::linked_addr(&suins, NODE_SUI) == FIRST_USER_ADDRESS, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1000 + BIDDING_FEE, 0);
 

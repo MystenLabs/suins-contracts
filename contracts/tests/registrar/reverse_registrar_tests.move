@@ -56,9 +56,9 @@ module suins::reverse_registrar_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let (owner, addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_NODE);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_NODE);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(name == string::utf8(b""), 0);
 

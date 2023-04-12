@@ -120,11 +120,11 @@ module suins::entity {
         &mut name_record.data
     }
 
-    public(friend) fun new_name_record(owner: address, ttl: u64, ctx: &mut TxContext): NameRecord {
+    public(friend) fun new_name_record(owner: address, ttl: u64, linked_addr: address, ctx: &mut TxContext): NameRecord {
         NameRecord {
             owner,
             ttl,
-            linked_addr: @0x0,
+            linked_addr,
             default_domain_name: utf8(b""),
             data: table::new(ctx),
         }
