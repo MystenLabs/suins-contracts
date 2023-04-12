@@ -38,8 +38,8 @@ module suins::auction_tests {
         226, 128, 141,
         240, 159, 145, 168,
     ];
-    const SECOND_NODE: vector<u8> = b"suins2";
-    const THIRD_NODE: vector<u8> = b"suins3";
+    const SECOND_DOMAIN_NAME: vector<u8> = b"suins2";
+    const THIRD_DOMAIN_NAME: vector<u8> = b"suins3";
     const NODE_SUI: vector<u8> = vector[
         97, // 'a'
         98, // 'b'

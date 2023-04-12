@@ -14,8 +14,8 @@ module suins::reverse_registrar_tests {
     const SECOND_USER_ADDRESS: address = @0xB002;
     const FIRST_RESOLVER_ADDRESS: address = @0xC001;
     const SECOND_RESOLVER_ADDRESS: address = @0xC002;
-    const FIRST_NODE: vector<u8> = b"000000000000000000000000000000000000000000000000000000000000b001.addr.reverse";
-    const SECOND_NODE: vector<u8> = b"000000000000000000000000000000000000000000000000000000000000b002.addr.reverse";
+    const FIRST_DOMAIN_NAME: vector<u8> = b"000000000000000000000000000000000000000000000000000000000000b001.addr.reverse";
+    const SECOND_DOMAIN_NAME: vector<u8> = b"000000000000000000000000000000000000000000000000000000000000b002.addr.reverse";
 
     fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
@@ -56,7 +56,7 @@ module suins::reverse_registrar_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_NODE);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);

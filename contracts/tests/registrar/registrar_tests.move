@@ -17,7 +17,7 @@ module suins::registrar_tests {
     const SECOND_USER: address = @0xB002;
     const SECOND_RESOLVER: address = @0xC002;
     const FIRST_LABEL: vector<u8> = b"eastagile";
-    const FIRST_NODE: vector<u8> = b"eastagile.sui";
+    const FIRST_DOMAIN_NAME: vector<u8> = b"eastagile.sui";
     const SECOND_LABEL: vector<u8> = b"ea";
     const THIRD_LABEL: vector<u8> = b"eastagil";
     const MOVE_REGISTRAR: vector<u8> = b"move";
@@ -87,13 +87,13 @@ module suins::registrar_tests {
             assert!(owner == FIRST_USER, 0);
 
             let (name, url) = registrar::get_nft_fields(&nft);
-            assert!(name == utf8(FIRST_NODE), 0);
+            assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
 
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_NODE);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
 
             assert!(owner == FIRST_USER, 0);
             assert!(linked_addr == FIRST_USER, 0);
@@ -147,13 +147,14 @@ module suins::registrar_tests {
 
             assert!(expiry == 10 + 365, 0);
             assert!(owner == FIRST_USER, 0);
-            assert!(name == utf8(FIRST_NODE), 0);
+            assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"),
                 0
             );
 
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_NODE);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+
             assert!(owner == FIRST_USER, 0);
             assert!(linked_addr == FIRST_USER, 0);
             assert!(ttl == 0, 0);
@@ -358,7 +359,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let owner = registry::owner(&suins, FIRST_NODE);
+            let owner = registry::owner(&suins, FIRST_DOMAIN_NAME);
             assert!(SECOND_USER == owner, 0);
 
             test_scenario::return_shared(suins);
@@ -538,7 +539,7 @@ module suins::registrar_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
             let (name, url) = registrar::get_nft_fields(&nft);
 
-            assert!(name == utf8(FIRST_NODE), 0);
+            assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
@@ -577,7 +578,7 @@ module suins::registrar_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
             let (name, url) = registrar::get_nft_fields(&nft);
 
-            assert!(name == utf8(FIRST_NODE), 0);
+            assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"),
                 0
@@ -1624,7 +1625,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let owner = registry::owner(&suins, FIRST_NODE);
+            let owner = registry::owner(&suins, FIRST_DOMAIN_NAME);
             assert!(SECOND_USER == owner, 0);
 
             test_scenario::return_shared(suins);
@@ -1730,7 +1731,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let owner = registry::owner(&suins, FIRST_NODE);
+            let owner = registry::owner(&suins, FIRST_DOMAIN_NAME);
             assert!(SECOND_USER == owner, 0);
 
             test_scenario::return_shared(suins);

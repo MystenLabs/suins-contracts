@@ -727,8 +727,8 @@ module suins::auction {
             bid_details_by_bidder: table::new(ctx),
             entries: linked_table::new(ctx),
             balance: balance::zero(),
-            start_auction_start_at: 0,
-            start_auction_end_at: 0,
+            start_auction_start_at: entity::max_u64(),
+            start_auction_end_at: entity::max_u64() - 1,
             bidding_fee: configuration::mist_per_sui(),
             start_an_auction_fee: 10 * configuration::mist_per_sui(),
         });

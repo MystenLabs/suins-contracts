@@ -46,6 +46,7 @@ module suins::controller {
     const ERegistrationIsDisabled: u64 = 312;
     const EInvalidDomain: u64 = 314;
     const ECommitmentTooSoon: u64 = 315;
+    const EAuctionNotEndYet: u64 = 316;
 
     struct NameRegisteredEvent has copy, drop {
         tld: String,
@@ -642,24 +643,16 @@ module suins::controller {
         ctx: &mut TxContext,
     ) {
         assert!(configuration::is_enable_controller(config), ERegistrationIsDisabled);
-        let emoji_config = configuration::emoji_config(config);
-        let label_str = utf8(label);
+        assert!(tx_context::epoch(ctx) > entity::controller_auction_house_finalized_at(suins), EAuctionNotEndYet);
 
+        let emoji_config = configuration::emoji_config(config);
         let len_of_label =
-            if (tx_context::epoch(ctx) <= entity::controller_auction_house_finalized_at(suins))
-                 emoji::validate_label_with_emoji(
-                    emoji_config,
-                    label,
-                    configuration::min_non_auction_domain_length(),
-                    configuration::max_domain_length(),
-                )
-            else
-                emoji::validate_label_with_emoji(
-                    emoji_config,
-                    label,
-                    configuration::min_domain_length(),
-                    configuration::max_domain_length()
-                );
+            emoji::validate_label_with_emoji(
+                emoji_config,
+                label,
+                configuration::min_domain_length(),
+                configuration::max_domain_length()
+            );
 
         let commitment = make_commitment(tld, label, owner, secret);
         consume_commitment(suins, tld, label, commitment, clock, ctx);
@@ -693,7 +686,7 @@ module suins::controller {
 
         event::emit(NameRegisteredEvent {
             tld: utf8(tld),
-            label: label_str,
+            label: utf8(label),
             owner,
             // TODO: reduce cost when using discount code
             cost: configuration::price_for_node(config, len_of_label, no_years),

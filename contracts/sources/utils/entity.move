@@ -20,6 +20,8 @@ module suins::entity {
     friend suins::coin_util;
     friend suins::auction;
 
+    const MAX_U64: u64 = 18446744073709551615;
+
     struct SuiNS has key {
         id: UID,
         /// Maps domain names to name records (instance of `NameRecord`).
@@ -175,13 +177,18 @@ module suins::entity {
         &mut suins.controller.auction_house_finalized_at
     }
 
+    public(friend) fun max_u64(): u64 {
+        MAX_U64
+    }
+
     fun init(ctx: &mut TxContext) {
         let registry = table::new(ctx);
         let registrars = table::new(ctx);
         let controller = Controller {
             commitments: linked_table::new(ctx),
             balance: balance::zero(),
-            auction_house_finalized_at: 0,
+            // TODO: same as configuration::MAX_U64
+            auction_house_finalized_at: MAX_U64,
         };
 
         transfer::share_object(SuiNS {
@@ -206,7 +213,7 @@ module suins::entity {
         let controller = Controller {
             commitments: linked_table::new(ctx),
             balance: balance::zero(),
-            auction_house_finalized_at: 0,
+            auction_house_finalized_at: MAX_U64,
         };
 
         transfer::share_object(SuiNS {
