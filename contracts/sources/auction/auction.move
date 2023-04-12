@@ -306,7 +306,7 @@ module suins::auction {
     /// #### Params
     /// `label`: label of the node being auctioned, the node has the form `label`.sui
     /// `value`: auctual value that bidder wants to spend
-    /// `salt`: random string used when hashing the sealed bid
+    /// `secret`: random string used when hashing the sealed bid
     ///
     /// Panics
     /// Panics if auction is not in `REVEAL` state
@@ -318,7 +318,7 @@ module suins::auction {
         auction_house: &mut AuctionHouse,
         label: vector<u8>,
         value: u64,
-        salt: vector<u8>,
+        secret: vector<u8>,
         ctx: &mut TxContext
     ) {
         assert!(
@@ -330,7 +330,12 @@ module suins::auction {
         let auction_state = state(auction_house, label, tx_context::epoch(ctx));
         assert!(auction_state == AUCTION_STATE_REVEAL, EInvalidPhase);
 
-        let sealed_bid = make_seal_bid(label, tx_context::sender(ctx), value, salt); // hash from label, owner, value, salt
+        let sealed_bid = make_seal_bid(
+            label,
+            tx_context::sender(ctx),
+            value,
+            secret
+        ); // hash from label, owner, value, salt
         let bids_by_sender = table::borrow_mut(&mut auction_house.bid_details_by_bidder, tx_context::sender(ctx));
         let index = seal_bid_exists(bids_by_sender, sealed_bid);
         assert!(option::is_some(&index), ESealBidNotExists);
@@ -446,13 +451,23 @@ module suins::auction {
         };
         if (entry.winner != tx_context::sender(ctx)) return;
 
-        registrar::register_internal(suins, SUI_TLD, config, label, entry.winner, 365, ctx);
+        register_winning_auction(suins, config, label, entry.winner, entry.second_highest_bid, ctx)
+    }
 
+    fun register_winning_auction(
+        suins: &mut SuiNS,
+        config: &Configuration,
+        label: vector<u8>,
+        winner: address,
+        winning_amount: u64,
+        ctx: &mut TxContext
+    ) {
+        registrar::register_internal(suins, SUI_TLD, config, label, winner, 365, ctx);
         event::emit(NameRegisteredEvent {
-            label: label_str,
+            label: utf8(label),
             tld: utf8(SUI_TLD),
-            winner: entry.winner,
-            amount: entry.second_highest_bid
+            winner,
+            amount: winning_amount
         })
     }
 
@@ -463,13 +478,9 @@ module suins::auction {
         config: &Configuration,
         ctx: &mut TxContext
     ) {
-        assert!(
-            auction_close_at(auction_house) < tx_context::epoch(ctx) && tx_context::epoch(ctx)
-                <= auction_close_at(auction_house) + EXTRA_PERIOD,
-            EInvalidPhase,
-        );
-
-        // TODO: copy the `option` because we need mutable reference to `entries` later
+        assert!(auction_close_at(auction_house) < tx_context::epoch(ctx), EInvalidPhase);
+        // tx_context::epoch(ctx) <= auction_close_at(auction_house) + EXTRA_PERIOD
+        // copy the `option` because we need mutable reference to `entries` later
         let next_label = *linked_table::front(&auction_house.entries);
         while (option::is_some(&next_label)) {
             let label = *option::borrow(&next_label);
@@ -490,23 +501,15 @@ module suins::auction {
 
                         vector::remove(bids_of_winner, index);
                         entry.is_finalized = true;
-
-                        registrar::register_internal(
+                        
+                        register_winning_auction(
                             suins,
-                            SUI_TLD,
                             config,
                             *string::bytes(&label),
                             entry.winner,
-                            365,
-                            ctx
+                            entry.second_highest_bid,
+                            ctx,
                         );
-                        event::emit(NameRegisteredEvent {
-                            label,
-                            tld: utf8(SUI_TLD),
-                            winner: entry.winner,
-                            amount: entry.second_highest_bid
-                        });
-
                         break
                     };
                     index = index + 1;
@@ -585,16 +588,16 @@ module suins::auction {
     /// `label`: label of the node being auctioned, the node has the form `label`.sui
     /// `owner`: address of the bidder
     /// `value`: bid value
-    /// `salt`: a random string
+    /// `secret`: a random string
     ///
     /// #### Return
     /// Hashed string using keccak256
-    public fun make_seal_bid(label: vector<u8>, owner: address, value: u64, salt: vector<u8>): vector<u8> {
+    public fun make_seal_bid(label: vector<u8>, owner: address, value: u64, secret: vector<u8>): vector<u8> {
         let owner = bcs::to_bytes(&owner);
         vector::append(&mut label, owner);
         let value = bcs::to_bytes(&value);
         vector::append(&mut label, value);
-        vector::append(&mut label, salt);
+        vector::append(&mut label, secret);
         keccak256(&label)
     }
 
