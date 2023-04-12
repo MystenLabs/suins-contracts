@@ -56,6 +56,7 @@ module suins::controller_tests {
     const PRICE_OF_FOUR_CHARACTER_DOMAIN: u64 = 200 * 1_000_000_000;
     const PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN: u64 = 50 * 1_000_000_000;
     const GRACE_PERIOD: u64 = 90;
+    const DEFAULT_TX_HASH: vector<u8> = x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532";
 
     fun test_init(): Scenario {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
@@ -65,7 +66,7 @@ module suins::controller_tests {
             configuration::test_init(ctx);
             entity::test_init(ctx);
             auction::test_init(ctx);
-            clock::create_for_testing(ctx);
+            clock::share_for_testing(clock::create_for_testing(ctx));
         };
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
@@ -124,7 +125,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -174,9 +175,9 @@ module suins::controller_tests {
             assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(name == utf8(b""), 0);
 
@@ -218,7 +219,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -270,9 +271,9 @@ module suins::controller_tests {
             assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(name == utf8(b""), 0);
 
@@ -295,7 +296,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -336,7 +337,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -376,7 +377,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -417,7 +418,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 10
             );
@@ -458,7 +459,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -500,7 +501,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -563,7 +564,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1 + 365 + GRACE_PERIOD + 1,
                 20
             );
@@ -608,9 +609,9 @@ module suins::controller_tests {
             assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 365 + GRACE_PERIOD + 1 + 365, 0);
             assert!(owner == SECOND_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
             assert!(owner == SECOND_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == SECOND_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(name == utf8(b""), 0);
 
@@ -662,7 +663,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1 + 365 + GRACE_PERIOD + 1,
                 20
             );
@@ -720,7 +721,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -770,9 +771,9 @@ module suins::controller_tests {
             assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(name == utf8(b""), 0);
 
@@ -853,7 +854,7 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(10001, test_scenario::ctx(&mut scenario));
             let ctx = &mut ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + EXTRA_PERIOD + 10,
                 0
             );
@@ -927,7 +928,7 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(1000001, test_scenario::ctx(&mut scenario));
             let ctx = &mut ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + EXTRA_PERIOD + 10,
                 0
             );
@@ -1001,7 +1002,7 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(10001, test_scenario::ctx(&mut scenario));
             let ctx = &mut ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + EXTRA_PERIOD + 10,
                 0
             );
@@ -1075,7 +1076,7 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(1000001, test_scenario::ctx(&mut scenario));
             let ctx = &mut ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + EXTRA_PERIOD + 10,
                 0
             );
@@ -1141,7 +1142,7 @@ module suins::controller_tests {
                 &clock,
                 &mut ctx_new(
                     SUINS_ADDRESS,
-                    x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                    DEFAULT_TX_HASH,
                     EXTRA_PERIOD_END_AT + 1,
                     20
                 ),
@@ -1169,9 +1170,9 @@ module suins::controller_tests {
             assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, name) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(name == utf8(b""), 0);
 
@@ -1248,7 +1249,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -1357,7 +1358,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 1051,
                 0
             );
@@ -1511,7 +1512,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -1556,7 +1557,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -1611,9 +1612,9 @@ module suins::controller_tests {
             assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(name == utf8(b""), 0);
 
@@ -1636,7 +1637,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -1691,9 +1692,9 @@ module suins::controller_tests {
             assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 1095, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -1753,7 +1754,7 @@ module suins::controller_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -1810,9 +1811,9 @@ module suins::controller_tests {
             assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -1834,7 +1835,7 @@ module suins::controller_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = ctx_new(
                 SECOND_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -1877,7 +1878,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -1920,7 +1921,7 @@ module suins::controller_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -1976,9 +1977,9 @@ module suins::controller_tests {
             assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -1999,7 +2000,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 SECOND_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -2041,7 +2042,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -2084,7 +2085,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -2135,7 +2136,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -2177,7 +2178,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -2226,7 +2227,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 20
             );
@@ -2286,7 +2287,7 @@ module suins::controller_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -2332,7 +2333,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -2384,9 +2385,9 @@ module suins::controller_tests {
             assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, domain_name);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, domain_name);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -2409,7 +2410,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -2466,9 +2467,9 @@ module suins::controller_tests {
             assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
 
             coin::burn_for_testing(coin);
@@ -2491,7 +2492,7 @@ module suins::controller_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -2535,7 +2536,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -2578,7 +2579,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -2631,9 +2632,9 @@ module suins::controller_tests {
             assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
 
             coin::burn_for_testing(coin);
@@ -2655,7 +2656,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -2698,7 +2699,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -2760,7 +2761,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -2799,7 +2800,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -2844,9 +2845,9 @@ module suins::controller_tests {
             assert!(expiry == 21 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -2866,7 +2867,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 71,
                 0
             );
@@ -2905,7 +2906,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 51,
                 0
             );
@@ -2949,9 +2950,9 @@ module suins::controller_tests {
             assert!(expiry == 51 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -2992,7 +2993,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 221,
                 0
             );
@@ -3036,9 +3037,9 @@ module suins::controller_tests {
             assert!(expiry == 221 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -3078,7 +3079,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 221,
                 0
             );
@@ -3122,9 +3123,9 @@ module suins::controller_tests {
             assert!(expiry == 221 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -3164,7 +3165,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 START_AUCTION_END_AT,
                 0
             );
@@ -3208,9 +3209,9 @@ module suins::controller_tests {
             assert!(expiry == 121 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -3268,7 +3269,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + 1,
                 0
             );
@@ -3328,7 +3329,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 START_AUCTION_END_AT + 2,
                 0
             );
@@ -3398,7 +3399,7 @@ module suins::controller_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 START_AUCTION_END_AT + EXTRA_PERIOD + BIDDING_PERIOD + REVEAL_PERIOD + 1,
                 0
             );
@@ -3442,9 +3443,9 @@ module suins::controller_tests {
             assert!(expiry == START_AUCTION_END_AT + EXTRA_PERIOD + BIDDING_PERIOD + REVEAL_PERIOD + 1 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -3485,7 +3486,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + 1,
                 0
             );
@@ -3553,7 +3554,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 221,
                 0
             );
@@ -3594,9 +3595,9 @@ module suins::controller_tests {
             assert!(expiry == 221 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == @0x0, 0);
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -3646,7 +3647,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 221,
                 0
             );
@@ -3689,9 +3690,9 @@ module suins::controller_tests {
             assert!(expiry == 221 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == @0x0, 0);
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -3751,7 +3752,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 221,
                 0
             );
@@ -3795,9 +3796,9 @@ module suins::controller_tests {
             assert!(expiry == 221 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -3992,7 +3993,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4034,7 +4035,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4076,7 +4077,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4118,7 +4119,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -4174,9 +4175,9 @@ module suins::controller_tests {
             assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -4197,7 +4198,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -4251,9 +4252,9 @@ module suins::controller_tests {
             assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -4298,7 +4299,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4340,7 +4341,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4382,7 +4383,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4426,7 +4427,7 @@ module suins::controller_tests {
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -4486,9 +4487,9 @@ module suins::controller_tests {
             assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
 
             coin::burn_for_testing(coin);
@@ -4510,7 +4511,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4554,7 +4555,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4598,7 +4599,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4642,7 +4643,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -4697,9 +4698,9 @@ module suins::controller_tests {
             assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
 
             coin::burn_for_testing(coin);
@@ -4719,7 +4720,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4762,7 +4763,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -4806,7 +4807,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 21,
                 0
             );
@@ -5020,7 +5021,7 @@ module suins::controller_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 522 + GRACE_PERIOD + 1,
                 0
             );
@@ -5074,7 +5075,7 @@ module suins::controller_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 450,
                 0
             );
@@ -5170,7 +5171,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 START_AUCTION_END_AT + EXTRA_PERIOD - 1,
                 0
             );
@@ -5247,7 +5248,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + EXTRA_PERIOD + 1,
                 0
             );
@@ -5293,10 +5294,10 @@ module suins::controller_tests {
             );
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -5360,7 +5361,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_START_AT + 1,
                 0
             );
@@ -5442,7 +5443,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_START_AT + 2,
                 0
             );
@@ -5485,9 +5486,9 @@ module suins::controller_tests {
             assert!(expiry == EXTRA_PERIOD_START_AT + 2 + 365, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, addr, ttl, name) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(name == utf8(b""), 0);
 
@@ -5522,7 +5523,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 50,
                 2
             );
@@ -5555,7 +5556,7 @@ module suins::controller_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 50,
                 10
             );
@@ -5580,17 +5581,17 @@ module suins::controller_tests {
             assert!(registry::record_exists(&suins, utf8(second_domain_name_sui)), 0);
             assert!(!registry::record_exists(&suins, utf8(second_domain_name_move)), 0);
 
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, first_domain_name_sui);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, first_domain_name_sui);
             assert!(owner == SUINS_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == SUINS_ADDRESS, 0);
             assert!(ttl == 0, 0);
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, first_domain_name_move);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, first_domain_name_move);
             assert!(owner == SUINS_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == SUINS_ADDRESS, 0);
             assert!(ttl == 0, 0);
-            let (owner, addr, ttl, _) = registry::get_name_record_all_fields(&suins, second_domain_name_sui);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, second_domain_name_sui);
             assert!(owner == SUINS_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == SUINS_ADDRESS, 0);
             assert!(ttl == 0, 0);
 
             let first_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
@@ -5627,7 +5628,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 52,
                 20
             );
@@ -5646,7 +5647,7 @@ module suins::controller_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 50,
                 30
             );
@@ -5674,24 +5675,24 @@ module suins::controller_tests {
             assert!(registry::record_exists(&suins, utf8(second_domain_name_sui)), 0);
             assert!(registry::record_exists(&suins, utf8(second_domain_name_move)), 0);
 
-            let (owner, addr, ttl, name) = registry::get_name_record_all_fields(&suins, first_domain_name_sui);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, first_domain_name_sui);
             assert!(owner == SUINS_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == SUINS_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(name == utf8(b""), 0);
-            let (owner, addr, ttl, name) = registry::get_name_record_all_fields(&suins, first_domain_name_move);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, first_domain_name_move);
             assert!(owner == SUINS_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == SUINS_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(name == utf8(b""), 0);
-            let (owner, addr, ttl, name) = registry::get_name_record_all_fields(&suins, second_domain_name_sui);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, second_domain_name_sui);
             assert!(owner == SUINS_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == SUINS_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(name == utf8(b""), 0);
-            let (owner, addr, ttl, name) = registry::get_name_record_all_fields(&suins, second_domain_name_move);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, second_domain_name_move);
             assert!(owner == @0x0B, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == @0x0B, 0);
             assert!(ttl == 0, 0);
             assert!(name == utf8(b""), 0);
 
@@ -5740,7 +5741,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 52,
                 20
             );
@@ -5771,7 +5772,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 50,
                 2
             );
@@ -5799,7 +5800,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 50,
                 2
             );
@@ -5824,7 +5825,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 50,
                 2
             );
@@ -5849,7 +5850,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 50,
                 2
             );
@@ -5874,7 +5875,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 50,
                 2
             );
@@ -5900,7 +5901,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 50,
                 2
             );
@@ -5926,7 +5927,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 2
             );
@@ -5945,7 +5946,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 2,
                 0
             );
@@ -5984,7 +5985,7 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = &mut ctx_new(
                 SUINS_ADDRESS,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 2
             );
@@ -6024,7 +6025,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -6063,7 +6064,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -6103,7 +6104,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );
@@ -6161,7 +6162,7 @@ module suins::controller_tests {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
-                x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+                DEFAULT_TX_HASH,
                 EXTRA_PERIOD_END_AT + 1,
                 0
             );

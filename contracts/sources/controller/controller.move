@@ -31,7 +31,7 @@ module suins::controller {
     use sui::clock;
 
     const MAX_COMMITMENT_AGE_IN_MS: u64 = 259_200_000;
-    const MIN_COMMITMENT_AGE_IN_MS: u64 = 300_000;
+    const MIN_COMMITMENT_AGE_IN_MS: u64 = 120_000;
     const MAX_OUTDATED_COMMITMENTS_TO_REMOVE: u64 = 50;
 
     // errors in the range of 301..400 indicate Sui Controller errors
