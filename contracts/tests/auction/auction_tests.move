@@ -91,7 +91,7 @@ module suins::auction_tests {
             registry::test_init(ctx);
             configuration::test_init(ctx);
             entity::test_init(ctx);
-            clock::create_for_testing(ctx);
+            clock::share_for_testing(clock::create_for_testing(ctx));
         };
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {

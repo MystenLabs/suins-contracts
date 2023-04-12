@@ -62,7 +62,6 @@ module suins::registry_tests {
     fun test_set_record_internal() {
         let scenario = test_init();
         mint_record(&mut scenario);
-
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -89,10 +88,10 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let (owner, addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
 
             assert!(owner == SECOND_USER_ADDRESS, 0);
-            assert!(addr == @0x0, 0);
+            assert!(linked_addr == SECOND_USER_ADDRESS, 0);
             assert!(ttl == 20, 0);
             assert!(name == utf8(b""), 0);
 

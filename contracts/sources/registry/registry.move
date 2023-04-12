@@ -16,6 +16,7 @@ module suins::registry {
         name_record_ttl_mut,
         new_name_record,
         name_record_linked_addr,
+        name_record_linked_addr_mut,
         name_record_default_domain_name,
     };
     use sui::table;
@@ -47,21 +48,9 @@ module suins::registry {
         new_owner: address,
     }
 
-    struct ResolverChangedEvent has copy, drop {
-        domain_name: String,
-        new_resolver: address,
-    }
-
     struct TTLChangedEvent has copy, drop {
         domain_name: String,
         new_ttl: u64,
-    }
-
-    struct NewRecordEvent has copy, drop {
-        node: String,
-        owner: address,
-        resolver: address,
-        ttl: u64,
     }
 
     struct DataChangedEvent has copy, drop {
@@ -335,7 +324,7 @@ module suins::registry {
 
         let default_domain_name = name_record_default_domain_name(reverse_name_record);
         let default_domain_name_record = get_name_record(suins, default_domain_name);
-        assert!(name_record_linked_addr(default_domain_name_record) == addr, EDefaultDomainNameNotMatch);
+        assert!(name_record_owner(default_domain_name_record) == addr, EDefaultDomainNameNotMatch);
 
         default_domain_name
     }
@@ -392,6 +381,7 @@ module suins::registry {
             let record = table::borrow_mut(registry, domain_name);
             *name_record_owner_mut(record) = owner;
             *name_record_ttl_mut(record) = ttl;
+            *name_record_linked_addr_mut(record) = owner;
         } else new_record(suins, domain_name, owner, ttl, ctx);
     }
 
@@ -402,6 +392,7 @@ module suins::registry {
         subdomain_name
     }
 
+    // TODO: move to entity
     fun init(ctx: &mut TxContext) {
         transfer::transfer(AdminCap {
             id: object::new(ctx)
@@ -415,7 +406,7 @@ module suins::registry {
         ttl: u64,
         ctx: &mut TxContext,
     ) {
-        let record = new_name_record(owner, ttl, ctx);
+        let record = new_name_record(owner, ttl, owner, ctx);
         let registry = entity::registry_mut(suins);
         table::add(registry, domain_name, record);
     }
