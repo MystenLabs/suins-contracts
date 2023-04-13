@@ -609,7 +609,6 @@ module suins::controller {
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext
     ) {
-        // TODO: renew many times, total years > 5
         assert!(0 < no_years && no_years <= 5, EInvalidNoYears);
         let emoji_config = configuration::emoji_config(config);
         let renew_fee = configuration::price_for_node(config, emoji::len_of_label(emoji_config, label), no_years);
