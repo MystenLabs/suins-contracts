@@ -98,7 +98,7 @@ module suins::auction {
         ///   0xabc: [bid1, bid2],
         ///   0x123: [bid3, bid4],
         /// }
-        bid_details_by_bidder: Table<address, vector<BidDetail>>,
+        bid_details_by_bidder: Table<address, LinkedTable<u64, BidDetail>>,
         // key: label
         entries: LinkedTable<String, AuctionEntry>,
         balance: Balance<SUI>,
@@ -209,7 +209,7 @@ module suins::auction {
 
         let label = utf8(label);
         assert!(registrar::is_available(suins, utf8(SUI_TLD), label, ctx), ELabelUnavailable);
-        
+
         if (state == AUCTION_STATE_REOPENED) {
             // added in below statement
             // TODO: reset fields instead of removing them
@@ -265,7 +265,7 @@ module suins::auction {
         assert!(bid_value_mask >= MIN_PRICE, EInvalidBid);
 
         if (!table::contains(&auction_house.bid_details_by_bidder, tx_context::sender(ctx))) {
-            table::add(&mut auction_house.bid_details_by_bidder, tx_context::sender(ctx), vector[]);
+            table::add(&mut auction_house.bid_details_by_bidder, tx_context::sender(ctx), linked_table::new(ctx));
         };
 
         let bids_by_sender = table::borrow_mut(&mut auction_house.bid_details_by_bidder, tx_context::sender(ctx));
@@ -283,7 +283,10 @@ module suins::auction {
             sealed_bid,
             is_unsealed: false,
         };
-        vector::push_back(bids_by_sender, bid);
+        let new_index =
+            if (!linked_table::is_empty(bids_by_sender)) *option::borrow(linked_table::back(bids_by_sender)) + 1
+            else 0;
+        linked_table::push_back(bids_by_sender, new_index, bid);
         event::emit(NewBidEvent { bidder, sealed_bid, bid_value_mask });
 
         let bidder_value = coin::value(payment);
@@ -340,7 +343,7 @@ module suins::auction {
         let index = seal_bid_exists(bids_by_sender, sealed_bid);
         assert!(option::is_some(&index), ESealBidNotExists);
 
-        let bid_detail = vector::borrow_mut(bids_by_sender, option::extract(&mut index));
+        let bid_detail = linked_table::borrow_mut(bids_by_sender, option::extract(&mut index));
         assert!(!bid_detail.is_unsealed, EAlreadyUnsealed);
 
         let label = utf8(label);
@@ -425,16 +428,20 @@ module suins::auction {
 
         let bids_of_sender = table::borrow_mut(&mut auction_house.bid_details_by_bidder, tx_context::sender(ctx));
         // Refund all the bids
-        let len = vector::length(bids_of_sender);
-        let index = 0;
-        while (index < len) {
-            if (vector::borrow(bids_of_sender, index).label != label_str) {
-                index = index + 1;
+        let front_element = linked_table::front(bids_of_sender);
+        while (option::is_some(front_element)) {
+            let index = *option::borrow(front_element);
+            if (linked_table::borrow(bids_of_sender, index).label != label_str) {
+                front_element = linked_table::next(bids_of_sender, index);
                 continue
             };
 
-            let bid_detail = vector::remove(bids_of_sender, index);
-            len = len - 1;
+            // TODO: group into 1 function?
+            let prev_index = *linked_table::prev(bids_of_sender, index);
+            let bid_detail = linked_table::remove(bids_of_sender, index);
+            if (option::is_some(&prev_index)) front_element = linked_table::next(bids_of_sender, *option::borrow(&prev_index))
+            else front_element = linked_table::front(bids_of_sender);
+
             if (entry.winning_bid_uid == bid_detail.uid) {
                 handle_winning_bid(&mut auction_house.balance, suins, entry, &bid_detail, ctx);
                 entry.is_finalized = true;
@@ -480,17 +487,17 @@ module suins::auction {
                         )
             ) {
                 let bids_of_winner = table::borrow_mut(&mut auction_house.bid_details_by_bidder, entry.winner);
-                let len = vector::length(bids_of_winner);
-                let index = 0;
+                let front_element = linked_table::front(bids_of_winner);
 
-                while (index < len) {
-                    let bid_detail = vector::borrow(bids_of_winner, index);
+                while (option::is_some(front_element)) {
+                    let index = *option::borrow(front_element);
+                    let bid_detail = linked_table::borrow(bids_of_winner, index);
                     // TODO: winner can have multiple bid with the same highest value,
                     // TODO: however, we are using the vector, the early bid comes first.
                     if (bid_detail.label == label && entry.winning_bid_uid == bid_detail.uid) {
                         handle_winning_bid(&mut auction_house.balance, suins, entry, bid_detail, ctx);
 
-                        vector::remove(bids_of_winner, index);
+                        linked_table::remove(bids_of_winner, index);
                         entry.is_finalized = true;
 
                         if (tx_context::epoch(ctx) <= auction_close_at + EXTRA_PERIOD)
@@ -505,7 +512,7 @@ module suins::auction {
 
                         break
                     };
-                    index = index + 1;
+                    front_element = linked_table::next(bids_of_winner, index);
                 };
             };
             next_label = *linked_table::next(&auction_house.entries, label);
@@ -528,28 +535,33 @@ module suins::auction {
     public entry fun withdraw(auction_house: &mut AuctionHouse, ctx: &mut TxContext) {
         assert!(tx_context::epoch(ctx) > auction_close_at(auction_house), EInvalidPhase);
 
-        let bid_details = table::borrow_mut(&mut auction_house.bid_details_by_bidder, tx_context::sender(ctx));
-        let len = vector::length(bid_details);
-        let index = 0;
-        while (index < len) {
-            let detail = vector::borrow(bid_details, index);
-            if (linked_table::contains(&auction_house.entries, detail.label)) {
-                let entry = linked_table::borrow(&auction_house.entries, detail.label);
+        let bids_of_sender = table::borrow_mut(&mut auction_house.bid_details_by_bidder, tx_context::sender(ctx));
+        let front_element = linked_table::front(bids_of_sender);
+
+        while (option::is_some(front_element)) {
+            let index = *option::borrow(front_element);
+            let bid_detail = linked_table::borrow(bids_of_sender, index);
+
+            if (linked_table::contains(&auction_house.entries, bid_detail.label)) {
+                let entry = linked_table::borrow(&auction_house.entries, bid_detail.label);
                 // TODO: has 2 bids with the same value that are the highest
-                if (entry.winning_bid_uid == detail.uid) {
-                    index = index + 1;
+                if (entry.winning_bid_uid == bid_detail.uid) {
+                    front_element = linked_table::next(bids_of_sender, index);
                     continue
                 };
             };
             // TODO: transfer all balances at once
             coin_util::auction_transfer_to_address(
                 &mut auction_house.balance,
-                detail.bid_value_mask,
-                detail.bidder,
+                bid_detail.bid_value_mask,
+                bid_detail.bidder,
                 ctx
             );
-            vector::remove(bid_details, index);
-            len = len - 1;
+
+            let prev_index = *linked_table::prev(bids_of_sender, index);
+            linked_table::remove(bids_of_sender, index);
+            if (option::is_some(&prev_index)) front_element = linked_table::next(bids_of_sender, *option::borrow(&prev_index))
+            else front_element = linked_table::front(bids_of_sender);
         };
         // TODO: consider removing `tx_context::sender(ctx)` key from `bid_details_by_bidder` if `bid_details` is empty
     }
@@ -755,16 +767,16 @@ module suins::auction {
     }
 
     /// Return index of bid if exists
-    fun seal_bid_exists(bids: &vector<BidDetail>, seal_bid: vector<u8>): Option<u64> {
-        let len = vector::length(bids);
-        let index = 0;
+    fun seal_bid_exists(bids: &LinkedTable<u64, BidDetail>, seal_bid: vector<u8>): Option<u64> {
+        let front_element = linked_table::front(bids);
 
-        while (index < len) {
-            let detail = vector::borrow(bids, index);
-            if (detail.sealed_bid == seal_bid) {
+        while (option::is_some(front_element)) {
+            let index = *option::borrow(front_element);
+            let bid_detail = linked_table::borrow(bids, index);
+            if (bid_detail.sealed_bid == seal_bid) {
                 return some(index)
             };
-            index = index + 1;
+            front_element = linked_table::next(bids, index);
         };
         none()
     }
@@ -778,10 +790,19 @@ module suins::auction {
 
     #[test_only]
     public fun get_bids_by_bidder(auction_house: &AuctionHouse, bidder: address): vector<BidDetail> {
+        let result = vector[];
         if (table::contains(&auction_house.bid_details_by_bidder, bidder)) {
-            return *table::borrow(&auction_house.bid_details_by_bidder, bidder)
+            let bids =  table::borrow(&auction_house.bid_details_by_bidder, bidder);
+            let front_element = linked_table::front(bids);
+            while (option::is_some(front_element)) {
+                let index = *option::borrow(front_element);
+                let bid_detail = linked_table::borrow(bids, index);
+                vector::push_back(&mut result, *bid_detail);
+
+                front_element = linked_table::next(bids, index);
+            }
         };
-        vector[]
+        result
     }
 
     #[test_only]
@@ -794,7 +815,7 @@ module suins::auction {
             let bids_by_bidder = table::borrow(&auction_house.bid_details_by_bidder, bidder);
             let index = seal_bid_exists(bids_by_bidder, seal_bid);
             if (option::is_some(&index)) {
-                let bid = vector::borrow(bids_by_bidder, option::extract(&mut index));
+                let bid = linked_table::borrow(bids_by_bidder, option::extract(&mut index));
                 return option::some(bid.bid_value_mask)
             }
         };
