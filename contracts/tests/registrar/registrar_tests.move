@@ -15,7 +15,6 @@ module suins::registrar_tests {
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER: address = @0xB001;
     const SECOND_USER: address = @0xB002;
-    const SECOND_RESOLVER: address = @0xC002;
     const FIRST_LABEL: vector<u8> = b"eastagile";
     const FIRST_DOMAIN_NAME: vector<u8> = b"eastagile.sui";
     const SECOND_LABEL: vector<u8> = b"ea";
