@@ -27,8 +27,10 @@ module suins::auction {
     use suins::converter;
     use suins::entity;
     use sui::tx_context;
+    use sui::coin;
 
     const MIN_PRICE: u64 = 1000;
+    const SUI_TLD: vector<u8> = b"sui";
     // must always up-to-date with sui::sui::MIST_PER_SUI
     const BIDDING_PERIOD: u64 = 3;
     const REVEAL_PERIOD: u64 = 3;
@@ -44,7 +46,6 @@ module suins::auction {
     const AUCTION_STATE_REOPENED: u8 = 7;
 
     const EInvalidPhase: u64 = 802;
-    const EAuctionNotAvailable: u64 = 803;
     const EBidExisted: u64 = 804;
     const EInvalidBid: u64 = 805;
     const EBidAlreadyStart: u64 = 806;
@@ -52,12 +53,13 @@ module suins::auction {
     const EInvalidBidValue: u64 = 807;
     const EInvalidConfigParam: u64 = 808;
     const EInvalidRegistrar: u64 = 809;
-    const EShouldNotHappen: u64 = 810;
     const EAlreadyFinalized: u64 = 811;
     const EAlreadyUnsealed: u64 = 812;
     const ESealBidNotExists: u64 = 813;
     const EAuctionNotHasWinner: u64 = 814;
     const EInvalidBiddingFee: u64 = 815;
+    const ELabelUnavailable: u64 = 816;
+    const EPaymentNotEnough: u64 = 817;
 
     struct BidDetail has store, copy, drop {
         uid: ID,
@@ -197,7 +199,7 @@ module suins::auction {
     ) {
         assert!(
             auction_house.start_auction_start_at <= tx_context::epoch(ctx) && tx_context::epoch(ctx) <= auction_house.start_auction_end_at,
-            EAuctionNotAvailable,
+            EInvalidPhase,
         );
         let emoji_config = configuration::emoji_config(config);
         emoji::validate_label_with_emoji(emoji_config, label, 3, 6);
@@ -206,6 +208,8 @@ module suins::auction {
         assert!(state == AUCTION_STATE_OPEN || state == AUCTION_STATE_REOPENED, EInvalidPhase);
 
         let label = utf8(label);
+        assert!(registrar::is_available(suins, utf8(SUI_TLD), label, ctx), ELabelUnavailable);
+        
         if (state == AUCTION_STATE_REOPENED) {
             // added in below statement
             // TODO: reset fields instead of removing them
@@ -256,7 +260,7 @@ module suins::auction {
         assert!(
             auction_house.start_auction_start_at <= tx_context::epoch(ctx) && tx_context::epoch(ctx)
                 <= auction_house.start_auction_end_at + BIDDING_PERIOD,
-            EAuctionNotAvailable,
+            EInvalidPhase,
         );
         assert!(bid_value_mask >= MIN_PRICE, EInvalidBid);
 
@@ -281,6 +285,9 @@ module suins::auction {
         };
         vector::push_back(bids_by_sender, bid);
         event::emit(NewBidEvent { bidder, sealed_bid, bid_value_mask });
+
+        let bidder_value = coin::value(payment);
+        assert!(bidder_value >= bid_value_mask + auction_house.bidding_fee, EPaymentNotEnough);
 
         coin_util::user_transfer_to_auction(payment, bid_value_mask, &mut auction_house.balance);
         coin_util::user_transfer_to_suins(payment, auction_house.bidding_fee, suins);
@@ -317,7 +324,7 @@ module suins::auction {
         assert!(
             auction_house.start_auction_start_at <= tx_context::epoch(ctx) && tx_context::epoch(ctx)
                 <= auction_house.start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD,
-            EAuctionNotAvailable,
+            EInvalidPhase,
         );
         // TODO: do we need to validate domain here?
         let auction_state = state(auction_house, label, tx_context::epoch(ctx));
@@ -396,7 +403,7 @@ module suins::auction {
         assert!(
             auction_house.start_auction_start_at <= tx_context::epoch(ctx) && tx_context::epoch(ctx)
                 <= auction_close_at(auction_house) + EXTRA_PERIOD,
-            EAuctionNotAvailable,
+            EInvalidPhase,
         );
         let auction_state = state(auction_house, label, tx_context::epoch(ctx));
         // the reveal phase is over in all of these phases and have received bids
@@ -439,11 +446,11 @@ module suins::auction {
         };
         if (entry.winner != tx_context::sender(ctx)) return;
 
-        registrar::register_internal(suins, b"sui", config, label, entry.winner, 365, ctx);
+        registrar::register_internal(suins, SUI_TLD, config, label, entry.winner, 365, ctx);
 
         event::emit(NameRegisteredEvent {
             label: label_str,
-            tld: utf8(b"sui"),
+            tld: utf8(SUI_TLD),
             winner: entry.winner,
             amount: entry.second_highest_bid
         })
@@ -459,7 +466,7 @@ module suins::auction {
         assert!(
             auction_close_at(auction_house) < tx_context::epoch(ctx) && tx_context::epoch(ctx)
                 <= auction_close_at(auction_house) + EXTRA_PERIOD,
-            EAuctionNotAvailable,
+            EInvalidPhase,
         );
 
         // TODO: copy the `option` because we need mutable reference to `entries` later
@@ -486,7 +493,7 @@ module suins::auction {
 
                         registrar::register_internal(
                             suins,
-                            b"sui",
+                            SUI_TLD,
                             config,
                             *string::bytes(&label),
                             entry.winner,
@@ -495,7 +502,7 @@ module suins::auction {
                         );
                         event::emit(NameRegisteredEvent {
                             label,
-                            tld: utf8(b"sui"),
+                            tld: utf8(SUI_TLD),
                             winner: entry.winner,
                             amount: entry.second_highest_bid
                         });
@@ -727,8 +734,8 @@ module suins::auction {
             bid_details_by_bidder: table::new(ctx),
             entries: linked_table::new(ctx),
             balance: balance::zero(),
-            start_auction_start_at: entity::max_u64(),
-            start_auction_end_at: entity::max_u64() - 1,
+            start_auction_start_at: entity::max_epoch_allowed(),
+            start_auction_end_at: entity::max_epoch_allowed() - 1,
             bidding_fee: configuration::mist_per_sui(),
             start_an_auction_fee: 10 * configuration::mist_per_sui(),
         });
@@ -794,8 +801,8 @@ module suins::auction {
             bid_details_by_bidder: table::new(ctx),
             entries: linked_table::new(ctx),
             balance: balance::zero(),
-            start_auction_start_at: 0,
-            start_auction_end_at: 0,
+            start_auction_start_at: entity::max_epoch_allowed(),
+            start_auction_end_at: entity::max_epoch_allowed() - 1,
             bidding_fee: configuration::mist_per_sui(),
             start_an_auction_fee: 10 * configuration::mist_per_sui(),
         });
