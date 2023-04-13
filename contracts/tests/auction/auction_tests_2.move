@@ -1280,7 +1280,7 @@ module suins::auction_tests_2 {
             coin::burn_for_testing(coin);
         };
         let seal_bid = make_seal_bid(SECOND_DOMAIN_NAME, SECOND_USER_ADDRESS, 2000, FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 3000, SECOND_USER_ADDRESS, 0, option::none(), 10);
+        place_bid_util(scenario, seal_bid, 3000, SECOND_USER_ADDRESS, 0, option::none(), 15);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
