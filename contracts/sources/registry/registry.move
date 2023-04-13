@@ -105,36 +105,6 @@ module suins::registry {
     }
 
     /// #### Notice
-    /// This funtions allow owner of `node` to reassign ownership of subnode.
-    /// The `node` can have multiple levels.
-    /// The subnode which is created by `label`.`node` must exist.
-    ///
-    /// #### Dev
-    /// `Record` indexed by `label`.`node` is updated.
-    ///
-    /// #### Params
-    /// `node`: node to get subnode
-    /// `label`: label of subnode
-    /// `owner`: new owner address
-    ///
-    /// Panics
-    /// Panics if caller isn't the owner of `node`
-    /// or `subnode` doesn't exists.
-    public entry fun set_subdomain_name_owner(
-        suins: &mut SuiNS,
-        domain_name: vector<u8>,
-        label: vector<u8>,
-        owner: address,
-        ctx: &mut TxContext,
-    ) {
-        authorised(suins, domain_name, ctx);
-
-        let subdomain_name = make_subdomain_name(label, utf8(domain_name));
-        set_owner_internal(suins, subdomain_name, owner);
-        event::emit(OwnerChangedEvent { domain_name: subdomain_name, new_owner: owner });
-    }
-
-    /// #### Notice
     /// This funtions allows owner of `node` to reassign ttl address of this node.
     /// The `node` can have multiple levels.
     ///
