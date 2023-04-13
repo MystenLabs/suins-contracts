@@ -31,6 +31,7 @@ module suins::configuration {
     const EDiscountCodeNotExists: u64 = 405;
     const EReferralCodeNotExists: u64 = 406;
     const EInvalidLabelLength: u64 = 407;
+    const EInvalidNewPrice: u64 = 408;
 
     /// This share object is the parent of reverse_domains
     /// The keys of dynamic child objects may or may not contain TLD.
@@ -176,6 +177,32 @@ module suins::configuration {
             index = index + 1;
         };
     }
+
+    public entry fun set_price_of_three_character_domain(_: &AdminCap, config: &mut Configuration, new_price: u64) {
+        assert!(
+            mist_per_sui() <= new_price && new_price <= mist_per_sui() * 1_000_000,
+            EInvalidNewPrice
+        );
+        config.price_of_three_character_domain = new_price;
+    }
+
+    public entry fun set_price_of_four_character_domain(_: &AdminCap, config: &mut Configuration, new_price: u64) {
+        assert!(
+            mist_per_sui() <= new_price && new_price <= mist_per_sui() * 1_000_000,
+            EInvalidNewPrice
+        );
+        config.price_of_four_character_domain = new_price;
+    }
+
+    public entry fun set_price_of_five_and_above_character_domain(_: &AdminCap, config: &mut Configuration, new_price: u64) {
+        assert!(
+            mist_per_sui() <= new_price && new_price <= mist_per_sui() * 1_000_000,
+            EInvalidNewPrice
+        );
+        config.price_of_five_and_above_character_domain = new_price;
+    }
+
+    // === Public Functions ===
 
     public fun price_for_node(config: &Configuration, label_length: u64, no_years: u64): u64 {
         assert!(label_length > 2, EInvalidLabelLength);
