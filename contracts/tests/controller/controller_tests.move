@@ -2341,10 +2341,10 @@ module suins::controller_tests {
     #[test]
     fun test_register_with_emoji() {
         let scenario = test_init();
-        let node = vector[104, 109, 109, 109, 49, 240, 159, 145, 180];
+        let label = vector[104, 109, 109, 109, 49, 240, 159, 145, 180];
         let domain_name = vector[104, 109, 109, 109, 49, 240, 159, 145, 180, 46, 115, 117, 105];
         set_auction_config(&mut scenario);
-        make_commitment(&mut scenario, option::some(node));
+        make_commitment(&mut scenario, option::some(label));
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
@@ -2360,7 +2360,7 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 3, &mut ctx);
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
-            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, node), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, domain_name), 0);
             assert!(controller::get_balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
             assert!(!registry::record_exists(&suins, utf8(domain_name)), 0);
@@ -2370,7 +2370,7 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                node,
+                domain_name,
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -2401,7 +2401,7 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, node);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, domain_name);
             assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
@@ -5509,10 +5509,10 @@ module suins::controller_tests {
     #[test]
     fun test_new_reserved_domains() {
         let scenario = test_init();
-        let first_node = b"abcde";
+        let first_domain_name = b"abcde";
         let first_domain_name_sui = b"abcde.sui";
         let first_domain_name_move = b"abcde.move";
-        let second_node = b"abcdefghijk";
+        let second_domain_name = b"abcdefghijk";
         let second_domain_name_sui = b"abcdefghijk.sui";
         let second_domain_name_move = b"abcdefghijk.move";
 
@@ -5528,10 +5528,10 @@ module suins::controller_tests {
                 2
             );
 
-            assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(first_node), ctx), 0);
-            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(first_node), ctx), 0);
-            assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(second_node), ctx), 0);
-            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(second_node), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(first_domain_name), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(first_domain_name), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(second_domain_name), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(second_domain_name), ctx), 0);
 
             assert!(!registry::record_exists(&suins, utf8(first_domain_name_sui)), 0);
             assert!(!registry::record_exists(&suins, utf8(first_domain_name_move)), 0);
@@ -5561,18 +5561,18 @@ module suins::controller_tests {
                 10
             );
 
-            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(first_node), ctx), 0);
-            assert!(!registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(first_node), ctx), 0);
-            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(second_node), ctx), 0);
-            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(second_node), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(first_domain_name), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(first_domain_name), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(second_domain_name), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(second_domain_name), ctx), 0);
 
-            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, first_node);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, first_domain_name);
             assert!(expiry == 415, 0);
             assert!(owner == SUINS_ADDRESS, 0);
-            let (expiry, owner) = registrar::get_record_detail(&suins, MOVE_REGISTRAR, first_node);
+            let (expiry, owner) = registrar::get_record_detail(&suins, MOVE_REGISTRAR, first_domain_name);
             assert!(expiry == 415, 0);
             assert!(owner == SUINS_ADDRESS, 0);
-            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, second_node);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, second_domain_name);
             assert!(expiry == 415, 0);
             assert!(owner == SUINS_ADDRESS, 0);
 
@@ -5633,7 +5633,7 @@ module suins::controller_tests {
                 20
             );
 
-            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(second_node), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(second_domain_name), ctx), 0);
             assert!(!registry::record_exists(&suins, utf8(second_domain_name_move)), 0);
 
             controller::new_reserved_domains(&admin_cap, &mut suins, &config, b"abcdefghijk.move", @0x0B, ctx);
@@ -5652,21 +5652,21 @@ module suins::controller_tests {
                 30
             );
 
-            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(first_node), ctx), 0);
-            assert!(!registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(first_node), ctx), 0);
-            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(second_node), ctx), 0);
-            assert!(!registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(second_node), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(first_domain_name), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(first_domain_name), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(second_domain_name), ctx), 0);
+            assert!(!registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(second_domain_name), ctx), 0);
 
-            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, first_node);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, first_domain_name);
             assert!(expiry == 415, 0);
             assert!(owner == SUINS_ADDRESS, 0);
-            let (expiry, owner) = registrar::get_record_detail(&suins, MOVE_REGISTRAR, first_node);
+            let (expiry, owner) = registrar::get_record_detail(&suins, MOVE_REGISTRAR, first_domain_name);
             assert!(expiry == 415, 0);
             assert!(owner == SUINS_ADDRESS, 0);
-            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, second_node);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, second_domain_name);
             assert!(expiry == 415, 0);
             assert!(owner == SUINS_ADDRESS, 0);
-            let (expiry, owner) = registrar::get_record_detail(&suins, MOVE_REGISTRAR, second_node);
+            let (expiry, owner) = registrar::get_record_detail(&suins, MOVE_REGISTRAR, second_domain_name);
             assert!(expiry == 417, 0);
             assert!(owner == @0x0B, 0);
 
@@ -5745,10 +5745,10 @@ module suins::controller_tests {
                 52,
                 20
             );
-            let emoji_node = vector[104, 109, 109, 109, 49, 240, 159, 145, 180];
+            let emoji_label = vector[104, 109, 109, 109, 49, 240, 159, 145, 180];
             let emoji_domain_name = vector[104, 109, 109, 109, 49, 240, 159, 145, 180, 46, 115, 117, 105];
 
-            assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(emoji_node), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(emoji_label), ctx), 0);
             assert!(!registry::record_exists(&suins, utf8(emoji_domain_name)), 0);
             controller::new_reserved_domains(&admin_cap, &mut suins, &config, emoji_domain_name, @0x0C, ctx);
 
@@ -5762,7 +5762,7 @@ module suins::controller_tests {
     #[test, expected_failure(abort_code = registrar::ELabelUnAvailable)]
     fun test_new_reserved_domains_aborts_with_dupdated_domain_names() {
         let scenario = test_init();
-        let first_node = b"abcde";
+        let first_domain_name = b"abcde";
         let first_domain_name_sui = b"abcde.sui";
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -5777,7 +5777,7 @@ module suins::controller_tests {
                 2
             );
 
-            assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(first_node), ctx), 0);
+            assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(first_domain_name), ctx), 0);
             assert!(!registry::record_exists(&suins, utf8(first_domain_name_sui)), 0);
 
             controller::new_reserved_domains(&admin_cap, &mut suins, &config, b"abcde.sui;abcde.sui;", @0x0, ctx);
@@ -5918,7 +5918,7 @@ module suins::controller_tests {
     #[test, expected_failure(abort_code = controller::ELabelUnAvailable)]
     fun test_register_aborts_if_sui_name_is_reserved() {
         let scenario = test_init();
-        let first_node = b"abcde";
+        let first_domain_name = b"abcde";
         set_auction_config(&mut scenario);
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
@@ -5938,7 +5938,7 @@ module suins::controller_tests {
             test_scenario::return_shared(config);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
-        make_commitment(&mut scenario, option::some(first_node));
+        make_commitment(&mut scenario, option::some(first_domain_name));
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -5957,7 +5957,7 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                first_node,
+                first_domain_name,
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -5976,7 +5976,7 @@ module suins::controller_tests {
     #[test, expected_failure(abort_code = controller::ELabelUnAvailable)]
     fun test_register_aborts_if_move_name_is_reserved() {
         let scenario = test_init();
-        let first_node = b"abcdefghijk";
+        let first_domain_name = b"abcdefghijk";
         set_auction_config(&mut scenario);
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
@@ -6004,7 +6004,7 @@ module suins::controller_tests {
 
             let commitment = controller::test_make_commitment(
                 MOVE_REGISTRAR,
-                first_node,
+                first_domain_name,
                 FIRST_USER_ADDRESS,
                 FIRST_SECRET
             );
@@ -6036,7 +6036,7 @@ module suins::controller_tests {
                 &mut suins,
                 MOVE_REGISTRAR,
                 &mut config,
-                first_node,
+                first_domain_name,
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,

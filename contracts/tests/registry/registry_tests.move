@@ -127,7 +127,7 @@ module suins::registry_tests {
     }
 
     #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
-    fun test_set_owner_abort_if_node_not_exists() {
+    fun test_set_owner_abort_if_domain_name_not_exists() {
         let scenario = test_init();
         mint_record(&mut scenario);
 
@@ -217,7 +217,7 @@ module suins::registry_tests {
     }
 
     #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
-    fun test_set_ttl_abort_if_node_not_exists() {
+    fun test_set_ttl_abort_if_domain_name_not_exists() {
         let scenario = test_init();
         mint_record(&mut scenario);
 
@@ -246,7 +246,7 @@ module suins::registry_tests {
     }
 
     #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
-    fun test_get_ttl_if_node_not_exists() {
+    fun test_get_ttl_if_domain_name_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
