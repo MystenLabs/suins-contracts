@@ -69,6 +69,11 @@ module suins::controller {
         duration: u64,
     }
 
+    struct CommitmentAddedEvent has copy, drop {
+        commitment: vector<u8>,
+        timestamp_ms: u64,
+    }
+
     /// #### Notice
     /// This function is the first step in the commit/reveal process, which is implemented to prevent front-running.
     ///
@@ -80,7 +85,12 @@ module suins::controller {
     public entry fun commit(suins: &mut SuiNS, commitment: vector<u8>, clock: &Clock) {
         let commitments = entity::controller_commitments_mut(suins);
         remove_outdated_commitments(commitments, clock);
+
         linked_table::push_back(commitments, commitment, clock::timestamp_ms(clock));
+        event::emit(CommitmentAddedEvent {
+            commitment,
+            timestamp_ms: clock::timestamp_ms(clock)
+        });
     }
 
     /// #### Notice
