@@ -443,7 +443,7 @@ module suins::auction {
             else front_element = linked_table::front(bids_of_sender);
 
             if (entry.winning_bid_uid == bid_detail.uid) {
-                handle_winning_bid(&mut auction_house.balance, suins, entry, &bid_detail, ctx);
+                handle_winning_bid(&mut auction_house.balance, suins, entry, &bid_detail, true, ctx);
                 entry.is_finalized = true;
             } else {
                 // TODO: charge paymennt as punishmennt
@@ -495,12 +495,8 @@ module suins::auction {
                     // TODO: winner can have multiple bid with the same highest value,
                     // TODO: however, we are using the vector, the early bid comes first.
                     if (bid_detail.label == label && entry.winning_bid_uid == bid_detail.uid) {
-                        handle_winning_bid(&mut auction_house.balance, suins, entry, bid_detail, ctx);
-
-                        linked_table::remove(bids_of_winner, index);
-                        entry.is_finalized = true;
-
-                        if (tx_context::epoch(ctx) <= auction_close_at + EXTRA_PERIOD)
+                        if (tx_context::epoch(ctx) <= auction_close_at + EXTRA_PERIOD) {
+                            handle_winning_bid(&mut auction_house.balance, suins, entry, bid_detail, true, ctx);
                             register_winning_auction(
                                 suins,
                                 config,
@@ -508,7 +504,11 @@ module suins::auction {
                                 entry.winner,
                                 entry.second_highest_bid,
                                 ctx,
-                            );
+                            )
+                        } else handle_winning_bid(&mut auction_house.balance, suins, entry, bid_detail, false, ctx);
+
+                        linked_table::remove(bids_of_winner, index);
+                        entry.is_finalized = true;
 
                         break
                     };
@@ -719,6 +719,7 @@ module suins::auction {
         suins: &mut SuiNS,
         entry: &AuctionEntry,
         bid_detail: &BidDetail,
+        is_second_highest_bidder_shared: bool,
         ctx: &mut TxContext
     ) {
         if (entry.second_highest_bid != 0 && entry.second_highest_bidder != @0x0) {
@@ -729,18 +730,26 @@ module suins::auction {
                 ctx
             );
             // it rounds down
-            let second_highest_bidder_take = (entry.second_highest_bid / 100) * 5;
-            coin_util::auction_transfer_to_suins(
-                auction_balance,
-                entry.second_highest_bid - second_highest_bidder_take,
-                suins
-            );
-            coin_util::auction_transfer_to_address(
-                auction_balance,
-                second_highest_bidder_take,
-                entry.second_highest_bidder,
-                ctx,
-            );
+            if (is_second_highest_bidder_shared) {
+                let second_highest_bidder_share = (entry.second_highest_bid / 100) * 5;
+                coin_util::auction_transfer_to_suins(
+                    auction_balance,
+                    entry.second_highest_bid - second_highest_bidder_share,
+                    suins
+                );
+                coin_util::auction_transfer_to_address(
+                    auction_balance,
+                    second_highest_bidder_share,
+                    entry.second_highest_bidder,
+                    ctx,
+                );
+            } else {
+                coin_util::auction_transfer_to_suins(
+                    auction_balance,
+                    entry.second_highest_bid,
+                    suins
+                );
+            }
         } else {
             // winner is the only one who bided
             coin_util::auction_transfer_to_address(
