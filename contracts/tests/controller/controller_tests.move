@@ -159,7 +159,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -249,7 +248,6 @@ module suins::controller_tests {
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, SECOND_LABEL), 0);
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 SECOND_LABEL,
                 FIRST_USER_ADDRESS,
@@ -290,7 +288,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 SECOND_LABEL,
                 FIRST_USER_ADDRESS,
@@ -330,7 +327,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 SECOND_LABEL,
                 SECOND_USER_ADDRESS,
@@ -371,7 +367,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -412,7 +407,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -455,7 +449,6 @@ module suins::controller_tests {
             assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -518,7 +511,6 @@ module suins::controller_tests {
             assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 SECOND_USER_ADDRESS,
@@ -617,7 +609,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 SECOND_USER_ADDRESS,
@@ -679,7 +670,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -765,7 +755,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 SECOND_INVALID_LABEL,
                 FIRST_USER_ADDRESS,
@@ -805,7 +794,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 SECOND_INVALID_LABEL,
                 FIRST_USER_ADDRESS,
@@ -839,7 +827,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 THIRD_INVALID_LABEL,
                 FIRST_USER_ADDRESS,
@@ -879,7 +866,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 THIRD_INVALID_LABEL,
                 FIRST_USER_ADDRESS,
@@ -913,7 +899,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FOURTH_INVALID_LABEL,
                 FIRST_USER_ADDRESS,
@@ -953,7 +938,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FOURTH_INVALID_LABEL,
                 FIRST_USER_ADDRESS,
@@ -987,7 +971,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIFTH_INVALID_LABEL,
                 FIRST_USER_ADDRESS,
@@ -1026,7 +1009,6 @@ module suins::controller_tests {
             );
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIFTH_INVALID_LABEL,
                 FIRST_USER_ADDRESS,
@@ -1076,7 +1058,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 AUCTIONED_LABEL,
                 FIRST_USER_ADDRESS,
@@ -1140,7 +1121,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 AUCTIONED_LABEL,
                 FIRST_USER_ADDRESS,
@@ -1202,7 +1182,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_INVALID_LABEL,
                 FIRST_USER_ADDRESS,
@@ -1238,7 +1217,6 @@ module suins::controller_tests {
             controller::renew(
                 &mut suins,
                 &config,
-                SUI_REGISTRAR,
                 FIRST_LABEL,
                 2,
                 &mut coin,
@@ -1277,7 +1255,6 @@ module suins::controller_tests {
             controller::renew(
                 &mut suins,
                 &config,
-                SUI_REGISTRAR,
                 FIRST_LABEL,
                 1,
                 &mut coin,
@@ -1311,7 +1288,6 @@ module suins::controller_tests {
             controller::renew(
                 &mut suins,
                 &config,
-                SUI_REGISTRAR,
                 FIRST_LABEL,
                 1,
                 &mut coin,
@@ -1341,7 +1317,6 @@ module suins::controller_tests {
             controller::renew(
                 &mut suins,
                 &config,
-                SUI_REGISTRAR,
                 FIRST_LABEL,
                 1,
                 &mut coin,
@@ -1467,7 +1442,6 @@ module suins::controller_tests {
             assert!(controller::commitment_len(&suins) == 2, 0);
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 SECOND_LABEL,
                 FIRST_USER_ADDRESS,
@@ -1516,7 +1490,6 @@ module suins::controller_tests {
 
             controller::register_with_code(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -1596,7 +1569,6 @@ module suins::controller_tests {
 
             controller::register_with_code(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -1713,7 +1685,6 @@ module suins::controller_tests {
 
             controller::register_with_code(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -1788,7 +1759,6 @@ module suins::controller_tests {
 
             controller::register_with_code(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -1831,7 +1801,6 @@ module suins::controller_tests {
 
             controller::register_with_code(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -1880,7 +1849,6 @@ module suins::controller_tests {
 
             controller::register_with_code(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -1953,7 +1921,6 @@ module suins::controller_tests {
 
             controller::register_with_code(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -1995,7 +1962,6 @@ module suins::controller_tests {
 
             controller::register_with_code(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -2038,7 +2004,6 @@ module suins::controller_tests {
 
             controller::register_with_code(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -2089,7 +2054,6 @@ module suins::controller_tests {
 
             controller::register_with_code(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 SECOND_LABEL,
                 FIRST_USER_ADDRESS,
@@ -2132,7 +2096,6 @@ module suins::controller_tests {
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             controller::register_with_code(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -2181,7 +2144,6 @@ module suins::controller_tests {
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, SECOND_LABEL), 0);
             controller::register_with_code(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 SECOND_LABEL,
                 FIRST_USER_ADDRESS,
@@ -2240,7 +2202,6 @@ module suins::controller_tests {
 
             controller::register_with_code(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -2292,7 +2253,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 label,
                 FIRST_USER_ADDRESS,
@@ -2369,7 +2329,6 @@ module suins::controller_tests {
 
             controller::register_with_code(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -2446,7 +2405,6 @@ module suins::controller_tests {
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             controller::register_with_code(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -2490,7 +2448,6 @@ module suins::controller_tests {
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             controller::register_with_code(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -2538,7 +2495,6 @@ module suins::controller_tests {
 
             controller::register_with_code(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -2610,7 +2566,6 @@ module suins::controller_tests {
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             controller::register_with_code(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -2653,7 +2608,6 @@ module suins::controller_tests {
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             controller::register_with_code(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -2693,7 +2647,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 AUCTIONED_LABEL,
                 FIRST_USER_ADDRESS,
@@ -2733,7 +2686,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -2799,7 +2751,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 AUCTIONED_LABEL,
                 FIRST_USER_ADDRESS,
@@ -2839,7 +2790,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -2926,7 +2876,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -3012,7 +2961,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 AUCTIONED_LABEL,
                 FIRST_USER_ADDRESS,
@@ -3098,7 +3046,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -3201,7 +3148,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 AUCTIONED_LABEL,
                 FIRST_USER_ADDRESS,
@@ -3261,7 +3207,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 AUCTIONED_LABEL,
                 FIRST_USER_ADDRESS,
@@ -3332,7 +3277,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 AUCTIONED_LABEL,
                 FIRST_USER_ADDRESS,
@@ -3418,7 +3362,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 AUCTIONED_LABEL,
                 FIRST_USER_ADDRESS,
@@ -3486,7 +3429,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 AUCTIONED_LABEL,
                 FIRST_USER_ADDRESS,
@@ -3579,7 +3521,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 AUCTIONED_LABEL,
                 FIRST_USER_ADDRESS,
@@ -3685,7 +3626,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 AUCTIONED_LABEL,
                 FIRST_USER_ADDRESS,
@@ -3925,7 +3865,6 @@ module suins::controller_tests {
 
             controller::register_with_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -3967,7 +3906,6 @@ module suins::controller_tests {
 
             controller::register_with_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -4009,7 +3947,6 @@ module suins::controller_tests {
 
             controller::register_with_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -4058,7 +3995,6 @@ module suins::controller_tests {
 
             controller::register_with_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -4136,7 +4072,6 @@ module suins::controller_tests {
 
             controller::register_with_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -4231,7 +4166,6 @@ module suins::controller_tests {
 
             controller::register_with_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -4273,7 +4207,6 @@ module suins::controller_tests {
 
             controller::register_with_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -4315,7 +4248,6 @@ module suins::controller_tests {
 
             controller::register_with_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -4366,7 +4298,6 @@ module suins::controller_tests {
 
             controller::register_with_code_and_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -4443,7 +4374,6 @@ module suins::controller_tests {
 
             controller::register_with_code_and_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -4487,7 +4417,6 @@ module suins::controller_tests {
 
             controller::register_with_code_and_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -4531,7 +4460,6 @@ module suins::controller_tests {
 
             controller::register_with_code_and_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -4582,7 +4510,6 @@ module suins::controller_tests {
 
             controller::register_with_code_and_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -4653,7 +4580,6 @@ module suins::controller_tests {
 
             controller::register_with_code_and_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -4696,7 +4622,6 @@ module suins::controller_tests {
 
             controller::register_with_code_and_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -4739,7 +4664,6 @@ module suins::controller_tests {
 
             controller::register_with_code_and_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -4793,7 +4717,6 @@ module suins::controller_tests {
             assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
             controller::renew_with_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &config,
                 FIRST_LABEL,
                 2,
@@ -4843,7 +4766,6 @@ module suins::controller_tests {
 
             controller::renew_with_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &config,
                 FIRST_LABEL,
                 2,
@@ -4878,7 +4800,6 @@ module suins::controller_tests {
 
             controller::renew_with_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &config,
                 FIRST_LABEL,
                 2,
@@ -4913,7 +4834,6 @@ module suins::controller_tests {
 
             controller::renew_with_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &config,
                 FIRST_LABEL,
                 2,
@@ -4954,7 +4874,6 @@ module suins::controller_tests {
             assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 522, 0);
             controller::renew_with_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &config,
                 FIRST_LABEL,
                 2,
@@ -5010,7 +4929,6 @@ module suins::controller_tests {
 
             controller::renew_with_image(
                 &mut suins,
-                SUI_REGISTRAR,
                 &config,
                 FIRST_LABEL,
                 2,
@@ -5103,7 +5021,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 AUCTIONED_LABEL,
                 FIRST_USER_ADDRESS,
@@ -5181,7 +5098,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 AUCTIONED_LABEL,
                 FIRST_USER_ADDRESS,
@@ -5293,7 +5209,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 AUCTIONED_LABEL,
                 FIRST_USER_ADDRESS,
@@ -5377,7 +5292,6 @@ module suins::controller_tests {
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 AUCTIONED_LABEL,
                 FIRST_USER_ADDRESS,
@@ -5879,86 +5793,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
-                &mut config,
-                first_domain_name,
-                FIRST_USER_ADDRESS,
-                2,
-                FIRST_SECRET,
-                &mut coin,
-                &clock,
-                &mut ctx,
-            );
-            coin::burn_for_testing(coin);
-            test_scenario::return_shared(config);
-            test_scenario::return_shared(clock);
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test, expected_failure(abort_code = controller::ELabelUnAvailable)]
-    fun test_register_aborts_if_move_name_is_reserved() {
-        let scenario = test_init();
-        let first_domain_name = b"abcdefghijk";
-        set_auction_config(&mut scenario);
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
-        {
-            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let ctx = &mut ctx_new(
-                SUINS_ADDRESS,
-                DEFAULT_TX_HASH,
-                EXTRA_PERIOD_END_AT + 1,
-                2
-            );
-
-            controller::new_reserved_domains(&admin_cap, &mut suins, &config, b"abcdefghijk.move;", SUINS_ADDRESS, ctx);
-
-            test_scenario::return_shared(suins);
-            test_scenario::return_shared(config);
-            test_scenario::return_to_sender(&mut scenario, admin_cap);
-        };
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let no_of_commitments = controller::commitment_len(&suins);
-            let clock = test_scenario::take_shared<Clock>(&mut scenario);
-
-            let commitment = controller::test_make_commitment(
-                MOVE_REGISTRAR,
-                first_domain_name,
-                FIRST_USER_ADDRESS,
-                FIRST_SECRET
-            );
-            controller::commit(
-                &mut suins,
-                commitment,
-                &clock,
-            );
-            assert!(controller::commitment_len(&suins) - no_of_commitments == 1, 0);
-
-            test_scenario::return_shared(suins);
-            test_scenario::return_shared(clock);
-        };
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let clock = test_scenario::take_shared<Clock>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                DEFAULT_TX_HASH,
-                EXTRA_PERIOD_END_AT + 1,
-                0
-            );
-            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
-            clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
-
-            controller::register(
-                &mut suins,
-                MOVE_REGISTRAR,
                 &mut config,
                 first_domain_name,
                 FIRST_USER_ADDRESS,
@@ -5997,7 +5831,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -6038,7 +5871,6 @@ module suins::controller_tests {
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -6096,7 +5928,6 @@ module suins::controller_tests {
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -6146,7 +5977,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -6177,7 +6007,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -6218,7 +6047,6 @@ module suins::controller_tests {
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 FIRST_LABEL,
                 FIRST_USER_ADDRESS,
@@ -6252,7 +6080,6 @@ module suins::controller_tests {
             controller::renew(
                 &mut suins,
                 &config,
-                SUI_REGISTRAR,
                 FIRST_LABEL,
                 6,
                 &mut coin,
@@ -6281,7 +6108,6 @@ module suins::controller_tests {
             controller::renew(
                 &mut suins,
                 &config,
-                SUI_REGISTRAR,
                 FIRST_LABEL,
                 5,
                 &mut coin,
@@ -6316,7 +6142,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 b"ab",
                 FIRST_USER_ADDRESS,
@@ -6362,7 +6187,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 b"abc",
                 FIRST_USER_ADDRESS,
@@ -6437,7 +6261,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 b"abcd",
                 FIRST_USER_ADDRESS,
@@ -6513,7 +6336,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 b"abcdef",
                 FIRST_USER_ADDRESS,
@@ -6599,7 +6421,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 b"xyz",
                 FIRST_USER_ADDRESS,
@@ -6718,7 +6539,6 @@ module suins::controller_tests {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 b"xyzt",
                 FIRST_USER_ADDRESS,

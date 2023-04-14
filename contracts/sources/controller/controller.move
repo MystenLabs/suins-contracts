@@ -33,6 +33,7 @@ module suins::controller {
     const MAX_COMMITMENT_AGE_IN_MS: u64 = 259_200_000;
     const MIN_COMMITMENT_AGE_IN_MS: u64 = 120_000;
     const MAX_OUTDATED_COMMITMENTS_TO_REMOVE: u64 = 50;
+    const SUI_TLD: vector<u8> = b"sui";
 
     // errors in the range of 301..400 indicate Sui Controller errors
     const ECommitmentNotExists: u64 = 302;
@@ -112,7 +113,6 @@ module suins::controller {
     /// or either `referral_code` or `discount_code` is invalid
     public entry fun register(
         suins: &mut SuiNS,
-        tld: vector<u8>,
         config: &mut Configuration,
         label: vector<u8>, // `label` is 1 level
         owner: address,
@@ -124,7 +124,6 @@ module suins::controller {
     ) {
         register_internal(
             suins,
-            tld,
             config,
             label,
             owner,
@@ -167,7 +166,6 @@ module suins::controller {
     /// or either `referral_code` or `discount_code` is invalid
     public entry fun register_with_image(
         suins: &mut SuiNS,
-        tld: vector<u8>,
         config: &mut Configuration,
         label: vector<u8>, // `label` is 1 level
         owner: address,
@@ -184,7 +182,6 @@ module suins::controller {
 
         register_internal(
             suins,
-            tld,
             config,
             label,
             owner,
@@ -216,7 +213,6 @@ module suins::controller {
     /// `discount_code`: discount code to be used
     public entry fun register_with_code(
         suins: &mut SuiNS,
-        tld: vector<u8>,
         config: &mut Configuration,
         label: vector<u8>, // `label` is 1 level
         owner: address,
@@ -232,7 +228,6 @@ module suins::controller {
 
         register_internal(
             suins,
-            tld,
             config,
             label,
             owner,
@@ -267,7 +262,6 @@ module suins::controller {
     /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
     public entry fun register_with_code_and_image(
         suins: &mut SuiNS,
-        tld: vector<u8>,
         config: &mut Configuration,
         label: vector<u8>, // `label` is 1 level
         owner: address,
@@ -287,7 +281,6 @@ module suins::controller {
 
         register_internal(
             suins,
-            tld,
             config,
             label,
             owner,
@@ -318,13 +311,12 @@ module suins::controller {
     public entry fun renew(
         suins: &mut SuiNS,
         config: &Configuration,
-        tld: vector<u8>,
         label: vector<u8>,
         no_years: u64,
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext,
     ) {
-        renew_internal(suins, config, tld, label, no_years, payment, ctx)
+        renew_internal(suins, config, label, no_years, payment, ctx)
     }
 
     /// #### Notice
@@ -344,7 +336,6 @@ module suins::controller {
     /// or `msg` is empty
     public entry fun renew_with_image(
         suins: &mut SuiNS,
-        tld: vector<u8>,
         config: &Configuration,
         label: vector<u8>,
         no_years: u64,
@@ -356,8 +347,8 @@ module suins::controller {
         ctx: &mut TxContext,
     ) {
         // NFT and imag_msg are validated in `update_image_url`
-        renew_internal(suins, config, tld, label, no_years, payment, ctx);
-        registrar::update_image_url(suins, tld, config, nft, signature, hashed_msg, raw_msg, ctx);
+        renew_internal(suins, config, label, no_years, payment, ctx);
+        registrar::update_image_url(suins, SUI_TLD, config, nft, signature, hashed_msg, raw_msg, ctx);
     }
 
     /// #### Notice
@@ -418,7 +409,6 @@ module suins::controller {
     fun renew_internal(
         suins: &mut SuiNS,
         config: &Configuration,
-        tld: vector<u8>,
         label: vector<u8>,
         no_years: u64,
         payment: &mut Coin<SUI>,
@@ -431,10 +421,10 @@ module suins::controller {
         coin_util::user_transfer_to_suins(payment, renew_fee, suins);
 
         let duration = no_years * 365;
-        registrar::renew(suins, tld, label, duration, ctx);
+        registrar::renew(suins, SUI_TLD, label, duration, ctx);
 
         event::emit(NameRenewedEvent {
-            tld: utf8(tld),
+            tld: utf8(SUI_TLD),
             label: string::utf8(label),
             cost: renew_fee,
             duration,
@@ -443,7 +433,6 @@ module suins::controller {
 
     fun register_internal(
         suins: &mut SuiNS,
-        tld: vector<u8>,
         config: &mut Configuration,
         label: vector<u8>, // label has only 1 level
         owner: address,
@@ -471,8 +460,8 @@ module suins::controller {
                 configuration::max_domain_length()
             );
 
-        let commitment = make_commitment(tld, label, owner, secret);
-        consume_commitment(suins, tld, label, commitment, clock, ctx);
+        let commitment = make_commitment(label, owner, secret);
+        consume_commitment(suins, label, commitment, clock, ctx);
 
         let registration_fee = configuration::price_for_label(config, len_of_label, no_years);
         assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
@@ -490,7 +479,7 @@ module suins::controller {
         let duration = no_years * 365;
         let (nft_id, url, additional_data) = registrar::register_with_image_internal(
             suins,
-            tld,
+            SUI_TLD,
             config,
             label,
             owner,
@@ -502,7 +491,7 @@ module suins::controller {
         );
 
         event::emit(NameRegisteredEvent {
-            tld: utf8(tld),
+            tld: utf8(SUI_TLD),
             label: utf8(label),
             owner,
             // TODO: reduce cost when using discount code
@@ -562,7 +551,6 @@ module suins::controller {
 
     fun consume_commitment(
         suins: &mut SuiNS,
-        tld: vector<u8>,
         label: vector<u8>,
         commitment: vector<u8>,
         clock: &Clock,
@@ -579,13 +567,13 @@ module suins::controller {
             ECommitmentTooOld
         );
         linked_table::remove(commitments, commitment);
-        assert!(registrar::is_available(suins, utf8(tld), utf8(label), ctx), ELabelUnAvailable);
+        assert!(registrar::is_available(suins, utf8(SUI_TLD), utf8(label), ctx), ELabelUnAvailable);
     }
 
-    fun make_commitment(tld: vector<u8>, label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
+    fun make_commitment(label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
         let domain_name = label;
         vector::append(&mut domain_name, b".");
-        vector::append(&mut domain_name, tld);
+        vector::append(&mut domain_name, SUI_TLD);
 
         let owner_bytes = bcs::to_bytes(&owner);
         vector::append(&mut domain_name, owner_bytes);
@@ -617,12 +605,12 @@ module suins::controller {
 
     #[test_only]
     public fun test_make_commitment(
-        tld: vector<u8>,
+        _tld: vector<u8>,
         label: vector<u8>,
         owner: address,
         secret: vector<u8>
     ): vector<u8> {
-        make_commitment(tld, label, owner, secret)
+        make_commitment(label, owner, secret)
     }
 
     #[test_only]
