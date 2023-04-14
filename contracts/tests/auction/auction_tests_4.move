@@ -1835,11 +1835,8 @@ module suins::auction_tests_4 {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let ids = test_scenario::ids_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
-            assert!(vector::length(&ids) == 1, 0);
-            let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin) == 50, 0);
+            assert!(vector::length(&ids) == 0, 0);
             assert!(!test_scenario::has_most_recent_for_address<RegistrationNFT>(FIRST_USER_ADDRESS), 0);
-            test_scenario::return_to_address(FIRST_USER_ADDRESS, coin);
 
             let ids = test_scenario::ids_for_address<Coin<SUI>>(SECOND_USER_ADDRESS);
             assert!(vector::length(&ids) == 1, 0);
@@ -1855,7 +1852,7 @@ module suins::auction_tests_4 {
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_DOMAIN_NAME), 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME_SUI)), 0);
 
-            assert!(controller::get_balance(&suins) == BIDDING_FEE * 2+ START_AN_AUCTION_FEE + 950, 0);
+            assert!(controller::get_balance(&suins) == BIDDING_FEE * 2+ START_AN_AUCTION_FEE + 1000, 0);
             assert!(auction::get_balance(&auction) == 10230, 0);
 
             test_scenario::return_shared(suins);
