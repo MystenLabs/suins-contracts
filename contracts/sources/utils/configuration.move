@@ -21,7 +21,6 @@ module suins::configuration {
 
     const MAX_DOMAIN_LENGTH: u64 = 63;
     const MIN_DOMAIN_LENGTH: u64 = 3;
-    const MIN_NON_AUCTIONDOMAIN_LENGTH: u64 = 7;
     const MIST_PER_SUI: u64 = 1_000_000_000;
 
     const EInvalidRate: u64 = 401;
@@ -204,6 +203,10 @@ module suins::configuration {
 
     // === Public Functions ===
 
+    public fun price_of_five_and_above_character_domain(config: &Configuration): u64 {
+        config.price_of_five_and_above_character_domain
+    }
+
     public fun price_for_label(config: &Configuration, label_length: u64, no_years: u64): u64 {
         assert!(label_length > 2, EInvalidLabelLength);
         let price_per_year =
@@ -222,16 +225,16 @@ module suins::configuration {
         MIN_DOMAIN_LENGTH
     }
 
-    public fun min_non_auction_domain_length(): u64 {
-        MIN_NON_AUCTIONDOMAIN_LENGTH
-    }
-
     public fun max_domain_length(): u64 {
         MAX_DOMAIN_LENGTH
     }
 
     public fun is_enable_controller(config: &Configuration): bool {
         config.enable_controller
+    }
+
+    public fun mist_per_sui(): u64 {
+        MIST_PER_SUI
     }
 
     // === Friend and Private Functions ===
@@ -258,10 +261,6 @@ module suins::configuration {
 
     public(friend) fun emoji_config(config: &Configuration): &EmojiConfiguration {
         &config.emoji_config
-    }
-
-    public(friend) fun mist_per_sui(): u64 {
-        MIST_PER_SUI
     }
 
     fun init(ctx: &mut TxContext) {
