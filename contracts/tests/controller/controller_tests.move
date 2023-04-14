@@ -2370,7 +2370,7 @@ module suins::controller_tests {
                 &mut suins,
                 SUI_REGISTRAR,
                 &mut config,
-                domain_name,
+                label,
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -2401,7 +2401,7 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, domain_name);
+            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, label);
             assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
