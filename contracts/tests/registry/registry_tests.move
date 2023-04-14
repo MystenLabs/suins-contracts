@@ -13,8 +13,6 @@ module suins::registry_tests {
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
     const SECOND_USER_ADDRESS: address = @0xB002;
-    const FIRST_RESOLVER_ADDRESS: address = @0xC001;
-    const SECOND_RESOLVER_ADDRESS: address = @0xC002;
     const FIRST_DOMAIN_NAME: vector<u8> = b"eastagile.sui";
     const SECOND_DOMAIN_NAME: vector<u8> = b"secondsuitest.sui";
     const THIRD_DOMAIN_NAME: vector<u8> = b"ea.eastagile.sui";

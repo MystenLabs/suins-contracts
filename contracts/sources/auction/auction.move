@@ -394,7 +394,6 @@ module suins::auction {
     ///
     /// #### Params
     /// label label of the node beinng auctioned, the node has the form `label`.sui
-    /// resolver address of the resolver share object that the winner wants to set for his/her new NFT
     ///
     /// Panics
     /// Panics if auction state is not `FINALIZING`, `REOPENED` or `OWNED`

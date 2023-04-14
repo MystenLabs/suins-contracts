@@ -1,4 +1,4 @@
-/// This module is intended to maintain records of domain names including the owner, resolver address and time to live (TTL).
+/// This module is intended to maintain records of domain names including the owner, linked address, default domain name and time to live (TTL).
 /// The owners of this only own the name, not own the registration.
 /// It primarily facilitates the lending and borrowing of domain names.
 module suins::registry {
@@ -300,14 +300,14 @@ module suins::registry {
     }
 
     /// #### Notice
-    /// Get `(owner, resolver, ttl)` of a `node`.
-    /// The `node` can have multiple levels.
+    /// Get `(owner, linked_addr, ttl, default_domain_name)` of a `domain_name`.
+    /// The `domain_name` can have multiple levels.
     ///
     /// #### Params
-    /// `node`: node to find the ttl
+    /// `domain_name`: domain_name to find the ttl
     ///
     /// Panics
-    /// Panics if `node` doesn't exists.
+    /// Panics if `domain_name` doesn't exists.
     public fun get_name_record_all_fields(suins: &SuiNS, domain_name: vector<u8>): (address, address, u64, String) {
         let name_record = get_name_record(suins, utf8(domain_name));
         (name_record_owner(name_record), name_record_linked_addr(name_record), name_record_ttl(name_record), name_record_default_domain_name(name_record))

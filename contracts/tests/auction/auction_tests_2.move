@@ -23,7 +23,6 @@ module suins::auction_tests_2 {
     const FIRST_USER_ADDRESS: address = @0xB001;
     const SECOND_USER_ADDRESS: address = @0xB002;
     const THIRD_USER_ADDRESS: address = @0xB003;
-    const RESOLVER_ADDRESS: address = @0xC001;
     const HASH: vector<u8> = b"vUAgEwNmPr";
     const FIRST_DOMAIN_NAME: vector<u8> = vector[
         97, // 'a'

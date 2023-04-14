@@ -97,9 +97,6 @@ module suins::controller {
     /// This function is the second step in the commit/reveal process, which is implemented to prevent front-running.
     /// It acts as a gatekeeper for the `Registrar::Controller`, responsible for node validation and charging payment.
     ///
-    /// #### Dev
-    /// This function uses default resolver address.
-    ///
     /// #### Params
     /// `label`: label of the node being registered, the node has the form `label`.sui
     /// `owner`: owner address of created NFT
@@ -149,7 +146,6 @@ module suins::controller {
     /// It acts as a gatekeeper for the `Registrar::Controller`, responsible for node validation and charging payment.
     ///
     /// #### Dev
-    /// This function uses default resolver address.
     /// Use `tld` to identify the registrar object.
     ///
     /// #### Params
@@ -202,95 +198,6 @@ module suins::controller {
             raw_msg,
             clock,
             ctx,
-        );
-    }
-
-    /// #### Notice
-    /// Similar to the `register` function, with an added `resolver` parameter.
-    ///
-    /// #### Dev
-    /// Use `resolver` parameter for resolver address.
-    /// Use `tld` to identify the registrar object.
-    ///
-    /// #### Params
-    /// `resolver`: address of the resolver
-    public entry fun register_with_config(
-        suins: &mut SuiNS,
-        tld: vector<u8>,
-        config: &mut Configuration,
-        label: vector<u8>, // `label` is 1 level
-        owner: address,
-        no_years: u64,
-        secret: vector<u8>,
-        payment: &mut Coin<SUI>,
-        clock: &Clock,
-        ctx: &mut TxContext,
-    ) {
-        register_internal(
-            suins,
-            tld,
-            config,
-            label,
-            owner,
-            no_years,
-            secret,
-            payment,
-            option::none(),
-            option::none(),
-            vector[],
-            vector[],
-            vector[],
-            clock,
-            ctx
-        );
-    }
-
-    /// #### Notice
-    /// Similar to the `register_with_image` function, with an added `resolver` parameter.
-    ///
-    /// #### Dev
-    /// Use `resolver` parameter for resolver address.
-    /// Use `tld` to identify the registrar object.
-    ///
-    /// #### Params
-    /// `resolver`: address of the resolver
-    /// `signature`: secp256k1 of `hashed_msg`
-    /// `hashed_msg`: sha256 of `raw_msg`
-    /// `raw_msg`: the data to verify and update image url, with format: <ipfs_url>,<owner>,<expiry>.
-    /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
-    public entry fun register_with_config_and_image(
-        suins: &mut SuiNS,
-        tld: vector<u8>,
-        config: &mut Configuration,
-        label: vector<u8>, // `label` is 1 level
-        owner: address,
-        no_years: u64,
-        secret: vector<u8>,
-        payment: &mut Coin<SUI>,
-        signature: vector<u8>,
-        hashed_msg: vector<u8>,
-        raw_msg: vector<u8>,
-        clock: &Clock,
-        ctx: &mut TxContext,
-    ) {
-        registrar::assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
-
-        register_internal(
-            suins,
-            tld,
-            config,
-            label,
-            owner,
-            no_years,
-            secret,
-            payment,
-            option::none(),
-            option::none(),
-            signature,
-            hashed_msg,
-            raw_msg,
-            clock,
-            ctx
         );
     }
 
@@ -359,108 +266,6 @@ module suins::controller {
     /// `raw_msg`: the data to verify and update image url, with format: <ipfs_url>,<owner>,<expiry>.
     /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
     public entry fun register_with_code_and_image(
-        suins: &mut SuiNS,
-        tld: vector<u8>,
-        config: &mut Configuration,
-        label: vector<u8>, // `label` is 1 level
-        owner: address,
-        no_years: u64,
-        secret: vector<u8>,
-        payment: &mut Coin<SUI>,
-        referral_code: vector<u8>,
-        discount_code: vector<u8>,
-        signature: vector<u8>,
-        hashed_msg: vector<u8>,
-        raw_msg: vector<u8>,
-        clock: &Clock,
-        ctx: &mut TxContext,
-    ) {
-        registrar::assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
-        let (referral_code, discount_code) = validate_codes(referral_code, discount_code);
-
-        register_internal(
-            suins,
-            tld,
-            config,
-            label,
-            owner,
-            no_years,
-            secret,
-            payment,
-            referral_code,
-            discount_code,
-            signature,
-            hashed_msg,
-            raw_msg,
-            clock,
-            ctx,
-        );
-    }
-
-    /// #### Notice
-    /// Similar to the `register_with_config` function, with added `referral_code` and `discount_code` parameters.
-    /// Can use one or two codes at the same time.
-    /// `discount_code` is applied first before `referral_code` if use both.
-    ///
-    /// #### Dev
-    /// Use empty string for unused code, however, at least one code must be used.
-    /// Remove `discount_code` after this function returns.
-    ///
-    /// #### Params
-    /// `referral_code`: referral code to be used
-    /// `discount_code`: discount code to be used
-    public entry fun register_with_config_and_code(
-        suins: &mut SuiNS,
-        tld: vector<u8>,
-        config: &mut Configuration,
-        label: vector<u8>, // `label` is 1 level
-        owner: address,
-        no_years: u64,
-        secret: vector<u8>,
-        payment: &mut Coin<SUI>,
-        referral_code: vector<u8>,
-        discount_code: vector<u8>,
-        clock: &Clock,
-        ctx: &mut TxContext,
-    ) {
-        let (referral_code, discount_code) = validate_codes(referral_code, discount_code);
-
-        register_internal(
-            suins,
-            tld,
-            config,
-            label,
-            owner,
-            no_years,
-            secret,
-            payment,
-            referral_code,
-            discount_code,
-            vector[],
-            vector[],
-            vector[],
-            clock,
-            ctx,
-        );
-    }
-
-    /// #### Notice
-    /// Similar to the `register_with_config` function, with added `referral_code` and `discount_code` parameters.
-    /// Can use one or two codes at the same time.
-    /// `discount_code` is applied first before `referral_code` if use both.
-    ///
-    /// #### Dev
-    /// Use empty string for unused code, however, at least one code must be used.
-    /// Remove `discount_code` after this function returns.
-    ///
-    /// #### Params
-    /// `referral_code`: referral code to be used
-    /// `discount_code`: discount code to be used
-    /// `signature`: secp256k1 of `hashed_msg`
-    /// `hashed_msg`: sha256 of `raw_msg`
-    /// `raw_msg`: the data to verify and update image url, with format: <ipfs_url>,<owner>,<expiry>.
-    /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
-    public entry fun register_with_config_and_code_and_image(
         suins: &mut SuiNS,
         tld: vector<u8>,
         config: &mut Configuration,
