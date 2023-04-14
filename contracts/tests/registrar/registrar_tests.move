@@ -80,9 +80,9 @@ module suins::registrar_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
-            let (expiry, owner) = get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expired_at, owner) = get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
 
-            assert!(expiry == 10 + 365, 0);
+            assert!(expired_at == 10 + 365, 0);
             assert!(owner == FIRST_USER, 0);
 
             let (name, url) = registrar::get_nft_fields(&nft);
@@ -142,9 +142,9 @@ module suins::registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let (name, url) = registrar::get_nft_fields(&nft);
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
-            let (expiry, owner) = get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expired_at, owner) = get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
 
-            assert!(expiry == 10 + 365, 0);
+            assert!(expired_at == 10 + 365, 0);
             assert!(owner == FIRST_USER, 0);
             assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
             assert!(
@@ -287,9 +287,9 @@ module suins::registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 375, 0);
-            let new_expiry = registrar::renew(&mut suins, SUI_REGISTRAR, FIRST_LABEL, 100, test_scenario::ctx(&mut scenario));
+            let new_expired_at = registrar::renew(&mut suins, SUI_REGISTRAR, FIRST_LABEL, 100, test_scenario::ctx(&mut scenario));
             assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 475, 0);
-            assert!(new_expiry == 475, 0);
+            assert!(new_expired_at == 475, 0);
 
             test_scenario::return_shared(suins);
         };
@@ -496,8 +496,8 @@ module suins::registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registrar::assert_registrar_exists(&suins, b"com");
 
-            let (expiry, owner) = get_record_detail(&suins, b"com", FIRST_LABEL);
-            assert!(expiry == 365, 0);
+            let (expired_at, owner) = get_record_detail(&suins, b"com", FIRST_LABEL);
+            assert!(expired_at == 365, 0);
             assert!(owner == FIRST_USER, 0);
 
             test_scenario::return_shared(suins);
@@ -588,7 +588,7 @@ module suins::registrar_tests {
     }
 
     #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
-    fun test_update_image_url_aborts_with_incorrect_expiry() {
+    fun test_update_image_url_aborts_with_incorrect_expired_at() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         register(scenario);
@@ -623,7 +623,7 @@ module suins::registrar_tests {
     }
 
     #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
-    fun test_update_image_url_aborts_with_incorrect_expiry_2() {
+    fun test_update_image_url_aborts_with_incorrect_expired_at_2() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         register(scenario);
@@ -658,7 +658,7 @@ module suins::registrar_tests {
     }
 
     #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
-    fun test_update_image_url_aborts_with_incorrect_expiry_3() {
+    fun test_update_image_url_aborts_with_incorrect_expired_at_3() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         register(scenario);
@@ -1000,7 +1000,7 @@ module suins::registrar_tests {
     }
 
     #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
-    fun test_register_with_image_aborts_with_incorrect_expiry() {
+    fun test_register_with_image_aborts_with_incorrect_expired_at() {
         let scenario = test_init();
         register_with_image(
             &mut scenario,
@@ -1012,7 +1012,7 @@ module suins::registrar_tests {
     }
 
     #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
-    fun test_register_with_image_aborts_with_incorrect_expiry_2() {
+    fun test_register_with_image_aborts_with_incorrect_expired_at_2() {
         let scenario = test_init();
         register_with_image(
             &mut scenario,

@@ -15,6 +15,7 @@ module suins::controller_tests_2 {
     use std::string::utf8;
    use sui::clock::{Self, Clock};
     use suins::controller_tests::{test_init, set_auction_config, make_commitment};
+    use suins::controller_tests;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -167,6 +168,56 @@ module suins::controller_tests_2 {
             configuration::set_price_of_five_and_above_character_domain(&admin_cap, &mut config, 1_000_000 * 1_000_000_000 + 1);
 
             test_scenario::return_to_sender(&mut scenario, admin_cap);
+            test_scenario::return_shared(config);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = registrar::EInvalidNewExpiredAt)]
+    fun test_renew_aborts_if_more_than_5_years_3() {
+        let scenario = test_init();
+        set_auction_config(&mut scenario);
+        controller_tests::register(&mut scenario);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = test_scenario::ctx(&mut scenario);
+            let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 7 + 1, ctx);
+
+            controller::renew(
+                &mut suins,
+                &config,
+                SUI_REGISTRAR,
+                FIRST_LABEL,
+                3,
+                &mut coin,
+                ctx,
+            );
+
+            coin::burn_for_testing(coin);
+            test_scenario::return_shared(suins);
+            test_scenario::return_shared(config);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let ctx = test_scenario::ctx(&mut scenario);
+            let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 7 + 1, ctx);
+
+            controller::renew(
+                &mut suins,
+                &config,
+                SUI_REGISTRAR,
+                FIRST_LABEL,
+                3,
+                &mut coin,
+                ctx,
+            );
+
+            coin::burn_for_testing(coin);
+            test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
         };
         test_scenario::end(scenario);

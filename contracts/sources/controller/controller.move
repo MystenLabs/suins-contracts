@@ -54,7 +54,7 @@ module suins::controller {
         label: String,
         owner: address,
         cost: u64,
-        expiry: u64,
+        expired_at: u64,
         nft_id: ID,
         referral_code: Option<ascii::String>,
         discount_code: Option<ascii::String>,
@@ -155,7 +155,7 @@ module suins::controller {
     /// `secret`: the value used to create commitment in the first step
     /// `signature`: secp256k1 of `hashed_msg`
     /// `hashed_msg`: sha256 of `raw_msg`
-    /// `raw_msg`: the data to verify and update image url, with format: <ipfs_url>,<owner>,<expiry>.
+    /// `raw_msg`: the data to verify and update image url, with format: <ipfs_url>,<owner>,<expired_at>.
     /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
     ///
     /// Panic
@@ -263,7 +263,7 @@ module suins::controller {
     /// `discount_code`: discount code to be used
     /// `signature`: secp256k1 of `hashed_msg`
     /// `hashed_msg`: sha256 of `raw_msg`
-    /// `raw_msg`: the data to verify and update image url, with format: <ipfs_url>,<owner>,<expiry>.
+    /// `raw_msg`: the data to verify and update image url, with format: <ipfs_url>,<owner>,<expired_at>.
     /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
     public entry fun register_with_code_and_image(
         suins: &mut SuiNS,
@@ -424,7 +424,6 @@ module suins::controller {
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext
     ) {
-        // TODO: renew many times, total years > 5
         assert!(0 < no_years && no_years <= 5, EInvalidNoYears);
         let emoji_config = configuration::emoji_config(config);
         let renew_fee = configuration::price_for_label(config, emoji::len_of_label(emoji_config, label), no_years);
@@ -508,7 +507,7 @@ module suins::controller {
             owner,
             // TODO: reduce cost when using discount code
             cost: configuration::price_for_label(config, len_of_label, no_years),
-            expiry: tx_context::epoch(ctx) + duration,
+            expired_at: tx_context::epoch(ctx) + duration,
             nft_id,
             referral_code,
             discount_code,
