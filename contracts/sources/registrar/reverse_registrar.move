@@ -8,6 +8,7 @@ module suins::reverse_registrar {
     use suins::registry;
     use sui::address;
     use sui::hex;
+    use std::string::utf8;
 
     struct ReverseClaimedEvent has copy, drop {
         addr: address,
@@ -15,7 +16,7 @@ module suins::reverse_registrar {
 
     public entry fun claim(suins: &mut SuiNS, owner: address, ctx: &mut TxContext) {
         let label = hex::encode(address::to_bytes(sender(ctx)));
-        let domain_name = registry::make_subdomain_name(label, registry::addr_reverse_tld());
+        let domain_name = registry::make_subdomain_name(utf8(label), registry::addr_reverse_tld());
         registry::set_record_internal(suins, domain_name, owner, 0, ctx);
 
         event::emit(ReverseClaimedEvent { addr: sender(ctx) })

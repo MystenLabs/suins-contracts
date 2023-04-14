@@ -6,17 +6,10 @@ module suins::converter {
     use sui::object::ID;
     use sui::object;
 
-    friend suins::auction;
-    friend suins::reverse_registrar;
-    friend suins::controller;
-    friend suins::configuration;
-    friend suins::remove_later;
-    friend suins::registrar;
-
     const REGISTRATION_FEE_PER_YEAR: u64 = 1000000;
     const EInvalidNumber: u64 = 601;
 
-    public(friend) fun string_to_number(str: String): u64 {
+    public fun string_to_number(str: String): u64 {
         let bytes = string::bytes(&str);
         // count from 1 because Move doesn't have negative number atm
         let index = vector::length(bytes);
@@ -34,15 +27,11 @@ module suins::converter {
         result
     }
 
-    public(friend) fun new_id(ctx: &mut TxContext): ID {
+    // TODO: redundant, can be replaced by the `tx_context::fresh_object_address(ctx)`
+    public fun new_id(ctx: &mut TxContext): ID {
         let new_uid = object::new(ctx);
         let new_id = object::uid_to_inner(&new_uid);
         object::delete(new_uid);
         new_id
     }
-
-    #[test_only]
-    friend suins::converter_tests;
-    #[test_only]
-    friend suins::registry_tests_2;
 }
