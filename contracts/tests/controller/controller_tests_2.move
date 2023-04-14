@@ -91,7 +91,6 @@ module suins::controller_tests_2 {
 
             controller::register(
                 &mut suins,
-                SUI_REGISTRAR,
                 &mut config,
                 b"xyztu",
                 FIRST_USER_ADDRESS,
@@ -188,7 +187,6 @@ module suins::controller_tests_2 {
             controller::renew(
                 &mut suins,
                 &config,
-                SUI_REGISTRAR,
                 FIRST_LABEL,
                 3,
                 &mut coin,
@@ -209,7 +207,6 @@ module suins::controller_tests_2 {
             controller::renew(
                 &mut suins,
                 &config,
-                SUI_REGISTRAR,
                 FIRST_LABEL,
                 3,
                 &mut coin,
