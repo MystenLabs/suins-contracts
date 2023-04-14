@@ -50,7 +50,7 @@ module suins::emoji {
         no_bytes: u64,
     }
 
-    public(friend) fun init_emoji_config(): EmojiConfiguration {
+    public fun init_emoji_config(): EmojiConfiguration {
         let one_character_emojis = emoji_resource::one_character_emojis();
         let two_character_emojis = emoji_resource::two_character_emojis();
         let three_character_emojis = emoji_resource::three_character_emojis();

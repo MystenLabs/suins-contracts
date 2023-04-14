@@ -3,6 +3,7 @@ module suins::emoji_tests {
 
     use suins::emoji;
     use sui::test_scenario;
+    use std::string::utf8;
 
     #[test]
     fun test_validate_label_with_emojis() {
@@ -188,7 +189,7 @@ module suins::emoji_tests {
                 226, 128, 141,
                 240, 159, 145, 168,
             ];
-            emoji::validate_label_with_emoji(&emoji_config, emoji, 3, 63);
+            emoji::validate_label_with_emoji(&emoji_config, utf8(emoji), 3, 63);
         };
         test_scenario::end(scenario);
     }
@@ -204,13 +205,13 @@ module suins::emoji_tests {
                 99, // 'c'
                 100, // 'd'
             ];
-            emoji::validate_label_with_emoji(&emoji_config, emoji, 3, 63);
+            emoji::validate_label_with_emoji(&emoji_config, utf8(emoji), 3, 63);
             let emoji = vector[
                 240, 159, 146, 150, // 1f496
                 240, 159, 171, 178, // 1faf2
                 240, 159, 171, 129 // 1fac1
             ];
-            emoji::validate_label_with_emoji(&emoji_config, emoji, 3, 63);
+            emoji::validate_label_with_emoji(&emoji_config, utf8(emoji), 3, 63);
         };
         test_scenario::end(scenario);
     }
@@ -226,7 +227,7 @@ module suins::emoji_tests {
                 99, // 'c'
                 240, 159, 145, 180 // 1f474
             ];
-            emoji::validate_label_with_emoji(&emoji_config, emoji, 3, 63);
+            emoji::validate_label_with_emoji(&emoji_config, utf8(emoji), 3, 63);
         };
         test_scenario::end(scenario);
     }
@@ -241,7 +242,7 @@ module suins::emoji_tests {
                 240, 159, 167, 147, // 1f9d3
                 240, 159, 145, 180 // 1f474
             ];
-            emoji::validate_label_with_emoji(&emoji_config, emoji, 3, 63);
+            emoji::validate_label_with_emoji(&emoji_config, utf8(emoji), 3, 63);
         };
         test_scenario::end(scenario);
     }
@@ -256,7 +257,7 @@ module suins::emoji_tests {
                 98, // 'b'
                 99, // 'c'
             ];
-            emoji::validate_label_with_emoji(&emoji_config, emoji, 3, 63);
+            emoji::validate_label_with_emoji(&emoji_config, utf8(emoji), 3, 63);
         };
         test_scenario::end(scenario);
     }
@@ -277,7 +278,7 @@ module suins::emoji_tests {
                 240, 159, 143, 187,
                 227, 129, 185, // 30d9 non emoji
             ];
-            emoji::validate_label_with_emoji(&emoji_config, emoji, 3, 63);
+            emoji::validate_label_with_emoji(&emoji_config, utf8(emoji), 3, 63);
         };
         test_scenario::end(scenario);
     }
@@ -293,7 +294,7 @@ module suins::emoji_tests {
                 99, // 'c'
                 227, 129, 185, // 30d9 non emoji
             ];
-            emoji::validate_label_with_emoji(&emoji_config, emoji, 3, 63);
+            emoji::validate_label_with_emoji(&emoji_config, utf8(emoji), 3, 63);
         };
         test_scenario::end(scenario);
     }

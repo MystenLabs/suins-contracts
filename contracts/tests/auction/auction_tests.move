@@ -2988,7 +2988,7 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 500 * configuration::mist_per_sui(), FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 500, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 2000 * configuration::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 15);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -3010,7 +3010,7 @@ module suins::auction_tests {
                 &config,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                500 * configuration::mist_per_sui(),
+                500,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 2
@@ -3028,7 +3028,7 @@ module suins::auction_tests {
             test_scenario::return_shared(config);
         };
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 400 * configuration::mist_per_sui(), FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 400, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 3000 * configuration::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 20);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -3041,7 +3041,7 @@ module suins::auction_tests {
                 &config,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                400 * configuration::mist_per_sui(),
+                400,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 5
@@ -3284,7 +3284,7 @@ module suins::auction_tests {
             test_scenario::return_shared(config);
         };
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 900 * configuration::mist_per_sui(), FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 900, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1200 * configuration::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::some(SECOND_TX_HASH), 25);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -3297,7 +3297,7 @@ module suins::auction_tests {
                 &config,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                900 * configuration::mist_per_sui(),
+                900,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 2
