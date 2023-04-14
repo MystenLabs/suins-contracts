@@ -366,8 +366,8 @@ module suins::registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registrar::EInvalidBaseNode)]
-    fun test_reclaim_name_by_nft_owner_abort_with_wrong_base_node() {
+    #[test, expected_failure(abort_code = registrar::EInvalidTLD)]
+    fun test_reclaim_name_by_nft_owner_abort_with_wrong_base_domain_name() {
         let scenario = test_init();
         register(&mut scenario);
 

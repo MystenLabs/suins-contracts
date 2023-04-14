@@ -204,7 +204,7 @@ module suins::configuration {
 
     // === Public Functions ===
 
-    public fun price_for_node(config: &Configuration, label_length: u64, no_years: u64): u64 {
+    public fun price_for_label(config: &Configuration, label_length: u64, no_years: u64): u64 {
         assert!(label_length > 2, EInvalidLabelLength);
         let price_per_year =
             if (label_length == 3) config.price_of_three_character_domain

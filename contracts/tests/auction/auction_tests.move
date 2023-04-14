@@ -23,7 +23,7 @@ module suins::auction_tests {
     const SECOND_USER_ADDRESS: address = @0xB002;
     const THIRD_USER_ADDRESS: address = @0xB003;
     const HASH: vector<u8> = b"vUAgEwNmPr";
-    const NODE: vector<u8> = vector[
+    const DOMAIN_NAME: vector<u8> = vector[
         97, // 'a'
         98, // 'b'
         99, // 'c'
@@ -39,7 +39,7 @@ module suins::auction_tests {
     ];
     const SECOND_DOMAIN_NAME: vector<u8> = b"suins2";
     const THIRD_DOMAIN_NAME: vector<u8> = b"suins3";
-    const NODE_SUI: vector<u8> = vector[
+    const DOMAIN_NAME_SUI: vector<u8> = vector[
         97, // 'a'
         98, // 'b'
         99, // 'c'
@@ -117,7 +117,7 @@ module suins::auction_tests {
         scenario
     }
 
-    public fun start_an_auction_util(scenario: &mut Scenario, node: vector<u8>) {
+    public fun start_an_auction_util(scenario: &mut Scenario, domain_name: vector<u8>) {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let ctx = ctx_new(
@@ -130,32 +130,32 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
-            let (start_at, highest_bid, second_highest_bid, winner, is_finalized) = auction::get_entry(&auction, node);
+            let (start_at, highest_bid, second_highest_bid, winner, is_finalized) = auction::get_entry(&auction, domain_name);
             assert!(option::is_none(&start_at), 0);
             assert!(option::is_none(&highest_bid), 0);
             assert!(option::is_none(&second_highest_bid), 0);
             assert!(option::is_none(&winner), 0);
             assert!(option::is_none(&is_finalized), 0);
-            assert!(state_util(&auction, node, 10) == AUCTION_STATE_NOT_AVAILABLE, 0);
-            assert!(state_util(&auction, node, START_AN_AUCTION_AT) == AUCTION_STATE_OPEN, 0);
+            assert!(state_util(&auction, domain_name, 10) == AUCTION_STATE_NOT_AVAILABLE, 0);
+            assert!(state_util(&auction, domain_name, START_AN_AUCTION_AT) == AUCTION_STATE_OPEN, 0);
 
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, node, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, domain_name, &mut coin, ctx);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE, 0);
             assert!(coin::value(&coin) == 2 * START_AN_AUCTION_FEE, 0);
-            assert!(state_util(&auction, node, START_AN_AUCTION_AT) == AUCTION_STATE_PENDING, 0);
-            assert!(state_util(&auction, node, START_AN_AUCTION_AT + 1) == AUCTION_STATE_BIDDING, 0);
-            assert!(state_util(&auction, node, START_AN_AUCTION_AT + 1 + BIDDING_PERIOD) == AUCTION_STATE_REVEAL, 0);
+            assert!(state_util(&auction, domain_name, START_AN_AUCTION_AT) == AUCTION_STATE_PENDING, 0);
+            assert!(state_util(&auction, domain_name, START_AN_AUCTION_AT + 1) == AUCTION_STATE_BIDDING, 0);
+            assert!(state_util(&auction, domain_name, START_AN_AUCTION_AT + 1 + BIDDING_PERIOD) == AUCTION_STATE_REVEAL, 0);
 
             // receive no bid
             let state = state_util(
                 &auction,
-                node,
+                domain_name,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
             );
             assert!(state == AUCTION_STATE_REOPENED || state == AUCTION_STATE_NOT_AVAILABLE, 0);
-            let (start_at, highest_bid, second_highest_bid, winner, is_finalized) = auction::get_entry(&auction, node);
+            let (start_at, highest_bid, second_highest_bid, winner, is_finalized) = auction::get_entry(&auction, domain_name);
             assert!(option::extract(&mut start_at) == START_AN_AUCTION_AT + 1, 0);
             assert!(option::extract(&mut highest_bid) == 0, 0);
             assert!(option::extract(&mut second_highest_bid) == 0, 0);
@@ -172,7 +172,7 @@ module suins::auction_tests {
     public fun reveal_bid_util(
         auction: &mut AuctionHouse,
         epoch: u64,
-        node: vector<u8>,
+        domain_name: vector<u8>,
         value: u64,
         secret: vector<u8>,
         sender: address,
@@ -184,7 +184,7 @@ module suins::auction_tests {
             epoch,
             ids_created
         );
-        auction::reveal_bid(auction, node, value, secret, &mut ctx);
+        auction::reveal_bid(auction, domain_name, value, secret, &mut ctx);
     }
 
     public fun get_bid_util(auction: &AuctionHouse, seal_bid: vector<u8>, bidder: address, expected_value: Option<u64>) {
@@ -206,14 +206,14 @@ module suins::auction_tests {
 
     public fun get_entry_util(
         auction: &AuctionHouse,
-        node: vector<u8>,
+        domain_name: vector<u8>,
         expected_start_at: u64,
         expected_highest_bid: u64,
         expected_second_highest_bid: u64,
         expected_winner: address,
         expected_is_finalized: bool,
     ) {
-        let (start_at, highest_bid, second_highest_bid, winner, is_finalized) = auction::get_entry(auction, node);
+        let (start_at, highest_bid, second_highest_bid, winner, is_finalized) = auction::get_entry(auction, domain_name);
         assert!(option::extract(&mut start_at) == expected_start_at, 0);
         assert!(option::extract(&mut highest_bid) == expected_highest_bid, 0);
         assert!(option::extract(&mut second_highest_bid) == expected_second_highest_bid, 0);
@@ -224,7 +224,7 @@ module suins::auction_tests {
     public fun finalize_auction_util(
         scenario: &mut Scenario,
         auction: &mut AuctionHouse,
-        node: vector<u8>,
+        domain_name: vector<u8>,
         sender: address,
         epoch: u64,
         ids: u64,
@@ -237,19 +237,19 @@ module suins::auction_tests {
         );
         let suins = test_scenario::take_shared<SuiNS>(scenario);
         let config = test_scenario::take_shared<Configuration>(scenario);
-        finalize_auction(auction, &mut suins, &config, node, &mut ctx);
+        finalize_auction(auction, &mut suins, &config, domain_name, &mut ctx);
         test_scenario::return_shared(suins);
         test_scenario::return_shared(config);
     }
 
-    public fun state_util(auction: &AuctionHouse, node: vector<u8>, epoch: u64): u8 {
+    public fun state_util(auction: &AuctionHouse, domain_name: vector<u8>, epoch: u64): u8 {
         let ctx = ctx_new(
             SUINS_ADDRESS,
             x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
             epoch,
             10
         );
-        state(auction, node, tx_context::epoch(&ctx))
+        state(auction, domain_name, tx_context::epoch(&ctx))
     }
 
     public fun place_bid_util(
@@ -331,7 +331,7 @@ module suins::auction_tests {
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
-            place_bid_util(scenario, NODE, 1200, FIRST_USER_ADDRESS, 0, option::none(), 10);
+            place_bid_util(scenario, DOMAIN_NAME, 1200, FIRST_USER_ADDRESS, 0, option::none(), 10);
         };
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         {
@@ -558,7 +558,7 @@ module suins::auction_tests {
             let coin = coin::mint_for_testing<SUI>(30 * START_AN_AUCTION_FEE, ctx);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            auction::start_an_auction(&mut auction, &mut suins, &config, NODE, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, ctx);
             assert!(auction::get_balance(&auction) == 0, 0);
 
             test_scenario::return_shared(auction);
@@ -619,7 +619,7 @@ module suins::auction_tests {
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
         };
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -652,7 +652,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(30000, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, NODE, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -680,7 +680,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(30000, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, NODE, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -691,7 +691,7 @@ module suins::auction_tests {
     }
 
     #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
-    fun test_start_an_auction_aborts_if_node_too_short() {
+    fun test_start_an_auction_aborts_if_domain_name_too_short() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
@@ -719,7 +719,7 @@ module suins::auction_tests {
     }
 
     #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
-    fun test_start_an_auction_aborts_if_node_too_long() {
+    fun test_start_an_auction_aborts_if_domain_name_too_long() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
@@ -764,10 +764,10 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let test_coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, NODE, &mut test_coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut test_coin, ctx);
             assert!(coin::value(&test_coin) == 2 * START_AN_AUCTION_FEE, 0);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, NODE, &mut test_coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut test_coin, ctx);
 
             coin::burn_for_testing(test_coin);
             test_scenario::return_shared(auction);
@@ -794,7 +794,7 @@ module suins::auction_tests {
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, &mut ctx);
             let config = test_scenario::take_shared<Configuration>(scenario);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, NODE, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, &mut ctx);
 
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
@@ -802,7 +802,7 @@ module suins::auction_tests {
                 111,
                 0
             );
-            auction::start_an_auction(&mut auction, &mut suins, &config, NODE, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, &mut ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -829,7 +829,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, &mut ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, NODE, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, &mut ctx);
 
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
@@ -837,7 +837,7 @@ module suins::auction_tests {
                 111 + BIDDING_PERIOD,
                 0
             );
-            auction::start_an_auction(&mut auction, &mut suins, &config, NODE, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, &mut ctx);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
@@ -867,7 +867,7 @@ module suins::auction_tests {
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == 0, 0);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, NODE, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, &mut ctx);
 
             assert!(coin::value(&coin) == 2 * START_AN_AUCTION_FEE, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
@@ -879,7 +879,7 @@ module suins::auction_tests {
                 111 + BIDDING_PERIOD + REVEAL_PERIOD,
                 0
             );
-            auction::start_an_auction(&mut auction, &mut suins, &config, NODE, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, &mut ctx);
 
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == 2 * START_AN_AUCTION_FEE, 0);
@@ -897,9 +897,9 @@ module suins::auction_tests {
     fun test_start_an_auction_in_finalizing_phase_abort() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1000, FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -908,7 +908,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -930,7 +930,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(30000, &mut ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, NODE, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, &mut ctx);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(suins);
@@ -944,9 +944,9 @@ module suins::auction_tests {
     fun test_start_an_auction_in_owned_phase_abort() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1000, FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -956,7 +956,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -968,16 +968,16 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&auction, NODE, START_AN_AUCTION_AT + 1, 1000, 0, FIRST_USER_ADDRESS, false);
+            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1000, 0, FIRST_USER_ADDRESS, false);
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 FIRST_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
             );
-            get_entry_util(&auction, NODE, START_AN_AUCTION_AT + 1, 1000, 0, FIRST_USER_ADDRESS, true);
+            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1000, 0, FIRST_USER_ADDRESS, true);
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
@@ -996,7 +996,7 @@ module suins::auction_tests {
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1000 + BIDDING_FEE, 0);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, NODE, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, &mut ctx);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(suins);
@@ -1011,7 +1011,7 @@ module suins::auction_tests {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1100, FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -1025,7 +1025,7 @@ module suins::auction_tests {
             let coin = test_scenario::most_recent_id_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
             assert!(option::is_none(&coin), 0);
 
-            auction::reveal_bid(&mut auction, NODE, 1000, FIRST_SECRET, &mut ctx);
+            auction::reveal_bid(&mut auction, DOMAIN_NAME, 1000, FIRST_SECRET, &mut ctx);
             test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario_val);
@@ -1035,9 +1035,9 @@ module suins::auction_tests {
     fun test_reveal_bid() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1100, FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -1060,7 +1060,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    NODE,
+                    DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_REOPENED,
                 0
@@ -1068,7 +1068,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -1078,7 +1078,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    NODE,
+                    DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_FINALIZING,
                 0
@@ -1103,7 +1103,7 @@ module suins::auction_tests {
             test_scenario::return_shared(auction);
         };
 
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 1500, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1500, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 2000, SECOND_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -1129,7 +1129,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1500,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -1145,7 +1145,7 @@ module suins::auction_tests {
             assert!(created_at == START_AN_AUCTION_AT + 1, 0);
             assert!(is_unsealed, 0);
 
-            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, NODE), 0);
+            assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, DOMAIN_NAME), 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -1162,16 +1162,16 @@ module suins::auction_tests {
             assert!(vector::length(&bids) == 1, 0);
             assert!(auction::get_balance(&auction) == 3100, 0);
 
-            get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, false);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, false);
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 SECOND_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 20
             );
-            get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
 
             let bids = get_bids_by_bidder(&auction, SECOND_USER_ADDRESS);
             assert!(vector::length(&bids) == 0, 0);
@@ -1197,15 +1197,15 @@ module suins::auction_tests {
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
-            assert!(registrar::record_exists(&suins, SUI_REGISTRAR, NODE), 0);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
+            assert!(registrar::record_exists(&suins, SUI_REGISTRAR, DOMAIN_NAME), 0);
             assert!(
-                registrar::name_expires_at(&suins, SUI_REGISTRAR, NODE)
+                registrar::name_expires_at(&suins, SUI_REGISTRAR, DOMAIN_NAME)
                     == START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 365,
                 0
             );
-            assert!(registry::owner(&suins, NODE_SUI) == SECOND_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
+            assert!(registry::owner(&suins, DOMAIN_NAME_SUI) == SECOND_USER_ADDRESS, 0);
+            assert!(registry::ttl(&suins, DOMAIN_NAME_SUI) == 0, 0);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
         };
@@ -1215,16 +1215,16 @@ module suins::auction_tests {
             let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
             assert!(vector::length(&bids) == 1, 0);
 
-            get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 FIRST_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
             );
-            get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
             assert!(auction::get_balance(&auction) == 0, 0);
             let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
             assert!(vector::length(&bids) == 0, 0);
@@ -1254,15 +1254,15 @@ module suins::auction_tests {
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
-            assert!(registrar::record_exists(&suins, SUI_REGISTRAR, NODE), 0);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
+            assert!(registrar::record_exists(&suins, SUI_REGISTRAR, DOMAIN_NAME), 0);
             assert!(
-                registrar::name_expires_at(&suins, SUI_REGISTRAR, NODE)
+                registrar::name_expires_at(&suins, SUI_REGISTRAR, DOMAIN_NAME)
                     == START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 365,
                 0
             );
-            assert!(registry::owner(&suins, NODE_SUI) == SECOND_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
+            assert!(registry::owner(&suins, DOMAIN_NAME_SUI) == SECOND_USER_ADDRESS, 0);
+            assert!(registry::ttl(&suins, DOMAIN_NAME_SUI) == 0, 0);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
         };
@@ -1273,9 +1273,9 @@ module suins::auction_tests {
     fun test_reveal_bid_choose_the_one_who_bids_first_in_epoch_as_winner_if_same_value() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let ctx = ctx_new(
@@ -1301,7 +1301,7 @@ module suins::auction_tests {
             test_scenario::return_shared(suins);
             test_scenario::return_shared(clock);
         };
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1000, FIRST_SECRET);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let ctx = ctx_new(
@@ -1335,7 +1335,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -1349,7 +1349,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -1362,7 +1362,7 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             get_entry_util(
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 START_AN_AUCTION_AT + 1,
                 1000,
                 1000,
@@ -1378,9 +1378,9 @@ module suins::auction_tests {
     fun test_reveal_bid_choose_the_one_who_bids_first_in_epoch_as_winner_if_same_value_2() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let ctx = ctx_new(
@@ -1406,7 +1406,7 @@ module suins::auction_tests {
             test_scenario::return_shared(clock);
             test_scenario::return_shared(suins);
         };
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1000, FIRST_SECRET);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let ctx = ctx_new(
@@ -1440,7 +1440,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -1457,7 +1457,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -1470,7 +1470,7 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             get_entry_util(
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 START_AN_AUCTION_AT + 1,
                 1000,
                 1000,
@@ -1486,11 +1486,11 @@ module suins::auction_tests {
     fun test_reveal_bid_choose_the_one_who_bids_first_in_ms_as_winner_if_same_value() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1100, FIRST_USER_ADDRESS, 1, option::none(), 10);
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1100, SECOND_USER_ADDRESS, 2, option::none(), 15);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -1500,7 +1500,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -1519,7 +1519,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -1535,7 +1535,7 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
              get_entry_util(
                 &mut auction,
-                NODE,
+                 DOMAIN_NAME,
                 START_AN_AUCTION_AT + 1,
                 1000,
                 1000,
@@ -1551,11 +1551,11 @@ module suins::auction_tests {
     fun test_reveal_bid_choose_the_one_who_bids_first_in_ms_as_winner_if_same_value_2() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1100, FIRST_USER_ADDRESS, 1, option::none(), 10);
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1100, SECOND_USER_ADDRESS, 2, option::none(), 15);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -1566,7 +1566,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -1587,7 +1587,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -1603,7 +1603,7 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             get_entry_util(
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 START_AN_AUCTION_AT + 1,
                 1000,
                 1000,
@@ -1619,11 +1619,11 @@ module suins::auction_tests {
     fun test_reveal_bid_choose_the_one_who_reveals_first_as_winner_if_same_value_and_same_created_at_in_epoch_and_same_ms() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1100, FIRST_USER_ADDRESS, 0, option::none(), 10);
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1100, SECOND_USER_ADDRESS, 0, option::none(), 15);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -1631,7 +1631,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -1646,7 +1646,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -1666,7 +1666,7 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             get_entry_util(
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 START_AN_AUCTION_AT + 1,
                 1000,
                 1000,
@@ -1682,11 +1682,11 @@ module suins::auction_tests {
     fun test_reveal_bid_choose_the_one_who_reveals_first_as_winner_if_same_value_and_same_created_at_in_epoch_and_different_ms() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1100, FIRST_USER_ADDRESS, 1, option::none(), 10);
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1100, SECOND_USER_ADDRESS, 0, option::none(), 15);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -1694,7 +1694,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -1709,7 +1709,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -1728,7 +1728,7 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             get_entry_util(
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 START_AN_AUCTION_AT + 1,
                 1000,
                 1000,
@@ -1744,9 +1744,9 @@ module suins::auction_tests {
     fun test_reveal_bid_choose_the_one_who_reveals_first_as_winner_if_same_value_and_same_created_at_2() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1100, FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -1754,7 +1754,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -1763,7 +1763,7 @@ module suins::auction_tests {
             assert!(auction::get_balance(&auction) == 1100, 0);
             test_scenario::return_shared(auction);
         };
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1100, SECOND_USER_ADDRESS, 0,option::none(), 15);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -1771,7 +1771,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + 1,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -1790,7 +1790,7 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             get_entry_util(
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 START_AN_AUCTION_AT + 1,
                 1000,
                 1000,
@@ -1806,9 +1806,9 @@ module suins::auction_tests {
     fun test_non_winner_can_call_finalize_auction() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1000, FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -1817,7 +1817,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -1827,7 +1827,7 @@ module suins::auction_tests {
             test_scenario::return_shared(auction);
         };
 
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 1500, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1500, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 2100, SECOND_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -1837,7 +1837,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1500,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -1849,12 +1849,12 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, false);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, false);
 
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 FIRST_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
@@ -1874,7 +1874,7 @@ module suins::auction_tests {
             let ids = test_scenario::ids_for_address<Coin<SUI>>(SECOND_USER_ADDRESS);
 
             assert!(vector::length(&ids) == 0, 0);
-            get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, false);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, false);
 
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 2, 0);
@@ -1889,9 +1889,9 @@ module suins::auction_tests {
     fun test_finalize_auction() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1000, FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -1900,7 +1900,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -1918,7 +1918,7 @@ module suins::auction_tests {
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 FIRST_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
@@ -1932,15 +1932,15 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1000, 0, FIRST_USER_ADDRESS, true);
-            assert!(registrar::record_exists(&suins, SUI_REGISTRAR, NODE), 0);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1000, 0, FIRST_USER_ADDRESS, true);
+            assert!(registrar::record_exists(&suins, SUI_REGISTRAR, DOMAIN_NAME), 0);
             assert!(
-                registrar::name_expires_at(&suins, SUI_REGISTRAR, NODE)
+                registrar::name_expires_at(&suins, SUI_REGISTRAR, DOMAIN_NAME)
                     == START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 365,
                 0
             );
-            assert!(registry::owner(&suins, NODE_SUI) == FIRST_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
+            assert!(registry::owner(&suins, DOMAIN_NAME_SUI) == FIRST_USER_ADDRESS, 0);
+            assert!(registry::ttl(&suins, DOMAIN_NAME_SUI) == 0, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1000 + BIDDING_FEE, 0);
 
@@ -1954,9 +1954,9 @@ module suins::auction_tests {
     fun test_finalize_auction_if_winning_bid_has_mask_equals_actual_value() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1000, FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -1965,7 +1965,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -1980,7 +1980,7 @@ module suins::auction_tests {
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 FIRST_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
@@ -1994,15 +1994,15 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1000, 0, FIRST_USER_ADDRESS, true);
-            assert!(registrar::record_exists(&suins, SUI_REGISTRAR, NODE), 0);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1000, 0, FIRST_USER_ADDRESS, true);
+            assert!(registrar::record_exists(&suins, SUI_REGISTRAR, DOMAIN_NAME), 0);
             assert!(
-                registrar::name_expires_at(&suins, SUI_REGISTRAR, NODE)
+                registrar::name_expires_at(&suins, SUI_REGISTRAR, DOMAIN_NAME)
                     == START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 365,
                 0
             );
-            assert!(registry::owner(&suins, NODE_SUI) == FIRST_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
+            assert!(registry::owner(&suins, DOMAIN_NAME_SUI) == FIRST_USER_ADDRESS, 0);
+            assert!(registry::ttl(&suins, DOMAIN_NAME_SUI) == 0, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1000 + BIDDING_FEE, 0);
@@ -2017,9 +2017,9 @@ module suins::auction_tests {
     fun test_finalize_auction_if_winning_bid_has_mask_equals_actual_value_2() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1000, FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -2028,7 +2028,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -2038,7 +2038,7 @@ module suins::auction_tests {
             test_scenario::return_shared(auction);
         };
 
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 1500, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1500, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1500, SECOND_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -2048,7 +2048,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1500,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -2060,12 +2060,12 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, false);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, false);
 
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 SECOND_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 20
@@ -2087,7 +2087,7 @@ module suins::auction_tests {
 
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
 
             assert!(auction::get_balance(&auction) == 1000, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 950 + BIDDING_FEE * 2, 0);
@@ -2103,7 +2103,7 @@ module suins::auction_tests {
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 FIRST_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 30
@@ -2126,7 +2126,7 @@ module suins::auction_tests {
 
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
 
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 950 + BIDDING_FEE * 2, 0);
@@ -2144,9 +2144,9 @@ module suins::auction_tests {
     fun test_finalize_auction_if_winning_bid_has_mask_equals_actual_value_3() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1000, FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -2155,7 +2155,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -2164,7 +2164,7 @@ module suins::auction_tests {
             test_scenario::return_shared(auction);
         };
 
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 1500, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1500, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1500, SECOND_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -2174,7 +2174,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1500,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -2185,12 +2185,12 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, false);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, false);
 
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 SECOND_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 20
@@ -2210,7 +2210,7 @@ module suins::auction_tests {
             assert!(coin::value(&second_coin) == 500, 0);
 
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
 
             test_scenario::return_shared(auction);
             test_scenario::return_to_address(FIRST_USER_ADDRESS, first_coin);
@@ -2222,7 +2222,7 @@ module suins::auction_tests {
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 FIRST_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 30
@@ -2244,7 +2244,7 @@ module suins::auction_tests {
             assert!(coin::value(&coin3) == 500, 0);
 
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500, 1000, SECOND_USER_ADDRESS, true);
             test_scenario::return_shared(auction);
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin1);
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin2);
@@ -2257,9 +2257,9 @@ module suins::auction_tests {
     fun test_finalize_auction_has_extra_period() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1000, FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -2268,7 +2268,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -2288,7 +2288,7 @@ module suins::auction_tests {
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 FIRST_USER_ADDRESS,
                 START_AUCTION_END_AT + 10,
                 10
@@ -2302,15 +2302,15 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 1000, 0, FIRST_USER_ADDRESS, true);
-            assert!(registrar::record_exists(&suins, SUI_REGISTRAR, NODE), 0);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1000, 0, FIRST_USER_ADDRESS, true);
+            assert!(registrar::record_exists(&suins, SUI_REGISTRAR, DOMAIN_NAME), 0);
             assert!(
-                registrar::name_expires_at(&suins, SUI_REGISTRAR, NODE)
+                registrar::name_expires_at(&suins, SUI_REGISTRAR, DOMAIN_NAME)
                     == START_AUCTION_END_AT + 10 + 365,
                 0
             );
-            assert!(registry::owner(&suins, NODE_SUI) == FIRST_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
+            assert!(registry::owner(&suins, DOMAIN_NAME_SUI) == FIRST_USER_ADDRESS, 0);
+            assert!(registry::ttl(&suins, DOMAIN_NAME_SUI) == 0, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1000 + BIDDING_FEE, 0);
 
@@ -2324,7 +2324,7 @@ module suins::auction_tests {
     fun test_reveal_bid_late() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 1500, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1500, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 2000, SECOND_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -2332,7 +2332,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1500,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -2354,7 +2354,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + 1,
-                NODE,
+                DOMAIN_NAME,
                 1500,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -2385,7 +2385,7 @@ module suins::auction_tests {
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            auction::start_an_auction(&mut auction, &mut suins, &config, NODE, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, ctx);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE, 0);
 
@@ -2397,7 +2397,7 @@ module suins::auction_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
-            let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1500, FIRST_SECRET);
+            let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1500, FIRST_SECRET);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2425,7 +2425,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1500,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -2446,7 +2446,7 @@ module suins::auction_tests {
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 FIRST_USER_ADDRESS,
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + EXTRA_PERIOD + 1,
                 10
@@ -2475,7 +2475,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(30 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, NODE, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, ctx);
             assert!(auction::get_balance(&auction) == 0, 0);
 
             test_scenario::return_shared(auction);
@@ -2486,7 +2486,7 @@ module suins::auction_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
-            let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1500, FIRST_SECRET);
+            let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1500, FIRST_SECRET);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2514,7 +2514,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1500,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -2529,7 +2529,7 @@ module suins::auction_tests {
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 FIRST_USER_ADDRESS,
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + EXTRA_PERIOD - 1,
                 10
@@ -2544,15 +2544,15 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            get_entry_util(&mut auction, NODE, START_AUCTION_END_AT + 1, 1500, 0, FIRST_USER_ADDRESS, true);
-            assert!(registrar::record_exists(&suins, SUI_REGISTRAR, NODE), 0);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AUCTION_END_AT + 1, 1500, 0, FIRST_USER_ADDRESS, true);
+            assert!(registrar::record_exists(&suins, SUI_REGISTRAR, DOMAIN_NAME), 0);
             assert!(
-                registrar::name_expires_at(&suins, SUI_REGISTRAR, NODE)
+                registrar::name_expires_at(&suins, SUI_REGISTRAR, DOMAIN_NAME)
                     == START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + EXTRA_PERIOD - 1 + 365,
                 0
             );
-            assert!(registry::owner(&suins, NODE_SUI) == FIRST_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, NODE_SUI) == 0, 0);
+            assert!(registry::owner(&suins, DOMAIN_NAME_SUI) == FIRST_USER_ADDRESS, 0);
+            assert!(registry::ttl(&suins, DOMAIN_NAME_SUI) == 0, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1500 + BIDDING_FEE, 0);
@@ -2568,7 +2568,7 @@ module suins::auction_tests {
     fun test_withdraw_bid_that_remains_sealed() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1500, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1500, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 2000, FIRST_USER_ADDRESS, 0, option::none(), 10);
 
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
@@ -2607,7 +2607,7 @@ module suins::auction_tests {
     fun test_withdraw_bids() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1500, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1500, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 2000, FIRST_USER_ADDRESS, 0, option::none(), 10);
 
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
@@ -2622,7 +2622,7 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let coin = coin::mint_for_testing<SUI>(2000 + BIDDING_FEE, ctx);
-            let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1100, FIRST_SECRET);
+            let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1100, FIRST_SECRET);
             let clock = test_scenario::take_shared<Clock>(scenario);
 
             assert!(auction::get_balance(&auction) == 2000, 0);
@@ -2675,8 +2675,8 @@ module suins::auction_tests {
     fun test_cannt_withdraw_winning_bid() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1500, FIRST_SECRET);
+        start_an_auction_util(scenario, DOMAIN_NAME);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1500, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 2000, FIRST_USER_ADDRESS, 0, option::none(), 10);
 
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
@@ -2685,7 +2685,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1500,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -2752,9 +2752,9 @@ module suins::auction_tests {
         // auction receives only 1 bid and it is invalid
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 500, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 500, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 2000, SECOND_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -2762,7 +2762,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    NODE,
+                    DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_REOPENED,
                 0
@@ -2771,7 +2771,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 500,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -2781,7 +2781,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    NODE,
+                    DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_REOPENED,
                 0
@@ -2794,7 +2794,7 @@ module suins::auction_tests {
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 SECOND_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
@@ -2818,7 +2818,7 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&auction, NODE, START_AN_AUCTION_AT + 1, 0, 0, @0x0, false);
+            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 0, 0, @0x0, false);
             test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario_val);
@@ -2829,9 +2829,9 @@ module suins::auction_tests {
         // auction receives 2 bids and they are invalid
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 500, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 500, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 2000, SECOND_USER_ADDRESS, 0, option::none(), 15);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -2839,7 +2839,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    NODE,
+                    DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_REOPENED,
                 0
@@ -2849,7 +2849,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 500,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -2859,7 +2859,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    NODE,
+                    DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_REOPENED,
                 0
@@ -2867,7 +2867,7 @@ module suins::auction_tests {
             test_scenario::return_shared(auction);
         };
 
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 400, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 400, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 3000, SECOND_USER_ADDRESS, 0, option::none(), 20);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -2876,7 +2876,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 400,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -2891,7 +2891,7 @@ module suins::auction_tests {
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 SECOND_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
@@ -2921,7 +2921,7 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&auction, NODE, START_AN_AUCTION_AT + 1, 0, 0, @0x0, false);
+            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 0, 0, @0x0, false);
             test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario_val);
@@ -2932,10 +2932,10 @@ module suins::auction_tests {
         // auction receives only 1 bid and it is invalid
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
         // mock a winner
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1500, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1500, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 2000, FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -2944,7 +2944,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1500,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -2952,7 +2952,7 @@ module suins::auction_tests {
             );
             test_scenario::return_shared(auction);
         };
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 500, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 500, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 2200, SECOND_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -2960,7 +2960,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    NODE,
+                    DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_FINALIZING,
                 0
@@ -2969,7 +2969,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 500,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -2979,7 +2979,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    NODE,
+                    DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_FINALIZING,
                 0
@@ -2992,7 +2992,7 @@ module suins::auction_tests {
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 SECOND_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
@@ -3016,7 +3016,7 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&auction, NODE, START_AN_AUCTION_AT + 1, 1500, 0, FIRST_USER_ADDRESS, false);
+            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500, 0, FIRST_USER_ADDRESS, false);
             test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario_val);
@@ -3026,10 +3026,10 @@ module suins::auction_tests {
     fun test_reveal_multiple_invalid_bids_that_are_less_than_minimum_amount_and_has_a_winner() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
         // mock a winner
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1500, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1500, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 2000, FIRST_USER_ADDRESS, 0, option::none(), 15);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -3037,7 +3037,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    NODE,
+                    DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_REOPENED,
                 0
@@ -3047,7 +3047,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1500,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -3057,7 +3057,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    NODE,
+                    DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_FINALIZING,
                 0
@@ -3065,7 +3065,7 @@ module suins::auction_tests {
             test_scenario::return_shared(auction);
         };
 
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 500, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 500, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 2200, SECOND_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 20);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -3073,7 +3073,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    NODE,
+                    DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_FINALIZING,
                 0
@@ -3082,7 +3082,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 500,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -3091,7 +3091,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    NODE,
+                    DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_FINALIZING,
                 0
@@ -3099,7 +3099,7 @@ module suins::auction_tests {
             test_scenario::return_shared(auction);
         };
 
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 900, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 900, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1200, SECOND_USER_ADDRESS, 0, option::some(SECOND_TX_HASH), 25);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -3108,7 +3108,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 900,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -3123,7 +3123,7 @@ module suins::auction_tests {
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 SECOND_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
@@ -3153,7 +3153,7 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&auction, NODE, START_AN_AUCTION_AT + 1, 1500, 0, FIRST_USER_ADDRESS, false);
+            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500, 0, FIRST_USER_ADDRESS, false);
             test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario_val);
@@ -3164,9 +3164,9 @@ module suins::auction_tests {
         // auction receives only 1 bid and it is invalid
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 500, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 500, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 2200, SECOND_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -3174,7 +3174,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    NODE,
+                    DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_REOPENED,
                 0
@@ -3182,7 +3182,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 500,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -3191,7 +3191,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    NODE,
+                    DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_REOPENED,
                 0
@@ -3212,7 +3212,7 @@ module suins::auction_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, &mut ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, NODE, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, &mut ctx);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(suins);
@@ -3226,7 +3226,7 @@ module suins::auction_tests {
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 SECOND_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
@@ -3241,9 +3241,9 @@ module suins::auction_tests {
         // auction receives only 1 bid and it is invalid
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 500, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 500, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 2200, SECOND_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -3251,7 +3251,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    NODE,
+                    DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_REOPENED,
                 0
@@ -3259,7 +3259,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 500,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -3269,7 +3269,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    NODE,
+                    DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_REOPENED,
                 0
@@ -3289,7 +3289,7 @@ module suins::auction_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, &mut ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, NODE, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, &mut ctx);
 
             assert!(auction::get_balance(&auction) == 2200, 0);
             assert!(controller::get_balance(&suins) == 2 * START_AN_AUCTION_FEE + BIDDING_FEE, 0);
@@ -3306,7 +3306,7 @@ module suins::auction_tests {
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 SECOND_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
@@ -3336,9 +3336,9 @@ module suins::auction_tests {
     fun test_winner_finalize_auction_get_the_extra_payment() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 1500, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1500, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 2200, SECOND_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -3346,7 +3346,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    NODE,
+                    DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_REOPENED,
                 0
@@ -3354,7 +3354,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1500,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -3364,7 +3364,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    NODE,
+                    DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_FINALIZING,
                 0
@@ -3372,17 +3372,17 @@ module suins::auction_tests {
             test_scenario::return_shared(auction);
         };
 
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1600, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1600, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 3000, FIRST_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&auction, NODE, START_AN_AUCTION_AT + 1, 1500, 0, SECOND_USER_ADDRESS, false);
+            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500, 0, SECOND_USER_ADDRESS, false);
 
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1600,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -3392,17 +3392,17 @@ module suins::auction_tests {
             test_scenario::return_shared(auction);
         };
 
-        let seal_bid = make_seal_bid(NODE, SECOND_USER_ADDRESS, 1700, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1700, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 2000, SECOND_USER_ADDRESS, 0, option::some(SECOND_TX_HASH), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&auction, NODE, START_AN_AUCTION_AT + 1, 1600, 1500, FIRST_USER_ADDRESS, false);
+            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1600, 1500, FIRST_USER_ADDRESS, false);
 
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1700,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
@@ -3415,12 +3415,12 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&auction, NODE, START_AN_AUCTION_AT + 1, 1700, 1600, SECOND_USER_ADDRESS, false);
+            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1700, 1600, SECOND_USER_ADDRESS, false);
 
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 FIRST_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
@@ -3443,12 +3443,12 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&auction, NODE, START_AN_AUCTION_AT + 1, 1700, 1600, SECOND_USER_ADDRESS, false);
+            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1700, 1600, SECOND_USER_ADDRESS, false);
 
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 SECOND_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 15
@@ -3493,7 +3493,7 @@ module suins::auction_tests {
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 FIRST_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 15
@@ -3527,9 +3527,9 @@ module suins::auction_tests {
     fun test_reveal_bid_abort_if_unseal_twice() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, NODE);
+        start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1000, FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -3537,7 +3537,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -3556,7 +3556,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -3571,8 +3571,8 @@ module suins::auction_tests {
     fun test_reveal_bid_abort_with_wrong_parameter() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
-        start_an_auction_util(scenario, NODE);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        start_an_auction_util(scenario, DOMAIN_NAME);
         place_bid_util(scenario, seal_bid, 1000, FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -3580,7 +3580,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1200,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -3595,8 +3595,8 @@ module suins::auction_tests {
     fun test_reveal_bid_abort_with_wrong_parameter_2() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
-        start_an_auction_util(scenario, NODE);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        start_an_auction_util(scenario, DOMAIN_NAME);
         place_bid_util(scenario, seal_bid, 1400, FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -3604,7 +3604,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 1000,
                 b"wrong_secret",
                 FIRST_USER_ADDRESS,
@@ -3620,8 +3620,8 @@ module suins::auction_tests {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
-        start_an_auction_util(scenario, NODE);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000, FIRST_SECRET);
+        start_an_auction_util(scenario, DOMAIN_NAME);
         place_bid_util(scenario, seal_bid, 10000, FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -3644,8 +3644,8 @@ module suins::auction_tests {
     fun test_reveal_bid_handle_invalid_if_mask_bid_less_than_actual_value() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        let seal_bid = make_seal_bid(NODE, FIRST_USER_ADDRESS, 3000, FIRST_SECRET);
-        start_an_auction_util(scenario, NODE);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 3000, FIRST_SECRET);
+        start_an_auction_util(scenario, DOMAIN_NAME);
         place_bid_util(scenario, seal_bid, 2000, FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -3656,7 +3656,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                NODE,
+                DOMAIN_NAME,
                 3000,
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -3676,7 +3676,7 @@ module suins::auction_tests {
             assert!(vector::length(&ids) == 0, 0);
 
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&mut auction, NODE, START_AN_AUCTION_AT + 1, 0, 0, @0x0, false);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 0, 0, @0x0, false);
             test_scenario::return_shared(auction);
         };
 
@@ -3686,7 +3686,7 @@ module suins::auction_tests {
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                NODE,
+                DOMAIN_NAME,
                 FIRST_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
@@ -3863,7 +3863,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, NODE, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -3926,7 +3926,7 @@ module suins::auction_tests {
                 10
             );
             let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
-            auction::reveal_bid(&mut auction, NODE, 1000, FIRST_SECRET, &mut ctx);
+            auction::reveal_bid(&mut auction, DOMAIN_NAME, 1000, FIRST_SECRET, &mut ctx);
             test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario);
@@ -3953,7 +3953,7 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            auction::finalize_auction(&mut auction, &mut suins, &config, NODE, &mut ctx);
+            auction::finalize_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut ctx);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(config);

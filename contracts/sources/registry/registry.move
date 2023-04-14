@@ -83,19 +83,19 @@ module suins::registry {
     }
 
     /// #### Notice
-    /// This funtions allows owner of `node` to reassign ownership of this node.
-    /// The `node` can have multiple levels.
+    /// This funtions allows owner of `domain name` to reassign ownership of this domain name.
+    /// The `domain name` can have multiple levels.
     ///
     /// #### Dev
-    /// `Record` indexed by `node` is updated.
+    /// `Record` indexed by `domain name` is updated.
     ///
     /// #### Params
-    /// `node`: node to be updated
+    /// `domain name`: domain name to be updated
     /// `owner`: new owner address
     ///
     /// Panics
-    /// Panics if caller isn't the owner of `node`
-    /// or `node` doesn't exists.
+    /// Panics if caller isn't the owner of `domain name`
+    /// or `domain name` doesn't exists.
     public entry fun set_owner(suins: &mut SuiNS, domain_name: vector<u8>, owner: address, ctx: &mut TxContext) {
         authorised(suins, domain_name, ctx);
 
@@ -105,19 +105,18 @@ module suins::registry {
     }
 
     /// #### Notice
-    /// This funtions allows owner of `node` to reassign ttl address of this node.
-    /// The `node` can have multiple levels.
+    /// This funtions allows owner of `domain name` to reassign ttl address of this domain name.
+    /// The `domain name` can have multiple levels.
     ///
     /// #### Dev
-    /// `Record` indexed by `node` is updated.
+    /// `Record` indexed by `domain name` is updated.
     ///
     /// #### Params
-    /// `node`: node to get subnode
     /// `ttl`: new TTL address
     ///
     /// Panics
-    /// Panics if caller isn't the owner of `node`
-    /// or `node` doesn't exists.
+    /// Panics if caller isn't the owner of `domain name`
+    /// or `domain name` doesn't exists.
     public entry fun set_ttl(suins: &mut SuiNS, domain_name: vector<u8>, ttl: u64, ctx: &mut TxContext) {
         authorised(suins, domain_name, ctx);
 
@@ -129,18 +128,14 @@ module suins::registry {
     }
 
     /// #### Notice
-    /// This funtions allows owner of `node` to set content hash url.
-    ///
-    /// #### Dev
-    /// Create 'contenthash' key if not exist.
-    /// `hash` isn't validated.
+    /// This funtions allows owner of `domain name` to set custom data.
     ///
     /// #### Params
-    /// `node`: node to be updated
+    /// `domain_name`: domain name to be updated
     /// `hash`: content hash url
     ///
     /// Panics
-    /// Panics if caller isn't the owner of `node`
+    /// Panics if caller isn't the owner of `domain name`
     public entry fun set_data(
         suins: &mut SuiNS,
         domain_name: vector<u8>,
@@ -163,14 +158,14 @@ module suins::registry {
     }
 
     /// #### Notice
-    /// This funtions allows owner of `node` to unset content hash url.
+    /// This funtions allows owner of `domain_name` to unset custom data.
     ///
     /// #### Params
-    /// `node`: node to be updated
+    /// `domain_name`: domain name to be updated
     ///
     /// Panics
-    /// Panics if caller isn't the owner of `node`
-    /// or `node` doesn't exist.
+    /// Panics if caller isn't the owner of `domain_name`
+    /// or `domain_name` doesn't exist.
     public entry fun unset_data(
         suins: &mut SuiNS,
         domain_name: vector<u8>,
@@ -189,14 +184,14 @@ module suins::registry {
     }
 
     /// #### Notice
-    /// This funtions allows owner of `domain_name` to set default addr.
+    /// This funtions allows owner of `domain_name` to set linked addr.
     ///
     /// #### Params
-    /// `node`: node to be updated
+    /// `domain_name`: domain_name to be updated
     /// `new_addr`: new address value
     ///
     /// Panics
-    /// Panics if caller isn't the owner of `node`
+    /// Panics if caller isn't the owner of `domain_name`
     public entry fun set_linked_addr(
         suins: &mut SuiNS,
         domain_name: vector<u8>,
@@ -255,28 +250,27 @@ module suins::registry {
     // === Public Functions ===
 
     /// #### Notice
-    /// Get owner address of a `node`.
-    /// The `node` can have multiple levels.
+    /// Get owner address of a `domain_name`.
+    /// The `domain_name` can have multiple levels.
     ///
     /// #### Params
-    /// `node`: node to find the owner
+    /// `domain_name`: domain name to find the owner
     ///
     /// Panics
-    /// Panics if `node` doesn't exists.
+    /// Panics if `domain_name` doesn't exists.
     public fun owner(suins: &SuiNS, domain_name: vector<u8>): address {
         let name_record = get_name_record(suins, utf8(domain_name));
         entity::name_record_owner(name_record)
     }
 
     /// #### Notice
-    /// Get ttl of a `node`.
-    /// The `node` can have multiple levels.
+    /// Get ttl of a `domain_name`.
     ///
     /// #### Params
-    /// `node`: node to find the ttl
+    /// `domain_name`: domain name to find the ttl
     ///
     /// Panics
-    /// Panics if `node` doesn't exists.
+    /// Panics if `domain_name` doesn't exists.
     public fun ttl(suins: &SuiNS, domain_name: vector<u8>): u64 {
         let name_record = get_name_record(suins, utf8(domain_name));
         name_record_ttl(name_record)
@@ -404,9 +398,9 @@ module suins::registry {
     }
 
     #[test_only]
-    public fun record_exists(suins: &SuiNS, node: String): bool {
+    public fun record_exists(suins: &SuiNS, domain_name: String): bool {
         let registry = entity::registry(suins);
-        table::contains(registry, node)
+        table::contains(registry, domain_name)
     }
 
     #[test_only]

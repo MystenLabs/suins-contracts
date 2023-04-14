@@ -15,8 +15,8 @@ module suins::reverse_registrar {
 
     public entry fun claim(suins: &mut SuiNS, owner: address, ctx: &mut TxContext) {
         let label = hex::encode(address::to_bytes(sender(ctx)));
-        let node = registry::make_subdomain_name(label, registry::addr_reverse_tld());
-        registry::set_record_internal(suins, node, owner, 0, ctx);
+        let domain_name = registry::make_subdomain_name(label, registry::addr_reverse_tld());
+        registry::set_record_internal(suins, domain_name, owner, 0, ctx);
 
         event::emit(ReverseClaimedEvent { addr: sender(ctx) })
     }
