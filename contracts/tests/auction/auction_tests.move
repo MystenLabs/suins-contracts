@@ -17,6 +17,7 @@ module suins::auction_tests {
     use suins::controller;
     use sui::clock::Clock;
     use sui::clock;
+    use std::string::utf8;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -27,15 +28,15 @@ module suins::auction_tests {
         97, // 'a'
         98, // 'b'
         99, // 'c'
-        // 240, 159, 146, 150, // 1f496
-        // 240, 159, 145, 168, // 1f468_200d_2764_fe0f_200d_1f48b_200d_1f468
-        // 226, 128, 141,
-        // 226, 157, 164,
-        // 239, 184, 143,
-        // 226, 128, 141,
-        // 240, 159, 146, 139,
-        // 226, 128, 141,
-        // 240, 159, 145, 168,
+        240, 159, 146, 150, // 1f496
+        240, 159, 145, 168, // 1f468_200d_2764_fe0f_200d_1f48b_200d_1f468
+        226, 128, 141,
+        226, 157, 164,
+        239, 184, 143,
+        226, 128, 141,
+        240, 159, 146, 139,
+        226, 128, 141,
+        240, 159, 145, 168,
     ];
     const SECOND_DOMAIN_NAME: vector<u8> = b"suins2";
     const THIRD_DOMAIN_NAME: vector<u8> = b"suins3";
@@ -43,15 +44,15 @@ module suins::auction_tests {
         97, // 'a'
         98, // 'b'
         99, // 'c'
-        // 240, 159, 146, 150, // 1f496
-        // 240, 159, 145, 168, // 1f468_200d_2764_fe0f_200d_1f48b_200d_1f468
-        // 226, 128, 141,
-        // 226, 157, 164,
-        // 239, 184, 143,
-        // 226, 128, 141,
-        // 240, 159, 146, 139,
-        // 226, 128, 141,
-        // 240, 159, 145, 168,
+        240, 159, 146, 150, // 1f496
+        240, 159, 145, 168, // 1f468_200d_2764_fe0f_200d_1f48b_200d_1f468
+        226, 128, 141,
+        226, 157, 164,
+        239, 184, 143,
+        226, 128, 141,
+        240, 159, 146, 139,
+        226, 128, 141,
+        240, 159, 145, 168,
         46, // .
         115, // s
         117, // u
@@ -98,8 +99,8 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            registrar::new_tld(&admin_cap, &mut suins, MOVE_REGISTRAR, test_scenario::ctx(&mut scenario));
-            registrar::new_tld(&admin_cap, &mut suins, SUI_REGISTRAR, test_scenario::ctx(&mut scenario));
+            registrar::new_tld(&admin_cap, &mut suins, utf8(MOVE_REGISTRAR), test_scenario::ctx(&mut scenario));
+            registrar::new_tld(&admin_cap, &mut suins, utf8(SUI_REGISTRAR), test_scenario::ctx(&mut scenario));
 
             auction::configure_auction(
                 &admin_cap,
@@ -130,7 +131,7 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
-            let (start_at, highest_bid, second_highest_bid, winner, is_finalized) = auction::get_entry(&auction, domain_name);
+            let (start_at, highest_bid, second_highest_bid, winner, is_finalized) = auction::get_entry(&auction, utf8(domain_name));
             assert!(option::is_none(&start_at), 0);
             assert!(option::is_none(&highest_bid), 0);
             assert!(option::is_none(&second_highest_bid), 0);
@@ -141,7 +142,7 @@ module suins::auction_tests {
 
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, domain_name, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(domain_name), &mut coin, ctx);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE, 0);
             assert!(coin::value(&coin) == 2 * START_AN_AUCTION_FEE, 0);
             assert!(state_util(&auction, domain_name, START_AN_AUCTION_AT) == AUCTION_STATE_PENDING, 0);
@@ -155,7 +156,7 @@ module suins::auction_tests {
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
             );
             assert!(state == AUCTION_STATE_REOPENED || state == AUCTION_STATE_NOT_AVAILABLE, 0);
-            let (start_at, highest_bid, second_highest_bid, winner, is_finalized) = auction::get_entry(&auction, domain_name);
+            let (start_at, highest_bid, second_highest_bid, winner, is_finalized) = auction::get_entry(&auction, utf8(domain_name));
             assert!(option::extract(&mut start_at) == START_AN_AUCTION_AT + 1, 0);
             assert!(option::extract(&mut highest_bid) == 0, 0);
             assert!(option::extract(&mut second_highest_bid) == 0, 0);
@@ -185,7 +186,7 @@ module suins::auction_tests {
             epoch,
             ids_created
         );
-        auction::reveal_bid(auction, config, domain_name, value, secret, &mut ctx);
+        auction::reveal_bid(auction, config, utf8(domain_name), value, secret, &mut ctx);
     }
 
     public fun get_bid_util(auction: &AuctionHouse, seal_bid: vector<u8>, bidder: address, expected_value: Option<u64>) {
@@ -214,7 +215,7 @@ module suins::auction_tests {
         expected_winner: address,
         expected_is_finalized: bool,
     ) {
-        let (start_at, highest_bid, second_highest_bid, winner, is_finalized) = auction::get_entry(auction, domain_name);
+        let (start_at, highest_bid, second_highest_bid, winner, is_finalized) = auction::get_entry(auction, utf8(domain_name));
         assert!(option::extract(&mut start_at) == expected_start_at, 0);
         assert!(option::extract(&mut highest_bid) == expected_highest_bid, 0);
         assert!(option::extract(&mut second_highest_bid) == expected_second_highest_bid, 0);
@@ -238,7 +239,7 @@ module suins::auction_tests {
         );
         let suins = test_scenario::take_shared<SuiNS>(scenario);
         let config = test_scenario::take_shared<Configuration>(scenario);
-        finalize_auction(auction, &mut suins, &config, domain_name, &mut ctx);
+        finalize_auction(auction, &mut suins, &config, utf8(domain_name), &mut ctx);
         test_scenario::return_shared(suins);
         test_scenario::return_shared(config);
     }
@@ -250,7 +251,7 @@ module suins::auction_tests {
             epoch,
             10
         );
-        state(auction, domain_name, tx_context::epoch(&ctx))
+        state(auction, utf8(domain_name), tx_context::epoch(&ctx))
     }
 
     public fun place_bid_util(
@@ -573,7 +574,7 @@ module suins::auction_tests {
             let coin = coin::mint_for_testing<SUI>(30 * START_AN_AUCTION_FEE, ctx);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, ctx);
             assert!(auction::get_balance(&auction) == 0, 0);
 
             test_scenario::return_shared(auction);
@@ -669,7 +670,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(30000, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -697,7 +698,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(30000, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -725,7 +726,7 @@ module suins::auction_tests {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, b"su", &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(b"su"), &mut coin, ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -757,7 +758,7 @@ module suins::auction_tests {
                 &mut auction,
                 &mut suins,
                 &config,
-                b"suinssusuinssusuinssusuinssusuinssusuinssusuinssusuinssusuinssusuinssusuinssusuinssu",
+                utf8(b"suinssusuinssusuinssusuinssusuinssusuinssusuinssusuinssusuinssusuinssusuinssusuinssu"),
                 &mut coin,
                 ctx,
             );
@@ -788,10 +789,10 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let test_coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut test_coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut test_coin, ctx);
             assert!(coin::value(&test_coin) == 2 * START_AN_AUCTION_FEE, 0);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut test_coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut test_coin, ctx);
 
             coin::burn_for_testing(test_coin);
             test_scenario::return_shared(auction);
@@ -818,7 +819,7 @@ module suins::auction_tests {
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, &mut ctx);
             let config = test_scenario::take_shared<Configuration>(scenario);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
@@ -826,7 +827,7 @@ module suins::auction_tests {
                 111,
                 0
             );
-            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -853,7 +854,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, &mut ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
@@ -861,7 +862,7 @@ module suins::auction_tests {
                 111 + BIDDING_PERIOD,
                 0
             );
-            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
@@ -891,7 +892,7 @@ module suins::auction_tests {
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == 0, 0);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
             assert!(coin::value(&coin) == 2 * START_AN_AUCTION_FEE, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
@@ -903,7 +904,7 @@ module suins::auction_tests {
                 111 + BIDDING_PERIOD + REVEAL_PERIOD,
                 0
             );
-            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == 2 * START_AN_AUCTION_FEE, 0);
@@ -957,7 +958,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(10 * configuration::mist_per_sui(), &mut ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(suins);
@@ -1028,7 +1029,7 @@ module suins::auction_tests {
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1300 * configuration::mist_per_sui() + BIDDING_FEE, 0);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(suins);
@@ -1058,7 +1059,7 @@ module suins::auction_tests {
             let coin = test_scenario::most_recent_id_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
 
             assert!(option::is_none(&coin), 0);
-            auction::reveal_bid(&mut auction, &config, DOMAIN_NAME, 1000 * configuration::mist_per_sui(), FIRST_SECRET, &mut ctx);
+            auction::reveal_bid(&mut auction, &config, utf8(DOMAIN_NAME), 1000 * configuration::mist_per_sui(), FIRST_SECRET, &mut ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -1241,12 +1242,12 @@ module suins::auction_tests {
             get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * configuration::mist_per_sui(), 1200 * configuration::mist_per_sui(), SECOND_USER_ADDRESS, true);
             assert!(registrar::record_exists(&suins, SUI_REGISTRAR, DOMAIN_NAME), 0);
             assert!(
-                registrar::name_expires_at(&suins, SUI_REGISTRAR, DOMAIN_NAME)
+                registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(DOMAIN_NAME))
                     == START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 365,
                 0
             );
-            assert!(registry::owner(&suins, DOMAIN_NAME_SUI) == SECOND_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, DOMAIN_NAME_SUI) == 0, 0);
+            assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == SECOND_USER_ADDRESS, 0);
+            assert!(registry::ttl(&suins, utf8(DOMAIN_NAME_SUI)) == 0, 0);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
         };
@@ -1298,12 +1299,12 @@ module suins::auction_tests {
             get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * configuration::mist_per_sui(), 1200 * configuration::mist_per_sui(), SECOND_USER_ADDRESS, true);
             assert!(registrar::record_exists(&suins, SUI_REGISTRAR, DOMAIN_NAME), 0);
             assert!(
-                registrar::name_expires_at(&suins, SUI_REGISTRAR, DOMAIN_NAME)
+                registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(DOMAIN_NAME))
                     == START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 365,
                 0
             );
-            assert!(registry::owner(&suins, DOMAIN_NAME_SUI) == SECOND_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, DOMAIN_NAME_SUI) == 0, 0);
+            assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == SECOND_USER_ADDRESS, 0);
+            assert!(registry::ttl(&suins, utf8(DOMAIN_NAME_SUI)) == 0, 0);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
         };
@@ -2037,12 +2038,12 @@ module suins::auction_tests {
             get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1200 * configuration::mist_per_sui(), 0, FIRST_USER_ADDRESS, true);
             assert!(registrar::record_exists(&suins, SUI_REGISTRAR, DOMAIN_NAME), 0);
             assert!(
-                registrar::name_expires_at(&suins, SUI_REGISTRAR, DOMAIN_NAME)
+                registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(DOMAIN_NAME))
                     == START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 365,
                 0
             );
-            assert!(registry::owner(&suins, DOMAIN_NAME_SUI) == FIRST_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, DOMAIN_NAME_SUI) == 0, 0);
+            assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
+            assert!(registry::ttl(&suins, utf8(DOMAIN_NAME_SUI)) == 0, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1200 * configuration::mist_per_sui() + BIDDING_FEE, 0);
 
@@ -2104,12 +2105,12 @@ module suins::auction_tests {
             get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1200 * configuration::mist_per_sui(), 0, FIRST_USER_ADDRESS, true);
             assert!(registrar::record_exists(&suins, SUI_REGISTRAR, DOMAIN_NAME), 0);
             assert!(
-                registrar::name_expires_at(&suins, SUI_REGISTRAR, DOMAIN_NAME)
+                registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(DOMAIN_NAME))
                     == START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 365,
                 0
             );
-            assert!(registry::owner(&suins, DOMAIN_NAME_SUI) == FIRST_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, DOMAIN_NAME_SUI) == 0, 0);
+            assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
+            assert!(registry::ttl(&suins, utf8(DOMAIN_NAME_SUI)) == 0, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1200 * configuration::mist_per_sui() + BIDDING_FEE, 0);
@@ -2435,12 +2436,12 @@ module suins::auction_tests {
             get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1200 * configuration::mist_per_sui(), 0, FIRST_USER_ADDRESS, true);
             assert!(registrar::record_exists(&suins, SUI_REGISTRAR, DOMAIN_NAME), 0);
             assert!(
-                registrar::name_expires_at(&suins, SUI_REGISTRAR, DOMAIN_NAME)
+                registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(DOMAIN_NAME))
                     == START_AUCTION_END_AT + 10 + 365,
                 0
             );
-            assert!(registry::owner(&suins, DOMAIN_NAME_SUI) == FIRST_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, DOMAIN_NAME_SUI) == 0, 0);
+            assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
+            assert!(registry::ttl(&suins, utf8(DOMAIN_NAME_SUI)) == 0, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1200 * configuration::mist_per_sui() + BIDDING_FEE, 0);
 
@@ -2523,7 +2524,7 @@ module suins::auction_tests {
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, ctx);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE, 0);
 
@@ -2618,7 +2619,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(30 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, ctx);
             assert!(auction::get_balance(&auction) == 0, 0);
 
             test_scenario::return_shared(auction);
@@ -2694,12 +2695,12 @@ module suins::auction_tests {
             get_entry_util(&mut auction, DOMAIN_NAME, START_AUCTION_END_AT + 1, 1500 * configuration::mist_per_sui(), 0, FIRST_USER_ADDRESS, true);
             assert!(registrar::record_exists(&suins, SUI_REGISTRAR, DOMAIN_NAME), 0);
             assert!(
-                registrar::name_expires_at(&suins, SUI_REGISTRAR, DOMAIN_NAME)
+                registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(DOMAIN_NAME))
                     == START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + EXTRA_PERIOD - 1 + 365,
                 0
             );
-            assert!(registry::owner(&suins, DOMAIN_NAME_SUI) == FIRST_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, DOMAIN_NAME_SUI) == 0, 0);
+            assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
+            assert!(registry::ttl(&suins, utf8(DOMAIN_NAME_SUI)) == 0, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1500 * configuration::mist_per_sui() + BIDDING_FEE, 0);
@@ -3406,7 +3407,7 @@ module suins::auction_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, &mut ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(suins);
@@ -3488,7 +3489,7 @@ module suins::auction_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, &mut ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
             assert!(auction::get_balance(&auction) == 2200 * configuration::mist_per_sui(), 0);
             assert!(controller::get_balance(&suins) == 2 * START_AN_AUCTION_FEE + BIDDING_FEE, 0);
@@ -4093,7 +4094,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -4159,7 +4160,7 @@ module suins::auction_tests {
             );
             let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            auction::reveal_bid(&mut auction, &config, DOMAIN_NAME, 1000 * configuration::mist_per_sui(), FIRST_SECRET, &mut ctx);
+            auction::reveal_bid(&mut auction, &config, utf8(DOMAIN_NAME), 1000 * configuration::mist_per_sui(), FIRST_SECRET, &mut ctx);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
         };
@@ -4187,7 +4188,7 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            auction::finalize_auction(&mut auction, &mut suins, &config, DOMAIN_NAME, &mut ctx);
+            auction::finalize_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut ctx);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(config);
@@ -4291,7 +4292,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, b"abcde", &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(b"abcde"), &mut coin, ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -4318,7 +4319,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, b"abcde", &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(b"abcde"), &mut coin, ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -4336,7 +4337,7 @@ module suins::auction_tests {
             );
             assert!(state == AUCTION_STATE_PENDING, 0);
             let (start_at, highest_bid, second_highest_bid, winner, is_finalized) =
-                auction::get_entry(&auction, b"abcde");
+                auction::get_entry(&auction, utf8(b"abcde"));
             assert!(option::extract(&mut start_at) == START_AN_AUCTION_AT + 1, 0);
             assert!(option::extract(&mut highest_bid) == 0, 0);
             assert!(option::extract(&mut second_highest_bid) == 0, 0);

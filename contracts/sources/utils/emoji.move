@@ -35,8 +35,10 @@ module suins::emoji {
 
     struct UTF8Emoji has drop {
         // first byte position
+        // TODO: use u16
         from: u64,
         // start of the first byte not included
+        // TODO: use u16
         to: u64,
         no_characters: u64,
         is_skin_tone: bool,
@@ -105,19 +107,18 @@ module suins::emoji {
     /// Returns length of the `label`
     public fun validate_label_with_emoji(
         emoji_config: &EmojiConfiguration,
-        label: vector<u8>,
+        label: String,
         min_characters: u64,
         max_characters: u64
     ): u64 {
-        let emojis = to_emoji_sequences(emoji_config, label);
-        let str = utf8(label);
+        let emojis = to_emoji_sequences(emoji_config, *string::bytes(&label));
         let len = vector::length(&emojis);
         let index = 0;
         assert!(min_characters <= len && len <= max_characters, EInvalidLabel);
 
         while (index < len) {
             let emoji_metadata = vector::borrow(&emojis, index);
-            let emoji = string::sub_string(&str, emoji_metadata.from, emoji_metadata.to);
+            let emoji = string::sub_string(&label, emoji_metadata.from, emoji_metadata.to);
             if (emoji_metadata.is_single_byte) {
                 let bytes = string::bytes(&emoji);
                 let byte = *vector::borrow(bytes, 0);
@@ -566,6 +567,6 @@ module suins::emoji {
         false
     }
 
-    #[test_only]
-    friend suins::emoji_tests;
+    // #[test_only]
+    // friend suins::emoji_tests;
 }

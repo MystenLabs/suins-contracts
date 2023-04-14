@@ -30,9 +30,9 @@ module suins::registry_tests {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            registrar::new_tld(&admin_cap, &mut suins, b"sui", test_scenario::ctx(&mut scenario));
-            registrar::new_tld(&admin_cap, &mut suins, b"addr.reverse", test_scenario::ctx(&mut scenario));
-            registrar::new_tld(&admin_cap, &mut suins, b"move", test_scenario::ctx(&mut scenario));
+            registrar::new_tld(&admin_cap, &mut suins, utf8(b"sui"), test_scenario::ctx(&mut scenario));
+            registrar::new_tld(&admin_cap, &mut suins, utf8(b"addr.reverse"), test_scenario::ctx(&mut scenario));
+            registrar::new_tld(&admin_cap, &mut suins, utf8(b"move"), test_scenario::ctx(&mut scenario));
 
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
@@ -64,8 +64,8 @@ module suins::registry_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(registry::owner(&suins, FIRST_DOMAIN_NAME) == FIRST_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, FIRST_DOMAIN_NAME) == 10, 0);
+            assert!(registry::owner(&suins, utf8(FIRST_DOMAIN_NAME)) == FIRST_USER_ADDRESS, 0);
+            assert!(registry::ttl(&suins, utf8(FIRST_DOMAIN_NAME)) == 10, 0);
 
             test_scenario::return_shared(suins);
         };
@@ -86,7 +86,7 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
 
             assert!(owner == SECOND_USER_ADDRESS, 0);
             assert!(linked_addr == SECOND_USER_ADDRESS, 0);
@@ -108,7 +108,7 @@ module suins::registry_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::set_owner(
                 &mut suins,
-                FIRST_DOMAIN_NAME,
+                utf8(FIRST_DOMAIN_NAME),
                 SECOND_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
@@ -118,7 +118,7 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            assert!(registry::owner(&suins, FIRST_DOMAIN_NAME) == SECOND_USER_ADDRESS, 0);
+            assert!(registry::owner(&suins, utf8(FIRST_DOMAIN_NAME)) == SECOND_USER_ADDRESS, 0);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -135,7 +135,7 @@ module suins::registry_tests {
 
             registry::set_owner(
                 &mut suins,
-                SECOND_DOMAIN_NAME,
+                utf8(SECOND_DOMAIN_NAME),
                 SECOND_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
@@ -154,7 +154,7 @@ module suins::registry_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::set_owner(
                 &mut suins,
-                FIRST_DOMAIN_NAME,
+                utf8(FIRST_DOMAIN_NAME),
                 SECOND_USER_ADDRESS,
                 test_scenario::ctx(&mut scenario),
             );
@@ -171,14 +171,14 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_ttl(&mut suins, FIRST_DOMAIN_NAME, 20, test_scenario::ctx(&mut scenario));
+            registry::set_ttl(&mut suins, utf8(FIRST_DOMAIN_NAME), 20, test_scenario::ctx(&mut scenario));
             test_scenario::return_shared(suins);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            assert!(registry::ttl(&suins, FIRST_DOMAIN_NAME) == 20, 0);
+            assert!(registry::ttl(&suins, utf8(FIRST_DOMAIN_NAME)) == 20, 0);
             test_scenario::return_shared(suins);
         };
 
@@ -186,14 +186,14 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_ttl(&mut suins, FIRST_DOMAIN_NAME, 20, test_scenario::ctx(&mut scenario));
+            registry::set_ttl(&mut suins, utf8(FIRST_DOMAIN_NAME), 20, test_scenario::ctx(&mut scenario));
             test_scenario::return_shared(suins);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            assert!(registry::ttl(&suins, FIRST_DOMAIN_NAME) == 20, 0);
+            assert!(registry::ttl(&suins, utf8(FIRST_DOMAIN_NAME)) == 20, 0);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -208,7 +208,7 @@ module suins::registry_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            registry::set_ttl(&mut suins, FIRST_DOMAIN_NAME, 20, test_scenario::ctx(&mut scenario));
+            registry::set_ttl(&mut suins, utf8(FIRST_DOMAIN_NAME), 20, test_scenario::ctx(&mut scenario));
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -222,7 +222,7 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_ttl(&mut suins, SECOND_DOMAIN_NAME, 20, test_scenario::ctx(&mut scenario));
+            registry::set_ttl(&mut suins, utf8(SECOND_DOMAIN_NAME), 20, test_scenario::ctx(&mut scenario));
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -236,7 +236,7 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let ttl = registry::ttl(&suins, FIRST_DOMAIN_NAME);
+            let ttl = registry::ttl(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(ttl == 10, 0);
             test_scenario::return_shared(suins);
         };
@@ -249,7 +249,7 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::ttl(&suins, FIRST_DOMAIN_NAME);
+            registry::ttl(&suins, utf8(FIRST_DOMAIN_NAME));
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);

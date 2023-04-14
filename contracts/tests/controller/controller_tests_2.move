@@ -92,7 +92,7 @@ module suins::controller_tests_2 {
             controller::register(
                 &mut suins,
                 &mut config,
-                b"xyztu",
+                utf8(b"xyztu"),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -126,7 +126,7 @@ module suins::controller_tests_2 {
             assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
             assert!(owner == FIRST_USER_ADDRESS, 0);
 
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, b"xyztu.sui");
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(b"xyztu.sui"));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -187,7 +187,7 @@ module suins::controller_tests_2 {
             controller::renew(
                 &mut suins,
                 &config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 3,
                 &mut coin,
                 ctx,
@@ -207,7 +207,7 @@ module suins::controller_tests_2 {
             controller::renew(
                 &mut suins,
                 &config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 3,
                 &mut coin,
                 ctx,
