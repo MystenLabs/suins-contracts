@@ -11,7 +11,7 @@ module suins::registry_tests_2 {
     const FIRST_USER_ADDRESS: address = @0xB001;
     const FIRST_REVERSE_DOMAIN: vector<u8> = b"000000000000000000000000000000000000000000000000000000000000b001.addr.reverse";
     const SECOND_USER_ADDRESS: address = @0xB002;
-    const ADDR_REVERSE_BASE_NODE: vector<u8> = b"addr.reverse";
+    const ADDR_REVERSE_TLD: vector<u8> = b"addr.reverse";
     const FIRST_DOMAIN_NAME: vector<u8> = b"eastagile.sui";
     const SECOND_DOMAIN_NAME: vector<u8> = b"suins.sui";
     const FIRST_AVATAR: vector<u8> = b"QmfWrgbTZqwzqsvdeNc3NKacggMuTaN83sQ8V7Bs2nXKRD";
@@ -355,7 +355,7 @@ module suins::registry_tests_2 {
     }
 
     #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
-    fun test_get_addr_returns_empty_if_node_not_exists() {
+    fun test_get_addr_returns_empty_if_domain_name_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -507,7 +507,7 @@ module suins::registry_tests_2 {
     }
 
     #[test, expected_failure(abort_code = registry::EKeyNotExists)]
-    fun test_set_data_returns_empty_with_wrong_node() {
+    fun test_set_data_returns_empty_with_wrong_domain_name() {
         let scenario = test_init();
         registry_tests::mint_record(&mut scenario);
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -591,7 +591,7 @@ module suins::registry_tests_2 {
     }
 
     #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
-    fun test_set_contenthash_abort_if_node_not_exists() {
+    fun test_set_contenthash_abort_if_domain_name_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -609,7 +609,7 @@ module suins::registry_tests_2 {
     }
 
     #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
-    fun test_get_contenthash_aborts_if_node_not_exists() {
+    fun test_get_contenthash_aborts_if_domain_name_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -621,7 +621,7 @@ module suins::registry_tests_2 {
     }
 
     #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
-    fun test_get_contenthash_returns_empty_with_wrong_node() {
+    fun test_get_contenthash_returns_empty_with_wrong_domain_name() {
         let scenario = test_init();
         registry_tests::mint_record(&mut scenario);
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -647,7 +647,7 @@ module suins::registry_tests_2 {
     }
 
     #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
-    fun test_set_avatar_abort_if_node_not_exists() {
+    fun test_set_avatar_abort_if_domain_name_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
@@ -703,7 +703,7 @@ module suins::registry_tests_2 {
     }
 
     #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
-    fun test_unset_contenthash_abort_if_node_not_exists() {
+    fun test_unset_contenthash_abort_if_domain_name_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -786,7 +786,7 @@ module suins::registry_tests_2 {
     }
 
     #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
-    fun test_get_all_data_aborts_if_node_not_exists() {
+    fun test_get_all_data_aborts_if_domain_name_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {

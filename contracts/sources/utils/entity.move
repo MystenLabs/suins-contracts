@@ -20,6 +20,8 @@ module suins::entity {
     friend suins::coin_util;
     friend suins::auction;
 
+    const MAX_U64: u64 = 18446744073709551615;
+
     struct SuiNS has key {
         id: UID,
         /// Maps domain names to name records (instance of `NameRecord`).
@@ -43,7 +45,7 @@ module suins::entity {
 
     /// each registration records has a corresponding name records
     struct RegistrationRecord has store, drop {
-        expiry: u64,
+        expired_at: u64,
         owner: address,
         nft_id: ID,
     }
@@ -130,12 +132,12 @@ module suins::entity {
         }
     }
 
-    public(friend) fun registration_record_expiry(record: &RegistrationRecord): u64 {
-        record.expiry
+    public(friend) fun registration_record_expired_at(record: &RegistrationRecord): u64 {
+        record.expired_at
     }
 
-    public(friend) fun registration_record_expiry_mut(record: &mut RegistrationRecord): &mut u64 {
-        &mut record.expiry
+    public(friend) fun registration_record_expired_at_mut(record: &mut RegistrationRecord): &mut u64 {
+        &mut record.expired_at
     }
 
     public(friend) fun registration_record_owner(record: &RegistrationRecord): address {
@@ -146,8 +148,8 @@ module suins::entity {
         record.nft_id
     }
 
-    public(friend) fun new_registrtion_record(expiry: u64, owner: address, nft_id: ID): RegistrationRecord {
-        RegistrationRecord { expiry, owner, nft_id }
+    public(friend) fun new_registration_record(expired_at: u64, owner: address, nft_id: ID): RegistrationRecord {
+        RegistrationRecord { expired_at, owner, nft_id }
     }
 
     public(friend) fun controller_commitments(suins: &SuiNS): &LinkedTable<vector<u8>, u64> {
@@ -175,13 +177,18 @@ module suins::entity {
         &mut suins.controller.auction_house_finalized_at
     }
 
+    public(friend) fun max_epoch_allowed(): u64 {
+        MAX_U64 - 365
+    }
+
     fun init(ctx: &mut TxContext) {
         let registry = table::new(ctx);
         let registrars = table::new(ctx);
         let controller = Controller {
             commitments: linked_table::new(ctx),
             balance: balance::zero(),
-            auction_house_finalized_at: 0,
+            // TODO: same as configuration::MAX_U64
+            auction_house_finalized_at: max_epoch_allowed(),
         };
 
         transfer::share_object(SuiNS {
@@ -206,7 +213,7 @@ module suins::entity {
         let controller = Controller {
             commitments: linked_table::new(ctx),
             balance: balance::zero(),
-            auction_house_finalized_at: 0,
+            auction_house_finalized_at: max_epoch_allowed(),
         };
 
         transfer::share_object(SuiNS {

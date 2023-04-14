@@ -13,8 +13,6 @@ module suins::registry_tests {
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
     const SECOND_USER_ADDRESS: address = @0xB002;
-    const FIRST_RESOLVER_ADDRESS: address = @0xC001;
-    const SECOND_RESOLVER_ADDRESS: address = @0xC002;
     const FIRST_DOMAIN_NAME: vector<u8> = b"eastagile.sui";
     const SECOND_DOMAIN_NAME: vector<u8> = b"secondsuitest.sui";
     const THIRD_DOMAIN_NAME: vector<u8> = b"ea.eastagile.sui";
@@ -127,7 +125,7 @@ module suins::registry_tests {
     }
 
     #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
-    fun test_set_owner_abort_if_node_not_exists() {
+    fun test_set_owner_abort_if_domain_name_not_exists() {
         let scenario = test_init();
         mint_record(&mut scenario);
 
@@ -164,155 +162,7 @@ module suins::registry_tests {
         };
         test_scenario::end(scenario);
     }
-
-    #[test]
-    fun test_set_subnode_owner() {
-        let scenario = test_init();
-        mint_record(&mut scenario);
-
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_record_internal(
-                &mut suins,
-                utf8(THIRD_DOMAIN_NAME),
-                FIRST_USER_ADDRESS,
-                10,
-                test_scenario::ctx(&mut scenario),
-            );
-            test_scenario::return_shared(suins);
-        };
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_subdomain_name_owner(
-                &mut suins,
-                FIRST_DOMAIN_NAME,
-                b"ea",
-                SECOND_USER_ADDRESS,
-                test_scenario::ctx(&mut scenario),
-            );
-
-            test_scenario::return_shared(suins);
-        };
-
-        test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            assert!(registry::owner(&suins, THIRD_DOMAIN_NAME) == SECOND_USER_ADDRESS, 0);
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
-    fun test_set_subnode_owner_abort_if_node_not_exists() {
-        let scenario = test_init();
-        mint_record(&mut scenario);
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_subdomain_name_owner(
-                &mut suins,
-                SECOND_DOMAIN_NAME,
-                b"ea",
-                SECOND_USER_ADDRESS,
-                test_scenario::ctx(&mut scenario)
-            );
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
-    fun test_set_subnode_owner_abort_if_subnode_not_exists() {
-        let scenario = test_init();
-        mint_record(&mut scenario);
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_subdomain_name_owner(
-                &mut suins,
-                FIRST_DOMAIN_NAME,
-                b"ea",
-                SECOND_USER_ADDRESS,
-                test_scenario::ctx(&mut scenario)
-            );
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test, expected_failure(abort_code = registry::EUnauthorized)]
-    fun test_set_subnode_owner_abort_if_unauthorised() {
-        let scenario = test_init();
-        mint_record(&mut scenario);
-
-        test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-
-            registry::set_subdomain_name_owner(
-                &mut suins,
-                FIRST_DOMAIN_NAME,
-                b"ea",
-                SECOND_USER_ADDRESS,
-                test_scenario::ctx(&mut scenario)
-            );
-
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test]
-    fun test_set_subnode_owner_overwrite_value_if_node_exists() {
-        let scenario = test_init();
-        mint_record(&mut scenario);
-
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-
-            registry::set_record_internal(
-                &mut suins,
-                utf8(THIRD_DOMAIN_NAME),
-                FIRST_USER_ADDRESS,
-                10,
-                test_scenario::ctx(&mut scenario),
-            );
-            test_scenario::return_shared(suins);
-        };
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-
-            registry::set_subdomain_name_owner(
-                &mut suins,
-                FIRST_DOMAIN_NAME,
-                b"ea",
-                SECOND_USER_ADDRESS,
-                test_scenario::ctx(&mut scenario)
-            );
-
-            test_scenario::return_shared(suins);
-        };
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let (owner, _, _, _) = registry::get_name_record_all_fields(&suins, THIRD_DOMAIN_NAME);
-            assert!(owner == SECOND_USER_ADDRESS, 0);
-
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
+    
     #[test]
     fun test_set_ttl() {
         let scenario = test_init();
@@ -365,7 +215,7 @@ module suins::registry_tests {
     }
 
     #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
-    fun test_set_ttl_abort_if_node_not_exists() {
+    fun test_set_ttl_abort_if_domain_name_not_exists() {
         let scenario = test_init();
         mint_record(&mut scenario);
 
@@ -394,7 +244,7 @@ module suins::registry_tests {
     }
 
     #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
-    fun test_get_ttl_if_node_not_exists() {
+    fun test_get_ttl_if_domain_name_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {

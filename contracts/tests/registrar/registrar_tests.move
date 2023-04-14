@@ -15,9 +15,8 @@ module suins::registrar_tests {
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER: address = @0xB001;
     const SECOND_USER: address = @0xB002;
-    const SECOND_RESOLVER: address = @0xC002;
     const FIRST_LABEL: vector<u8> = b"eastagile";
-    const FIRST_NODE: vector<u8> = b"eastagile.sui";
+    const FIRST_DOMAIN_NAME: vector<u8> = b"eastagile.sui";
     const SECOND_LABEL: vector<u8> = b"ea";
     const THIRD_LABEL: vector<u8> = b"eastagil";
     const MOVE_REGISTRAR: vector<u8> = b"move";
@@ -81,19 +80,19 @@ module suins::registrar_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
-            let (expiry, owner) = get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expired_at, owner) = get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
 
-            assert!(expiry == 10 + 365, 0);
+            assert!(expired_at == 10 + 365, 0);
             assert!(owner == FIRST_USER, 0);
 
             let (name, url) = registrar::get_nft_fields(&nft);
-            assert!(name == utf8(FIRST_NODE), 0);
+            assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
 
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_NODE);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
 
             assert!(owner == FIRST_USER, 0);
             assert!(linked_addr == FIRST_USER, 0);
@@ -143,17 +142,18 @@ module suins::registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let (name, url) = registrar::get_nft_fields(&nft);
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
-            let (expiry, owner) = get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let (expired_at, owner) = get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
 
-            assert!(expiry == 10 + 365, 0);
+            assert!(expired_at == 10 + 365, 0);
             assert!(owner == FIRST_USER, 0);
-            assert!(name == utf8(FIRST_NODE), 0);
+            assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"),
                 0
             );
 
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_NODE);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+
             assert!(owner == FIRST_USER, 0);
             assert!(linked_addr == FIRST_USER, 0);
             assert!(ttl == 0, 0);
@@ -287,9 +287,9 @@ module suins::registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 375, 0);
-            let new_expiry = registrar::renew(&mut suins, SUI_REGISTRAR, FIRST_LABEL, 100, test_scenario::ctx(&mut scenario));
+            let new_expired_at = registrar::renew(&mut suins, SUI_REGISTRAR, FIRST_LABEL, 100, test_scenario::ctx(&mut scenario));
             assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 475, 0);
-            assert!(new_expiry == 475, 0);
+            assert!(new_expired_at == 475, 0);
 
             test_scenario::return_shared(suins);
         };
@@ -358,7 +358,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let owner = registry::owner(&suins, FIRST_NODE);
+            let owner = registry::owner(&suins, FIRST_DOMAIN_NAME);
             assert!(SECOND_USER == owner, 0);
 
             test_scenario::return_shared(suins);
@@ -366,8 +366,8 @@ module suins::registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registrar::EInvalidBaseNode)]
-    fun test_reclaim_name_by_nft_owner_abort_with_wrong_base_node() {
+    #[test, expected_failure(abort_code = registrar::EInvalidTLD)]
+    fun test_reclaim_name_by_nft_owner_abort_with_wrong_base_domain_name() {
         let scenario = test_init();
         register(&mut scenario);
 
@@ -496,8 +496,8 @@ module suins::registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registrar::assert_registrar_exists(&suins, b"com");
 
-            let (expiry, owner) = get_record_detail(&suins, b"com", FIRST_LABEL);
-            assert!(expiry == 365, 0);
+            let (expired_at, owner) = get_record_detail(&suins, b"com", FIRST_LABEL);
+            assert!(expired_at == 365, 0);
             assert!(owner == FIRST_USER, 0);
 
             test_scenario::return_shared(suins);
@@ -538,7 +538,7 @@ module suins::registrar_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
             let (name, url) = registrar::get_nft_fields(&nft);
 
-            assert!(name == utf8(FIRST_NODE), 0);
+            assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
@@ -577,7 +577,7 @@ module suins::registrar_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
             let (name, url) = registrar::get_nft_fields(&nft);
 
-            assert!(name == utf8(FIRST_NODE), 0);
+            assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"),
                 0
@@ -588,7 +588,7 @@ module suins::registrar_tests {
     }
 
     #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
-    fun test_update_image_url_aborts_with_incorrect_expiry() {
+    fun test_update_image_url_aborts_with_incorrect_expired_at() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         register(scenario);
@@ -623,7 +623,7 @@ module suins::registrar_tests {
     }
 
     #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
-    fun test_update_image_url_aborts_with_incorrect_expiry_2() {
+    fun test_update_image_url_aborts_with_incorrect_expired_at_2() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         register(scenario);
@@ -658,7 +658,7 @@ module suins::registrar_tests {
     }
 
     #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
-    fun test_update_image_url_aborts_with_incorrect_expiry_3() {
+    fun test_update_image_url_aborts_with_incorrect_expired_at_3() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         register(scenario);
@@ -1000,7 +1000,7 @@ module suins::registrar_tests {
     }
 
     #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
-    fun test_register_with_image_aborts_with_incorrect_expiry() {
+    fun test_register_with_image_aborts_with_incorrect_expired_at() {
         let scenario = test_init();
         register_with_image(
             &mut scenario,
@@ -1012,7 +1012,7 @@ module suins::registrar_tests {
     }
 
     #[test, expected_failure(abort_code = registrar::EInvalidImageMessage)]
-    fun test_register_with_image_aborts_with_incorrect_expiry_2() {
+    fun test_register_with_image_aborts_with_incorrect_expired_at_2() {
         let scenario = test_init();
         register_with_image(
             &mut scenario,
@@ -1624,7 +1624,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let owner = registry::owner(&suins, FIRST_NODE);
+            let owner = registry::owner(&suins, FIRST_DOMAIN_NAME);
             assert!(SECOND_USER == owner, 0);
 
             test_scenario::return_shared(suins);
@@ -1730,7 +1730,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let owner = registry::owner(&suins, FIRST_NODE);
+            let owner = registry::owner(&suins, FIRST_DOMAIN_NAME);
             assert!(SECOND_USER == owner, 0);
 
             test_scenario::return_shared(suins);

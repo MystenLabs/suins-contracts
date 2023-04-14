@@ -6,10 +6,16 @@ module suins::coin_util {
     use sui::tx_context::TxContext;
     use sui::transfer;
     use suins::entity::{Self, SuiNS};
+    use sui::event;
 
     friend suins::auction;
     friend suins::controller;
 
+    struct PaymentTranferredEvent has copy, drop {
+        // TODO: should store from address?
+        to: address,
+        amount: u64,
+    }
     public(friend) fun user_transfer_to_address(
         user_payment: &mut Coin<SUI>,
         amount: u64,
@@ -19,6 +25,11 @@ module suins::coin_util {
         if (amount == 0) return;
         let paid = coin::split(user_payment, amount, ctx);
         transfer::public_transfer(paid, receiver);
+
+        event::emit(PaymentTranferredEvent {
+            to: receiver,
+            amount,
+        })
     }
 
     public(friend) fun user_transfer_to_suins(user_payment: &mut Coin<SUI>, amount: u64, suins: &mut SuiNS) {
@@ -26,6 +37,11 @@ module suins::coin_util {
         let coin_balance = coin::balance_mut(user_payment);
         let paid = balance::split(coin_balance, amount);
         balance::join(entity::controller_balance_mut(suins), paid);
+
+        event::emit(PaymentTranferredEvent {
+            to: @suins,
+            amount,
+        })
     }
 
     public(friend) fun user_transfer_to_auction(user_payment: &mut Coin<SUI>, amount: u64, auction: &mut Balance<SUI>) {
@@ -33,6 +49,11 @@ module suins::coin_util {
         let coin_balance = coin::balance_mut(user_payment);
         let paid = balance::split(coin_balance, amount);
         balance::join(auction, paid);
+
+        event::emit(PaymentTranferredEvent {
+            to: @suins,
+            amount,
+        })
     }
 
     public(friend) fun suins_transfer_to_address(
@@ -44,6 +65,11 @@ module suins::coin_util {
         if (amount == 0) return;
         let coin = coin::take(entity::controller_balance_mut(suins), amount, ctx);
         transfer::public_transfer(coin, user_addr);
+
+        event::emit(PaymentTranferredEvent {
+            to: user_addr,
+            amount,
+        })
     }
 
     public(friend) fun auction_transfer_to_address(
@@ -55,6 +81,11 @@ module suins::coin_util {
         if (amount == 0) return;
         let coin = coin::take(auction, amount, ctx);
         transfer::public_transfer(coin, user_addr);
+
+        event::emit(PaymentTranferredEvent {
+            to: user_addr,
+            amount,
+        })
     }
 
     public(friend) fun auction_transfer_to_suins(
@@ -65,5 +96,10 @@ module suins::coin_util {
         if (amount == 0) return;
         let paid = balance::split(auction, amount);
         balance::join(entity::controller_balance_mut(suins), paid);
+
+        event::emit(PaymentTranferredEvent {
+            to: @suins,
+            amount,
+        })
     }
 }

@@ -19,28 +19,28 @@ module suins::remove_later {
         owner: ascii::String,
     }
 
-    /// `msg` format: <ipfs_url>,<node>,<expiry>,<data>
+    /// `msg` format: <ipfs_url>,<domain_name>,<expired_at>,<data>
     public(friend) fun deserialize_image_msg(msg: vector<u8>): (String, String, u64, String) {
-        // `msg` now: ipfs_url,owner,expiry,data
+        // `msg` now: ipfs_url,domain_name,expired_at,data
         let msg = utf8(msg);
         let comma = utf8(b",");
 
         let index_of_next_comma = string::index_of(&msg, &comma);
         let ipfs = string::sub_string(&msg, 0, index_of_next_comma);
-        // `msg` now: node,expiry,data
+        // `msg` now: domain_name,expired_at,data
         msg = string::sub_string(&msg, index_of_next_comma + 1, string::length(&msg));
         index_of_next_comma = string::index_of(&msg, &comma);
-        let node = string::sub_string(&msg, 0, index_of_next_comma);
+        let domain_name = string::sub_string(&msg, 0, index_of_next_comma);
 
-        // `msg` now: expiry,data
+        // `msg` now: expired_at,data
         msg = string::sub_string(&msg, index_of_next_comma + 1, string::length(&msg));
         index_of_next_comma = string::index_of(&msg, &comma);
-        let expiry = string::sub_string(&msg, 0, index_of_next_comma);
+        let expired_at = string::sub_string(&msg, 0, index_of_next_comma);
 
         // `msg` now: data
         msg = string::sub_string(&msg, index_of_next_comma + 1, string::length(&msg));
         // TODO: should we check that these data are non blank?
-        (ipfs, node, converter::string_to_number(expiry), msg)
+        (ipfs, domain_name, converter::string_to_number(expired_at), msg)
     }
 
     /// This funtion doesn't validate domains

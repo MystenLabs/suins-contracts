@@ -27,8 +27,9 @@ module suins::auction {
     use suins::converter;
     use suins::entity;
     use sui::tx_context;
+    use sui::coin;
 
-    const MIN_PRICE: u64 = 1000;
+    const SUI_TLD: vector<u8> = b"sui";
     // must always up-to-date with sui::sui::MIST_PER_SUI
     const BIDDING_PERIOD: u64 = 3;
     const REVEAL_PERIOD: u64 = 3;
@@ -44,7 +45,6 @@ module suins::auction {
     const AUCTION_STATE_REOPENED: u8 = 7;
 
     const EInvalidPhase: u64 = 802;
-    const EAuctionNotAvailable: u64 = 803;
     const EBidExisted: u64 = 804;
     const EInvalidBid: u64 = 805;
     const EBidAlreadyStart: u64 = 806;
@@ -52,12 +52,13 @@ module suins::auction {
     const EInvalidBidValue: u64 = 807;
     const EInvalidConfigParam: u64 = 808;
     const EInvalidRegistrar: u64 = 809;
-    const EShouldNotHappen: u64 = 810;
     const EAlreadyFinalized: u64 = 811;
     const EAlreadyUnsealed: u64 = 812;
     const ESealBidNotExists: u64 = 813;
     const EAuctionNotHasWinner: u64 = 814;
     const EInvalidBiddingFee: u64 = 815;
+    const ELabelUnavailable: u64 = 816;
+    const EPaymentNotEnough: u64 = 817;
 
     struct BidDetail has store, copy, drop {
         uid: ID,
@@ -67,7 +68,7 @@ module suins::auction {
         // 0 for unknowned value
         bid_value: u64,
         // empty for unknowned value
-        // label for .sui node
+        // label for .sui domain name
         label: String,
         created_at_in_epoch: u64,
         created_at_in_ms: u64,
@@ -96,7 +97,7 @@ module suins::auction {
         ///   0xabc: [bid1, bid2],
         ///   0x123: [bid3, bid4],
         /// }
-        bid_details_by_bidder: Table<address, vector<BidDetail>>,
+        bid_details_by_bidder: Table<address, LinkedTable<u64, BidDetail>>,
         // key: label
         entries: LinkedTable<String, AuctionEntry>,
         balance: Balance<SUI>,
@@ -165,11 +166,13 @@ module suins::auction {
 
         auction_house.start_auction_start_at = start_auction_start_at;
         auction_house.start_auction_end_at = start_auction_end_at;
-        *entity::controller_auction_house_finalized_at_mut(suins) = auction_close_at(auction_house) + EXTRA_PERIOD;
+        *entity::controller_auction_house_finalized_at_mut(suins) = auction_house_close_at(
+            auction_house
+        ) + EXTRA_PERIOD;
     }
 
     /// #### Notice
-    /// This function initiates the auction process for a `.sui` node.
+    /// This function initiates the auction process for a `.sui` domain name.
     /// However, the caller must still call `place_bid` to place his/her bid.
     /// When the auction starts, a new entry is created in the `PENDING` state.
     /// In the next epoch, it moves to the `BIDDING` state.
@@ -180,12 +183,12 @@ module suins::auction {
     /// If `Entry` record exists and in the `REOPENED` state, it is remove and reinitialize.
     ///
     /// #### Params
-    /// `label`: label of the node being auctioned, the node has the form `label`.sui
+    /// `label`: label of the domain name being auctioned, the domain name has the form `label`.sui
     ///
     /// Panics
     /// Panics if current epoch is outside of auction time period
-    /// or the node is already opened
-    /// or the node is not eligible for auction.
+    /// or the domain name is already opened
+    /// or the domain name is not eligible for auction.
     /// or the length of the label must be within the range of 3-6 characters.
     public entry fun start_an_auction(
         auction_house: &mut AuctionHouse,
@@ -196,16 +199,20 @@ module suins::auction {
         ctx: &mut TxContext
     ) {
         assert!(
-            auction_house.start_auction_start_at <= tx_context::epoch(ctx) && tx_context::epoch(ctx) <= auction_house.start_auction_end_at,
-            EAuctionNotAvailable,
+            auction_house.start_auction_start_at <= tx_context::epoch(ctx) && tx_context::epoch(
+                ctx
+            ) <= auction_house.start_auction_end_at,
+            EInvalidPhase,
         );
         let emoji_config = configuration::emoji_config(config);
-        emoji::validate_label_with_emoji(emoji_config, label, 3, 6);
+        emoji::validate_label_with_emoji(emoji_config, label, configuration::min_domain_length(), configuration::max_domain_length());
 
         let state = state(auction_house, label, tx_context::epoch(ctx));
         assert!(state == AUCTION_STATE_OPEN || state == AUCTION_STATE_REOPENED, EInvalidPhase);
 
         let label = utf8(label);
+        assert!(registrar::is_available(suins, utf8(SUI_TLD), label, ctx), ELabelUnavailable);
+
         if (state == AUCTION_STATE_REOPENED) {
             // added in below statement
             // TODO: reset fields instead of removing them
@@ -247,6 +254,7 @@ module suins::auction {
     public entry fun place_bid(
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
+        config: &Configuration,
         sealed_bid: vector<u8>,
         bid_value_mask: u64,
         payment: &mut Coin<SUI>,
@@ -256,12 +264,12 @@ module suins::auction {
         assert!(
             auction_house.start_auction_start_at <= tx_context::epoch(ctx) && tx_context::epoch(ctx)
                 <= auction_house.start_auction_end_at + BIDDING_PERIOD,
-            EAuctionNotAvailable,
+            EInvalidPhase,
         );
-        assert!(bid_value_mask >= MIN_PRICE, EInvalidBid);
+        assert!(bid_value_mask >= configuration::price_of_five_and_above_character_domain(config), EInvalidBid);
 
         if (!table::contains(&auction_house.bid_details_by_bidder, tx_context::sender(ctx))) {
-            table::add(&mut auction_house.bid_details_by_bidder, tx_context::sender(ctx), vector[]);
+            table::add(&mut auction_house.bid_details_by_bidder, tx_context::sender(ctx), linked_table::new(ctx));
         };
 
         let bids_by_sender = table::borrow_mut(&mut auction_house.bid_details_by_bidder, tx_context::sender(ctx));
@@ -279,8 +287,14 @@ module suins::auction {
             sealed_bid,
             is_unsealed: false,
         };
-        vector::push_back(bids_by_sender, bid);
+        let new_index =
+            if (!linked_table::is_empty(bids_by_sender)) *option::borrow(linked_table::back(bids_by_sender)) + 1
+            else 0;
+        linked_table::push_back(bids_by_sender, new_index, bid);
         event::emit(NewBidEvent { bidder, sealed_bid, bid_value_mask });
+
+        let bidder_value = coin::value(payment);
+        assert!(bidder_value >= bid_value_mask + auction_house.bidding_fee, EPaymentNotEnough);
 
         coin_util::user_transfer_to_auction(payment, bid_value_mask, &mut auction_house.balance);
         coin_util::user_transfer_to_suins(payment, auction_house.bidding_fee, suins);
@@ -297,9 +311,9 @@ module suins::auction {
     /// The `label` and `bid_value` properties of the bid detail are updated.
     ///
     /// #### Params
-    /// `label`: label of the node being auctioned, the node has the form `label`.sui
+    /// `label`: label of the domain name being auctioned, the domain name has the form `label`.sui
     /// `value`: auctual value that bidder wants to spend
-    /// `salt`: random string used when hashing the sealed bid
+    /// `secret`: random string used when hashing the sealed bid
     ///
     /// Panics
     /// Panics if auction is not in `REVEAL` state
@@ -309,28 +323,36 @@ module suins::auction {
     /// or `label` hasn't been started
     public entry fun reveal_bid(
         auction_house: &mut AuctionHouse,
+        config: &Configuration,
         label: vector<u8>,
         value: u64,
-        salt: vector<u8>,
+        secret: vector<u8>,
         ctx: &mut TxContext
     ) {
         assert!(
             auction_house.start_auction_start_at <= tx_context::epoch(ctx) && tx_context::epoch(ctx)
                 <= auction_house.start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD,
-            EAuctionNotAvailable,
+            EInvalidPhase,
         );
         // TODO: do we need to validate domain here?
         let auction_state = state(auction_house, label, tx_context::epoch(ctx));
         assert!(auction_state == AUCTION_STATE_REVEAL, EInvalidPhase);
 
-        let sealed_bid = make_seal_bid(label, tx_context::sender(ctx), value, salt); // hash from label, owner, value, salt
+        let sealed_bid = make_seal_bid(
+            label,
+            tx_context::sender(ctx),
+            value,
+            secret
+        ); // hash from label, owner, value, secret
         let bids_by_sender = table::borrow_mut(&mut auction_house.bid_details_by_bidder, tx_context::sender(ctx));
         let index = seal_bid_exists(bids_by_sender, sealed_bid);
         assert!(option::is_some(&index), ESealBidNotExists);
 
-        let bid_detail = vector::borrow_mut(bids_by_sender, option::extract(&mut index));
+        let bid_detail = linked_table::borrow_mut(bids_by_sender, option::extract(&mut index));
         assert!(!bid_detail.is_unsealed, EAlreadyUnsealed);
 
+        let emoji_config = configuration::emoji_config(config);
+        let min_price = configuration::price_for_label(config, emoji::len_of_label(emoji_config, label), 1);
         let label = utf8(label);
         bid_detail.bid_value = value;
         bid_detail.label = label;
@@ -347,7 +369,7 @@ module suins::auction {
         let entry = linked_table::borrow_mut(&mut auction_house.entries, *&label);
         if (
             bid_detail.bid_value_mask < value
-                || value < MIN_PRICE
+                || value < min_price
                 || bid_detail.created_at_in_epoch < entry.started_at
                 || entry.started_at + BIDDING_PERIOD <= bid_detail.created_at_in_epoch
         ) {
@@ -370,7 +392,7 @@ module suins::auction {
     /// #### Notice
     /// Bidders use this function to claim the NFT or withdraw payment of their bids on `label`.
     /// If being called by the winner, he/she retrieve the payment that are the difference between bid mask and bid value.
-    /// He/she also get the NFT representing the ownership of `label`.sui node.
+    /// He/she also get the NFT representing the ownership of `label`.sui domain name.
     /// If not the winner, he/she get back the payment that he/her deposited when place the bid.
     /// We allow bidders to have multiple bids on one domain, this function checks every of them.
     ///
@@ -379,7 +401,6 @@ module suins::auction {
     ///
     /// #### Params
     /// label label of the node beinng auctioned, the node has the form `label`.sui
-    /// resolver address of the resolver share object that the winner wants to set for his/her new NFT
     ///
     /// Panics
     /// Panics if auction state is not `FINALIZING`, `REOPENED` or `OWNED`
@@ -395,8 +416,8 @@ module suins::auction {
     ) {
         assert!(
             auction_house.start_auction_start_at <= tx_context::epoch(ctx) && tx_context::epoch(ctx)
-                <= auction_close_at(auction_house) + EXTRA_PERIOD,
-            EAuctionNotAvailable,
+                <= auction_house_close_at(auction_house) + EXTRA_PERIOD,
+            EInvalidPhase,
         );
         let auction_state = state(auction_house, label, tx_context::epoch(ctx));
         // the reveal phase is over in all of these phases and have received bids
@@ -413,18 +434,25 @@ module suins::auction {
 
         let bids_of_sender = table::borrow_mut(&mut auction_house.bid_details_by_bidder, tx_context::sender(ctx));
         // Refund all the bids
-        let len = vector::length(bids_of_sender);
-        let index = 0;
-        while (index < len) {
-            if (vector::borrow(bids_of_sender, index).label != label_str) {
-                index = index + 1;
+        let front_element = linked_table::front(bids_of_sender);
+        while (option::is_some(front_element)) {
+            let index = *option::borrow(front_element);
+            if (linked_table::borrow(bids_of_sender, index).label != label_str) {
+                front_element = linked_table::next(bids_of_sender, index);
                 continue
             };
 
-            let bid_detail = vector::remove(bids_of_sender, index);
-            len = len - 1;
+            // TODO: group into 1 function?
+            let prev_index = *linked_table::prev(bids_of_sender, index);
+            let bid_detail = linked_table::remove(bids_of_sender, index);
+            if (option::is_some(&prev_index)) front_element = linked_table::next(
+                bids_of_sender,
+                *option::borrow(&prev_index)
+            )
+            else front_element = linked_table::front(bids_of_sender);
+
             if (entry.winning_bid_uid == bid_detail.uid) {
-                handle_winning_bid(&mut auction_house.balance, suins, entry, &bid_detail, ctx);
+                handle_winning_bid(&mut auction_house.balance, suins, entry, &bid_detail, true, ctx);
                 entry.is_finalized = true;
             } else {
                 // TODO: charge paymennt as punishmennt
@@ -439,14 +467,7 @@ module suins::auction {
         };
         if (entry.winner != tx_context::sender(ctx)) return;
 
-        registrar::register_internal(suins, b"sui", config, label, entry.winner, 365, ctx);
-
-        event::emit(NameRegisteredEvent {
-            label: label_str,
-            tld: utf8(b"sui"),
-            winner: entry.winner,
-            amount: entry.second_highest_bid
-        })
+        register_winning_auction(suins, config, label, entry.winner, entry.second_highest_bid, ctx)
     }
 
     public entry fun finalize_all_auctions_by_admin(
@@ -456,53 +477,55 @@ module suins::auction {
         config: &Configuration,
         ctx: &mut TxContext
     ) {
-        assert!(
-            auction_close_at(auction_house) < tx_context::epoch(ctx) && tx_context::epoch(ctx)
-                <= auction_close_at(auction_house) + EXTRA_PERIOD,
-            EAuctionNotAvailable,
-        );
+        let auction_house_close_at = auction_house_close_at(auction_house);
+        let auction_house_extra_period_end_at = auction_house_close_at + EXTRA_PERIOD;
+        assert!(auction_house_close_at < tx_context::epoch(ctx), EInvalidPhase);
 
-        // TODO: copy the `option` because we need mutable reference to `entries` later
         let next_label = *linked_table::front(&auction_house.entries);
         while (option::is_some(&next_label)) {
             let label = *option::borrow(&next_label);
             let auction_state = state(auction_house, *string::bytes(&label), tx_context::epoch(ctx));
             let entry = linked_table::borrow_mut(&mut auction_house.entries, label);
 
-            if (!entry.is_finalized && entry.winner != @0x0 && auction_state == AUCTION_STATE_FINALIZING) {
+            if (
+                !entry.is_finalized
+                    && entry.winner != @0x0
+                    && (
+                    auction_state == AUCTION_STATE_FINALIZING && tx_context::epoch(
+                        ctx
+                    ) <= auction_house_extra_period_end_at
+                        || auction_state == AUCTION_STATE_NOT_AVAILABLE && tx_context::epoch(
+                        ctx
+                    ) > auction_house_extra_period_end_at
+                )
+            ) {
                 let bids_of_winner = table::borrow_mut(&mut auction_house.bid_details_by_bidder, entry.winner);
-                let len = vector::length(bids_of_winner);
-                let index = 0;
+                let front_element = linked_table::front(bids_of_winner);
 
-                while (index < len) {
-                    let bid_detail = vector::borrow(bids_of_winner, index);
+                while (option::is_some(front_element)) {
+                    let index = *option::borrow(front_element);
+                    let bid_detail = linked_table::borrow(bids_of_winner, index);
                     // TODO: winner can have multiple bid with the same highest value,
                     // TODO: however, we are using the vector, the early bid comes first.
                     if (bid_detail.label == label && entry.winning_bid_uid == bid_detail.uid) {
-                        handle_winning_bid(&mut auction_house.balance, suins, entry, bid_detail, ctx);
+                        if (tx_context::epoch(ctx) <= auction_house_extra_period_end_at) {
+                            handle_winning_bid(&mut auction_house.balance, suins, entry, bid_detail, true, ctx);
+                            register_winning_auction(
+                                suins,
+                                config,
+                                *string::bytes(&label),
+                                entry.winner,
+                                entry.second_highest_bid,
+                                ctx,
+                            )
+                        } else handle_winning_bid(&mut auction_house.balance, suins, entry, bid_detail, false, ctx);
 
-                        vector::remove(bids_of_winner, index);
+                        linked_table::remove(bids_of_winner, index);
                         entry.is_finalized = true;
-
-                        registrar::register_internal(
-                            suins,
-                            b"sui",
-                            config,
-                            *string::bytes(&label),
-                            entry.winner,
-                            365,
-                            ctx
-                        );
-                        event::emit(NameRegisteredEvent {
-                            label,
-                            tld: utf8(b"sui"),
-                            winner: entry.winner,
-                            amount: entry.second_highest_bid
-                        });
 
                         break
                     };
-                    index = index + 1;
+                    front_element = linked_table::next(bids_of_winner, index);
                 };
             };
             next_label = *linked_table::next(&auction_house.entries, label);
@@ -523,30 +546,38 @@ module suins::auction {
     /// Panics if current epoch is less than or equal end_at
     /// or sender has never ever placed a bid
     public entry fun withdraw(auction_house: &mut AuctionHouse, ctx: &mut TxContext) {
-        assert!(tx_context::epoch(ctx) > auction_close_at(auction_house), EInvalidPhase);
+        assert!(tx_context::epoch(ctx) > auction_house_close_at(auction_house), EInvalidPhase);
 
-        let bid_details = table::borrow_mut(&mut auction_house.bid_details_by_bidder, tx_context::sender(ctx));
-        let len = vector::length(bid_details);
-        let index = 0;
-        while (index < len) {
-            let detail = vector::borrow(bid_details, index);
-            if (linked_table::contains(&auction_house.entries, detail.label)) {
-                let entry = linked_table::borrow(&auction_house.entries, detail.label);
+        let bids_of_sender = table::borrow_mut(&mut auction_house.bid_details_by_bidder, tx_context::sender(ctx));
+        let front_element = linked_table::front(bids_of_sender);
+
+        while (option::is_some(front_element)) {
+            let index = *option::borrow(front_element);
+            let bid_detail = linked_table::borrow(bids_of_sender, index);
+
+            if (linked_table::contains(&auction_house.entries, bid_detail.label)) {
+                let entry = linked_table::borrow(&auction_house.entries, bid_detail.label);
                 // TODO: has 2 bids with the same value that are the highest
-                if (entry.winning_bid_uid == detail.uid) {
-                    index = index + 1;
+                if (entry.winning_bid_uid == bid_detail.uid) {
+                    front_element = linked_table::next(bids_of_sender, index);
                     continue
                 };
             };
             // TODO: transfer all balances at once
             coin_util::auction_transfer_to_address(
                 &mut auction_house.balance,
-                detail.bid_value_mask,
-                detail.bidder,
+                bid_detail.bid_value_mask,
+                bid_detail.bidder,
                 ctx
             );
-            vector::remove(bid_details, index);
-            len = len - 1;
+
+            let prev_index = *linked_table::prev(bids_of_sender, index);
+            linked_table::remove(bids_of_sender, index);
+            if (option::is_some(&prev_index)) front_element = linked_table::next(
+                bids_of_sender,
+                *option::borrow(&prev_index)
+            )
+            else front_element = linked_table::front(bids_of_sender);
         };
         // TODO: consider removing `tx_context::sender(ctx)` key from `bid_details_by_bidder` if `bid_details` is empty
     }
@@ -575,19 +606,19 @@ module suins::auction {
     /// Generate the sealed bid that is used when placing a new bid
     ///
     /// #### Params
-    /// `label`: label of the node being auctioned, the node has the form `label`.sui
+    /// `label`: label of the domain name being auctioned, the domain name has the form `label`.sui
     /// `owner`: address of the bidder
     /// `value`: bid value
-    /// `salt`: a random string
+    /// `secret`: a random string
     ///
     /// #### Return
     /// Hashed string using keccak256
-    public fun make_seal_bid(label: vector<u8>, owner: address, value: u64, salt: vector<u8>): vector<u8> {
+    public fun make_seal_bid(label: vector<u8>, owner: address, value: u64, secret: vector<u8>): vector<u8> {
         let owner = bcs::to_bytes(&owner);
         vector::append(&mut label, owner);
         let value = bcs::to_bytes(&value);
         vector::append(&mut label, value);
-        vector::append(&mut label, salt);
+        vector::append(&mut label, secret);
         keccak256(&label)
     }
 
@@ -595,7 +626,7 @@ module suins::auction {
     /// Get metadata of an auction
     ///
     /// #### Params
-    /// label label of the node being auctioned, the node has the form `label`.sui
+    /// label label of the domain name being auctioned, the domain name has the form `label`.sui
     ///
     /// #### Return
     /// (`start_at`, `highest_bid`, `second_highest_bid`, `winner`, `is_finalized`)
@@ -619,10 +650,10 @@ module suins::auction {
 
     /// #### Notice
     /// Get state of an auction
-    /// State transitions for node can be found at `../../../docs/auction.md`
+    /// State transitions for domain name can be found at `../../../docs/auction.md`
     ///
     /// #### Params
-    /// label label of the node being auctioned, the node has the form `label`.sui
+    /// label label of the domain name being auctioned, the domain name has the form `label`.sui
     ///
     /// #### Return
     /// either [
@@ -632,7 +663,7 @@ module suins::auction {
     public fun state(auction_house: &AuctionHouse, label: vector<u8>, current_epoch: u64): u8 {
         if (
             current_epoch < auction_house.start_auction_start_at
-                || current_epoch > auction_close_at(auction_house) + EXTRA_PERIOD
+                || current_epoch > auction_house_close_at(auction_house) + EXTRA_PERIOD
         ) return AUCTION_STATE_NOT_AVAILABLE;
 
         let label = utf8(label);
@@ -640,7 +671,7 @@ module suins::auction {
             let entry = linked_table::borrow(&auction_house.entries, label);
             if (entry.is_finalized) return AUCTION_STATE_OWNED;
 
-            if (current_epoch > auction_close_at(auction_house)) {
+            if (current_epoch > auction_house_close_at(auction_house)) {
                 if (entry.highest_bid != 0) return AUCTION_STATE_FINALIZING;
                 return AUCTION_STATE_NOT_AVAILABLE
             } else {
@@ -652,13 +683,13 @@ module suins::auction {
                 if (entry.highest_bid == 0) return AUCTION_STATE_REOPENED;
                 return AUCTION_STATE_FINALIZING
             }
-        } else if (current_epoch > auction_close_at(auction_house)) return AUCTION_STATE_NOT_AVAILABLE;
+        } else if (current_epoch > auction_house_close_at(auction_house)) return AUCTION_STATE_NOT_AVAILABLE;
         AUCTION_STATE_OPEN
     }
 
     // === Friend and Private Functions ===
 
-    public(friend) fun auction_close_at(auction: &AuctionHouse): u64 {
+    public(friend) fun auction_house_close_at(auction: &AuctionHouse): u64 {
         auction.start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD
     }
 
@@ -682,11 +713,29 @@ module suins::auction {
         entry.second_highest_bidder = new_second_highest_bidder;
     }
 
+    fun register_winning_auction(
+        suins: &mut SuiNS,
+        config: &Configuration,
+        label: vector<u8>,
+        winner: address,
+        winning_amount: u64,
+        ctx: &mut TxContext
+    ) {
+        registrar::register_internal(suins, SUI_TLD, config, label, winner, 365, ctx);
+        event::emit(NameRegisteredEvent {
+            label: utf8(label),
+            tld: utf8(SUI_TLD),
+            winner,
+            amount: winning_amount
+        })
+    }
+
     fun handle_winning_bid(
         auction_balance: &mut Balance<SUI>,
         suins: &mut SuiNS,
         entry: &AuctionEntry,
         bid_detail: &BidDetail,
+        is_second_highest_bidder_shared: bool,
         ctx: &mut TxContext
     ) {
         if (entry.second_highest_bid != 0 && entry.second_highest_bidder != @0x0) {
@@ -697,18 +746,26 @@ module suins::auction {
                 ctx
             );
             // it rounds down
-            let second_highest_bidder_take = (entry.second_highest_bid / 100) * 5;
-            coin_util::auction_transfer_to_suins(
-                auction_balance,
-                entry.second_highest_bid - second_highest_bidder_take,
-                suins
-            );
-            coin_util::auction_transfer_to_address(
-                auction_balance,
-                second_highest_bidder_take,
-                entry.second_highest_bidder,
-                ctx,
-            );
+            if (is_second_highest_bidder_shared) {
+                let second_highest_bidder_share = (entry.second_highest_bid / 100) * 5;
+                coin_util::auction_transfer_to_suins(
+                    auction_balance,
+                    entry.second_highest_bid - second_highest_bidder_share,
+                    suins
+                );
+                coin_util::auction_transfer_to_address(
+                    auction_balance,
+                    second_highest_bidder_share,
+                    entry.second_highest_bidder,
+                    ctx,
+                );
+            } else {
+                coin_util::auction_transfer_to_suins(
+                    auction_balance,
+                    entry.second_highest_bid,
+                    suins
+                );
+            }
         } else {
             // winner is the only one who bided
             coin_util::auction_transfer_to_address(
@@ -727,24 +784,24 @@ module suins::auction {
             bid_details_by_bidder: table::new(ctx),
             entries: linked_table::new(ctx),
             balance: balance::zero(),
-            start_auction_start_at: 0,
-            start_auction_end_at: 0,
+            start_auction_start_at: entity::max_epoch_allowed(),
+            start_auction_end_at: entity::max_epoch_allowed() - 1,
             bidding_fee: configuration::mist_per_sui(),
             start_an_auction_fee: 10 * configuration::mist_per_sui(),
         });
     }
 
     /// Return index of bid if exists
-    fun seal_bid_exists(bids: &vector<BidDetail>, seal_bid: vector<u8>): Option<u64> {
-        let len = vector::length(bids);
-        let index = 0;
+    fun seal_bid_exists(bids: &LinkedTable<u64, BidDetail>, seal_bid: vector<u8>): Option<u64> {
+        let front_element = linked_table::front(bids);
 
-        while (index < len) {
-            let detail = vector::borrow(bids, index);
-            if (detail.sealed_bid == seal_bid) {
+        while (option::is_some(front_element)) {
+            let index = *option::borrow(front_element);
+            let bid_detail = linked_table::borrow(bids, index);
+            if (bid_detail.sealed_bid == seal_bid) {
                 return some(index)
             };
-            index = index + 1;
+            front_element = linked_table::next(bids, index);
         };
         none()
     }
@@ -758,10 +815,19 @@ module suins::auction {
 
     #[test_only]
     public fun get_bids_by_bidder(auction_house: &AuctionHouse, bidder: address): vector<BidDetail> {
+        let result = vector[];
         if (table::contains(&auction_house.bid_details_by_bidder, bidder)) {
-            return *table::borrow(&auction_house.bid_details_by_bidder, bidder)
+            let bids = table::borrow(&auction_house.bid_details_by_bidder, bidder);
+            let front_element = linked_table::front(bids);
+            while (option::is_some(front_element)) {
+                let index = *option::borrow(front_element);
+                let bid_detail = linked_table::borrow(bids, index);
+                vector::push_back(&mut result, *bid_detail);
+
+                front_element = linked_table::next(bids, index);
+            }
         };
-        vector[]
+        result
     }
 
     #[test_only]
@@ -774,7 +840,7 @@ module suins::auction {
             let bids_by_bidder = table::borrow(&auction_house.bid_details_by_bidder, bidder);
             let index = seal_bid_exists(bids_by_bidder, seal_bid);
             if (option::is_some(&index)) {
-                let bid = vector::borrow(bids_by_bidder, option::extract(&mut index));
+                let bid = linked_table::borrow(bids_by_bidder, option::extract(&mut index));
                 return option::some(bid.bid_value_mask)
             }
         };
@@ -794,8 +860,8 @@ module suins::auction {
             bid_details_by_bidder: table::new(ctx),
             entries: linked_table::new(ctx),
             balance: balance::zero(),
-            start_auction_start_at: 0,
-            start_auction_end_at: 0,
+            start_auction_start_at: entity::max_epoch_allowed(),
+            start_auction_end_at: entity::max_epoch_allowed() - 1,
             bidding_fee: configuration::mist_per_sui(),
             start_an_auction_fee: 10 * configuration::mist_per_sui(),
         });
