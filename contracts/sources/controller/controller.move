@@ -69,6 +69,11 @@ module suins::controller {
         duration: u64,
     }
 
+    struct CommitmentAddedEvent has copy, drop {
+        commitment: vector<u8>,
+        timestamp_ms: u64,
+    }
+
     /// #### Notice
     /// This function is the first step in the commit/reveal process, which is implemented to prevent front-running.
     ///
@@ -80,18 +85,20 @@ module suins::controller {
     public entry fun commit(suins: &mut SuiNS, commitment: vector<u8>, clock: &Clock) {
         let commitments = entity::controller_commitments_mut(suins);
         remove_outdated_commitments(commitments, clock);
+
         linked_table::push_back(commitments, commitment, clock::timestamp_ms(clock));
+        event::emit(CommitmentAddedEvent {
+            commitment,
+            timestamp_ms: clock::timestamp_ms(clock)
+        });
     }
 
     /// #### Notice
     /// This function is the second step in the commit/reveal process, which is implemented to prevent front-running.
-    /// It acts as a gatekeeper for the `Registrar::Controller`, responsible for node validation and charging payment.
-    ///
-    /// #### Dev
-    /// This function uses default resolver address.
+    /// It acts as a gatekeeper for the `Registrar::Controller`, responsible for label validation and charging payment.
     ///
     /// #### Params
-    /// `label`: label of the node being registered, the node has the form `label`.sui
+    /// `label`: label of the domain name being registered, the domain name has the form `label`.sui
     /// `owner`: owner address of created NFT
     /// `no_years`: in years
     /// `secret`: the value used to create commitment in the first step
@@ -136,14 +143,13 @@ module suins::controller {
 
     /// #### Notice
     /// This function is the second step in the commit/reveal process, which is implemented to prevent front-running.
-    /// It acts as a gatekeeper for the `Registrar::Controller`, responsible for node validation and charging payment.
+    /// It acts as a gatekeeper for the `Registrar::Controller`, responsible for label validation and charging payment.
     ///
     /// #### Dev
-    /// This function uses default resolver address.
     /// Use `tld` to identify the registrar object.
     ///
     /// #### Params
-    /// `label`: label of the node being registered, the node has the form `label`.sui
+    /// `label`: label of the domain name being registered, the domain name has the form `label`.sui
     /// `owner`: owner address of created NFT
     /// `no_years`: in years
     /// `secret`: the value used to create commitment in the first step
@@ -192,95 +198,6 @@ module suins::controller {
             raw_msg,
             clock,
             ctx,
-        );
-    }
-
-    /// #### Notice
-    /// Similar to the `register` function, with an added `resolver` parameter.
-    ///
-    /// #### Dev
-    /// Use `resolver` parameter for resolver address.
-    /// Use `tld` to identify the registrar object.
-    ///
-    /// #### Params
-    /// `resolver`: address of the resolver
-    public entry fun register_with_config(
-        suins: &mut SuiNS,
-        tld: vector<u8>,
-        config: &mut Configuration,
-        label: vector<u8>, // `label` is 1 level
-        owner: address,
-        no_years: u64,
-        secret: vector<u8>,
-        payment: &mut Coin<SUI>,
-        clock: &Clock,
-        ctx: &mut TxContext,
-    ) {
-        register_internal(
-            suins,
-            tld,
-            config,
-            label,
-            owner,
-            no_years,
-            secret,
-            payment,
-            option::none(),
-            option::none(),
-            vector[],
-            vector[],
-            vector[],
-            clock,
-            ctx
-        );
-    }
-
-    /// #### Notice
-    /// Similar to the `register_with_image` function, with an added `resolver` parameter.
-    ///
-    /// #### Dev
-    /// Use `resolver` parameter for resolver address.
-    /// Use `tld` to identify the registrar object.
-    ///
-    /// #### Params
-    /// `resolver`: address of the resolver
-    /// `signature`: secp256k1 of `hashed_msg`
-    /// `hashed_msg`: sha256 of `raw_msg`
-    /// `raw_msg`: the data to verify and update image url, with format: <ipfs_url>,<owner>,<expired_at>.
-    /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
-    public entry fun register_with_config_and_image(
-        suins: &mut SuiNS,
-        tld: vector<u8>,
-        config: &mut Configuration,
-        label: vector<u8>, // `label` is 1 level
-        owner: address,
-        no_years: u64,
-        secret: vector<u8>,
-        payment: &mut Coin<SUI>,
-        signature: vector<u8>,
-        hashed_msg: vector<u8>,
-        raw_msg: vector<u8>,
-        clock: &Clock,
-        ctx: &mut TxContext,
-    ) {
-        registrar::assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
-
-        register_internal(
-            suins,
-            tld,
-            config,
-            label,
-            owner,
-            no_years,
-            secret,
-            payment,
-            option::none(),
-            option::none(),
-            signature,
-            hashed_msg,
-            raw_msg,
-            clock,
-            ctx
         );
     }
 
@@ -388,117 +305,15 @@ module suins::controller {
     }
 
     /// #### Notice
-    /// Similar to the `register_with_config` function, with added `referral_code` and `discount_code` parameters.
-    /// Can use one or two codes at the same time.
-    /// `discount_code` is applied first before `referral_code` if use both.
-    ///
-    /// #### Dev
-    /// Use empty string for unused code, however, at least one code must be used.
-    /// Remove `discount_code` after this function returns.
-    ///
-    /// #### Params
-    /// `referral_code`: referral code to be used
-    /// `discount_code`: discount code to be used
-    public entry fun register_with_config_and_code(
-        suins: &mut SuiNS,
-        tld: vector<u8>,
-        config: &mut Configuration,
-        label: vector<u8>, // `label` is 1 level
-        owner: address,
-        no_years: u64,
-        secret: vector<u8>,
-        payment: &mut Coin<SUI>,
-        referral_code: vector<u8>,
-        discount_code: vector<u8>,
-        clock: &Clock,
-        ctx: &mut TxContext,
-    ) {
-        let (referral_code, discount_code) = validate_codes(referral_code, discount_code);
-
-        register_internal(
-            suins,
-            tld,
-            config,
-            label,
-            owner,
-            no_years,
-            secret,
-            payment,
-            referral_code,
-            discount_code,
-            vector[],
-            vector[],
-            vector[],
-            clock,
-            ctx,
-        );
-    }
-
-    /// #### Notice
-    /// Similar to the `register_with_config` function, with added `referral_code` and `discount_code` parameters.
-    /// Can use one or two codes at the same time.
-    /// `discount_code` is applied first before `referral_code` if use both.
-    ///
-    /// #### Dev
-    /// Use empty string for unused code, however, at least one code must be used.
-    /// Remove `discount_code` after this function returns.
-    ///
-    /// #### Params
-    /// `referral_code`: referral code to be used
-    /// `discount_code`: discount code to be used
-    /// `signature`: secp256k1 of `hashed_msg`
-    /// `hashed_msg`: sha256 of `raw_msg`
-    /// `raw_msg`: the data to verify and update image url, with format: <ipfs_url>,<owner>,<expired_at>.
-    /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
-    public entry fun register_with_config_and_code_and_image(
-        suins: &mut SuiNS,
-        tld: vector<u8>,
-        config: &mut Configuration,
-        label: vector<u8>, // `label` is 1 level
-        owner: address,
-        no_years: u64,
-        secret: vector<u8>,
-        payment: &mut Coin<SUI>,
-        referral_code: vector<u8>,
-        discount_code: vector<u8>,
-        signature: vector<u8>,
-        hashed_msg: vector<u8>,
-        raw_msg: vector<u8>,
-        clock: &Clock,
-        ctx: &mut TxContext,
-    ) {
-        registrar::assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
-        let (referral_code, discount_code) = validate_codes(referral_code, discount_code);
-
-        register_internal(
-            suins,
-            tld,
-            config,
-            label,
-            owner,
-            no_years,
-            secret,
-            payment,
-            referral_code,
-            discount_code,
-            signature,
-            hashed_msg,
-            raw_msg,
-            clock,
-            ctx,
-        );
-    }
-
-    /// #### Notice
     /// Anyone can use this function to extend expiration of a node. The TLD comes from BaseRegistrar::tld.
     /// It acts as a gatekeeper for the `Registrar::Renew`, responsible for charging payment.
     ///
     /// #### Params
-    /// `label`: label of the node being registered, the node has the form `label`.sui
+    /// `label`: label of the domain name being registered, the domain name has the form `label`.sui
     /// `no_years`: in years
     ///
     /// Panic
-    /// Panic if node doesn't exist
+    /// Panic if domain name doesn't exist
     /// or `payment` doesn't have enough coins
     public entry fun renew(
         suins: &mut SuiNS,
@@ -513,16 +328,16 @@ module suins::controller {
     }
 
     /// #### Notice
-    /// Anyone can use this function to extend expiration of a node. The TLD comes from BaseRegistrar::tld.
+    /// Anyone can use this function to extend expiration of a domain name. The TLD comes from BaseRegistrar::tld.
     /// It acts as a gatekeeper for the `Registrar::renew`, responsible for charging payment.
     /// The image url of the `nft` is updated.
     ///
     /// #### Params
-    /// `label`: label of the node being registered, the node has the form `label`.sui
+    /// `label`: label of the domain name being registered, the domain name has the form `label`.sui
     /// `no_years`: in years
     ///
     /// Panic
-    /// Panic if node doesn't exist
+    /// Panic if domain name doesn't exist
     /// or `payment` doesn't have enough coins
     /// or `signature` is empty
     /// or `hashed_msg` is empty
@@ -577,11 +392,11 @@ module suins::controller {
 
             let index_of_dot = string::index_of(domain, &dot);
             assert!(index_of_dot != string::length(domain), EInvalidDomain);
-            // TODO: validate node
-            let node = string::sub_string(domain, 0, index_of_dot);
+            // TODO: validate domain name
+            let label = string::sub_string(domain, 0, index_of_dot);
             emoji::validate_label_with_emoji(
                 emoji_config,
-                *string::bytes(&node),
+                *string::bytes(&label),
                 configuration::min_domain_length(),
                 configuration::max_domain_length()
             );
@@ -590,7 +405,7 @@ module suins::controller {
                 suins,
                 *string::bytes(&tld),
                 config,
-                *string::bytes(&node),
+                *string::bytes(&label),
                 owner,
                 365,
                 ctx,
@@ -611,7 +426,7 @@ module suins::controller {
     ) {
         assert!(0 < no_years && no_years <= 5, EInvalidNoYears);
         let emoji_config = configuration::emoji_config(config);
-        let renew_fee = configuration::price_for_node(config, emoji::len_of_label(emoji_config, label), no_years);
+        let renew_fee = configuration::price_for_label(config, emoji::len_of_label(emoji_config, label), no_years);
         assert!(coin::value(payment) >= renew_fee, ENotEnoughFee);
         coin_util::user_transfer_to_suins(payment, renew_fee, suins);
 
@@ -659,7 +474,7 @@ module suins::controller {
         let commitment = make_commitment(tld, label, owner, secret);
         consume_commitment(suins, tld, label, commitment, clock, ctx);
 
-        let registration_fee = configuration::price_for_node(config, len_of_label, no_years);
+        let registration_fee = configuration::price_for_label(config, len_of_label, no_years);
         assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
 
         // can apply both discount and referral codes at the same time
@@ -691,7 +506,7 @@ module suins::controller {
             label: utf8(label),
             owner,
             // TODO: reduce cost when using discount code
-            cost: configuration::price_for_node(config, len_of_label, no_years),
+            cost: configuration::price_for_label(config, len_of_label, no_years),
             expired_at: tx_context::epoch(ctx) + duration,
             nft_id,
             referral_code,
@@ -768,14 +583,14 @@ module suins::controller {
     }
 
     fun make_commitment(tld: vector<u8>, label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
-        let node = label;
-        vector::append(&mut node, b".");
-        vector::append(&mut node, tld);
+        let domain_name = label;
+        vector::append(&mut domain_name, b".");
+        vector::append(&mut domain_name, tld);
 
         let owner_bytes = bcs::to_bytes(&owner);
-        vector::append(&mut node, owner_bytes);
-        vector::append(&mut node, secret);
-        keccak256(&node)
+        vector::append(&mut domain_name, owner_bytes);
+        vector::append(&mut domain_name, secret);
+        keccak256(&domain_name)
     }
 
     fun validate_codes(

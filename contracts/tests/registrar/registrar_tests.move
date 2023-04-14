@@ -15,7 +15,6 @@ module suins::registrar_tests {
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER: address = @0xB001;
     const SECOND_USER: address = @0xB002;
-    const SECOND_RESOLVER: address = @0xC002;
     const FIRST_LABEL: vector<u8> = b"eastagile";
     const FIRST_DOMAIN_NAME: vector<u8> = b"eastagile.sui";
     const SECOND_LABEL: vector<u8> = b"ea";
@@ -367,8 +366,8 @@ module suins::registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registrar::EInvalidBaseNode)]
-    fun test_reclaim_name_by_nft_owner_abort_with_wrong_base_node() {
+    #[test, expected_failure(abort_code = registrar::EInvalidTLD)]
+    fun test_reclaim_name_by_nft_owner_abort_with_wrong_base_domain_name() {
         let scenario = test_init();
         register(&mut scenario);
 

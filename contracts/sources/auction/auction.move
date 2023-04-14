@@ -69,7 +69,7 @@ module suins::auction {
         // 0 for unknowned value
         bid_value: u64,
         // empty for unknowned value
-        // label for .sui node
+        // label for .sui domain name
         label: String,
         created_at_in_epoch: u64,
         created_at_in_ms: u64,
@@ -171,7 +171,7 @@ module suins::auction {
     }
 
     /// #### Notice
-    /// This function initiates the auction process for a `.sui` node.
+    /// This function initiates the auction process for a `.sui` domain name.
     /// However, the caller must still call `place_bid` to place his/her bid.
     /// When the auction starts, a new entry is created in the `PENDING` state.
     /// In the next epoch, it moves to the `BIDDING` state.
@@ -182,12 +182,12 @@ module suins::auction {
     /// If `Entry` record exists and in the `REOPENED` state, it is remove and reinitialize.
     ///
     /// #### Params
-    /// `label`: label of the node being auctioned, the node has the form `label`.sui
+    /// `label`: label of the domain name being auctioned, the domain name has the form `label`.sui
     ///
     /// Panics
     /// Panics if current epoch is outside of auction time period
-    /// or the node is already opened
-    /// or the node is not eligible for auction.
+    /// or the domain name is already opened
+    /// or the domain name is not eligible for auction.
     /// or the length of the label must be within the range of 3-6 characters.
     public entry fun start_an_auction(
         auction_house: &mut AuctionHouse,
@@ -307,7 +307,7 @@ module suins::auction {
     /// The `label` and `bid_value` properties of the bid detail are updated.
     ///
     /// #### Params
-    /// `label`: label of the node being auctioned, the node has the form `label`.sui
+    /// `label`: label of the domain name being auctioned, the domain name has the form `label`.sui
     /// `value`: auctual value that bidder wants to spend
     /// `secret`: random string used when hashing the sealed bid
     ///
@@ -385,7 +385,7 @@ module suins::auction {
     /// #### Notice
     /// Bidders use this function to claim the NFT or withdraw payment of their bids on `label`.
     /// If being called by the winner, he/she retrieve the payment that are the difference between bid mask and bid value.
-    /// He/she also get the NFT representing the ownership of `label`.sui node.
+    /// He/she also get the NFT representing the ownership of `label`.sui domain name.
     /// If not the winner, he/she get back the payment that he/her deposited when place the bid.
     /// We allow bidders to have multiple bids on one domain, this function checks every of them.
     ///
@@ -394,7 +394,6 @@ module suins::auction {
     ///
     /// #### Params
     /// label label of the node beinng auctioned, the node has the form `label`.sui
-    /// resolver address of the resolver share object that the winner wants to set for his/her new NFT
     ///
     /// Panics
     /// Panics if auction state is not `FINALIZING`, `REOPENED` or `OWNED`
@@ -590,7 +589,7 @@ module suins::auction {
     /// Generate the sealed bid that is used when placing a new bid
     ///
     /// #### Params
-    /// `label`: label of the node being auctioned, the node has the form `label`.sui
+    /// `label`: label of the domain name being auctioned, the domain name has the form `label`.sui
     /// `owner`: address of the bidder
     /// `value`: bid value
     /// `secret`: a random string
@@ -610,7 +609,7 @@ module suins::auction {
     /// Get metadata of an auction
     ///
     /// #### Params
-    /// label label of the node being auctioned, the node has the form `label`.sui
+    /// label label of the domain name being auctioned, the domain name has the form `label`.sui
     ///
     /// #### Return
     /// (`start_at`, `highest_bid`, `second_highest_bid`, `winner`, `is_finalized`)
@@ -634,10 +633,10 @@ module suins::auction {
 
     /// #### Notice
     /// Get state of an auction
-    /// State transitions for node can be found at `../../../docs/auction.md`
+    /// State transitions for domain name can be found at `../../../docs/auction.md`
     ///
     /// #### Params
-    /// label label of the node being auctioned, the node has the form `label`.sui
+    /// label label of the domain name being auctioned, the domain name has the form `label`.sui
     ///
     /// #### Return
     /// either [
