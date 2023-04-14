@@ -13,9 +13,6 @@ module suins::reverse_registrar {
         addr: address,
     }
 
-    /// #### Notice
-    /// Similar to `claim_with_resolver`. The only differrence is
-    /// this function uses `default_name_resolver` property as resolver address.
     public entry fun claim(suins: &mut SuiNS, owner: address, ctx: &mut TxContext) {
         let label = hex::encode(address::to_bytes(sender(ctx)));
         let domain_name = registry::make_subdomain_name(label, registry::addr_reverse_tld());

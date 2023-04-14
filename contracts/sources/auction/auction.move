@@ -393,8 +393,7 @@ module suins::auction {
     /// All bid details that are considered in this function are removed.
     ///
     /// #### Params
-    /// label label of the domain name beinng auctioned, the domain name has the form `label`.sui
-    /// resolver address of the resolver share object that the winner wants to set for his/her new NFT
+    /// label label of the node beinng auctioned, the node has the form `label`.sui
     ///
     /// Panics
     /// Panics if auction state is not `FINALIZING`, `REOPENED` or `OWNED`

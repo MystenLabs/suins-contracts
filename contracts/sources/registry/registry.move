@@ -1,4 +1,4 @@
-/// This module is intended to maintain records of domain names including the owner, resolver address and time to live (TTL).
+/// This module is intended to maintain records of domain names including the owner, linked address, default domain name and time to live (TTL).
 /// The owners of this only own the name, not own the registration.
 /// It primarily facilitates the lending and borrowing of domain names.
 module suins::registry {
@@ -294,11 +294,11 @@ module suins::registry {
     }
 
     /// #### Notice
-    /// Get `(owner, resolver, ttl)` of a `domain_name`.
+    /// Get `(owner, linked_addr, ttl, default_domain_name)` of a `domain_name`.
     /// The `domain_name` can have multiple levels.
     ///
     /// #### Params
-    /// `domain_name`: domain name to find the ttl
+    /// `domain_name`: domain_name to find the ttl
     ///
     /// Panics
     /// Panics if `domain_name` doesn't exists.
