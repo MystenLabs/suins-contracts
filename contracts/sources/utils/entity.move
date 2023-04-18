@@ -46,7 +46,6 @@ module suins::entity {
     /// each registration records has a corresponding name records
     struct RegistrationRecord has store, drop {
         expired_at: u64,
-        owner: address,
         nft_id: ID,
     }
 
@@ -140,16 +139,12 @@ module suins::entity {
         &mut record.expired_at
     }
 
-    public(friend) fun registration_record_owner(record: &RegistrationRecord): address {
-        record.owner
-    }
-
     public(friend) fun registration_record_nft_id(record: &RegistrationRecord): ID {
         record.nft_id
     }
 
-    public(friend) fun new_registration_record(expired_at: u64, owner: address, nft_id: ID): RegistrationRecord {
-        RegistrationRecord { expired_at, owner, nft_id }
+    public(friend) fun new_registration_record(expired_at: u64, nft_id: ID): RegistrationRecord {
+        RegistrationRecord { expired_at, nft_id }
     }
 
     public(friend) fun controller_commitments(suins: &SuiNS): &LinkedTable<vector<u8>, u64> {
