@@ -6,17 +6,16 @@ jobs:
       - image: cimg/rust:1.65.0
     steps:
       - checkout
-      - run: curl -L https://github.com/MystenLabs/sui/releases/download/$TAG/sui > /usr/local/bin/sui
-      - run: chmod u+x /usr/local/bin/sui
-      - run: export PATH=$PATH:/usr/local/bin
+      - run: curl -L https://github.com/MystenLabs/sui/releases/download/$TAG/sui > ./contracts/sui_cli
+      - run: chmod u+x ./contracts/sui_cli
       - run:
-          command: sui move build
+          command: ./sui_cli move build
           working_directory: ./contracts
       - run:
-          command: sui move test --coverage
+          command: ./sui_cli move test --coverage
           working_directory: ./contracts
       - run:
-          command: sui move coverage summary --summarize-functions
+          command: ./sui_cli move coverage summary --summarize-functions
           working_directory: ./contracts
 
 workflows:
