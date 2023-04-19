@@ -1,29 +1,26 @@
 version: 2.1
-# TODO: refactor
 
 jobs:
-  build-and-test:
+  build_and_test:
     docker:
       - image: cimg/rust:1.65.0
     steps:
       - checkout
-      - run: git clone https://github.com/MystenLabs/sui.git --branch devnet
-      - run: sudo apt update
-      - run: sudo apt install libclang-dev
-      - run: 
-          command: cargo build --package sui --bin sui
-          working_directory: ./sui
-      - run: 
-          command: ../sui/target/debug/sui move build
+      - run: curl -L https://github.com/MystenLabs/sui/releases/download/$TAG/sui > /usr/local/bin/sui
+      - run: chmod u+x /usr/local/bin/sui
+      - run: export PATH=$PATH:/usr/local/bin
+      - run:
+          command: sui move build
           working_directory: ./contracts
-      - run: 
-          command: ../sui/target/debug/sui move test --coverage
+      - run:
+          command: sui move test --coverage
           working_directory: ./contracts
-      - run: 
-          command: ../sui/target/debug/sui move coverage summary --summarize-functions
+      - run:
+          command: sui move coverage summary --summarize-functions
           working_directory: ./contracts
+
 workflows:
   version: 2
-  run-build-and-test:
+  run_build-and_test:
     jobs:
-      - build-and-test
+      - build_and_test
