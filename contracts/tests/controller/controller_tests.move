@@ -190,9 +190,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 365, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -541,9 +540,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 365 + GRACE_PERIOD + 1 + 365, 0);
-            assert!(owner == SECOND_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == SECOND_USER_ADDRESS, 0);
@@ -701,9 +699,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -1091,9 +1088,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -1525,9 +1521,8 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2 / 10, 0);
             assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2 * 9/ 10, 0);
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -1604,9 +1599,8 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 30 / 100, 0);
             assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 270 / 100, 0);
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 1095, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -1722,9 +1716,8 @@ module suins::controller_tests {
             );
             assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 170 / 100, 0);
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -1885,9 +1878,8 @@ module suins::controller_tests {
             );
             assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 170 / 100, 0);
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -2285,9 +2277,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, label);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, label);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(domain_name));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -2366,9 +2357,8 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 17 / 100, 0);
             assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 153 / 100, 0);
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -2528,9 +2518,8 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 170 / 1000, 0);
             assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 153 / 100, 0);
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -2717,9 +2706,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == 21 + 365, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -2820,9 +2808,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == 51 + 365, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -2906,9 +2893,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == 221 + 365, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -2991,9 +2977,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
             assert!(expired_at == 221 + 365, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -3076,9 +3061,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == 121 + 365, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -3309,9 +3293,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
             assert!(expired_at == START_AUCTION_END_AT + EXTRA_PERIOD + BIDDING_PERIOD + REVEAL_PERIOD + 1 + 365, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -3459,9 +3442,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == 221 + 365, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -3553,9 +3535,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_DOMAIN_NAME);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_DOMAIN_NAME);
             assert!(expired_at == 221 + 365, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -3658,9 +3639,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
             assert!(expired_at == 221 + 365, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -4033,9 +4013,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -4109,9 +4088,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -4340,9 +4318,8 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 17 / 100, 0);
             assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 153 / 100, 0);
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -4547,9 +4524,8 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 17 / 100, 0);
             assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 153 / 100, 0);
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -5134,13 +5110,12 @@ module suins::controller_tests {
                 0
             );
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
             assert!(
                 expired_at ==
                     START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + EXTRA_PERIOD + 1 + 365,
                 0
             );
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
 
@@ -5328,9 +5303,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
             assert!(expired_at == EXTRA_PERIOD_START_AT + 2 + 365, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
 
             let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -5412,15 +5386,12 @@ module suins::controller_tests {
             assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(second_domain_name), ctx), 0);
             assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(second_domain_name), ctx), 0);
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, first_domain_name);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, first_domain_name);
             assert!(expired_at == 415, 0);
-            assert!(owner == SUINS_ADDRESS, 0);
-            let (expired_at, owner) = registrar::get_record_detail(&suins, MOVE_REGISTRAR, first_domain_name);
+            let expired_at = registrar::get_record_expired_at(&suins, MOVE_REGISTRAR, first_domain_name);
             assert!(expired_at == 415, 0);
-            assert!(owner == SUINS_ADDRESS, 0);
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, second_domain_name);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, second_domain_name);
             assert!(expired_at == 415, 0);
-            assert!(owner == SUINS_ADDRESS, 0);
 
             assert!(registry::record_exists(&suins, utf8(first_domain_name_sui)), 0);
             assert!(registry::record_exists(&suins, utf8(first_domain_name_move)), 0);
@@ -5503,18 +5474,14 @@ module suins::controller_tests {
             assert!(!registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(second_domain_name), ctx), 0);
             assert!(!registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(second_domain_name), ctx), 0);
 
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, first_domain_name);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, first_domain_name);
             assert!(expired_at == 415, 0);
-            assert!(owner == SUINS_ADDRESS, 0);
-            let (expired_at, owner) = registrar::get_record_detail(&suins, MOVE_REGISTRAR, first_domain_name);
+            let expired_at = registrar::get_record_expired_at(&suins, MOVE_REGISTRAR, first_domain_name);
             assert!(expired_at == 415, 0);
-            assert!(owner == SUINS_ADDRESS, 0);
-            let (expired_at, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, second_domain_name);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, second_domain_name);
             assert!(expired_at == 415, 0);
-            assert!(owner == SUINS_ADDRESS, 0);
-            let (expired_at, owner) = registrar::get_record_detail(&suins, MOVE_REGISTRAR, second_domain_name);
+            let expired_at = registrar::get_record_expired_at(&suins, MOVE_REGISTRAR, second_domain_name);
             assert!(expired_at == 417, 0);
-            assert!(owner == @0x0B, 0);
 
             assert!(registry::record_exists(&suins, utf8(first_domain_name_sui)), 0);
             assert!(registry::record_exists(&suins, utf8(first_domain_name_move)), 0);
@@ -6226,9 +6193,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, b"abc");
-            assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, b"abc");
+            assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
             let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(b"abc.sui"));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -6301,9 +6267,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, b"abcd");
-            assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, b"abcd");
+            assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
             let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(b"abcd.sui"));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -6376,9 +6341,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, b"abcdef");
-            assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, b"abcdef");
+            assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
             let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(b"abcdef.sui"));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -6460,9 +6424,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, b"xyz");
-            assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, b"xyz");
+            assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
             let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(b"xyz.sui"));
             assert!(owner == FIRST_USER_ADDRESS, 0);
@@ -6578,9 +6541,8 @@ module suins::controller_tests {
                 0
             );
 
-            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, b"xyzt");
-            assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, b"xyzt");
+            assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
             let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(b"xyzt.sui"));
             assert!(owner == FIRST_USER_ADDRESS, 0);

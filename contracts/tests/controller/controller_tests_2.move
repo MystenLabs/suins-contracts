@@ -122,9 +122,8 @@ module suins::controller_tests_2 {
                 0
             );
 
-            let (expiry, owner) = registrar::get_record_detail(&suins, SUI_REGISTRAR, b"xyztu");
-            assert!(expiry == EXTRA_PERIOD_END_AT + 1 + 730, 0);
-            assert!(owner == FIRST_USER_ADDRESS, 0);
+            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, b"xyztu");
+            assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
             let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(b"xyztu.sui"));
             assert!(owner == FIRST_USER_ADDRESS, 0);

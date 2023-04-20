@@ -44,7 +44,6 @@ module suins::entity {
     /// each registration records has a corresponding name records
     struct RegistrationRecord has store, drop {
         expired_at: u64,
-        owner: address,
         nft_id: ID,
     }
 
@@ -88,10 +87,6 @@ module suins::entity {
         record.expired_at
     }
 
-    public fun registration_record_owner(record: &RegistrationRecord): address {
-        record.owner
-    }
-
     public fun registration_record_nft_id(record: &RegistrationRecord): ID {
         record.nft_id
     }
@@ -112,8 +107,8 @@ module suins::entity {
         &suins.controller.balance
     }
 
-    public fun new_registration_record(expired_at: u64, owner: address, nft_id: ID): RegistrationRecord {
-        RegistrationRecord { expired_at, owner, nft_id }
+    public fun new_registration_record(expired_at: u64, nft_id: ID): RegistrationRecord {
+        RegistrationRecord { expired_at, nft_id }
     }
 
     public fun new_name_record(owner: address, ttl: u64, linked_addr: address, ctx: &mut TxContext): NameRecord {

@@ -2986,9 +2986,9 @@ module suins::auction_tests {
         // auction receives 2 bids and they are invalid
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, DOMAIN_NAME);
+        start_an_auction_util(scenario, SECOND_DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 500, FIRST_SECRET);
+        let seal_bid = make_seal_bid(SECOND_DOMAIN_NAME, SECOND_USER_ADDRESS, 40 * configuration::mist_per_sui(), FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 2000 * configuration::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 15);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -2998,7 +2998,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    DOMAIN_NAME,
+                    SECOND_DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_REOPENED,
                 0
@@ -3009,8 +3009,8 @@ module suins::auction_tests {
                 &mut auction,
                 &config,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                DOMAIN_NAME,
-                500,
+                SECOND_DOMAIN_NAME,
+                40 * configuration::mist_per_sui(),
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 2
@@ -3019,7 +3019,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    DOMAIN_NAME,
+                    SECOND_DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_REOPENED,
                 0
@@ -3028,7 +3028,7 @@ module suins::auction_tests {
             test_scenario::return_shared(config);
         };
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 400, FIRST_SECRET);
+        let seal_bid = make_seal_bid(SECOND_DOMAIN_NAME, SECOND_USER_ADDRESS, 30 * configuration::mist_per_sui(), FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 3000 * configuration::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 20);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -3040,8 +3040,8 @@ module suins::auction_tests {
                 &mut auction,
                 &config,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                DOMAIN_NAME,
-                400,
+                SECOND_DOMAIN_NAME,
+                30 * configuration::mist_per_sui(),
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 5
@@ -3057,7 +3057,7 @@ module suins::auction_tests {
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                DOMAIN_NAME,
+                SECOND_DOMAIN_NAME,
                 SECOND_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
@@ -3087,7 +3087,7 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 0, 0, @0x0, false);
+            get_entry_util(&auction, SECOND_DOMAIN_NAME, START_AN_AUCTION_AT + 1, 0, 0, @0x0, false);
             test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario_val);
@@ -3202,10 +3202,10 @@ module suins::auction_tests {
     fun test_reveal_multiple_invalid_bids_that_are_less_than_minimum_amount_and_has_a_winner() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        start_an_auction_util(scenario, DOMAIN_NAME);
+        start_an_auction_util(scenario, SECOND_DOMAIN_NAME);
 
         // mock a winner
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1500 * configuration::mist_per_sui(), FIRST_SECRET);
+        let seal_bid = make_seal_bid(SECOND_DOMAIN_NAME, FIRST_USER_ADDRESS, 1500 * configuration::mist_per_sui(), FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 2000 * configuration::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 15);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -3215,7 +3215,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    DOMAIN_NAME,
+                    SECOND_DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_REOPENED,
                 0
@@ -3226,7 +3226,7 @@ module suins::auction_tests {
                 &mut auction,
                 &config,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                DOMAIN_NAME,
+                SECOND_DOMAIN_NAME,
                 1500 * configuration::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
@@ -3236,7 +3236,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    DOMAIN_NAME,
+                    SECOND_DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_FINALIZING,
                 0
@@ -3245,7 +3245,7 @@ module suins::auction_tests {
             test_scenario::return_shared(config);
         };
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 500, FIRST_SECRET);
+        let seal_bid = make_seal_bid(SECOND_DOMAIN_NAME, SECOND_USER_ADDRESS, 40, FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 2200 * configuration::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 20);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -3255,7 +3255,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    DOMAIN_NAME,
+                    SECOND_DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_FINALIZING,
                 0
@@ -3265,8 +3265,8 @@ module suins::auction_tests {
                 &mut auction,
                 &config,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                DOMAIN_NAME,
-                500,
+                SECOND_DOMAIN_NAME,
+                40,
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 2
@@ -3274,7 +3274,7 @@ module suins::auction_tests {
             assert!(
                 state_util(
                     &auction,
-                    DOMAIN_NAME,
+                    SECOND_DOMAIN_NAME,
                     START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD
                 ) == AUCTION_STATE_FINALIZING,
                 0
@@ -3284,7 +3284,7 @@ module suins::auction_tests {
             test_scenario::return_shared(config);
         };
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 900, FIRST_SECRET);
+        let seal_bid = make_seal_bid(SECOND_DOMAIN_NAME, SECOND_USER_ADDRESS, 45 * configuration::mist_per_sui(), FIRST_SECRET);
         place_bid_util(scenario, seal_bid, 1200 * configuration::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::some(SECOND_TX_HASH), 25);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
@@ -3296,8 +3296,8 @@ module suins::auction_tests {
                 &mut auction,
                 &config,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                DOMAIN_NAME,
-                900,
+                SECOND_DOMAIN_NAME,
+                45 * configuration::mist_per_sui(),
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 2
@@ -3313,7 +3313,7 @@ module suins::auction_tests {
             finalize_auction_util(
                 scenario,
                 &mut auction,
-                DOMAIN_NAME,
+                SECOND_DOMAIN_NAME,
                 SECOND_USER_ADDRESS,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
@@ -3343,7 +3343,7 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * configuration::mist_per_sui(), 0, FIRST_USER_ADDRESS, false);
+            get_entry_util(&auction, SECOND_DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * configuration::mist_per_sui(), 0, FIRST_USER_ADDRESS, false);
             test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario_val);

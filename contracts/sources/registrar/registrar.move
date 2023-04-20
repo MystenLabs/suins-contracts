@@ -215,6 +215,24 @@ module suins::registrar {
         );
     }
 
+    /// Returns the label of NFT
+    public fun assert_nft_not_expires(
+        registrar: &Table<String, RegistrationRecord>,
+        tld: String,
+        nft: &RegistrationNFT,
+        ctx: &mut TxContext,
+    ): String {
+        let label = get_label(&nft.name, &tld);
+        let record = table::borrow(registrar, label);
+        // TODO: delete NFT if it expired
+        assert!(entity::registration_record_nft_id(record) == uid_to_inner(&nft.id), ENFTExpired);
+
+        let expired_at = name_expires_at_internal(registrar, label);
+        assert!(expired_at != 0 && expired_at >= tx_context::epoch(ctx), ENFTExpired);
+
+        label
+    }
+
     /// #### Notice
     /// Check if domain name derived from `label` and `registrar.tld` is available for registration.
     /// `label` has an extra `GRACE_PERIOD` time after the expiration date,
@@ -230,25 +248,6 @@ module suins::registrar {
     public fun is_available(suins: &SuiNS, tld: String, label: String, ctx: &TxContext): bool {
         let registrar = entity::registrar(suins, tld);
         is_available_internal(registrar, label, ctx)
-    }
-
-    /// Returns the label of NFT
-    public fun assert_nft_not_expires(
-        registrar: &Table<String, RegistrationRecord>,
-        tld: String,
-        nft: &RegistrationNFT,
-        ctx: &mut TxContext,
-    ): String {
-        let label = get_label(&nft.name, &tld);
-        let record = table::borrow(registrar, label);
-        // TODO: delete NFT if it expired
-        assert!(entity::registration_record_owner(record) == tx_context::sender(ctx), ENFTExpired);
-        assert!(entity::registration_record_nft_id(record) == uid_to_inner(&nft.id), ENFTExpired);
-
-        let expired_at = name_expires_at_internal(registrar, label);
-        assert!(expired_at != 0 && expired_at >= tx_context::epoch(ctx), ENFTExpired);
-
-        label
     }
 
     // === Friend and Private Functions ===
@@ -322,7 +321,7 @@ module suins::registrar {
             url,
         };
         let nft_id = object::uid_to_inner(&nft.id);
-        let record = entity::new_registration_record(expired_at, owner, nft_id);
+        let record = entity::new_registration_record(expired_at, nft_id);
 
         if (table::contains(registrar, label)) {
             // this `label` is available for registration again
@@ -409,12 +408,12 @@ module suins::registrar {
     }
 
     #[test_only]
-    public fun get_record_detail(suins: &SuiNS, tld: vector<u8>, label: vector<u8>): (u64, address) {
+    public fun get_record_expired_at(suins: &SuiNS, tld: vector<u8>, label: vector<u8>): u64 {
         let tld = utf8(tld);
         let registrar = entity::registrar(suins, tld);
         let record = table::borrow(registrar, utf8(label));
 
-        (entity::registration_record_expired_at(record), entity::registration_record_owner(record))
+        entity::registration_record_expired_at(record)
     }
 
     #[test_only]

@@ -6,7 +6,7 @@ module suins::registrar_tests {
     use sui::dynamic_field;
     use suins::entity::{Self, SuiNS};
     use suins::registry::{Self, AdminCap};
-    use suins::registrar::{Self, RegistrationNFT, get_record_detail, assert_registrar_exists};
+    use suins::registrar::{Self, RegistrationNFT, get_record_expired_at, assert_registrar_exists};
     use suins::configuration::{Self, Configuration};
     use std::string::{Self, utf8};
     use suins::auction_tests::ctx_new;
@@ -79,10 +79,9 @@ module suins::registrar_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
-            let (expired_at, owner) = get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let expired_at = get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
 
             assert!(expired_at == 10 + 365, 0);
-            assert!(owner == FIRST_USER, 0);
 
             let (name, url) = registrar::get_nft_fields(&nft);
             assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
@@ -141,10 +140,9 @@ module suins::registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let (name, url) = registrar::get_nft_fields(&nft);
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
-            let (expired_at, owner) = get_record_detail(&suins, SUI_REGISTRAR, FIRST_LABEL);
+            let expired_at = get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
 
             assert!(expired_at == 10 + 365, 0);
-            assert!(owner == FIRST_USER, 0);
             assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"),
@@ -468,9 +466,8 @@ module suins::registrar_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registrar::assert_registrar_exists(&suins, b"com");
 
-            let (expired_at, owner) = get_record_detail(&suins, b"com", FIRST_LABEL);
+            let expired_at = get_record_expired_at(&suins, b"com", FIRST_LABEL);
             assert!(expired_at == 365, 0);
-            assert!(owner == FIRST_USER, 0);
 
             test_scenario::return_shared(suins);
         };
