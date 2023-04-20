@@ -35,10 +35,8 @@ module suins::entity {
 
     struct NameRecord has store {
         owner: address,
-        // TODO: optional
         linked_addr: address,
         ttl: u64,
-        // TODO: optional
         default_domain_name: String, // for reverse domain
         data: Table<String, String>,
     }
@@ -189,7 +187,6 @@ module suins::entity {
         let controller = Controller {
             commitments: linked_table::new(ctx),
             balance: balance::zero(),
-            // TODO: same as configuration::MAX_U64
             auction_house_finalized_at: max_epoch_allowed(),
         };
 

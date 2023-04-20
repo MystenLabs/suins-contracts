@@ -383,7 +383,6 @@ module suins::controller {
 
             let index_of_dot = string::index_of(domain, &dot);
             assert!(index_of_dot != string::length(domain), EInvalidDomain);
-            // TODO: validate domain name
             let label = string::sub_string(domain, 0, index_of_dot);
             emoji::validate_label_with_emoji(
                 emoji_config,
@@ -448,7 +447,7 @@ module suins::controller {
         ctx: &mut TxContext,
     ) {
         assert!(0 < no_years && no_years <= 5, EInvalidNoYears);
-        assert!(configuration::is_enable_controller(config), ERegistrationIsDisabled);
+        assert!(configuration::is_controller_enabled(config), ERegistrationIsDisabled);
         assert!(tx_context::epoch(ctx) > entity::controller_auction_house_finalized_at(suins), EAuctionNotEndYet);
 
         let emoji_config = configuration::emoji_config(config);

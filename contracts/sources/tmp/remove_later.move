@@ -39,7 +39,6 @@ module suins::remove_later {
 
         // `msg` now: data
         msg = string::sub_string(&msg, index_of_next_comma + 1, string::length(&msg));
-        // TODO: should we check that these data are non blank?
         (ipfs, domain_name, converter::string_to_number(expired_at), msg)
     }
 
@@ -161,7 +160,6 @@ module suins::remove_later {
 
         // `str` now: owner
         str = string::sub_string(&str, index_of_next_comma + 1, string::length(&str));
-        // TODO: check start with 0x
         let hex_prefix = string::sub_string(&str, 0, 2);
         assert!(hex_prefix == utf8(b"0x"), EInvalidDiscountCodeBatch);
         let owner = string::sub_string(&str, 2, string::length(&str));

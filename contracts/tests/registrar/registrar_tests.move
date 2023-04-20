@@ -195,34 +195,6 @@ module suins::registrar_tests {
         test_scenario::end(scenario);
     }
 
-    // TODO: the registrar doesn't validate the label
-    // #[test, expected_failure(abort_code = registrar::EInvalidLabel)]
-    // fun test_register_abort_with_invalid_utf8_label() {
-    //     let scenario = test_init();
-    //     test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
-    //     {
-    //         let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-    //         let image = test_scenario::take_shared<Configuration>(&mut scenario);
-    //         let invalid_label = vector::empty<u8>();
-    //         // 0xFE cannot appear in a correct UTF-8 string
-    //         vector::push_back(&mut invalid_label, 0xFE);
-    //
-    //         registrar::register_internal(
-    //             &mut suins,
-    //             utf8(SUI_REGISTRAR),
-    //             &image,
-    //             utf8(invalid_label),
-    //             FIRST_USER,
-    //             365,
-    //             test_scenario::ctx(&mut scenario)
-    //         );
-    //
-    //         test_scenario::return_shared(suins);
-    //         test_scenario::return_shared(image);
-    //     };
-    //     test_scenario::end(scenario);
-    // }
-
     #[test, expected_failure(abort_code = registrar::EInvalidDuration)]
     fun test_register_abort_with_zero_duration() {
         let scenario = test_init();

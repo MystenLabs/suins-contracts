@@ -346,7 +346,6 @@ module suins::registry {
         } else new_record(suins, domain_name, owner, ttl, ctx);
     }
 
-    // TODO: move to entity
     fun init(ctx: &mut TxContext) {
         transfer::transfer(AdminCap {
             id: object::new(ctx)

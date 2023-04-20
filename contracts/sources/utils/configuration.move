@@ -229,7 +229,7 @@ module suins::configuration {
         MAX_DOMAIN_LENGTH
     }
 
-    public fun is_enable_controller(config: &Configuration): bool {
+    public fun is_controller_enabled(config: &Configuration): bool {
         config.enable_controller
     }
 
@@ -270,7 +270,6 @@ module suins::configuration {
             discount_codes: vec_map::empty(),
             emoji_config: emoji::init_emoji_config(),
             public_key: vector::empty(),
-            // TODO: set it to false
             enable_controller: true,
             price_of_three_character_domain: 1200 * MIST_PER_SUI,
             price_of_four_character_domain: 200 * MIST_PER_SUI,

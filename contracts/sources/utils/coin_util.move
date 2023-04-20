@@ -13,7 +13,6 @@ module suins::coin_util {
     friend suins::controller;
 
     struct PaymentTranferredEvent has copy, drop {
-        // TODO: should store from address?
         to: address,
         amount: u64,
     }

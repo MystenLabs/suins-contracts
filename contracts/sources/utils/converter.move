@@ -27,7 +27,6 @@ module suins::converter {
         result
     }
 
-    // TODO: redundant, can be replaced by the `tx_context::fresh_object_address(ctx)`
     public fun new_id(ctx: &mut TxContext): ID {
         let new_uid = object::new(ctx);
         let new_id = object::uid_to_inner(&new_uid);

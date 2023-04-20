@@ -35,10 +35,8 @@ module suins::emoji {
 
     struct UTF8Emoji has drop {
         // first byte position
-        // TODO: use u16
         from: u64,
         // start of the first byte not included
-        // TODO: use u16
         to: u64,
         no_characters: u64,
         is_skin_tone: bool,
@@ -125,7 +123,7 @@ module suins::emoji {
                 assert!(
                     (0x61 <= byte && byte <= 0x7A)                           // a-z
                         || (0x30 <= byte && byte <= 0x39)                    // 0-9
-                        || (byte == 0x2D && index != 0 && index != len - 1), // - // TODO: is it correct?
+                        || (byte == 0x2D && index != 0 && index != len - 1), //
                     EInvalidLabel
                 );
                 index = index + 1;
