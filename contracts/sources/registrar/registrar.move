@@ -27,7 +27,7 @@ module suins::registrar {
     friend suins::auction;
 
     // in terms of epoch
-    const GRACE_PERIOD: u8 = 90;
+    const GRACE_PERIOD: u8 = 30;
     const MAX_TTL: u64 = 0x100000;
     const TLD: vector<u8> = b"tld";
 
