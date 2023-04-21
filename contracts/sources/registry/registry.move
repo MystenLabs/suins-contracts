@@ -99,7 +99,6 @@ module suins::registry {
     public entry fun set_owner(suins: &mut SuiNS, domain_name: String, owner: address, ctx: &mut TxContext) {
         is_authorised(suins, domain_name, ctx);
 
-        let domain_name = domain_name;
         set_owner_internal(suins, domain_name, owner);
         event::emit(OwnerChangedEvent { domain_name, new_owner: owner });
     }
