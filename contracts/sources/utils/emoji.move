@@ -564,7 +564,4 @@ module suins::emoji {
         if (166 <= fourth_byte && fourth_byte <= 191) return true;
         false
     }
-
-    // #[test_only]
-    // friend suins::emoji_tests;
 }
