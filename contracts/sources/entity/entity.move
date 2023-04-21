@@ -3,7 +3,7 @@ module suins::entity {
     use sui::tx_context::TxContext;
     use sui::object::{UID, ID};
     use sui::table::Table;
-    use std::string::{String, utf8};
+    use std::string::String;
     use sui::table;
     use sui::transfer;
     use sui::object;
@@ -15,7 +15,6 @@ module suins::entity {
 
     friend suins::registry;
     friend suins::registrar;
-    friend suins::reverse_registrar;
     friend suins::controller;
     friend suins::coin_util;
     friend suins::auction;
@@ -26,6 +25,10 @@ module suins::entity {
         id: UID,
         /// Maps domain names to name records (instance of `NameRecord`).
         registry: Table<String, NameRecord>,
+
+        /// Map from addresses to a configured default domain
+        reverse_registry: Table<address, String>,
+
         /// Maps tlds to registrar objects, each registrar object is responsible for domains of a particular tld.
         /// Registrar object is a mapping of domain names to registration records (instance of `RegistrationRecord`).
         /// A registrar object can be created by calling `new_tld` and has a record with key `tld` to represent its tld.
@@ -37,7 +40,6 @@ module suins::entity {
         owner: address,
         linked_addr: address,
         ttl: u64,
-        default_domain_name: String, // for reverse domain
         data: Table<String, String>,
     }
 
@@ -79,10 +81,6 @@ module suins::entity {
         name_record.linked_addr
     }
 
-    public fun name_record_default_domain_name(name_record: &NameRecord): String {
-        name_record.default_domain_name
-    }
-
     public fun registration_record_expired_at(record: &RegistrationRecord): u64 {
         record.expired_at
     }
@@ -120,7 +118,6 @@ module suins::entity {
             owner,
             ttl,
             linked_addr,
-            default_domain_name: utf8(b""),
             data: table::new(ctx),
         }
     }
@@ -133,6 +130,14 @@ module suins::entity {
 
     public(friend) fun registry_mut(suins: &mut SuiNS): &mut Table<String, NameRecord> {
         &mut suins.registry
+    }
+
+    public(friend) fun reverse_registry(suins: &SuiNS): &Table<address, String> {
+        &suins.reverse_registry
+    }
+
+    public(friend) fun reverse_registry_mut(suins: &mut SuiNS): &mut Table<address, String> {
+        &mut suins.reverse_registry
     }
 
     public(friend) fun registrars_mut(suins: &mut SuiNS): &mut Table<String, Table<String, RegistrationRecord>> {
@@ -153,10 +158,6 @@ module suins::entity {
 
     public(friend) fun name_record_linked_addr_mut(name_record: &mut NameRecord): &mut address {
         &mut name_record.linked_addr
-    }
-
-    public(friend) fun name_record_default_domain_name_mut(name_record: &mut NameRecord): &mut String {
-        &mut name_record.default_domain_name
     }
 
     public(friend) fun name_record_data_mut(name_record: &mut NameRecord): &mut Table<String, String> {
@@ -182,6 +183,7 @@ module suins::entity {
 
     fun init(ctx: &mut TxContext) {
         let registry = table::new(ctx);
+        let reverse_registry = table::new(ctx);
         let registrars = table::new(ctx);
         let controller = Controller {
             commitments: linked_table::new(ctx),
@@ -192,6 +194,7 @@ module suins::entity {
         transfer::share_object(SuiNS {
             id: object::new(ctx),
             registry,
+            reverse_registry,
             registrars,
             controller,
         })
@@ -202,11 +205,12 @@ module suins::entity {
     #[test_only]
     friend suins::registry_tests;
     #[test_only]
-    friend suins::reverse_registrar_tests;
+    friend suins::registry_tests_2;
 
     #[test_only]
     public fun test_init(ctx: &mut TxContext) {
         let registry = table::new(ctx);
+        let reverse_registry = table::new(ctx);
         let registrars = table::new(ctx);
         let controller = Controller {
             commitments: linked_table::new(ctx),
@@ -217,6 +221,7 @@ module suins::entity {
         transfer::share_object(SuiNS {
             id: object::new(ctx),
             registry,
+            reverse_registry,
             registrars,
             controller,
         })

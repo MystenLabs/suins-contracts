@@ -90,12 +90,11 @@ module suins::registrar_tests {
                 0
             );
 
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let (owner, linked_addr, ttl) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
 
             assert!(owner == FIRST_USER, 0);
             assert!(linked_addr == FIRST_USER, 0);
             assert!(ttl == 0, 0);
-            assert!(name == utf8(b""), 0);
             test_scenario::return_to_sender(scenario, nft);
             test_scenario::return_shared(suins);
         };
@@ -149,12 +148,11 @@ module suins::registrar_tests {
                 0
             );
 
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let (owner, linked_addr, ttl) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
 
             assert!(owner == FIRST_USER, 0);
             assert!(linked_addr == FIRST_USER, 0);
             assert!(ttl == 0, 0);
-            assert!(name == utf8(b""), 0);
 
             test_scenario::return_to_sender(scenario, nft);
             test_scenario::return_shared(suins);
