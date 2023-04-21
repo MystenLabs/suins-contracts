@@ -552,7 +552,6 @@ module suins::controller_tests {
             let registrar = registrar::get_registrar(&suins, SUI_REGISTRAR);
             registrar::assert_nft_not_expires(
                 registrar,
-                utf8(SUI_REGISTRAR),
                 &nft,
                 test_scenario::ctx(&mut scenario)
             );
@@ -631,7 +630,6 @@ module suins::controller_tests {
             let registrar = registrar::get_registrar(&suins, SUI_REGISTRAR);
             registrar::assert_nft_not_expires(
                 registrar,
-                utf8(SUI_REGISTRAR),
                 &nft,
                 test_scenario::ctx(&mut scenario)
             );
@@ -5315,7 +5313,6 @@ module suins::controller_tests {
             let registrar = registrar::get_registrar(&suins, SUI_REGISTRAR);
             registrar::assert_nft_not_expires(
                 registrar,
-                utf8(SUI_REGISTRAR),
                 &nft,
                 test_scenario::ctx(&mut scenario)
             );
@@ -5870,7 +5867,6 @@ module suins::controller_tests {
             let registrar = registrar::get_registrar(&suins, SUI_REGISTRAR);
             registrar::assert_nft_not_expires(
                 registrar,
-                utf8(SUI_REGISTRAR),
                 &nft,
                 test_scenario::ctx(&mut scenario)
             );
@@ -5927,7 +5923,6 @@ module suins::controller_tests {
             let registrar = registrar::get_registrar(&suins, SUI_REGISTRAR);
             registrar::assert_nft_not_expires(
                 registrar,
-                utf8(SUI_REGISTRAR),
                 &nft,
                 test_scenario::ctx(&mut scenario)
             );
