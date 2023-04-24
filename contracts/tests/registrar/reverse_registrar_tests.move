@@ -8,6 +8,7 @@ module suins::reverse_registrar_tests {
     use suins::entity::SuiNS;
     use suins::entity;
     use std::string;
+    use std::string::utf8;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -27,9 +28,9 @@ module suins::reverse_registrar_tests {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            registrar::new_tld(&admin_cap, &mut suins, b"sui", test_scenario::ctx(&mut scenario));
-            registrar::new_tld(&admin_cap, &mut suins, b"addr.reverse", test_scenario::ctx(&mut scenario));
-            registrar::new_tld(&admin_cap, &mut suins, b"move", test_scenario::ctx(&mut scenario));
+            registrar::new_tld(&admin_cap, &mut suins, utf8(b"sui"), test_scenario::ctx(&mut scenario));
+            registrar::new_tld(&admin_cap, &mut suins, utf8(b"addr.reverse"), test_scenario::ctx(&mut scenario));
+            registrar::new_tld(&admin_cap, &mut suins, utf8(b"move"), test_scenario::ctx(&mut scenario));
 
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
@@ -54,7 +55,7 @@ module suins::reverse_registrar_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);

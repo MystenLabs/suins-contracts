@@ -8,7 +8,6 @@ module suins::registrar_tests {
     use suins::registry::{Self, AdminCap};
     use suins::registrar::{Self, RegistrationNFT, get_record_expired_at, assert_registrar_exists};
     use suins::configuration::{Self, Configuration};
-    use std::vector;
     use std::string::{Self, utf8};
     use suins::auction_tests::ctx_new;
 
@@ -36,8 +35,8 @@ module suins::registrar_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            registrar::new_tld(&admin_cap, &mut suins, MOVE_REGISTRAR, test_scenario::ctx(&mut scenario));
-            registrar::new_tld(&admin_cap, &mut suins, SUI_REGISTRAR, test_scenario::ctx(&mut scenario));
+            registrar::new_tld(&admin_cap, &mut suins, utf8(MOVE_REGISTRAR), test_scenario::ctx(&mut scenario));
+            registrar::new_tld(&admin_cap, &mut suins, utf8(SUI_REGISTRAR), test_scenario::ctx(&mut scenario));
             configuration::set_public_key(
                 &admin_cap,
                 &mut config,
@@ -64,9 +63,9 @@ module suins::registrar_tests {
 
             registrar::register_internal(
                 &mut suins,
-                SUI_REGISTRAR,
+                utf8(SUI_REGISTRAR),
                 &image,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER,
                 365,
                 &mut ctx
@@ -91,7 +90,7 @@ module suins::registrar_tests {
                 0
             );
 
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
 
             assert!(owner == FIRST_USER, 0);
             assert!(linked_addr == FIRST_USER, 0);
@@ -121,9 +120,9 @@ module suins::registrar_tests {
 
             registrar::register_with_image_internal(
                 &mut suins,
-                SUI_REGISTRAR,
+                utf8(SUI_REGISTRAR),
                 &image,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER,
                 365,
                 signature,
@@ -150,7 +149,7 @@ module suins::registrar_tests {
                 0
             );
 
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
 
             assert!(owner == FIRST_USER, 0);
             assert!(linked_addr == FIRST_USER, 0);
@@ -186,37 +185,10 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, b"eastagile") == 10 + 365, 0);
-            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, b"ea") == 0, 0);
+            assert!(registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(b"eastagile")) == 10 + 365, 0);
+            assert!(registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(b"ea")) == 0, 0);
 
             test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test, expected_failure(abort_code = registrar::EInvalidLabel)]
-    fun test_register_abort_with_invalid_utf8_label() {
-        let scenario = test_init();
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let image = test_scenario::take_shared<Configuration>(&mut scenario);
-            let invalid_label = vector::empty<u8>();
-            // 0xFE cannot appear in a correct UTF-8 string
-            vector::push_back(&mut invalid_label, 0xFE);
-
-            registrar::register_internal(
-                &mut suins,
-                SUI_REGISTRAR,
-                &image,
-                invalid_label,
-                FIRST_USER,
-                365,
-                test_scenario::ctx(&mut scenario)
-            );
-
-            test_scenario::return_shared(suins);
-            test_scenario::return_shared(image);
         };
         test_scenario::end(scenario);
     }
@@ -231,9 +203,9 @@ module suins::registrar_tests {
 
             registrar::register_internal(
                 &mut suins,
-                SUI_REGISTRAR,
+                utf8(SUI_REGISTRAR),
                 &image,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER,
                 0,
                 test_scenario::ctx(&mut scenario)
@@ -245,7 +217,7 @@ module suins::registrar_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registrar::ELabelUnAvailable)]
+    #[test, expected_failure(abort_code = registrar::ELabelUnavailable)]
     fun test_register_abort_if_label_unavailable() {
         let scenario = test_init();
         register(&mut scenario);
@@ -262,9 +234,9 @@ module suins::registrar_tests {
 
             registrar::register_internal(
                 &mut suins,
-                SUI_REGISTRAR,
+                utf8(SUI_REGISTRAR),
                 &image,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER,
                 365,
                 &mut ctx,
@@ -284,9 +256,9 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 375, 0);
-            let new_expired_at = registrar::renew(&mut suins, SUI_REGISTRAR, FIRST_LABEL, 100, test_scenario::ctx(&mut scenario));
-            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 475, 0);
+            assert!(registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(FIRST_LABEL)) == 375, 0);
+            let new_expired_at = registrar::renew(&mut suins, utf8(SUI_REGISTRAR), utf8(FIRST_LABEL), 100, test_scenario::ctx(&mut scenario));
+            assert!(registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(FIRST_LABEL)) == 475, 0);
             assert!(new_expired_at == 475, 0);
 
             test_scenario::return_shared(suins);
@@ -301,9 +273,9 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, b"SECOND_LABEL") == 0, 0);
+            assert!(registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(b"SECOND_LABEL")) == 0, 0);
 
-            registrar::renew(&mut suins, SUI_REGISTRAR, SECOND_LABEL, 100, test_scenario::ctx(&mut scenario));
+            registrar::renew(&mut suins, utf8(SUI_REGISTRAR), utf8(SECOND_LABEL), 100, test_scenario::ctx(&mut scenario));
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -323,8 +295,8 @@ module suins::registrar_tests {
                 0
             );
 
-            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 375, 0);
-            registrar::renew(&mut suins, SUI_REGISTRAR, FIRST_LABEL, 100, &ctx);
+            assert!(registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(FIRST_LABEL)) == 375, 0);
+            registrar::renew(&mut suins, utf8(SUI_REGISTRAR), utf8(FIRST_LABEL), 100, &ctx);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -341,8 +313,8 @@ module suins::registrar_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
 
             registrar::reclaim_name(
-                &mut suins,
                 &nft,
+                &mut suins,
                 SECOND_USER,
                 test_scenario::ctx(&mut scenario)
             );
@@ -355,7 +327,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let owner = registry::owner(&suins, FIRST_DOMAIN_NAME);
+            let owner = registry::owner(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(SECOND_USER == owner, 0);
 
             test_scenario::return_shared(suins);
@@ -375,8 +347,8 @@ module suins::registrar_tests {
             registrar::set_nft_domain(&mut nft, utf8(b"thisisadomain.sui"));
 
             registrar::reclaim_name(
-                &mut suins,
                 &nft,
+                &mut suins,
                 SECOND_USER,
                 test_scenario::ctx(&mut scenario)
             );
@@ -404,8 +376,8 @@ module suins::registrar_tests {
             );
 
             registrar::reclaim_name(
-                &mut suins,
                 &nft,
+                &mut suins,
                 SECOND_USER,
                 &mut ctx,
             );
@@ -428,7 +400,7 @@ module suins::registrar_tests {
             registrar::new_tld(
                 &admin_cap,
                 &mut suins,
-                b"com",
+                utf8(b"com"),
                 test_scenario::ctx(&mut scenario)
             );
 
@@ -451,9 +423,9 @@ module suins::registrar_tests {
 
             registrar::register_internal(
                 &mut suins,
-                b"com",
+                utf8(b"com"),
                 &image,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER,
                 365,
                 test_scenario::ctx(&mut scenario)
@@ -487,7 +459,7 @@ module suins::registrar_tests {
             registrar::new_tld(
                 &admin_cap,
                 &mut suins,
-                b"sui",
+                utf8(b"sui"),
                 test_scenario::ctx(&mut scenario)
             );
 
@@ -1071,9 +1043,9 @@ module suins::registrar_tests {
 
             registrar::register_internal(
                 &mut suins,
-                SUI_REGISTRAR,
+                utf8(SUI_REGISTRAR),
                 &image,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 SECOND_USER,
                 365,
                 &mut ctx
@@ -1129,9 +1101,9 @@ module suins::registrar_tests {
 
             registrar::register_internal(
                 &mut suins,
-                SUI_REGISTRAR,
+                utf8(SUI_REGISTRAR),
                 &image,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 SECOND_USER,
                 365,
                 &mut ctx
@@ -1187,9 +1159,9 @@ module suins::registrar_tests {
 
             registrar::register_internal(
                 &mut suins,
-                SUI_REGISTRAR,
+                utf8(SUI_REGISTRAR),
                 &image,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER,
                 365,
                 &mut ctx
@@ -1246,9 +1218,9 @@ module suins::registrar_tests {
 
             registrar::register_internal(
                 &mut suins,
-                SUI_REGISTRAR,
+                utf8(SUI_REGISTRAR),
                 &image,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER,
                 365,
                 &mut ctx
@@ -1305,9 +1277,9 @@ module suins::registrar_tests {
 
             registrar::register_internal(
                 &mut suins,
-                SUI_REGISTRAR,
+                utf8(SUI_REGISTRAR),
                 &image,
-                THIRD_LABEL,
+                utf8(THIRD_LABEL),
                 FIRST_USER,
                 365,
                 &mut ctx
@@ -1364,9 +1336,9 @@ module suins::registrar_tests {
 
             registrar::register_internal(
                 &mut suins,
-                SUI_REGISTRAR,
+                utf8(SUI_REGISTRAR),
                 &image,
-                THIRD_LABEL,
+                utf8(THIRD_LABEL),
                 FIRST_USER,
                 365,
                 &mut ctx
@@ -1423,9 +1395,9 @@ module suins::registrar_tests {
 
             registrar::register_internal(
                 &mut suins,
-                SUI_REGISTRAR,
+                utf8(SUI_REGISTRAR),
                 &image,
-                THIRD_LABEL,
+                utf8(THIRD_LABEL),
                 FIRST_USER,
                 365,
                 &mut ctx
@@ -1482,9 +1454,9 @@ module suins::registrar_tests {
 
             registrar::register_internal(
                 &mut suins,
-                SUI_REGISTRAR,
+                utf8(SUI_REGISTRAR),
                 &image,
-                THIRD_LABEL,
+                utf8(THIRD_LABEL),
                 FIRST_USER,
                 365,
                 &mut ctx
@@ -1539,9 +1511,9 @@ module suins::registrar_tests {
 
             registrar::register_internal(
                 &mut suins,
-                SUI_REGISTRAR,
+                utf8(SUI_REGISTRAR),
                 &image,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER,
                 365,
                 &mut ctx
@@ -1557,8 +1529,8 @@ module suins::registrar_tests {
             let old_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
 
             registrar::reclaim_name(
-                &mut suins,
                 &new_nft,
+                &mut suins,
                 SECOND_USER,
                 test_scenario::ctx(&mut scenario)
             );
@@ -1572,7 +1544,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let owner = registry::owner(&suins, FIRST_DOMAIN_NAME);
+            let owner = registry::owner(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(SECOND_USER == owner, 0);
 
             test_scenario::return_shared(suins);
@@ -1597,9 +1569,9 @@ module suins::registrar_tests {
 
             registrar::register_internal(
                 &mut suins,
-                SUI_REGISTRAR,
+                utf8(SUI_REGISTRAR),
                 &image,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER,
                 365,
                 &mut ctx
@@ -1615,8 +1587,8 @@ module suins::registrar_tests {
             let old_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
 
             registrar::reclaim_name(
-                &mut suins,
                 &old_nft,
+                &mut suins,
                 SECOND_USER,
                 test_scenario::ctx(&mut scenario)
             );
@@ -1645,9 +1617,9 @@ module suins::registrar_tests {
 
             registrar::register_internal(
                 &mut suins,
-                SUI_REGISTRAR,
+                utf8(SUI_REGISTRAR),
                 &image,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 SECOND_USER,
                 365,
                 &mut ctx
@@ -1662,8 +1634,8 @@ module suins::registrar_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
 
             registrar::reclaim_name(
-                &mut suins,
                 &nft,
+                &mut suins,
                 SECOND_USER,
                 test_scenario::ctx(&mut scenario)
             );
@@ -1676,7 +1648,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let owner = registry::owner(&suins, FIRST_DOMAIN_NAME);
+            let owner = registry::owner(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(SECOND_USER == owner, 0);
 
             test_scenario::return_shared(suins);
@@ -1701,9 +1673,9 @@ module suins::registrar_tests {
 
             registrar::register_internal(
                 &mut suins,
-                SUI_REGISTRAR,
+                utf8(SUI_REGISTRAR),
                 &image,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 SECOND_USER,
                 365,
                 &mut ctx
@@ -1718,8 +1690,8 @@ module suins::registrar_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
 
             registrar::reclaim_name(
-                &mut suins,
                 &nft,
+                &mut suins,
                 SECOND_USER,
                 test_scenario::ctx(&mut scenario)
             );

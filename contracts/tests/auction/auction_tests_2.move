@@ -605,7 +605,7 @@ module suins::auction_tests_2 {
                 START_AUCTION_END_AT,
                 10
             );
-            assert!(state(&auction, FIRST_DOMAIN_NAME, epoch(&ctx)) == AUCTION_STATE_OPEN, 0);
+            assert!(state(&auction, utf8(FIRST_DOMAIN_NAME), epoch(&ctx)) == AUCTION_STATE_OPEN, 0);
 
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
@@ -613,7 +613,7 @@ module suins::auction_tests_2 {
                 START_AUCTION_END_AT + BIDDING_PERIOD,
                 10
             );
-            assert!(state(&auction, FIRST_DOMAIN_NAME, epoch(&ctx)) == AUCTION_STATE_OPEN, 0);
+            assert!(state(&auction, utf8(FIRST_DOMAIN_NAME), epoch(&ctx)) == AUCTION_STATE_OPEN, 0);
 
 
             let ctx = ctx_new(
@@ -622,7 +622,7 @@ module suins::auction_tests_2 {
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
             );
-            assert!(state(&auction, FIRST_DOMAIN_NAME, epoch(&ctx)) == AUCTION_STATE_OPEN, 0);
+            assert!(state(&auction, utf8(FIRST_DOMAIN_NAME), epoch(&ctx)) == AUCTION_STATE_OPEN, 0);
 
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
@@ -630,7 +630,7 @@ module suins::auction_tests_2 {
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + 1,
                 10
             );
-            assert!(state(&auction, FIRST_DOMAIN_NAME, epoch(&ctx)) == AUCTION_STATE_NOT_AVAILABLE, 0);
+            assert!(state(&auction, utf8(FIRST_DOMAIN_NAME), epoch(&ctx)) == AUCTION_STATE_NOT_AVAILABLE, 0);
 
             test_scenario::return_shared(auction);
         };
@@ -647,7 +647,7 @@ module suins::auction_tests_2 {
             );
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, &mut ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, FIRST_DOMAIN_NAME, &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(FIRST_DOMAIN_NAME), &mut coin, &mut ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -665,7 +665,7 @@ module suins::auction_tests_2 {
                 START_AUCTION_END_AT,
                 10
             );
-            assert!(state(&auction, FIRST_DOMAIN_NAME, epoch(&ctx)) == AUCTION_STATE_PENDING, 0);
+            assert!(state(&auction, utf8(FIRST_DOMAIN_NAME), epoch(&ctx)) == AUCTION_STATE_PENDING, 0);
 
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
@@ -673,7 +673,7 @@ module suins::auction_tests_2 {
                 START_AUCTION_END_AT + 1,
                 10
             );
-            assert!(state(&auction, FIRST_DOMAIN_NAME, epoch(&ctx)) == AUCTION_STATE_BIDDING, 0);
+            assert!(state(&auction, utf8(FIRST_DOMAIN_NAME), epoch(&ctx)) == AUCTION_STATE_BIDDING, 0);
 
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
@@ -681,7 +681,7 @@ module suins::auction_tests_2 {
                 START_AUCTION_END_AT + BIDDING_PERIOD,
                 10
             );
-            assert!(state(&auction, FIRST_DOMAIN_NAME, epoch(&ctx)) == AUCTION_STATE_BIDDING, 0);
+            assert!(state(&auction, utf8(FIRST_DOMAIN_NAME), epoch(&ctx)) == AUCTION_STATE_BIDDING, 0);
 
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
@@ -689,7 +689,7 @@ module suins::auction_tests_2 {
                 START_AUCTION_END_AT + BIDDING_PERIOD + 1,
                 10
             );
-            assert!(state(&auction, FIRST_DOMAIN_NAME, epoch(&ctx)) == AUCTION_STATE_REVEAL, 0);
+            assert!(state(&auction, utf8(FIRST_DOMAIN_NAME), epoch(&ctx)) == AUCTION_STATE_REVEAL, 0);
 
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
@@ -697,7 +697,7 @@ module suins::auction_tests_2 {
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + 1,
                 10
             );
-            assert!(state(&auction, FIRST_DOMAIN_NAME, epoch(&ctx)) == AUCTION_STATE_NOT_AVAILABLE, 0);
+            assert!(state(&auction, utf8(FIRST_DOMAIN_NAME), epoch(&ctx)) == AUCTION_STATE_NOT_AVAILABLE, 0);
 
             test_scenario::return_shared(auction);
         };
@@ -1000,7 +1000,7 @@ module suins::auction_tests_2 {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
 
             let (start_at, highest_bid, second_highest_bid, winner, is_finalized) = auction::get_entry(&auction,
-                FIRST_DOMAIN_NAME
+                utf8(FIRST_DOMAIN_NAME)
             );
             assert!(option::extract(&mut start_at) == START_AN_AUCTION_AT + 1, 0);
             assert!(option::extract(&mut highest_bid) == 0, 0);
@@ -1216,7 +1216,7 @@ module suins::auction_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
-            auction::start_an_auction(&mut auction, &mut suins, &config, SECOND_DOMAIN_NAME, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(SECOND_DOMAIN_NAME), &mut coin, ctx);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
             test_scenario::return_shared(suins);

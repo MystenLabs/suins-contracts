@@ -103,7 +103,7 @@ module suins::auction_tests_5 {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, FIRST_DOMAIN_NAME, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(FIRST_DOMAIN_NAME), &mut coin, ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -145,7 +145,7 @@ module suins::auction_tests_5 {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, SECOND_DOMAIN_NAME, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(SECOND_DOMAIN_NAME), &mut coin, ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -194,7 +194,7 @@ module suins::auction_tests_5 {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, FIRST_DOMAIN_NAME, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(FIRST_DOMAIN_NAME), &mut coin, ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);

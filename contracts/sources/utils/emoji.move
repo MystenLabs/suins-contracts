@@ -48,7 +48,7 @@ module suins::emoji {
         no_bytes: u64,
     }
 
-    public(friend) fun init_emoji_config(): EmojiConfiguration {
+    public fun init_emoji_config(): EmojiConfiguration {
         let one_character_emojis = emoji_resource::one_character_emojis();
         let two_character_emojis = emoji_resource::two_character_emojis();
         let three_character_emojis = emoji_resource::three_character_emojis();
@@ -105,26 +105,25 @@ module suins::emoji {
     /// Returns length of the `label`
     public fun validate_label_with_emoji(
         emoji_config: &EmojiConfiguration,
-        label: vector<u8>,
+        label: String,
         min_characters: u64,
         max_characters: u64
     ): u64 {
-        let emojis = to_emoji_sequences(emoji_config, label);
-        let str = utf8(label);
+        let emojis = to_emoji_sequences(emoji_config, *string::bytes(&label));
         let len = vector::length(&emojis);
         let index = 0;
         assert!(min_characters <= len && len <= max_characters, EInvalidLabel);
 
         while (index < len) {
             let emoji_metadata = vector::borrow(&emojis, index);
-            let emoji = string::sub_string(&str, emoji_metadata.from, emoji_metadata.to);
+            let emoji = string::sub_string(&label, emoji_metadata.from, emoji_metadata.to);
             if (emoji_metadata.is_single_byte) {
                 let bytes = string::bytes(&emoji);
                 let byte = *vector::borrow(bytes, 0);
                 assert!(
                     (0x61 <= byte && byte <= 0x7A)                           // a-z
                         || (0x30 <= byte && byte <= 0x39)                    // 0-9
-                        || (byte == 0x2D && index != 0 && index != len - 1), // - // TODO: is it correct?
+                        || (byte == 0x2D && index != 0 && index != len - 1), //
                     EInvalidLabel
                 );
                 index = index + 1;
@@ -565,7 +564,4 @@ module suins::emoji {
         if (166 <= fourth_byte && fourth_byte <= 191) return true;
         false
     }
-
-    #[test_only]
-    friend suins::emoji_tests;
 }
