@@ -28,7 +28,6 @@ module suins::registrar {
     // in terms of epoch
     const GRACE_PERIOD: u8 = 30;
     const MAX_TTL: u64 = 0x100000;
-    const TLD: vector<u8> = b"tld";
 
     const EUnauthorized: u64 = 101;
     // errors in the range of 201..300 indicate Registrar errors
@@ -105,12 +104,11 @@ module suins::registrar {
     public entry fun reclaim_name(
         nft: &RegistrationNFT,
         suins: &mut SuiNS,
-        tld: String,
         owner: address,
         ctx: &mut TxContext,
     ) {
-        let registrar = entity::registrar(suins, tld);
-        let label = assert_nft_not_expires(registrar, tld, nft, ctx);
+        let registrar = entity::registrar(suins, get_tld(nft));
+        let label = assert_nft_not_expires(registrar, nft, ctx);
 
         let registration = table::borrow(registrar, label);
         assert!(entity::registration_record_expired_at(registration) >= tx_context::epoch(ctx), ELabelExpired);
@@ -143,7 +141,6 @@ module suins::registrar {
     /// or the data in NFTs don't match `raw_msg`
     public entry fun update_image_url(
         suins: &mut SuiNS,
-        tld: String,
         config: &Configuration,
         nft: &mut RegistrationNFT,
         signature: vector<u8>,
@@ -151,8 +148,8 @@ module suins::registrar {
         raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        let registrar = entity::registrar(suins, tld);
-        let label = assert_nft_not_expires(registrar, tld, nft, ctx);
+        let registrar = entity::registrar(suins, get_tld(nft));
+        let label = assert_nft_not_expires(registrar, nft, ctx);
 
         assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
         assert_image_msg_match(config, signature, hashed_msg, raw_msg);
@@ -218,11 +215,10 @@ module suins::registrar {
     /// Returns the label of NFT
     public fun assert_nft_not_expires(
         registrar: &Table<String, RegistrationRecord>,
-        tld: String,
         nft: &RegistrationNFT,
         ctx: &mut TxContext,
     ): String {
-        let label = get_label(&nft.name, &tld);
+        let label = get_label(&nft.name, &get_tld(nft));
         let record = table::borrow(registrar, label);
         // TODO: delete NFT if it expired
         assert!(entity::registration_record_nft_id(record) == uid_to_inner(&nft.id), ENFTExpired);
@@ -378,6 +374,15 @@ module suins::registrar {
         assert!(index_of_dot == string::length(domain_name) - string::length(&dot_tld), EInvalidTLD);
 
         string::sub_string(domain_name, 0, index_of_dot)
+    }
+
+    fun get_tld(nft: &RegistrationNFT): String {
+        let domain_name = &nft.name;
+        let dot = utf8(b".");
+        let index_of_dot = string::index_of(domain_name, &dot);
+
+        assert!(index_of_dot != string::length(domain_name), EInvalidTLD);
+        string::sub_string(domain_name, index_of_dot + 1, string::length(domain_name))
     }
 
     // === Testing ===

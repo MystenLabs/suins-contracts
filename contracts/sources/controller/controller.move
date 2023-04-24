@@ -348,7 +348,7 @@ module suins::controller {
     ) {
         // NFT and imag_msg are validated in `update_image_url`
         renew_internal(suins, config, label, no_years, payment, ctx);
-        registrar::update_image_url(suins, utf8(SUI_TLD), config, nft, signature, hashed_msg, raw_msg, ctx);
+        registrar::update_image_url(suins, config, nft, signature, hashed_msg, raw_msg, ctx);
     }
 
     /// #### Notice
