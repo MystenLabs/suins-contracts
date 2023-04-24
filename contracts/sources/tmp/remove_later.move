@@ -149,7 +149,7 @@ module suins::remove_later {
         index_of_next_comma = string::index_of(&str, &comma);
         // rate cannot has more than 3 characters
         // index_of_next_colon == 0: rate is not included
-        assert!((0 < index_of_next_comma || index_of_next_comma < 3), EInvalidDiscountCodeBatch);
+        assert!((0 < index_of_next_comma && index_of_next_comma <= 3), EInvalidDiscountCodeBatch);
         let rate_str = string::sub_string(&str, 0, index_of_next_comma);
         let rate: u8;
         // 3 characters means it has to be 100
