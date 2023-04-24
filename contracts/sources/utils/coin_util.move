@@ -1,3 +1,4 @@
+/// A set of helper functions for transferring coins between accounts and the SuiNS.
 module suins::coin_util {
 
     use sui::balance::{Self, Balance};
@@ -12,10 +13,10 @@ module suins::coin_util {
     friend suins::controller;
 
     struct PaymentTranferredEvent has copy, drop {
-        // TODO: should store from address?
         to: address,
         amount: u64,
     }
+
     public(friend) fun user_transfer_to_address(
         user_payment: &mut Coin<SUI>,
         amount: u64,
@@ -32,7 +33,7 @@ module suins::coin_util {
         })
     }
 
-    public(friend) fun user_transfer_to_suins(user_payment: &mut Coin<SUI>, amount: u64, suins: &mut SuiNS) {
+    public(friend) fun user_transfer_to_suins(suins: &mut SuiNS, user_payment: &mut Coin<SUI>, amount: u64) {
         if (amount == 0) return;
         let coin_balance = coin::balance_mut(user_payment);
         let paid = balance::split(coin_balance, amount);
@@ -44,7 +45,7 @@ module suins::coin_util {
         })
     }
 
-    public(friend) fun user_transfer_to_auction(user_payment: &mut Coin<SUI>, amount: u64, auction: &mut Balance<SUI>) {
+    public(friend) fun user_transfer_to_auction(auction: &mut Balance<SUI>, user_payment: &mut Coin<SUI>, amount: u64) {
         if (amount == 0) return;
         let coin_balance = coin::balance_mut(user_payment);
         let paid = balance::split(coin_balance, amount);
@@ -88,11 +89,7 @@ module suins::coin_util {
         })
     }
 
-    public(friend) fun auction_transfer_to_suins(
-        auction: &mut Balance<SUI>,
-        amount: u64,
-        suins: &mut SuiNS,
-    ) {
+    public(friend) fun auction_transfer_to_suins(suins: &mut SuiNS, auction: &mut Balance<SUI>, amount: u64) {
         if (amount == 0) return;
         let paid = balance::split(auction, amount);
         balance::join(entity::controller_balance_mut(suins), paid);

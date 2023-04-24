@@ -74,8 +74,8 @@ module suins::controller_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            registrar::new_tld(&admin_cap, &mut suins, SUI_REGISTRAR, test_scenario::ctx(&mut scenario));
-            registrar::new_tld(&admin_cap, &mut suins, MOVE_REGISTRAR, test_scenario::ctx(&mut scenario));
+            registrar::new_tld(&admin_cap, &mut suins, utf8(SUI_REGISTRAR), test_scenario::ctx(&mut scenario));
+            registrar::new_tld(&admin_cap, &mut suins, utf8(MOVE_REGISTRAR), test_scenario::ctx(&mut scenario));
             configuration::new_referral_code(&admin_cap, &mut config, REFERRAL_CODE, 10, SECOND_USER_ADDRESS);
             configuration::new_discount_code(&admin_cap, &mut config, DISCOUNT_CODE, 15, FIRST_USER_ADDRESS);
             configuration::set_public_key(
@@ -160,7 +160,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -193,7 +193,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 365, 0);
 
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -248,7 +248,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                SECOND_LABEL,
+                utf8(SECOND_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -288,7 +288,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                SECOND_LABEL,
+                utf8(SECOND_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 SECOND_SECRET,
@@ -327,7 +327,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                SECOND_LABEL,
+                utf8(SECOND_LABEL),
                 SECOND_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -367,7 +367,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -407,7 +407,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -424,7 +424,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = controller::ELabelUnAvailable)]
+    #[test, expected_failure(abort_code = controller::ELabelUnavailable)]
     fun test_register_abort_if_label_was_registered_before() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
@@ -449,7 +449,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -511,7 +511,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 SECOND_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -543,7 +543,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 365 + GRACE_PERIOD + 1 + 365, 0);
 
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == SECOND_USER_ADDRESS, 0);
             assert!(linked_addr == SECOND_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -608,7 +608,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 SECOND_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -669,7 +669,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -702,7 +702,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -753,7 +753,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                SECOND_INVALID_LABEL,
+                utf8(SECOND_INVALID_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -792,7 +792,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                SECOND_INVALID_LABEL,
+                utf8(SECOND_INVALID_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -825,7 +825,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                THIRD_INVALID_LABEL,
+                utf8(THIRD_INVALID_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -864,7 +864,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                THIRD_INVALID_LABEL,
+                utf8(THIRD_INVALID_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -897,7 +897,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FOURTH_INVALID_LABEL,
+                utf8(FOURTH_INVALID_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -936,7 +936,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FOURTH_INVALID_LABEL,
+                utf8(FOURTH_INVALID_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -969,7 +969,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FIFTH_INVALID_LABEL,
+                utf8(FIFTH_INVALID_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -1007,7 +1007,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FIFTH_INVALID_LABEL,
+                utf8(FIFTH_INVALID_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -1056,7 +1056,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                AUCTIONED_LABEL,
+                utf8(AUCTIONED_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -1091,7 +1091,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -1118,7 +1118,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                AUCTIONED_LABEL,
+                utf8(AUCTIONED_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -1179,7 +1179,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FIRST_INVALID_LABEL,
+                utf8(FIRST_INVALID_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -1208,18 +1208,18 @@ module suins::controller_tests {
             let ctx = test_scenario::ctx(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2 + 1, ctx);
 
-            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 522, 0);
+            assert!(registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(FIRST_LABEL)) == 522, 0);
             assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
             controller::renew(
                 &mut suins,
                 &config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 2,
                 &mut coin,
                 ctx,
             );
             assert!(coin::value(&coin) == 1, 0);
-            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 1252, 0);
+            assert!(registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(FIRST_LABEL)) == 1252, 0);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(suins);
@@ -1251,7 +1251,7 @@ module suins::controller_tests {
             controller::renew(
                 &mut suins,
                 &config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 1,
                 &mut coin,
                 ctx,
@@ -1284,7 +1284,7 @@ module suins::controller_tests {
             controller::renew(
                 &mut suins,
                 &config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 1,
                 &mut coin,
                 &mut ctx,
@@ -1313,7 +1313,7 @@ module suins::controller_tests {
             controller::renew(
                 &mut suins,
                 &config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 1,
                 &mut coin,
                 ctx,
@@ -1439,7 +1439,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                SECOND_LABEL,
+                utf8(SECOND_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -1487,7 +1487,7 @@ module suins::controller_tests {
             controller::register_with_code(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -1524,7 +1524,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -1565,7 +1565,7 @@ module suins::controller_tests {
             controller::register_with_code(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 3,
                 FIRST_SECRET,
@@ -1602,7 +1602,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 1095, 0);
 
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -1680,7 +1680,7 @@ module suins::controller_tests {
             controller::register_with_code(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -1719,7 +1719,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -1753,7 +1753,7 @@ module suins::controller_tests {
             controller::register_with_code(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -1795,7 +1795,7 @@ module suins::controller_tests {
             controller::register_with_code(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -1843,7 +1843,7 @@ module suins::controller_tests {
             controller::register_with_code(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -1881,7 +1881,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -1914,7 +1914,7 @@ module suins::controller_tests {
             controller::register_with_code(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -1955,7 +1955,7 @@ module suins::controller_tests {
             controller::register_with_code(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -1997,7 +1997,7 @@ module suins::controller_tests {
             controller::register_with_code(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -2047,7 +2047,7 @@ module suins::controller_tests {
             controller::register_with_code(
                 &mut suins,
                 &mut config,
-                SECOND_LABEL,
+                utf8(SECOND_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -2089,7 +2089,7 @@ module suins::controller_tests {
             controller::register_with_code(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -2137,7 +2137,7 @@ module suins::controller_tests {
             controller::register_with_code(
                 &mut suins,
                 &mut config,
-                SECOND_LABEL,
+                utf8(SECOND_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -2195,7 +2195,7 @@ module suins::controller_tests {
             controller::register_with_code(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -2246,7 +2246,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                label,
+                utf8(label),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -2280,7 +2280,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, label);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, domain_name);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(domain_name));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -2321,7 +2321,7 @@ module suins::controller_tests {
             controller::register_with_code(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -2360,7 +2360,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -2396,7 +2396,7 @@ module suins::controller_tests {
             controller::register_with_code(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -2439,7 +2439,7 @@ module suins::controller_tests {
             controller::register_with_code(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -2486,7 +2486,7 @@ module suins::controller_tests {
             controller::register_with_code(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -2521,7 +2521,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -2556,7 +2556,7 @@ module suins::controller_tests {
             controller::register_with_code(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -2598,7 +2598,7 @@ module suins::controller_tests {
             controller::register_with_code(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -2637,7 +2637,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                AUCTIONED_LABEL,
+                utf8(AUCTIONED_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -2676,7 +2676,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -2709,7 +2709,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == 21 + 365, 0);
 
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -2740,7 +2740,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                AUCTIONED_LABEL,
+                utf8(AUCTIONED_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -2779,7 +2779,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -2811,7 +2811,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == 51 + 365, 0);
 
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -2864,7 +2864,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -2896,7 +2896,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == 221 + 365, 0);
 
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -2948,7 +2948,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                AUCTIONED_LABEL,
+                utf8(AUCTIONED_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -2980,7 +2980,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
             assert!(expired_at == 221 + 365, 0);
 
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -3032,7 +3032,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -3064,7 +3064,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == 121 + 365, 0);
 
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -3135,7 +3135,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                AUCTIONED_LABEL,
+                utf8(AUCTIONED_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -3194,7 +3194,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                AUCTIONED_LABEL,
+                utf8(AUCTIONED_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -3264,7 +3264,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                AUCTIONED_LABEL,
+                utf8(AUCTIONED_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -3296,7 +3296,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
             assert!(expired_at == START_AUCTION_END_AT + EXTRA_PERIOD + BIDDING_PERIOD + REVEAL_PERIOD + 1 + 365, 0);
 
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -3348,7 +3348,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                AUCTIONED_LABEL,
+                utf8(AUCTIONED_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -3415,7 +3415,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                AUCTIONED_LABEL,
+                utf8(AUCTIONED_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -3445,7 +3445,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == 221 + 365, 0);
 
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -3506,7 +3506,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                AUCTIONED_LABEL,
+                utf8(AUCTIONED_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -3538,7 +3538,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_DOMAIN_NAME);
             assert!(expired_at == 221 + 365, 0);
 
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == @0x0, 0);
             assert!(ttl == 0, 0);
@@ -3610,7 +3610,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                AUCTIONED_LABEL,
+                utf8(AUCTIONED_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -3642,7 +3642,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
             assert!(expired_at == 221 + 365, 0);
 
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -3848,7 +3848,7 @@ module suins::controller_tests {
             controller::register_with_image(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -3889,7 +3889,7 @@ module suins::controller_tests {
             controller::register_with_image(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -3930,7 +3930,7 @@ module suins::controller_tests {
             controller::register_with_image(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -3978,7 +3978,7 @@ module suins::controller_tests {
             controller::register_with_image(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -4016,7 +4016,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -4054,7 +4054,7 @@ module suins::controller_tests {
             controller::register_with_image(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -4091,7 +4091,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -4147,7 +4147,7 @@ module suins::controller_tests {
             controller::register_with_image(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -4188,7 +4188,7 @@ module suins::controller_tests {
             controller::register_with_image(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -4229,7 +4229,7 @@ module suins::controller_tests {
             controller::register_with_image(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -4279,7 +4279,7 @@ module suins::controller_tests {
             controller::register_with_code_and_image(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -4321,7 +4321,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -4354,7 +4354,7 @@ module suins::controller_tests {
             controller::register_with_code_and_image(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -4397,7 +4397,7 @@ module suins::controller_tests {
             controller::register_with_code_and_image(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -4440,7 +4440,7 @@ module suins::controller_tests {
             controller::register_with_code_and_image(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -4490,7 +4490,7 @@ module suins::controller_tests {
             controller::register_with_code_and_image(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -4527,7 +4527,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, FIRST_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -4559,7 +4559,7 @@ module suins::controller_tests {
             controller::register_with_code_and_image(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -4601,7 +4601,7 @@ module suins::controller_tests {
             controller::register_with_code_and_image(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -4643,7 +4643,7 @@ module suins::controller_tests {
             controller::register_with_code_and_image(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -4691,12 +4691,12 @@ module suins::controller_tests {
             let ctx = test_scenario::ctx(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2 + 1, ctx);
 
-            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 522, 0);
+            assert!(registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(FIRST_LABEL)) == 522, 0);
             assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
             controller::renew_with_image(
                 &mut suins,
                 &config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 2,
                 &mut coin,
                 &mut nft,
@@ -4706,7 +4706,7 @@ module suins::controller_tests {
                 ctx,
             );
             assert!(coin::value(&coin) == 1, 0);
-            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 1252, 0);
+            assert!(registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(FIRST_LABEL)) == 1252, 0);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(suins);
@@ -4745,7 +4745,7 @@ module suins::controller_tests {
             controller::renew_with_image(
                 &mut suins,
                 &config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 2,
                 &mut coin,
                 &mut nft,
@@ -4779,7 +4779,7 @@ module suins::controller_tests {
             controller::renew_with_image(
                 &mut suins,
                 &config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 2,
                 &mut coin,
                 &mut nft,
@@ -4813,7 +4813,7 @@ module suins::controller_tests {
             controller::renew_with_image(
                 &mut suins,
                 &config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 2,
                 &mut coin,
                 &mut nft,
@@ -4849,11 +4849,11 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2, &mut ctx);
 
-            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 522, 0);
+            assert!(registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(FIRST_LABEL)) == 522, 0);
             controller::renew_with_image(
                 &mut suins,
                 &config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 2,
                 &mut coin,
                 &mut nft,
@@ -4902,13 +4902,13 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2 + 1, &mut ctx);
 
-            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == EXTRA_PERIOD_END_AT + 1 + 365, 0);
+            assert!(registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(FIRST_LABEL)) == EXTRA_PERIOD_END_AT + 1 + 365, 0);
             assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
 
             controller::renew_with_image(
                 &mut suins,
                 &config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 2,
                 &mut coin,
                 &mut nft,
@@ -4919,7 +4919,7 @@ module suins::controller_tests {
             );
 
             assert!(coin::value(&coin) == 1, 0);
-            assert!(registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_LABEL) == 1252, 0);
+            assert!(registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(FIRST_LABEL)) == 1252, 0);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(suins);
@@ -5003,7 +5003,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                AUCTIONED_LABEL,
+                utf8(AUCTIONED_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -5083,7 +5083,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                AUCTIONED_LABEL,
+                utf8(AUCTIONED_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -5117,7 +5117,7 @@ module suins::controller_tests {
                 0
             );
 
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
@@ -5193,7 +5193,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                AUCTIONED_LABEL,
+                utf8(AUCTIONED_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -5276,7 +5276,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                AUCTIONED_LABEL,
+                utf8(AUCTIONED_LABEL),
                 FIRST_USER_ADDRESS,
                 1,
                 FIRST_SECRET,
@@ -5306,7 +5306,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
             assert!(expired_at == EXTRA_PERIOD_START_AT + 2 + 365, 0);
 
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, AUCTIONED_DOMAIN_NAME);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -5398,15 +5398,15 @@ module suins::controller_tests {
             assert!(registry::record_exists(&suins, utf8(second_domain_name_sui)), 0);
             assert!(!registry::record_exists(&suins, utf8(second_domain_name_move)), 0);
 
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, first_domain_name_sui);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(first_domain_name_sui));
             assert!(owner == SUINS_ADDRESS, 0);
             assert!(linked_addr == SUINS_ADDRESS, 0);
             assert!(ttl == 0, 0);
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, first_domain_name_move);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(first_domain_name_move));
             assert!(owner == SUINS_ADDRESS, 0);
             assert!(linked_addr == SUINS_ADDRESS, 0);
             assert!(ttl == 0, 0);
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, second_domain_name_sui);
+            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(second_domain_name_sui));
             assert!(owner == SUINS_ADDRESS, 0);
             assert!(linked_addr == SUINS_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -5488,22 +5488,22 @@ module suins::controller_tests {
             assert!(registry::record_exists(&suins, utf8(second_domain_name_sui)), 0);
             assert!(registry::record_exists(&suins, utf8(second_domain_name_move)), 0);
 
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, first_domain_name_sui);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(first_domain_name_sui));
             assert!(owner == SUINS_ADDRESS, 0);
             assert!(linked_addr == SUINS_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(name == utf8(b""), 0);
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, first_domain_name_move);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(first_domain_name_move));
             assert!(owner == SUINS_ADDRESS, 0);
             assert!(linked_addr == SUINS_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(name == utf8(b""), 0);
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, second_domain_name_sui);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(second_domain_name_sui));
             assert!(owner == SUINS_ADDRESS, 0);
             assert!(linked_addr == SUINS_ADDRESS, 0);
             assert!(ttl == 0, 0);
             assert!(name == utf8(b""), 0);
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, second_domain_name_move);
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(second_domain_name_move));
             assert!(owner == @0x0B, 0);
             assert!(linked_addr == @0x0B, 0);
             assert!(ttl == 0, 0);
@@ -5572,7 +5572,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registrar::ELabelUnAvailable)]
+    #[test, expected_failure(abort_code = registrar::ELabelUnavailable)]
     fun test_new_reserved_domains_aborts_with_dupdated_domain_names() {
         let scenario = test_init();
         let first_domain_name = b"abcde";
@@ -5728,7 +5728,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = controller::ELabelUnAvailable)]
+    #[test, expected_failure(abort_code = controller::ELabelUnavailable)]
     fun test_register_aborts_if_sui_name_is_reserved() {
         let scenario = test_init();
         let first_domain_name = b"abcde";
@@ -5769,7 +5769,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                first_domain_name,
+                utf8(first_domain_name),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -5807,7 +5807,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -5847,7 +5847,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -5904,7 +5904,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -5953,7 +5953,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -5983,7 +5983,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -6023,7 +6023,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 FIRST_USER_ADDRESS,
                 6,
                 FIRST_SECRET,
@@ -6055,7 +6055,7 @@ module suins::controller_tests {
             controller::renew(
                 &mut suins,
                 &config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 6,
                 &mut coin,
                 ctx,
@@ -6083,7 +6083,7 @@ module suins::controller_tests {
             controller::renew(
                 &mut suins,
                 &config,
-                FIRST_LABEL,
+                utf8(FIRST_LABEL),
                 5,
                 &mut coin,
                 ctx,
@@ -6118,7 +6118,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                b"ab",
+                utf8(b"ab"),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -6163,7 +6163,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                b"abc",
+                utf8(b"abc"),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -6196,7 +6196,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, b"abc");
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, b"abc.sui");
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(b"abc.sui"));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -6236,7 +6236,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                b"abcd",
+                utf8(b"abcd"),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -6270,7 +6270,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, b"abcd");
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, b"abcd.sui");
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(b"abcd.sui"));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -6310,7 +6310,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                b"abcdef",
+                utf8(b"abcdef"),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -6344,7 +6344,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, b"abcdef");
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, b"abcdef.sui");
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(b"abcdef.sui"));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -6394,7 +6394,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                b"xyz",
+                utf8(b"xyz"),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -6427,7 +6427,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, b"xyz");
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, b"xyz.sui");
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(b"xyz.sui"));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);
@@ -6511,7 +6511,7 @@ module suins::controller_tests {
             controller::register(
                 &mut suins,
                 &mut config,
-                b"xyzt",
+                utf8(b"xyzt"),
                 FIRST_USER_ADDRESS,
                 2,
                 FIRST_SECRET,
@@ -6544,7 +6544,7 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, b"xyzt");
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, b"xyzt.sui");
+            let (owner, linked_addr, ttl, name) = registry::get_name_record_all_fields(&suins, utf8(b"xyzt.sui"));
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(linked_addr == FIRST_USER_ADDRESS, 0);
             assert!(ttl == 0, 0);

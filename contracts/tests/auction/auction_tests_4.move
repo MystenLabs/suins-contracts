@@ -16,6 +16,7 @@ module suins::auction_tests_4 {
     use suins::registry;
     use suins::configuration;
     use sui::clock::Clock;
+    use std::string::utf8;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -1356,13 +1357,13 @@ module suins::auction_tests_4 {
             get_entry_util(&mut auction, FIRST_DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1000 * configuration::mist_per_sui(), 0, FIRST_USER_ADDRESS, true);
             assert!(registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_DOMAIN_NAME), 0);
             assert!(
-                registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_DOMAIN_NAME)
+                registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(FIRST_DOMAIN_NAME))
                     == EXTRA_PERIOD_START_AT + 1 + 365,
                 0
             );
-            assert!(registry::owner(&suins, FIRST_DOMAIN_NAME_SUI) == FIRST_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, FIRST_DOMAIN_NAME_SUI) == 0, 0);
-            assert!(registry::linked_addr(&suins, FIRST_DOMAIN_NAME_SUI) == FIRST_USER_ADDRESS, 0);
+            assert!(registry::owner(&suins, utf8(FIRST_DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
+            assert!(registry::ttl(&suins, utf8(FIRST_DOMAIN_NAME_SUI)) == 0, 0);
+            assert!(registry::linked_addr(&suins, utf8(FIRST_DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(
                 controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1000 * configuration::mist_per_sui() + BIDDING_FEE,

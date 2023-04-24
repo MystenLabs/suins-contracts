@@ -16,6 +16,7 @@ module suins::auction_tests_3 {
     use sui::clock::Clock;
     use suins::registrar;
     use suins::configuration;
+    use std::string::utf8;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -740,13 +741,13 @@ module suins::auction_tests_3 {
             get_entry_util(&mut auction, FIRST_DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1000 * configuration::mist_per_sui(), 0, FIRST_USER_ADDRESS, true);
             assert!(registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_DOMAIN_NAME), 0);
             assert!(
-                registrar::name_expires_at(&suins, SUI_REGISTRAR, FIRST_DOMAIN_NAME)
+                registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(FIRST_DOMAIN_NAME))
                     == EXTRA_PERIOD_START_AT + 365,
                 0
             );
-            assert!(registry::owner(&suins, FIRST_DOMAIN_NAME_SUI) == FIRST_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, FIRST_DOMAIN_NAME_SUI) == 0, 0);
-            assert!(registry::linked_addr(&suins, FIRST_DOMAIN_NAME_SUI) == FIRST_USER_ADDRESS, 0);
+            assert!(registry::owner(&suins, utf8(FIRST_DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
+            assert!(registry::ttl(&suins, utf8(FIRST_DOMAIN_NAME_SUI)) == 0, 0);
+            assert!(registry::linked_addr(&suins, utf8(FIRST_DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(
                 controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1000 * configuration::mist_per_sui() + BIDDING_FEE,
@@ -1386,7 +1387,7 @@ module suins::auction_tests_3 {
             let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
             assert!(coin::value(&coin) == 1300 * configuration::mist_per_sui(), 0);
             let (start_at, highest_bid, second_highest_bid, winner, is_finalized) =
-                auction::get_entry(&auction, FIRST_DOMAIN_NAME);
+                auction::get_entry(&auction, utf8(FIRST_DOMAIN_NAME));
             assert!(option::extract(&mut start_at) == START_AN_AUCTION_AT + 1, 0);
             assert!(option::extract(&mut highest_bid) == 0, 0);
             assert!(option::extract(&mut second_highest_bid) == 0, 0);
@@ -1495,7 +1496,7 @@ module suins::auction_tests_3 {
             let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
             assert!(coin::value(&coin) == 30000 * configuration::mist_per_sui(), 0);
             let (start_at, highest_bid, second_highest_bid, winner, is_finalized) =
-                auction::get_entry(&auction, FIRST_DOMAIN_NAME);
+                auction::get_entry(&auction, utf8(FIRST_DOMAIN_NAME));
             assert!(option::extract(&mut start_at) == START_AN_AUCTION_AT + 1, 0);
             assert!(option::extract(&mut highest_bid) == 0, 0);
             assert!(option::extract(&mut second_highest_bid) == 0, 0);
@@ -2239,7 +2240,7 @@ module suins::auction_tests_3 {
 
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, SECOND_DOMAIN_NAME, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(SECOND_DOMAIN_NAME), &mut coin, ctx);
             assert!(controller::get_balance(&suins) == 2 * START_AN_AUCTION_FEE, 0);
             assert!(coin::value(&coin) == 2 * START_AN_AUCTION_FEE, 0);
 
@@ -2262,7 +2263,7 @@ module suins::auction_tests_3 {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, THIRD_DOMAIN_NAME, &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(THIRD_DOMAIN_NAME), &mut coin, ctx);
             assert!(controller::get_balance(&suins) == 3 * START_AN_AUCTION_FEE, 0);
             assert!(coin::value(&coin) == 2 * START_AN_AUCTION_FEE, 0);
 
