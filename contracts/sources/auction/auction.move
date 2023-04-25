@@ -380,7 +380,7 @@ module suins::auction {
                 || ((value == entry.second_highest_bid) && bid_detail.created_at_in_ms < entry.second_highest_bid_created_at_in_ms)
         ) {
             // not winner, but affects second place
-            new_second_highest_bid(entry, value, tx_context::sender(ctx));
+            new_second_highest_bid(entry, value, tx_context::sender(ctx), bid_detail.created_at_in_ms);
         } else {
             // bid doesn't affect auction
         };
@@ -685,7 +685,8 @@ module suins::auction {
     fun new_winning_bid(entry: &mut AuctionEntry, winning_bid_detail: &BidDetail) {
         let new_second_highest_bid = entry.highest_bid;
         let new_second_highest_bidder = entry.winner;
-        new_second_highest_bid(entry, new_second_highest_bid, new_second_highest_bidder);
+        let new_second_highest_bid_created_at_in_ms = entry.winning_bid_created_at_in_ms;
+        new_second_highest_bid(entry, new_second_highest_bid, new_second_highest_bidder, new_second_highest_bid_created_at_in_ms);
 
         entry.highest_bid = winning_bid_detail.bid_value;
         entry.winner = winning_bid_detail.bidder;
@@ -696,10 +697,12 @@ module suins::auction {
     fun new_second_highest_bid(
         entry: &mut AuctionEntry,
         new_second_highest_value: u64,
-        new_second_highest_bidder: address
+        new_second_highest_bidder: address,
+        new_second_highest_bid_created_at_in_ms: u64,
     ) {
         entry.second_highest_bid = new_second_highest_value;
         entry.second_highest_bidder = new_second_highest_bidder;
+        entry.second_highest_bid_created_at_in_ms = new_second_highest_bid_created_at_in_ms
     }
 
     fun register_winning_auction(
