@@ -103,6 +103,10 @@ module suins::entity {
         MAX_U64 - 365
     }
 
+    public fun max_u64(): u64 {
+        MAX_U64
+    }
+
     public fun controller_balance(suins: &SuiNS): &Balance<SUI> {
         &suins.controller.balance
     }

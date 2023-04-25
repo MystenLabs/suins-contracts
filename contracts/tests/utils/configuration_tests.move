@@ -6,6 +6,7 @@ module suins::configuration_tests {
     use sui::vec_map;
     use suins::configuration::{Self, Configuration};
     use suins::registry::{Self, AdminCap};
+    use suins::remove_later;
     use std::ascii;
     use std::option;
 
@@ -545,7 +546,7 @@ module suins::configuration_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = configuration::EInvalidRate)]
+    #[test, expected_failure(abort_code = remove_later::EInvalidDiscountCodeBatch)]
     fun test_new_discount_code_batch_abort_if_rate_greater_than_100() {
         let scenario = test_init();
 
