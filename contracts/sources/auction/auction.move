@@ -19,7 +19,7 @@ module suins::auction {
     use suins::configuration::{Self, Configuration};
     use suins::coin_util;
     use suins::entity::SuiNS;
-    use suins::emoji;
+    use suins::validator;
     use std::option::{Self, Option, none, some};
     use std::string::{Self, String, utf8};
     use std::vector;
@@ -193,7 +193,6 @@ module suins::auction {
     public entry fun start_an_auction(
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
-        config: &Configuration,
         label: String,
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext
@@ -204,8 +203,7 @@ module suins::auction {
             ) <= auction_house.start_auction_end_at,
             EInvalidPhase,
         );
-        let emoji_config = configuration::emoji_config(config);
-        emoji::validate_label_with_emoji(emoji_config, label, configuration::min_domain_length(), configuration::max_domain_length());
+        validator::validate_label(label, configuration::min_domain_length(), configuration::max_domain_length());
 
         let state = state(auction_house, label, tx_context::epoch(ctx));
         assert!(state == AUCTION_STATE_OPEN || state == AUCTION_STATE_REOPENED, EInvalidPhase);
@@ -348,8 +346,7 @@ module suins::auction {
         let bid_detail = linked_table::borrow_mut(bids_by_sender, option::extract(&mut index));
         assert!(!bid_detail.is_unsealed, EAlreadyUnsealed);
 
-        let emoji_config = configuration::emoji_config(config);
-        let min_price = configuration::price_for_label(config, emoji::len_of_label(emoji_config, *string::bytes(&label)), 1);
+        let min_price = configuration::price_for_label(config, string::length(&label), 1);
         bid_detail.bid_value = value;
         bid_detail.label = label;
         bid_detail.is_unsealed = true;
