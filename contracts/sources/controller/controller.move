@@ -17,9 +17,9 @@ module suins::controller {
     use suins::registry::AdminCap;
     use suins::registrar::{Self, RegistrationNFT};
     use suins::configuration::{Self, Configuration};
-    use suins::emoji;
     use suins::coin_util;
     use suins::entity::{Self, SuiNS};
+    use suins::validator;
     use std::string::{Self, String, utf8};
     use std::ascii;
     use std::bcs;
@@ -376,7 +376,6 @@ module suins::controller {
         let len = vector::length(&domains);
         let index = 0;
         let dot = utf8(b".");
-        let emoji_config = configuration::emoji_config(config);
         while (index < len) {
             let domain = vector::borrow(&domains, index);
             index = index + 1;
@@ -384,8 +383,7 @@ module suins::controller {
             let index_of_dot = string::index_of(domain, &dot);
             assert!(index_of_dot != string::length(domain), EInvalidDomain);
             let label = string::sub_string(domain, 0, index_of_dot);
-            emoji::validate_label_with_emoji(
-                emoji_config,
+            validator::validate_label(
                 label,
                 configuration::min_domain_length(),
                 configuration::max_domain_length()
@@ -414,8 +412,11 @@ module suins::controller {
         ctx: &mut TxContext
     ) {
         assert!(0 < no_years && no_years <= 5, EInvalidNoYears);
-        let emoji_config = configuration::emoji_config(config);
-        let renew_fee = configuration::price_for_label(config, emoji::len_of_label(emoji_config, *string::bytes(&label)), no_years);
+        let renew_fee = configuration::price_for_label(
+            config,
+            string::length(&label),
+            no_years
+        );
         assert!(coin::value(payment) >= renew_fee, ENotEnoughFee);
         coin_util::user_transfer_to_suins(suins, payment, renew_fee);
 
@@ -450,18 +451,16 @@ module suins::controller {
         assert!(configuration::is_controller_enabled(config), ERegistrationIsDisabled);
         assert!(tx_context::epoch(ctx) > entity::controller_auction_house_finalized_at(suins), EAuctionNotEndYet);
 
-        let emoji_config = configuration::emoji_config(config);
-        let len_of_label =
-            emoji::validate_label_with_emoji(
-                emoji_config,
-                label,
-                configuration::min_domain_length(),
-                configuration::max_domain_length()
-            );
+        validator::validate_label(
+            label,
+            configuration::min_domain_length(),
+            configuration::max_domain_length()
+        );
 
         let commitment = make_commitment(*string::bytes(&label), owner, secret);
         consume_commitment(suins, label, commitment, clock, ctx);
 
+        let len_of_label = string::length(&label);
         let registration_fee = configuration::price_for_label(config, len_of_label, no_years);
         assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
 

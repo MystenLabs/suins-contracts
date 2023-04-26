@@ -27,29 +27,15 @@ module suins::auction_tests_3 {
         97, // 'a'
         98, // 'b'
         99, // 'c'
-        240, 159, 146, 150, // 1f496
-        240, 159, 145, 168, // 1f468_200d_2764_fe0f_200d_1f48b_200d_1f468
-        226, 128, 141,
-        226, 157, 164,
-        239, 184, 143,
-        226, 128, 141,
-        240, 159, 146, 139,
-        226, 128, 141,
-        240, 159, 145, 168,
+        102,
+        105,
     ];
     const FIRST_DOMAIN_NAME_SUI: vector<u8> = vector[
         97, // 'a'
         98, // 'b'
         99, // 'c'
-        240, 159, 146, 150, // 1f496
-        240, 159, 145, 168, // 1f468_200d_2764_fe0f_200d_1f48b_200d_1f468
-        226, 128, 141,
-        226, 157, 164,
-        239, 184, 143,
-        226, 128, 141,
-        240, 159, 146, 139,
-        226, 128, 141,
-        240, 159, 145, 168,
+        102,
+        105,
         46, // .
         115, // s
         117, // u
@@ -2236,16 +2222,14 @@ module suins::auction_tests_3 {
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let config = test_scenario::take_shared<Configuration>(scenario);
 
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(SECOND_DOMAIN_NAME), &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(SECOND_DOMAIN_NAME), &mut coin, ctx);
             assert!(controller::get_balance(&suins) == 2 * START_AN_AUCTION_FEE, 0);
             assert!(coin::value(&coin) == 2 * START_AN_AUCTION_FEE, 0);
 
             test_scenario::return_shared(auction);
-            test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             coin::burn_for_testing(coin);
         };
@@ -2263,7 +2247,7 @@ module suins::auction_tests_3 {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(THIRD_DOMAIN_NAME), &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(THIRD_DOMAIN_NAME), &mut coin, ctx);
             assert!(controller::get_balance(&suins) == 3 * START_AN_AUCTION_FEE, 0);
             assert!(coin::value(&coin) == 2 * START_AN_AUCTION_FEE, 0);
 

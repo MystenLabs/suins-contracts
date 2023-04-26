@@ -14,7 +14,7 @@ module suins::controller_tests {
     use suins::configuration::{Self, Configuration};
     use suins::entity::{Self, SuiNS};
     use suins::controller;
-    use suins::emoji;
+    use suins::validator;
     use std::option::{Self, Option, some};
     use std::string::utf8;
     use std::vector;
@@ -769,7 +769,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
+    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
     fun test_register_with_config_aborts_with_too_short_label() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -841,7 +841,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
+    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
     fun test_register_with_config_aborts_with_too_long_label() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
@@ -913,7 +913,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
+    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
     fun test_register_with_config_aborts_if_label_starts_with_hyphen() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -985,7 +985,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
+    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
     fun test_register_with_config_abort_with_invalid_label() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -1134,7 +1134,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
+    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
     fun test_register_abort_if_label_is_invalid() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
@@ -2213,8 +2213,8 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test]
-    fun test_register_with_emoji() {
+    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
+    fun test_register_with_emoji_aborts() {
         let scenario = test_init();
         let label = vector[104, 109, 109, 109, 49, 240, 159, 145, 180];
         let domain_name = vector[104, 109, 109, 109, 49, 240, 159, 145, 180, 46, 115, 117, 105];
@@ -2257,33 +2257,6 @@ module suins::controller_tests {
             coin::burn_for_testing(coin);
             test_scenario::return_shared(config);
             test_scenario::return_shared(clock);
-            test_scenario::return_shared(suins);
-        };
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = registrar::get_nft_fields(&nft);
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-
-            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
-
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2, 0);
-            assert!(name == utf8(domain_name), 0);
-            assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
-                0
-            );
-
-            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, label);
-            assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
-
-            let (owner, linked_addr, ttl, _) = registry::get_name_record_all_fields(&suins, utf8(domain_name));
-            assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
-            assert!(ttl == 0, 0);
-
-            test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -5544,28 +5517,6 @@ module suins::controller_tests {
             );
             test_scenario::return_to_sender(&mut scenario, first_nft);
         };
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
-        {
-            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let config = test_scenario::take_shared<Configuration>(&mut scenario);
-            let ctx = &mut ctx_new(
-                SUINS_ADDRESS,
-                DEFAULT_TX_HASH,
-                52,
-                20
-            );
-            let emoji_label = vector[104, 109, 109, 109, 49, 240, 159, 145, 180];
-            let emoji_domain_name = vector[104, 109, 109, 109, 49, 240, 159, 145, 180, 46, 115, 117, 105];
-
-            assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(emoji_label), ctx), 0);
-            assert!(!registry::record_exists(&suins, utf8(emoji_domain_name)), 0);
-            controller::new_reserved_domains(&admin_cap, &mut suins, &config, emoji_domain_name, @0x0C, ctx);
-
-            test_scenario::return_shared(suins);
-            test_scenario::return_shared(config);
-            test_scenario::return_to_sender(&mut scenario, admin_cap);
-        };
         test_scenario::end(scenario);
     }
 
@@ -5649,7 +5600,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
+    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
     fun test_new_reserved_domains_aborts_with_leading_dash_character() {
         let scenario = test_init();
 
@@ -5674,7 +5625,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
+    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
     fun test_new_reserved_domains_aborts_with_trailing_dash_character() {
         let scenario = test_init();
 
@@ -5699,7 +5650,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = emoji::EInvalidEmojiSequence)]
+    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
     fun test_new_reserved_domains_aborts_with_invalid_emoji() {
         let scenario = test_init();
         let invalid_emoji_domain_name = vector[241, 159, 152, 135, 119, 109, 109, 49, 240, 159, 145, 180, 46, 115, 117, 105];
@@ -6091,7 +6042,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
+    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
     fun test_register_aborts_if_domain_length_has_less_than_3_characters() {
         let scenario = test_init();
         set_auction_config(&mut scenario);

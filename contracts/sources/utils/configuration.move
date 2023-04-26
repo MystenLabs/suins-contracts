@@ -9,7 +9,6 @@ module suins::configuration {
     use sui::tx_context::{TxContext, sender};
     use suins::remove_later;
     use suins::registry::AdminCap;
-    use suins::emoji::{Self, EmojiConfiguration};
     use std::ascii;
     use std::vector;
     use sui::address;
@@ -39,7 +38,6 @@ module suins::configuration {
         id: UID,
         referral_codes: VecMap<ascii::String, ReferralValue>,
         discount_codes: VecMap<ascii::String, DiscountValue>,
-        emoji_config: EmojiConfiguration,
         public_key: vector<u8>,
         enable_controller: bool,
         price_of_three_character_domain: u64,
@@ -259,16 +257,11 @@ module suins::configuration {
         (value.rate, value.partner)
     }
 
-    public(friend) fun emoji_config(config: &Configuration): &EmojiConfiguration {
-        &config.emoji_config
-    }
-
     fun init(ctx: &mut TxContext) {
         transfer::share_object(Configuration {
             id: object::new(ctx),
             referral_codes: vec_map::empty(),
             discount_codes: vec_map::empty(),
-            emoji_config: emoji::init_emoji_config(),
             public_key: vector::empty(),
             enable_controller: true,
             price_of_three_character_domain: 1200 * MIST_PER_SUI,
@@ -333,7 +326,6 @@ module suins::configuration {
             id: object::new(ctx),
             referral_codes: vec_map::empty(),
             discount_codes: vec_map::empty(),
-            emoji_config: emoji::init_emoji_config(),
             public_key: vector::empty(),
             enable_controller: true,
             price_of_three_character_domain: 1200 * MIST_PER_SUI,

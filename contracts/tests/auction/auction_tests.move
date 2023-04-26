@@ -9,9 +9,9 @@ module suins::auction_tests {
     use suins::auction::{Self, make_seal_bid, get_seal_bid_by_bidder, finalize_auction, get_bids_by_bidder, get_bid_detail_fields, withdraw, state, AuctionHouse};
     use suins::registry::{Self, AdminCap};
     use suins::registrar;
+    use suins::validator;
     use suins::configuration::{Self, Configuration};
     use suins::entity::{Self, SuiNS};
-    use suins::emoji;
     use std::vector;
     use std::option::{Self, Option, some, is_some};
     use suins::controller;
@@ -28,15 +28,8 @@ module suins::auction_tests {
         97, // 'a'
         98, // 'b'
         99, // 'c'
-        240, 159, 146, 150, // 1f496
-        240, 159, 145, 168, // 1f468_200d_2764_fe0f_200d_1f48b_200d_1f468
-        226, 128, 141,
-        226, 157, 164,
-        239, 184, 143,
-        226, 128, 141,
-        240, 159, 146, 139,
-        226, 128, 141,
-        240, 159, 145, 168,
+        102,
+        105,
     ];
     const SECOND_DOMAIN_NAME: vector<u8> = b"suins2";
     const THIRD_DOMAIN_NAME: vector<u8> = b"suins3";
@@ -44,15 +37,8 @@ module suins::auction_tests {
         97, // 'a'
         98, // 'b'
         99, // 'c'
-        240, 159, 146, 150, // 1f496
-        240, 159, 145, 168, // 1f468_200d_2764_fe0f_200d_1f48b_200d_1f468
-        226, 128, 141,
-        226, 157, 164,
-        239, 184, 143,
-        226, 128, 141,
-        240, 159, 146, 139,
-        226, 128, 141,
-        240, 159, 145, 168,
+        102,
+        105,
         46, // .
         115, // s
         117, // u
@@ -130,7 +116,6 @@ module suins::auction_tests {
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let config = test_scenario::take_shared<Configuration>(scenario);
             let (start_at, highest_bid, second_highest_bid, winner, is_finalized) = auction::get_entry(&auction, utf8(domain_name));
             assert!(option::is_none(&start_at), 0);
             assert!(option::is_none(&highest_bid), 0);
@@ -142,7 +127,7 @@ module suins::auction_tests {
 
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(domain_name), &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(domain_name), &mut coin, ctx);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE, 0);
             assert!(coin::value(&coin) == 2 * START_AN_AUCTION_FEE, 0);
             assert!(state_util(&auction, domain_name, START_AN_AUCTION_AT) == AUCTION_STATE_PENDING, 0);
@@ -164,7 +149,6 @@ module suins::auction_tests {
             assert!(option::extract(&mut is_finalized) == false, 0);
 
             test_scenario::return_shared(auction);
-            test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             coin::burn_for_testing(coin);
         };
@@ -569,16 +553,14 @@ module suins::auction_tests {
             );
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            let config = test_scenario::take_shared<Configuration>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let coin = coin::mint_for_testing<SUI>(30 * START_AN_AUCTION_FEE, ctx);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(DOMAIN_NAME), &mut coin, ctx);
             assert!(auction::get_balance(&auction) == 0, 0);
 
             test_scenario::return_shared(auction);
-            test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             coin::burn_for_testing(coin);
         };
@@ -667,13 +649,11 @@ module suins::auction_tests {
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(30000, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(DOMAIN_NAME), &mut coin, ctx);
 
             test_scenario::return_shared(auction);
-            test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             coin::burn_for_testing(coin);
         };
@@ -695,20 +675,18 @@ module suins::auction_tests {
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(30000, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(DOMAIN_NAME), &mut coin, ctx);
 
             test_scenario::return_shared(auction);
-            test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             coin::burn_for_testing(coin);
         };
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
+    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
     fun test_start_an_auction_aborts_if_domain_name_too_short() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -722,21 +700,19 @@ module suins::auction_tests {
             );
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            let config = test_scenario::take_shared<Configuration>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(b"su"), &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(b"su"), &mut coin, ctx);
 
             test_scenario::return_shared(auction);
-            test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             coin::burn_for_testing(coin);
         };
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = emoji::EInvalidLabel)]
+    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
     fun test_start_an_auction_aborts_if_domain_name_too_long() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -751,20 +727,17 @@ module suins::auction_tests {
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
             auction::start_an_auction(
                 &mut auction,
                 &mut suins,
-                &config,
                 utf8(b"suinssusuinssusuinssusuinssusuinssusuinssusuinssusuinssusuinssusuinssusuinssusuinssu"),
                 &mut coin,
                 ctx,
             );
 
             test_scenario::return_shared(auction);
-            test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             coin::burn_for_testing(coin);
         };
@@ -786,18 +759,16 @@ module suins::auction_tests {
             let ctx = &mut ctx;
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            let config = test_scenario::take_shared<Configuration>(scenario);
             let test_coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut test_coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(DOMAIN_NAME), &mut test_coin, ctx);
             assert!(coin::value(&test_coin) == 2 * START_AN_AUCTION_FEE, 0);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut test_coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(DOMAIN_NAME), &mut test_coin, ctx);
 
             coin::burn_for_testing(test_coin);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
-            test_scenario::return_shared(config);
         };
         test_scenario::end(scenario_val);
     }
@@ -817,9 +788,8 @@ module suins::auction_tests {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, &mut ctx);
-            let config = test_scenario::take_shared<Configuration>(scenario);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
@@ -827,10 +797,9 @@ module suins::auction_tests {
                 111,
                 0
             );
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
             test_scenario::return_shared(auction);
-            test_scenario::return_shared(config);
             test_scenario::return_shared(suins);
             coin::burn_for_testing(coin);
         };
@@ -854,7 +823,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, &mut ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
@@ -862,7 +831,7 @@ module suins::auction_tests {
                 111 + BIDDING_PERIOD,
                 0
             );
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
@@ -892,7 +861,7 @@ module suins::auction_tests {
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == 0, 0);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
             assert!(coin::value(&coin) == 2 * START_AN_AUCTION_FEE, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
@@ -904,7 +873,7 @@ module suins::auction_tests {
                 111 + BIDDING_PERIOD + REVEAL_PERIOD,
                 0
             );
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == 2 * START_AN_AUCTION_FEE, 0);
@@ -958,7 +927,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(10 * configuration::mist_per_sui(), &mut ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(suins);
@@ -1029,7 +998,7 @@ module suins::auction_tests {
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1300 * configuration::mist_per_sui() + BIDDING_FEE, 0);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(suins);
@@ -2524,7 +2493,7 @@ module suins::auction_tests {
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(DOMAIN_NAME), &mut coin, ctx);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE, 0);
 
@@ -2619,7 +2588,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(30 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(DOMAIN_NAME), &mut coin, ctx);
             assert!(auction::get_balance(&auction) == 0, 0);
 
             test_scenario::return_shared(auction);
@@ -3407,7 +3376,7 @@ module suins::auction_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, &mut ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(suins);
@@ -3489,7 +3458,7 @@ module suins::auction_tests {
             );
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, &mut ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
             assert!(auction::get_balance(&auction) == 2200 * configuration::mist_per_sui(), 0);
             assert!(controller::get_balance(&suins) == 2 * START_AN_AUCTION_FEE + BIDDING_FEE, 0);
@@ -4094,7 +4063,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(DOMAIN_NAME), &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(DOMAIN_NAME), &mut coin, ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -4292,7 +4261,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(b"abcde"), &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(b"abcde"), &mut coin, ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
@@ -4319,7 +4288,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
-            auction::start_an_auction(&mut auction, &mut suins, &config, utf8(b"abcde"), &mut coin, ctx);
+            auction::start_an_auction(&mut auction, &mut suins, utf8(b"abcde"), &mut coin, ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(config);
