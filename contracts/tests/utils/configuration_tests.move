@@ -6,6 +6,7 @@ module suins::configuration_tests {
     use sui::vec_map;
     use suins::configuration::{Self, Configuration};
     use suins::registry::{Self, AdminCap};
+    use suins::remove_later;
     use std::ascii;
     use std::option;
 
@@ -540,6 +541,25 @@ module suins::configuration_tests {
                 configuration::get_discount_owner(&referral_value) == ascii::string(b"0000000000000000000000000000000000abcdef"),
                 0
             );
+            test_scenario::return_shared(config);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test, expected_failure(abort_code = remove_later::EInvalidDiscountCodeBatch)]
+    fun test_new_discount_code_batch_abort_if_rate_greater_than_100() {
+        let scenario = test_init();
+
+        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
+            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            configuration::new_discount_code_batch(
+                &admin_cap,
+                &mut config,
+                b"ThisIsCode1,0255,0xABCDef",
+            );
+            test_scenario::return_to_sender(&mut scenario, admin_cap);
             test_scenario::return_shared(config);
         };
         test_scenario::end(scenario);

@@ -66,6 +66,11 @@ module suins::remove_later_tests {
     }
 
     #[test, expected_failure(abort_code = remove_later::EInvalidDiscountCodeBatch)]
+    fun test_deserialize_new_discount_code_batch_abort_if_rate_greater_than_100_2() {
+        remove_later::deserialize_new_discount_code_batch(b"DF1234,0102,0x00000000000c9310f87e");
+    }
+
+    #[test, expected_failure(abort_code = remove_later::EInvalidDiscountCodeBatch)]
     fun test_deserialize_new_discount_code_batch_abort_with_invalid_owner() {
         remove_later::deserialize_new_discount_code_batch(b"DF1234,10,0x00000000000c9Ge");
     }
