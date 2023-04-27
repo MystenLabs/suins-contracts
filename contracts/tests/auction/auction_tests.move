@@ -47,8 +47,8 @@ module suins::auction_tests {
     const FIRST_SECRET: vector<u8> = b"CnRGhPvfCu";
     const SECOND_SECRET: vector<u8> = b"ZuaRzPvzUq";
     const START_AN_AUCTION_AT: u64 = 110;
-    const BIDDING_PERIOD: u64 = 3;
-    const REVEAL_PERIOD: u64 = 3;
+    const BIDDING_PERIOD: u64 = 1;
+    const REVEAL_PERIOD: u64 = 1;
     const AUCTION_STATE_NOT_AVAILABLE: u8 = 0;
     const AUCTION_STATE_OPEN: u8 = 1;
     const AUCTION_STATE_PENDING: u8 = 2;
@@ -1289,13 +1289,12 @@ module suins::auction_tests {
         let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * configuration::mist_per_sui(), FIRST_SECRET);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
-            let ctx = ctx_new(
+            let ctx = &mut ctx_new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
                 START_AN_AUCTION_AT + 1,
                 10
             );
-            let ctx = &mut ctx;
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
@@ -1317,13 +1316,12 @@ module suins::auction_tests {
         let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1200 * configuration::mist_per_sui(), FIRST_SECRET);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
-            let ctx = ctx_new(
+            let ctx = &mut ctx_new(
                 SECOND_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                START_AN_AUCTION_AT + 2,
+                START_AN_AUCTION_AT + 1,
                 15
             );
-            let ctx = &mut ctx;
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let coin = coin::mint_for_testing<SUI>(1300 * configuration::mist_per_sui() + BIDDING_FEE, ctx);
@@ -1435,7 +1433,7 @@ module suins::auction_tests {
             let ctx = ctx_new(
                 SECOND_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
-                START_AN_AUCTION_AT + 2,
+                START_AN_AUCTION_AT + 1,
                 15
             );
             let ctx = &mut ctx;
@@ -1830,7 +1828,7 @@ module suins::auction_tests {
             reveal_bid_util(
                 &mut auction,
                 &config,
-                START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + 1,
+                START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
                 1200 * configuration::mist_per_sui(),
                 FIRST_SECRET,
