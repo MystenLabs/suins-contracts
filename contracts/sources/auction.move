@@ -17,7 +17,6 @@ module suins::auction {
     use suins::registrar;
     use suins::suins::{Self, AdminCap};
     use suins::config::{Self, Config};
-    use suins::coin_tracker;
     use suins::suins::SuiNS;
     use suins::string_utils;
     use std::option::{Self, Option, none, some};
@@ -799,7 +798,6 @@ module suins::auction {
         if (amount > 0) {
             let paid = balance::split(balance, amount);
             balance::join(suins::balance_mut(suins), paid);
-            coin_tracker::track(@suins, amount);
         }
     }
 
@@ -809,7 +807,6 @@ module suins::auction {
         if (amount > 0) {
             let coin = coin::take(balance, amount, ctx);
             transfer::public_transfer(coin, receiver);
-            coin_tracker::track(receiver, amount);
         }
     }
 
@@ -822,7 +819,6 @@ module suins::auction {
             let coin_balance = coin::balance_mut(payment);
             let paid = balance::split(coin_balance, amount);
             balance::join(balance, paid);
-            coin_tracker::track(@suins, amount);
         }
     }
 

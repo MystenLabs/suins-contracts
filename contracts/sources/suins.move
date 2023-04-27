@@ -16,9 +16,6 @@ module suins::suins {
     use sui::vec_map::{Self, VecMap};
     use sui::dynamic_field as df;
 
-    // use suins::config::{Self, Config};
-    use suins::coin_tracker;
-
     friend suins::registry;
     friend suins::registrar;
     friend suins::controller;
@@ -268,14 +265,12 @@ module suins::suins {
     }
 
     public(friend) fun add_to_balance(self: &mut SuiNS, coin: Coin<SUI>) {
-        coin_tracker::track(@suins, coin::value(&coin));
         coin::put(&mut self.balance, coin);
     }
 
     public(friend) fun send_from_balance(self: &mut SuiNS, amount: u64, receiver: address, ctx: &mut TxContext) {
         let coin = coin::take(&mut self.balance, amount, ctx);
         transfer::public_transfer(coin, receiver);
-        coin_tracker::track(receiver, amount);
     }
 
     // === Testing ===
