@@ -251,19 +251,21 @@ module suins::auction {
     public entry fun place_bid(
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
-        config: &Configuration,
+        // config: &Configuration,
         sealed_bid: vector<u8>,
         bid_value_mask: u64,
         payment: &mut Coin<SUI>,
         clock: &Clock,
         ctx: &mut TxContext
     ) {
+        let config = suins::get_config<Config>(suins);
+
+        assert!(bid_value_mask >= config::five_plus_char_price(config), EInvalidBid);
         assert!(
-            auction_house.start_auction_start_at <= tx_context::epoch(ctx) && tx_context::epoch(ctx)
-                <= auction_house.start_auction_end_at + BIDDING_PERIOD,
+            auction_house.start_auction_start_at <= tx_context::epoch(ctx)
+            && tx_context::epoch(ctx) <= auction_house.start_auction_end_at + BIDDING_PERIOD,
             EInvalidPhase,
         );
-        assert!(bid_value_mask >= configuration::price_of_five_and_above_character_domain(config), EInvalidBid);
 
         if (!table::contains(&auction_house.bid_details_by_bidder, tx_context::sender(ctx))) {
             table::add(&mut auction_house.bid_details_by_bidder, tx_context::sender(ctx), linked_table::new(ctx));

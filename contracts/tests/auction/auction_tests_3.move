@@ -223,7 +223,7 @@ module suins::auction_tests_3 {
             let clock = test_scenario::take_shared<Clock>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
             let coin = coin::mint_for_testing<SUI>(12222 * configuration::mist_per_sui() + BIDDING_FEE, &mut ctx);
-            auction::place_bid(&mut auction, &mut suins, &config, seal_bid, 12200 * configuration::mist_per_sui(), &mut coin, &clock, &mut ctx);
+            auction::place_bid(&mut auction, &mut suins, seal_bid, 12200 * configuration::mist_per_sui(), &mut coin, &clock, &mut ctx);
             assert!(coin::value(&coin) == 22 * configuration::mist_per_sui(), 0);
 
             coin::burn_for_testing(coin);
@@ -361,7 +361,7 @@ module suins::auction_tests_3 {
             let clock = test_scenario::take_shared<Clock>(scenario);
             let coin = coin::mint_for_testing<SUI>(3301 * configuration::mist_per_sui() + BIDDING_FEE, &mut ctx);
             let config = test_scenario::take_shared<Configuration>(scenario);
-            auction::place_bid(&mut auction, &mut suins, &config, seal_bid, 3300 * configuration::mist_per_sui(), &mut coin, &clock, &mut ctx);
+            auction::place_bid(&mut auction, &mut suins, seal_bid, 3300 * configuration::mist_per_sui(), &mut coin, &clock, &mut ctx);
             assert!(coin::value(&coin) == configuration::mist_per_sui(), 0);
             coin::burn_for_testing(coin);
             test_scenario::return_shared(config);
@@ -1308,7 +1308,7 @@ module suins::auction_tests_3 {
             let config = test_scenario::take_shared<Configuration>(scenario);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            auction::place_bid(&mut auction, &mut suins, &config, seal_bid, 1300 * configuration::mist_per_sui(), &mut coin, &clock, ctx);
+            auction::place_bid(&mut auction, &mut suins, seal_bid, 1300 * configuration::mist_per_sui(), &mut coin, &clock, ctx);
             assert!(auction::get_balance(&auction) == 1300 * configuration::mist_per_sui(), 0);
             assert!(coin::value(&coin) == 0, 0);
 
@@ -1412,7 +1412,7 @@ module suins::auction_tests_3 {
             let config = test_scenario::take_shared<Configuration>(scenario);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            auction::place_bid(&mut auction, &mut suins, &config, seal_bid, 30000 * configuration::mist_per_sui(), &mut coin, &clock, ctx);
+            auction::place_bid(&mut auction, &mut suins, seal_bid, 30000 * configuration::mist_per_sui(), &mut coin, &clock, ctx);
             assert!(auction::get_balance(&auction) == 30000 * configuration::mist_per_sui(), 0);
             assert!(coin::value(&coin) == 0, 0);
 

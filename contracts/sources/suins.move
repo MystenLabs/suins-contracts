@@ -110,12 +110,12 @@ module suins::suins {
     // === Config management ===
 
     /// Attach dynamic configuration object to the application.
-    public fun add_config<T: store, drop>(_: &AdminCap, self: &mut SuiNS, config: T) {
+    public fun add_config<T: store + drop>(_: &AdminCap, self: &mut SuiNS, config: T) {
         df::add(&mut self.id, ConfigKey {}, config);
     }
 
     /// Borrow configuration object. Read-only mode for applications.
-    public fun get_config<T: store, drop>(self: &SuiNS): &T {
+    public fun get_config<T: store + drop>(self: &SuiNS): &T {
         df::borrow(&self.id, ConfigKey {})
     }
 
@@ -125,7 +125,7 @@ module suins::suins {
     /// from removing the configuration object and adding a new one.
     ///
     /// Fully taking the config also allows for edits within a transaction.
-    public fun remove_config<T: store, drop>(_: &AdminCap, self: &mut SuiNS): T {
+    public fun remove_config<T: store + drop>(_: &AdminCap, self: &mut SuiNS): T {
         df::remove(&mut self.id, ConfigKey {})
     }
 
@@ -280,17 +280,13 @@ module suins::suins {
 
     // === Testing ===
 
+    #[test_only] use suins::config;
     #[test_only] friend suins::registry_tests;
     #[test_only] friend suins::registry_tests_2;
 
     #[test_only]
     /// Wrapper of module initializer for testing
     public fun test_init(ctx: &mut TxContext) {
-        let admin_cap = AdminCap {
-            id: object::new(ctx),
-        };
-        transfer::transfer(admin_cap, tx_context::sender(ctx));
-
         let registry = table::new(ctx);
         let reverse_registry = table::new(ctx);
         let registrars = table::new(ctx);
@@ -299,6 +295,7 @@ module suins::suins {
             auction_house_finalized_at: max_epoch_allowed(),
         };
 
+        let admin_cap = AdminCap { id: object::new(ctx) };
         let suins = SuiNS {
             id: object::new(ctx),
             balance: balance::zero(),
@@ -308,6 +305,15 @@ module suins::suins {
             controller,
         };
 
+        add_config(&admin_cap, &mut suins, config::new(
+            vector[],
+            true,
+            1200 * config::mist_per_sui(),
+            200 * config::mist_per_sui(),
+            50 * config::mist_per_sui(),
+        ));
+
+        transfer::transfer(admin_cap, tx_context::sender(ctx));
         transfer::share_object(suins);
     }
 }

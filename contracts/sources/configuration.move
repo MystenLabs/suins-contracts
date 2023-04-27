@@ -270,11 +270,8 @@ module suins::configuration {
         });
     }
 
-    #[test_only]
-    friend suins::configuration_tests;
-
-    #[test_only]
-    use std::option::{Self, Option};
+    #[test_only] friend suins::configuration_tests;
+    #[test_only] use std::option::{Self, Option};
 
     #[test_only]
     public(friend) fun get_discount_rate(discount_value: &DiscountValue): u8 {

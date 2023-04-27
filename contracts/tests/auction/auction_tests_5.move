@@ -887,7 +887,7 @@ module suins::auction_tests_5 {
             let clock = test_scenario::take_shared<Clock>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
 
-            auction::place_bid(&mut auction, &mut suins, &config, FIRST_SECRET, 1000 * configuration::mist_per_sui(), &mut coin, &clock, ctx);
+            auction::place_bid(&mut auction, &mut suins, FIRST_SECRET, 1000 * configuration::mist_per_sui(), &mut coin, &clock, ctx);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
@@ -917,7 +917,7 @@ module suins::auction_tests_5 {
             let clock = test_scenario::take_shared<Clock>(scenario);
             let config = test_scenario::take_shared<Configuration>(scenario);
 
-            auction::place_bid(&mut auction, &mut suins, &config, FIRST_SECRET, 1000 * configuration::mist_per_sui(), &mut coin, &clock, ctx);
+            auction::place_bid(&mut auction, &mut suins, FIRST_SECRET, 1000 * configuration::mist_per_sui(), &mut coin, &clock, ctx);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
