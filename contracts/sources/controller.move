@@ -22,13 +22,11 @@ module suins::controller {
     use sui::clock::Clock;
     use sui::clock;
 
-    use suins::config;
+    use suins::config::{Self, Config};
     use suins::registrar::{Self, RegistrationNFT};
-    use suins::configuration::{Self, Configuration};
     use suins::suins::{Self, SuiNS, AdminCap};
     use suins::string_utils;
     use suins::remove_later;
-    use suins::coin_tracker;
 
     const MAX_COMMITMENT_AGE_IN_MS: u64 = 259_200_000;
     const MIN_COMMITMENT_AGE_IN_MS: u64 = 120_000;
@@ -112,10 +110,9 @@ module suins::controller {
     /// or either `referral_code` or `discount_code` is invalid
     public entry fun register(
         suins: &mut SuiNS,
-        config: &mut Configuration,
         label: String, // `label` is 1 level
         owner: address,
-        no_years: u64,
+        no_years: u8,
         secret: vector<u8>,
         payment: &mut Coin<SUI>,
         clock: &Clock,
@@ -123,7 +120,6 @@ module suins::controller {
     ) {
         register_internal(
             suins,
-            config,
             label,
             owner,
             no_years,
@@ -165,10 +161,9 @@ module suins::controller {
     /// or either `referral_code` or `discount_code` is invalid
     public entry fun register_with_image(
         suins: &mut SuiNS,
-        config: &mut Configuration,
         label: String, // `label` is 1 level
         owner: address,
-        no_years: u64,
+        no_years: u8,
         secret: vector<u8>,
         payment: &mut Coin<SUI>,
         signature: vector<u8>,
@@ -181,7 +176,6 @@ module suins::controller {
 
         register_internal(
             suins,
-            config,
             label,
             owner,
             no_years,
@@ -212,10 +206,9 @@ module suins::controller {
     /// `discount_code`: discount code to be used
     public entry fun register_with_code(
         suins: &mut SuiNS,
-        config: &mut Configuration,
         label: String, // `label` is 1 level
         owner: address,
-        no_years: u64,
+        no_years: u8,
         secret: vector<u8>,
         payment: &mut Coin<SUI>,
         referral_code: vector<u8>,
@@ -227,7 +220,6 @@ module suins::controller {
 
         register_internal(
             suins,
-            config,
             label,
             owner,
             no_years,
@@ -261,10 +253,9 @@ module suins::controller {
     /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
     public entry fun register_with_code_and_image(
         suins: &mut SuiNS,
-        config: &mut Configuration,
         label: String, // `label` is 1 level
         owner: address,
-        no_years: u64,
+        no_years: u8,
         secret: vector<u8>,
         payment: &mut Coin<SUI>,
         referral_code: vector<u8>,
@@ -280,7 +271,6 @@ module suins::controller {
 
         register_internal(
             suins,
-            config,
             label,
             owner,
             no_years,
@@ -309,13 +299,12 @@ module suins::controller {
     /// or `payment` doesn't have enough coins
     public entry fun renew(
         suins: &mut SuiNS,
-        config: &Configuration,
         label: String,
-        no_years: u64,
+        no_years: u8,
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext,
     ) {
-        renew_internal(suins, config, label, no_years, payment, ctx)
+        renew_internal(suins, label, no_years, payment, ctx)
     }
 
     /// #### Notice
@@ -335,9 +324,8 @@ module suins::controller {
     /// or `msg` is empty
     public entry fun renew_with_image(
         suins: &mut SuiNS,
-        config: &Configuration,
         label: String,
-        no_years: u64,
+        no_years: u8,
         payment: &mut Coin<SUI>,
         nft: &mut RegistrationNFT,
         signature: vector<u8>,
@@ -346,14 +334,13 @@ module suins::controller {
         ctx: &mut TxContext,
     ) {
         // NFT and imag_msg are validated in `update_image_url`
-        renew_internal(suins, config, label, no_years, payment, ctx);
-        registrar::update_image_url(suins, config, nft, signature, hashed_msg, raw_msg, ctx);
+        renew_internal(suins, label, no_years, payment, ctx);
+        registrar::update_image_url(suins, nft, signature, hashed_msg, raw_msg, ctx);
     }
 
     public entry fun new_reserved_domains(
         _: &AdminCap,
         suins: &mut SuiNS,
-        config: &Configuration,
         domains: vector<u8>,
         owner: address,
         ctx: &mut TxContext
@@ -379,7 +366,6 @@ module suins::controller {
             registrar::register_internal(
                 suins,
                 tld,
-                config,
                 label,
                 owner,
                 365,
@@ -392,22 +378,22 @@ module suins::controller {
 
     fun renew_internal(
         suins: &mut SuiNS,
-        config: &Configuration,
         label: String,
-        no_years: u64,
+        no_years: u8,
         payment: &mut Coin<SUI>,
         ctx: &mut TxContext
     ) {
         assert!(0 < no_years && no_years <= 5, EInvalidNoYears);
-        let renew_fee = configuration::price_for_label(
+        let config = suins::get_config<Config>(suins);
+        let renew_fee = config::calculate_price(
             config,
-            string::length(&label),
+            (string::length(&label) as u8),
             no_years
         );
         assert!(coin::value(payment) >= renew_fee, ENotEnoughFee);
         suins::add_to_balance(suins, coin::split(payment, renew_fee, ctx));
 
-        let duration = no_years * 365;
+        let duration = (no_years as u64) * 365;
         registrar::renew(suins, utf8(SUI_TLD), label, duration, ctx);
 
         event::emit(NameRenewedEvent {
@@ -420,10 +406,9 @@ module suins::controller {
 
     fun register_internal(
         suins: &mut SuiNS,
-        config: &mut Configuration,
         label: String, // label has only 1 level
         owner: address,
-        no_years: u64,
+        no_years: u8,
         secret: vector<u8>,
         payment: &mut Coin<SUI>,
         referral_code: Option<ascii::String>,
@@ -435,7 +420,7 @@ module suins::controller {
         ctx: &mut TxContext,
     ) {
         assert!(0 < no_years && no_years <= 5, EInvalidNoYears);
-        assert!(configuration::is_controller_enabled(config), ERegistrationIsDisabled);
+        assert!(config::enable_controller(suins::get_config<Config>(suins)), ERegistrationIsDisabled);
         assert!(tx_context::epoch(ctx) > suins::controller_auction_house_finalized_at(suins), EAuctionNotEndYet);
 
         string_utils::validate_label(
@@ -447,26 +432,27 @@ module suins::controller {
         let commitment = make_commitment(*string::bytes(&label), owner, secret);
         consume_commitment(suins, label, commitment, clock, ctx);
 
-        let len_of_label = string::length(&label);
-        let registration_fee = configuration::price_for_label(config, len_of_label, no_years);
+        let len_of_label = (string::length(&label) as u8);
+        let registration_fee = config::calculate_price(suins::get_config<Config>(suins), len_of_label, no_years);
         assert!(coin::value(payment) >= registration_fee, ENotEnoughFee);
 
         // can apply both discount and referral codes at the same time
         if (option::is_some(&discount_code)) {
-            registration_fee =
-                apply_discount_code(config, registration_fee, option::borrow(&discount_code), ctx);
+            // TODO: apply discount code
+            // registration_fee =
+            //     apply_discount_code(config, registration_fee, option::borrow(&discount_code), ctx);
         };
         if (option::is_some(&referral_code)) {
-            registration_fee =
-                apply_referral_code(config, payment, registration_fee, option::borrow(&referral_code), ctx);
+            // TODO: apply referral code
+            // registration_fee =
+            //     apply_referral_code(payment, registration_fee, option::borrow(&referral_code), ctx);
         };
 
         let tld = utf8(SUI_TLD);
-        let duration = no_years * 365;
-        let (nft_id, url, additional_data) = registrar::register_with_image_internal(
+        let duration = (no_years as u64) * 365;
+        let (_nft_id, _url, _additional_data) = registrar::register_with_image_internal(
             suins,
             tld,
-            config,
             label,
             owner,
             duration,
@@ -476,51 +462,54 @@ module suins::controller {
             ctx
         );
 
-        event::emit(NameRegisteredEvent {
-            tld,
-            label,
-            owner,
-            // TODO: reduce cost when using discount code
-            cost: configuration::price_for_label(config, len_of_label, no_years),
-            expired_at: tx_context::epoch(ctx) + duration,
-            nft_id,
-            referral_code,
-            discount_code,
-            url,
-            data: additional_data,
-        });
+        // TODO
+        // event::emit(NameRegisteredEvent {
+        //     tld,
+        //     label,
+        //     owner,
+        //     // TODO: reduce cost when using discount code
+        //     cost: config::calculate_price(config, len_of_label, no_years),
+        //     expired_at: tx_context::epoch(ctx) + duration,
+        //     nft_id,
+        //     referral_code,
+        //     discount_code,
+        //     url,
+        //     data: additional_data,
+        // });
+
+
 
         suins::add_to_balance(suins, coin::split(payment, registration_fee, ctx))
     }
 
+    // TODO: come back to referrals
     // returns remaining_fee
-    fun apply_referral_code(
-        config: &Configuration,
-        payment: &mut Coin<SUI>,
-        original_fee: u64,
-        referral_code: &ascii::String,
-        ctx: &mut TxContext
-    ): u64 {
-        let (rate, partner) = configuration::use_referral_code(config, referral_code);
-        let remaining_fee = (original_fee / 100) * (100 - rate as u64);
-        let payback_amount = original_fee - remaining_fee;
+    // fun apply_referral_code(
+    //     payment: &mut Coin<SUI>,
+    //     original_fee: u64,
+    //     referral_code: &ascii::String,
+    //     ctx: &mut TxContext
+    // ): u64 {
+    //     let (rate, partner) = configuration::use_referral_code(config, referral_code);
+    //     let remaining_fee = (original_fee / 100) * (100 - rate as u64);
+    //     let payback_amount = original_fee - remaining_fee;
 
-        sui::pay::split_and_transfer(payment, payback_amount, partner, ctx);
-        coin_tracker::track(partner, payback_amount);
+    //     sui::pay::split_and_transfer(payment, payback_amount, partner, ctx);
+    //     coin_tracker::track(partner, payback_amount);
 
-        remaining_fee
-    }
+    //     remaining_fee
+    // }
 
     // returns remaining_fee after being discounted
-    fun apply_discount_code(
-        config: &mut Configuration,
-        original_fee: u64,
-        referral_code: &ascii::String,
-        ctx: &mut TxContext,
-    ): u64 {
-        let rate = configuration::use_discount_code(config, referral_code, ctx);
-        (original_fee / 100) * (100 - rate as u64)
-    }
+    // TODO: come back to this buddy after Configuration is dealt with
+    // fun apply_discount_code(
+    //     original_fee: u64,
+    //     referral_code: &ascii::String,
+    //     ctx: &mut TxContext,
+    // ): u64 {
+    //     let rate = configuration::use_discount_code(config, referral_code, ctx);
+    //     (original_fee / 100) * (100 - rate as u64)
+    // }
 
     fun remove_outdated_commitments(commitments: &mut LinkedTable<vector<u8>, u64>, clock: &Clock) {
         let front_element = linked_table::front(commitments);
@@ -607,14 +596,14 @@ module suins::controller {
         linked_table::length(commitments)
     }
 
-    #[test_only]
-    public fun apply_referral_code_test(
-        config: &Configuration,
-        payment: &mut Coin<SUI>,
-        original_fee: u64,
-        referral_code: vector<u8>,
-        ctx: &mut TxContext
-    ): u64 {
-        apply_referral_code(config, payment, original_fee, &ascii::string(referral_code), ctx)
-    }
+    // #[test_only]
+    // TODO: come back
+    // public fun apply_referral_code_test(
+    //     payment: &mut Coin<SUI>,
+    //     original_fee: u64,
+    //     referral_code: vector<u8>,
+    //     ctx: &mut TxContext
+    // ): u64 {
+    //     apply_referral_code(payment, original_fee, &ascii::string(referral_code), ctx)
+    // }
 }

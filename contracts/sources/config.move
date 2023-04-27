@@ -7,6 +7,8 @@ module suins::config {
     const ELabelTooShort: u64 = 0;
     /// A label is too long to be registered.
     const ELabelTooLong: u64 = 1;
+    /// The price value is invalid.
+    const EInvalidPrice: u64 = 2;
 
     /// The minimum length of a domain name.
     const MIN_DOMAIN_LENGTH: u8 = 3;
@@ -67,16 +69,19 @@ module suins::config {
 
     /// Change the value of the `three_char_price` field.
     public fun set_three_char_price(self: &mut Config, value: u64) {
+        check_price(value);
         self.three_char_price = value;
     }
 
     /// Change the value of the `fouch_char_price` field.
     public fun set_fouch_char_price(self: &mut Config, value: u64) {
+        check_price(value);
         self.fouch_char_price = value;
     }
 
     /// Change the value of the `five_plus_char_price` field.
     public fun set_five_plus_char_price(self: &mut Config, value: u64) {
+        check_price(value);
         self.five_plus_char_price = value;
     }
 
@@ -86,7 +91,7 @@ module suins::config {
     /// Calculate the price of a label.
     public fun calculate_price(self: &Config, length: u8, years: u8): u64 {
         assert!(length > MIN_DOMAIN_LENGTH, ELabelTooShort);
-        assert!(length <= MAX_DOMAIN_LENGTH, ELabelTooLong);
+        // assert!(length <= MAX_DOMAIN_LENGTH, ELabelTooLong);
 
         let price = if (length == 3) {
             self.three_char_price
@@ -128,4 +133,15 @@ module suins::config {
 
     /// The amount of MIST in 1 SUI.
     public fun mist_per_sui(): u64 { MIST_PER_SUI }
+
+
+    // === Internal ===
+
+    /// Assert that the price is within the allowed range (1-1M).
+    fun check_price(price: u64) {
+        assert!(
+            mist_per_sui() <= price
+            && price <= mist_per_sui() * 1_000_000
+        , EInvalidPrice);
+    }
 }

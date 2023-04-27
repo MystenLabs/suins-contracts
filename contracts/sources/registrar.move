@@ -11,7 +11,7 @@ module suins::registrar {
     use std::vector;
     use suins::registry;
     use suins::suins::{Self, AdminCap};
-    use suins::configuration::{Self, Configuration};
+    use suins::config::{Self, Config};
     use sui::ecdsa_k1;
     use suins::remove_later;
     use sui::url;
@@ -140,7 +140,6 @@ module suins::registrar {
     /// or the data in NFTs don't match `raw_msg`
     public entry fun update_image_url(
         suins: &mut SuiNS,
-        config: &Configuration,
         nft: &mut RegistrationNFT,
         signature: vector<u8>,
         hashed_msg: vector<u8>,
@@ -151,7 +150,7 @@ module suins::registrar {
         let label = assert_nft_not_expires(registrar, nft, ctx);
 
         assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
-        assert_image_msg_match(config, signature, hashed_msg, raw_msg);
+        assert_image_msg_match(suins, signature, hashed_msg, raw_msg);
 
         let (ipfs, domain_name_msg, expired_at, additional_data) = remove_later::deserialize_image_msg(raw_msg);
 
@@ -199,14 +198,16 @@ module suins::registrar {
     }
 
     public fun assert_image_msg_match(
-        config: &Configuration,
+        suins: &SuiNS,
         signature: vector<u8>,
         hashed_msg: vector<u8>,
         raw_msg: vector<u8>
     ) {
+        let config = suins::get_config<Config>(suins);
+
         assert!(sha2_256(raw_msg) == hashed_msg, EHashedMessageNotMatch);
         assert!(
-            ecdsa_k1::secp256k1_verify(&signature, configuration::public_key(config), &raw_msg, 1),
+            ecdsa_k1::secp256k1_verify(&signature, &config::public_key(config), &raw_msg, 1),
             ESignatureNotMatch
         );
     }
@@ -251,7 +252,6 @@ module suins::registrar {
     public(friend) fun register_internal(
         suins: &mut SuiNS,
         tld: String,
-        config: &Configuration,
         label: String,
         owner: address,
         duration: u64,
@@ -260,7 +260,6 @@ module suins::registrar {
         let (nft_id, _, _) = register_with_image_internal(
             suins,
             tld,
-            config,
             label,
             owner,
             duration,
@@ -275,7 +274,6 @@ module suins::registrar {
     public(friend) fun register_with_image_internal(
         suins: &mut SuiNS,
         tld: String,
-        config: &Configuration,
         label: String,
         owner: address,
         duration: u64,
@@ -287,7 +285,7 @@ module suins::registrar {
         // the calling fuction is responsible for checking emptyness of msg
         assert!(duration > 0, EInvalidDuration);
 
-        let registrar = suins::registrar_mut(suins, tld);
+        let registrar = suins::registrar(suins, tld);
         assert!(is_available_internal(registrar, label, ctx), ELabelUnavailable);
 
         let expired_at = tx_context::epoch(ctx) + duration;
@@ -300,7 +298,7 @@ module suins::registrar {
         if (vector::is_empty(&hashed_msg) || vector::is_empty(&raw_msg) || vector::is_empty(&signature))
             url = url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY")
         else {
-            assert_image_msg_match(config, signature, hashed_msg, raw_msg);
+            assert_image_msg_match(suins, signature, hashed_msg, raw_msg);
 
             let (ipfs, domain_name_msg, expired_at_msg, data) = remove_later::deserialize_image_msg(raw_msg);
             assert!(domain_name_msg == domain_name, EInvalidImageMessage);
@@ -317,6 +315,8 @@ module suins::registrar {
         };
         let nft_id = object::uid_to_inner(&nft.id);
         let record = suins::new_registration_record(expired_at, nft_id);
+
+        let registrar = suins::registrar_mut(suins, tld);
 
         if (table::contains(registrar, label)) {
             // this `label` is available for registration again

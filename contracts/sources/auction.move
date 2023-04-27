@@ -16,7 +16,6 @@ module suins::auction {
     use sui::linked_table::{Self, LinkedTable};
     use suins::registrar;
     use suins::suins::{Self, AdminCap};
-    use suins::configuration::{Self, Configuration};
     use suins::config::{Self, Config};
     use suins::coin_tracker;
     use suins::suins::SuiNS;
@@ -251,7 +250,6 @@ module suins::auction {
     public entry fun place_bid(
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
-        // config: &Configuration,
         sealed_bid: vector<u8>,
         bid_value_mask: u64,
         payment: &mut Coin<SUI>,
@@ -322,12 +320,14 @@ module suins::auction {
     /// or `label` hasn't been started
     public entry fun reveal_bid(
         auction_house: &mut AuctionHouse,
-        config: &Configuration,
+        suins: &SuiNS,
         label: String,
         value: u64,
         secret: vector<u8>,
         ctx: &mut TxContext
     ) {
+        let config = suins::get_config<Config>(suins);
+
         assert!(
             auction_house.start_auction_start_at <= tx_context::epoch(ctx) && tx_context::epoch(ctx)
                 <= auction_house.start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD,
@@ -347,9 +347,9 @@ module suins::auction {
         assert!(option::is_some(&index), ESealBidNotExists);
 
         let bid_detail = linked_table::borrow_mut(bids_by_sender, option::extract(&mut index));
+        let min_price = config::calculate_price(config, (string::length(&label) as u8), 1);
         assert!(!bid_detail.is_unsealed, EAlreadyUnsealed);
 
-        let min_price = configuration::price_for_label(config, string::length(&label), 1);
         bid_detail.bid_value = value;
         bid_detail.label = label;
         bid_detail.is_unsealed = true;
@@ -407,7 +407,6 @@ module suins::auction {
     public entry fun finalize_auction(
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
-        config: &Configuration,
         label: String,
         ctx: &mut TxContext
     ) {
@@ -461,16 +460,16 @@ module suins::auction {
         };
         if (entry.winner != tx_context::sender(ctx)) return;
 
-        register_winning_auction(suins, config, label, entry.winner, entry.second_highest_bid, ctx)
+        register_winning_auction(suins, label, entry.winner, entry.second_highest_bid, ctx)
     }
 
     public entry fun finalize_all_auctions_by_admin(
         _: &AdminCap,
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
-        config: &Configuration,
         ctx: &mut TxContext
     ) {
+        // let config = suins::get_config<Config>(suins);
         let auction_house_close_at = auction_house_close_at(auction_house);
         let auction_house_extra_period_end_at = auction_house_close_at + EXTRA_PERIOD;
         assert!(auction_house_close_at < tx_context::epoch(ctx), EInvalidPhase);
@@ -506,7 +505,6 @@ module suins::auction {
                             handle_winning_bid(&mut auction_house.balance, suins, entry, bid_detail, true, ctx);
                             register_winning_auction(
                                 suins,
-                                config,
                                 label,
                                 entry.winner,
                                 entry.second_highest_bid,
@@ -575,8 +573,8 @@ module suins::auction {
 
     public entry fun set_bidding_fee(_: &AdminCap, auction_house: &mut AuctionHouse, new_bidding_fee: u64) {
         assert!(
-            configuration::mist_per_sui() <= new_bidding_fee
-                && new_bidding_fee <= configuration::mist_per_sui() * 1_000_000,
+            config::mist_per_sui() <= new_bidding_fee
+                && new_bidding_fee <= config::mist_per_sui() * 1_000_000,
             EInvalidBiddingFee
         );
         auction_house.bidding_fee = new_bidding_fee;
@@ -584,8 +582,8 @@ module suins::auction {
 
     public entry fun set_start_an_auction_fee(_: &AdminCap, auction_house: &mut AuctionHouse, new_fee: u64) {
         assert!(
-            configuration::mist_per_sui() <= new_fee
-                && new_fee <= configuration::mist_per_sui() * 1_000_000,
+            config::mist_per_sui() <= new_fee
+                && new_fee <= config::mist_per_sui() * 1_000_000,
             EInvalidBiddingFee
         );
         auction_house.start_an_auction_fee = new_fee;
@@ -707,14 +705,13 @@ module suins::auction {
 
     fun register_winning_auction(
         suins: &mut SuiNS,
-        config: &Configuration,
         label: String,
         winner: address,
         winning_amount: u64,
         ctx: &mut TxContext
     ) {
         let tld = utf8(SUI_TLD);
-        registrar::register_internal(suins, tld, config, label, winner, 365, ctx);
+        registrar::register_internal(suins, tld, label, winner, 365, ctx);
         event::emit(NameRegisteredEvent {
             label,
             tld,
@@ -772,8 +769,8 @@ module suins::auction {
             balance: balance::zero(),
             start_auction_start_at: suins::max_epoch_allowed(),
             start_auction_end_at: suins::max_epoch_allowed() - 1,
-            bidding_fee: configuration::mist_per_sui(),
-            start_an_auction_fee: 10 * configuration::mist_per_sui(),
+            bidding_fee: config::mist_per_sui(),
+            start_an_auction_fee: 10 * config::mist_per_sui(),
         });
     }
 
@@ -892,8 +889,8 @@ module suins::auction {
             balance: balance::zero(),
             start_auction_start_at: suins::max_epoch_allowed(),
             start_auction_end_at: suins::max_epoch_allowed() - 1,
-            bidding_fee: configuration::mist_per_sui(),
-            start_an_auction_fee: 10 * configuration::mist_per_sui(),
+            bidding_fee: config::mist_per_sui(),
+            start_an_auction_fee: 10 * config::mist_per_sui(),
         });
     }
 }

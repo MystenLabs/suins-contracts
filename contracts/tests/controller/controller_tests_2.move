@@ -9,7 +9,7 @@ module suins::controller_tests_2 {
     use suins::registrar::{Self, RegistrationNFT};
     use suins::registry;
     use suins::suins::{Self, AdminCap};
-    use suins::configuration::{Self, Configuration};
+    use suins::config::{Self, Config};
     use suins::suins::SuiNS;
     use suins::controller;
     use std::option;
@@ -62,19 +62,20 @@ module suins::controller_tests_2 {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = suins::remove_config<Config>(&admin_cap, &mut suins);
 
-            configuration::set_price_of_five_and_above_character_domain(&admin_cap, &mut config, 1_000_000_000);
+            config::set_five_plus_char_price(&mut config, 1_000_000_000);
+            suins::add_config(&admin_cap, &mut suins, config);
 
             test_scenario::return_to_sender(&mut scenario, admin_cap);
-            test_scenario::return_shared(config);
+            test_scenario::return_shared(suins);
         };
         make_commitment(&mut scenario, option::some(b"xyztu"));
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
-            let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
                 DEFAULT_TX_HASH,
@@ -92,7 +93,6 @@ module suins::controller_tests_2 {
 
             controller::register(
                 &mut suins,
-                &mut config,
                 utf8(b"xyztu"),
                 FIRST_USER_ADDRESS,
                 2,
@@ -105,7 +105,6 @@ module suins::controller_tests_2 {
             assert!(controller::commitment_len(&suins) == 0, 0);
 
             coin::burn_for_testing(coin);
-            test_scenario::return_shared(config);
             test_scenario::return_shared(clock);
             test_scenario::return_shared(suins);
         };
@@ -136,36 +135,40 @@ module suins::controller_tests_2 {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = configuration::EInvalidNewPrice)]
+    #[test, expected_failure(abort_code = config::EInvalidPrice)]
     fun test_set_price_to_register_five_character_domain_aborts_if_new_price_too_low() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = suins::remove_config<Config>(&admin_cap, &mut suins);
 
-            configuration::set_price_of_five_and_above_character_domain(&admin_cap, &mut config, 1_000_000_000 - 1);
+            config::set_five_plus_char_price(&mut config, 1_000_000_000 - 1);
 
+            suins::add_config(&admin_cap, &mut suins, config);
+            test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
-            test_scenario::return_shared(config);
         };
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = configuration::EInvalidNewPrice)]
+    #[test, expected_failure(abort_code = config::EInvalidPrice)]
     fun test_set_price_to_register_five_character_domain_aborts_if_new_price_too_high() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let config = test_scenario::take_shared<Configuration>(&mut scenario);
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let config = suins::remove_config<Config>(&admin_cap, &mut suins);
 
-            configuration::set_price_of_five_and_above_character_domain(&admin_cap, &mut config, 1_000_000 * 1_000_000_000 + 1);
+            config::set_five_plus_char_price(&mut config, 1_000_000 * 1_000_000_000 + 1);
 
+            suins::add_config(&admin_cap, &mut suins, config);
+            test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
-            test_scenario::return_shared(config);
         };
         test_scenario::end(scenario);
     }
@@ -178,13 +181,11 @@ module suins::controller_tests_2 {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = test_scenario::ctx(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 7 + 1, ctx);
 
             controller::renew(
                 &mut suins,
-                &config,
                 utf8(FIRST_LABEL),
                 3,
                 &mut coin,
@@ -193,18 +194,15 @@ module suins::controller_tests_2 {
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(suins);
-            test_scenario::return_shared(config);
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let config = test_scenario::take_shared<Configuration>(&mut scenario);
             let ctx = test_scenario::ctx(&mut scenario);
             let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 7 + 1, ctx);
 
             controller::renew(
                 &mut suins,
-                &config,
                 utf8(FIRST_LABEL),
                 3,
                 &mut coin,
@@ -213,7 +211,6 @@ module suins::controller_tests_2 {
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(suins);
-            test_scenario::return_shared(config);
         };
         test_scenario::end(scenario);
     }
