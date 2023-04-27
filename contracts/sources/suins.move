@@ -26,6 +26,9 @@ module suins::suins {
 
     const MAX_U64: u64 = 18446744073709551615;
 
+    /// Trying to withdraw from an empty balance.
+    const ENoProfits: u64 = 0;
+
     /// An admin capability. The admin has full control over the application.
     /// This object must be issued only once during module initialization.
     struct AdminCap has key, store { id: UID }
@@ -77,6 +80,10 @@ module suins::suins {
     /// Key under which a configuration is stored.
     struct ConfigKey has copy, store, drop {}
 
+    /// Module initializer:
+    /// - create SuiNS object
+    /// - create admin capability
+    /// - claim Publisher object (for Display and TransferPolicy)
     fun init(otw: SUINS, ctx: &mut TxContext) {
         sui::package::claim_and_keep(otw, ctx);
 
@@ -126,6 +133,7 @@ module suins::suins {
     /// TODO: check logic around coin management in the application.
     public fun withdraw(_: &AdminCap, self: &mut SuiNS, ctx: &mut TxContext): Coin<SUI> {
         let amount = balance(self);
+        assert!(amount > 0, ENoProfits);
         coin::take(&mut self.balance, amount, ctx)
     }
 

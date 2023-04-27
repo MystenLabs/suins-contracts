@@ -711,7 +711,8 @@ module suins::controller_tests {
             assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2, 0);
             assert!(!test_scenario::has_most_recent_for_sender<Coin<SUI>>(&mut scenario), 0);
 
-            controller::withdraw(&admin_cap, &mut suins, test_scenario::ctx(&mut scenario));
+            let coins = suins::withdraw(&admin_cap, &mut suins, test_scenario::ctx(&mut scenario));
+            sui::transfer::public_transfer(coins, SUINS_ADDRESS);
             assert!(suins::balance(&suins) == 0, 0);
 
             test_scenario::return_shared(suins);
@@ -1015,7 +1016,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = controller::ENoProfits)]
+    #[test, expected_failure(abort_code = suins::suins::ENoProfits)]
     fun test_withdraw_abort_if_no_profits() {
         let scenario = test_init();
 
@@ -1023,7 +1024,8 @@ module suins::controller_tests {
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            controller::withdraw(&admin_cap, &mut suins, test_scenario::ctx(&mut scenario));
+            let coins = suins::withdraw(&admin_cap, &mut suins, test_scenario::ctx(&mut scenario));
+            sui::transfer::public_transfer(coins, SUINS_ADDRESS);
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
@@ -4052,7 +4054,8 @@ module suins::controller_tests {
             assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2, 0);
             assert!(!test_scenario::has_most_recent_for_sender<Coin<SUI>>(&mut scenario), 0);
 
-            controller::withdraw(&admin_cap, &mut suins, test_scenario::ctx(&mut scenario));
+            let coins = suins::withdraw(&admin_cap, &mut suins, test_scenario::ctx(&mut scenario));
+            sui::transfer::public_transfer(coins, SUINS_ADDRESS);
             assert!(suins::balance(&suins) == 0, 0);
 
             test_scenario::return_shared(suins);

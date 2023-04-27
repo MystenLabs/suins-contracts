@@ -41,7 +41,6 @@ module suins::controller {
     const ENotEnoughFee: u64 = 305;
     const EInvalidDuration: u64 = 306;
     const ELabelUnavailable: u64 = 308;
-    const ENoProfits: u64 = 310;
     const EInvalidCode: u64 = 311;
     const ERegistrationIsDisabled: u64 = 312;
     const EInvalidDomain: u64 = 314;
@@ -348,17 +347,6 @@ module suins::controller {
         // NFT and imag_msg are validated in `update_image_url`
         renew_internal(suins, config, label, no_years, payment, ctx);
         registrar::update_image_url(suins, config, nft, signature, hashed_msg, raw_msg, ctx);
-    }
-
-    /// #### Notice
-    /// Admin use this function to withdraw the payment.
-    ///
-    /// Panics
-    /// Panics if no profits has been created.
-    public entry fun withdraw(_: &AdminCap, suins: &mut SuiNS, ctx: &mut TxContext) {
-        let amount = suins::balance(suins);
-        assert!(amount > 0, ENoProfits);
-        suins::send_from_balance(suins, amount, tx_context::sender(ctx), ctx);
     }
 
     public entry fun new_reserved_domains(
