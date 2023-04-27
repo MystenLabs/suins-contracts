@@ -26,7 +26,6 @@ module suins::controller {
     use suins::registrar::{Self, RegistrationNFT};
     use suins::suins::{Self, SuiNS, AdminCap};
     use suins::string_utils;
-    use suins::remove_later;
 
     const MAX_COMMITMENT_AGE_IN_MS: u64 = 259_200_000;
     const MIN_COMMITMENT_AGE_IN_MS: u64 = 120_000;
@@ -341,12 +340,11 @@ module suins::controller {
     public entry fun new_reserved_domains(
         _: &AdminCap,
         suins: &mut SuiNS,
-        domains: vector<u8>,
+        domains: vector<String>,
         owner: address,
         ctx: &mut TxContext
     ) {
         if (owner == @0x0) owner = tx_context::sender(ctx);
-        let domains = remove_later::deserialize_reserve_domains(domains);
         let len = vector::length(&domains);
         let index = 0;
         let dot = utf8(b".");

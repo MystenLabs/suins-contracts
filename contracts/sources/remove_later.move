@@ -42,32 +42,6 @@ module suins::remove_later {
         (ipfs, domain_name, string_utils::string_to_number(expired_at), msg)
     }
 
-    /// This funtion doesn't validate domains
-    /// `domains` format: domain1;domain2;
-    public(friend) fun deserialize_reserve_domains(domains: vector<u8>): vector<String> {
-        let last_character = vector::borrow(&domains, vector::length(&domains) - 1);
-        // add a semicolon to the end of `discount_code_batch` to make every code have the same layout
-        if (*last_character != 59) {
-            vector::push_back(&mut domains, 59);
-        };
-        let reserve_domains: vector<String> = vector[];
-        let semi_colon = utf8(b";");
-        let domains = utf8(domains);
-
-        let index_of_next_semi_colon = string::index_of(&domains, &semi_colon);
-        let len = string::length(&domains);
-        while (index_of_next_semi_colon != len) {
-            let domain = string::sub_string(&domains, 0, index_of_next_semi_colon);
-            vector::push_back(&mut reserve_domains, domain);
-
-            domains = string::sub_string(&domains, index_of_next_semi_colon + 1, len);
-            len = len - index_of_next_semi_colon - 1;
-            index_of_next_semi_colon = string::index_of(&domains, &semi_colon);
-        };
-
-        reserve_domains
-    }
-
     /// `discount_code_batch` format: code1,rate1,owner1;code2,rate2,owner2;
     /// owner must have '0x'
     public(friend) fun deserialize_new_discount_code_batch(discount_code_batch: vector<u8>): vector<DiscountCode> {

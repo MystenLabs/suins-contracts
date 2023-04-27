@@ -5061,7 +5061,7 @@ module suins::controller_tests {
             controller::new_reserved_domains(
                 &admin_cap,
                 &mut suins,
-                b"abcde.sui;abcde.move;abcdefghijk.sui;",
+                vector[utf8(b"abcde.sui"), utf8(b"abcde.move"), utf8(b"abcdefghijk.sui")],
                 @0x0,
                 ctx
             );
@@ -5147,7 +5147,7 @@ module suins::controller_tests {
             assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(second_domain_name), ctx), 0);
             assert!(!registry::record_exists(&suins, utf8(second_domain_name_move)), 0);
 
-            controller::new_reserved_domains(&admin_cap, &mut suins, b"abcdefghijk.move", @0x0B, ctx);
+            controller::new_reserved_domains(&admin_cap, &mut suins, vector[utf8(b"abcdefghijk.move")], @0x0B, ctx);
 
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
@@ -5255,7 +5255,7 @@ module suins::controller_tests {
             assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(first_domain_name), ctx), 0);
             assert!(!registry::record_exists(&suins, utf8(first_domain_name_sui)), 0);
 
-            controller::new_reserved_domains(&admin_cap, &mut suins, b"abcde.sui;abcde.sui;", @0x0, ctx);
+            controller::new_reserved_domains(&admin_cap, &mut suins, vector[utf8(b"abcde.sui"), utf8(b"abcde.sui")], @0x0, ctx);
 
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
@@ -5278,7 +5278,7 @@ module suins::controller_tests {
                 2
             );
 
-            controller::new_reserved_domains(&admin_cap, &mut suins, b"abcde..sui;", @0x0, ctx);
+            controller::new_reserved_domains(&admin_cap, &mut suins, vector[utf8(b"abcde..sui")], @0x0, ctx);
 
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
@@ -5301,7 +5301,7 @@ module suins::controller_tests {
                 2
             );
 
-            controller::new_reserved_domains(&admin_cap, &mut suins, b"abcde.suins;", @0x0, ctx);
+            controller::new_reserved_domains(&admin_cap, &mut suins, vector[utf8(b"abcde.suins")], @0x0, ctx);
 
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
@@ -5324,7 +5324,7 @@ module suins::controller_tests {
                 2
             );
 
-            controller::new_reserved_domains(&admin_cap, &mut suins, b"-abcde.sui;", @0x0, ctx);
+            controller::new_reserved_domains(&admin_cap, &mut suins, vector[utf8(b"-abcde.sui")], @0x0, ctx);
 
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
@@ -5347,7 +5347,7 @@ module suins::controller_tests {
                 2
             );
 
-            controller::new_reserved_domains(&admin_cap, &mut suins, b"abcde-.move;", @0x0, ctx);
+            controller::new_reserved_domains(&admin_cap, &mut suins, vector[utf8(b"abcde-.move")], @0x0, ctx);
 
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
@@ -5371,7 +5371,7 @@ module suins::controller_tests {
                 2
             );
 
-            controller::new_reserved_domains(&admin_cap, &mut suins, invalid_emoji_domain_name, @0x0, ctx);
+            controller::new_reserved_domains(&admin_cap, &mut suins, vector[utf8(invalid_emoji_domain_name)], @0x0, ctx);
 
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
@@ -5395,7 +5395,7 @@ module suins::controller_tests {
                 2
             );
 
-            controller::new_reserved_domains(&admin_cap, &mut suins, b"abcde.sui;", SUINS_ADDRESS, ctx);
+            controller::new_reserved_domains(&admin_cap, &mut suins, vector[utf8(b"abcde.sui")], SUINS_ADDRESS, ctx);
 
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);

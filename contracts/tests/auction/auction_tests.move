@@ -4151,7 +4151,7 @@ module suins::auction_tests {
             controller::new_reserved_domains(
                 &admin_cap,
                 &mut suins,
-                b"abcde.sui",
+                vector[utf8(b"abcde.sui")],
                 @0x0,
                 ctx
             );
