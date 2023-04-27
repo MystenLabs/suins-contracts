@@ -8,7 +8,7 @@ module suins::controller_tests_2 {
     use suins::auction_tests::ctx_new;
     use suins::registrar::{Self, RegistrationNFT};
     use suins::registry;
-    use suins::suins::AdminCap;
+    use suins::suins::{Self, AdminCap};
     use suins::configuration::{Self, Configuration};
     use suins::suins::SuiNS;
     use suins::controller;
@@ -85,7 +85,7 @@ module suins::controller_tests_2 {
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(suins::balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
@@ -116,7 +116,7 @@ module suins::controller_tests_2 {
             let (name, url) = registrar::get_nft_fields(&nft);
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == 1_000_000_000 * 2, 0);
+            assert!(suins::balance(&suins) == 1_000_000_000 * 2, 0);
             assert!(name == utf8(b"xyztu.sui"), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),

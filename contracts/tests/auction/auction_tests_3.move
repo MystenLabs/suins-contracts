@@ -10,9 +10,8 @@ module suins::auction_tests_3 {
     use std::option;
     use suins::auction_tests::{test_init, start_an_auction_util, place_bid_util, reveal_bid_util, ctx_new, get_bid_util, ctx_util, finalize_auction_util, get_entry_util};
     use suins::suins::SuiNS;
-    use suins::controller;
     use suins::registry;
-    use suins::suins::AdminCap;
+    use suins::suins::{Self, AdminCap};
     use sui::test_scenario;
     use sui::clock::Clock;
     use suins::registrar;
@@ -193,7 +192,7 @@ module suins::auction_tests_3 {
             assert!(vector::length(&bids) == 1, 0);
 
             assert!(auction::get_balance(&auction) == 3300 * configuration::mist_per_sui(), 0);
-            assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 2, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 2, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -331,7 +330,7 @@ module suins::auction_tests_3 {
             assert!(vector::length(&bids) == 1, 0);
 
             assert!(auction::get_balance(&auction) == 3300 * configuration::mist_per_sui(), 0);
-            assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 2, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 2, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -468,7 +467,7 @@ module suins::auction_tests_3 {
             assert!(vector::length(&bids) == 1, 0);
 
             assert!(auction::get_balance(&auction) == 12200 * configuration::mist_per_sui(), 0);
-            assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 2, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 2, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -548,7 +547,7 @@ module suins::auction_tests_3 {
             assert!(vector::length(&bids) == 0, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 2, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 2, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -656,7 +655,7 @@ module suins::auction_tests_3 {
             assert!(vector::length(&bids) == 0, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 2, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 2, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -736,7 +735,7 @@ module suins::auction_tests_3 {
             assert!(registry::target_address(&suins, utf8(FIRST_DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(
-                controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1000 * configuration::mist_per_sui() + BIDDING_FEE,
+                suins::balance(&suins) == START_AN_AUCTION_FEE + 1000 * configuration::mist_per_sui() + BIDDING_FEE,
                 0,
             );
 
@@ -1381,7 +1380,7 @@ module suins::auction_tests_3 {
             assert!(option::extract(&mut is_finalized) == false, 0);
 
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -1468,7 +1467,7 @@ module suins::auction_tests_3 {
             assert!(vector::length(&bids) == 0, 0);
 
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -2226,7 +2225,7 @@ module suins::auction_tests_3 {
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
             auction::start_an_auction(&mut auction, &mut suins, utf8(SECOND_DOMAIN_NAME), &mut coin, ctx);
-            assert!(controller::get_balance(&suins) == 2 * START_AN_AUCTION_FEE, 0);
+            assert!(suins::balance(&suins) == 2 * START_AN_AUCTION_FEE, 0);
             assert!(coin::value(&coin) == 2 * START_AN_AUCTION_FEE, 0);
 
             test_scenario::return_shared(auction);
@@ -2248,7 +2247,7 @@ module suins::auction_tests_3 {
             let coin = coin::mint_for_testing<SUI>(3 * START_AN_AUCTION_FEE, ctx);
 
             auction::start_an_auction(&mut auction, &mut suins, utf8(THIRD_DOMAIN_NAME), &mut coin, ctx);
-            assert!(controller::get_balance(&suins) == 3 * START_AN_AUCTION_FEE, 0);
+            assert!(suins::balance(&suins) == 3 * START_AN_AUCTION_FEE, 0);
             assert!(coin::value(&coin) == 2 * START_AN_AUCTION_FEE, 0);
 
             test_scenario::return_shared(auction);
@@ -2346,7 +2345,7 @@ module suins::auction_tests_3 {
             assert!(coin::value(&first_coin) == 200 * configuration::mist_per_sui(), 0);
             assert!(auction::get_balance(&auction) == 13500 * configuration::mist_per_sui(), 0);
             assert!(
-                controller::get_balance(&suins) == 3 * START_AN_AUCTION_FEE + 2000 * configuration::mist_per_sui() + BIDDING_FEE * 3,
+                suins::balance(&suins) == 3 * START_AN_AUCTION_FEE + 2000 * configuration::mist_per_sui() + BIDDING_FEE * 3,
                 0,
             );
 
@@ -2373,7 +2372,7 @@ module suins::auction_tests_3 {
             assert!(vector::length(&bids) == 0, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(
-                controller::get_balance(&suins) == 3 * START_AN_AUCTION_FEE + 2000 * configuration::mist_per_sui() + BIDDING_FEE * 3,
+                suins::balance(&suins) == 3 * START_AN_AUCTION_FEE + 2000 * configuration::mist_per_sui() + BIDDING_FEE * 3,
                 0,
             );
 
@@ -2559,7 +2558,7 @@ module suins::auction_tests_3 {
             assert!(mask == 10200 * configuration::mist_per_sui(), 0);
             assert!(created_at == START_AN_AUCTION_AT + 1, 0);
             assert!(is_unsealed, 0);
-            assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 3, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 3, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);

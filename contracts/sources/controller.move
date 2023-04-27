@@ -12,7 +12,6 @@ module suins::controller {
     use std::option::{Self, Option};
 
     use sui::url::Url;
-    use sui::balance;
     use sui::coin::{Self, Coin};
     use sui::hash::keccak256;
     use sui::event;
@@ -23,10 +22,9 @@ module suins::controller {
     use sui::clock::Clock;
     use sui::clock;
 
-    use suins::suins::AdminCap;
     use suins::registrar::{Self, RegistrationNFT};
     use suins::configuration::{Self, Configuration};
-    use suins::suins::{Self, SuiNS};
+    use suins::suins::{Self, SuiNS, AdminCap};
     use suins::string_utils;
     use suins::remove_later;
     use suins::coin_tracker;
@@ -358,9 +356,8 @@ module suins::controller {
     /// Panics
     /// Panics if no profits has been created.
     public entry fun withdraw(_: &AdminCap, suins: &mut SuiNS, ctx: &mut TxContext) {
-        let amount = balance::value(suins::controller_balance(suins));
+        let amount = suins::balance(suins);
         assert!(amount > 0, ENoProfits);
-
         suins::send_from_balance(suins, amount, tx_context::sender(ctx), ctx);
     }
 
@@ -613,12 +610,6 @@ module suins::controller {
         secret: vector<u8>
     ): vector<u8> {
         make_commitment(label, owner, secret)
-    }
-
-    #[test_only]
-    public fun get_balance(suins: &SuiNS): u64 {
-        let contract_balance = suins::controller_balance(suins);
-        balance::value(contract_balance)
     }
 
     #[test_only]

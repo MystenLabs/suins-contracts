@@ -13,6 +13,7 @@ module suins::suins {
     use sui::linked_table;
     use sui::balance;
     use sui::coin::{Self, Coin};
+    use sui::vec_map::{Self, VecMap};
     use sui::dynamic_field as df;
 
     // use suins::config::{Self, Config};
@@ -25,23 +26,25 @@ module suins::suins {
 
     const MAX_U64: u64 = 18446744073709551615;
 
-    // https://examples.sui.io/patterns/capability.html
-    struct AdminCap has key, store {
-        id: UID,
-    }
+    /// An admin capability. The admin has full control over the application.
+    /// This object must be issued only once during module initialization.
+    struct AdminCap has key, store { id: UID }
 
+    /// The main application object. Stores the state of the application,
+    /// used for adding / removing and reading name records.
     struct SuiNS has key {
         id: UID,
+        /// The total balance of the SuiNS.
+        balance: Balance<SUI>,
         /// Maps domain names to name records (instance of `NameRecord`).
         registry: Table<String, NameRecord>,
-
         /// Map from addresses to a configured default domain
         reverse_registry: Table<address, String>,
-
         /// Maps tlds to registrar objects, each registrar object is responsible for domains of a particular tld.
         /// Registrar object is a mapping of domain names to registration records (instance of `RegistrationRecord`).
         /// A registrar object can be created by calling `new_tld` and has a record with key `tld` to represent its tld.
         registrars: Table<String, Table<String, RegistrationRecord>>,
+        /// The controller object is responsible for managing the auction house.
         controller: Controller,
     }
 
@@ -49,7 +52,8 @@ module suins::suins {
         owner: address,
         /// The target address that this domain points to
         target_address: address,
-        data: Table<String, String>,
+        /// Additional data which may be stored in a record
+        data: VecMap<String, String>,
     }
 
     /// each registration records has a corresponding name records
@@ -60,7 +64,6 @@ module suins::suins {
 
     struct Controller has store {
         commitments: LinkedTable<vector<u8>, u64>,
-        balance: Balance<SUI>,
         /// set by `configure_auction`
         /// the last epoch when bidder can call `finalize_auction`
         auction_house_finalized_at: u64,
@@ -84,11 +87,11 @@ module suins::suins {
 
         let suins = SuiNS {
             id: object::new(ctx),
+            balance: balance::zero(),
             registry: table::new(ctx),
             reverse_registry: table::new(ctx),
             registrars: table::new(ctx),
             controller: Controller {
-                balance: balance::zero(),
                 commitments: linked_table::new(ctx),
                 auction_house_finalized_at: max_epoch_allowed(),
             }
@@ -114,24 +117,91 @@ module suins::suins {
         df::remove(&mut self.id, ConfigKey {})
     }
 
-    // ===
+    // === Admin actions ===
 
+    /// Withdraw from the SuiNS balance directly and access the Coins within the same
+    /// transaction. This is useful for the admin to withdraw funds from the SuiNS
+    /// and then send them somewhere specific or keep at the address.
+    ///
+    /// TODO: check logic around coin management in the application.
+    public fun withdraw(_: &AdminCap, self: &mut SuiNS, ctx: &mut TxContext): Coin<SUI> {
+        let amount = balance(self);
+        coin::take(&mut self.balance, amount, ctx)
+    }
+
+    // === Records creation ===
 
     public fun new_registration_record(expired_at: u64, nft_id: ID): RegistrationRecord {
         RegistrationRecord { expired_at, nft_id }
     }
 
-    public fun new_name_record(owner: address, target_address: address, ctx: &mut TxContext): NameRecord {
+    public fun new_name_record(owner: address, target_address: address): NameRecord {
         NameRecord {
             owner,
             target_address,
-            data: table::new(ctx),
+            data: vec_map::empty()
         }
+    }
+
+    // === Fields access ===
+
+    public fun registry(self: &SuiNS): &Table<String, NameRecord> {
+        &self.registry
+    }
+
+    public fun registrars(
+        self: &SuiNS
+    ): &Table<String, Table<String, RegistrationRecord>> {
+        &self.registrars
+    }
+
+    public fun registrar(
+        self: &SuiNS, tld: String
+    ): &Table<String, RegistrationRecord> {
+        table::borrow(&self.registrars, tld)
+    }
+
+    public fun name_record_owner(name_record: &NameRecord): address {
+        name_record.owner
+    }
+
+    public fun name_record_target_address(name_record: &NameRecord): address {
+        name_record.target_address
+    }
+
+    public fun registration_record_expired_at(record: &RegistrationRecord): u64 {
+        record.expired_at
+    }
+
+    public fun registration_record_nft_id(record: &RegistrationRecord): ID {
+        record.nft_id
+    }
+
+    public fun controller_commitments(
+        self: &SuiNS
+    ): &LinkedTable<vector<u8>, u64> {
+        &self.controller.commitments
+    }
+
+    public fun controller_auction_house_finalized_at(self: &SuiNS): u64 {
+        self.controller.auction_house_finalized_at
+    }
+
+    public fun max_epoch_allowed(): u64 {
+        MAX_U64 - 365
+    }
+
+    public fun max_u64(): u64 {
+        MAX_U64
+    }
+
+    public fun balance(self: &SuiNS): u64 {
+        balance::value(&self.balance)
     }
 
     // === Friend and Private Functions ===
 
-    public(friend) fun name_record_data(name_record: &NameRecord): &Table<String, String> {
+    public(friend) fun name_record_data(name_record: &NameRecord): &VecMap<String, String> {
         &name_record.data
     }
 
@@ -163,7 +233,7 @@ module suins::suins {
         &mut name_record.target_address
     }
 
-    public(friend) fun name_record_data_mut(name_record: &mut NameRecord): &mut Table<String, String> {
+    public(friend) fun name_record_data_mut(name_record: &mut NameRecord): &mut VecMap<String, String> {
         &mut name_record.data
     }
 
@@ -176,8 +246,8 @@ module suins::suins {
     }
 
     /// Use carefully
-    public(friend) fun controller_balance_mut(self: &mut SuiNS): &mut Balance<SUI> {
-        &mut self.controller.balance
+    public(friend) fun balance_mut(self: &mut SuiNS): &mut Balance<SUI> {
+        &mut self.balance
     }
 
     public(friend) fun controller_auction_house_finalized_at_mut(self: &mut SuiNS): &mut u64 {
@@ -186,73 +256,19 @@ module suins::suins {
 
     public(friend) fun add_to_balance(self: &mut SuiNS, coin: Coin<SUI>) {
         coin_tracker::track(@suins, coin::value(&coin));
-        coin::put(&mut self.controller.balance, coin);
+        coin::put(&mut self.balance, coin);
     }
 
     public(friend) fun send_from_balance(self: &mut SuiNS, amount: u64, receiver: address, ctx: &mut TxContext) {
-        let coin = coin::take(&mut self.controller.balance, amount, ctx);
+        let coin = coin::take(&mut self.balance, amount, ctx);
         transfer::public_transfer(coin, receiver);
         coin_tracker::track(receiver, amount);
     }
 
-    // === Fields access ===
-
-    // TODO: manually check that all of them are immutable
-
-    public fun registry(self: &SuiNS): &Table<String, NameRecord> {
-        &self.registry
-    }
-
-    public fun registrars(self: &SuiNS): &Table<String, Table<String, RegistrationRecord>> {
-        &self.registrars
-    }
-
-    public fun registrar(self: &SuiNS, tld: String): &Table<String, RegistrationRecord> {
-        table::borrow(&self.registrars, tld)
-    }
-
-    public fun name_record_owner(name_record: &NameRecord): address {
-        name_record.owner
-    }
-
-    public fun name_record_target_address(name_record: &NameRecord): address {
-        name_record.target_address
-    }
-
-    public fun registration_record_expired_at(record: &RegistrationRecord): u64 {
-        record.expired_at
-    }
-
-    public fun registration_record_nft_id(record: &RegistrationRecord): ID {
-        record.nft_id
-    }
-
-    public fun controller_commitments(self: &SuiNS): &LinkedTable<vector<u8>, u64> {
-        &self.controller.commitments
-    }
-
-    public fun controller_auction_house_finalized_at(self: &SuiNS): u64 {
-        self.controller.auction_house_finalized_at
-    }
-
-    public fun max_epoch_allowed(): u64 {
-        MAX_U64 - 365
-    }
-
-    public fun max_u64(): u64 {
-        MAX_U64
-    }
-
-    public fun controller_balance(self: &SuiNS): &Balance<SUI> {
-        &self.controller.balance
-    }
-
     // === Testing ===
 
-    #[test_only]
-    friend suins::registry_tests;
-    #[test_only]
-    friend suins::registry_tests_2;
+    #[test_only] friend suins::registry_tests;
+    #[test_only] friend suins::registry_tests_2;
 
     #[test_only]
     /// Wrapper of module initializer for testing
@@ -267,12 +283,12 @@ module suins::suins {
         let registrars = table::new(ctx);
         let controller = Controller {
             commitments: linked_table::new(ctx),
-            balance: balance::zero(),
             auction_house_finalized_at: max_epoch_allowed(),
         };
 
         let suins = SuiNS {
             id: object::new(ctx),
+            balance: balance::zero(),
             registry,
             reverse_registry,
             registrars,

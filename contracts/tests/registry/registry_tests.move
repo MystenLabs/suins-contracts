@@ -6,8 +6,7 @@ module suins::registry_tests {
     use suins::registrar;
     use std::string::utf8;
     use suins::suins::SuiNS;
-    use suins::suins;
-    use suins::suins::AdminCap;
+    use suins::suins::{Self, AdminCap};
 
     friend suins::registry_tests_2;
 
@@ -48,7 +47,6 @@ module suins::registry_tests {
                 &mut suins,
                 utf8(FIRST_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,
-                test_scenario::ctx(scenario),
             );
             test_scenario::return_shared(suins);
         };
@@ -75,7 +73,6 @@ module suins::registry_tests {
                 &mut suins,
                 utf8(FIRST_DOMAIN_NAME),
                 SECOND_USER_ADDRESS,
-                test_scenario::ctx(&mut scenario),
             );
             test_scenario::return_shared(suins);
         };

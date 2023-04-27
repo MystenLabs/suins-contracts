@@ -15,6 +15,7 @@ module suins::registry {
         name_record_target_address_mut,
     };
     use sui::table;
+    use sui::vec_map;
 
     friend suins::registrar;
     friend suins::controller;
@@ -102,8 +103,11 @@ module suins::registry {
         let name_record = get_name_record_mut(suins, domain_name);
         let name_record_data = suins::name_record_data_mut(name_record);
 
-        if (table::contains(name_record_data, key)) *table::borrow_mut(name_record_data, key) = new_value
-        else table::add(name_record_data, key, new_value);
+        if (vec_map::contains(name_record_data, &key)) {
+            *vec_map::get_mut(name_record_data, &key) = new_value
+        } else {
+            vec_map::insert(name_record_data, key, new_value);
+        };
 
         event::emit(DataChangedEvent { domain_name, key, new_value });
     }
@@ -128,7 +132,7 @@ module suins::registry {
         let name_record = get_name_record_mut(suins, domain_name);
         let name_record_data = suins::name_record_data_mut(name_record);
 
-        table::remove(name_record_data, key);
+        vec_map::remove(name_record_data, &key);
         event::emit(DataRemovedEvent { domain_name, key });
     }
 
@@ -265,8 +269,8 @@ module suins::registry {
         let name_record = get_name_record(suins, domain_name);
         let name_record_data = suins::name_record_data(name_record);
 
-        assert!(table::contains(name_record_data, key), EKeyNotExists);
-        *table::borrow(name_record_data, key)
+        assert!(vec_map::contains(name_record_data, &key), EKeyNotExists);
+        *vec_map::get(name_record_data, &key)
     }
 
     public fun is_authorised(suins: &SuiNS, domain_name: String, ctx: &TxContext) {
@@ -286,23 +290,23 @@ module suins::registry {
         suins: &mut SuiNS,
         domain_name: String,
         owner: address,
-        ctx: &mut TxContext,
     ) {
         let registry = suins::registry_mut(suins);
         if (table::contains(registry, domain_name)) {
             let record = table::borrow_mut(registry, domain_name);
             *name_record_owner_mut(record) = owner;
             *name_record_target_address_mut(record) = owner;
-        } else new_record(suins, domain_name, owner, ctx);
+        } else {
+            new_record(suins, domain_name, owner)
+        }
     }
 
     fun new_record(
         suins: &mut SuiNS,
         domain_name: String,
         owner: address,
-        ctx: &mut TxContext,
     ) {
-        let record = new_name_record(owner, owner, ctx);
+        let record = new_name_record(owner, owner);
         let registry = suins::registry_mut(suins);
         table::add(registry, domain_name, record);
     }
@@ -319,14 +323,12 @@ module suins::registry {
         table::borrow_mut(registry, domain_name)
     }
 
-    #[test_only]
-    friend suins::registry_tests;
-    #[test_only]
-    friend suins::registry_tests_2;
+    #[test_only] friend suins::registry_tests;
+    #[test_only]  friend suins::registry_tests_2;
 
     #[test_only]
-    public fun new_record_test(suins: &mut SuiNS, domain_name: String, owner: address, ctx: &mut TxContext) {
-        new_record(suins, domain_name, owner, ctx);
+    public fun new_record_test(suins: &mut SuiNS, domain_name: String, owner: address) {
+        new_record(suins, domain_name, owner);
     }
 
     #[test_only]

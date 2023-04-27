@@ -11,9 +11,8 @@ module suins::controller_tests {
     use suins::auction_tests::{start_an_auction_util, place_bid_util, reveal_bid_util, ctx_new};
     use suins::registrar::{Self, RegistrationNFT};
     use suins::registry;
-    use suins::suins::AdminCap;
+    use suins::suins::{Self, AdminCap, SuiNS};
     use suins::configuration::{Self, Configuration};
-    use suins::suins::{Self, SuiNS};
     use suins::controller;
     use suins::string_utils;
     use std::option::{Self, Option, some};
@@ -154,7 +153,7 @@ module suins::controller_tests {
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
-            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(suins::balance(&suins) == 0, 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(scenario), 0);
 
             controller::register(
@@ -183,7 +182,7 @@ module suins::controller_tests {
             let (name, url) = registrar::get_nft_fields(&nft);
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
             assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -442,7 +441,7 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(1000001, &mut ctx);
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
             controller::register(
                 &mut suins,
                 &mut config,
@@ -504,7 +503,7 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, &mut ctx);
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
             controller::register(
                 &mut suins,
                 &mut config,
@@ -530,7 +529,7 @@ module suins::controller_tests {
             let (name, url) = registrar::get_nft_fields(&nft);
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2, 0);
             assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -597,7 +596,7 @@ module suins::controller_tests {
             );
             let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, &mut ctx);
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
 
             controller::register(
                 &mut suins,
@@ -656,7 +655,7 @@ module suins::controller_tests {
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
-            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(suins::balance(&suins) == 0, 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
             controller::register(
@@ -685,7 +684,7 @@ module suins::controller_tests {
             let (name, url) = registrar::get_nft_fields(&nft);
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2, 0);
             assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -709,11 +708,11 @@ module suins::controller_tests {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2, 0);
             assert!(!test_scenario::has_most_recent_for_sender<Coin<SUI>>(&mut scenario), 0);
 
             controller::withdraw(&admin_cap, &mut suins, test_scenario::ctx(&mut scenario));
-            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(suins::balance(&suins) == 0, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
@@ -1198,7 +1197,7 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2 + 1, ctx);
 
             assert!(registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(FIRST_LABEL)) == 522, 0);
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
             controller::renew(
                 &mut suins,
                 &config,
@@ -1218,7 +1217,7 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 3, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 3, 0);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -1467,7 +1466,7 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 3, &mut ctx);
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
-            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(suins::balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
@@ -1508,7 +1507,7 @@ module suins::controller_tests {
                 0
             );
             assert!(coin::value(&coin) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2 / 10, 0);
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2 * 9/ 10, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2 * 9/ 10, 0);
 
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
@@ -1543,7 +1542,7 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 4, &mut ctx);
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
-            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(suins::balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
@@ -1584,7 +1583,7 @@ module suins::controller_tests {
                 0
             );
             assert!(coin::value(&coin) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 30 / 100, 0);
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 270 / 100, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 270 / 100, 0);
 
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 1095, 0);
@@ -1657,7 +1656,7 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 3, &mut ctx);
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
-            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(suins::balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
@@ -1700,7 +1699,7 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 170 / 100, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 170 / 100, 0);
 
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
@@ -1819,7 +1818,7 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 3, &mut ctx);
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
-            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(suins::balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
@@ -1861,7 +1860,7 @@ module suins::controller_tests {
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
                 0
             );
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 170 / 100, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 170 / 100, 0);
 
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
@@ -2096,7 +2095,7 @@ module suins::controller_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
             assert!(coin::value(&coin) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN / 5, 0);
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 9 / 5, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 9 / 5, 0);
 
             test_scenario::return_to_address(SECOND_USER_ADDRESS, coin);
             test_scenario::return_shared(suins);
@@ -2147,7 +2146,7 @@ module suins::controller_tests {
 
             assert!(coin::value(&coin1) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN / 10, 0);
             assert!(coin::value(&coin2) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN / 5, 0);
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 27 / 10, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 27 / 10, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_to_address(SECOND_USER_ADDRESS, coin1);
@@ -2222,7 +2221,7 @@ module suins::controller_tests {
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, domain_name), 0);
-            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(suins::balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
             assert!(!registry::record_exists(&suins, utf8(domain_name)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
@@ -2269,7 +2268,7 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 3, &mut ctx);
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
-            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(suins::balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
@@ -2312,7 +2311,7 @@ module suins::controller_tests {
                 0
             );
             assert!(coin::value(&coin) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 17 / 100, 0);
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 153 / 100, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 153 / 100, 0);
 
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
@@ -2433,7 +2432,7 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 3, &mut ctx);
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
-            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(suins::balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
@@ -2472,7 +2471,7 @@ module suins::controller_tests {
                 0
             );
             assert!(coin::value(&coin) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 170 / 1000, 0);
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 153 / 100, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 153 / 100, 0);
 
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
@@ -2654,7 +2653,7 @@ module suins::controller_tests {
 
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
             assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -2755,7 +2754,7 @@ module suins::controller_tests {
 
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
             assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -2839,7 +2838,7 @@ module suins::controller_tests {
 
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
             assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -2922,7 +2921,7 @@ module suins::controller_tests {
 
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
             assert!(name == utf8(AUCTIONED_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -3005,7 +3004,7 @@ module suins::controller_tests {
 
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
             assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -3180,7 +3179,7 @@ module suins::controller_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
 
-            assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE, 0);
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 AUCTIONED_LABEL,
@@ -3236,7 +3235,7 @@ module suins::controller_tests {
             let (name, url) = registrar::get_nft_fields(&nft);
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN + START_AN_AUCTION_FEE, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN + START_AN_AUCTION_FEE, 0);
             assert!(name == utf8(AUCTIONED_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -3384,7 +3383,7 @@ module suins::controller_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = registrar::get_nft_fields(&nft);
 
-            assert!(controller::get_balance(&suins) == 1000000, 0);
+            assert!(suins::balance(&suins) == 1000000, 0);
             assert!(name == utf8(AUCTIONED_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -3476,7 +3475,7 @@ module suins::controller_tests {
 
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == 1000000, 0);
+            assert!(suins::balance(&suins) == 1000000, 0);
             assert!(name == utf8(AUCTIONED_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b""),
@@ -3579,7 +3578,7 @@ module suins::controller_tests {
 
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
             assert!(name == utf8(AUCTIONED_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -3916,7 +3915,7 @@ module suins::controller_tests {
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(suins::balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
@@ -3952,7 +3951,7 @@ module suins::controller_tests {
 
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2, 0);
             assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"),
@@ -3993,7 +3992,7 @@ module suins::controller_tests {
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
-            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(suins::balance(&suins) == 0, 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
             controller::register_with_image(
@@ -4026,7 +4025,7 @@ module suins::controller_tests {
 
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2, 0);
             assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"),
@@ -4050,11 +4049,11 @@ module suins::controller_tests {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2, 0);
             assert!(!test_scenario::has_most_recent_for_sender<Coin<SUI>>(&mut scenario), 0);
 
             controller::withdraw(&admin_cap, &mut suins, test_scenario::ctx(&mut scenario));
-            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(suins::balance(&suins) == 0, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
@@ -4214,7 +4213,7 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 3, &mut ctx);
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
-            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(suins::balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
@@ -4260,7 +4259,7 @@ module suins::controller_tests {
                 0
             );
             assert!(coin::value(&coin) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 17 / 100, 0);
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 153 / 100, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 153 / 100, 0);
 
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
@@ -4424,7 +4423,7 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 3, &mut ctx);
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
-            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(suins::balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
@@ -4465,7 +4464,7 @@ module suins::controller_tests {
                 0
             );
             assert!(coin::value(&coin) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 17 / 100, 0);
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 153 / 100, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 153 / 100, 0);
 
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
@@ -4618,7 +4617,7 @@ module suins::controller_tests {
             let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
             assert!(name == utf8(b"eastagile-123.sui"), 0);
             assert!(url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"), 0);
 
@@ -4634,7 +4633,7 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2 + 1, ctx);
 
             assert!(registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(FIRST_LABEL)) == 522, 0);
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
             controller::renew_with_image(
                 &mut suins,
                 &config,
@@ -4661,7 +4660,7 @@ module suins::controller_tests {
             let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 3, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 3, 0);
             assert!(name == utf8(b"eastagile-123.sui"), 0);
             assert!(url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"), 0);
 
@@ -4824,7 +4823,7 @@ module suins::controller_tests {
             let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
             assert!(name == utf8(b"eastagile-123.sui"), 0);
             assert!(url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"), 0);
 
@@ -4845,7 +4844,7 @@ module suins::controller_tests {
             let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2 + 1, &mut ctx);
 
             assert!(registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(FIRST_LABEL)) == EXTRA_PERIOD_END_AT + 1 + 365, 0);
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
 
             controller::renew_with_image(
                 &mut suins,
@@ -4874,7 +4873,7 @@ module suins::controller_tests {
             let (name, url) = registrar::get_nft_fields(&nft);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 3, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 3, 0);
             assert!(name == utf8(b"eastagile-123.sui"), 0);
             assert!(url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"), 0);
 
@@ -4993,7 +4992,7 @@ module suins::controller_tests {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
 
-            assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE, 0);
             let commitment = controller::test_make_commitment(
                 SUI_REGISTRAR,
                 AUCTIONED_LABEL,
@@ -5045,7 +5044,7 @@ module suins::controller_tests {
             let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = registrar::get_nft_fields(&nft);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN + START_AN_AUCTION_FEE + BIDDING_FEE, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN + START_AN_AUCTION_FEE + BIDDING_FEE, 0);
             assert!(name == utf8(AUCTIONED_DOMAIN_NAME), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -5082,7 +5081,7 @@ module suins::controller_tests {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
 
-            assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE, 0);
             finalize_all_auctions_by_admin(
                 &admin_cap,
                 &mut auction,
@@ -5090,7 +5089,7 @@ module suins::controller_tests {
                 &config,
                 &mut auction_tests::ctx_util(SUINS_ADDRESS, EXTRA_PERIOD_START_AT + 1, 20),
             );
-            assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -5163,7 +5162,7 @@ module suins::controller_tests {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let config = test_scenario::take_shared<Configuration>(&mut scenario);
 
-            assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE, 0);
             finalize_all_auctions_by_admin(
                 &admin_cap,
                 &mut auction,
@@ -5171,7 +5170,7 @@ module suins::controller_tests {
                 &config,
                 &mut auction_tests::ctx_util(SUINS_ADDRESS, EXTRA_PERIOD_START_AT + 1, 20),
             );
-            assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -6058,7 +6057,7 @@ module suins::controller_tests {
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(suins::balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
@@ -6089,7 +6088,7 @@ module suins::controller_tests {
             let (name, url) = registrar::get_nft_fields(&nft);
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_THREE_CHARACTER_DOMAIN * 2, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_THREE_CHARACTER_DOMAIN * 2, 0);
             assert!(name == utf8(b"abc.sui"), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -6129,7 +6128,7 @@ module suins::controller_tests {
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(suins::balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
@@ -6161,7 +6160,7 @@ module suins::controller_tests {
             let (name, url) = registrar::get_nft_fields(&nft);
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FOUR_CHARACTER_DOMAIN * 2, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FOUR_CHARACTER_DOMAIN * 2, 0);
             assert!(name == utf8(b"abcd.sui"), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -6201,7 +6200,7 @@ module suins::controller_tests {
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(suins::balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
@@ -6233,7 +6232,7 @@ module suins::controller_tests {
             let (name, url) = registrar::get_nft_fields(&nft);
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2, 0);
+            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 2, 0);
             assert!(name == utf8(b"abcdef.sui"), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -6283,7 +6282,7 @@ module suins::controller_tests {
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(suins::balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
@@ -6314,7 +6313,7 @@ module suins::controller_tests {
             let (name, url) = registrar::get_nft_fields(&nft);
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == 1_000_000_000 * 2, 0);
+            assert!(suins::balance(&suins) == 1_000_000_000 * 2, 0);
             assert!(name == utf8(b"xyz.sui"), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
@@ -6398,7 +6397,7 @@ module suins::controller_tests {
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(controller::get_balance(&suins) == 0, 0);
+            assert!(suins::balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
             assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
@@ -6429,7 +6428,7 @@ module suins::controller_tests {
             let (name, url) = registrar::get_nft_fields(&nft);
             registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
 
-            assert!(controller::get_balance(&suins) == 1_000_000_000 * 2, 0);
+            assert!(suins::balance(&suins) == 1_000_000_000 * 2, 0);
             assert!(name == utf8(b"xyzt.sui"), 0);
             assert!(
                 url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),

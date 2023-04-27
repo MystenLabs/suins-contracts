@@ -10,7 +10,7 @@ module suins::registrar {
     use std::string::{Self, String, utf8};
     use std::vector;
     use suins::registry;
-    use suins::suins::AdminCap;
+    use suins::suins::{Self, AdminCap};
     use suins::configuration::{Self, Configuration};
     use sui::ecdsa_k1;
     use suins::remove_later;
@@ -18,7 +18,6 @@ module suins::registrar {
     use std::hash::sha2_256;
     use suins::suins::{SuiNS, RegistrationRecord};
     use sui::table;
-    use suins::suins;
     use sui::table::Table;
     use sui::tx_context;
     use sui::transfer;
@@ -326,7 +325,7 @@ module suins::registrar {
 
         table::add(registrar, label, record);
         transfer::transfer(nft, owner);
-        registry::set_record_internal(suins, domain_name, owner, ctx);
+        registry::set_record_internal(suins, domain_name, owner);
 
         (nft_id, url, additional_data)
     }

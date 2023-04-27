@@ -15,7 +15,7 @@ module suins::auction {
     use sui::clock::{Self, Clock};
     use sui::linked_table::{Self, LinkedTable};
     use suins::registrar;
-    use suins::suins::AdminCap;
+    use suins::suins::{Self, AdminCap};
     use suins::configuration::{Self, Configuration};
     use suins::coin_tracker;
     use suins::suins::SuiNS;
@@ -24,7 +24,6 @@ module suins::auction {
     use std::string::{Self, String, utf8};
     use std::vector;
     use std::bcs;
-    use suins::suins;
     use sui::tx_context;
     use sui::coin;
 
@@ -799,7 +798,7 @@ module suins::auction {
     ) {
         if (amount > 0) {
             let paid = balance::split(balance, amount);
-            balance::join(suins::controller_balance_mut(suins), paid);
+            balance::join(suins::balance_mut(suins), paid);
             coin_tracker::track(@suins, amount);
         }
     }

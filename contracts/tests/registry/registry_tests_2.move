@@ -37,7 +37,6 @@ module suins::registry_tests_2 {
                 &mut suins,
                 utf8(FIRST_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,
-                test_scenario::ctx(scenario),
             );
             registry::set_target_address(&mut suins, utf8(FIRST_DOMAIN_NAME), FIRST_USER_ADDRESS, test_scenario::ctx(scenario));
             test_scenario::return_shared(suins);
@@ -96,7 +95,6 @@ module suins::registry_tests_2 {
                 &mut suins,
                 utf8(SECOND_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,
-                test_scenario::ctx(&mut scenario),
             );
             registry::set_target_address(&mut suins, utf8(SECOND_DOMAIN_NAME), FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
             registry::set_default_domain_name(&mut suins, utf8(SECOND_DOMAIN_NAME), test_scenario::ctx(&mut scenario));
@@ -149,7 +147,6 @@ module suins::registry_tests_2 {
                 &mut suins,
                 utf8(FIRST_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,
-                test_scenario::ctx(&mut scenario),
             );
             registry::set_target_address(&mut suins, utf8(FIRST_DOMAIN_NAME), FIRST_USER_ADDRESS, test_scenario::ctx(&mut scenario));
             registry::set_default_domain_name(&mut suins, utf8(FIRST_DOMAIN_NAME), test_scenario::ctx(&mut scenario));
@@ -175,7 +172,6 @@ module suins::registry_tests_2 {
                 &mut suins,
                 utf8(FIRST_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,
-                test_scenario::ctx(&mut scenario)
             );
             test_scenario::return_shared(suins);
         };
@@ -417,7 +413,6 @@ module suins::registry_tests_2 {
                 &mut suins,
                 utf8(SECOND_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,
-                test_scenario::ctx(&mut scenario),
             );
             test_scenario::return_shared(suins);
         };
