@@ -27,7 +27,7 @@ module suins::controller {
     use suins::registrar::{Self, RegistrationNFT};
     use suins::configuration::{Self, Configuration};
     use suins::suins::{Self, SuiNS};
-    use suins::validator;
+    use suins::string_utils;
     use suins::remove_later;
     use suins::coin_tracker;
 
@@ -384,7 +384,7 @@ module suins::controller {
             let index_of_dot = string::index_of(domain, &dot);
             assert!(index_of_dot != string::length(domain), EInvalidDomain);
             let label = string::sub_string(domain, 0, index_of_dot);
-            validator::validate_label(
+            string_utils::validate_label(
                 label,
                 configuration::min_domain_length(),
                 configuration::max_domain_length()
@@ -452,7 +452,7 @@ module suins::controller {
         assert!(configuration::is_controller_enabled(config), ERegistrationIsDisabled);
         assert!(tx_context::epoch(ctx) > suins::controller_auction_house_finalized_at(suins), EAuctionNotEndYet);
 
-        validator::validate_label(
+        string_utils::validate_label(
             label,
             configuration::min_domain_length(),
             configuration::max_domain_length()

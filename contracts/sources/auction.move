@@ -19,7 +19,7 @@ module suins::auction {
     use suins::configuration::{Self, Configuration};
     use suins::coin_tracker;
     use suins::suins::SuiNS;
-    use suins::validator;
+    use suins::string_utils;
     use std::option::{Self, Option, none, some};
     use std::string::{Self, String, utf8};
     use std::vector;
@@ -204,7 +204,7 @@ module suins::auction {
             ) <= auction_house.start_auction_end_at,
             EInvalidPhase,
         );
-        validator::validate_label(label, configuration::min_domain_length(), configuration::max_domain_length());
+        string_utils::validate_label(label, configuration::min_domain_length(), configuration::max_domain_length());
 
         let state = state(auction_house, label, tx_context::epoch(ctx));
         assert!(state == AUCTION_STATE_OPEN || state == AUCTION_STATE_REOPENED, EInvalidPhase);

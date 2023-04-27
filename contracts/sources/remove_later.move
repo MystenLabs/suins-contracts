@@ -5,7 +5,7 @@ module suins::remove_later {
     use std::vector;
     use std::string::{Self, utf8, String};
     use std::ascii;
-    use suins::converter;
+    use suins::string_utils;
 
     friend suins::configuration;
     friend suins::registrar;
@@ -39,7 +39,7 @@ module suins::remove_later {
 
         // `msg` now: data
         msg = string::sub_string(&msg, index_of_next_comma + 1, string::length(&msg));
-        (ipfs, domain_name, converter::string_to_number(expired_at), msg)
+        (ipfs, domain_name, string_utils::string_to_number(expired_at), msg)
     }
 
     /// This funtion doesn't validate domains
@@ -156,7 +156,7 @@ module suins::remove_later {
         if (index_of_next_comma == 3) {
             assert!(rate_str == utf8(b"100"), EInvalidDiscountCodeBatch);
             rate = 100
-        } else rate = (converter::string_to_number(rate_str) as u8);
+        } else rate = (string_utils::string_to_number(rate_str) as u8);
 
         // `str` now: owner
         str = string::sub_string(&str, index_of_next_comma + 1, string::length(&str));
