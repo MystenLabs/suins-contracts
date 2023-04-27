@@ -35,8 +35,8 @@ module suins::controller_tests_2 {
     const FIFTH_INVALID_LABEL: vector<u8> = b"east/?agile";
     const REFERRAL_CODE: vector<u8> = b"X43kS8";
     const DISCOUNT_CODE: vector<u8> = b"DC12345";
-    const BIDDING_PERIOD: u64 = 3;
-    const REVEAL_PERIOD: u64 = 3;
+    const BIDDING_PERIOD: u64 = 1;
+    const REVEAL_PERIOD: u64 = 1;
     const START_AUCTION_START_AT: u64 = 50;
     const START_AUCTION_END_AT: u64 = 120;
     const EXTRA_PERIOD_START_AT: u64 = 127;

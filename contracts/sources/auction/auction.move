@@ -31,8 +31,8 @@ module suins::auction {
 
     const SUI_TLD: vector<u8> = b"sui";
     // must always up-to-date with sui::sui::MIST_PER_SUI
-    const BIDDING_PERIOD: u64 = 3;
-    const REVEAL_PERIOD: u64 = 3;
+    const BIDDING_PERIOD: u64 = 1;
+    const REVEAL_PERIOD: u64 = 1;
     /// time period from end_at, so winner have time to claim their winning
     const EXTRA_PERIOD: u64 = 30;
     const AUCTION_STATE_NOT_AVAILABLE: u8 = 0;
