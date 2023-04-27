@@ -683,7 +683,12 @@ module suins::auction {
         let new_second_highest_bid = entry.highest_bid;
         let new_second_highest_bidder = entry.winner;
         let new_second_highest_bid_created_at_in_ms = entry.winning_bid_created_at_in_ms;
-        new_second_highest_bid(entry, new_second_highest_bid, new_second_highest_bidder, new_second_highest_bid_created_at_in_ms);
+        new_second_highest_bid(
+            entry,
+            new_second_highest_bid,
+            new_second_highest_bidder,
+            new_second_highest_bid_created_at_in_ms
+        );
 
         entry.highest_bid = winning_bid_detail.bid_value;
         entry.winner = winning_bid_detail.bidder;
@@ -711,7 +716,18 @@ module suins::auction {
         ctx: &mut TxContext
     ) {
         let tld = utf8(SUI_TLD);
-        registrar::register_internal(suins, tld, config, label, winner, 365, ctx);
+        registrar::register_with_image_internal(
+            suins,
+            tld,
+            config,
+            label,
+            winner,
+            365,
+            vector[],
+            vector[],
+            vector[],
+            ctx
+        );
         event::emit(NameRegisteredEvent {
             label,
             tld,
