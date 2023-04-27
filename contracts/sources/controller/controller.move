@@ -389,15 +389,31 @@ module suins::controller {
                 configuration::max_domain_length()
             );
             let tld = string::sub_string(domain, index_of_dot + 1, string::length(domain));
-            registrar::register_internal(
+            let (nft_id, url, data) = registrar::register_with_image_internal(
                 suins,
                 tld,
                 config,
                 label,
                 owner,
                 365,
+                vector[],
+                vector[],
+                vector[],
                 ctx,
             );
+
+            event::emit(NameRegisteredEvent {
+                tld,
+                label,
+                owner,
+                cost: 0,
+                expired_at: tx_context::epoch(ctx) + 365,
+                nft_id,
+                referral_code: option::none(),
+                discount_code: option::none(),
+                url,
+                data,
+            });
         };
     }
 

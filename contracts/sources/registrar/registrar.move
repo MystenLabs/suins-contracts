@@ -248,31 +248,6 @@ module suins::registrar {
 
     // === Friend and Private Functions ===
 
-    /// this function doesn't charge fee
-    public(friend) fun register_internal(
-        suins: &mut SuiNS,
-        tld: String,
-        config: &Configuration,
-        label: String,
-        owner: address,
-        duration: u64,
-        ctx: &mut TxContext
-    ): ID {
-        let (nft_id, _, _) = register_with_image_internal(
-            suins,
-            tld,
-            config,
-            label,
-            owner,
-            duration,
-            vector[],
-            vector[],
-            vector[],
-            ctx
-        );
-        nft_id
-    }
-
     public(friend) fun register_with_image_internal(
         suins: &mut SuiNS,
         tld: String,
