@@ -19,11 +19,6 @@ module suins::registry {
     friend suins::registrar;
     friend suins::controller;
 
-    const NAME: vector<u8> = b"name";
-    const ADDR: vector<u8> = b"addr";
-    const AVATAR: vector<u8> = b"avatar";
-    const CONTENTHASH: vector<u8> = b"contenthash";
-
     // errors in the range of 101..200 indicate SuiNS errors
     const EUnauthorized: u64 = 101;
     const EDomainNameNotExists: u64 = 102;
