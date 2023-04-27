@@ -15,7 +15,7 @@ module suins::controller_tests {
     use suins::configuration::{Self, Configuration};
     use suins::suins::{Self, SuiNS};
     use suins::controller;
-    use suins::validator;
+    use suins::string_utils;
     use std::option::{Self, Option, some};
     use std::string::utf8;
     use std::vector;
@@ -762,7 +762,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
+    #[test, expected_failure(abort_code = string_utils::EInvalidLabel)]
     fun test_register_with_config_aborts_with_too_short_label() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -834,7 +834,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
+    #[test, expected_failure(abort_code = string_utils::EInvalidLabel)]
     fun test_register_with_config_aborts_with_too_long_label() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
@@ -906,7 +906,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
+    #[test, expected_failure(abort_code = string_utils::EInvalidLabel)]
     fun test_register_with_config_aborts_if_label_starts_with_hyphen() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -978,7 +978,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
+    #[test, expected_failure(abort_code = string_utils::EInvalidLabel)]
     fun test_register_with_config_abort_with_invalid_label() {
         let scenario = test_init();
         make_commitment(&mut scenario, option::none());
@@ -1125,7 +1125,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
+    #[test, expected_failure(abort_code = string_utils::EInvalidLabel)]
     fun test_register_abort_if_label_is_invalid() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
@@ -1314,7 +1314,7 @@ module suins::controller_tests {
         };
         test_scenario::end(scenario);
     }
-    
+
     #[test]
     fun test_remove_outdated_commitment() {
         let scenario = test_init();
@@ -2199,7 +2199,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
+    #[test, expected_failure(abort_code = string_utils::EInvalidLabel)]
     fun test_register_with_emoji_aborts() {
         let scenario = test_init();
         let label = vector[104, 109, 109, 109, 49, 240, 159, 145, 180];
@@ -5557,7 +5557,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
+    #[test, expected_failure(abort_code = string_utils::EInvalidLabel)]
     fun test_new_reserved_domains_aborts_with_leading_dash_character() {
         let scenario = test_init();
 
@@ -5582,7 +5582,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
+    #[test, expected_failure(abort_code = string_utils::EInvalidLabel)]
     fun test_new_reserved_domains_aborts_with_trailing_dash_character() {
         let scenario = test_init();
 
@@ -5607,7 +5607,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
+    #[test, expected_failure(abort_code = string_utils::EInvalidLabel)]
     fun test_new_reserved_domains_aborts_with_invalid_emoji() {
         let scenario = test_init();
         let invalid_emoji_domain_name = vector[241, 159, 152, 135, 119, 109, 109, 49, 240, 159, 145, 180, 46, 115, 117, 105];
@@ -5999,7 +5999,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
+    #[test, expected_failure(abort_code = string_utils::EInvalidLabel)]
     fun test_register_aborts_if_domain_length_has_less_than_3_characters() {
         let scenario = test_init();
         set_auction_config(&mut scenario);

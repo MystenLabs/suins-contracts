@@ -9,7 +9,7 @@ module suins::auction_tests {
     use suins::auction::{Self, make_seal_bid, get_seal_bid_by_bidder, finalize_auction, get_bids_by_bidder, get_bid_detail_fields, withdraw, state, AuctionHouse};
     use suins::registry;
     use suins::registrar;
-    use suins::validator;
+    use suins::string_utils;
     use suins::configuration::{Self, Configuration};
     use suins::suins::{Self, SuiNS, AdminCap};
     use std::vector;
@@ -266,7 +266,7 @@ module suins::auction_tests {
             let config = test_scenario::take_shared<Configuration>(scenario);
             let clock = test_scenario::take_shared<Clock>(scenario);
             clock::increment_for_testing(&mut clock, clock_tick);
-            
+
             assert!(option::is_none(&amount), 0);
             auction::place_bid(&mut auction, &mut suins, &config, seal_bid, bid_value_mask, &mut coin, &clock, ctx);
 
@@ -685,7 +685,7 @@ module suins::auction_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
+    #[test, expected_failure(abort_code = string_utils::EInvalidLabel)]
     fun test_start_an_auction_aborts_if_domain_name_too_short() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -711,7 +711,7 @@ module suins::auction_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = validator::EInvalidLabel)]
+    #[test, expected_failure(abort_code = string_utils::EInvalidLabel)]
     fun test_start_an_auction_aborts_if_domain_name_too_long() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
