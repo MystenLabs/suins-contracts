@@ -42,12 +42,12 @@ module suins::registry {
         key: String,
     }
 
-    struct LinkedAddrChangedEvent has copy, drop {
+    struct TargetAddressChangedEvent has copy, drop {
         domain_name: String,
         new_addr: address,
     }
 
-    struct LinkedAddrRemovedEvent has copy, drop {
+    struct TargetAddressRemovedEvent has copy, drop {
         domain_name: String,
     }
 
@@ -156,7 +156,7 @@ module suins::registry {
         let name_record = get_name_record_mut(suins, domain_name);
         let old_target_address = suins::name_record_target_address(name_record);
         *suins::name_record_target_address_mut(name_record) = new_addr;
-        event::emit(LinkedAddrChangedEvent { domain_name, new_addr });
+        event::emit(TargetAddressChangedEvent { domain_name, new_addr });
 
         if (old_target_address != new_addr) {
             let reverse_registry = suins::reverse_registry_mut(suins);
@@ -176,7 +176,7 @@ module suins::registry {
         let name_record = get_name_record_mut(suins, domain_name);
         let old_target_address = suins::name_record_target_address(name_record);
         *suins::name_record_target_address_mut(name_record) = @0x0;
-        event::emit(LinkedAddrRemovedEvent { domain_name });
+        event::emit(TargetAddressRemovedEvent { domain_name });
 
         let reverse_registry = suins::reverse_registry_mut(suins);
         if (table::contains(reverse_registry, old_target_address)) {
