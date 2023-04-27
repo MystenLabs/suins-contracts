@@ -45,8 +45,8 @@ module suins::auction_tests_4 {
     const FIRST_SECRET: vector<u8> = b"CnRGhPvfCu";
     const SECOND_SECRET: vector<u8> = b"ZuaRzPvzUq";
     const START_AN_AUCTION_AT: u64 = 110;
-    const BIDDING_PERIOD: u64 = 3;
-    const REVEAL_PERIOD: u64 = 3;
+    const BIDDING_PERIOD: u64 = 1;
+    const REVEAL_PERIOD: u64 = 1;
     const AUCTION_STATE_NOT_AVAILABLE: u8 = 0;
     const AUCTION_STATE_OPEN: u8 = 1;
     const AUCTION_STATE_PENDING: u8 = 2;
@@ -66,7 +66,7 @@ module suins::auction_tests_4 {
     const SECOND_TX_HASH: vector<u8> = x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431534";
     const BIDDING_FEE: u64 = 1_000_000_000;
     const START_AN_AUCTION_FEE: u64 = 10_000_000_000;
-    const EXTRA_PERIOD_END_AT: u64 = 236;
+    const EXTRA_PERIOD_END_AT: u64 = 232;
 
     #[test]
     fun test_finalize_all_auctions_by_admin_works() {
