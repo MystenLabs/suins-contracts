@@ -1,4 +1,4 @@
-/// This module is intended to maintain records of domain names including the owner, linked address, default domain name and time to live (TTL).
+/// This module is intended to maintain records of domain names including the owner, linked address and default domain name.
 /// The owners of this only own the name, not own the registration.
 /// It primarily facilitates the lending and borrowing of domain names.
 module suins::registry {
@@ -10,8 +10,6 @@ module suins::registry {
         Self,
         name_record_owner,
         name_record_owner_mut,
-        name_record_ttl,
-        name_record_ttl_mut,
         new_name_record,
         name_record_linked_addr,
         name_record_linked_addr_mut,
@@ -21,7 +19,6 @@ module suins::registry {
     friend suins::registrar;
     friend suins::controller;
 
-    const MAX_TTL: u64 = 0x100000;
     const NAME: vector<u8> = b"name";
     const ADDR: vector<u8> = b"addr";
     const AVATAR: vector<u8> = b"avatar";
@@ -36,11 +33,6 @@ module suins::registry {
     struct OwnerChangedEvent has copy, drop {
         domain_name: String,
         new_owner: address,
-    }
-
-    struct TTLChangedEvent has copy, drop {
-        domain_name: String,
-        new_ttl: u64,
     }
 
     struct DataChangedEvent has copy, drop {
@@ -91,29 +83,6 @@ module suins::registry {
 
         set_owner_internal(suins, domain_name, owner);
         event::emit(OwnerChangedEvent { domain_name, new_owner: owner });
-    }
-
-    /// #### Notice
-    /// This funtions allows owner of `domain name` to reassign ttl address of this domain name.
-    /// The `domain name` can have multiple levels.
-    ///
-    /// #### Dev
-    /// `Record` indexed by `domain name` is updated.
-    ///
-    /// #### Params
-    /// `ttl`: new TTL address
-    ///
-    /// Panics
-    /// Panics if caller isn't the owner of `domain name`
-    /// or `domain name` doesn't exists.
-    public entry fun set_ttl(suins: &mut SuiNS, domain_name: String, ttl: u64, ctx: &mut TxContext) {
-        is_authorised(suins, domain_name, ctx);
-
-        let domain_name = domain_name;
-        let record = get_name_record_mut(suins, domain_name);
-
-        *suins::name_record_ttl_mut(record) = ttl;
-        event::emit(TTLChangedEvent { domain_name, new_ttl: ttl });
     }
 
     /// #### Notice
@@ -270,19 +239,6 @@ module suins::registry {
         suins::name_record_owner(name_record)
     }
 
-    /// #### Notice
-    /// Get ttl of a `domain_name`.
-    ///
-    /// #### Params
-    /// `domain_name`: domain name to find the ttl
-    ///
-    /// Panics
-    /// Panics if `domain_name` doesn't exists.
-    public fun ttl(suins: &SuiNS, domain_name: String): u64 {
-        let name_record = get_name_record(suins, domain_name);
-        name_record_ttl(name_record)
-    }
-
     public fun linked_addr(suins: &SuiNS, domain_name: String): address {
         let name_record = get_name_record(suins, domain_name);
         name_record_linked_addr(name_record)
@@ -297,17 +253,17 @@ module suins::registry {
     }
 
     /// #### Notice
-    /// Get `(owner, linked_addr, ttl)` of a `domain_name`.
+    /// Get `(owner, linked_addr)` of a `domain_name`.
     /// The `domain_name` can have multiple levels.
     ///
     /// #### Params
-    /// `domain_name`: domain_name to find the ttl
+    /// `domain_name`: domain_name to find the record
     ///
     /// Panics
     /// Panics if `domain_name` doesn't exists.
-    public fun get_name_record_all_fields(suins: &SuiNS, domain_name: String): (address, address, u64) {
+    public fun get_name_record_all_fields(suins: &SuiNS, domain_name: String): (address, address) {
         let name_record = get_name_record(suins, domain_name);
-        (name_record_owner(name_record), name_record_linked_addr(name_record), name_record_ttl(name_record))
+        (name_record_owner(name_record), name_record_linked_addr(name_record))
     }
 
     public fun get_name_record_data(suins: &SuiNS, domain_name: String, key: String): String {
@@ -335,26 +291,23 @@ module suins::registry {
         suins: &mut SuiNS,
         domain_name: String,
         owner: address,
-        ttl: u64,
         ctx: &mut TxContext,
     ) {
         let registry = suins::registry_mut(suins);
         if (table::contains(registry, domain_name)) {
             let record = table::borrow_mut(registry, domain_name);
             *name_record_owner_mut(record) = owner;
-            *name_record_ttl_mut(record) = ttl;
             *name_record_linked_addr_mut(record) = owner;
-        } else new_record(suins, domain_name, owner, ttl, ctx);
+        } else new_record(suins, domain_name, owner, ctx);
     }
 
     fun new_record(
         suins: &mut SuiNS,
         domain_name: String,
         owner: address,
-        ttl: u64,
         ctx: &mut TxContext,
     ) {
-        let record = new_name_record(owner, ttl, owner, ctx);
+        let record = new_name_record(owner, owner, ctx);
         let registry = suins::registry_mut(suins);
         table::add(registry, domain_name, record);
     }
@@ -378,7 +331,7 @@ module suins::registry {
 
     #[test_only]
     public fun new_record_test(suins: &mut SuiNS, domain_name: String, owner: address, ctx: &mut TxContext) {
-        new_record(suins, domain_name, owner, 0, ctx);
+        new_record(suins, domain_name, owner, ctx);
     }
 
     #[test_only]

@@ -1215,7 +1215,6 @@ module suins::auction_tests {
                 0
             );
             assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == SECOND_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, utf8(DOMAIN_NAME_SUI)) == 0, 0);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
         };
@@ -1272,7 +1271,6 @@ module suins::auction_tests {
                 0
             );
             assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == SECOND_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, utf8(DOMAIN_NAME_SUI)) == 0, 0);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
         };
@@ -2011,7 +2009,6 @@ module suins::auction_tests {
                 0
             );
             assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, utf8(DOMAIN_NAME_SUI)) == 0, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1200 * configuration::mist_per_sui() + BIDDING_FEE, 0);
 
@@ -2078,7 +2075,6 @@ module suins::auction_tests {
                 0
             );
             assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, utf8(DOMAIN_NAME_SUI)) == 0, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1200 * configuration::mist_per_sui() + BIDDING_FEE, 0);
@@ -2409,7 +2405,6 @@ module suins::auction_tests {
                 0
             );
             assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, utf8(DOMAIN_NAME_SUI)) == 0, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1200 * configuration::mist_per_sui() + BIDDING_FEE, 0);
 
@@ -2668,7 +2663,6 @@ module suins::auction_tests {
                 0
             );
             assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, utf8(DOMAIN_NAME_SUI)) == 0, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(controller::get_balance(&suins) == START_AN_AUCTION_FEE + 1500 * configuration::mist_per_sui() + BIDDING_FEE, 0);

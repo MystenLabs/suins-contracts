@@ -1348,7 +1348,6 @@ module suins::auction_tests_4 {
                 0
             );
             assert!(registry::owner(&suins, utf8(FIRST_DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
-            assert!(registry::ttl(&suins, utf8(FIRST_DOMAIN_NAME_SUI)) == 0, 0);
             assert!(registry::linked_addr(&suins, utf8(FIRST_DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(

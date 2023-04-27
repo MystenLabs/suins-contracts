@@ -28,7 +28,6 @@ module suins::registrar {
 
     // in terms of epoch
     const GRACE_PERIOD: u8 = 30;
-    const MAX_TTL: u64 = 0x100000;
 
     const EUnauthorized: u64 = 101;
     // errors in the range of 201..300 indicate Registrar errors
@@ -327,7 +326,7 @@ module suins::registrar {
 
         table::add(registrar, label, record);
         transfer::transfer(nft, owner);
-        registry::set_record_internal(suins, domain_name, owner, 0, ctx);
+        registry::set_record_internal(suins, domain_name, owner, ctx);
 
         (nft_id, url, additional_data)
     }

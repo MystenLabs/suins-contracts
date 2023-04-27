@@ -44,7 +44,6 @@ module suins::suins {
     struct NameRecord has store {
         owner: address,
         linked_addr: address,
-        ttl: u64,
         data: Table<String, String>,
     }
 
@@ -76,10 +75,6 @@ module suins::suins {
 
     public fun name_record_owner(name_record: &NameRecord): address {
         name_record.owner
-    }
-
-    public fun name_record_ttl(name_record: &NameRecord): u64 {
-        name_record.ttl
     }
 
     public fun name_record_linked_addr(name_record: &NameRecord): address {
@@ -118,10 +113,9 @@ module suins::suins {
         RegistrationRecord { expired_at, nft_id }
     }
 
-    public fun new_name_record(owner: address, ttl: u64, linked_addr: address, ctx: &mut TxContext): NameRecord {
+    public fun new_name_record(owner: address, linked_addr: address, ctx: &mut TxContext): NameRecord {
         NameRecord {
             owner,
-            ttl,
             linked_addr,
             data: table::new(ctx),
         }
@@ -155,10 +149,6 @@ module suins::suins {
 
     public(friend) fun name_record_owner_mut(name_record: &mut NameRecord): &mut address {
         &mut name_record.owner
-    }
-
-    public(friend) fun name_record_ttl_mut(name_record: &mut NameRecord): &mut u64 {
-        &mut name_record.ttl
     }
 
     public(friend) fun name_record_linked_addr_mut(name_record: &mut NameRecord): &mut address {
