@@ -22,6 +22,7 @@ module suins::controller {
     use sui::clock::Clock;
     use sui::clock;
 
+    use suins::config;
     use suins::registrar::{Self, RegistrationNFT};
     use suins::configuration::{Self, Configuration};
     use suins::suins::{Self, SuiNS, AdminCap};
@@ -371,8 +372,8 @@ module suins::controller {
             let label = string::sub_string(domain, 0, index_of_dot);
             string_utils::validate_label(
                 label,
-                configuration::min_domain_length(),
-                configuration::max_domain_length()
+                config::min_domain_length(),
+                config::max_domain_length()
             );
             let tld = string::sub_string(domain, index_of_dot + 1, string::length(domain));
             registrar::register_internal(
@@ -439,8 +440,8 @@ module suins::controller {
 
         string_utils::validate_label(
             label,
-            configuration::min_domain_length(),
-            configuration::max_domain_length()
+            config::min_domain_length(),
+            config::max_domain_length()
         );
 
         let commitment = make_commitment(*string::bytes(&label), owner, secret);

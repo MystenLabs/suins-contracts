@@ -16,13 +16,15 @@ module suins::string_utils {
     /// The ASCII code ranges are: 0x61-0x7A, 0x30-0x39, 0x2D
     public fun validate_label(
         label: String,
-        min_characters: u64,
-        max_characters: u64
+        min_characters: u8,
+        max_characters: u8
     ) {
         let label_bytes = string::bytes(&label);
         let len = vector::length(label_bytes);
-        assert!(min_characters <= len && len <= max_characters, EInvalidLabel);
         let index = 0;
+
+        assert!(len < 255, EInvalidLabel);
+        assert!(min_characters <= (len as u8) && (len as u8) <= max_characters, EInvalidLabel);
 
         while (index < len) {
             let character = *vector::borrow(label_bytes, index);

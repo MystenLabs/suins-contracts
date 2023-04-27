@@ -17,6 +17,7 @@ module suins::auction {
     use suins::registrar;
     use suins::suins::{Self, AdminCap};
     use suins::configuration::{Self, Configuration};
+    use suins::config::{Self, Config};
     use suins::coin_tracker;
     use suins::suins::SuiNS;
     use suins::string_utils;
@@ -203,7 +204,7 @@ module suins::auction {
             ) <= auction_house.start_auction_end_at,
             EInvalidPhase,
         );
-        string_utils::validate_label(label, configuration::min_domain_length(), configuration::max_domain_length());
+        string_utils::validate_label(label, config::min_domain_length(), config::max_domain_length());
 
         let state = state(auction_house, label, tx_context::epoch(ctx));
         assert!(state == AUCTION_STATE_OPEN || state == AUCTION_STATE_REOPENED, EInvalidPhase);

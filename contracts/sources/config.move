@@ -3,11 +3,16 @@
 /// created by anyone on the network with the exception that they won't
 /// be able to use it in any way. :)
 module suins::config {
+    /// A label is too short to be registered.
+    const ELabelTooShort: u64 = 0;
+    /// A label is too long to be registered.
+    const ELabelTooLong: u64 = 1;
+
     /// The minimum length of a domain name.
-    const MIN_DOMAIN_LENGTH: u64 = 3;
+    const MIN_DOMAIN_LENGTH: u8 = 3;
 
     /// The maximum length of a domain name.
-    const MAX_DOMAIN_LENGTH: u64 = 63;
+    const MAX_DOMAIN_LENGTH: u8 = 63;
 
     /// The amount of MIST in 1 SUI.
     const MIST_PER_SUI: u64 = 1_000_000_000;
@@ -47,16 +52,6 @@ module suins::config {
         }
     }
 
-    // === Extra Constants (require package upgrade) ===
-
-    /// The minimum length of a domain name.
-    public fun min_domain_length(): u64 { MIN_DOMAIN_LENGTH }
-
-    /// The maximum length of a domain name.
-    public fun max_domain_length(): u64 { MAX_DOMAIN_LENGTH }
-
-    /// The amount of MIST in 1 SUI.
-    public fun mist_per_sui(): u64 { MIST_PER_SUI }
 
     // === Modification: one per property ===
 
@@ -85,30 +80,52 @@ module suins::config {
         self.five_plus_char_price = value;
     }
 
+
+    // === Price calculations ===
+
+    /// Calculate the price of a label.
+    public fun calculate_price(self: &Config, length: u8, years: u8): u64 {
+        assert!(length > MIN_DOMAIN_LENGTH, ELabelTooShort);
+        assert!(length <= MAX_DOMAIN_LENGTH, ELabelTooLong);
+
+        let price = if (length == 3) {
+            self.three_char_price
+        } else if (length == 4) {
+            self.fouch_char_price
+        } else {
+            self.five_plus_char_price
+        };
+
+        ((price as u64) * (years as u64))
+    }
+
+
     // === Reads: one per property ===
 
     /// Get the value of the `public_key` field.
-    public fun public_key(self: &Config): vector<u8> {
-        self.public_key
-    }
+    public fun public_key(self: &Config): vector<u8> { self.public_key }
 
     /// Get the value of the `enable_controller` field.
-    public fun enable_controller(self: &Config): bool {
-        self.enable_controller
-    }
+    public fun enable_controller(self: &Config): bool {  self.enable_controller }
 
     /// Get the value of the `three_char_price` field.
-    public fun three_char_price(self: &Config): u64 {
-        self.three_char_price
-    }
+    public fun three_char_price(self: &Config): u64 { self.three_char_price }
 
     /// Get the value of the `fouch_char_price` field.
-    public fun fouch_char_price(self: &Config): u64 {
-        self.fouch_char_price
-    }
+    public fun fouch_char_price(self: &Config): u64 { self.fouch_char_price }
 
     /// Get the value of the `five_plus_char_price` field.
-    public fun five_plus_char_price(self: &Config): u64 {
-        self.five_plus_char_price
-    }
+    public fun five_plus_char_price(self: &Config): u64 { self.five_plus_char_price }
+
+
+    // === Extra Constants (require package upgrade to change) ===
+
+    /// The minimum length of a domain name.
+    public fun min_domain_length(): u8 { MIN_DOMAIN_LENGTH }
+
+    /// The maximum length of a domain name.
+    public fun max_domain_length(): u8 { MAX_DOMAIN_LENGTH }
+
+    /// The amount of MIST in 1 SUI.
+    public fun mist_per_sui(): u64 { MIST_PER_SUI }
 }

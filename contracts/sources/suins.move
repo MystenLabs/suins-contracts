@@ -114,6 +114,11 @@ module suins::suins {
         df::add(&mut self.id, ConfigKey {}, config);
     }
 
+    /// Borrow configuration object. Read-only mode for applications.
+    public fun get_config<T: store, drop>(self: &SuiNS): &T {
+        df::borrow(&self.id, ConfigKey {})
+    }
+
     /// Get the configuration object for editing. The admin should put it back
     /// after editing (no extra check performed). Can be used to swap
     /// configuration since the `T` has `drop`. Eg nothing is stopping the admin
