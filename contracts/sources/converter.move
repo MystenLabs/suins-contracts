@@ -2,9 +2,6 @@ module suins::converter {
 
     use std::vector;
     use std::string::{Self, String};
-    use sui::tx_context::TxContext;
-    use sui::object::ID;
-    use sui::object;
 
     const REGISTRATION_FEE_PER_YEAR: u64 = 1000000;
     const EInvalidNumber: u64 = 601;
@@ -25,12 +22,5 @@ module suins::converter {
             index = index - 1;
         };
         result
-    }
-
-    public fun new_id(ctx: &mut TxContext): ID {
-        let new_uid = object::new(ctx);
-        let new_id = object::uid_to_inner(&new_uid);
-        object::delete(new_uid);
-        new_id
     }
 }

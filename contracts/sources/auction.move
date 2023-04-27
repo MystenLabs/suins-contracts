@@ -2,7 +2,7 @@
 /// More information in: ../../../docs
 module suins::auction {
 
-    use sui::object::{UID, ID};
+    use sui::object::UID;
     use sui::table::{Self, Table};
     use sui::tx_context::TxContext;
     use sui::sui::SUI;
@@ -24,7 +24,6 @@ module suins::auction {
     use std::string::{Self, String, utf8};
     use std::vector;
     use std::bcs;
-    use suins::converter;
     use suins::suins;
     use sui::tx_context;
     use sui::coin;
@@ -61,7 +60,9 @@ module suins::auction {
     const EPaymentNotEnough: u64 = 817;
 
     struct BidDetail has store, copy, drop {
-        uid: ID,
+        // Using the address to simplify the typing;
+        // Basically the same thing as the ID.
+        id: address,
         bidder: address,
         // upper limit of the actual bid value to hide the real value
         bid_value_mask: u64,
@@ -89,7 +90,7 @@ module suins::auction {
         winning_bid_created_at_in_ms: u64,
         second_highest_bid_created_at_in_ms: u64,
         /// object::id_from_address(@0x0) if winner hasn't been determined
-        winning_bid_uid: ID,
+        winning_bid_id: address,
     }
 
     struct AuctionHouse has key {
@@ -223,7 +224,7 @@ module suins::auction {
             is_finalized: false,
             winning_bid_created_at_in_ms: suins::max_u64(),
             second_highest_bid_created_at_in_ms: suins::max_u64(),
-            winning_bid_uid: object::id_from_address(@0x0),
+            winning_bid_id: @0x0,
         };
         linked_table::push_back(&mut auction_house.entries, label, entry);
         event::emit(AuctionStartedEvent { label, start_at: started_at });
@@ -273,7 +274,7 @@ module suins::auction {
 
         let bidder = tx_context::sender(ctx);
         let bid = BidDetail {
-            uid: converter::new_id(ctx),
+            id: tx_context::fresh_object_address(ctx),
             bidder,
             bid_value_mask,
             bid_value: 0,
@@ -443,7 +444,7 @@ module suins::auction {
             )
             else front_element = linked_table::front(bids_of_sender);
 
-            if (entry.winning_bid_uid == bid_detail.uid) {
+            if (entry.winning_bid_id == bid_detail.id) {
                 handle_winning_bid(&mut auction_house.balance, suins, entry, &bid_detail, true, ctx);
                 entry.is_finalized = true;
             } else {
@@ -498,7 +499,7 @@ module suins::auction {
                     let bid_detail = linked_table::borrow(bids_of_winner, index);
                     // winner can have multiple bid with the same highest value,
                     // however, we are using the vector, the early bid comes first.
-                    if (bid_detail.label == label && entry.winning_bid_uid == bid_detail.uid) {
+                    if (bid_detail.label == label && entry.winning_bid_id == bid_detail.id) {
                         if (tx_context::epoch(ctx) <= auction_house_extra_period_end_at) {
                             handle_winning_bid(&mut auction_house.balance, suins, entry, bid_detail, true, ctx);
                             register_winning_auction(
@@ -548,7 +549,7 @@ module suins::auction {
 
             if (linked_table::contains(&auction_house.entries, bid_detail.label)) {
                 let entry = linked_table::borrow(&auction_house.entries, bid_detail.label);
-                if (entry.winning_bid_uid == bid_detail.uid) {
+                if (entry.winning_bid_id == bid_detail.id) {
                     front_element = linked_table::next(bids_of_sender, index);
                     continue
                 };
@@ -688,7 +689,7 @@ module suins::auction {
         entry.highest_bid = winning_bid_detail.bid_value;
         entry.winner = winning_bid_detail.bidder;
         entry.winning_bid_created_at_in_ms = winning_bid_detail.created_at_in_ms;
-        entry.winning_bid_uid = winning_bid_detail.uid;
+        entry.winning_bid_id = winning_bid_detail.id;
     }
 
     fun new_second_highest_bid(
