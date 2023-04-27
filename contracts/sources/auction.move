@@ -15,17 +15,17 @@ module suins::auction {
     use sui::clock::{Self, Clock};
     use sui::linked_table::{Self, LinkedTable};
     use suins::registrar;
-    use suins::registry::AdminCap;
+    use suins::suins::AdminCap;
     use suins::configuration::{Self, Configuration};
     use suins::coin_util;
-    use suins::entity::SuiNS;
+    use suins::suins::SuiNS;
     use suins::validator;
     use std::option::{Self, Option, none, some};
     use std::string::{Self, String, utf8};
     use std::vector;
     use std::bcs;
     use suins::converter;
-    use suins::entity;
+    use suins::suins;
     use sui::tx_context;
     use sui::coin;
 
@@ -166,7 +166,7 @@ module suins::auction {
 
         auction_house.start_auction_start_at = start_auction_start_at;
         auction_house.start_auction_end_at = start_auction_end_at;
-        *entity::controller_auction_house_finalized_at_mut(suins) = auction_house_close_at(
+        *suins::controller_auction_house_finalized_at_mut(suins) = auction_house_close_at(
             auction_house
         ) + EXTRA_PERIOD;
     }
@@ -221,8 +221,8 @@ module suins::auction {
             winner: @0x0,
             second_highest_bidder: @0x0,
             is_finalized: false,
-            winning_bid_created_at_in_ms: entity::max_u64(),
-            second_highest_bid_created_at_in_ms: entity::max_u64(),
+            winning_bid_created_at_in_ms: suins::max_u64(),
+            second_highest_bid_created_at_in_ms: suins::max_u64(),
             winning_bid_uid: object::id_from_address(@0x0),
         };
         linked_table::push_back(&mut auction_house.entries, label, entry);
@@ -521,7 +521,7 @@ module suins::auction {
             };
             next_label = *linked_table::next(&auction_house.entries, label);
         };
-        *entity::controller_auction_house_finalized_at_mut(suins) = tx_context::epoch(ctx);
+        *suins::controller_auction_house_finalized_at_mut(suins) = tx_context::epoch(ctx);
     }
 
     /// #### Notice
@@ -774,8 +774,8 @@ module suins::auction {
             bid_details_by_bidder: table::new(ctx),
             entries: linked_table::new(ctx),
             balance: balance::zero(),
-            start_auction_start_at: entity::max_epoch_allowed(),
-            start_auction_end_at: entity::max_epoch_allowed() - 1,
+            start_auction_start_at: suins::max_epoch_allowed(),
+            start_auction_end_at: suins::max_epoch_allowed() - 1,
             bidding_fee: configuration::mist_per_sui(),
             start_an_auction_fee: 10 * configuration::mist_per_sui(),
         });
@@ -850,8 +850,8 @@ module suins::auction {
             bid_details_by_bidder: table::new(ctx),
             entries: linked_table::new(ctx),
             balance: balance::zero(),
-            start_auction_start_at: entity::max_epoch_allowed(),
-            start_auction_end_at: entity::max_epoch_allowed() - 1,
+            start_auction_start_at: suins::max_epoch_allowed(),
+            start_auction_end_at: suins::max_epoch_allowed() - 1,
             bidding_fee: configuration::mist_per_sui(),
             start_an_auction_fee: 10 * configuration::mist_per_sui(),
         });

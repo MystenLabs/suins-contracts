@@ -9,9 +9,10 @@ module suins::auction_tests_3 {
     use std::vector;
     use std::option;
     use suins::auction_tests::{test_init, start_an_auction_util, place_bid_util, reveal_bid_util, ctx_new, get_bid_util, ctx_util, finalize_auction_util, get_entry_util};
-    use suins::entity::SuiNS;
+    use suins::suins::SuiNS;
     use suins::controller;
-    use suins::registry::{Self, AdminCap};
+    use suins::registry;
+    use suins::suins::AdminCap;
     use sui::test_scenario;
     use sui::clock::Clock;
     use suins::registrar;

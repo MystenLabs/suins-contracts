@@ -8,9 +8,9 @@ module suins::auction_tests_4 {
     use std::vector;
     use std::option;
     use suins::auction_tests::{test_init, start_an_auction_util, place_bid_util, reveal_bid_util, ctx_new, get_bid_util, ctx_util, get_entry_util};
-    use suins::entity::SuiNS;
+    use suins::suins::SuiNS;
     use suins::controller;
-    use suins::registry::{AdminCap};
+    use suins::suins::AdminCap;
     use sui::test_scenario;
     use suins::registrar;
     use suins::registry;

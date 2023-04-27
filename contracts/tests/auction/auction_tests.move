@@ -7,11 +7,11 @@ module suins::auction_tests {
     use sui::dynamic_field;
     use sui::tx_context::{Self, TxContext};
     use suins::auction::{Self, make_seal_bid, get_seal_bid_by_bidder, finalize_auction, get_bids_by_bidder, get_bid_detail_fields, withdraw, state, AuctionHouse};
-    use suins::registry::{Self, AdminCap};
+    use suins::registry;
     use suins::registrar;
     use suins::validator;
     use suins::configuration::{Self, Configuration};
-    use suins::entity::{Self, SuiNS};
+    use suins::suins::{Self, SuiNS, AdminCap};
     use std::vector;
     use std::option::{Self, Option, some, is_some};
     use suins::controller;
@@ -74,9 +74,8 @@ module suins::auction_tests {
         {
             let ctx = ctx(&mut scenario);
             auction::test_init(ctx);
-            registry::test_init(ctx);
             configuration::test_init(ctx);
-            entity::test_init(ctx);
+            suins::test_init(ctx);
             clock::share_for_testing(clock::create_for_testing(ctx));
         };
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -4046,7 +4045,7 @@ module suins::auction_tests {
             let ctx = ctx(&mut scenario);
             auction::test_init(ctx);
             configuration::test_init(ctx);
-            entity::test_init(ctx);
+            suins::test_init(ctx);
             clock::share_for_testing(clock::create_for_testing(ctx));
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -4080,7 +4079,7 @@ module suins::auction_tests {
             let ctx = ctx(&mut scenario);
             auction::test_init(ctx);
             configuration::test_init(ctx);
-            entity::test_init(ctx);
+            suins::test_init(ctx);
             clock::share_for_testing(clock::create_for_testing(ctx));
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -4116,7 +4115,7 @@ module suins::auction_tests {
             let ctx = ctx(&mut scenario);
             auction::test_init(ctx);
             configuration::test_init(ctx);
-            entity::test_init(ctx);
+            suins::test_init(ctx);
             clock::share_for_testing(clock::create_for_testing(ctx));
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -4143,7 +4142,7 @@ module suins::auction_tests {
             let ctx = ctx(&mut scenario);
             auction::test_init(ctx);
             configuration::test_init(ctx);
-            entity::test_init(ctx);
+            suins::test_init(ctx);
             clock::share_for_testing(clock::create_for_testing(ctx));
         };
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -4172,8 +4171,7 @@ module suins::auction_tests {
             let ctx = ctx(&mut scenario);
             auction::test_init(ctx);
             configuration::test_init(ctx);
-            entity::test_init(ctx);
-            registry::test_init(ctx);
+            suins::test_init(ctx);
             clock::share_for_testing(clock::create_for_testing(ctx));
         };
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);

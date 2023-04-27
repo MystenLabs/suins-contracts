@@ -1,6 +1,6 @@
-module suins::entity {
+module suins::suins {
 
-    use sui::tx_context::TxContext;
+    use sui::tx_context::{Self, TxContext};
     use sui::object::{UID, ID};
     use sui::table::Table;
     use std::string::String;
@@ -20,6 +20,11 @@ module suins::entity {
     friend suins::auction;
 
     const MAX_U64: u64 = 18446744073709551615;
+
+    // https://examples.sui.io/patterns/capability.html
+    struct AdminCap has key, store {
+        id: UID,
+    }
 
     struct SuiNS has key {
         id: UID,
@@ -182,6 +187,11 @@ module suins::entity {
     }
 
     fun init(ctx: &mut TxContext) {
+        let admin_cap = AdminCap {
+            id: object::new(ctx),
+        };
+        transfer::transfer(admin_cap, tx_context::sender(ctx));
+
         let registry = table::new(ctx);
         let reverse_registry = table::new(ctx);
         let registrars = table::new(ctx);
@@ -191,13 +201,15 @@ module suins::entity {
             auction_house_finalized_at: max_epoch_allowed(),
         };
 
-        transfer::share_object(SuiNS {
+        let suins = SuiNS {
             id: object::new(ctx),
             registry,
             reverse_registry,
             registrars,
             controller,
-        })
+        };
+
+        transfer::share_object(suins);
     }
 
     // === Testing ===
@@ -208,7 +220,13 @@ module suins::entity {
     friend suins::registry_tests_2;
 
     #[test_only]
+    /// Wrapper of module initializer for testing
     public fun test_init(ctx: &mut TxContext) {
+        let admin_cap = AdminCap {
+            id: object::new(ctx),
+        };
+        transfer::transfer(admin_cap, tx_context::sender(ctx));
+
         let registry = table::new(ctx);
         let reverse_registry = table::new(ctx);
         let registrars = table::new(ctx);
@@ -218,12 +236,14 @@ module suins::entity {
             auction_house_finalized_at: max_epoch_allowed(),
         };
 
-        transfer::share_object(SuiNS {
+        let suins = SuiNS {
             id: object::new(ctx),
             registry,
             reverse_registry,
             registrars,
             controller,
-        })
+        };
+
+        transfer::share_object(suins);
     }
 }

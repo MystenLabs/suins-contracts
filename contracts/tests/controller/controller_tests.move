@@ -10,9 +10,10 @@ module suins::controller_tests {
     use suins::auction;
     use suins::auction_tests::{start_an_auction_util, place_bid_util, reveal_bid_util, ctx_new};
     use suins::registrar::{Self, RegistrationNFT};
-    use suins::registry::{Self, AdminCap};
+    use suins::registry;
+    use suins::suins::AdminCap;
     use suins::configuration::{Self, Configuration};
-    use suins::entity::{Self, SuiNS};
+    use suins::suins::{Self, SuiNS};
     use suins::controller;
     use suins::validator;
     use std::option::{Self, Option, some};
@@ -62,9 +63,8 @@ module suins::controller_tests {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
-            registry::test_init(ctx);
             configuration::test_init(ctx);
-            entity::test_init(ctx);
+            suins::test_init(ctx);
             auction::test_init(ctx);
             clock::share_for_testing(clock::create_for_testing(ctx));
         };

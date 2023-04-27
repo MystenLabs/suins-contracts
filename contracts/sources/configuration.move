@@ -8,7 +8,7 @@ module suins::configuration {
     use sui::event;
     use sui::tx_context::{TxContext, sender};
     use suins::remove_later;
-    use suins::registry::AdminCap;
+    use suins::suins::AdminCap;
     use std::ascii;
     use std::vector;
     use sui::address;

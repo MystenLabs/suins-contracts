@@ -11,9 +11,9 @@ module suins::auction_tests_2 {
     use std::vector;
     use std::option;
     use suins::auction_tests::{test_init, start_an_auction_util, place_bid_util, reveal_bid_util, get_entry_util, finalize_auction_util, ctx_new, ctx_util, get_bid_util, state_util};
-    use suins::entity::SuiNS;
+    use suins::suins::SuiNS;
     use suins::controller;
-    use suins::registry::AdminCap;
+    use suins::suins::AdminCap;
     use suins::registrar;
     use suins::registrar::RegistrationNFT;
     use std::string::utf8;

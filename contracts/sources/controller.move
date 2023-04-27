@@ -14,11 +14,11 @@ module suins::controller {
     use sui::object::ID;
     use sui::tx_context::{Self, TxContext};
     use sui::sui::SUI;
-    use suins::registry::AdminCap;
+    use suins::suins::AdminCap;
     use suins::registrar::{Self, RegistrationNFT};
     use suins::configuration::{Self, Configuration};
     use suins::coin_util;
-    use suins::entity::{Self, SuiNS};
+    use suins::suins::{Self, SuiNS};
     use suins::validator;
     use std::string::{Self, String, utf8};
     use std::ascii;
@@ -84,7 +84,7 @@ module suins::controller {
     /// #### Params
     /// `commitment`: hash from `make_commitment`
     public entry fun commit(suins: &mut SuiNS, commitment: vector<u8>, clock: &Clock) {
-        let commitments = entity::controller_commitments_mut(suins);
+        let commitments = suins::controller_commitments_mut(suins);
         remove_outdated_commitments(commitments, clock);
 
         linked_table::push_back(commitments, commitment, clock::timestamp_ms(clock));
@@ -357,7 +357,7 @@ module suins::controller {
     /// Panics
     /// Panics if no profits has been created.
     public entry fun withdraw(_: &AdminCap, suins: &mut SuiNS, ctx: &mut TxContext) {
-        let amount = balance::value(entity::controller_balance(suins));
+        let amount = balance::value(suins::controller_balance(suins));
         assert!(amount > 0, ENoProfits);
 
         coin_util::suins_transfer_to_address(suins, amount, tx_context::sender(ctx), ctx);
@@ -449,7 +449,7 @@ module suins::controller {
     ) {
         assert!(0 < no_years && no_years <= 5, EInvalidNoYears);
         assert!(configuration::is_controller_enabled(config), ERegistrationIsDisabled);
-        assert!(tx_context::epoch(ctx) > entity::controller_auction_house_finalized_at(suins), EAuctionNotEndYet);
+        assert!(tx_context::epoch(ctx) > suins::controller_auction_house_finalized_at(suins), EAuctionNotEndYet);
 
         validator::validate_label(
             label,
@@ -555,7 +555,7 @@ module suins::controller {
         clock: &Clock,
         ctx: &TxContext,
     ) {
-        let commitments = entity::controller_commitments_mut(suins);
+        let commitments = suins::controller_commitments_mut(suins);
         assert!(linked_table::contains(commitments, commitment), ECommitmentNotExists);
         assert!(
             *linked_table::borrow(commitments, commitment) + MIN_COMMITMENT_AGE_IN_MS <= clock::timestamp_ms(clock),
@@ -614,13 +614,13 @@ module suins::controller {
 
     #[test_only]
     public fun get_balance(suins: &SuiNS): u64 {
-        let contract_balance = entity::controller_balance(suins);
+        let contract_balance = suins::controller_balance(suins);
         balance::value(contract_balance)
     }
 
     #[test_only]
     public fun commitment_len(suins: &SuiNS): u64 {
-        let commitments = entity::controller_commitments(suins);
+        let commitments = suins::controller_commitments(suins);
         linked_table::length(commitments)
     }
 

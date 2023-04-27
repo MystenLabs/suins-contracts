@@ -2,11 +2,12 @@
 module suins::registry_tests {
 
     use sui::test_scenario::{Self, Scenario};
-    use suins::registry::{Self, AdminCap};
+    use suins::registry;
     use suins::registrar;
     use std::string::utf8;
-    use suins::entity::SuiNS;
-    use suins::entity;
+    use suins::suins::SuiNS;
+    use suins::suins;
+    use suins::suins::AdminCap;
 
     friend suins::registry_tests_2;
 
@@ -21,8 +22,7 @@ module suins::registry_tests {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
-            registry::test_init(ctx);
-            entity::test_init(ctx);
+            suins::test_init(ctx);
         };
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);

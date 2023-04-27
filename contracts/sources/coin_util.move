@@ -6,7 +6,7 @@ module suins::coin_util {
     use sui::sui::SUI;
     use sui::tx_context::TxContext;
     use sui::transfer;
-    use suins::entity::{Self, SuiNS};
+    use suins::suins::{Self, SuiNS};
     use sui::event;
 
     friend suins::auction;
@@ -37,7 +37,7 @@ module suins::coin_util {
         if (amount == 0) return;
         let coin_balance = coin::balance_mut(user_payment);
         let paid = balance::split(coin_balance, amount);
-        balance::join(entity::controller_balance_mut(suins), paid);
+        balance::join(suins::controller_balance_mut(suins), paid);
 
         event::emit(PaymentTranferredEvent {
             to: @suins,
@@ -64,7 +64,7 @@ module suins::coin_util {
         ctx: &mut TxContext
     ) {
         if (amount == 0) return;
-        let coin = coin::take(entity::controller_balance_mut(suins), amount, ctx);
+        let coin = coin::take(suins::controller_balance_mut(suins), amount, ctx);
         transfer::public_transfer(coin, user_addr);
 
         event::emit(PaymentTranferredEvent {
@@ -92,7 +92,7 @@ module suins::coin_util {
     public(friend) fun auction_transfer_to_suins(suins: &mut SuiNS, auction: &mut Balance<SUI>, amount: u64) {
         if (amount == 0) return;
         let paid = balance::split(auction, amount);
-        balance::join(entity::controller_balance_mut(suins), paid);
+        balance::join(suins::controller_balance_mut(suins), paid);
 
         event::emit(PaymentTranferredEvent {
             to: @suins,

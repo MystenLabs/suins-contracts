@@ -7,9 +7,10 @@ module suins::controller_tests_2 {
     use sui::url;
     use suins::auction_tests::ctx_new;
     use suins::registrar::{Self, RegistrationNFT};
-    use suins::registry::{Self, AdminCap};
+    use suins::registry;
+    use suins::suins::AdminCap;
     use suins::configuration::{Self, Configuration};
-    use suins::entity::SuiNS;
+    use suins::suins::SuiNS;
     use suins::controller;
     use std::option;
     use std::string::utf8;

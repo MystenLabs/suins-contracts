@@ -4,7 +4,7 @@ module suins::registry_tests_2 {
     use sui::test_scenario::{Self, Scenario};
     use suins::registry;
     use suins::registry_tests;
-    use suins::entity::{Self, SuiNS};
+    use suins::suins::{Self, SuiNS};
     use std::string::utf8;
 
     const SUINS_ADDRESS: address = @0xA001;
@@ -24,8 +24,7 @@ module suins::registry_tests_2 {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
-            registry::test_init(ctx);
-            entity::test_init(ctx);
+            suins::test_init(ctx);
         };
         scenario
     }
@@ -134,7 +133,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             registry::set_linked_addr(&mut suins, utf8(FIRST_DOMAIN_NAME), SECOND_USER_ADDRESS, test_scenario::ctx(&mut scenario));
 
-            let reverse_registry = entity::reverse_registry(&suins);
+            let reverse_registry = suins::reverse_registry(&suins);
             assert!(!sui::table::contains(reverse_registry, FIRST_USER_ADDRESS), 0);
 
             test_scenario::return_shared(suins);

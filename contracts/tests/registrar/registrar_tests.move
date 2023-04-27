@@ -4,8 +4,8 @@ module suins::registrar_tests {
     use sui::test_scenario::{Self, Scenario};
     use sui::url;
     use sui::dynamic_field;
-    use suins::entity::{Self, SuiNS};
-    use suins::registry::{Self, AdminCap};
+    use suins::suins::{Self, SuiNS, AdminCap};
+    use suins::registry;
     use suins::registrar::{Self, RegistrationNFT, get_record_expired_at, assert_registrar_exists};
     use suins::configuration::{Self, Configuration};
     use std::string::{Self, utf8};
@@ -25,8 +25,7 @@ module suins::registrar_tests {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
-            registry::test_init(ctx);
-            entity::test_init(ctx);
+            suins::test_init(ctx);
             configuration::test_init(ctx);
         };
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
