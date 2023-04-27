@@ -145,6 +145,26 @@ module suins::config {
         vec_map::remove(&mut self.discount_codes, &code);
     }
 
+    // public(friend) fun use_discount_code(config: &mut Configuration, code: &ascii::String, ctx: &TxContext): u8 {
+    //     assert!(vec_map::contains(&config.discount_codes, code), EDiscountCodeNotExists);
+
+    //     let value = vec_map::get(&config.discount_codes, code);
+    //     let owner = value.owner;
+    //     let sender = hex::encode(address::to_bytes(sender(ctx)));
+    //     assert!(owner == ascii::string(sender), EOwnerUnauthorized);
+
+    //     let rate = value.rate;
+    //     vec_map::remove(&mut config.discount_codes, code);
+    //     rate
+    // }
+
+    // // returns referral code's rate and partner address
+    // public(friend) fun use_referral_code(config: &Configuration, code: &ascii::String): (u8, address) {
+    //     assert!(vec_map::contains(&config.referral_codes, code), EReferralCodeNotExists);
+    //     let value = vec_map::get(&config.referral_codes, code);
+    //     (value.rate, value.partner)
+    // }
+
     // === Price calculations ===
 
     /// Calculate the price of a label.
