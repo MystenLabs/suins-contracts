@@ -13,7 +13,7 @@ module suins::registrar {
     use suins::suins::{Self, AdminCap};
     use suins::config::{Self, Config};
     use sui::ecdsa_k1;
-    use suins::remove_later;
+    use suins::string_utils;
     use sui::url;
     use std::hash::sha2_256;
     use suins::suins::{SuiNS, RegistrationRecord};
@@ -152,7 +152,7 @@ module suins::registrar {
         assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
         assert_image_msg_match(suins, signature, hashed_msg, raw_msg);
 
-        let (ipfs, domain_name_msg, expired_at, additional_data) = remove_later::deserialize_image_msg(raw_msg);
+        let (ipfs, domain_name_msg, expired_at, additional_data) = deserialize_image_msg(raw_msg);
 
         assert!(domain_name_msg == nft.name, EInvalidImageMessage);
 
@@ -300,7 +300,7 @@ module suins::registrar {
         else {
             assert_image_msg_match(suins, signature, hashed_msg, raw_msg);
 
-            let (ipfs, domain_name_msg, expired_at_msg, data) = remove_later::deserialize_image_msg(raw_msg);
+            let (ipfs, domain_name_msg, expired_at_msg, data) = deserialize_image_msg(raw_msg);
             assert!(domain_name_msg == domain_name, EInvalidImageMessage);
             assert!(expired_at_msg == expired_at, EInvalidImageMessage);
 
@@ -382,6 +382,29 @@ module suins::registrar {
 
         assert!(index_of_dot != string::length(domain_name), EInvalidTLD);
         string::sub_string(domain_name, index_of_dot + 1, string::length(domain_name))
+    }
+
+    /// `msg` format: <ipfs_url>,<domain_name>,<expired_at>,<data>
+    fun deserialize_image_msg(msg: vector<u8>): (String, String, u64, String) {
+        // `msg` now: ipfs_url,domain_name,expired_at,data
+        let msg = utf8(msg);
+        let comma = utf8(b",");
+
+        let index_of_next_comma = string::index_of(&msg, &comma);
+        let ipfs = string::sub_string(&msg, 0, index_of_next_comma);
+        // `msg` now: domain_name,expired_at,data
+        msg = string::sub_string(&msg, index_of_next_comma + 1, string::length(&msg));
+        index_of_next_comma = string::index_of(&msg, &comma);
+        let domain_name = string::sub_string(&msg, 0, index_of_next_comma);
+
+        // `msg` now: expired_at,data
+        msg = string::sub_string(&msg, index_of_next_comma + 1, string::length(&msg));
+        index_of_next_comma = string::index_of(&msg, &comma);
+        let expired_at = string::sub_string(&msg, 0, index_of_next_comma);
+
+        // `msg` now: data
+        msg = string::sub_string(&msg, index_of_next_comma + 1, string::length(&msg));
+        (ipfs, domain_name, string_utils::string_to_number(expired_at), msg)
     }
 
     // === Testing ===

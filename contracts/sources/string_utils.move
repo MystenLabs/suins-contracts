@@ -8,7 +8,6 @@ module suins::string_utils {
     friend suins::registrar;
     friend suins::controller;
     friend suins::auction;
-    friend suins::remove_later;
 
     #[test_only]
     friend suins::converter_tests;
