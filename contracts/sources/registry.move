@@ -11,8 +11,8 @@ module suins::registry {
         name_record_owner,
         name_record_owner_mut,
         new_name_record,
-        name_record_linked_addr,
-        name_record_linked_addr_mut,
+        name_record_target_address,
+        name_record_target_address_mut,
     };
     use sui::table;
 
@@ -141,7 +141,7 @@ module suins::registry {
     ///
     /// Panics
     /// Panics if caller isn't the owner of `domain_name`
-    public entry fun set_linked_addr(
+    public entry fun set_target_address(
         suins: &mut SuiNS,
         domain_name: String,
         new_addr: address,
@@ -150,19 +150,19 @@ module suins::registry {
         is_authorised(suins, domain_name, ctx);
 
         let name_record = get_name_record_mut(suins, domain_name);
-        let old_linked_addr = suins::name_record_linked_addr(name_record);
-        *suins::name_record_linked_addr_mut(name_record) = new_addr;
+        let old_target_address = suins::name_record_target_address(name_record);
+        *suins::name_record_target_address_mut(name_record) = new_addr;
         event::emit(LinkedAddrChangedEvent { domain_name, new_addr });
 
-        if (old_linked_addr != new_addr) {
+        if (old_target_address != new_addr) {
             let reverse_registry = suins::reverse_registry_mut(suins);
-            if (table::contains(reverse_registry, old_linked_addr)) {
-                table::remove(reverse_registry, old_linked_addr);
+            if (table::contains(reverse_registry, old_target_address)) {
+                table::remove(reverse_registry, old_target_address);
             };
         };
     }
 
-    public entry fun unset_linked_addr(
+    public entry fun unset_target_address(
         suins: &mut SuiNS,
         domain_name: String,
         ctx: &mut TxContext,
@@ -170,13 +170,13 @@ module suins::registry {
         is_authorised(suins, domain_name, ctx);
 
         let name_record = get_name_record_mut(suins, domain_name);
-        let old_linked_addr = suins::name_record_linked_addr(name_record);
-        *suins::name_record_linked_addr_mut(name_record) = @0x0;
+        let old_target_address = suins::name_record_target_address(name_record);
+        *suins::name_record_target_address_mut(name_record) = @0x0;
         event::emit(LinkedAddrRemovedEvent { domain_name });
 
         let reverse_registry = suins::reverse_registry_mut(suins);
-        if (table::contains(reverse_registry, old_linked_addr)) {
-            table::remove(reverse_registry, old_linked_addr);
+        if (table::contains(reverse_registry, old_target_address)) {
+            table::remove(reverse_registry, old_target_address);
         };
     }
 
@@ -191,7 +191,7 @@ module suins::registry {
         // When setting a defalt domain name for an address, the domain name
         // must already be pointing at the address
         assert!(
-            sender_address == suins::name_record_linked_addr(record),
+            sender_address == suins::name_record_target_address(record),
             EDefaultDomainNameNotMatch
         );
 
@@ -234,9 +234,9 @@ module suins::registry {
         suins::name_record_owner(name_record)
     }
 
-    public fun linked_addr(suins: &SuiNS, domain_name: String): address {
+    public fun target_address(suins: &SuiNS, domain_name: String): address {
         let name_record = get_name_record(suins, domain_name);
-        name_record_linked_addr(name_record)
+        name_record_target_address(name_record)
     }
 
     public fun default_domain_name(suins: &SuiNS, addr: address): String {
@@ -248,7 +248,7 @@ module suins::registry {
     }
 
     /// #### Notice
-    /// Get `(owner, linked_addr)` of a `domain_name`.
+    /// Get `(owner, target_address)` of a `domain_name`.
     /// The `domain_name` can have multiple levels.
     ///
     /// #### Params
@@ -258,7 +258,7 @@ module suins::registry {
     /// Panics if `domain_name` doesn't exists.
     public fun get_name_record_all_fields(suins: &SuiNS, domain_name: String): (address, address) {
         let name_record = get_name_record(suins, domain_name);
-        (name_record_owner(name_record), name_record_linked_addr(name_record))
+        (name_record_owner(name_record), name_record_target_address(name_record))
     }
 
     public fun get_name_record_data(suins: &SuiNS, domain_name: String, key: String): String {
@@ -292,7 +292,7 @@ module suins::registry {
         if (table::contains(registry, domain_name)) {
             let record = table::borrow_mut(registry, domain_name);
             *name_record_owner_mut(record) = owner;
-            *name_record_linked_addr_mut(record) = owner;
+            *name_record_target_address_mut(record) = owner;
         } else new_record(suins, domain_name, owner, ctx);
     }
 

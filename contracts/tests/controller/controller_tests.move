@@ -193,9 +193,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 365, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(scenario, nft);
             test_scenario::return_shared(suins);
@@ -540,9 +540,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 365 + GRACE_PERIOD + 1 + 365, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == SECOND_USER_ADDRESS, 0);
-            assert!(linked_addr == SECOND_USER_ADDRESS, 0);
+            assert!(target_address == SECOND_USER_ADDRESS, 0);
 
             let registrar = registrar::get_registrar(&suins, SUI_REGISTRAR);
             registrar::assert_nft_not_expires(
@@ -695,9 +695,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
@@ -1082,9 +1082,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
@@ -1513,9 +1513,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_to_address(SECOND_USER_ADDRESS, coin);
@@ -1589,9 +1589,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 1095, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_to_address(SECOND_USER_ADDRESS, coin);
@@ -1705,9 +1705,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
@@ -1866,9 +1866,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
@@ -2317,9 +2317,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             coin::burn_for_testing(coin);
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -2477,9 +2477,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             coin::burn_for_testing(coin);
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -2664,9 +2664,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == 21 + 365, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
@@ -2765,9 +2765,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == 51 + 365, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
@@ -2849,9 +2849,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == 221 + 365, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
@@ -2932,9 +2932,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
             assert!(expired_at == 221 + 365, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
@@ -3015,9 +3015,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == 121 + 365, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
@@ -3246,9 +3246,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
             assert!(expired_at == START_AUCTION_END_AT + EXTRA_PERIOD + BIDDING_PERIOD + REVEAL_PERIOD + 1 + 365, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
@@ -3394,9 +3394,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == 221 + 365, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == @0x0, 0);
+            assert!(target_address == @0x0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
@@ -3486,9 +3486,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_DOMAIN_NAME);
             assert!(expired_at == 221 + 365, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == @0x0, 0);
+            assert!(target_address == @0x0, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
@@ -3589,9 +3589,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
             assert!(expired_at == 221 + 365, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
@@ -3962,9 +3962,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
@@ -4036,9 +4036,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
@@ -4265,9 +4265,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             coin::burn_for_testing(coin);
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -4470,9 +4470,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             coin::burn_for_testing(coin);
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -5059,10 +5059,10 @@ module suins::controller_tests {
                 0
             );
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
 
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
@@ -5247,9 +5247,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
             assert!(expired_at == EXTRA_PERIOD_START_AT + 2 + 365, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             let registrar = registrar::get_registrar(&suins, SUI_REGISTRAR);
             registrar::assert_nft_not_expires(
@@ -5336,15 +5336,15 @@ module suins::controller_tests {
             assert!(registry::record_exists(&suins, utf8(second_domain_name_sui)), 0);
             assert!(!registry::record_exists(&suins, utf8(second_domain_name_move)), 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(first_domain_name_sui));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(first_domain_name_sui));
             assert!(owner == SUINS_ADDRESS, 0);
-            assert!(linked_addr == SUINS_ADDRESS, 0);
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(first_domain_name_move));
+            assert!(target_address == SUINS_ADDRESS, 0);
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(first_domain_name_move));
             assert!(owner == SUINS_ADDRESS, 0);
-            assert!(linked_addr == SUINS_ADDRESS, 0);
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(second_domain_name_sui));
+            assert!(target_address == SUINS_ADDRESS, 0);
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(second_domain_name_sui));
             assert!(owner == SUINS_ADDRESS, 0);
-            assert!(linked_addr == SUINS_ADDRESS, 0);
+            assert!(target_address == SUINS_ADDRESS, 0);
 
             let first_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = registrar::get_nft_fields(&first_nft);
@@ -5423,18 +5423,18 @@ module suins::controller_tests {
             assert!(registry::record_exists(&suins, utf8(second_domain_name_sui)), 0);
             assert!(registry::record_exists(&suins, utf8(second_domain_name_move)), 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(first_domain_name_sui));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(first_domain_name_sui));
             assert!(owner == SUINS_ADDRESS, 0);
-            assert!(linked_addr == SUINS_ADDRESS, 0);
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(first_domain_name_move));
+            assert!(target_address == SUINS_ADDRESS, 0);
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(first_domain_name_move));
             assert!(owner == SUINS_ADDRESS, 0);
-            assert!(linked_addr == SUINS_ADDRESS, 0);
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(second_domain_name_sui));
+            assert!(target_address == SUINS_ADDRESS, 0);
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(second_domain_name_sui));
             assert!(owner == SUINS_ADDRESS, 0);
-            assert!(linked_addr == SUINS_ADDRESS, 0);
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(second_domain_name_move));
+            assert!(target_address == SUINS_ADDRESS, 0);
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(second_domain_name_move));
             assert!(owner == @0x0B, 0);
-            assert!(linked_addr == @0x0B, 0);
+            assert!(target_address == @0x0B, 0);
 
             let first_nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
             let (name, url) = registrar::get_nft_fields(&first_nft);
@@ -6099,9 +6099,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, b"abc");
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(b"abc.sui"));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(b"abc.sui"));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
@@ -6171,9 +6171,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, b"abcd");
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(b"abcd.sui"));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(b"abcd.sui"));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
@@ -6243,9 +6243,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, b"abcdef");
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(b"abcdef.sui"));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(b"abcdef.sui"));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
@@ -6324,9 +6324,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, b"xyz");
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(b"xyz.sui"));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(b"xyz.sui"));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
@@ -6439,9 +6439,9 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, b"xyzt");
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, linked_addr) = registry::get_name_record_all_fields(&suins, utf8(b"xyzt.sui"));
+            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(b"xyzt.sui"));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(linked_addr == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == FIRST_USER_ADDRESS, 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);
