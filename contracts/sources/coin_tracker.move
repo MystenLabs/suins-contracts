@@ -1,6 +1,7 @@
 /// Module that keeps `coin_util` coin tracking logic.
 /// TODO: consider removing completely.
 module suins::coin_tracker {
+    friend suins::suins;
     friend suins::auction;
     friend suins::controller;
 

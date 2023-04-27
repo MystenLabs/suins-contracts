@@ -1,9 +1,9 @@
 module suins::suins {
+    use std::string::String;
 
     use sui::tx_context::{Self, TxContext};
     use sui::object::{UID, ID};
     use sui::table::Table;
-    use std::string::String;
     use sui::table;
     use sui::transfer;
     use sui::object;
@@ -12,11 +12,13 @@ module suins::suins {
     use sui::sui::SUI;
     use sui::linked_table;
     use sui::balance;
+    use sui::coin::{Self, Coin};
+
+    use suins::coin_tracker;
 
     friend suins::registry;
     friend suins::registrar;
     friend suins::controller;
-    friend suins::coin_util;
     friend suins::auction;
 
     const MAX_U64: u64 = 18446744073709551615;
@@ -175,6 +177,17 @@ module suins::suins {
 
     public(friend) fun controller_auction_house_finalized_at_mut(suins: &mut SuiNS): &mut u64 {
         &mut suins.controller.auction_house_finalized_at
+    }
+
+    public(friend) fun add_to_balance(suins: &mut SuiNS, coin: Coin<SUI>) {
+        coin_tracker::track(@suins, coin::value(&coin));
+        coin::put(&mut suins.controller.balance, coin);
+    }
+
+    public(friend) fun send_from_balance(suins: &mut SuiNS, amount: u64, receiver: address, ctx: &mut TxContext) {
+        let coin = coin::take(&mut suins.controller.balance, amount, ctx);
+        transfer::public_transfer(coin, receiver);
+        coin_tracker::track(receiver, amount);
     }
 
     fun init(ctx: &mut TxContext) {

@@ -17,7 +17,7 @@ module suins::auction {
     use suins::registrar;
     use suins::suins::AdminCap;
     use suins::configuration::{Self, Configuration};
-    use suins::coin_util;
+    use suins::coin_tracker;
     use suins::suins::SuiNS;
     use suins::validator;
     use std::option::{Self, Option, none, some};
@@ -229,7 +229,7 @@ module suins::auction {
         linked_table::push_back(&mut auction_house.entries, label, entry);
         event::emit(AuctionStartedEvent { label, start_at: started_at });
 
-        coin_util::user_transfer_to_suins(suins, payment, auction_house.start_an_auction_fee)
+        add_to_suins(suins, payment, auction_house.start_an_auction_fee, ctx)
     }
 
     /// #### Notice
@@ -293,8 +293,8 @@ module suins::auction {
         let bidder_value = coin::value(payment);
         assert!(bidder_value >= bid_value_mask + auction_house.bidding_fee, EPaymentNotEnough);
 
-        coin_util::user_transfer_to_auction(&mut auction_house.balance, payment, bid_value_mask);
-        coin_util::user_transfer_to_suins(suins, payment, auction_house.bidding_fee);
+        add_to_balance(&mut auction_house.balance, payment, bid_value_mask);
+        add_to_suins(suins, payment, auction_house.bidding_fee, ctx);
     }
 
     /// #### Notice
@@ -449,7 +449,7 @@ module suins::auction {
                 entry.is_finalized = true;
             } else {
                 // not the winner
-                coin_util::auction_transfer_to_address(
+                send_to_address(
                     &mut auction_house.balance,
                     bid_detail.bid_value_mask,
                     bid_detail.bidder,
@@ -554,7 +554,7 @@ module suins::auction {
                     continue
                 };
             };
-            coin_util::auction_transfer_to_address(
+            send_to_address(
                 &mut auction_house.balance,
                 bid_detail.bid_value_mask,
                 bid_detail.bidder,
@@ -730,7 +730,7 @@ module suins::auction {
         ctx: &mut TxContext
     ) {
         if (entry.second_highest_bid != 0 && entry.second_highest_bidder != @0x0) {
-            coin_util::auction_transfer_to_address(
+            send_to_address(
                 auction_balance,
                 bid_detail.bid_value_mask - entry.second_highest_bid,
                 bid_detail.bidder,
@@ -739,33 +739,26 @@ module suins::auction {
             // it rounds down
             if (is_second_highest_bidder_shared) {
                 let second_highest_bidder_share = (entry.second_highest_bid / 100) * 5;
-                coin_util::auction_transfer_to_suins(
-                    suins,
-                    auction_balance,
-                    entry.second_highest_bid - second_highest_bidder_share,
-                );
-                coin_util::auction_transfer_to_address(
+                let commission = entry.second_highest_bid - second_highest_bidder_share;
+                send_to_suins(suins, auction_balance, commission);
+                send_to_address(
                     auction_balance,
                     second_highest_bidder_share,
                     entry.second_highest_bidder,
                     ctx,
                 );
             } else {
-                coin_util::auction_transfer_to_suins(
-                    suins,
-                    auction_balance,
-                    entry.second_highest_bid,
-                );
+                send_to_suins(suins, auction_balance, entry.second_highest_bid);
             }
         } else {
             // winner is the only one who bided
-            coin_util::auction_transfer_to_address(
+            send_to_address(
                 auction_balance,
                 bid_detail.bid_value_mask - bid_detail.bid_value,
                 bid_detail.bidder,
                 ctx
             );
-            coin_util::auction_transfer_to_suins(suins, auction_balance, bid_detail.bid_value);
+            send_to_suins(suins, auction_balance, bid_detail.bid_value);
         };
     }
 
@@ -795,6 +788,50 @@ module suins::auction {
             front_element = linked_table::next(bids, index);
         };
         none()
+    }
+
+    // === Transfers ===
+
+    fun send_to_suins(
+        suins: &mut SuiNS,
+        balance: &mut Balance<SUI>,
+        amount: u64,
+    ) {
+        if (amount > 0) {
+            let paid = balance::split(balance, amount);
+            balance::join(suins::controller_balance_mut(suins), paid);
+            coin_tracker::track(@suins, amount);
+        }
+    }
+
+    fun send_to_address(
+        balance: &mut Balance<SUI>, amount: u64, receiver: address, ctx: &mut TxContext
+    ) {
+        if (amount > 0) {
+            let coin = coin::take(balance, amount, ctx);
+            transfer::public_transfer(coin, receiver);
+            coin_tracker::track(receiver, amount);
+        }
+    }
+
+    fun add_to_balance(
+        balance: &mut Balance<SUI>,
+        payment: &mut Coin<SUI>,
+        amount: u64
+    ) {
+        if (amount > 0) {
+            let coin_balance = coin::balance_mut(payment);
+            let paid = balance::split(coin_balance, amount);
+            balance::join(balance, paid);
+            coin_tracker::track(@suins, amount);
+        }
+    }
+
+    fun add_to_suins(
+        suins: &mut SuiNS, payment: &mut Coin<SUI>, amount: u64, ctx: &mut TxContext
+    ) {
+        suins::add_to_balance(suins, coin::split(payment, amount, ctx))
+        // add_to_balance(suins::controller_balance_mut(suins), payment, amount)
     }
 
     // === Testing ===

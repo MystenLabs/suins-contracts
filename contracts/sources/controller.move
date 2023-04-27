@@ -5,7 +5,13 @@
 /// During auction period, only domains with 7 to 63 characters can be registered via the Controller,
 /// but after the auction has ended, all domains can be registered.
 module suins::controller {
+    use std::string::{Self, String, utf8};
+    use std::ascii;
+    use std::bcs;
+    use std::vector;
+    use std::option::{Self, Option};
 
+    use sui::url::Url;
     use sui::balance;
     use sui::coin::{Self, Coin};
     use sui::hash::keccak256;
@@ -14,21 +20,16 @@ module suins::controller {
     use sui::object::ID;
     use sui::tx_context::{Self, TxContext};
     use sui::sui::SUI;
+    use sui::clock::Clock;
+    use sui::clock;
+
     use suins::suins::AdminCap;
     use suins::registrar::{Self, RegistrationNFT};
     use suins::configuration::{Self, Configuration};
-    use suins::coin_util;
     use suins::suins::{Self, SuiNS};
     use suins::validator;
-    use std::string::{Self, String, utf8};
-    use std::ascii;
-    use std::bcs;
-    use std::vector;
-    use std::option::{Self, Option};
-    use sui::url::Url;
     use suins::remove_later;
-    use sui::clock::Clock;
-    use sui::clock;
+    use suins::coin_tracker;
 
     const MAX_COMMITMENT_AGE_IN_MS: u64 = 259_200_000;
     const MIN_COMMITMENT_AGE_IN_MS: u64 = 120_000;
@@ -360,7 +361,7 @@ module suins::controller {
         let amount = balance::value(suins::controller_balance(suins));
         assert!(amount > 0, ENoProfits);
 
-        coin_util::suins_transfer_to_address(suins, amount, tx_context::sender(ctx), ctx);
+        suins::send_from_balance(suins, amount, tx_context::sender(ctx), ctx);
     }
 
     public entry fun new_reserved_domains(
@@ -418,7 +419,7 @@ module suins::controller {
             no_years
         );
         assert!(coin::value(payment) >= renew_fee, ENotEnoughFee);
-        coin_util::user_transfer_to_suins(suins, payment, renew_fee);
+        suins::add_to_balance(suins, coin::split(payment, renew_fee, ctx));
 
         let duration = no_years * 365;
         registrar::renew(suins, utf8(SUI_TLD), label, duration, ctx);
@@ -503,7 +504,7 @@ module suins::controller {
             data: additional_data,
         });
 
-        coin_util::user_transfer_to_suins(suins, payment, registration_fee);
+        suins::add_to_balance(suins, coin::split(payment, registration_fee, ctx))
     }
 
     // returns remaining_fee
@@ -517,7 +518,9 @@ module suins::controller {
         let (rate, partner) = configuration::use_referral_code(config, referral_code);
         let remaining_fee = (original_fee / 100) * (100 - rate as u64);
         let payback_amount = original_fee - remaining_fee;
-        coin_util::user_transfer_to_address(payment, payback_amount, partner, ctx);
+
+        sui::pay::split_and_transfer(payment, payback_amount, partner, ctx);
+        coin_tracker::track(partner, payback_amount);
 
         remaining_fee
     }
