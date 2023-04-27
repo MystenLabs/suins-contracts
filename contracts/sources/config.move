@@ -54,7 +54,6 @@ module suins::config {
         }
     }
 
-
     // === Modification: one per property ===
 
     /// Change the value of the `public_key` field.
@@ -90,8 +89,8 @@ module suins::config {
 
     /// Calculate the price of a label.
     public fun calculate_price(self: &Config, length: u8, years: u8): u64 {
-        assert!(length > MIN_DOMAIN_LENGTH, ELabelTooShort);
-        // assert!(length <= MAX_DOMAIN_LENGTH, ELabelTooLong);
+        assert!(length >= MIN_DOMAIN_LENGTH, ELabelTooShort);
+        assert!(length <= MAX_DOMAIN_LENGTH, ELabelTooLong);
 
         let price = if (length == 3) {
             self.three_char_price
