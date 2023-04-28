@@ -2,7 +2,7 @@
 /// More information in: ../../../docs
 module suins::auction {
 
-    use sui::object::{UID, ID};
+    use sui::object::UID;
     use sui::table::{Self, Table};
     use sui::tx_context::TxContext;
     use sui::sui::SUI;
@@ -15,17 +15,14 @@ module suins::auction {
     use sui::clock::{Self, Clock};
     use sui::linked_table::{Self, LinkedTable};
     use suins::registrar;
-    use suins::registry::AdminCap;
-    use suins::configuration::{Self, Configuration};
-    use suins::coin_util;
-    use suins::entity::SuiNS;
-    use suins::validator;
+    use suins::suins::{Self, AdminCap};
+    use suins::config::{Self, Config};
+    use suins::suins::SuiNS;
+    use suins::string_utils;
     use std::option::{Self, Option, none, some};
     use std::string::{Self, String, utf8};
     use std::vector;
     use std::bcs;
-    use suins::converter;
-    use suins::entity;
     use sui::tx_context;
     use sui::coin;
 
@@ -61,7 +58,9 @@ module suins::auction {
     const EPaymentNotEnough: u64 = 817;
 
     struct BidDetail has store, copy, drop {
-        uid: ID,
+        // Using the address to simplify the typing;
+        // Basically the same thing as the ID.
+        id: address,
         bidder: address,
         // upper limit of the actual bid value to hide the real value
         bid_value_mask: u64,
@@ -89,7 +88,7 @@ module suins::auction {
         winning_bid_created_at_in_ms: u64,
         second_highest_bid_created_at_in_ms: u64,
         /// object::id_from_address(@0x0) if winner hasn't been determined
-        winning_bid_uid: ID,
+        winning_bid_id: address,
     }
 
     struct AuctionHouse has key {
@@ -166,7 +165,7 @@ module suins::auction {
 
         auction_house.start_auction_start_at = start_auction_start_at;
         auction_house.start_auction_end_at = start_auction_end_at;
-        *entity::controller_auction_house_finalized_at_mut(suins) = auction_house_close_at(
+        *suins::controller_auction_house_finalized_at_mut(suins) = auction_house_close_at(
             auction_house
         ) + EXTRA_PERIOD;
     }
@@ -203,7 +202,7 @@ module suins::auction {
             ) <= auction_house.start_auction_end_at,
             EInvalidPhase,
         );
-        validator::validate_label(label, configuration::min_domain_length(), configuration::max_domain_length());
+        string_utils::validate_label(label, config::min_domain_length(), config::max_domain_length());
 
         let state = state(auction_house, label, tx_context::epoch(ctx));
         assert!(state == AUCTION_STATE_OPEN || state == AUCTION_STATE_REOPENED, EInvalidPhase);
@@ -221,14 +220,14 @@ module suins::auction {
             winner: @0x0,
             second_highest_bidder: @0x0,
             is_finalized: false,
-            winning_bid_created_at_in_ms: entity::max_u64(),
-            second_highest_bid_created_at_in_ms: entity::max_u64(),
-            winning_bid_uid: object::id_from_address(@0x0),
+            winning_bid_created_at_in_ms: suins::max_u64(),
+            second_highest_bid_created_at_in_ms: suins::max_u64(),
+            winning_bid_id: @0x0,
         };
         linked_table::push_back(&mut auction_house.entries, label, entry);
         event::emit(AuctionStartedEvent { label, start_at: started_at });
 
-        coin_util::user_transfer_to_suins(suins, payment, auction_house.start_an_auction_fee)
+        add_to_suins(suins, payment, auction_house.start_an_auction_fee, ctx)
     }
 
     /// #### Notice
@@ -250,19 +249,20 @@ module suins::auction {
     public entry fun place_bid(
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
-        config: &Configuration,
         sealed_bid: vector<u8>,
         bid_value_mask: u64,
         payment: &mut Coin<SUI>,
         clock: &Clock,
         ctx: &mut TxContext
     ) {
+        let config = suins::get_config<Config>(suins);
+
+        assert!(bid_value_mask >= config::five_plus_char_price(config), EInvalidBid);
         assert!(
-            auction_house.start_auction_start_at <= tx_context::epoch(ctx) && tx_context::epoch(ctx)
-                <= auction_house.start_auction_end_at + BIDDING_PERIOD,
+            auction_house.start_auction_start_at <= tx_context::epoch(ctx)
+            && tx_context::epoch(ctx) <= auction_house.start_auction_end_at + BIDDING_PERIOD,
             EInvalidPhase,
         );
-        assert!(bid_value_mask >= configuration::price_of_five_and_above_character_domain(config), EInvalidBid);
 
         if (!table::contains(&auction_house.bid_details_by_bidder, tx_context::sender(ctx))) {
             table::add(&mut auction_house.bid_details_by_bidder, tx_context::sender(ctx), linked_table::new(ctx));
@@ -273,7 +273,7 @@ module suins::auction {
 
         let bidder = tx_context::sender(ctx);
         let bid = BidDetail {
-            uid: converter::new_id(ctx),
+            id: tx_context::fresh_object_address(ctx),
             bidder,
             bid_value_mask,
             bid_value: 0,
@@ -292,8 +292,8 @@ module suins::auction {
         let bidder_value = coin::value(payment);
         assert!(bidder_value >= bid_value_mask + auction_house.bidding_fee, EPaymentNotEnough);
 
-        coin_util::user_transfer_to_auction(&mut auction_house.balance, payment, bid_value_mask);
-        coin_util::user_transfer_to_suins(suins, payment, auction_house.bidding_fee);
+        add_to_balance(&mut auction_house.balance, payment, bid_value_mask);
+        add_to_suins(suins, payment, auction_house.bidding_fee, ctx);
     }
 
     /// #### Notice
@@ -319,12 +319,14 @@ module suins::auction {
     /// or `label` hasn't been started
     public entry fun reveal_bid(
         auction_house: &mut AuctionHouse,
-        config: &Configuration,
+        suins: &SuiNS,
         label: String,
         value: u64,
         secret: vector<u8>,
         ctx: &mut TxContext
     ) {
+        let config = suins::get_config<Config>(suins);
+
         assert!(
             auction_house.start_auction_start_at <= tx_context::epoch(ctx) && tx_context::epoch(ctx)
                 <= auction_house.start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD,
@@ -344,9 +346,9 @@ module suins::auction {
         assert!(option::is_some(&index), ESealBidNotExists);
 
         let bid_detail = linked_table::borrow_mut(bids_by_sender, option::extract(&mut index));
+        let min_price = config::calculate_price(config, (string::length(&label) as u8), 1);
         assert!(!bid_detail.is_unsealed, EAlreadyUnsealed);
 
-        let min_price = configuration::price_for_label(config, string::length(&label), 1);
         bid_detail.bid_value = value;
         bid_detail.label = label;
         bid_detail.is_unsealed = true;
@@ -404,7 +406,6 @@ module suins::auction {
     public entry fun finalize_auction(
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
-        config: &Configuration,
         label: String,
         ctx: &mut TxContext
     ) {
@@ -443,12 +444,12 @@ module suins::auction {
             )
             else front_element = linked_table::front(bids_of_sender);
 
-            if (entry.winning_bid_uid == bid_detail.uid) {
+            if (entry.winning_bid_id == bid_detail.id) {
                 handle_winning_bid(&mut auction_house.balance, suins, entry, &bid_detail, true, ctx);
                 entry.is_finalized = true;
             } else {
                 // not the winner
-                coin_util::auction_transfer_to_address(
+                send_to_address(
                     &mut auction_house.balance,
                     bid_detail.bid_value_mask,
                     bid_detail.bidder,
@@ -458,16 +459,16 @@ module suins::auction {
         };
         if (entry.winner != tx_context::sender(ctx)) return;
 
-        register_winning_auction(suins, config, label, entry.winner, entry.second_highest_bid, ctx)
+        register_winning_auction(suins, label, entry.winner, entry.second_highest_bid, ctx)
     }
 
     public entry fun finalize_all_auctions_by_admin(
         _: &AdminCap,
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
-        config: &Configuration,
         ctx: &mut TxContext
     ) {
+        // let config = suins::get_config<Config>(suins);
         let auction_house_close_at = auction_house_close_at(auction_house);
         let auction_house_extra_period_end_at = auction_house_close_at + EXTRA_PERIOD;
         assert!(auction_house_close_at < tx_context::epoch(ctx), EInvalidPhase);
@@ -498,12 +499,11 @@ module suins::auction {
                     let bid_detail = linked_table::borrow(bids_of_winner, index);
                     // winner can have multiple bid with the same highest value,
                     // however, we are using the vector, the early bid comes first.
-                    if (bid_detail.label == label && entry.winning_bid_uid == bid_detail.uid) {
+                    if (bid_detail.label == label && entry.winning_bid_id == bid_detail.id) {
                         if (tx_context::epoch(ctx) <= auction_house_extra_period_end_at) {
                             handle_winning_bid(&mut auction_house.balance, suins, entry, bid_detail, true, ctx);
                             register_winning_auction(
                                 suins,
-                                config,
                                 label,
                                 entry.winner,
                                 entry.second_highest_bid,
@@ -521,7 +521,7 @@ module suins::auction {
             };
             next_label = *linked_table::next(&auction_house.entries, label);
         };
-        *entity::controller_auction_house_finalized_at_mut(suins) = tx_context::epoch(ctx);
+        *suins::controller_auction_house_finalized_at_mut(suins) = tx_context::epoch(ctx);
     }
 
     /// #### Notice
@@ -548,12 +548,12 @@ module suins::auction {
 
             if (linked_table::contains(&auction_house.entries, bid_detail.label)) {
                 let entry = linked_table::borrow(&auction_house.entries, bid_detail.label);
-                if (entry.winning_bid_uid == bid_detail.uid) {
+                if (entry.winning_bid_id == bid_detail.id) {
                     front_element = linked_table::next(bids_of_sender, index);
                     continue
                 };
             };
-            coin_util::auction_transfer_to_address(
+            send_to_address(
                 &mut auction_house.balance,
                 bid_detail.bid_value_mask,
                 bid_detail.bidder,
@@ -572,8 +572,8 @@ module suins::auction {
 
     public entry fun set_bidding_fee(_: &AdminCap, auction_house: &mut AuctionHouse, new_bidding_fee: u64) {
         assert!(
-            configuration::mist_per_sui() <= new_bidding_fee
-                && new_bidding_fee <= configuration::mist_per_sui() * 1_000_000,
+            config::mist_per_sui() <= new_bidding_fee
+                && new_bidding_fee <= config::mist_per_sui() * 1_000_000,
             EInvalidBiddingFee
         );
         auction_house.bidding_fee = new_bidding_fee;
@@ -581,8 +581,8 @@ module suins::auction {
 
     public entry fun set_start_an_auction_fee(_: &AdminCap, auction_house: &mut AuctionHouse, new_fee: u64) {
         assert!(
-            configuration::mist_per_sui() <= new_fee
-                && new_fee <= configuration::mist_per_sui() * 1_000_000,
+            config::mist_per_sui() <= new_fee
+                && new_fee <= config::mist_per_sui() * 1_000_000,
             EInvalidBiddingFee
         );
         auction_house.start_an_auction_fee = new_fee;
@@ -693,7 +693,7 @@ module suins::auction {
         entry.highest_bid = winning_bid_detail.bid_value;
         entry.winner = winning_bid_detail.bidder;
         entry.winning_bid_created_at_in_ms = winning_bid_detail.created_at_in_ms;
-        entry.winning_bid_uid = winning_bid_detail.uid;
+        entry.winning_bid_id = winning_bid_detail.id;
     }
 
     fun new_second_highest_bid(
@@ -709,7 +709,6 @@ module suins::auction {
 
     fun register_winning_auction(
         suins: &mut SuiNS,
-        config: &Configuration,
         label: String,
         winner: address,
         winning_amount: u64,
@@ -719,7 +718,6 @@ module suins::auction {
         registrar::register_with_image_internal(
             suins,
             tld,
-            config,
             label,
             winner,
             365,
@@ -745,7 +743,7 @@ module suins::auction {
         ctx: &mut TxContext
     ) {
         if (entry.second_highest_bid != 0 && entry.second_highest_bidder != @0x0) {
-            coin_util::auction_transfer_to_address(
+            send_to_address(
                 auction_balance,
                 bid_detail.bid_value_mask - entry.second_highest_bid,
                 bid_detail.bidder,
@@ -754,33 +752,26 @@ module suins::auction {
             // it rounds down
             if (is_second_highest_bidder_shared) {
                 let second_highest_bidder_share = (entry.second_highest_bid / 100) * 5;
-                coin_util::auction_transfer_to_suins(
-                    suins,
-                    auction_balance,
-                    entry.second_highest_bid - second_highest_bidder_share,
-                );
-                coin_util::auction_transfer_to_address(
+                let commission = entry.second_highest_bid - second_highest_bidder_share;
+                send_to_suins(suins, auction_balance, commission);
+                send_to_address(
                     auction_balance,
                     second_highest_bidder_share,
                     entry.second_highest_bidder,
                     ctx,
                 );
             } else {
-                coin_util::auction_transfer_to_suins(
-                    suins,
-                    auction_balance,
-                    entry.second_highest_bid,
-                );
+                send_to_suins(suins, auction_balance, entry.second_highest_bid);
             }
         } else {
             // winner is the only one who bided
-            coin_util::auction_transfer_to_address(
+            send_to_address(
                 auction_balance,
                 bid_detail.bid_value_mask - bid_detail.bid_value,
                 bid_detail.bidder,
                 ctx
             );
-            coin_util::auction_transfer_to_suins(suins, auction_balance, bid_detail.bid_value);
+            send_to_suins(suins, auction_balance, bid_detail.bid_value);
         };
     }
 
@@ -790,10 +781,10 @@ module suins::auction {
             bid_details_by_bidder: table::new(ctx),
             entries: linked_table::new(ctx),
             balance: balance::zero(),
-            start_auction_start_at: entity::max_epoch_allowed(),
-            start_auction_end_at: entity::max_epoch_allowed() - 1,
-            bidding_fee: configuration::mist_per_sui(),
-            start_an_auction_fee: 10 * configuration::mist_per_sui(),
+            start_auction_start_at: suins::max_epoch_allowed(),
+            start_auction_end_at: suins::max_epoch_allowed() - 1,
+            bidding_fee: config::mist_per_sui(),
+            start_an_auction_fee: 10 * config::mist_per_sui(),
         });
     }
 
@@ -810,6 +801,47 @@ module suins::auction {
             front_element = linked_table::next(bids, index);
         };
         none()
+    }
+
+    // === Transfers ===
+
+    fun send_to_suins(
+        suins: &mut SuiNS,
+        balance: &mut Balance<SUI>,
+        amount: u64,
+    ) {
+        if (amount > 0) {
+            let paid = balance::split(balance, amount);
+            balance::join(suins::balance_mut(suins), paid);
+        }
+    }
+
+    fun send_to_address(
+        balance: &mut Balance<SUI>, amount: u64, receiver: address, ctx: &mut TxContext
+    ) {
+        if (amount > 0) {
+            let coin = coin::take(balance, amount, ctx);
+            transfer::public_transfer(coin, receiver);
+        }
+    }
+
+    fun add_to_balance(
+        balance: &mut Balance<SUI>,
+        payment: &mut Coin<SUI>,
+        amount: u64
+    ) {
+        if (amount > 0) {
+            let coin_balance = coin::balance_mut(payment);
+            let paid = balance::split(coin_balance, amount);
+            balance::join(balance, paid);
+        }
+    }
+
+    fun add_to_suins(
+        suins: &mut SuiNS, payment: &mut Coin<SUI>, amount: u64, ctx: &mut TxContext
+    ) {
+        suins::add_to_balance(suins, coin::split(payment, amount, ctx))
+        // add_to_balance(suins::controller_balance_mut(suins), payment, amount)
     }
 
     // === Testing ===
@@ -866,10 +898,10 @@ module suins::auction {
             bid_details_by_bidder: table::new(ctx),
             entries: linked_table::new(ctx),
             balance: balance::zero(),
-            start_auction_start_at: entity::max_epoch_allowed(),
-            start_auction_end_at: entity::max_epoch_allowed() - 1,
-            bidding_fee: configuration::mist_per_sui(),
-            start_an_auction_fee: 10 * configuration::mist_per_sui(),
+            start_auction_start_at: suins::max_epoch_allowed(),
+            start_auction_end_at: suins::max_epoch_allowed() - 1,
+            bidding_fee: config::mist_per_sui(),
+            start_an_auction_fee: 10 * config::mist_per_sui(),
         });
     }
 }

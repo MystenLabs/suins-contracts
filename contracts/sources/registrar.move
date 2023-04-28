@@ -9,15 +9,15 @@ module suins::registrar {
     use sui::url::Url;
     use std::string::{Self, String, utf8};
     use std::vector;
-    use suins::registry::{Self, AdminCap};
-    use suins::configuration::{Self, Configuration};
+    use suins::registry;
+    use suins::suins::{Self, AdminCap};
+    use suins::config::{Self, Config};
     use sui::ecdsa_k1;
-    use suins::remove_later;
+    use suins::string_utils;
     use sui::url;
     use std::hash::sha2_256;
-    use suins::entity::{SuiNS, RegistrationRecord};
+    use suins::suins::{SuiNS, RegistrationRecord};
     use sui::table;
-    use suins::entity;
     use sui::table::Table;
     use sui::tx_context;
     use sui::transfer;
@@ -27,7 +27,6 @@ module suins::registrar {
 
     // in terms of epoch
     const GRACE_PERIOD: u8 = 30;
-    const MAX_TTL: u64 = 0x100000;
 
     const EUnauthorized: u64 = 101;
     // errors in the range of 201..300 indicate Registrar errors
@@ -84,7 +83,7 @@ module suins::registrar {
         new_tld: String,
         ctx: &mut TxContext,
     ) {
-        let registrars = entity::registrars_mut(suins);
+        let registrars = suins::registrars_mut(suins);
         table::add(registrars, new_tld, table::new(ctx));
     }
 
@@ -107,11 +106,11 @@ module suins::registrar {
         owner: address,
         ctx: &mut TxContext,
     ) {
-        let registrar = entity::registrar(suins, get_tld(nft));
+        let registrar = suins::registrar(suins, get_tld(nft));
         let label = assert_nft_not_expires(registrar, nft, ctx);
 
         let registration = table::borrow(registrar, label);
-        assert!(entity::registration_record_expired_at(registration) >= tx_context::epoch(ctx), ELabelExpired);
+        assert!(suins::registration_record_expired_at(registration) >= tx_context::epoch(ctx), ELabelExpired);
 
         registry::set_owner_internal(suins, nft.name, owner);
         event::emit(NameReclaimedEvent {
@@ -141,20 +140,19 @@ module suins::registrar {
     /// or the data in NFTs don't match `raw_msg`
     public entry fun update_image_url(
         suins: &mut SuiNS,
-        config: &Configuration,
         nft: &mut RegistrationNFT,
         signature: vector<u8>,
         hashed_msg: vector<u8>,
         raw_msg: vector<u8>,
         ctx: &mut TxContext,
     ) {
-        let registrar = entity::registrar(suins, get_tld(nft));
+        let registrar = suins::registrar(suins, get_tld(nft));
         let label = assert_nft_not_expires(registrar, nft, ctx);
 
         assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
-        assert_image_msg_match(config, signature, hashed_msg, raw_msg);
+        assert_image_msg_match(suins, signature, hashed_msg, raw_msg);
 
-        let (ipfs, domain_name_msg, expired_at, additional_data) = remove_later::deserialize_image_msg(raw_msg);
+        let (ipfs, domain_name_msg, expired_at, additional_data) = deserialize_image_msg(raw_msg);
 
         assert!(domain_name_msg == nft.name, EInvalidImageMessage);
 
@@ -181,11 +179,11 @@ module suins::registrar {
     /// 0: if `label` expired
     /// otherwise: the expiration date
     public fun name_expires_at(suins: &SuiNS, tld: String, label: String): u64 {
-        let registrar = entity::registrar(suins, tld);
+        let registrar = suins::registrar(suins, tld);
 
         if (table::contains(registrar, label)) {
             let record = table::borrow(registrar, label);
-            return entity::registration_record_expired_at(record)
+            return suins::registration_record_expired_at(record)
         };
         0
     }
@@ -200,14 +198,16 @@ module suins::registrar {
     }
 
     public fun assert_image_msg_match(
-        config: &Configuration,
+        suins: &SuiNS,
         signature: vector<u8>,
         hashed_msg: vector<u8>,
         raw_msg: vector<u8>
     ) {
+        let config = suins::get_config<Config>(suins);
+
         assert!(sha2_256(raw_msg) == hashed_msg, EHashedMessageNotMatch);
         assert!(
-            ecdsa_k1::secp256k1_verify(&signature, configuration::public_key(config), &raw_msg, 1),
+            ecdsa_k1::secp256k1_verify(&signature, &config::public_key(config), &raw_msg, 1),
             ESignatureNotMatch
         );
     }
@@ -221,7 +221,7 @@ module suins::registrar {
         let label = get_label(&nft.name, &get_tld(nft));
         let record = table::borrow(registrar, label);
         // TODO: delete NFT if it expired
-        assert!(entity::registration_record_nft_id(record) == uid_to_inner(&nft.id), ENFTExpired);
+        assert!(suins::registration_record_nft_id(record) == uid_to_inner(&nft.id), ENFTExpired);
 
         let expired_at = name_expires_at_internal(registrar, label);
         assert!(expired_at != 0 && expired_at >= tx_context::epoch(ctx), ENFTExpired);
@@ -242,7 +242,7 @@ module suins::registrar {
     /// true if this domain name is available for registration
     /// false otherwise
     public fun is_available(suins: &SuiNS, tld: String, label: String, ctx: &TxContext): bool {
-        let registrar = entity::registrar(suins, tld);
+        let registrar = suins::registrar(suins, tld);
         is_available_internal(registrar, label, ctx)
     }
 
@@ -251,7 +251,6 @@ module suins::registrar {
     public(friend) fun register_with_image_internal(
         suins: &mut SuiNS,
         tld: String,
-        config: &Configuration,
         label: String,
         owner: address,
         duration: u64,
@@ -263,7 +262,7 @@ module suins::registrar {
         // the calling fuction is responsible for checking emptyness of msg
         assert!(duration > 0, EInvalidDuration);
 
-        let registrar = entity::registrar_mut(suins, tld);
+        let registrar = suins::registrar(suins, tld);
         assert!(is_available_internal(registrar, label, ctx), ELabelUnavailable);
 
         let expired_at = tx_context::epoch(ctx) + duration;
@@ -276,9 +275,9 @@ module suins::registrar {
         if (vector::is_empty(&hashed_msg) || vector::is_empty(&raw_msg) || vector::is_empty(&signature))
             url = url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY")
         else {
-            assert_image_msg_match(config, signature, hashed_msg, raw_msg);
+            assert_image_msg_match(suins, signature, hashed_msg, raw_msg);
 
-            let (ipfs, domain_name_msg, expired_at_msg, data) = remove_later::deserialize_image_msg(raw_msg);
+            let (ipfs, domain_name_msg, expired_at_msg, data) = deserialize_image_msg(raw_msg);
             assert!(domain_name_msg == domain_name, EInvalidImageMessage);
             assert!(expired_at_msg == expired_at, EInvalidImageMessage);
 
@@ -292,7 +291,9 @@ module suins::registrar {
             url,
         };
         let nft_id = object::uid_to_inner(&nft.id);
-        let record = entity::new_registration_record(expired_at, nft_id);
+        let record = suins::new_registration_record(expired_at, nft_id);
+
+        let registrar = suins::registrar_mut(suins, tld);
 
         if (table::contains(registrar, label)) {
             // this `label` is available for registration again
@@ -301,7 +302,7 @@ module suins::registrar {
 
         table::add(registrar, label, record);
         transfer::transfer(nft, owner);
-        registry::set_record_internal(suins, domain_name, owner, 0, ctx);
+        registry::set_record_internal(suins, domain_name, owner);
 
         (nft_id, url, additional_data)
     }
@@ -309,17 +310,17 @@ module suins::registrar {
     /// this function doesn't charge fee
     /// intended to be called by `Controller`
     public(friend) fun renew(suins: &mut SuiNS, tld: String, label: String, duration: u64, ctx: &TxContext): u64 {
-        let registrar = entity::registrar_mut(suins, tld);
+        let registrar = suins::registrar_mut(suins, tld);
         let expired_at = name_expires_at_internal(registrar, label);
 
         assert!(expired_at > 0, ELabelNotExists);
         assert!(expired_at + (GRACE_PERIOD as u64) >= tx_context::epoch(ctx), ELabelExpired);
 
         let record: &mut RegistrationRecord = table::borrow_mut(registrar, label);
-        let new_expired_at = entity::registration_record_expired_at(record) + duration;
+        let new_expired_at = suins::registration_record_expired_at(record) + duration;
 
         assert!(new_expired_at - tx_context::epoch(ctx) <= 1825, EInvalidNewExpiredAt);
-        *entity::registration_record_expired_at_mut(record) = new_expired_at;
+        *suins::registration_record_expired_at_mut(record) = new_expired_at;
 
         event::emit(NameRenewedEvent { label, expired_at: new_expired_at });
         new_expired_at
@@ -328,7 +329,7 @@ module suins::registrar {
     fun name_expires_at_internal(registrar: &Table<String, RegistrationRecord>, label: String): u64 {
         if (table::contains(registrar, label)) {
             let record = table::borrow(registrar, label);
-            return entity::registration_record_expired_at(record)
+            return suins::registration_record_expired_at(record)
         };
         0
     }
@@ -360,6 +361,29 @@ module suins::registrar {
         string::sub_string(domain_name, index_of_dot + 1, string::length(domain_name))
     }
 
+    /// `msg` format: <ipfs_url>,<domain_name>,<expired_at>,<data>
+    fun deserialize_image_msg(msg: vector<u8>): (String, String, u64, String) {
+        // `msg` now: ipfs_url,domain_name,expired_at,data
+        let msg = utf8(msg);
+        let comma = utf8(b",");
+
+        let index_of_next_comma = string::index_of(&msg, &comma);
+        let ipfs = string::sub_string(&msg, 0, index_of_next_comma);
+        // `msg` now: domain_name,expired_at,data
+        msg = string::sub_string(&msg, index_of_next_comma + 1, string::length(&msg));
+        index_of_next_comma = string::index_of(&msg, &comma);
+        let domain_name = string::sub_string(&msg, 0, index_of_next_comma);
+
+        // `msg` now: expired_at,data
+        msg = string::sub_string(&msg, index_of_next_comma + 1, string::length(&msg));
+        index_of_next_comma = string::index_of(&msg, &comma);
+        let expired_at = string::sub_string(&msg, 0, index_of_next_comma);
+
+        // `msg` now: data
+        msg = string::sub_string(&msg, index_of_next_comma + 1, string::length(&msg));
+        (ipfs, domain_name, string_utils::string_to_number(expired_at), msg)
+    }
+
     // === Testing ===
 
     #[test_only]
@@ -371,7 +395,7 @@ module suins::registrar {
     public fun record_exists(suins: &SuiNS, tld: vector<u8>, label: vector<u8>): bool {
         let tld = utf8(tld);
         let label = utf8(label);
-        let registrar = entity::registrar(suins, tld);
+        let registrar = suins::registrar(suins, tld);
 
         table::contains(registrar, label)
     }
@@ -384,22 +408,22 @@ module suins::registrar {
     #[test_only]
     public fun assert_registrar_exists(suins: &SuiNS, tld: vector<u8>) {
         let tld = utf8(tld);
-        entity::registrar(suins, tld);
+        suins::registrar(suins, tld);
     }
 
     #[test_only]
     public fun get_record_expired_at(suins: &SuiNS, tld: vector<u8>, label: vector<u8>): u64 {
         let tld = utf8(tld);
-        let registrar = entity::registrar(suins, tld);
+        let registrar = suins::registrar(suins, tld);
         let record = table::borrow(registrar, utf8(label));
 
-        entity::registration_record_expired_at(record)
+        suins::registration_record_expired_at(record)
     }
 
     #[test_only]
     public fun get_registrar(suins: &SuiNS, tld: vector<u8>): &Table<String, RegistrationRecord> {
         let tld = utf8(tld);
-        entity::registrar(suins, tld)
+        suins::registrar(suins, tld)
     }
 
     #[test_only]
