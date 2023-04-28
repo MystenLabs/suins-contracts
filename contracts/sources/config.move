@@ -4,7 +4,6 @@
 /// be able to use it in any way. :)
 module suins::config {
     use std::string::{Self, String};
-    use std::ascii;
     use sui::vec_map::{Self, VecMap};
     use sui::tx_context::{sender, TxContext};
 
@@ -44,19 +43,6 @@ module suins::config {
         three_char_price: u64,
         fouch_char_price: u64,
         five_plus_char_price: u64,
-
-        referral_codes: VecMap<String, ReferralValue>,
-        discount_codes: VecMap<String, DiscountValue>,
-    }
-
-    struct ReferralValue has store, drop {
-        rate: u8,
-        partner: address,
-    }
-
-    struct DiscountValue has store, drop {
-        rate: u8,
-        user: address,
     }
 
     /// Create a new instance of the configuration object.
@@ -74,8 +60,6 @@ module suins::config {
             three_char_price,
             fouch_char_price,
             five_plus_char_price,
-            referral_codes: vec_map::empty(),
-            discount_codes: vec_map::empty(),
         }
     }
 
@@ -107,59 +91,6 @@ module suins::config {
     public fun set_five_plus_char_price(self: &mut Config, value: u64) {
         check_price(value);
         self.five_plus_char_price = value;
-    }
-
-    public fun add_referral_code(self: &mut Config, code: String, rate: u8, partner: address) {
-        assert!(0 < rate && rate <= 100, EInvalidRate);
-        let ascii = string::to_ascii(code);
-        assert!(ascii::all_characters_printable(&ascii), EInvalidReferralCode);
-
-        let new_value = ReferralValue { rate, partner };
-        if (vec_map::contains(&self.referral_codes, &code)) {
-            let current_value = vec_map::get_mut(&mut self.referral_codes, &code);
-            *current_value = new_value;
-        } else {
-            vec_map::insert(&mut self.referral_codes, code, new_value);
-        };
-    }
-
-    public fun remove_referral_code(self: &mut Config, code: String) {
-        vec_map::remove(&mut self.referral_codes, &code);
-    }
-
-    // rate in percentage, e.g. discount = 10 means 10%;
-    public fun add_discount_code(self: &mut Config, code: String, rate: u8, user: address) {
-        assert!(0 < rate && rate <= 100, EInvalidRate);
-        let ascii = string::to_ascii(code);
-        assert!(ascii::all_characters_printable(&ascii), EInvalidDiscountCode);
-
-        let new_value = DiscountValue { rate, user };
-        if (vec_map::contains(&self.discount_codes, &code)) {
-            let current_value = vec_map::get_mut(&mut self.discount_codes, &code);
-            *current_value = new_value;
-        } else {
-            vec_map::insert(&mut self.discount_codes, code, new_value);
-        };
-    }
-
-    public fun remove_discount_code(self: &mut Config, code: String) {
-        vec_map::remove(&mut self.discount_codes, &code);
-    }
-
-    public fun use_discount_code(self: &mut Config, code: &String, ctx: &TxContext): u8 {
-        assert!(vec_map::contains(&self.discount_codes, code), EDiscountCodeNotExists);
-        let (_, discount_value) = vec_map::remove(&mut self.discount_codes, code);
-
-        assert!(discount_value.user == sender(ctx), EUserUnauthorized);
-
-        discount_value.rate
-    }
-
-    // returns referral code's rate and partner address
-    public fun use_referral_code(self: &Config, code: &String): (u8, address) {
-        assert!(vec_map::contains(&self.referral_codes, code), EReferralCodeNotExists);
-        let value = vec_map::get(&self.referral_codes, code);
-        (value.rate, value.partner)
     }
 
     // === Price calculations ===

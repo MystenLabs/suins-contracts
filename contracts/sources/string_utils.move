@@ -1,18 +1,9 @@
 /// Unifies previously defined modules: validator and converter.
 /// Holds the neutral logic for validation and conversion of strings.
 module suins::string_utils {
+    use std::ascii;
     use std::vector;
     use std::string::{Self, String};
-
-    friend suins::registry;
-    friend suins::registrar;
-    friend suins::controller;
-    friend suins::auction;
-
-    #[test_only]
-    friend suins::converter_tests;
-    #[test_only]
-    friend suins::validator_tests;
 
     /// TODO: Are we sure about error codes here?
     const EInvalidLabel: u64 = 704;
@@ -24,7 +15,7 @@ module suins::string_utils {
     ///
     /// Allowed characters are: a-z, 0-9 and hyphen (-).
     /// The ASCII code ranges are: 0x61-0x7A, 0x30-0x39, 0x2D
-    public(friend) fun validate_label(
+    public fun validate_label(
         label: String,
         min_characters: u8,
         max_characters: u8
@@ -51,7 +42,7 @@ module suins::string_utils {
 
     /// Read a number from a given string (eg b"123").
     /// Aborts if a character is met (not in the range `0-9` - `0x30-0x39`).
-    public(friend) fun string_to_number(str: String): u64 {
+    public fun string_to_number(str: String): u64 {
         let bytes = string::bytes(&str);
         // count from 1 because Move doesn't have negative number atm
         let index = vector::length(bytes);
@@ -68,5 +59,11 @@ module suins::string_utils {
         };
 
         result
+    }
+
+    /// Check whether a given string is a valid ASCII string.
+    public fun is_valid_ascii(str: String): bool {
+        let ascii = string::to_ascii(str);
+        ascii::all_characters_printable(&ascii)
     }
 }
