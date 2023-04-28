@@ -6,6 +6,7 @@ module suins::config {
     use std::string::{Self, String};
     use std::ascii;
     use sui::vec_map::{Self, VecMap};
+    use sui::tx_context::{sender, TxContext};
 
     /// A label is too short to be registered.
     const ELabelTooShort: u64 = 0;
@@ -145,25 +146,21 @@ module suins::config {
         vec_map::remove(&mut self.discount_codes, &code);
     }
 
-    // public(friend) fun use_discount_code(config: &mut Configuration, code: &ascii::String, ctx: &TxContext): u8 {
-    //     assert!(vec_map::contains(&config.discount_codes, code), EDiscountCodeNotExists);
+    public fun use_discount_code(self: &mut Config, code: &String, ctx: &TxContext): u8 {
+        assert!(vec_map::contains(&self.discount_codes, code), EDiscountCodeNotExists);
+        let (_, discount_value) = vec_map::remove(&mut self.discount_codes, code);
 
-    //     let value = vec_map::get(&config.discount_codes, code);
-    //     let owner = value.owner;
-    //     let sender = hex::encode(address::to_bytes(sender(ctx)));
-    //     assert!(owner == ascii::string(sender), EOwnerUnauthorized);
+        assert!(discount_value.user == sender(ctx), EOwnerUnauthorized);
 
-    //     let rate = value.rate;
-    //     vec_map::remove(&mut config.discount_codes, code);
-    //     rate
-    // }
+        discount_value.rate
+    }
 
-    // // returns referral code's rate and partner address
-    // public(friend) fun use_referral_code(config: &Configuration, code: &ascii::String): (u8, address) {
-    //     assert!(vec_map::contains(&config.referral_codes, code), EReferralCodeNotExists);
-    //     let value = vec_map::get(&config.referral_codes, code);
-    //     (value.rate, value.partner)
-    // }
+    // returns referral code's rate and partner address
+    public fun use_referral_code(self: &Config, code: &String): (u8, address) {
+        assert!(vec_map::contains(&self.referral_codes, code), EReferralCodeNotExists);
+        let value = vec_map::get(&self.referral_codes, code);
+        (value.rate, value.partner)
+    }
 
     // === Price calculations ===
 

@@ -452,14 +452,12 @@ module suins::controller {
 
         // can apply both discount and referral codes at the same time
         if (option::is_some(&discount_code)) {
-            // TODO: apply discount code
-            // registration_fee =
-            //     apply_discount_code(config, registration_fee, option::borrow(&discount_code), ctx);
+            registration_fee =
+                apply_discount_code(suins, registration_fee, option::borrow(&discount_code), ctx);
         };
         if (option::is_some(&referral_code)) {
-            // TODO: apply referral code
-            // registration_fee =
-            //     apply_referral_code(payment, registration_fee, option::borrow(&referral_code), ctx);
+            registration_fee =
+                apply_referral_code(suins, payment, registration_fee, option::borrow(&referral_code), ctx);
         };
 
         let tld = utf8(SUI_TLD);
@@ -496,34 +494,35 @@ module suins::controller {
         suins::add_to_balance(suins, coin::split(payment, registration_fee, ctx))
     }
 
-    // TODO: come back to referrals
     // returns remaining_fee
-    // fun apply_referral_code(
-    //     payment: &mut Coin<SUI>,
-    //     original_fee: u64,
-    //     referral_code: &ascii::String,
-    //     ctx: &mut TxContext
-    // ): u64 {
-    //     let (rate, partner) = configuration::use_referral_code(config, referral_code);
-    //     let remaining_fee = (original_fee / 100) * (100 - rate as u64);
-    //     let payback_amount = original_fee - remaining_fee;
+    fun apply_referral_code(
+        suins: &SuiNS,
+        payment: &mut Coin<SUI>,
+        original_fee: u64,
+        referral_code: &ascii::String,
+        ctx: &mut TxContext
+    ): u64 {
+        let config = suins::get_config<Config>(suins);
+        let (rate, partner) = config::use_referral_code(config, &std::string::from_ascii(*referral_code));
+        let remaining_fee = (original_fee / 100) * (100 - rate as u64);
+        let payback_amount = original_fee - remaining_fee;
 
-    //     sui::pay::split_and_transfer(payment, payback_amount, partner, ctx);
-    //     coin_tracker::track(partner, payback_amount);
+        sui::pay::split_and_transfer(payment, payback_amount, partner, ctx);
 
-    //     remaining_fee
-    // }
+        remaining_fee
+    }
 
     // returns remaining_fee after being discounted
-    // TODO: come back to this buddy after Configuration is dealt with
-    // fun apply_discount_code(
-    //     original_fee: u64,
-    //     referral_code: &ascii::String,
-    //     ctx: &mut TxContext,
-    // ): u64 {
-    //     let rate = configuration::use_discount_code(config, referral_code, ctx);
-    //     (original_fee / 100) * (100 - rate as u64)
-    // }
+    fun apply_discount_code(
+        suins: &mut SuiNS,
+        original_fee: u64,
+        referral_code: &ascii::String,
+        ctx: &mut TxContext,
+    ): u64 {
+        let config = suins::get_config_mut<Config>(suins);
+        let rate = config::use_discount_code(config, &std::string::from_ascii(*referral_code), ctx);
+        (original_fee / 100) * (100 - rate as u64)
+    }
 
     fun remove_outdated_commitments(commitments: &mut LinkedTable<vector<u8>, u64>, clock: &Clock) {
         let front_element = linked_table::front(commitments);
@@ -610,14 +609,14 @@ module suins::controller {
         linked_table::length(commitments)
     }
 
-    // #[test_only]
-    // TODO: come back
-    // public fun apply_referral_code_test(
-    //     payment: &mut Coin<SUI>,
-    //     original_fee: u64,
-    //     referral_code: vector<u8>,
-    //     ctx: &mut TxContext
-    // ): u64 {
-    //     apply_referral_code(payment, original_fee, &ascii::string(referral_code), ctx)
-    // }
+    #[test_only]
+    public fun apply_referral_code_test(
+        suins: &SuiNS,
+        payment: &mut Coin<SUI>,
+        original_fee: u64,
+        referral_code: vector<u8>,
+        ctx: &mut TxContext
+    ): u64 {
+        apply_referral_code(suins, payment, original_fee, &ascii::string(referral_code), ctx)
+    }
 }
