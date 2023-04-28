@@ -1,23 +1,23 @@
 #[test_only]
 module suins::auction_tests {
+    use std::vector;
+    use std::option::{Self, Option, some, is_some};
+    use std::string::utf8;
 
     use sui::test_scenario::{Self, Scenario, ctx};
     use sui::coin::{Self, Coin};
     use sui::sui::SUI;
     use sui::dynamic_field;
     use sui::tx_context::{Self, TxContext};
+    use sui::clock::Clock;
+    use sui::clock;
+
     use suins::auction::{Self, make_seal_bid, get_seal_bid_by_bidder, finalize_auction, get_bids_by_bidder, get_bid_detail_fields, withdraw, state, AuctionHouse};
     use suins::registry;
     use suins::registrar;
     use suins::string_utils;
-    use suins::config;
-    use suins::suins::{Self, SuiNS, AdminCap};
-    use std::vector;
-    use std::option::{Self, Option, some, is_some};
     use suins::controller;
-    use sui::clock::Clock;
-    use sui::clock;
-    use std::string::utf8;
+    use suins::suins::{Self, SuiNS, AdminCap};
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -292,7 +292,7 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
-            place_bid_util(scenario, HASH, 1000 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+            place_bid_util(scenario, HASH, 1000 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
         };
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         {
@@ -304,16 +304,16 @@ module suins::auction_tests {
             let (bidder, mask, created_at, is_unsealed) = get_bid_detail_fields(bid_detail);
 
             assert!(bidder == FIRST_USER_ADDRESS, 0);
-            assert!(mask == 1000 * config::mist_per_sui(), 0);
+            assert!(mask == 1000 * suins::constants::mist_per_sui(), 0);
             assert!(created_at == START_AN_AUCTION_AT + 1, 0);
             assert!(!is_unsealed, 0);
-            assert!(auction::get_balance(&auction) == 1000 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 1000 * suins::constants::mist_per_sui(), 0);
 
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
-            place_bid_util(scenario, DOMAIN_NAME, 1200 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+            place_bid_util(scenario, DOMAIN_NAME, 1200 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
         };
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         {
@@ -324,23 +324,23 @@ module suins::auction_tests {
             let bid_detail = vector::borrow(&bids, 0);
             let (bidder, mask, created_at, is_unsealed) = get_bid_detail_fields(bid_detail);
             assert!(bidder == FIRST_USER_ADDRESS, 0);
-            assert!(mask == 1000 * config::mist_per_sui(), 0);
+            assert!(mask == 1000 * suins::constants::mist_per_sui(), 0);
             assert!(created_at == START_AN_AUCTION_AT + 1, 0);
             assert!(!is_unsealed, 0);
 
             let bid_detail = vector::borrow(&bids, 1);
             let (bidder, mask, created_at, is_unsealed) = get_bid_detail_fields(bid_detail);
             assert!(bidder == FIRST_USER_ADDRESS, 0);
-            assert!(mask == 1200 * config::mist_per_sui(), 0);
+            assert!(mask == 1200 * suins::constants::mist_per_sui(), 0);
             assert!(created_at == START_AN_AUCTION_AT + 1, 0);
             assert!(!is_unsealed, 0);
-            assert!(auction::get_balance(&auction) == 2200 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2200 * suins::constants::mist_per_sui(), 0);
 
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
-            place_bid_util(scenario, b"bidbid", 12200 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+            place_bid_util(scenario, b"bidbid", 12200 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
         };
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         {
@@ -351,17 +351,17 @@ module suins::auction_tests {
             let bid_detail = vector::borrow(&bids, 1);
             let (bidder, mask, created_at, is_unsealed) = get_bid_detail_fields(bid_detail);
             assert!(bidder == FIRST_USER_ADDRESS, 0);
-            assert!(mask == 1200 * config::mist_per_sui(), 0);
+            assert!(mask == 1200 * suins::constants::mist_per_sui(), 0);
             assert!(created_at == START_AN_AUCTION_AT + 1, 0);
             assert!(!is_unsealed, 0);
 
             let bid_detail = vector::borrow(&bids, 2);
             let (bidder, mask, created_at, is_unsealed) = get_bid_detail_fields(bid_detail);
             assert!(bidder == FIRST_USER_ADDRESS, 0);
-            assert!(mask == 12200 * config::mist_per_sui(), 0);
+            assert!(mask == 12200 * suins::constants::mist_per_sui(), 0);
             assert!(created_at == START_AN_AUCTION_AT + 1, 0);
             assert!(!is_unsealed, 0);
-            assert!(auction::get_balance(&auction) == 14400 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 14400 * suins::constants::mist_per_sui(), 0);
 
             test_scenario::return_shared(auction);
         };
@@ -384,7 +384,7 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let clock = test_scenario::take_shared<Clock>(scenario);
-            let coin = coin::mint_for_testing<SUI>(1000 * config::mist_per_sui(), ctx);
+            let coin = coin::mint_for_testing<SUI>(1000 * suins::constants::mist_per_sui(), ctx);
             auction::place_bid(&mut auction, &mut suins, HASH, 100, &mut coin, &clock, ctx);
             place_bid_util(scenario, HASH, 100, FIRST_USER_ADDRESS, 0, option::none(), 10);
             coin::burn_for_testing(coin);
@@ -410,10 +410,10 @@ module suins::auction_tests {
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let coin = coin::mint_for_testing<SUI>(1000 * config::mist_per_sui() + BIDDING_FEE, ctx);
+            let coin = coin::mint_for_testing<SUI>(1000 * suins::constants::mist_per_sui() + BIDDING_FEE, ctx);
             let clock = test_scenario::take_shared<Clock>(scenario);
 
-            auction::place_bid(&mut auction, &mut suins, HASH, 1000 * config::mist_per_sui(), &mut coin, &clock, ctx);
+            auction::place_bid(&mut auction, &mut suins, HASH, 1000 * suins::constants::mist_per_sui(), &mut coin, &clock, ctx);
             assert!(coin::value(&coin) == 0, 0);
 
             coin::burn_for_testing(coin);
@@ -427,10 +427,10 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let clock = test_scenario::take_shared<Clock>(scenario);
-            let coin = coin::mint_for_testing<SUI>(10000 * config::mist_per_sui(), ctx(scenario));
+            let coin = coin::mint_for_testing<SUI>(10000 * suins::constants::mist_per_sui(), ctx(scenario));
 
-            assert!(auction::get_balance(&auction) == 1000 * config::mist_per_sui(), 0);
-			auction::place_bid(&mut auction, &mut suins, HASH, 1000 * config::mist_per_sui(), &mut coin, &clock, ctx);
+            assert!(auction::get_balance(&auction) == 1000 * suins::constants::mist_per_sui(), 0);
+			auction::place_bid(&mut auction, &mut suins, HASH, 1000 * suins::constants::mist_per_sui(), &mut coin, &clock, ctx);
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -456,8 +456,8 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let clock = test_scenario::take_shared<Clock>(scenario);
-            let coin = coin::mint_for_testing<SUI>(10000 * config::mist_per_sui(), ctx);
-            auction::place_bid(&mut auction, &mut suins, HASH, 1000 * config::mist_per_sui(), &mut coin, &clock, ctx);
+            let coin = coin::mint_for_testing<SUI>(10000 * suins::constants::mist_per_sui(), ctx);
+            auction::place_bid(&mut auction, &mut suins, HASH, 1000 * suins::constants::mist_per_sui(), &mut coin, &clock, ctx);
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(clock);
@@ -483,8 +483,8 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let clock = test_scenario::take_shared<Clock>(scenario);
-            let coin = coin::mint_for_testing<SUI>(10000 * config::mist_per_sui(), ctx);
-            auction::place_bid(&mut auction, &mut suins, HASH, 1000 * config::mist_per_sui(), &mut coin, &clock, ctx);
+            let coin = coin::mint_for_testing<SUI>(10000 * suins::constants::mist_per_sui(), ctx);
+            auction::place_bid(&mut auction, &mut suins, HASH, 1000 * suins::constants::mist_per_sui(), &mut coin, &clock, ctx);
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(clock);
@@ -510,9 +510,9 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let clock = test_scenario::take_shared<Clock>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let coin = coin::mint_for_testing<SUI>(10000 * config::mist_per_sui(), ctx);
+            let coin = coin::mint_for_testing<SUI>(10000 * suins::constants::mist_per_sui(), ctx);
 
-            auction::place_bid(&mut auction, &mut suins, HASH, 1000 * config::mist_per_sui(), &mut coin, &clock, ctx);
+            auction::place_bid(&mut auction, &mut suins, HASH, 1000 * suins::constants::mist_per_sui(), &mut coin, &clock, ctx);
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(clock);
@@ -559,11 +559,11 @@ module suins::auction_tests {
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let coin = coin::mint_for_testing<SUI>(1000 * config::mist_per_sui() + BIDDING_FEE, ctx);
+            let coin = coin::mint_for_testing<SUI>(1000 * suins::constants::mist_per_sui() + BIDDING_FEE, ctx);
             let clock = test_scenario::take_shared<Clock>(scenario);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            auction::place_bid(&mut auction, &mut suins, HASH, 1000 * config::mist_per_sui(), &mut coin, &clock, ctx);
+            auction::place_bid(&mut auction, &mut suins, HASH, 1000 * suins::constants::mist_per_sui(), &mut coin, &clock, ctx);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
@@ -577,7 +577,7 @@ module suins::auction_tests {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
             assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE, 0);
-            assert!(auction::get_balance(&auction) == 1000 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 1000 * suins::constants::mist_per_sui(), 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -870,19 +870,19 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1300 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1300 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1300 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1300 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            get_bid_util(&auction, seal_bid, FIRST_USER_ADDRESS, some(1300 * config::mist_per_sui()));
+            get_bid_util(&auction, seal_bid, FIRST_USER_ADDRESS, some(1300 * suins::constants::mist_per_sui()));
             reveal_bid_util(
                 &mut auction,
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1300 * config::mist_per_sui(),
+                1300 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
@@ -901,7 +901,7 @@ module suins::auction_tests {
             );
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            let coin = coin::mint_for_testing<SUI>(10 * config::mist_per_sui(), &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(10 * suins::constants::mist_per_sui(), &mut ctx);
 
             auction::start_an_auction(&mut auction, &mut suins, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
@@ -918,21 +918,21 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1300 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1300 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1300 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1300 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            assert!(auction::get_balance(&auction) == 1300 * config::mist_per_sui(), 0);
-            get_bid_util(&auction, seal_bid, FIRST_USER_ADDRESS, some(1300 * config::mist_per_sui()));
+            assert!(auction::get_balance(&auction) == 1300 * suins::constants::mist_per_sui(), 0);
+            get_bid_util(&auction, seal_bid, FIRST_USER_ADDRESS, some(1300 * suins::constants::mist_per_sui()));
             reveal_bid_util(
                 &mut auction,
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1300 * config::mist_per_sui(),
+                1300 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
@@ -945,7 +945,7 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1300 * config::mist_per_sui(), 0, FIRST_USER_ADDRESS, false);
+            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1300 * suins::constants::mist_per_sui(), 0, FIRST_USER_ADDRESS, false);
             finalize_auction_util(
                 scenario,
                 &mut auction,
@@ -954,7 +954,7 @@ module suins::auction_tests {
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
             );
-            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1300 * config::mist_per_sui(), 0, FIRST_USER_ADDRESS, true);
+            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1300 * suins::constants::mist_per_sui(), 0, FIRST_USER_ADDRESS, true);
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
@@ -970,7 +970,7 @@ module suins::auction_tests {
             let coin = coin::mint_for_testing<SUI>(30000, &mut ctx);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1300 * config::mist_per_sui() + BIDDING_FEE, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1300 * suins::constants::mist_per_sui() + BIDDING_FEE, 0);
 
             auction::start_an_auction(&mut auction, &mut suins, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
@@ -986,8 +986,8 @@ module suins::auction_tests {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1100 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1100 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let ctx = ctx_new(
@@ -1001,7 +1001,7 @@ module suins::auction_tests {
             let coin = test_scenario::most_recent_id_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
 
             assert!(option::is_none(&coin), 0);
-            auction::reveal_bid(&mut auction, &suins, utf8(DOMAIN_NAME), 1000 * config::mist_per_sui(), FIRST_SECRET, &mut ctx);
+            auction::reveal_bid(&mut auction, &suins, utf8(DOMAIN_NAME), 1000 * suins::constants::mist_per_sui(), FIRST_SECRET, &mut ctx);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -1015,16 +1015,16 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1300 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1300 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            get_bid_util(&auction, seal_bid, FIRST_USER_ADDRESS, some(1300 * config::mist_per_sui()));
+            get_bid_util(&auction, seal_bid, FIRST_USER_ADDRESS, some(1300 * suins::constants::mist_per_sui()));
             let coin = test_scenario::most_recent_id_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
             assert!(option::is_none(&coin), 0);
-            assert!(auction::get_balance(&auction) == 1300 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 1300 * suins::constants::mist_per_sui(), 0);
 
             let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
             assert!(vector::length(&bids) == 1, 0);
@@ -1032,7 +1032,7 @@ module suins::auction_tests {
             let bid_detail = vector::borrow(&bids, 0);
             let (bidder, mask, created_at, is_unsealed) = get_bid_detail_fields(bid_detail);
             assert!(bidder == FIRST_USER_ADDRESS, 0);
-            assert!(mask == 1300 * config::mist_per_sui(), 0);
+            assert!(mask == 1300 * suins::constants::mist_per_sui(), 0);
             assert!(created_at == START_AN_AUCTION_AT + 1, 0);
             assert!(!is_unsealed, 0);
 
@@ -1049,7 +1049,7 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
@@ -1070,7 +1070,7 @@ module suins::auction_tests {
             let bid_detail = vector::borrow(&bids, 0);
             let (bidder, mask, created_at, is_unsealed) = get_bid_detail_fields(bid_detail);
             assert!(bidder == FIRST_USER_ADDRESS, 0);
-            assert!(mask == 1300 * config::mist_per_sui(), 0);
+            assert!(mask == 1300 * suins::constants::mist_per_sui(), 0);
             assert!(created_at == START_AN_AUCTION_AT + 1, 0);
             assert!(is_unsealed, 0);
             test_scenario::return_shared(auction);
@@ -1079,20 +1079,20 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            assert!(auction::get_balance(&auction) == 1300 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 1300 * suins::constants::mist_per_sui(), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(FIRST_USER_ADDRESS), 0);
             test_scenario::return_shared(auction);
         };
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1500 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 2000 * config::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1500 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 2000 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            assert!(auction::get_balance(&auction) == 3300 * config::mist_per_sui(), 0);
-            get_bid_util(&auction, seal_bid, SECOND_USER_ADDRESS, some(2000 * config::mist_per_sui()));
+            assert!(auction::get_balance(&auction) == 3300 * suins::constants::mist_per_sui(), 0);
+            get_bid_util(&auction, seal_bid, SECOND_USER_ADDRESS, some(2000 * suins::constants::mist_per_sui()));
 
             let coin = test_scenario::most_recent_id_for_address<Coin<SUI>>(SECOND_USER_ADDRESS);
             assert!(option::is_none(&coin), 0);
@@ -1103,7 +1103,7 @@ module suins::auction_tests {
             let bid_detail = vector::borrow(&bids, 0);
             let (bidder, mask, created_at, is_unsealed) = get_bid_detail_fields(bid_detail);
             assert!(bidder == SECOND_USER_ADDRESS, 0);
-            assert!(mask == 2000 * config::mist_per_sui(), 0);
+            assert!(mask == 2000 * suins::constants::mist_per_sui(), 0);
             assert!(created_at == START_AN_AUCTION_AT + 1, 0);
             assert!(!is_unsealed, 0);
 
@@ -1112,7 +1112,7 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1500 * config::mist_per_sui(),
+                1500 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 10
@@ -1123,7 +1123,7 @@ module suins::auction_tests {
             let bid_detail = vector::borrow(&bids, 0);
             let (bidder, mask, created_at, is_unsealed) = get_bid_detail_fields(bid_detail);
             assert!(bidder == SECOND_USER_ADDRESS, 0);
-            assert!(mask == 2000 * config::mist_per_sui(), 0);
+            assert!(mask == 2000 * suins::constants::mist_per_sui(), 0);
             assert!(created_at == START_AN_AUCTION_AT + 1, 0);
             assert!(is_unsealed, 0);
 
@@ -1142,9 +1142,9 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let bids = get_bids_by_bidder(&auction, SECOND_USER_ADDRESS);
             assert!(vector::length(&bids) == 1, 0);
-            assert!(auction::get_balance(&auction) == 3300 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 3300 * suins::constants::mist_per_sui(), 0);
 
-            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * config::mist_per_sui(), 1200 * config::mist_per_sui(), SECOND_USER_ADDRESS, false);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * suins::constants::mist_per_sui(), 1200 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, false);
             finalize_auction_util(
                 scenario,
                 &mut auction,
@@ -1153,7 +1153,7 @@ module suins::auction_tests {
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 20
             );
-            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * config::mist_per_sui(), 1200 * config::mist_per_sui(), SECOND_USER_ADDRESS, true);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * suins::constants::mist_per_sui(), 1200 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, true);
 
             let bids = get_bids_by_bidder(&auction, SECOND_USER_ADDRESS);
             assert!(vector::length(&bids) == 0, 0);
@@ -1167,9 +1167,9 @@ module suins::auction_tests {
 
             assert!(vector::length(&ids) == 1, 0);
             let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
-            assert!(coin::value(&coin) == 800 * config::mist_per_sui(), 0);
-            assert!(auction::get_balance(&auction) == 1300 * config::mist_per_sui(), 0);
-            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1140 * config::mist_per_sui() + BIDDING_FEE * 2, 0);
+            assert!(coin::value(&coin) == 800 * suins::constants::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 1300 * suins::constants::mist_per_sui(), 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1140 * suins::constants::mist_per_sui() + BIDDING_FEE * 2, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -1179,7 +1179,7 @@ module suins::auction_tests {
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * config::mist_per_sui(), 1200 * config::mist_per_sui(), SECOND_USER_ADDRESS, true);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * suins::constants::mist_per_sui(), 1200 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, true);
             assert!(registrar::record_exists(&suins, SUI_REGISTRAR, DOMAIN_NAME), 0);
             assert!(
                 registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(DOMAIN_NAME))
@@ -1196,7 +1196,7 @@ module suins::auction_tests {
             let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
             assert!(vector::length(&bids) == 1, 0);
 
-            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * config::mist_per_sui(), 1200 * config::mist_per_sui(), SECOND_USER_ADDRESS, true);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * suins::constants::mist_per_sui(), 1200 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, true);
             finalize_auction_util(
                 scenario,
                 &mut auction,
@@ -1205,7 +1205,7 @@ module suins::auction_tests {
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
             );
-            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * config::mist_per_sui(), 1200 * config::mist_per_sui(), SECOND_USER_ADDRESS, true);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * suins::constants::mist_per_sui(), 1200 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, true);
             assert!(auction::get_balance(&auction) == 0, 0);
             let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
             assert!(vector::length(&bids) == 0, 0);
@@ -1217,14 +1217,14 @@ module suins::auction_tests {
             assert!(vector::length(&ids) == 2, 0);
 
             let coin1 = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin1) == 1300 * config::mist_per_sui(), 0);
+            assert!(coin::value(&coin1) == 1300 * suins::constants::mist_per_sui(), 0);
             let coin2 = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin2) == 60 * config::mist_per_sui(), 0);
+            assert!(coin::value(&coin2) == 60 * suins::constants::mist_per_sui(), 0);
 
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1140 * config::mist_per_sui() + BIDDING_FEE * 2, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1140 * suins::constants::mist_per_sui() + BIDDING_FEE * 2, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -1235,7 +1235,7 @@ module suins::auction_tests {
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * config::mist_per_sui(), 1200 * config::mist_per_sui(), SECOND_USER_ADDRESS, true);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * suins::constants::mist_per_sui(), 1200 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, true);
             assert!(registrar::record_exists(&suins, SUI_REGISTRAR, DOMAIN_NAME), 0);
             assert!(
                 registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(DOMAIN_NAME))
@@ -1255,7 +1255,7 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * config::mist_per_sui(), FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * suins::constants::mist_per_sui(), FIRST_SECRET);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let ctx = &mut ctx_new(
@@ -1266,12 +1266,12 @@ module suins::auction_tests {
             );
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let coin = coin::mint_for_testing<SUI>(1300 * config::mist_per_sui() + BIDDING_FEE, ctx);
+            let coin = coin::mint_for_testing<SUI>(1300 * suins::constants::mist_per_sui() + BIDDING_FEE, ctx);
             let clock = test_scenario::take_shared<Clock>(scenario);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            auction::place_bid(&mut auction, &mut suins, seal_bid, 1300 * config::mist_per_sui(), &mut coin, &clock, ctx);
-            assert!(auction::get_balance(&auction) == 1300 * config::mist_per_sui(), 0);
+            auction::place_bid(&mut auction, &mut suins, seal_bid, 1300 * suins::constants::mist_per_sui(), &mut coin, &clock, ctx);
+            assert!(auction::get_balance(&auction) == 1300 * suins::constants::mist_per_sui(), 0);
             assert!(coin::value(&coin) == 0, 0);
 
             clock::increment_for_testing(&mut clock, 2);
@@ -1280,7 +1280,7 @@ module suins::auction_tests {
             test_scenario::return_shared(suins);
             test_scenario::return_shared(clock);
         };
-        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1200 * config::mist_per_sui(), FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1200 * suins::constants::mist_per_sui(), FIRST_SECRET);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let ctx = &mut ctx_new(
@@ -1291,15 +1291,15 @@ module suins::auction_tests {
             );
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let coin = coin::mint_for_testing<SUI>(1300 * config::mist_per_sui() + BIDDING_FEE, ctx);
+            let coin = coin::mint_for_testing<SUI>(1300 * suins::constants::mist_per_sui() + BIDDING_FEE, ctx);
             let clock = test_scenario::take_shared<Clock>(scenario);
 
-            assert!(auction::get_balance(&auction) == 1300 * config::mist_per_sui(), 0);
-            auction::place_bid(&mut auction, &mut suins, seal_bid, 1300 * config::mist_per_sui(), &mut coin, &clock, ctx);
+            assert!(auction::get_balance(&auction) == 1300 * suins::constants::mist_per_sui(), 0);
+            auction::place_bid(&mut auction, &mut suins, seal_bid, 1300 * suins::constants::mist_per_sui(), &mut coin, &clock, ctx);
             assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 2, 0);
-            assert!(auction::get_balance(&auction) == 2600 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2600 * suins::constants::mist_per_sui(), 0);
 
-            assert!(auction::get_balance(&auction) == 2600 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2600 * suins::constants::mist_per_sui(), 0);
             assert!(coin::value(&coin) == 0, 0);
 
             coin::burn_for_testing(coin);
@@ -1316,7 +1316,7 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 10
@@ -1333,7 +1333,7 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
@@ -1348,8 +1348,8 @@ module suins::auction_tests {
                 &mut auction,
                 DOMAIN_NAME,
                 START_AN_AUCTION_AT + 1,
-                1200 * config::mist_per_sui(),
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_USER_ADDRESS,
                 false
             );
@@ -1364,7 +1364,7 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * config::mist_per_sui(), FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * suins::constants::mist_per_sui(), FIRST_SECRET);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let ctx = ctx_new(
@@ -1375,13 +1375,13 @@ module suins::auction_tests {
             );
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            let coin = coin::mint_for_testing<SUI>(1300 * config::mist_per_sui() + BIDDING_FEE, ctx);
+            let coin = coin::mint_for_testing<SUI>(1300 * suins::constants::mist_per_sui() + BIDDING_FEE, ctx);
             let clock = test_scenario::take_shared<Clock>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            auction::place_bid(&mut auction, &mut suins, seal_bid, 1300 * config::mist_per_sui(), &mut coin, &clock, ctx);
-            assert!(auction::get_balance(&auction) == 1300 * config::mist_per_sui(), 0);
+            auction::place_bid(&mut auction, &mut suins, seal_bid, 1300 * suins::constants::mist_per_sui(), &mut coin, &clock, ctx);
+            assert!(auction::get_balance(&auction) == 1300 * suins::constants::mist_per_sui(), 0);
             assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE, 0);
 
             clock::increment_for_testing(&mut clock, 2);
@@ -1390,7 +1390,7 @@ module suins::auction_tests {
             test_scenario::return_shared(clock);
             test_scenario::return_shared(suins);
         };
-        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1200 * config::mist_per_sui(), FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1200 * suins::constants::mist_per_sui(), FIRST_SECRET);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let ctx = ctx_new(
@@ -1403,11 +1403,11 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let clock = test_scenario::take_shared<Clock>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let coin = coin::mint_for_testing<SUI>(1300 * config::mist_per_sui() + BIDDING_FEE, ctx);
+            let coin = coin::mint_for_testing<SUI>(1300 * suins::constants::mist_per_sui() + BIDDING_FEE, ctx);
 
-            assert!(auction::get_balance(&auction) == 1300 * config::mist_per_sui(), 0);
-            auction::place_bid(&mut auction, &mut suins, seal_bid, 1300 * config::mist_per_sui(), &mut coin, &clock, ctx);
-            assert!(auction::get_balance(&auction) == 2600 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 1300 * suins::constants::mist_per_sui(), 0);
+            auction::place_bid(&mut auction, &mut suins, seal_bid, 1300 * suins::constants::mist_per_sui(), &mut coin, &clock, ctx);
+            assert!(auction::get_balance(&auction) == 2600 * suins::constants::mist_per_sui(), 0);
             assert!(coin::value(&coin) == 0, 0);
             assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 2, 0);
 
@@ -1427,7 +1427,7 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 10
@@ -1447,7 +1447,7 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
@@ -1462,8 +1462,8 @@ module suins::auction_tests {
                 &mut auction,
                 DOMAIN_NAME,
                 START_AN_AUCTION_AT + 1,
-                1200 * config::mist_per_sui(),
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_USER_ADDRESS,
                 false
             );
@@ -1478,10 +1478,10 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1300 * config::mist_per_sui(), FIRST_USER_ADDRESS, 1, option::none(), 10);
-        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1200 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1300 * config::mist_per_sui(), SECOND_USER_ADDRESS, 2, option::none(), 15);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1300 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 1, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1200 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1300 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, 2, option::none(), 15);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -1492,7 +1492,7 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 10
@@ -1512,7 +1512,7 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
@@ -1529,8 +1529,8 @@ module suins::auction_tests {
                 &mut auction,
                  DOMAIN_NAME,
                 START_AN_AUCTION_AT + 1,
-                 1200 * config::mist_per_sui(),
-                 1200 * config::mist_per_sui(),
+                 1200 * suins::constants::mist_per_sui(),
+                 1200 * suins::constants::mist_per_sui(),
                 FIRST_USER_ADDRESS,
                 false
             );
@@ -1545,10 +1545,10 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1300 * config::mist_per_sui(), FIRST_USER_ADDRESS, 1, option::none(), 10);
-        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1200 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1300 * config::mist_per_sui(), SECOND_USER_ADDRESS, 2, option::none(), 15);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1300 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 1, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1200 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1300 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, 2, option::none(), 15);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -1560,7 +1560,7 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
@@ -1582,7 +1582,7 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 10
@@ -1599,8 +1599,8 @@ module suins::auction_tests {
                 &mut auction,
                 DOMAIN_NAME,
                 START_AN_AUCTION_AT + 1,
-                1200 * config::mist_per_sui(),
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_USER_ADDRESS,
                 false
             );
@@ -1615,10 +1615,10 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1300 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
-        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1200 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1300 * config::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 15);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1300 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1200 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1300 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 15);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -1628,12 +1628,12 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
             );
-            assert!(auction::get_balance(&auction) == 2600 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2600 * suins::constants::mist_per_sui(), 0);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
         };
@@ -1646,14 +1646,14 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 10
             );
 
             assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 2, 0);
-            assert!(auction::get_balance(&auction) == 2600 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2600 * suins::constants::mist_per_sui(), 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -1665,8 +1665,8 @@ module suins::auction_tests {
                 &mut auction,
                 DOMAIN_NAME,
                 START_AN_AUCTION_AT + 1,
-                1200 * config::mist_per_sui(),
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_USER_ADDRESS,
                 false
             );
@@ -1681,10 +1681,10 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1300 * config::mist_per_sui(), FIRST_USER_ADDRESS, 1, option::none(), 10);
-        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1200 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1300 * config::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 15);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1300 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 1, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1200 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1300 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 15);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -1694,12 +1694,12 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
             );
-            assert!(auction::get_balance(&auction) == 2600 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2600 * suins::constants::mist_per_sui(), 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -1713,14 +1713,14 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 10
             );
 
             assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 2, 0);
-            assert!(auction::get_balance(&auction) == 2600 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2600 * suins::constants::mist_per_sui(), 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -1732,8 +1732,8 @@ module suins::auction_tests {
                 &mut auction,
                 DOMAIN_NAME,
                 START_AN_AUCTION_AT + 1,
-                1200 * config::mist_per_sui(),
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_USER_ADDRESS,
                 false
             );
@@ -1748,8 +1748,8 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1300 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1300 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -1759,17 +1759,17 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
             );
-            assert!(auction::get_balance(&auction) == 1300 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 1300 * suins::constants::mist_per_sui(), 0);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
         };
-        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1200 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1300 * config::mist_per_sui(), SECOND_USER_ADDRESS, 0,option::none(), 15);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1200 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1300 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, 0,option::none(), 15);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -1779,12 +1779,12 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 10
             );
-            assert!(auction::get_balance(&auction) == 2600 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2600 * suins::constants::mist_per_sui(), 0);
 
             assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 2, 0);
 
@@ -1798,8 +1798,8 @@ module suins::auction_tests {
                 &mut auction,
                 DOMAIN_NAME,
                 START_AN_AUCTION_AT + 1,
-                1200 * config::mist_per_sui(),
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_USER_ADDRESS,
                 false
             );
@@ -1814,54 +1814,54 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1200 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1200 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            get_bid_util(&auction, seal_bid, FIRST_USER_ADDRESS, some(1200 * config::mist_per_sui()));
+            get_bid_util(&auction, seal_bid, FIRST_USER_ADDRESS, some(1200 * suins::constants::mist_per_sui()));
             reveal_bid_util(
                 &mut auction,
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
             );
-            assert!(auction::get_balance(&auction) == 1200 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 1200 * suins::constants::mist_per_sui(), 0);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
         };
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1500 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 2100 * config::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1500 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 2100 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            get_bid_util(&auction, seal_bid, SECOND_USER_ADDRESS, some(2100 * config::mist_per_sui()));
+            get_bid_util(&auction, seal_bid, SECOND_USER_ADDRESS, some(2100 * suins::constants::mist_per_sui()));
 
             reveal_bid_util(
                 &mut auction,
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1500 * config::mist_per_sui(),
+                1500 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 10
             );
-            assert!(auction::get_balance(&auction) == 3300 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 3300 * suins::constants::mist_per_sui(), 0);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * config::mist_per_sui(), 1200 * config::mist_per_sui(), SECOND_USER_ADDRESS, false);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * suins::constants::mist_per_sui(), 1200 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, false);
 
             finalize_auction_util(
                 scenario,
@@ -1871,7 +1871,7 @@ module suins::auction_tests {
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
             );
-            assert!(auction::get_balance(&auction) == 2100 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2100 * suins::constants::mist_per_sui(), 0);
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
@@ -1879,7 +1879,7 @@ module suins::auction_tests {
             let ids = test_scenario::ids_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
             assert!(vector::length(&ids) == 1, 0);
             let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin) == 1200 * config::mist_per_sui(), 0);
+            assert!(coin::value(&coin) == 1200 * suins::constants::mist_per_sui(), 0);
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin);
 
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -1887,7 +1887,7 @@ module suins::auction_tests {
             let ids = test_scenario::ids_for_address<Coin<SUI>>(SECOND_USER_ADDRESS);
 
             assert!(vector::length(&ids) == 0, 0);
-            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * config::mist_per_sui(), 1200 * config::mist_per_sui(), SECOND_USER_ADDRESS, false);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * suins::constants::mist_per_sui(), 1200 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, false);
 
             assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 2, 0);
 
@@ -1903,25 +1903,25 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1200 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1200 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            get_bid_util(&auction, seal_bid, FIRST_USER_ADDRESS, some(1200 * config::mist_per_sui()));
+            get_bid_util(&auction, seal_bid, FIRST_USER_ADDRESS, some(1200 * suins::constants::mist_per_sui()));
             reveal_bid_util(
                 &mut auction,
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
             );
-            assert!(auction::get_balance(&auction) == 1200 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 1200 * suins::constants::mist_per_sui(), 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -1949,7 +1949,7 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1200 * config::mist_per_sui(), 0, FIRST_USER_ADDRESS, true);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1200 * suins::constants::mist_per_sui(), 0, FIRST_USER_ADDRESS, true);
             assert!(registrar::record_exists(&suins, SUI_REGISTRAR, DOMAIN_NAME), 0);
             assert!(
                 registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(DOMAIN_NAME))
@@ -1958,7 +1958,7 @@ module suins::auction_tests {
             );
             assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1200 * config::mist_per_sui() + BIDDING_FEE, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1200 * suins::constants::mist_per_sui() + BIDDING_FEE, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -1972,25 +1972,25 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1200 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1200 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            get_bid_util(&auction, seal_bid, FIRST_USER_ADDRESS, some(1200 * config::mist_per_sui()));
+            get_bid_util(&auction, seal_bid, FIRST_USER_ADDRESS, some(1200 * suins::constants::mist_per_sui()));
             reveal_bid_util(
                 &mut auction,
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
             );
-            assert!(auction::get_balance(&auction) == 1200 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 1200 * suins::constants::mist_per_sui(), 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -2015,7 +2015,7 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1200 * config::mist_per_sui(), 0, FIRST_USER_ADDRESS, true);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1200 * suins::constants::mist_per_sui(), 0, FIRST_USER_ADDRESS, true);
             assert!(registrar::record_exists(&suins, SUI_REGISTRAR, DOMAIN_NAME), 0);
             assert!(
                 registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(DOMAIN_NAME))
@@ -2025,7 +2025,7 @@ module suins::auction_tests {
             assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1200 * config::mist_per_sui() + BIDDING_FEE, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1200 * suins::constants::mist_per_sui() + BIDDING_FEE, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -2039,49 +2039,49 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1200 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1200 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            get_bid_util(&auction, seal_bid, FIRST_USER_ADDRESS, some(1200 * config::mist_per_sui()));
+            get_bid_util(&auction, seal_bid, FIRST_USER_ADDRESS, some(1200 * suins::constants::mist_per_sui()));
             reveal_bid_util(
                 &mut auction,
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
             );
-            assert!(auction::get_balance(&auction) == 1200 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 1200 * suins::constants::mist_per_sui(), 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
         };
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1500 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1500 * config::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1500 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1500 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            get_bid_util(&auction, seal_bid, SECOND_USER_ADDRESS, some(1500 * config::mist_per_sui()));
+            get_bid_util(&auction, seal_bid, SECOND_USER_ADDRESS, some(1500 * suins::constants::mist_per_sui()));
             reveal_bid_util(
                 &mut auction,
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1500 * config::mist_per_sui(),
+                1500 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 10
             );
-            assert!(auction::get_balance(&auction) == 2700 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2700 * suins::constants::mist_per_sui(), 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -2089,7 +2089,7 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * config::mist_per_sui(), 1200 * config::mist_per_sui(), SECOND_USER_ADDRESS, false);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * suins::constants::mist_per_sui(), 1200 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, false);
 
             finalize_auction_util(
                 scenario,
@@ -2099,7 +2099,7 @@ module suins::auction_tests {
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 20
             );
-            assert!(auction::get_balance(&auction) == 1200 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 1200 * suins::constants::mist_per_sui(), 0);
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
@@ -2107,19 +2107,19 @@ module suins::auction_tests {
             let ids = test_scenario::ids_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
             assert!(vector::length(&ids) == 1, 0);
             let first_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&first_coin) == 60 * config::mist_per_sui(), 0);
+            assert!(coin::value(&first_coin) == 60 * suins::constants::mist_per_sui(), 0);
 
             let ids = test_scenario::ids_for_address<Coin<SUI>>(SECOND_USER_ADDRESS);
             assert!(vector::length(&ids) == 1, 0);
             let second_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
-            assert!(coin::value(&second_coin) == 300 * config::mist_per_sui(), 0);
+            assert!(coin::value(&second_coin) == 300 * suins::constants::mist_per_sui(), 0);
 
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * config::mist_per_sui(), 1200 * config::mist_per_sui(), SECOND_USER_ADDRESS, true);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * suins::constants::mist_per_sui(), 1200 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, true);
 
-            assert!(auction::get_balance(&auction) == 1200 * config::mist_per_sui(), 0);
-            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1140 * config::mist_per_sui() + BIDDING_FEE * 2, 0);
+            assert!(auction::get_balance(&auction) == 1200 * suins::constants::mist_per_sui(), 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1140 * suins::constants::mist_per_sui() + BIDDING_FEE * 2, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -2144,21 +2144,21 @@ module suins::auction_tests {
             let ids = test_scenario::ids_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
             assert!(vector::length(&ids) == 2, 0);
             let coin1 = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin1) == 1200 * config::mist_per_sui(), 0);
+            assert!(coin::value(&coin1) == 1200 * suins::constants::mist_per_sui(), 0);
             let coin2 = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin2) == 60 * config::mist_per_sui(), 0);
+            assert!(coin::value(&coin2) == 60 * suins::constants::mist_per_sui(), 0);
 
             let ids = test_scenario::ids_for_address<Coin<SUI>>(SECOND_USER_ADDRESS);
             assert!(vector::length(&ids) == 1, 0);
             let coin3 = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
-            assert!(coin::value(&coin3) == 300 * config::mist_per_sui(), 0);
+            assert!(coin::value(&coin3) == 300 * suins::constants::mist_per_sui(), 0);
 
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * config::mist_per_sui(), 1200 * config::mist_per_sui(), SECOND_USER_ADDRESS, true);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * suins::constants::mist_per_sui(), 1200 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, true);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1140 * config::mist_per_sui() + BIDDING_FEE * 2, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1140 * suins::constants::mist_per_sui() + BIDDING_FEE * 2, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -2175,20 +2175,20 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1200 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1200 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            get_bid_util(&auction, seal_bid, FIRST_USER_ADDRESS, some(1200 * config::mist_per_sui()));
+            get_bid_util(&auction, seal_bid, FIRST_USER_ADDRESS, some(1200 * suins::constants::mist_per_sui()));
             reveal_bid_util(
                 &mut auction,
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
@@ -2198,20 +2198,20 @@ module suins::auction_tests {
             test_scenario::return_shared(suins);
         };
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1500 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1500 * config::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1500 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1500 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            get_bid_util(&auction, seal_bid, SECOND_USER_ADDRESS, some(1500 * config::mist_per_sui()));
+            get_bid_util(&auction, seal_bid, SECOND_USER_ADDRESS, some(1500 * suins::constants::mist_per_sui()));
             reveal_bid_util(
                 &mut auction,
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1500 * config::mist_per_sui(),
+                1500 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 10
@@ -2223,7 +2223,7 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * config::mist_per_sui(), 1200 * config::mist_per_sui(), SECOND_USER_ADDRESS, false);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * suins::constants::mist_per_sui(), 1200 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, false);
 
             finalize_auction_util(
                 scenario,
@@ -2240,15 +2240,15 @@ module suins::auction_tests {
             let ids = test_scenario::ids_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
             assert!(vector::length(&ids) == 1, 0);
             let first_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&first_coin) == 60 * config::mist_per_sui(), 0);
+            assert!(coin::value(&first_coin) == 60 * suins::constants::mist_per_sui(), 0);
 
             let ids = test_scenario::ids_for_address<Coin<SUI>>(SECOND_USER_ADDRESS);
             assert!(vector::length(&ids) == 1, 0);
             let second_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
-            assert!(coin::value(&second_coin) == 300 * config::mist_per_sui(), 0);
+            assert!(coin::value(&second_coin) == 300 * suins::constants::mist_per_sui(), 0);
 
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * config::mist_per_sui(), 1200 * config::mist_per_sui(), SECOND_USER_ADDRESS, true);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * suins::constants::mist_per_sui(), 1200 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, true);
 
             test_scenario::return_shared(auction);
             test_scenario::return_to_address(FIRST_USER_ADDRESS, first_coin);
@@ -2272,17 +2272,17 @@ module suins::auction_tests {
             let ids = test_scenario::ids_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
             assert!(vector::length(&ids) == 2, 0);
             let coin1 = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin1) == 1200 * config::mist_per_sui(), 0);
+            assert!(coin::value(&coin1) == 1200 * suins::constants::mist_per_sui(), 0);
             let coin2 = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin2) == 60 * config::mist_per_sui(), 0);
+            assert!(coin::value(&coin2) == 60 * suins::constants::mist_per_sui(), 0);
 
             let ids = test_scenario::ids_for_address<Coin<SUI>>(SECOND_USER_ADDRESS);
             assert!(vector::length(&ids) == 1, 0);
             let coin3 = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
-            assert!(coin::value(&coin3) == 300 * config::mist_per_sui(), 0);
+            assert!(coin::value(&coin3) == 300 * suins::constants::mist_per_sui(), 0);
 
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * config::mist_per_sui(), 1200 * config::mist_per_sui(), SECOND_USER_ADDRESS, true);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * suins::constants::mist_per_sui(), 1200 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, true);
             test_scenario::return_shared(auction);
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin1);
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin2);
@@ -2297,25 +2297,25 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1200 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1200 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1200 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            get_bid_util(&auction, seal_bid, FIRST_USER_ADDRESS, some(1200 * config::mist_per_sui()));
+            get_bid_util(&auction, seal_bid, FIRST_USER_ADDRESS, some(1200 * suins::constants::mist_per_sui()));
             reveal_bid_util(
                 &mut auction,
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
             );
-            assert!(auction::get_balance(&auction) == 1200 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 1200 * suins::constants::mist_per_sui(), 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -2345,7 +2345,7 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1200 * config::mist_per_sui(), 0, FIRST_USER_ADDRESS, true);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1200 * suins::constants::mist_per_sui(), 0, FIRST_USER_ADDRESS, true);
             assert!(registrar::record_exists(&suins, SUI_REGISTRAR, DOMAIN_NAME), 0);
             assert!(
                 registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(DOMAIN_NAME))
@@ -2354,7 +2354,7 @@ module suins::auction_tests {
             );
             assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1200 * config::mist_per_sui() + BIDDING_FEE, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1200 * suins::constants::mist_per_sui() + BIDDING_FEE, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
@@ -2366,8 +2366,8 @@ module suins::auction_tests {
     fun test_reveal_bid_late() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1500 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 2000 * config::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1500 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 2000 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -2378,7 +2378,7 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 DOMAIN_NAME,
-                1500 * config::mist_per_sui(),
+                1500 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 10
@@ -2404,7 +2404,7 @@ module suins::auction_tests {
                 &suins,
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + 1,
                 DOMAIN_NAME,
-                1500 * config::mist_per_sui(),
+                1500 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 10
@@ -2445,7 +2445,7 @@ module suins::auction_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
-            let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1500 * config::mist_per_sui(), FIRST_SECRET);
+            let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1500 * suins::constants::mist_per_sui(), FIRST_SECRET);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2455,11 +2455,11 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let clock = test_scenario::take_shared<Clock>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let coin = coin::mint_for_testing<SUI>(30000 * config::mist_per_sui() + BIDDING_FEE, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(30000 * suins::constants::mist_per_sui() + BIDDING_FEE, &mut ctx);
 
-            auction::place_bid(&mut auction, &mut suins, seal_bid, 2000 * config::mist_per_sui(), &mut coin, &clock, &mut ctx);
-            assert!(auction::get_balance(&auction) == 2000 * config::mist_per_sui(), 0);
-            assert!(coin::value(&coin) == 28000 * config::mist_per_sui(), 0);
+            auction::place_bid(&mut auction, &mut suins, seal_bid, 2000 * suins::constants::mist_per_sui(), &mut coin, &clock, &mut ctx);
+            assert!(auction::get_balance(&auction) == 2000 * suins::constants::mist_per_sui(), 0);
+            assert!(coin::value(&coin) == 28000 * suins::constants::mist_per_sui(), 0);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
@@ -2476,7 +2476,7 @@ module suins::auction_tests {
                 &suins,
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD,
                 DOMAIN_NAME,
-                1500 * config::mist_per_sui(),
+                1500 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 10
@@ -2535,7 +2535,7 @@ module suins::auction_tests {
 
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
-            let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1500 * config::mist_per_sui(), FIRST_SECRET);
+            let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1500 * suins::constants::mist_per_sui(), FIRST_SECRET);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
                 x"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
@@ -2545,10 +2545,10 @@ module suins::auction_tests {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let clock = test_scenario::take_shared<Clock>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let coin = coin::mint_for_testing<SUI>(2000 * config::mist_per_sui() + BIDDING_FEE, &mut ctx);
+            let coin = coin::mint_for_testing<SUI>(2000 * suins::constants::mist_per_sui() + BIDDING_FEE, &mut ctx);
 
-            auction::place_bid(&mut auction, &mut suins, seal_bid, 2000 * config::mist_per_sui(), &mut coin, &clock, &mut ctx);
-            assert!(auction::get_balance(&auction) == 2000 * config::mist_per_sui(), 0);
+            auction::place_bid(&mut auction, &mut suins, seal_bid, 2000 * suins::constants::mist_per_sui(), &mut coin, &clock, &mut ctx);
+            assert!(auction::get_balance(&auction) == 2000 * suins::constants::mist_per_sui(), 0);
             assert!(coin::value(&coin) == 0, 0);
 
             coin::burn_for_testing(coin);
@@ -2566,7 +2566,7 @@ module suins::auction_tests {
                 &suins,
                 START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD,
                 DOMAIN_NAME,
-                1500 * config::mist_per_sui(),
+                1500 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 5
@@ -2590,12 +2590,12 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin) == 500 * config::mist_per_sui(), 0);
+            assert!(coin::value(&coin) == 500 * suins::constants::mist_per_sui(), 0);
 
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            get_entry_util(&mut auction, DOMAIN_NAME, START_AUCTION_END_AT + 1, 1500 * config::mist_per_sui(), 0, FIRST_USER_ADDRESS, true);
+            get_entry_util(&mut auction, DOMAIN_NAME, START_AUCTION_END_AT + 1, 1500 * suins::constants::mist_per_sui(), 0, FIRST_USER_ADDRESS, true);
             assert!(registrar::record_exists(&suins, SUI_REGISTRAR, DOMAIN_NAME), 0);
             assert!(
                 registrar::name_expires_at(&suins, utf8(SUI_REGISTRAR), utf8(DOMAIN_NAME))
@@ -2605,7 +2605,7 @@ module suins::auction_tests {
             assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1500 * config::mist_per_sui() + BIDDING_FEE, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1500 * suins::constants::mist_per_sui() + BIDDING_FEE, 0);
 
             test_scenario::return_shared(suins);
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin);
@@ -2618,8 +2618,8 @@ module suins::auction_tests {
     fun test_withdraw_bid_that_remains_sealed() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1500 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 2000 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1500 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 2000 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
 
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -2632,7 +2632,7 @@ module suins::auction_tests {
             );
             let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
             assert!(vector::length(&bids) == 1, 0);
-            assert!(auction::get_balance(&auction) == 2000 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2000 * suins::constants::mist_per_sui(), 0);
 
             withdraw(&mut auction, &mut ctx);
 
@@ -2647,7 +2647,7 @@ module suins::auction_tests {
             assert!(vector::length(&ids) == 1, 0);
 
             let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin) == 2000 * config::mist_per_sui(), 0);
+            assert!(coin::value(&coin) == 2000 * suins::constants::mist_per_sui(), 0);
             test_scenario::return_to_address(FIRST_USER_ADDRESS, coin);
         };
         test_scenario::end(scenario_val);
@@ -2657,8 +2657,8 @@ module suins::auction_tests {
     fun test_withdraw_bids() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1500 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 2000 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1500 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 2000 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
 
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -2671,14 +2671,14 @@ module suins::auction_tests {
             let ctx = &mut ctx;
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let coin = coin::mint_for_testing<SUI>(2000 * config::mist_per_sui() + BIDDING_FEE, ctx);
-            let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1100 * config::mist_per_sui(), FIRST_SECRET);
+            let coin = coin::mint_for_testing<SUI>(2000 * suins::constants::mist_per_sui() + BIDDING_FEE, ctx);
+            let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1100 * suins::constants::mist_per_sui(), FIRST_SECRET);
             let clock = test_scenario::take_shared<Clock>(scenario);
 
-            assert!(auction::get_balance(&auction) == 2000 * config::mist_per_sui(), 0);
-            auction::place_bid(&mut auction, &mut suins, seal_bid, 1300 * config::mist_per_sui(), &mut coin, &clock, ctx);
-            assert!(auction::get_balance(&auction) == 3300 * config::mist_per_sui(), 0);
-            assert!(coin::value(&coin) == 700 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2000 * suins::constants::mist_per_sui(), 0);
+            auction::place_bid(&mut auction, &mut suins, seal_bid, 1300 * suins::constants::mist_per_sui(), &mut coin, &clock, ctx);
+            assert!(auction::get_balance(&auction) == 3300 * suins::constants::mist_per_sui(), 0);
+            assert!(coin::value(&coin) == 700 * suins::constants::mist_per_sui(), 0);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
@@ -2711,9 +2711,9 @@ module suins::auction_tests {
             assert!(vector::length(&ids) == 2, 0);
 
             let first_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&first_coin) == 1300 * config::mist_per_sui(), 0);
+            assert!(coin::value(&first_coin) == 1300 * suins::constants::mist_per_sui(), 0);
             let second_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&second_coin) == 2000 * config::mist_per_sui(), 0);
+            assert!(coin::value(&second_coin) == 2000 * suins::constants::mist_per_sui(), 0);
 
             test_scenario::return_to_address(FIRST_USER_ADDRESS, first_coin);
             test_scenario::return_to_address(FIRST_USER_ADDRESS, second_coin);
@@ -2726,8 +2726,8 @@ module suins::auction_tests {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, DOMAIN_NAME);
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1500 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 2000 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1500 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 2000 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
 
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -2738,7 +2738,7 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1500 * config::mist_per_sui(),
+                1500 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 5
@@ -2757,13 +2757,13 @@ module suins::auction_tests {
             );
             let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
             assert!(vector::length(&bids) == 1, 0);
-            assert!(auction::get_balance(&auction) == 2000 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2000 * suins::constants::mist_per_sui(), 0);
 
             withdraw(&mut auction, &mut ctx);
             // it is the winning bid, cannot be withdrawed at this point
             let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
             assert!(vector::length(&bids) == 1, 0);
-            assert!(auction::get_balance(&auction) == 2000 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2000 * suins::constants::mist_per_sui(), 0);
             test_scenario::return_shared(auction);
         };
 
@@ -2784,7 +2784,7 @@ module suins::auction_tests {
 
             let bids = get_bids_by_bidder(&auction, FIRST_USER_ADDRESS);
             assert!(vector::length(&bids) == 1, 0);
-            assert!(auction::get_balance(&auction) == 2000 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2000 * suins::constants::mist_per_sui(), 0);
             assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE, 0);
 
             test_scenario::return_shared(suins);
@@ -2808,7 +2808,7 @@ module suins::auction_tests {
         start_an_auction_util(scenario, DOMAIN_NAME);
 
         let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 500, FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 2000 * config::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 10);
+        place_bid_util(scenario, seal_bid, 2000 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -2822,7 +2822,7 @@ module suins::auction_tests {
                 ) == AUCTION_STATE_REOPENED,
                 0
             );
-            assert!(auction::get_balance(&auction) == 2000 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2000 * suins::constants::mist_per_sui(), 0);
             reveal_bid_util(
                 &mut auction,
                 &suins,
@@ -2833,7 +2833,7 @@ module suins::auction_tests {
                 SECOND_USER_ADDRESS,
                 2
             );
-            assert!(auction::get_balance(&auction) == 2000 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2000 * suins::constants::mist_per_sui(), 0);
             assert!(
                 state_util(
                     &auction,
@@ -2864,7 +2864,7 @@ module suins::auction_tests {
             let ids = test_scenario::ids_for_address<Coin<SUI>>(SECOND_USER_ADDRESS);
             assert!(vector::length(&ids) == 1, 0);
             let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
-            assert!(coin::value(&coin) == 2000 * config::mist_per_sui(), 0);
+            assert!(coin::value(&coin) == 2000 * suins::constants::mist_per_sui(), 0);
 
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE, 0);
@@ -2888,8 +2888,8 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, SECOND_DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(SECOND_DOMAIN_NAME, SECOND_USER_ADDRESS, 40 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 2000 * config::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 15);
+        let seal_bid = make_seal_bid(SECOND_DOMAIN_NAME, SECOND_USER_ADDRESS, 40 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 2000 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 15);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -2904,18 +2904,18 @@ module suins::auction_tests {
                 0
             );
 
-            assert!(auction::get_balance(&auction) == 2000 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2000 * suins::constants::mist_per_sui(), 0);
             reveal_bid_util(
                 &mut auction,
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 SECOND_DOMAIN_NAME,
-                40 * config::mist_per_sui(),
+                40 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 2
             );
-            assert!(auction::get_balance(&auction) == 2000 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2000 * suins::constants::mist_per_sui(), 0);
             assert!(
                 state_util(
                     &auction,
@@ -2928,25 +2928,25 @@ module suins::auction_tests {
             test_scenario::return_shared(suins);
         };
 
-        let seal_bid = make_seal_bid(SECOND_DOMAIN_NAME, SECOND_USER_ADDRESS, 30 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 3000 * config::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 20);
+        let seal_bid = make_seal_bid(SECOND_DOMAIN_NAME, SECOND_USER_ADDRESS, 30 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 3000 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 20);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            assert!(auction::get_balance(&auction) == 5000 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 5000 * suins::constants::mist_per_sui(), 0);
             reveal_bid_util(
                 &mut auction,
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 SECOND_DOMAIN_NAME,
-                30 * config::mist_per_sui(),
+                30 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 5
             );
-            assert!(auction::get_balance(&auction) == 5000 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 5000 * suins::constants::mist_per_sui(), 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -2974,8 +2974,8 @@ module suins::auction_tests {
             let first_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
             let second_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
 
-            assert!(coin::value(&first_coin) == 3000 * config::mist_per_sui(), 0);
-            assert!(coin::value(&second_coin) == 2000 * config::mist_per_sui(), 0);
+            assert!(coin::value(&first_coin) == 3000 * suins::constants::mist_per_sui(), 0);
+            assert!(coin::value(&second_coin) == 2000 * suins::constants::mist_per_sui(), 0);
 
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 2, 0);
@@ -3001,20 +3001,20 @@ module suins::auction_tests {
         start_an_auction_util(scenario, DOMAIN_NAME);
 
         // mock a winner
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1500 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 2000 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1500 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 2000 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            assert!(auction::get_balance(&auction) == 2000 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2000 * suins::constants::mist_per_sui(), 0);
             reveal_bid_util(
                 &mut auction,
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1500 * config::mist_per_sui(),
+                1500 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
@@ -3024,7 +3024,7 @@ module suins::auction_tests {
             test_scenario::return_shared(suins);
         };
         let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 500, FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 2200 * config::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 10);
+        place_bid_util(scenario, seal_bid, 2200 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -3038,7 +3038,7 @@ module suins::auction_tests {
                 ) == AUCTION_STATE_FINALIZING,
                 0
             );
-            assert!(auction::get_balance(&auction) == 4200 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 4200 * suins::constants::mist_per_sui(), 0);
             reveal_bid_util(
                 &mut auction,
                 &suins,
@@ -3049,7 +3049,7 @@ module suins::auction_tests {
                 SECOND_USER_ADDRESS,
                 2
             );
-            assert!(auction::get_balance(&auction) == 4200 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 4200 * suins::constants::mist_per_sui(), 0);
             assert!(
                 state_util(
                     &auction,
@@ -3073,7 +3073,7 @@ module suins::auction_tests {
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
             );
-            assert!(auction::get_balance(&auction) == 2000 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2000 * suins::constants::mist_per_sui(), 0);
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
@@ -3081,7 +3081,7 @@ module suins::auction_tests {
             let ids = test_scenario::ids_for_address<Coin<SUI>>(SECOND_USER_ADDRESS);
             assert!(vector::length(&ids) == 1, 0);
             let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
-            assert!(coin::value(&coin) == 2200 * config::mist_per_sui(), 0);
+            assert!(coin::value(&coin) == 2200 * suins::constants::mist_per_sui(), 0);
 
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 2, 0);
@@ -3092,7 +3092,7 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * config::mist_per_sui(), 0, FIRST_USER_ADDRESS, false);
+            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * suins::constants::mist_per_sui(), 0, FIRST_USER_ADDRESS, false);
             test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario_val);
@@ -3105,8 +3105,8 @@ module suins::auction_tests {
         start_an_auction_util(scenario, SECOND_DOMAIN_NAME);
 
         // mock a winner
-        let seal_bid = make_seal_bid(SECOND_DOMAIN_NAME, FIRST_USER_ADDRESS, 1500 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 2000 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 15);
+        let seal_bid = make_seal_bid(SECOND_DOMAIN_NAME, FIRST_USER_ADDRESS, 1500 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 2000 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 15);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -3120,14 +3120,14 @@ module suins::auction_tests {
                 ) == AUCTION_STATE_REOPENED,
                 0
             );
-            assert!(auction::get_balance(&auction) == 2000 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2000 * suins::constants::mist_per_sui(), 0);
 
             reveal_bid_util(
                 &mut auction,
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 SECOND_DOMAIN_NAME,
-                1500 * config::mist_per_sui(),
+                1500 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
@@ -3146,7 +3146,7 @@ module suins::auction_tests {
         };
 
         let seal_bid = make_seal_bid(SECOND_DOMAIN_NAME, SECOND_USER_ADDRESS, 40, FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 2200 * config::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 20);
+        place_bid_util(scenario, seal_bid, 2200 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 20);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -3160,7 +3160,7 @@ module suins::auction_tests {
                 ) == AUCTION_STATE_FINALIZING,
                 0
             );
-            assert!(auction::get_balance(&auction) == 4200 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 4200 * suins::constants::mist_per_sui(), 0);
             reveal_bid_util(
                 &mut auction,
                 &suins,
@@ -3184,20 +3184,20 @@ module suins::auction_tests {
             test_scenario::return_shared(suins);
         };
 
-        let seal_bid = make_seal_bid(SECOND_DOMAIN_NAME, SECOND_USER_ADDRESS, 45 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1200 * config::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::some(SECOND_TX_HASH), 25);
+        let seal_bid = make_seal_bid(SECOND_DOMAIN_NAME, SECOND_USER_ADDRESS, 45 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1200 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::some(SECOND_TX_HASH), 25);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            assert!(auction::get_balance(&auction) == 5400 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 5400 * suins::constants::mist_per_sui(), 0);
             reveal_bid_util(
                 &mut auction,
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 SECOND_DOMAIN_NAME,
-                45 * config::mist_per_sui(),
+                45 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 2
@@ -3218,7 +3218,7 @@ module suins::auction_tests {
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
             );
-            assert!(auction::get_balance(&auction) == 2000 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2000 * suins::constants::mist_per_sui(), 0);
 
             test_scenario::return_shared(auction);
         };
@@ -3230,8 +3230,8 @@ module suins::auction_tests {
             let first_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
             let second_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
 
-            assert!(coin::value(&first_coin) == 1200 * config::mist_per_sui(), 0);
-            assert!(coin::value(&second_coin) == 2200 * config::mist_per_sui(), 0);
+            assert!(coin::value(&first_coin) == 1200 * suins::constants::mist_per_sui(), 0);
+            assert!(coin::value(&second_coin) == 2200 * suins::constants::mist_per_sui(), 0);
 
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE * 3, 0);
@@ -3243,7 +3243,7 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&auction, SECOND_DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * config::mist_per_sui(), 0, FIRST_USER_ADDRESS, false);
+            get_entry_util(&auction, SECOND_DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * suins::constants::mist_per_sui(), 0, FIRST_USER_ADDRESS, false);
             test_scenario::return_shared(auction);
         };
         test_scenario::end(scenario_val);
@@ -3257,7 +3257,7 @@ module suins::auction_tests {
         start_an_auction_util(scenario, DOMAIN_NAME);
 
         let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 500, FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 2200 * config::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 10);
+        place_bid_util(scenario, seal_bid, 2200 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -3337,7 +3337,7 @@ module suins::auction_tests {
         start_an_auction_util(scenario, DOMAIN_NAME);
 
         let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 500, FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 2200 * config::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 10);
+        place_bid_util(scenario, seal_bid, 2200 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -3361,7 +3361,7 @@ module suins::auction_tests {
                 SECOND_USER_ADDRESS,
                 2
             );
-            assert!(auction::get_balance(&auction) == 2200 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2200 * suins::constants::mist_per_sui(), 0);
             assert!(
                 state_util(
                     &auction,
@@ -3388,7 +3388,7 @@ module suins::auction_tests {
 
             auction::start_an_auction(&mut auction, &mut suins, utf8(DOMAIN_NAME), &mut coin, &mut ctx);
 
-            assert!(auction::get_balance(&auction) == 2200 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2200 * suins::constants::mist_per_sui(), 0);
             assert!(suins::balance(&suins) == 2 * START_AN_AUCTION_FEE + BIDDING_FEE, 0);
 
             coin::burn_for_testing(coin);
@@ -3417,7 +3417,7 @@ module suins::auction_tests {
             assert!(vector::length(&ids) == 1, 0);
 
             let first_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
-            assert!(coin::value(&first_coin) == 2200 * config::mist_per_sui(), 0);
+            assert!(coin::value(&first_coin) == 2200 * suins::constants::mist_per_sui(), 0);
 
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             assert!(suins::balance(&suins) == START_AN_AUCTION_FEE * 2 + BIDDING_FEE, 0);
@@ -3434,8 +3434,8 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1500 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 2200 * config::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1500 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 2200 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -3454,12 +3454,12 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1500 * config::mist_per_sui(),
+                1500 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 2
             );
-            assert!(auction::get_balance(&auction) == 2200 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2200 * suins::constants::mist_per_sui(), 0);
             assert!(
                 state_util(
                     &auction,
@@ -3473,49 +3473,49 @@ module suins::auction_tests {
             test_scenario::return_shared(suins);
         };
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1600 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 3000 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1600 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 3000 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::some(FIRST_TX_HASH), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * config::mist_per_sui(), 0, SECOND_USER_ADDRESS, false);
+            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1500 * suins::constants::mist_per_sui(), 0, SECOND_USER_ADDRESS, false);
             reveal_bid_util(
                 &mut auction,
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1600 * config::mist_per_sui(),
+                1600 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 5
             );
-            assert!(auction::get_balance(&auction) == 5200 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 5200 * suins::constants::mist_per_sui(), 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
         };
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1700 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 2000 * config::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::some(SECOND_TX_HASH), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, SECOND_USER_ADDRESS, 1700 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 2000 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, 0, option::some(SECOND_TX_HASH), 10);
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1600 * config::mist_per_sui(), 1500 * config::mist_per_sui(), FIRST_USER_ADDRESS, false);
+            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1600 * suins::constants::mist_per_sui(), 1500 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, false);
             reveal_bid_util(
                 &mut auction,
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1700 * config::mist_per_sui(),
+                1700 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 SECOND_USER_ADDRESS,
                 5
             );
-            assert!(auction::get_balance(&auction) == 7200 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 7200 * suins::constants::mist_per_sui(), 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -3524,7 +3524,7 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1700 * config::mist_per_sui(), 1600 * config::mist_per_sui(), SECOND_USER_ADDRESS, false);
+            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1700 * suins::constants::mist_per_sui(), 1600 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, false);
 
             finalize_auction_util(
                 scenario,
@@ -3534,7 +3534,7 @@ module suins::auction_tests {
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD,
                 10
             );
-            assert!(auction::get_balance(&auction) == 4200 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 4200 * suins::constants::mist_per_sui(), 0);
             test_scenario::return_shared(auction);
         };
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
@@ -3542,7 +3542,7 @@ module suins::auction_tests {
             let ids = test_scenario::ids_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
             assert!(vector::length(&ids) == 1, 0);
             let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin) == 3000 * config::mist_per_sui(), 0);
+            assert!(coin::value(&coin) == 3000 * suins::constants::mist_per_sui(), 0);
 
             let ids = test_scenario::ids_for_address<Coin<SUI>>(SECOND_USER_ADDRESS);
             assert!(vector::length(&ids) == 0, 0);
@@ -3552,7 +3552,7 @@ module suins::auction_tests {
         test_scenario::next_tx(scenario, SECOND_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
-            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1700 * config::mist_per_sui(), 1600 * config::mist_per_sui(), SECOND_USER_ADDRESS, false);
+            get_entry_util(&auction, DOMAIN_NAME, START_AN_AUCTION_AT + 1, 1700 * suins::constants::mist_per_sui(), 1600 * suins::constants::mist_per_sui(), SECOND_USER_ADDRESS, false);
 
             finalize_auction_util(
                 scenario,
@@ -3570,9 +3570,9 @@ module suins::auction_tests {
             assert!(vector::length(&ids) == 2, 0);
 
             let first_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&first_coin) == 80 * config::mist_per_sui(), 0);
+            assert!(coin::value(&first_coin) == 80 * suins::constants::mist_per_sui(), 0);
             let second_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&second_coin) == 3000 * config::mist_per_sui(), 0);
+            assert!(coin::value(&second_coin) == 3000 * suins::constants::mist_per_sui(), 0);
             test_scenario::return_to_address(FIRST_USER_ADDRESS, first_coin);
             test_scenario::return_to_address(FIRST_USER_ADDRESS, second_coin);
 
@@ -3580,14 +3580,14 @@ module suins::auction_tests {
             assert!(vector::length(&ids) == 2, 0);
 
             let first_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
-            assert!(coin::value(&first_coin) == 400 * config::mist_per_sui(), 0);
+            assert!(coin::value(&first_coin) == 400 * suins::constants::mist_per_sui(), 0);
             let second_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_USER_ADDRESS);
-            assert!(coin::value(&second_coin) == 2200 * config::mist_per_sui(), 0);
+            assert!(coin::value(&second_coin) == 2200 * suins::constants::mist_per_sui(), 0);
 
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1520 * config::mist_per_sui() + BIDDING_FEE * 3, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1520 * suins::constants::mist_per_sui() + BIDDING_FEE * 3, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -3615,14 +3615,14 @@ module suins::auction_tests {
             let ids = test_scenario::ids_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
             assert!(vector::length(&ids) == 2, 0);
             let first_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&first_coin) == 3000 * config::mist_per_sui(), 0);
+            assert!(coin::value(&first_coin) == 3000 * suins::constants::mist_per_sui(), 0);
             let second_coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&second_coin) == 80 * config::mist_per_sui(), 0);
+            assert!(coin::value(&second_coin) == 80 * suins::constants::mist_per_sui(), 0);
 
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             assert!(auction::get_balance(&auction) == 0, 0);
-            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1520 * config::mist_per_sui() + BIDDING_FEE * 3, 0);
+            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1520 * suins::constants::mist_per_sui() + BIDDING_FEE * 3, 0);
 
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
@@ -3638,8 +3638,8 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         start_an_auction_util(scenario, DOMAIN_NAME);
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(scenario, seal_bid, 1000 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(scenario, seal_bid, 1000 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -3649,7 +3649,7 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1000 * config::mist_per_sui(),
+                1000 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
@@ -3671,7 +3671,7 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1000 * config::mist_per_sui(),
+                1000 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 10
@@ -3686,9 +3686,9 @@ module suins::auction_tests {
     fun test_reveal_bid_abort_with_wrong_parameter() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000 * config::mist_per_sui(), FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000 * suins::constants::mist_per_sui(), FIRST_SECRET);
         start_an_auction_util(scenario, DOMAIN_NAME);
-        place_bid_util(scenario, seal_bid, 1000 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        place_bid_util(scenario, seal_bid, 1000 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -3698,7 +3698,7 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1200 * config::mist_per_sui(),
+                1200 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
@@ -3713,9 +3713,9 @@ module suins::auction_tests {
     fun test_reveal_bid_abort_with_wrong_parameter_2() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000 * config::mist_per_sui(), FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000 * suins::constants::mist_per_sui(), FIRST_SECRET);
         start_an_auction_util(scenario, DOMAIN_NAME);
-        place_bid_util(scenario, seal_bid, 1400 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        place_bid_util(scenario, seal_bid, 1400 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -3725,7 +3725,7 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                1000 * config::mist_per_sui(),
+                1000 * suins::constants::mist_per_sui(),
                 b"wrong_secret",
                 FIRST_USER_ADDRESS,
                 2
@@ -3741,9 +3741,9 @@ module suins::auction_tests {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000 * config::mist_per_sui(), FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 1000 * suins::constants::mist_per_sui(), FIRST_SECRET);
         start_an_auction_util(scenario, DOMAIN_NAME);
-        place_bid_util(scenario, seal_bid, 10000 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        place_bid_util(scenario, seal_bid, 10000 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -3753,7 +3753,7 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 b"wrongn",
-                1000 * config::mist_per_sui(),
+                1000 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
@@ -3768,9 +3768,9 @@ module suins::auction_tests {
     fun test_reveal_bid_handle_invalid_if_mask_bid_less_than_actual_value() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
-        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 3000 * config::mist_per_sui(), FIRST_SECRET);
+        let seal_bid = make_seal_bid(DOMAIN_NAME, FIRST_USER_ADDRESS, 3000 * suins::constants::mist_per_sui(), FIRST_SECRET);
         start_an_auction_util(scenario, DOMAIN_NAME);
-        place_bid_util(scenario, seal_bid, 2000 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        place_bid_util(scenario, seal_bid, 2000 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
@@ -3783,12 +3783,12 @@ module suins::auction_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 DOMAIN_NAME,
-                3000 * config::mist_per_sui(),
+                3000 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
             );
-            assert!(auction::get_balance(&auction) == 2000 * config::mist_per_sui(), 0);
+            assert!(auction::get_balance(&auction) == 2000 * suins::constants::mist_per_sui(), 0);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
         };
@@ -3826,7 +3826,7 @@ module suins::auction_tests {
             let ids = test_scenario::ids_for_address<Coin<SUI>>(FIRST_USER_ADDRESS);
             assert!(vector::length(&ids) == 1, 0);
             let coin = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_USER_ADDRESS);
-            assert!(coin::value(&coin) == 2000 * config::mist_per_sui(), 0);
+            assert!(coin::value(&coin) == 2000 * suins::constants::mist_per_sui(), 0);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + BIDDING_FEE, 0);
 
@@ -3897,7 +3897,7 @@ module suins::auction_tests {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            auction::configure_auction(&admin_cap, &mut auction, &mut suins, 3000 * config::mist_per_sui(), 3000 * config::mist_per_sui(), &mut ctx);
+            auction::configure_auction(&admin_cap, &mut auction, &mut suins, 3000 * suins::constants::mist_per_sui(), 3000 * suins::constants::mist_per_sui(), &mut ctx);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(scenario, admin_cap);
@@ -4020,7 +4020,7 @@ module suins::auction_tests {
             let coin = coin::mint_for_testing<SUI>(BIDDING_FEE * 3, ctx);
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
 
-            auction::place_bid(&mut auction, &mut suins, FIRST_SECRET, 1000 * config::mist_per_sui(), &mut coin, &clock, ctx);
+            auction::place_bid(&mut auction, &mut suins, FIRST_SECRET, 1000 * suins::constants::mist_per_sui(), &mut coin, &clock, ctx);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);
@@ -4049,7 +4049,7 @@ module suins::auction_tests {
             );
             let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            auction::reveal_bid(&mut auction, &suins, utf8(DOMAIN_NAME), 1000 * config::mist_per_sui(), FIRST_SECRET, &mut ctx);
+            auction::reveal_bid(&mut auction, &suins, utf8(DOMAIN_NAME), 1000 * suins::constants::mist_per_sui(), FIRST_SECRET, &mut ctx);
             test_scenario::return_shared(auction);
             test_scenario::return_shared(suins);
         };
@@ -4241,7 +4241,7 @@ module suins::auction_tests {
             let coin = coin::mint_for_testing<SUI>(BIDDING_FEE + 999, ctx);
             let clock = test_scenario::take_shared<Clock>(scenario);
 
-            auction::place_bid(&mut auction, &mut suins, FIRST_SECRET, 1000 * config::mist_per_sui(), &mut coin, &clock, ctx);
+            auction::place_bid(&mut auction, &mut suins, FIRST_SECRET, 1000 * suins::constants::mist_per_sui(), &mut coin, &clock, ctx);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(auction);

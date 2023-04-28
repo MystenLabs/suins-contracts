@@ -2,6 +2,11 @@
 /// More information in: ../../../docs
 module suins::auction {
 
+    use std::option::{Self, Option, none, some};
+    use std::string::{Self, String, utf8};
+    use std::vector;
+    use std::bcs;
+
     use sui::object::UID;
     use sui::table::{Self, Table};
     use sui::tx_context::TxContext;
@@ -14,19 +19,16 @@ module suins::auction {
     use sui::event;
     use sui::clock::{Self, Clock};
     use sui::linked_table::{Self, LinkedTable};
+    use sui::tx_context;
+    use sui::coin;
+
     use suins::registrar;
     use suins::suins::{Self, AdminCap};
     use suins::config::{Self, Config};
     use suins::suins::SuiNS;
     use suins::string_utils;
-    use std::option::{Self, Option, none, some};
-    use std::string::{Self, String, utf8};
-    use std::vector;
-    use std::bcs;
-    use sui::tx_context;
-    use sui::coin;
+    use suins::constants;
 
-    const SUI_TLD: vector<u8> = b"sui";
     // must always up-to-date with sui::sui::MIST_PER_SUI
     const BIDDING_PERIOD: u64 = 1;
     const REVEAL_PERIOD: u64 = 1;
@@ -202,11 +204,11 @@ module suins::auction {
             ) <= auction_house.start_auction_end_at,
             EInvalidPhase,
         );
-        string_utils::validate_label(label, config::min_domain_length(), config::max_domain_length());
+        string_utils::validate_label(label, constants::min_domain_length(), constants::max_domain_length());
 
         let state = state(auction_house, label, tx_context::epoch(ctx));
         assert!(state == AUCTION_STATE_OPEN || state == AUCTION_STATE_REOPENED, EInvalidPhase);
-        assert!(registrar::is_available(suins, utf8(SUI_TLD), label, ctx), ELabelUnavailable);
+        assert!(registrar::is_available(suins, constants::sui_tld(), label, ctx), ELabelUnavailable);
 
         if (state == AUCTION_STATE_REOPENED) {
             // added in below statement
@@ -220,8 +222,8 @@ module suins::auction {
             winner: @0x0,
             second_highest_bidder: @0x0,
             is_finalized: false,
-            winning_bid_created_at_in_ms: suins::max_u64(),
-            second_highest_bid_created_at_in_ms: suins::max_u64(),
+            winning_bid_created_at_in_ms: constants::max_u64(),
+            second_highest_bid_created_at_in_ms: constants::max_u64(),
             winning_bid_id: @0x0,
         };
         linked_table::push_back(&mut auction_house.entries, label, entry);
@@ -572,8 +574,8 @@ module suins::auction {
 
     public entry fun set_bidding_fee(_: &AdminCap, auction_house: &mut AuctionHouse, new_bidding_fee: u64) {
         assert!(
-            config::mist_per_sui() <= new_bidding_fee
-                && new_bidding_fee <= config::mist_per_sui() * 1_000_000,
+            suins::constants::mist_per_sui() <= new_bidding_fee
+                && new_bidding_fee <= suins::constants::mist_per_sui() * 1_000_000,
             EInvalidBiddingFee
         );
         auction_house.bidding_fee = new_bidding_fee;
@@ -581,8 +583,8 @@ module suins::auction {
 
     public entry fun set_start_an_auction_fee(_: &AdminCap, auction_house: &mut AuctionHouse, new_fee: u64) {
         assert!(
-            config::mist_per_sui() <= new_fee
-                && new_fee <= config::mist_per_sui() * 1_000_000,
+            suins::constants::mist_per_sui() <= new_fee
+                && new_fee <= suins::constants::mist_per_sui() * 1_000_000,
             EInvalidBiddingFee
         );
         auction_house.start_an_auction_fee = new_fee;
@@ -714,10 +716,9 @@ module suins::auction {
         winning_amount: u64,
         ctx: &mut TxContext
     ) {
-        let tld = utf8(SUI_TLD);
         registrar::register_with_image_internal(
             suins,
-            tld,
+            constants::sui_tld(),
             label,
             winner,
             365,
@@ -728,9 +729,9 @@ module suins::auction {
         );
         event::emit(NameRegisteredEvent {
             label,
-            tld,
             winner,
-            amount: winning_amount
+            amount: winning_amount,
+            tld: constants::sui_tld(),
         })
     }
 
@@ -781,10 +782,10 @@ module suins::auction {
             bid_details_by_bidder: table::new(ctx),
             entries: linked_table::new(ctx),
             balance: balance::zero(),
-            start_auction_start_at: suins::max_epoch_allowed(),
-            start_auction_end_at: suins::max_epoch_allowed() - 1,
-            bidding_fee: config::mist_per_sui(),
-            start_an_auction_fee: 10 * config::mist_per_sui(),
+            start_auction_start_at: constants::max_epoch_allowed(),
+            start_auction_end_at: constants::max_epoch_allowed() - 1,
+            bidding_fee: suins::constants::mist_per_sui(),
+            start_an_auction_fee: 10 * suins::constants::mist_per_sui(),
         });
     }
 
@@ -898,10 +899,10 @@ module suins::auction {
             bid_details_by_bidder: table::new(ctx),
             entries: linked_table::new(ctx),
             balance: balance::zero(),
-            start_auction_start_at: suins::max_epoch_allowed(),
-            start_auction_end_at: suins::max_epoch_allowed() - 1,
-            bidding_fee: config::mist_per_sui(),
-            start_an_auction_fee: 10 * config::mist_per_sui(),
+            start_auction_start_at: constants::max_epoch_allowed(),
+            start_auction_end_at: constants::max_epoch_allowed() - 1,
+            bidding_fee: suins::constants::mist_per_sui(),
+            start_an_auction_fee: 10 * suins::constants::mist_per_sui(),
         });
     }
 }

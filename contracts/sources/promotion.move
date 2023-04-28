@@ -1,6 +1,9 @@
 /// Promotion mechanics: referral and discount codes.
 ///
 module suins::promotion {
+    use std::string::String;
+    use sui::vec_map::{Self, VecMap};
+    use sui::tx_context::{sender, TxContext};
     use suins::string_utils;
 
     /// Max value for basis points.
@@ -20,9 +23,18 @@ module suins::promotion {
     /// Currently supported ones are referral and discount codes.
     ///
     /// Attached as a dynamic field and carried by the `SuiNS` object.
+    // struct Promotion<phantom App> has store, drop {
     struct Promotion has store, drop {
-        referral_codes: VecMap<String, ReferralValue>,
-        discount_codes: VecMap<String, DiscountValue>,
+        referral_codes: VecMap<String, Referral>,
+        discount_codes: VecMap<String, Discount>,
+    }
+
+    /// Create new instance of the `Promotion` configuration.
+    public fun new(): Promotion {
+        Promotion {
+            referral_codes: vec_map::empty(),
+            discount_codes: vec_map::empty(),
+        }
     }
 
     // === Referral codes ===
@@ -42,7 +54,7 @@ module suins::promotion {
         assert_bps(rate);
         assert!(string_utils::is_valid_ascii(code), EInvalidCharacter);
 
-        let new_value = ReferralValue { rate, partner };
+        let new_value = Referral { rate, partner };
         if (vec_map::contains(&self.referral_codes, &code)) {
             let current_value = vec_map::get_mut(&mut self.referral_codes, &code);
             *current_value = new_value;
@@ -56,7 +68,7 @@ module suins::promotion {
     }
 
     // returns referral code's rate and partner address
-    public fun use_referral_code(self: &Config, code: &String): (u16, address) {
+    public fun use_referral_code(self: &Promotion, code: &String): (u16, address) {
         assert!(vec_map::contains(&self.referral_codes, code), ENotExists);
         let value = vec_map::get(&self.referral_codes, code);
         (value.rate, value.partner)
@@ -79,7 +91,7 @@ module suins::promotion {
         assert_bps(rate);
         assert!(string_utils::is_valid_ascii(code), EInvalidCharacter);
 
-        let new_value = DiscountValue { rate, user };
+        let new_value = Discount { rate, user };
         if (vec_map::contains(&self.discount_codes, &code)) {
             let current_value = vec_map::get_mut(&mut self.discount_codes, &code);
             *current_value = new_value;

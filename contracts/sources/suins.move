@@ -16,12 +16,12 @@ module suins::suins {
     use sui::vec_map::{Self, VecMap};
     use sui::dynamic_field as df;
 
+    use suins::constants;
+
     friend suins::registry;
     friend suins::registrar;
     friend suins::controller;
     friend suins::auction;
-
-    const MAX_U64: u64 = 18446744073709551615;
 
     /// Trying to withdraw from an empty balance.
     const ENoProfits: u64 = 0;
@@ -74,8 +74,10 @@ module suins::suins {
 
     // === Keys ===
 
-    /// Key under which a configuration is stored.
-    struct ConfigKey has copy, store, drop {}
+    /// Key under which a configuration is stored. It is type dependent, so
+    /// that different configurations can be stored at the same time. Eg
+    /// currently we store application `Config` and `Promotion` configuration.
+    struct ConfigKey<phantom Config> has copy, store, drop {}
 
     /// Module initializer:
     /// - create SuiNS object
@@ -97,7 +99,7 @@ module suins::suins {
             registrars: table::new(ctx),
             controller: Controller {
                 commitments: linked_table::new(ctx),
-                auction_house_finalized_at: max_epoch_allowed(),
+                auction_house_finalized_at: constants::max_epoch_allowed(),
             }
         };
 
@@ -107,19 +109,19 @@ module suins::suins {
     // === Config management ===
 
     /// Attach dynamic configuration object to the application.
-    public fun add_config<T: store + drop>(_: &AdminCap, self: &mut SuiNS, config: T) {
-        df::add(&mut self.id, ConfigKey {}, config);
+    public fun add_config<Config: store + drop>(_: &AdminCap, self: &mut SuiNS, config: Config) {
+        df::add(&mut self.id, ConfigKey<Config> {}, config);
     }
 
     /// Borrow configuration object. Read-only mode for applications.
-    public fun get_config<T: store + drop>(self: &SuiNS): &T {
-        df::borrow(&self.id, ConfigKey {})
+    public fun get_config<Config: store + drop>(self: &SuiNS): &Config {
+        df::borrow(&self.id, ConfigKey<Config> {})
     }
 
     /// Borrow configuration object. Read-only mode for applications.
     // Keep as friend
-    public(friend) fun get_config_mut<T: store + drop>(self: &mut SuiNS): &mut T {
-        df::borrow_mut(&mut self.id, ConfigKey {})
+    public(friend) fun get_config_mut<Config: store + drop>(self: &mut SuiNS): &mut Config {
+        df::borrow_mut(&mut self.id, ConfigKey<Config> {})
     }
 
     /// Get the configuration object for editing. The admin should put it back
@@ -128,8 +130,8 @@ module suins::suins {
     /// from removing the configuration object and adding a new one.
     ///
     /// Fully taking the config also allows for edits within a transaction.
-    public fun remove_config<T: store + drop>(_: &AdminCap, self: &mut SuiNS): T {
-        df::remove(&mut self.id, ConfigKey {})
+    public fun remove_config<Config: store + drop>(_: &AdminCap, self: &mut SuiNS): Config {
+        df::remove(&mut self.id, ConfigKey<Config> {})
     }
 
     // === Admin actions ===
@@ -203,14 +205,6 @@ module suins::suins {
         self.controller.auction_house_finalized_at
     }
 
-    public fun max_epoch_allowed(): u64 {
-        MAX_U64 - 365
-    }
-
-    public fun max_u64(): u64 {
-        MAX_U64
-    }
-
     public fun balance(self: &SuiNS): u64 {
         balance::value(&self.balance)
     }
@@ -282,6 +276,7 @@ module suins::suins {
     // === Testing ===
 
     #[test_only] use suins::config;
+    #[test_only] use suins::promotion;
     #[test_only] friend suins::registry_tests;
     #[test_only] friend suins::registry_tests_2;
 
@@ -293,7 +288,7 @@ module suins::suins {
         let registrars = table::new(ctx);
         let controller = Controller {
             commitments: linked_table::new(ctx),
-            auction_house_finalized_at: max_epoch_allowed(),
+            auction_house_finalized_at: constants::max_epoch_allowed(),
         };
 
         let admin_cap = AdminCap { id: object::new(ctx) };
@@ -306,13 +301,15 @@ module suins::suins {
             controller,
         };
 
+        add_config(&admin_cap, &mut suins, promotion::new());
         add_config(&admin_cap, &mut suins, config::new(
             vector[],
             true,
-            1200 * config::mist_per_sui(),
-            200 * config::mist_per_sui(),
-            50 * config::mist_per_sui(),
+            1200 * suins::constants::mist_per_sui(),
+            200 * suins::constants::mist_per_sui(),
+            50 * suins::constants::mist_per_sui(),
         ));
+
 
         transfer::transfer(admin_cap, tx_context::sender(ctx));
         transfer::share_object(suins);

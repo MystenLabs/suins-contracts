@@ -3,9 +3,7 @@
 /// created by anyone on the network with the exception that they won't
 /// be able to use it in any way. :)
 module suins::config {
-    use std::string::{Self, String};
-    use sui::vec_map::{Self, VecMap};
-    use sui::tx_context::{sender, TxContext};
+    use suins::constants;
 
     /// A label is too short to be registered.
     const ELabelTooShort: u64 = 0;
@@ -23,15 +21,6 @@ module suins::config {
     const EReferralCodeNotExists: u64 = 406;
     const EInvalidLabelLength: u64 = 407;
     const EInvalidNewPrice: u64 = 408;
-
-    /// The minimum length of a domain name.
-    const MIN_DOMAIN_LENGTH: u8 = 3;
-
-    /// The maximum length of a domain name.
-    const MAX_DOMAIN_LENGTH: u8 = 63;
-
-    /// The amount of MIST in 1 SUI.
-    const MIST_PER_SUI: u64 = 1_000_000_000;
 
     /// The configuration object, holds current settings of the SuiNS
     /// application. Does not carry any business logic and can easily
@@ -97,8 +86,8 @@ module suins::config {
 
     /// Calculate the price of a label.
     public fun calculate_price(self: &Config, length: u8, years: u8): u64 {
-        assert!(length >= MIN_DOMAIN_LENGTH, ELabelTooShort);
-        assert!(length <= MAX_DOMAIN_LENGTH, ELabelTooLong);
+        assert!(length >= constants::min_domain_length(), ELabelTooShort);
+        assert!(length <= constants::max_domain_length(), ELabelTooLong);
 
         let price = if (length == 3) {
             self.three_char_price
@@ -129,26 +118,13 @@ module suins::config {
     /// Get the value of the `five_plus_char_price` field.
     public fun five_plus_char_price(self: &Config): u64 { self.five_plus_char_price }
 
-
-    // === Extra Constants (require package upgrade to change) ===
-
-    /// The minimum length of a domain name.
-    public fun min_domain_length(): u8 { MIN_DOMAIN_LENGTH }
-
-    /// The maximum length of a domain name.
-    public fun max_domain_length(): u8 { MAX_DOMAIN_LENGTH }
-
-    /// The amount of MIST in 1 SUI.
-    public fun mist_per_sui(): u64 { MIST_PER_SUI }
-
-
     // === Internal ===
 
     /// Assert that the price is within the allowed range (1-1M).
     fun check_price(price: u64) {
         assert!(
-            mist_per_sui() <= price
-            && price <= mist_per_sui() * 1_000_000
+            constants::mist_per_sui() <= price
+            && price <= constants::mist_per_sui() * 1_000_000
         , EInvalidPrice);
     }
 }

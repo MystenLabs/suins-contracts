@@ -1,11 +1,16 @@
 #[test_only]
 module suins::controller_tests {
+    use std::option::{Self, Option, some};
+    use std::string::utf8;
+    use std::vector;
 
     use sui::coin::{Self, Coin};
     use sui::test_scenario::{Self, Scenario};
+    use sui::clock::{Self, Clock};
     use sui::sui::SUI;
     use sui::url;
     use sui::dynamic_field;
+
     use suins::auction::{make_seal_bid, finalize_all_auctions_by_admin, AuctionHouse};
     use suins::auction;
     use suins::auction_tests::{start_an_auction_util, place_bid_util, reveal_bid_util, ctx_new};
@@ -15,11 +20,8 @@ module suins::controller_tests {
     use suins::config::{Self, Config};
     use suins::controller;
     use suins::string_utils;
-    use std::option::{Self, Option, some};
-    use std::string::utf8;
-    use std::vector;
     use suins::auction_tests;
-    use sui::clock::{Self, Clock};
+    use suins::promotion::{Self, Promotion};
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -71,17 +73,19 @@ module suins::controller_tests {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = suins::remove_config<Config>(&admin_cap, &mut suins);
+            let promotion = suins::remove_config<Promotion>(&admin_cap, &mut suins);
 
             registrar::new_tld(&admin_cap, &mut suins, utf8(SUI_REGISTRAR), test_scenario::ctx(&mut scenario));
             registrar::new_tld(&admin_cap, &mut suins, utf8(MOVE_REGISTRAR), test_scenario::ctx(&mut scenario));
-            config::add_referral_code(&mut config, utf8(REFERRAL_CODE), 10, SECOND_USER_ADDRESS);
-            config::add_discount_code(&mut config, utf8(DISCOUNT_CODE), 15, FIRST_USER_ADDRESS);
+            promotion::add_referral_code(&mut promotion, utf8(REFERRAL_CODE), 10, SECOND_USER_ADDRESS);
+            promotion::add_discount_code(&mut promotion, utf8(DISCOUNT_CODE), 15, FIRST_USER_ADDRESS);
             config::set_public_key(
                 &mut config,
                 x"0445e28df251d0ec0f66f284f7d5598db7e68b1a196396e4e13a3942d1364812ae5ed65ebb3d20cbf073ad50c6bbafa92505dc9b306e30476e57919a63ac824cab"
             );
 
-            suins::add_config<Config>(&admin_cap, &mut suins, config);
+            suins::add_config(&admin_cap, &mut suins, promotion);
+            suins::add_config(&admin_cap, &mut suins, config);
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
@@ -1627,7 +1631,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = config::EUserUnauthorized)]
+    #[test, expected_failure(abort_code = promotion::ENotOwner)]
     fun test_register_with_discount_code_abort_if_unauthorized() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
@@ -1667,7 +1671,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = config::EDiscountCodeNotExists)]
+    #[test, expected_failure(abort_code = promotion::ENotExists)]
     fun test_register_with_discount_code_abort_with_invalid_code() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
@@ -1779,7 +1783,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = config::EUserUnauthorized)]
+    #[test, expected_failure(abort_code = promotion::ENotOwner)]
     fun test_register_with_config_and_discount_code_abort_if_unauthorized() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
@@ -1817,7 +1821,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = config::EDiscountCodeNotExists)]
+    #[test, expected_failure(abort_code = promotion::ENotExists)]
     fun test_register_with_config_and_discount_code_abort_with_invalid_code() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
@@ -1855,7 +1859,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = config::EDiscountCodeNotExists)]
+    #[test, expected_failure(abort_code = promotion::ENotExists)]
     fun test_register_with_discount_code_abort_if_being_used_twice() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
@@ -2041,7 +2045,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = config::EReferralCodeNotExists)]
+    #[test, expected_failure(abort_code = promotion::ENotExists)]
     fun test_register_with_referral_code_abort_with_wrong_referral_code() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
@@ -2204,7 +2208,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = config::EReferralCodeNotExists)]
+    #[test, expected_failure(abort_code = promotion::ENotExists)]
     fun test_register_with_code_if_use_wrong_referral_code() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
@@ -2245,7 +2249,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = config::EDiscountCodeNotExists)]
+    #[test, expected_failure(abort_code = promotion::ENotExists)]
     fun test_register_with_code_if_use_wrong_discount_code() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
@@ -2355,7 +2359,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = config::EReferralCodeNotExists)]
+    #[test, expected_failure(abort_code = promotion::ENotExists)]
     fun test_register_with_config_and_code_if_use_wrong_referral_code() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
@@ -2394,7 +2398,7 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = config::EDiscountCodeNotExists)]
+    #[test, expected_failure(abort_code = promotion::ENotExists)]
     fun test_register_with_config_and_code_if_use_wrong_discount_code() {
         let scenario = test_init();
         set_auction_config(&mut scenario);
@@ -2870,8 +2874,8 @@ module suins::controller_tests {
         let scenario = test_init();
         set_auction_config(&mut scenario);
         start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
-        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(&mut scenario, seal_bid, 1100 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(&mut scenario, seal_bid, 1100 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -2882,7 +2886,7 @@ module suins::controller_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 AUCTIONED_LABEL,
-                1000 * config::mist_per_sui(),
+                1000 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
@@ -4660,8 +4664,8 @@ module suins::controller_tests {
         let scenario = test_init();
         set_auction_config(&mut scenario);
         start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
-        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(&mut scenario, seal_bid, 1100 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(&mut scenario, seal_bid, 1100 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -4672,7 +4676,7 @@ module suins::controller_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 AUCTIONED_LABEL,
-                1000 * config::mist_per_sui(),
+                1000 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
@@ -4735,8 +4739,8 @@ module suins::controller_tests {
         let scenario = test_init();
         set_auction_config(&mut scenario);
         start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
-        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000 * config::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(&mut scenario, seal_bid, 1100 * config::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
+        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000 * suins::constants::mist_per_sui(), FIRST_SECRET);
+        place_bid_util(&mut scenario, seal_bid, 1100 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
@@ -4747,7 +4751,7 @@ module suins::controller_tests {
                 &suins,
                 START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
                 AUCTIONED_LABEL,
-                1000 * config::mist_per_sui(),
+                1000 * suins::constants::mist_per_sui(),
                 FIRST_SECRET,
                 FIRST_USER_ADDRESS,
                 2
