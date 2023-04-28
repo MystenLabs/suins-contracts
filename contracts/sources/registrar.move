@@ -24,7 +24,7 @@ module suins::registrar {
     friend suins::auction;
 
     // in terms of epoch
-    const GRACE_PERIOD: u8 = 30;
+    const GRACE_PERIOD: u64 = 30;
 
     const EUnauthorized: u64 = 101;
     // errors in the range of 201..300 indicate Registrar errors
@@ -312,7 +312,7 @@ module suins::registrar {
         let expired_at = name_expires_at_internal(registrar, label);
 
         assert!(expired_at > 0, ELabelNotExists);
-        assert!(expired_at + (GRACE_PERIOD as u64) >= tx_context::epoch(ctx), ELabelExpired);
+        assert!(expired_at + GRACE_PERIOD >= tx_context::epoch(ctx), ELabelExpired);
 
         let record: &mut RegistrationRecord = table::borrow_mut(registrar, label);
         let new_expired_at = suins::registration_record_expired_at(record) + duration;
@@ -335,7 +335,7 @@ module suins::registrar {
     fun is_available_internal(registrar: &Table<String, RegistrationRecord>, label: String, ctx: &TxContext): bool {
         let expired_at = name_expires_at_internal(registrar, label);
         if (expired_at != 0) {
-            return expired_at + (GRACE_PERIOD as u64) < tx_context::epoch(ctx)
+            return expired_at + GRACE_PERIOD < tx_context::epoch(ctx)
         };
         true
     }

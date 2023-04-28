@@ -304,6 +304,10 @@ module suins::registry {
         }
     }
 
+    /// Adds a new Name record to the registry.
+    ///
+    /// TODO: Interestingly, the owner is duplicated so we might decide to
+    /// remove this duplication in the future.
     fun new_record(
         suins: &mut SuiNS,
         domain_name: String,
@@ -327,7 +331,7 @@ module suins::registry {
     }
 
     #[test_only] friend suins::registry_tests;
-    #[test_only]  friend suins::registry_tests_2;
+    #[test_only] friend suins::registry_tests_2;
 
     #[test_only]
     public fun new_record_test(suins: &mut SuiNS, domain_name: String, owner: address) {
