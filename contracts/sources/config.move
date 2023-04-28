@@ -19,7 +19,7 @@ module suins::config {
     const EInvalidRate: u64 = 401;
     const EInvalidReferralCode: u64 = 402;
     const EInvalidDiscountCode: u64 = 403;
-    const EOwnerUnauthorized: u64 = 404;
+    const EUserUnauthorized: u64 = 404;
     const EDiscountCodeNotExists: u64 = 405;
     const EReferralCodeNotExists: u64 = 406;
     const EInvalidLabelLength: u64 = 407;
@@ -128,7 +128,7 @@ module suins::config {
     }
 
     // rate in percentage, e.g. discount = 10 means 10%;
-    public fun new_discount_code(self: &mut Config, code: String, rate: u8, user: address) {
+    public fun add_discount_code(self: &mut Config, code: String, rate: u8, user: address) {
         assert!(0 < rate && rate <= 100, EInvalidRate);
         let ascii = string::to_ascii(code);
         assert!(ascii::all_characters_printable(&ascii), EInvalidDiscountCode);
@@ -150,7 +150,7 @@ module suins::config {
         assert!(vec_map::contains(&self.discount_codes, code), EDiscountCodeNotExists);
         let (_, discount_value) = vec_map::remove(&mut self.discount_codes, code);
 
-        assert!(discount_value.user == sender(ctx), EOwnerUnauthorized);
+        assert!(discount_value.user == sender(ctx), EUserUnauthorized);
 
         discount_value.rate
     }
