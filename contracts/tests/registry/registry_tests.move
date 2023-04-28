@@ -83,7 +83,7 @@ module suins::registry_tests {
             let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
 
             assert!(owner == SECOND_USER_ADDRESS, 0);
-            assert!(target_address == SECOND_USER_ADDRESS, 0);
+            assert!(target_address == std::option::some(SECOND_USER_ADDRESS), 0);
 
             test_scenario::return_shared(suins);
         };
@@ -116,7 +116,7 @@ module suins::registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
+    #[test, expected_failure(abort_code = sui::dynamic_field::EFieldDoesNotExist)]
     fun test_set_owner_abort_if_domain_name_not_exists() {
         let scenario = test_init();
         mint_record(&mut scenario);
@@ -136,7 +136,7 @@ module suins::registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registry::EUnauthorized)]
+    #[test, expected_failure(abort_code = suins::suins::ENotRecordOwner)]
     fun test_set_owner_abort_if_unauthorised() {
         let scenario = test_init();
         mint_record(&mut scenario);

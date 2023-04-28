@@ -2,6 +2,8 @@
 /// Simplifies config creation, removes friends, and basically can be
 /// created by anyone on the network with the exception that they won't
 /// be able to use it in any way. :)
+///
+/// This module is (almost) free from any non-framework dependencies.
 module suins::config {
     use suins::constants;
 
@@ -11,16 +13,6 @@ module suins::config {
     const ELabelTooLong: u64 = 1;
     /// The price value is invalid.
     const EInvalidPrice: u64 = 2;
-
-    //TODO check these
-    const EInvalidRate: u64 = 401;
-    const EInvalidReferralCode: u64 = 402;
-    const EInvalidDiscountCode: u64 = 403;
-    const EUserUnauthorized: u64 = 404;
-    const EDiscountCodeNotExists: u64 = 405;
-    const EReferralCodeNotExists: u64 = 406;
-    const EInvalidLabelLength: u64 = 407;
-    const EInvalidNewPrice: u64 = 408;
 
     /// The configuration object, holds current settings of the SuiNS
     /// application. Does not carry any business logic and can easily

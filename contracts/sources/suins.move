@@ -1,7 +1,8 @@
 module suins::suins {
+    use std::option::some;
     use std::string::String;
 
-    use sui::tx_context::{Self, TxContext};
+    use sui::tx_context::{sender, Self, TxContext};
     use sui::object::{UID, ID};
     use sui::table::Table;
     use sui::table;
@@ -13,10 +14,10 @@ module suins::suins {
     use sui::linked_table;
     use sui::balance;
     use sui::coin::{Self, Coin};
-    use sui::vec_map::{Self, VecMap};
     use sui::dynamic_field as df;
 
     use suins::constants;
+    use suins::name_record::{Self, NameRecord};
 
     friend suins::registry;
     friend suins::registrar;
@@ -25,6 +26,8 @@ module suins::suins {
 
     /// Trying to withdraw from an empty balance.
     const ENoProfits: u64 = 0;
+    /// Trying to access a name record that belongs to another account.
+    const ENotRecordOwner: u64 = 1;
 
     /// An admin capability. The admin has full control over the application.
     /// This object must be issued only once during module initialization.
@@ -46,14 +49,6 @@ module suins::suins {
         registrars: Table<String, Table<String, RegistrationRecord>>,
         /// The controller object is responsible for managing the auction house.
         controller: Controller,
-    }
-
-    struct NameRecord has store {
-        owner: address,
-        /// The target address that this domain points to
-        target_address: address,
-        /// Additional data which may be stored in a record
-        data: VecMap<String, String>,
     }
 
     /// each registration records has a corresponding name records
@@ -149,19 +144,51 @@ module suins::suins {
 
     // === Records creation ===
 
+    /// Mutable access to the name record.
+    /// TODO: add reverse registry methods to the name record when it is changed.
+    /// TODO: see `name_record` module for details.
+    public fun name_record_mut(
+        self: &mut SuiNS, domain_name: String, ctx: &mut TxContext
+    ): &mut NameRecord {
+        let record_mut = table::borrow_mut(&mut self.registry, domain_name);
+        assert!(name_record::owner(record_mut) == sender(ctx), ENotRecordOwner);
+        record_mut
+    }
+
+    /// REFACTOR: remove friend once `Registry` is dealt with.
+    public(friend) fun name_record_mut_internal(
+        self: &mut SuiNS, domain_name: String
+    ): &mut NameRecord {
+        table::borrow_mut(&mut self.registry, domain_name)
+    }
+
+    /// REFACTOR: remove friend once `Registry` is dealt with.
+    /// TODO: consider better name_record API.
+    public fun has_name_record(self: &SuiNS, domain_name: String): bool {
+        table::contains(&self.registry, domain_name)
+    }
+
+    /// Creates and adds a new `name_record` to the `SuiNS`.
+    /// REFACTOR: remove friend once `Registry` is dealt with.
+    public(friend) fun add_record(
+        suins: &mut SuiNS,
+        domain_name: String,
+        owner: address
+    ) {
+        let name_record = name_record::new(owner, some(owner));
+        table::add(&mut suins.registry, domain_name, name_record);
+    }
+
     public fun new_registration_record(expired_at: u64, nft_id: ID): RegistrationRecord {
         RegistrationRecord { expired_at, nft_id }
     }
 
-    public fun new_name_record(owner: address, target_address: address): NameRecord {
-        NameRecord {
-            owner,
-            target_address,
-            data: vec_map::empty()
-        }
-    }
-
     // === Fields access ===
+
+    /// Read the `name_record` for the specified `domain_name`.
+    public fun name_record(self: &SuiNS, domain_name: String): &NameRecord {
+        table::borrow(&self.registry, domain_name)
+    }
 
     public fun registry(self: &SuiNS): &Table<String, NameRecord> {
         &self.registry
@@ -177,14 +204,6 @@ module suins::suins {
         self: &SuiNS, tld: String
     ): &Table<String, RegistrationRecord> {
         table::borrow(&self.registrars, tld)
-    }
-
-    public fun name_record_owner(name_record: &NameRecord): address {
-        name_record.owner
-    }
-
-    public fun name_record_target_address(name_record: &NameRecord): address {
-        name_record.target_address
     }
 
     public fun registration_record_expired_at(record: &RegistrationRecord): u64 {
@@ -211,10 +230,6 @@ module suins::suins {
 
     // === Friend and Private Functions ===
 
-    public(friend) fun name_record_data(name_record: &NameRecord): &VecMap<String, String> {
-        &name_record.data
-    }
-
     public(friend) fun registry_mut(self: &mut SuiNS): &mut Table<String, NameRecord> {
         &mut self.registry
     }
@@ -233,18 +248,6 @@ module suins::suins {
 
     public(friend) fun registrar_mut(self: &mut SuiNS, tld: String): &mut Table<String, RegistrationRecord> {
         table::borrow_mut(&mut self.registrars, tld)
-    }
-
-    public(friend) fun name_record_owner_mut(name_record: &mut NameRecord): &mut address {
-        &mut name_record.owner
-    }
-
-    public(friend) fun name_record_target_address_mut(name_record: &mut NameRecord): &mut address {
-        &mut name_record.target_address
-    }
-
-    public(friend) fun name_record_data_mut(name_record: &mut NameRecord): &mut VecMap<String, String> {
-        &mut name_record.data
     }
 
     public(friend) fun registration_record_expired_at_mut(record: &mut RegistrationRecord): &mut u64 {

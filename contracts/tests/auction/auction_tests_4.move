@@ -1327,7 +1327,7 @@ module suins::auction_tests_4 {
                 0
             );
             assert!(registry::owner(&suins, utf8(FIRST_DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
-            assert!(registry::target_address(&suins, utf8(FIRST_DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
+            assert!(registry::target_address(&suins, utf8(FIRST_DOMAIN_NAME_SUI)) == std::option::some(FIRST_USER_ADDRESS), 0);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(
                 suins::balance(&suins) == START_AN_AUCTION_FEE + 1000 * suins::constants::mist_per_sui() + BIDDING_FEE,

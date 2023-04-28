@@ -1,5 +1,7 @@
 /// Unifies previously defined modules: validator and converter.
 /// Holds the neutral logic for validation and conversion of strings.
+///
+/// This module is free from any non-framework dependencies.
 module suins::string_utils {
     use std::ascii;
     use std::vector;
