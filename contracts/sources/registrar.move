@@ -3,24 +3,22 @@
 /// All functions that involves payment charging in this module aren't supposed to be called directly,
 /// users must call the corresponding functions in `Controller`.
 module suins::registrar {
-    use sui::event;
-    use sui::object::{Self, UID, uid_to_inner, ID};
-    use sui::tx_context::TxContext;
-    use sui::url::Url;
     use std::string::{Self, String, utf8};
     use std::vector;
-    use suins::registry;
-    use suins::suins::{Self, AdminCap};
-    use suins::config::{Self, Config};
-    use sui::ecdsa_k1;
-    use suins::string_utils;
-    use sui::url;
     use std::hash::sha2_256;
-    use suins::suins::{SuiNS, RegistrationRecord};
-    use sui::table;
-    use sui::table::Table;
-    use sui::tx_context;
+
+    use sui::object::{Self, UID, uid_to_inner, ID};
+    use sui::tx_context::{Self, TxContext};
+    use sui::table::{Self, Table};
+    use sui::url::{Self, Url};
     use sui::transfer;
+    use sui::ecdsa_k1;
+    use sui::event;
+
+    use suins::registry;
+    use suins::string_utils;
+    use suins::config::{Self, Config};
+    use suins::suins::{Self, AdminCap, SuiNS, RegistrationRecord};
 
     friend suins::controller;
     friend suins::auction;
@@ -386,10 +384,8 @@ module suins::registrar {
 
     // === Testing ===
 
-    #[test_only]
-    friend suins::registrar_tests;
-    #[test_only]
-    friend suins::controller_tests;
+    #[test_only] friend suins::registrar_tests;
+    #[test_only] friend suins::controller_tests;
 
     #[test_only]
     public fun record_exists(suins: &SuiNS, tld: vector<u8>, label: vector<u8>): bool {

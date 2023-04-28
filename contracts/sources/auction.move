@@ -1,31 +1,26 @@
 /// Implementation of auction module.
 /// More information in: ../../../docs
 module suins::auction {
-
     use std::option::{Self, Option, none, some};
     use std::string::{Self, String, utf8};
     use std::vector;
     use std::bcs;
 
-    use sui::object::UID;
-    use sui::table::{Self, Table};
-    use sui::tx_context::TxContext;
-    use sui::sui::SUI;
+    use sui::tx_context::{Self, TxContext};
     use sui::balance::{Self, Balance};
+    use sui::object::{Self, UID};
+    use sui::table::{Self, Table};
+    use sui::coin::{Self, Coin};
+    use sui::sui::SUI;
     use sui::transfer;
-    use sui::object;
     use sui::hash::keccak256;
-    use sui::coin::Coin;
     use sui::event;
     use sui::clock::{Self, Clock};
     use sui::linked_table::{Self, LinkedTable};
-    use sui::tx_context;
-    use sui::coin;
 
     use suins::registrar;
-    use suins::suins::{Self, AdminCap};
     use suins::config::{Self, Config};
-    use suins::suins::SuiNS;
+    use suins::suins::{Self, AdminCap, SuiNS};
     use suins::string_utils;
     use suins::constants;
 

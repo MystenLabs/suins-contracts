@@ -2,20 +2,23 @@
 /// The owners of this only own the name, not own the registration.
 /// It primarily facilitates the lending and borrowing of domain names.
 module suins::registry {
+    use std::string::String;
+
+    use sui::table;
+    use sui::vec_map;
     use sui::event;
     use sui::tx_context::{TxContext, sender};
-    use std::string::String;
-    use suins::suins::{SuiNS, NameRecord};
+
     use suins::suins::{
         Self,
+        SuiNS,
+        NameRecord,
         name_record_owner,
         name_record_owner_mut,
         new_name_record,
         name_record_target_address,
         name_record_target_address_mut,
     };
-    use sui::table;
-    use sui::vec_map;
 
     friend suins::registrar;
     friend suins::controller;
