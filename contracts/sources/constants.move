@@ -3,6 +3,9 @@
 module suins::constants {
     use std::string::{utf8, String};
 
+    /// Max value for basis points.
+    const MAX_BPS: u16 = 10000;
+
     /// The u64_MAX value.
     const MAX_U64: u64 = 18446744073709551615;
 
@@ -36,4 +39,7 @@ module suins::constants {
 
     /// Maximum value of u64.
     public fun max_u64(): u64 { MAX_U64 }
+
+    /// Maximum value for basis points.
+    public fun max_bps(): u16 { MAX_BPS }
 }

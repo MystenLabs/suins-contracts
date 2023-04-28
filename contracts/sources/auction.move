@@ -149,7 +149,7 @@ module suins::auction {
     /// Panics
     /// Panics if `open_at` is less than `close_at`
     /// or current epoch is less than or equal `open_at`
-    public entry fun configure_auction(
+    public fun configure_auction(
         _: &AdminCap,
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
@@ -186,7 +186,7 @@ module suins::auction {
     /// or the domain name is already opened
     /// or the domain name is not eligible for auction.
     /// or the length of the label must be within the range of 3-6 characters.
-    public entry fun start_an_auction(
+    public fun start_an_auction(
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
         label: String,
@@ -243,7 +243,7 @@ module suins::auction {
     /// or `bid_value_mask` is less than `MIN_PRICE`
     /// or the sealed bid exists
     /// or payment doesn't have enough coin
-    public entry fun place_bid(
+    public fun place_bid(
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
         sealed_bid: vector<u8>,
@@ -314,7 +314,7 @@ module suins::auction {
     /// or the parameters don't match any sealed bid
     /// or the sealed bid has already been unsealed
     /// or `label` hasn't been started
-    public entry fun reveal_bid(
+    public fun reveal_bid(
         auction_house: &mut AuctionHouse,
         suins: &SuiNS,
         label: String,
@@ -400,7 +400,7 @@ module suins::auction {
     /// or sender has never ever placed a bid
     /// or `label` hasn't been started
     /// or the auction has already been finalized and sender is the winner
-    public entry fun finalize_auction(
+    public fun finalize_auction(
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
         label: String,
@@ -459,7 +459,7 @@ module suins::auction {
         register_winning_auction(suins, label, entry.winner, entry.second_highest_bid, ctx)
     }
 
-    public entry fun finalize_all_auctions_by_admin(
+    public fun finalize_all_auctions_by_admin(
         _: &AdminCap,
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
@@ -533,7 +533,7 @@ module suins::auction {
     /// Panics
     /// Panics if current epoch is less than or equal end_at
     /// or sender has never ever placed a bid
-    public entry fun withdraw(auction_house: &mut AuctionHouse, ctx: &mut TxContext) {
+    public fun withdraw(auction_house: &mut AuctionHouse, ctx: &mut TxContext) {
         assert!(tx_context::epoch(ctx) > auction_house_close_at(auction_house), EInvalidPhase);
 
         let bids_of_sender = table::borrow_mut(&mut auction_house.bid_details_by_bidder, tx_context::sender(ctx));
@@ -567,7 +567,7 @@ module suins::auction {
         };
     }
 
-    public entry fun set_bidding_fee(_: &AdminCap, auction_house: &mut AuctionHouse, new_bidding_fee: u64) {
+    public fun set_bidding_fee(_: &AdminCap, auction_house: &mut AuctionHouse, new_bidding_fee: u64) {
         assert!(
             suins::constants::mist_per_sui() <= new_bidding_fee
                 && new_bidding_fee <= suins::constants::mist_per_sui() * 1_000_000,
@@ -576,7 +576,7 @@ module suins::auction {
         auction_house.bidding_fee = new_bidding_fee;
     }
 
-    public entry fun set_start_an_auction_fee(_: &AdminCap, auction_house: &mut AuctionHouse, new_fee: u64) {
+    public fun set_start_an_auction_fee(_: &AdminCap, auction_house: &mut AuctionHouse, new_fee: u64) {
         assert!(
             suins::constants::mist_per_sui() <= new_fee
                 && new_fee <= suins::constants::mist_per_sui() * 1_000_000,

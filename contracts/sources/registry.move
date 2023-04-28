@@ -77,7 +77,7 @@ module suins::registry {
     /// Panics
     /// Panics if caller isn't the owner of `domain name`
     /// or `domain name` doesn't exists.
-    public entry fun set_owner(suins: &mut SuiNS, domain_name: String, owner: address, ctx: &mut TxContext) {
+    public fun set_owner(suins: &mut SuiNS, domain_name: String, owner: address, ctx: &mut TxContext) {
         is_authorised(suins, domain_name, ctx);
 
         set_owner_internal(suins, domain_name, owner);
@@ -93,7 +93,7 @@ module suins::registry {
     ///
     /// Panics
     /// Panics if caller isn't the owner of `domain name`
-    public entry fun set_data(
+    public fun set_data(
         suins: &mut SuiNS,
         domain_name: String,
         key: String,
@@ -124,7 +124,7 @@ module suins::registry {
     /// Panics
     /// Panics if caller isn't the owner of `domain_name`
     /// or `domain_name` doesn't exist.
-    public entry fun unset_data(
+    public fun unset_data(
         suins: &mut SuiNS,
         domain_name: String,
         key: String,
@@ -148,7 +148,7 @@ module suins::registry {
     ///
     /// Panics
     /// Panics if caller isn't the owner of `domain_name`
-    public entry fun set_target_address(
+    public fun set_target_address(
         suins: &mut SuiNS,
         domain_name: String,
         new_addr: address,
@@ -169,7 +169,7 @@ module suins::registry {
         };
     }
 
-    public entry fun unset_target_address(
+    public fun unset_target_address(
         suins: &mut SuiNS,
         domain_name: String,
         ctx: &mut TxContext,
@@ -187,7 +187,7 @@ module suins::registry {
         };
     }
 
-    public entry fun set_default_domain_name(
+    public fun set_default_domain_name(
         suins: &mut SuiNS,
         new_default_domain_name: String,
         ctx: &mut TxContext,
@@ -214,7 +214,7 @@ module suins::registry {
         event::emit(DefaultDomainNameChangedEvent { address: sender_address, new_default_domain_name });
     }
 
-    public entry fun unset_default_domain_name(
+    public fun unset_default_domain_name(
         suins: &mut SuiNS,
         ctx: &mut TxContext,
     ) {

@@ -1,13 +1,15 @@
 /// Promotion mechanics: referral and discount codes.
 ///
+/// It's a separate configuration object stored the same way as the `Config`.
+/// Serves its purpose, does not affect any public signatures of the suins nor
+/// Auction nor anything else, so can safely be injected or ejected whenever
+/// needed.
 module suins::promotion {
     use std::string::String;
     use sui::vec_map::{Self, VecMap};
     use sui::tx_context::{sender, TxContext};
     use suins::string_utils;
-
-    /// Max value for basis points.
-    const MAX_BPS: u16 = 10000;
+    use suins::constants;
 
     /// Trying to input an invalid BPS value.
     const EInvalidBpsValue: u64 = 0;
@@ -119,6 +121,6 @@ module suins::promotion {
 
     /// Internal check for BPS.
     fun assert_bps(bps: u16) {
-        assert!(bps <= MAX_BPS, EInvalidBpsValue);
+        assert!(bps <= constants::max_bps(), EInvalidBpsValue);
     }
 }

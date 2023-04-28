@@ -75,7 +75,7 @@ module suins::registrar {
     ///
     /// Panic
     /// Panic if this TLD already exists.
-    public entry fun new_tld(
+    public fun new_tld(
         _: &AdminCap,
         suins: &mut SuiNS,
         new_tld: String,
@@ -98,7 +98,7 @@ module suins::registrar {
     /// Panic
     /// Panic if the NFT no longer exists
     /// or the NFT expired.
-    public entry fun reclaim_name(
+    public fun reclaim_name(
         nft: &RegistrationNFT,
         suins: &mut SuiNS,
         owner: address,
@@ -136,7 +136,7 @@ module suins::registrar {
     /// or `hash_msg` doesn't match `raw_msg`
     /// or `signature` doesn't match `hashed_msg` and `public_key` stored in Configuration
     /// or the data in NFTs don't match `raw_msg`
-    public entry fun update_image_url(
+    public fun update_image_url(
         suins: &mut SuiNS,
         nft: &mut RegistrationNFT,
         signature: vector<u8>,

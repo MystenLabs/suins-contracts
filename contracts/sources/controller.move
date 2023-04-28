@@ -80,7 +80,7 @@ module suins::controller {
     ///
     /// #### Params
     /// `commitment`: hash from `make_commitment`
-    public entry fun commit(suins: &mut SuiNS, commitment: vector<u8>, clock: &Clock) {
+    public fun commit(suins: &mut SuiNS, commitment: vector<u8>, clock: &Clock) {
         let commitments = suins::controller_commitments_mut(suins);
         remove_outdated_commitments(commitments, clock);
 
@@ -108,7 +108,7 @@ module suins::controller {
     /// or label length isn't outside of the permitted range
     /// or `payment` doesn't have enough coins
     /// or either `referral_code` or `discount_code` is invalid
-    public entry fun register(
+    public fun register(
         suins: &mut SuiNS,
         label: String, // `label` is 1 level
         owner: address,
@@ -159,7 +159,7 @@ module suins::controller {
     /// or label length isn't outside of the permitted range
     /// or `payment` doesn't have enough coins
     /// or either `referral_code` or `discount_code` is invalid
-    public entry fun register_with_image(
+    public fun register_with_image(
         suins: &mut SuiNS,
         label: String, // `label` is 1 level
         owner: address,
@@ -204,7 +204,7 @@ module suins::controller {
     /// #### Params
     /// `referral_code`: referral code to be used
     /// `discount_code`: discount code to be used
-    public entry fun register_with_code(
+    public fun register_with_code(
         suins: &mut SuiNS,
         label: String, // `label` is 1 level
         owner: address,
@@ -251,7 +251,7 @@ module suins::controller {
     /// `hashed_msg`: sha256 of `raw_msg`
     /// `raw_msg`: the data to verify and update image url, with format: <ipfs_url>,<owner>,<expired_at>.
     /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
-    public entry fun register_with_code_and_image(
+    public fun register_with_code_and_image(
         suins: &mut SuiNS,
         label: String, // `label` is 1 level
         owner: address,
@@ -297,7 +297,7 @@ module suins::controller {
     /// Panic
     /// Panic if domain name doesn't exist
     /// or `payment` doesn't have enough coins
-    public entry fun renew(
+    public fun renew(
         suins: &mut SuiNS,
         label: String,
         no_years: u8,
@@ -322,7 +322,7 @@ module suins::controller {
     /// or `signature` is empty
     /// or `hashed_msg` is empty
     /// or `msg` is empty
-    public entry fun renew_with_image(
+    public fun renew_with_image(
         suins: &mut SuiNS,
         label: String,
         no_years: u8,
@@ -338,7 +338,7 @@ module suins::controller {
         registrar::update_image_url(suins, nft, signature, hashed_msg, raw_msg, ctx);
     }
 
-    public entry fun new_reserved_domains(
+    public fun new_reserved_domains(
         _: &AdminCap,
         suins: &mut SuiNS,
         domains: vector<String>,
@@ -490,8 +490,6 @@ module suins::controller {
         //     data: additional_data,
         // });
 
-
-
         suins::add_to_balance(suins, coin::split(payment, registration_fee, ctx))
     }
 
@@ -595,6 +593,10 @@ module suins::controller {
     }
 
     #[test_only]
+    // First I was like - yeah, let's remove the unused argument. But then
+    // I saw how many tests are using this function and I was like - nah, I'm good.
+    //
+    // Maybe as a part of tests reorganization... yuck.
     public fun test_make_commitment(
         _tld: vector<u8>,
         label: vector<u8>,
