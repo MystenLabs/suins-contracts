@@ -13,8 +13,6 @@ module suins::registry {
     use suins::suins::{Self, SuiNS};
     use suins::name_record::{Self, NameRecord};
 
-    friend suins::controller;
-
     // errors in the range of 101..200 indicate SuiNS errors
     const EUnauthorized: u64 = 101;
     const EDomainNameNotExists: u64 = 102;
@@ -195,10 +193,6 @@ module suins::registry {
         assert!(vec_map::contains(record_data, &key), EKeyNotExists);
         *vec_map::get(record_data, &key)
     }
-
-    #[test_only] friend suins::registry_tests;
-    #[test_only] friend suins::registry_tests_2;
-
 
     // === Events: TODO ===
 
