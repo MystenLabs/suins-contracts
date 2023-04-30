@@ -1326,7 +1326,7 @@ module suins::auction_tests_4 {
                     == EXTRA_PERIOD_START_AT + 1 + 365,
                 0
             );
-            assert!(registry::owner(&suins, utf8(FIRST_DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
+            assert!(suins::record_owner(&suins, utf8(FIRST_DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
             assert!(registry::target_address(&suins, utf8(FIRST_DOMAIN_NAME_SUI)) == std::option::some(FIRST_USER_ADDRESS), 0);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(

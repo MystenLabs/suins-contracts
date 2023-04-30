@@ -13,7 +13,6 @@ module suins::auction_tests {
     use sui::clock;
 
     use suins::auction::{Self, make_seal_bid, get_seal_bid_by_bidder, finalize_auction, get_bids_by_bidder, get_bid_detail_fields, withdraw, state, AuctionHouse};
-    use suins::registry;
     use suins::registrar;
     use suins::string_utils;
     use suins::controller;
@@ -1186,7 +1185,7 @@ module suins::auction_tests {
                     == START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 365,
                 0
             );
-            assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == SECOND_USER_ADDRESS, 0);
+            assert!(suins::record_owner(&suins, utf8(DOMAIN_NAME_SUI)) == SECOND_USER_ADDRESS, 0);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
         };
@@ -1242,7 +1241,7 @@ module suins::auction_tests {
                     == START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 365,
                 0
             );
-            assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == SECOND_USER_ADDRESS, 0);
+            assert!(suins::record_owner(&suins, utf8(DOMAIN_NAME_SUI)) == SECOND_USER_ADDRESS, 0);
             test_scenario::return_shared(suins);
             test_scenario::return_shared(auction);
         };
@@ -1956,7 +1955,7 @@ module suins::auction_tests {
                     == START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 365,
                 0
             );
-            assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
+            assert!(suins::record_owner(&suins, utf8(DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1200 * suins::constants::mist_per_sui() + BIDDING_FEE, 0);
 
@@ -2022,7 +2021,7 @@ module suins::auction_tests {
                     == START_AN_AUCTION_AT + 1 + BIDDING_PERIOD + REVEAL_PERIOD + 365,
                 0
             );
-            assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
+            assert!(suins::record_owner(&suins, utf8(DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1200 * suins::constants::mist_per_sui() + BIDDING_FEE, 0);
@@ -2352,7 +2351,7 @@ module suins::auction_tests {
                     == START_AUCTION_END_AT + 10 + 365,
                 0
             );
-            assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
+            assert!(suins::record_owner(&suins, utf8(DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1200 * suins::constants::mist_per_sui() + BIDDING_FEE, 0);
 
@@ -2602,7 +2601,7 @@ module suins::auction_tests {
                     == START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + EXTRA_PERIOD - 1 + 365,
                 0
             );
-            assert!(registry::owner(&suins, utf8(DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
+            assert!(suins::record_owner(&suins, utf8(DOMAIN_NAME_SUI)) == FIRST_USER_ADDRESS, 0);
 
             assert!(auction::get_balance(&auction) == 0, 0);
             assert!(suins::balance(&suins) == START_AN_AUCTION_FEE + 1500 * suins::constants::mist_per_sui() + BIDDING_FEE, 0);

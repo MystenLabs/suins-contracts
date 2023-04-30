@@ -110,7 +110,7 @@ module suins::registrar {
         let registration = table::borrow(registrar, label);
         assert!(suins::registration_record_expired_at(registration) >= tx_context::epoch(ctx), ELabelExpired);
 
-        registry::set_owner_internal(suins, nft.name, owner);
+        suins::set_owner_internal(suins, nft.name, owner);
         event::emit(NameReclaimedEvent {
             domain_name: nft.name,
             owner,

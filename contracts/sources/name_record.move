@@ -16,7 +16,6 @@ module suins::name_record {
 
     /// A single record in the registry.
     struct NameRecord has copy, store, drop {
-        owner: address,
         /// The target address that this domain points to
         target_address: Option<address>,
         /// Additional data which may be stored in a record
@@ -24,9 +23,8 @@ module suins::name_record {
     }
 
     /// Create a new NameRecord.
-    public fun new(owner: address, target_address: Option<address>): NameRecord {
+    public fun new(target_address: Option<address>): NameRecord {
         NameRecord {
-            owner: owner,
             target_address: target_address,
             data: vec_map::empty(),
         }
@@ -49,11 +47,6 @@ module suins::name_record {
         self.data = data;
     }
 
-    /// Set the `owner` field of the `NameRecord`.
-    public fun set_owner(self: &mut NameRecord, new_owner: address) {
-        self.owner = new_owner;
-    }
-
     /// Set the `target_address` field of the `NameRecord`.
     public fun set_target_address(self: &mut NameRecord, new_address: Option<address>) {
         self.target_address = new_address;
@@ -67,11 +60,6 @@ module suins::name_record {
     }
 
     // === Getters ===
-
-    /// Read the `owner` field from the `NameRecord`.
-    public fun owner(self: &NameRecord): address {
-        self.owner
-    }
 
     /// Read the `data` field from the `NameRecord`.
     public fun data(self: &NameRecord): &VecMap<String, String> {

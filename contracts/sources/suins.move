@@ -17,7 +17,7 @@ module suins::suins {
     use sui::dynamic_field as df;
 
     use suins::constants;
-    use suins::name_record::{Self, NameRecord};
+    use suins::name_record;
 
     friend suins::registry;
     friend suins::registrar;
@@ -44,6 +44,9 @@ module suins::suins {
         registry: UID,
         /// Map from addresses to a configured default domain
         reverse_registry: Table<address, String>,
+        /// Track record ownership to perform authorization.
+        /// TODO: try nuke ownership from the NameRecord.
+        record_owner: Table<String, address>,
         /// Maps tlds to registrar objects, each registrar object is responsible for domains of a particular tld.
         /// Registrar object is a mapping of domain names to registration records (instance of `RegistrationRecord`).
         /// A registrar object can be created by calling `new_tld` and has a record with key `tld` to represent its tld.
@@ -92,6 +95,7 @@ module suins::suins {
             balance: balance::zero(),
             registry: object::new(ctx),
             reverse_registry: table::new(ctx),
+            record_owner: table::new(ctx),
             registrars: table::new(ctx),
             controller: Controller {
                 commitments: linked_table::new(ctx),
@@ -143,6 +147,12 @@ module suins::suins {
         coin::take(&mut self.balance, amount, ctx)
     }
 
+    // === Registrar ===
+
+    public fun new_registration_record(expired_at: u64, nft_id: ID): RegistrationRecord {
+        RegistrationRecord { expired_at, nft_id }
+    }
+
     // === Records creation ===
 
     // TODO: revisit this section once Registry is cleaned up.
@@ -160,12 +170,11 @@ module suins::suins {
     /// Mutable access to the name record.
     /// TODO: add reverse registry methods to the name record when it is changed.
     /// TODO: see `name_record` module for details.
-    public fun name_record_mut(
+    public fun name_record_mut<Record: store + drop>(
         self: &mut SuiNS, domain_name: String, ctx: &mut TxContext
-    ): &mut NameRecord {
-        let record_mut = df::borrow_mut(&mut self.registry, domain_name);
-        assert!(name_record::owner(record_mut) == sender(ctx), ENotRecordOwner);
-        record_mut
+    ): &mut Record {
+        assert!(record_owner(self, domain_name) == sender(ctx), ENotRecordOwner);
+        df::borrow_mut(&mut self.registry, domain_name)
     }
 
     /// REFACTOR: remove friend once `Registry` is dealt with.
@@ -188,15 +197,28 @@ module suins::suins {
         domain_name: String,
         owner: address
     ) {
-        let name_record = name_record::new(owner, some(owner));
+        let name_record = name_record::new(some(owner));
+        table::add(&mut suins.record_owner, domain_name, owner);
         df::add(&mut suins.registry, domain_name, name_record);
     }
 
-    public fun new_registration_record(expired_at: u64, nft_id: ID): RegistrationRecord {
-        RegistrationRecord { expired_at, nft_id }
+    /// Transfer ownership of the name record to the `new_address`.
+    public fun transfer_ownership(
+        self: &mut SuiNS,
+        domain_name: String,
+        new_owner: address,
+        ctx: &mut TxContext
+    ) {
+        let old_owner = record_owner(self, domain_name);
+        assert!(old_owner == sender(ctx), ENotRecordOwner);
+        *table::borrow_mut(&mut self.record_owner, domain_name) = new_owner;
     }
 
     // === Fields access ===
+
+    public fun record_owner(self: &SuiNS, domain_name: String): address {
+        *table::borrow(&self.record_owner, domain_name)
+    }
 
     /// Read the `name_record` for the specified `domain_name`.
     public fun name_record<Record: store + drop>(self: &SuiNS, domain_name: String): &Record {
@@ -242,6 +264,10 @@ module suins::suins {
     }
 
     // === Friend and Private Functions ===
+
+    public(friend) fun set_owner_internal(self: &mut SuiNS, domain_name: String, owner: address) {
+        *table::borrow_mut(&mut self.record_owner, domain_name) = owner;
+    }
 
     public(friend) fun reverse_registry(self: &SuiNS): &Table<address, String> {
         &self.reverse_registry
@@ -296,6 +322,7 @@ module suins::suins {
     /// Wrapper of module initializer for testing
     public fun test_init(ctx: &mut TxContext) {
         let registry = object::new(ctx);
+        let record_owner = table::new(ctx);
         let reverse_registry = table::new(ctx);
         let registrars = table::new(ctx);
         let controller = Controller {
@@ -308,6 +335,7 @@ module suins::suins {
             id: object::new(ctx),
             balance: balance::zero(),
             registry,
+            record_owner,
             reverse_registry,
             registrars,
             controller,

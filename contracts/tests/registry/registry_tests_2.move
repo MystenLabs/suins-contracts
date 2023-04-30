@@ -577,6 +577,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let data = 
             registry::unset_data(
                 &mut suins,
                 utf8(FIRST_DOMAIN_NAME),

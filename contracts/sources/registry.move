@@ -23,26 +23,6 @@ module suins::registry {
     const EDefaultDomainNameNotMatch: u64 = 104;
 
     /// #### Notice
-    /// This funtions allows owner of `domain name` to reassign ownership of this domain name.
-    /// The `domain name` can have multiple levels.
-    ///
-    /// #### Dev
-    /// `Record` indexed by `domain name` is updated.
-    ///
-    /// #### Params
-    /// `domain name`: domain name to be updated
-    /// `owner`: new owner address
-    ///
-    /// Panics
-    /// Panics if caller isn't the owner of `domain name`
-    /// or `domain name` doesn't exists.
-    public fun set_owner(suins: &mut SuiNS, domain_name: String, owner: address, ctx: &mut TxContext) {
-        let record = suins::name_record_mut(suins, domain_name, ctx);
-        name_record::set_owner(record, owner);
-        event::emit(OwnerChangedEvent { domain_name, new_owner: owner });
-    }
-
-    /// #### Notice
     /// This funtions allows owner of `domain name` to set custom data.
     ///
     /// #### Params
@@ -184,20 +164,6 @@ module suins::registry {
 
     // === Public Functions ===
 
-    /// #### Notice
-    /// Get owner address of a `domain_name`.
-    /// The `domain_name` can have multiple levels.
-    ///
-    /// #### Params
-    /// `domain_name`: domain name to find the owner
-    ///
-    /// Panics
-    /// Panics if `domain_name` doesn't exists.
-    public fun owner(suins: &SuiNS, domain_name: String): address {
-        let record = suins::name_record<NameRecord>(suins, domain_name);
-        name_record::owner(record)
-    }
-
     public fun target_address(suins: &SuiNS, domain_name: String): Option<address> {
         let record = suins::name_record<NameRecord>(suins, domain_name);
         name_record::target_address(record)
@@ -219,10 +185,8 @@ module suins::registry {
     /// Panics if `domain_name` doesn't exists.
     public fun get_name_record_all_fields(suins: &SuiNS, domain_name: String): (address, Option<address>) {
         let record = suins::name_record<NameRecord>(suins, domain_name);
-        (
-            name_record::owner(record),
-            name_record::target_address(record)
-        )
+        let owner = suins::record_owner(suins, domain_name);
+        ( owner, name_record::target_address(record) )
     }
 
     public fun get_name_record_data(suins: &SuiNS, domain_name: String, key: String): String {
@@ -233,17 +197,7 @@ module suins::registry {
         *vec_map::get(record_data, &key)
     }
 
-    public fun is_authorised(suins: &SuiNS, domain_name: String, ctx: &TxContext) {
-        let record = suins::name_record<NameRecord>(suins, domain_name);
-        assert!(sender(ctx) == name_record::owner(record), 1);
-    }
-
     // === Friend and Private Functions ===
-
-    public(friend) fun set_owner_internal(suins: &mut SuiNS, domain_name: String, owner: address) {
-        let record_mut = suins::name_record_mut_internal<NameRecord>(suins, domain_name);
-        name_record::set_owner(record_mut, owner)
-    }
 
     // this function is intended to be called by the Registrar, no need to check for owner
     public(friend) fun set_record_internal(
@@ -252,8 +206,8 @@ module suins::registry {
         owner: address,
     ) {
         if (suins::has_name_record(suins, domain_name)) {
+            suins::set_owner_internal(suins, domain_name, owner);
             let record_mut = suins::name_record_mut_internal<NameRecord>(suins, domain_name);
-            name_record::set_owner(record_mut, owner);
             name_record::set_target_address(record_mut, some(owner));
         } else {
             suins::add_record(suins, domain_name, owner)
