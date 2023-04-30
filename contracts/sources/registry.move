@@ -205,10 +205,7 @@ module suins::registry {
 
     public fun default_domain_name(suins: &SuiNS, addr: address): String {
         let reverse_registry = suins::reverse_registry(suins);
-
-        let default_domain_name = *table::borrow(reverse_registry, addr);
-
-        default_domain_name
+        *table::borrow(reverse_registry, addr)
     }
 
     /// #### Notice
