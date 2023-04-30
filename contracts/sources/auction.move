@@ -55,6 +55,9 @@ module suins::auction {
     const ELabelUnavailable: u64 = 816;
     const EPaymentNotEnough: u64 = 817;
 
+    /// Authorization witness to call protected functions of suins.
+    struct App has drop {}
+
     struct BidDetail has store, copy, drop {
         // Using the address to simplify the typing;
         // Basically the same thing as the ID.
@@ -570,8 +573,8 @@ module suins::auction {
 
     public fun set_bidding_fee(_: &AdminCap, auction_house: &mut AuctionHouse, new_bidding_fee: u64) {
         assert!(
-            suins::constants::mist_per_sui() <= new_bidding_fee
-                && new_bidding_fee <= suins::constants::mist_per_sui() * 1_000_000,
+            constants::mist_per_sui() <= new_bidding_fee
+                && new_bidding_fee <= constants::mist_per_sui() * 1_000_000,
             EInvalidBiddingFee
         );
         auction_house.bidding_fee = new_bidding_fee;
@@ -579,8 +582,8 @@ module suins::auction {
 
     public fun set_start_an_auction_fee(_: &AdminCap, auction_house: &mut AuctionHouse, new_fee: u64) {
         assert!(
-            suins::constants::mist_per_sui() <= new_fee
-                && new_fee <= suins::constants::mist_per_sui() * 1_000_000,
+            constants::mist_per_sui() <= new_fee
+                && new_fee <= constants::mist_per_sui() * 1_000_000,
             EInvalidBiddingFee
         );
         auction_house.start_an_auction_fee = new_fee;
@@ -780,8 +783,8 @@ module suins::auction {
             balance: balance::zero(),
             start_auction_start_at: constants::max_epoch_allowed(),
             start_auction_end_at: constants::max_epoch_allowed() - 1,
-            bidding_fee: suins::constants::mist_per_sui(),
-            start_an_auction_fee: 10 * suins::constants::mist_per_sui(),
+            bidding_fee: constants::mist_per_sui(),
+            start_an_auction_fee: 10 * constants::mist_per_sui(),
         });
     }
 
@@ -808,7 +811,7 @@ module suins::auction {
         amount: u64,
     ) {
         if (amount > 0) {
-            suins::join_balance(suins, balance::split(balance, amount))
+            suins::app_add_balance(App {}, suins, balance::split(balance, amount))
         }
     }
 
@@ -836,7 +839,7 @@ module suins::auction {
     fun add_to_suins(
         suins: &mut SuiNS, payment: &mut Coin<SUI>, amount: u64, ctx: &mut TxContext
     ) {
-        suins::add_to_balance(suins, coin::split(payment, amount, ctx))
+        suins::app_add_balance(App {}, suins, coin::into_balance(coin::split(payment, amount, ctx)))
         // add_to_balance(suins::controller_balance_mut(suins), payment, amount)
     }
 
@@ -896,8 +899,8 @@ module suins::auction {
             balance: balance::zero(),
             start_auction_start_at: constants::max_epoch_allowed(),
             start_auction_end_at: constants::max_epoch_allowed() - 1,
-            bidding_fee: suins::constants::mist_per_sui(),
-            start_an_auction_fee: 10 * suins::constants::mist_per_sui(),
+            bidding_fee: constants::mist_per_sui(),
+            start_an_auction_fee: 10 * constants::mist_per_sui(),
         });
     }
 }

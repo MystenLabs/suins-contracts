@@ -259,15 +259,6 @@ module suins::suins {
         &mut self.reverse_registry
     }
 
-    /// Only used by auction
-    public(friend) fun join_balance(self: &mut SuiNS, balance: Balance<SUI>) {
-        balance::join(&mut self.balance, balance);
-    }
-
-    public(friend) fun add_to_balance(self: &mut SuiNS, coin: Coin<SUI>) {
-        coin::put(&mut self.balance, coin);
-    }
-
     public(friend) fun send_from_balance(self: &mut SuiNS, amount: u64, receiver: address, ctx: &mut TxContext) {
         let coin = coin::take(&mut self.balance, amount, ctx);
         transfer::public_transfer(coin, receiver);
