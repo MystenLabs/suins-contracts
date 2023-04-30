@@ -1,20 +1,18 @@
 #[test_only]
 module suins::auction_tests_5 {
+    use std::vector;
+    use std::option;
+    use std::string::utf8;
 
     use sui::coin::{Self, Coin};
     use sui::sui::SUI;
-    use suins::auction::{Self, make_seal_bid, AuctionHouse, get_bids_by_bidder, get_bid_detail_fields, withdraw};
-    use std::vector;
-    use std::option;
-    use suins::auction_tests::{test_init, start_an_auction_util, place_bid_util, reveal_bid_util, ctx_new, get_bid_util, ctx_util, get_entry_util, finalize_auction_util};
-    use suins::suins::SuiNS;
-    use suins::suins::{Self, AdminCap};
     use sui::test_scenario;
-    use suins::registrar;
-    use suins::registry;
-    use suins::registrar::RegistrationNFT;
-    use std::string::utf8;
     use sui::clock::Clock;
+
+    use suins::auction::{Self, make_seal_bid, AuctionHouse, get_bids_by_bidder, get_bid_detail_fields, withdraw};
+    use suins::auction_tests::{test_init, start_an_auction_util, place_bid_util, reveal_bid_util, ctx_new, get_bid_util, ctx_util, get_entry_util, finalize_auction_util};
+    use suins::suins::{Self, SuiNS, AdminCap};
+    use suins::registrar::{Self, RegistrationNFT};
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -292,7 +290,7 @@ module suins::auction_tests_5 {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_DOMAIN_NAME), 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME_SUI)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME_SUI)), 0);
 
             assert!(suins::balance(&suins) == BIDDING_FEE + START_AN_AUCTION_FEE + 1200 * suins::constants::mist_per_sui(), 0);
             assert!(auction::get_balance(&auction) == 0, 0);
@@ -401,7 +399,7 @@ module suins::auction_tests_5 {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_DOMAIN_NAME), 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME_SUI)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME_SUI)), 0);
 
             assert!(suins::balance(&suins) == BIDDING_FEE * 2 + START_AN_AUCTION_FEE + 1200 * suins::constants::mist_per_sui(), 0);
             assert!(auction::get_balance(&auction) == 10230 * suins::constants::mist_per_sui(), 0);

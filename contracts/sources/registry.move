@@ -11,7 +11,7 @@ module suins::registry {
     use sui::tx_context::{TxContext, sender};
 
     use suins::suins::{Self, SuiNS};
-    use suins::name_record;
+    use suins::name_record::{Self, NameRecord};
 
     friend suins::registrar;
     friend suins::controller;
@@ -21,40 +21,6 @@ module suins::registry {
     const EDomainNameNotExists: u64 = 102;
     const EKeyNotExists: u64 = 103;
     const EDefaultDomainNameNotMatch: u64 = 104;
-
-    struct OwnerChangedEvent has copy, drop {
-        domain_name: String,
-        new_owner: address,
-    }
-
-    struct DataChangedEvent has copy, drop {
-        domain_name: String,
-        key: String,
-        new_value: String,
-    }
-
-    struct DataRemovedEvent has copy, drop {
-        domain_name: String,
-        key: String,
-    }
-
-    struct TargetAddressChangedEvent has copy, drop {
-        domain_name: String,
-        new_addr: address,
-    }
-
-    struct TargetAddressRemovedEvent has copy, drop {
-        domain_name: String,
-    }
-
-    struct DefaultDomainNameChangedEvent has copy, drop {
-        address: address,
-        new_default_domain_name: String,
-    }
-
-    struct DefaultDomainNameRemovedEvent has copy, drop {
-        address: address,
-    }
 
     /// #### Notice
     /// This funtions allows owner of `domain name` to reassign ownership of this domain name.
@@ -184,7 +150,7 @@ module suins::registry {
         ctx: &mut TxContext,
     ) {
         let sender_address = sender(ctx);
-        let record = suins::name_record(suins, new_default_domain_name);
+        let record = suins::name_record<NameRecord>(suins, new_default_domain_name);
 
         // When setting a defalt domain name for an address, the domain name
         // must already be pointing at the address
@@ -228,12 +194,12 @@ module suins::registry {
     /// Panics
     /// Panics if `domain_name` doesn't exists.
     public fun owner(suins: &SuiNS, domain_name: String): address {
-        let record = suins::name_record(suins, domain_name);
+        let record = suins::name_record<NameRecord>(suins, domain_name);
         name_record::owner(record)
     }
 
     public fun target_address(suins: &SuiNS, domain_name: String): Option<address> {
-        let record = suins::name_record(suins, domain_name);
+        let record = suins::name_record<NameRecord>(suins, domain_name);
         name_record::target_address(record)
     }
 
@@ -255,7 +221,7 @@ module suins::registry {
     /// Panics
     /// Panics if `domain_name` doesn't exists.
     public fun get_name_record_all_fields(suins: &SuiNS, domain_name: String): (address, Option<address>) {
-        let record = suins::name_record(suins, domain_name);
+        let record = suins::name_record<NameRecord>(suins, domain_name);
         (
             name_record::owner(record),
             name_record::target_address(record)
@@ -263,7 +229,7 @@ module suins::registry {
     }
 
     public fun get_name_record_data(suins: &SuiNS, domain_name: String, key: String): String {
-        let record = suins::name_record(suins, domain_name);
+        let record = suins::name_record<NameRecord>(suins, domain_name);
         let record_data = name_record::data(record);
 
         assert!(vec_map::contains(record_data, &key), EKeyNotExists);
@@ -271,14 +237,14 @@ module suins::registry {
     }
 
     public fun is_authorised(suins: &SuiNS, domain_name: String, ctx: &TxContext) {
-        let record = suins::name_record(suins, domain_name);
+        let record = suins::name_record<NameRecord>(suins, domain_name);
         assert!(sender(ctx) == name_record::owner(record), 1);
     }
 
     // === Friend and Private Functions ===
 
     public(friend) fun set_owner_internal(suins: &mut SuiNS, domain_name: String, owner: address) {
-        let record_mut = suins::name_record_mut_internal(suins, domain_name);
+        let record_mut = suins::name_record_mut_internal<NameRecord>(suins, domain_name);
         name_record::set_owner(record_mut, owner)
     }
 
@@ -289,7 +255,7 @@ module suins::registry {
         owner: address,
     ) {
         if (suins::has_name_record(suins, domain_name)) {
-            let record_mut = suins::name_record_mut_internal(suins, domain_name);
+            let record_mut = suins::name_record_mut_internal<NameRecord>(suins, domain_name);
             name_record::set_owner(record_mut, owner);
             name_record::set_target_address(record_mut, some(owner));
         } else {
@@ -305,9 +271,40 @@ module suins::registry {
         suins::add_record(suins, domain_name, owner);
     }
 
-    #[test_only]
-    public fun record_exists(suins: &SuiNS, domain_name: String): bool {
-        let registry = suins::registry(suins);
-        table::contains(registry, domain_name)
+
+    // === Events: TODO ===
+
+    struct OwnerChangedEvent has copy, drop {
+        domain_name: String,
+        new_owner: address,
+    }
+
+    struct DataChangedEvent has copy, drop {
+        domain_name: String,
+        key: String,
+        new_value: String,
+    }
+
+    struct DataRemovedEvent has copy, drop {
+        domain_name: String,
+        key: String,
+    }
+
+    struct TargetAddressChangedEvent has copy, drop {
+        domain_name: String,
+        new_addr: address,
+    }
+
+    struct TargetAddressRemovedEvent has copy, drop {
+        domain_name: String,
+    }
+
+    struct DefaultDomainNameChangedEvent has copy, drop {
+        address: address,
+        new_default_domain_name: String,
+    }
+
+    struct DefaultDomainNameRemovedEvent has copy, drop {
+        address: address,
     }
 }

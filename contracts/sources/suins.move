@@ -40,7 +40,8 @@ module suins::suins {
         /// The total balance of the SuiNS.
         balance: Balance<SUI>,
         /// Maps domain names to name records (instance of `NameRecord`).
-        registry: Table<String, NameRecord>,
+        // registry: Table<String, NameRecord>,
+        registry: UID,
         /// Map from addresses to a configured default domain
         reverse_registry: Table<address, String>,
         /// Maps tlds to registrar objects, each registrar object is responsible for domains of a particular tld.
@@ -89,7 +90,7 @@ module suins::suins {
         let suins = SuiNS {
             id: object::new(ctx),
             balance: balance::zero(),
-            registry: table::new(ctx),
+            registry: object::new(ctx),
             reverse_registry: table::new(ctx),
             registrars: table::new(ctx),
             controller: Controller {
@@ -144,28 +145,30 @@ module suins::suins {
 
     // === Records creation ===
 
+    // TODO: revisit this section once Registry is cleaned up.
+
     /// Mutable access to the name record.
     /// TODO: add reverse registry methods to the name record when it is changed.
     /// TODO: see `name_record` module for details.
     public fun name_record_mut(
         self: &mut SuiNS, domain_name: String, ctx: &mut TxContext
     ): &mut NameRecord {
-        let record_mut = table::borrow_mut(&mut self.registry, domain_name);
+        let record_mut = df::borrow_mut(&mut self.registry, domain_name);
         assert!(name_record::owner(record_mut) == sender(ctx), ENotRecordOwner);
         record_mut
     }
 
     /// REFACTOR: remove friend once `Registry` is dealt with.
-    public(friend) fun name_record_mut_internal(
+    public(friend) fun name_record_mut_internal<Record: store + drop>(
         self: &mut SuiNS, domain_name: String
-    ): &mut NameRecord {
-        table::borrow_mut(&mut self.registry, domain_name)
+    ): &mut Record {
+        df::borrow_mut(&mut self.registry, domain_name)
     }
 
     /// REFACTOR: remove friend once `Registry` is dealt with.
     /// TODO: consider better name_record API.
     public fun has_name_record(self: &SuiNS, domain_name: String): bool {
-        table::contains(&self.registry, domain_name)
+        df::exists_(&self.registry, domain_name)
     }
 
     /// Creates and adds a new `name_record` to the `SuiNS`.
@@ -176,7 +179,7 @@ module suins::suins {
         owner: address
     ) {
         let name_record = name_record::new(owner, some(owner));
-        table::add(&mut suins.registry, domain_name, name_record);
+        df::add(&mut suins.registry, domain_name, name_record);
     }
 
     public fun new_registration_record(expired_at: u64, nft_id: ID): RegistrationRecord {
@@ -186,11 +189,11 @@ module suins::suins {
     // === Fields access ===
 
     /// Read the `name_record` for the specified `domain_name`.
-    public fun name_record(self: &SuiNS, domain_name: String): &NameRecord {
-        table::borrow(&self.registry, domain_name)
+    public fun name_record<Record: store + drop>(self: &SuiNS, domain_name: String): &Record {
+        df::borrow(&self.registry, domain_name)
     }
 
-    public fun registry(self: &SuiNS): &Table<String, NameRecord> {
+    public fun registry(self: &SuiNS): &UID {
         &self.registry
     }
 
@@ -230,7 +233,7 @@ module suins::suins {
 
     // === Friend and Private Functions ===
 
-    public(friend) fun registry_mut(self: &mut SuiNS): &mut Table<String, NameRecord> {
+    public(friend) fun registry_mut(self: &mut SuiNS): &mut UID {
         &mut self.registry
     }
 
@@ -286,7 +289,7 @@ module suins::suins {
     #[test_only]
     /// Wrapper of module initializer for testing
     public fun test_init(ctx: &mut TxContext) {
-        let registry = table::new(ctx);
+        let registry = object::new(ctx);
         let reverse_registry = table::new(ctx);
         let registrars = table::new(ctx);
         let controller = Controller {

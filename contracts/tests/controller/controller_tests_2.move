@@ -89,7 +89,7 @@ module suins::controller_tests_2 {
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(suins::balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
             controller::register(

@@ -153,7 +153,7 @@ module suins::controller_tests {
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS + 1);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(suins::balance(&suins) == 0, 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(scenario), 0);
 
@@ -628,7 +628,7 @@ module suins::controller_tests {
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(suins::balance(&suins) == 0, 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
@@ -1393,7 +1393,7 @@ module suins::controller_tests {
 
             assert!(suins::balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
@@ -1466,7 +1466,7 @@ module suins::controller_tests {
 
             assert!(suins::balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
@@ -1577,7 +1577,7 @@ module suins::controller_tests {
 
             assert!(suins::balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
@@ -1730,7 +1730,7 @@ module suins::controller_tests {
 
             assert!(suins::balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
@@ -2109,7 +2109,7 @@ module suins::controller_tests {
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, domain_name), 0);
             assert!(suins::balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
-            assert!(!registry::record_exists(&suins, utf8(domain_name)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(domain_name)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
             controller::register(
@@ -2153,7 +2153,7 @@ module suins::controller_tests {
 
             assert!(suins::balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
@@ -2308,7 +2308,7 @@ module suins::controller_tests {
 
             assert!(suins::balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
@@ -3748,7 +3748,7 @@ module suins::controller_tests {
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(suins::balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
             controller::register_with_image(
@@ -3819,7 +3819,7 @@ module suins::controller_tests {
             clock::increment_for_testing(&mut clock, MIN_COMMITMENT_AGE_IN_MS);
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(suins::balance(&suins) == 0, 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
@@ -4032,7 +4032,7 @@ module suins::controller_tests {
 
             assert!(suins::balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
@@ -4230,7 +4230,7 @@ module suins::controller_tests {
 
             assert!(suins::balance(&suins) == 0, 0);
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
             assert!(!test_scenario::has_most_recent_for_address<Coin<SUI>>(SECOND_USER_ADDRESS), 0);
 
@@ -5047,10 +5047,10 @@ module suins::controller_tests {
             assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(second_domain_name), ctx), 0);
             assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(second_domain_name), ctx), 0);
 
-            assert!(!registry::record_exists(&suins, utf8(first_domain_name_sui)), 0);
-            assert!(!registry::record_exists(&suins, utf8(first_domain_name_move)), 0);
-            assert!(!registry::record_exists(&suins, utf8(second_domain_name_sui)), 0);
-            assert!(!registry::record_exists(&suins, utf8(second_domain_name_move)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(first_domain_name_sui)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(first_domain_name_move)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(second_domain_name_sui)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(second_domain_name_move)), 0);
 
             controller::new_reserved_domains(
                 &admin_cap,
@@ -5085,10 +5085,10 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, second_domain_name);
             assert!(expired_at == 415, 0);
 
-            assert!(registry::record_exists(&suins, utf8(first_domain_name_sui)), 0);
-            assert!(registry::record_exists(&suins, utf8(first_domain_name_move)), 0);
-            assert!(registry::record_exists(&suins, utf8(second_domain_name_sui)), 0);
-            assert!(!registry::record_exists(&suins, utf8(second_domain_name_move)), 0);
+            assert!(suins::has_name_record(&suins, utf8(first_domain_name_sui)), 0);
+            assert!(suins::has_name_record(&suins, utf8(first_domain_name_move)), 0);
+            assert!(suins::has_name_record(&suins, utf8(second_domain_name_sui)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(second_domain_name_move)), 0);
 
             let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(first_domain_name_sui));
             assert!(owner == SUINS_ADDRESS, 0);
@@ -5139,7 +5139,7 @@ module suins::controller_tests {
             );
 
             assert!(registrar::is_available(&suins, utf8(MOVE_REGISTRAR), utf8(second_domain_name), ctx), 0);
-            assert!(!registry::record_exists(&suins, utf8(second_domain_name_move)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(second_domain_name_move)), 0);
 
             controller::new_reserved_domains(&admin_cap, &mut suins, vector[utf8(b"abcdefghijk.move")], @0x0B, ctx);
 
@@ -5170,10 +5170,10 @@ module suins::controller_tests {
             let expired_at = registrar::get_record_expired_at(&suins, MOVE_REGISTRAR, second_domain_name);
             assert!(expired_at == 417, 0);
 
-            assert!(registry::record_exists(&suins, utf8(first_domain_name_sui)), 0);
-            assert!(registry::record_exists(&suins, utf8(first_domain_name_move)), 0);
-            assert!(registry::record_exists(&suins, utf8(second_domain_name_sui)), 0);
-            assert!(registry::record_exists(&suins, utf8(second_domain_name_move)), 0);
+            assert!(suins::has_name_record(&suins, utf8(first_domain_name_sui)), 0);
+            assert!(suins::has_name_record(&suins, utf8(first_domain_name_move)), 0);
+            assert!(suins::has_name_record(&suins, utf8(second_domain_name_sui)), 0);
+            assert!(suins::has_name_record(&suins, utf8(second_domain_name_move)), 0);
 
             let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(first_domain_name_sui));
             assert!(owner == SUINS_ADDRESS, 0);
@@ -5247,7 +5247,7 @@ module suins::controller_tests {
             );
 
             assert!(registrar::is_available(&suins, utf8(SUI_REGISTRAR), utf8(first_domain_name), ctx), 0);
-            assert!(!registry::record_exists(&suins, utf8(first_domain_name_sui)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(first_domain_name_sui)), 0);
 
             controller::new_reserved_domains(&admin_cap, &mut suins, vector[utf8(b"abcde.sui"), utf8(b"abcde.sui")], @0x0, ctx);
 
@@ -5767,7 +5767,7 @@ module suins::controller_tests {
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(suins::balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
             controller::register(
@@ -5835,7 +5835,7 @@ module suins::controller_tests {
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(suins::balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
             controller::register(
@@ -5904,7 +5904,7 @@ module suins::controller_tests {
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(suins::balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
             controller::register(
@@ -5985,7 +5985,7 @@ module suins::controller_tests {
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(suins::balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
             controller::register(
@@ -6103,7 +6103,7 @@ module suins::controller_tests {
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(suins::balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
             controller::register(
