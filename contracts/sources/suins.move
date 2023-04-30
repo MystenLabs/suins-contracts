@@ -178,13 +178,6 @@ module suins::suins {
     }
 
     /// REFACTOR: remove friend once `Registry` is dealt with.
-    public(friend) fun name_record_mut_internal<Record: store + drop>(
-        self: &mut SuiNS, domain_name: String
-    ): &mut Record {
-        df::borrow_mut(&mut self.registry, domain_name)
-    }
-
-    /// REFACTOR: remove friend once `Registry` is dealt with.
     /// TODO: consider better name_record API.
     public fun has_name_record(self: &SuiNS, domain_name: String): bool {
         df::exists_(&self.registry, domain_name)
