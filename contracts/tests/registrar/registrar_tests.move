@@ -25,7 +25,7 @@ module suins::registrar_tests {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
-            suins::test_init(ctx);
+            suins::test_setup::setup(ctx);
         };
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {

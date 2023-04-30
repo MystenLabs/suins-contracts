@@ -24,7 +24,7 @@ module suins::registry_tests_2 {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
-            suins::test_init(ctx);
+            suins::test_setup::setup(ctx);
         };
         scenario
     }
@@ -33,7 +33,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            suins::add_record(
+            suins::add_record_for_testing(
                 &mut suins,
                 utf8(FIRST_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,
@@ -91,7 +91,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            suins::add_record(
+            suins::add_record_for_testing(
                 &mut suins,
                 utf8(SECOND_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,
@@ -143,7 +143,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            suins::add_record(
+            suins::add_record_for_testing(
                 &mut suins,
                 utf8(FIRST_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,
@@ -409,7 +409,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            suins::add_record(
+            suins::add_record_for_testing(
                 &mut suins,
                 utf8(SECOND_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,

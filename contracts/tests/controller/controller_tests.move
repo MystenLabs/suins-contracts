@@ -64,7 +64,7 @@ module suins::controller_tests {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
-            suins::test_init(ctx);
+            suins::test_setup::setup(ctx);
             auction::test_init(ctx);
             clock::share_for_testing(clock::create_for_testing(ctx));
         };

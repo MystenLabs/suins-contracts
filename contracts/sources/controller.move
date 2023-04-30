@@ -72,6 +72,9 @@ module suins::controller {
         timestamp_ms: u64,
     }
 
+    /// Controller witness.
+    struct App has drop {}
+
     /// #### Notice
     /// This function is the first step in the commit/reveal process, which is implemented to prevent front-running.
     ///
@@ -518,7 +521,7 @@ module suins::controller {
         referral_code: &ascii::String,
         ctx: &mut TxContext,
     ): u64 {
-        let config = suins::get_config_mut<Promotion>(suins);
+        let config = suins::app_get_config_mut<App, Promotion>(App {}, suins);
         let rate = promotion::use_discount_code(config, &std::string::from_ascii(*referral_code), ctx);
         (original_fee / 100) * (100 - rate as u64)
     }

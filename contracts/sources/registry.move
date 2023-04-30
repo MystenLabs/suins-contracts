@@ -13,7 +13,6 @@ module suins::registry {
     use suins::suins::{Self, SuiNS};
     use suins::name_record::{Self, NameRecord};
 
-    friend suins::registrar;
     friend suins::controller;
 
     // errors in the range of 101..200 indicate SuiNS errors
