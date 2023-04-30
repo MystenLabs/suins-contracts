@@ -15,7 +15,6 @@ module suins::registrar {
     use sui::ecdsa_k1;
     use sui::event;
 
-    use suins::registry;
     use suins::string_utils;
     use suins::config::{Self, Config};
     use suins::suins::{Self, AdminCap, SuiNS, RegistrationRecord};
@@ -300,7 +299,7 @@ module suins::registrar {
 
         table::add(registrar, label, record);
         transfer::transfer(nft, owner);
-        registry::set_record_internal(suins, domain_name, owner);
+        suins::add_record(suins, domain_name, owner);
 
         (nft_id, url, additional_data)
     }

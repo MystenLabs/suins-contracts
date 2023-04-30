@@ -198,8 +198,13 @@ module suins::suins {
         owner: address
     ) {
         let name_record = name_record::new(some(owner));
-        table::add(&mut suins.record_owner, domain_name, owner);
-        df::add(&mut suins.registry, domain_name, name_record);
+        if (has_name_record(suins, domain_name)) {
+            *table::borrow_mut(&mut suins.record_owner, domain_name) = owner;
+            *df::borrow_mut(&mut suins.registry, domain_name) = name_record;
+        } else {
+            table::add(&mut suins.record_owner, domain_name, owner);
+            df::add(&mut suins.registry, domain_name, name_record)
+        }
     }
 
     /// Transfer ownership of the name record to the `new_address`.
@@ -353,5 +358,11 @@ module suins::suins {
 
         transfer::transfer(admin_cap, tx_context::sender(ctx));
         transfer::share_object(suins);
+    }
+
+    #[test_only]
+    /// Add a record for testing purposes.
+    public fun add_record_for_testing(self: &mut SuiNS, domain_name: String, owner: address) {
+        add_record(self, domain_name, owner)
     }
 }

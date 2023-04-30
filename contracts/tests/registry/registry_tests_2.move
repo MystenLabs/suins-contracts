@@ -33,7 +33,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            registry::set_record_internal(
+            suins::add_record(
                 &mut suins,
                 utf8(FIRST_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,
@@ -91,7 +91,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_record_internal(
+            suins::add_record(
                 &mut suins,
                 utf8(SECOND_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,
@@ -143,7 +143,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_record_internal(
+            suins::add_record(
                 &mut suins,
                 utf8(FIRST_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,
@@ -168,7 +168,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::new_record_test(
+            suins::add_record_for_testing(
                 &mut suins,
                 utf8(FIRST_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,
@@ -409,7 +409,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_record_internal(
+            suins::add_record(
                 &mut suins,
                 utf8(SECOND_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,
@@ -577,7 +577,6 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let data = 
             registry::unset_data(
                 &mut suins,
                 utf8(FIRST_DOMAIN_NAME),

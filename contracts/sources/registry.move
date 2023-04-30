@@ -197,30 +197,8 @@ module suins::registry {
         *vec_map::get(record_data, &key)
     }
 
-    // === Friend and Private Functions ===
-
-    // this function is intended to be called by the Registrar, no need to check for owner
-    public(friend) fun set_record_internal(
-        suins: &mut SuiNS,
-        domain_name: String,
-        owner: address,
-    ) {
-        if (suins::has_name_record(suins, domain_name)) {
-            suins::set_owner_internal(suins, domain_name, owner);
-            let record_mut = suins::name_record_mut_internal<NameRecord>(suins, domain_name);
-            name_record::set_target_address(record_mut, some(owner));
-        } else {
-            suins::add_record(suins, domain_name, owner)
-        }
-    }
-
     #[test_only] friend suins::registry_tests;
     #[test_only] friend suins::registry_tests_2;
-
-    #[test_only]
-    public fun new_record_test(suins: &mut SuiNS, domain_name: String, owner: address) {
-        suins::add_record(suins, domain_name, owner);
-    }
 
 
     // === Events: TODO ===
