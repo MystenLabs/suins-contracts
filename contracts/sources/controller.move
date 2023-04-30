@@ -12,15 +12,15 @@ module suins::controller {
     use std::option::{Self, Option};
 
     use sui::url::Url;
+    use sui::sui::SUI;
     use sui::coin::{Self, Coin};
     use sui::hash::keccak256;
     use sui::event;
     use sui::linked_table::{Self, LinkedTable};
     use sui::object::ID;
     use sui::tx_context::{Self, TxContext};
-    use sui::sui::SUI;
-    use sui::clock::Clock;
-    use sui::clock;
+    use sui::clock::{Self, Clock};
+    use sui::dynamic_field as df;
 
     use suins::config::{Self, Config};
     use suins::registrar::{Self, RegistrationNFT};
@@ -47,33 +47,29 @@ module suins::controller {
     const EAuctionNotEndYet: u64 = 316;
     const EInvalidNoYears: u64 = 317;
 
-    struct NameRegisteredEvent has copy, drop {
-        tld: String,
-        label: String,
-        owner: address,
-        cost: u64,
-        expired_at: u64,
-        nft_id: ID,
-        referral_code: Option<ascii::String>,
-        discount_code: Option<ascii::String>,
-        url: Url,
-        data: String,
-    }
+    friend suins::auction;
 
-    struct NameRenewedEvent has copy, drop {
-        tld: String,
-        label: String,
-        cost: u64,
-        duration: u64,
-    }
-
-    struct CommitmentAddedEvent has copy, drop {
-        commitment: vector<u8>,
-        timestamp_ms: u64,
+    struct Controller has store {
+        commitments: LinkedTable<vector<u8>, u64>,
+        /// set by `configure_auction`
+        /// the last epoch when bidder can call `finalize_auction`
+        auction_house_finalized_at: u64,
     }
 
     /// Controller witness.
     struct App has drop {}
+
+    /// Key to use when attaching a Controller.
+    struct ControllerKey has copy, store, drop {}
+
+    /// Harmless function to create a new Controller and attach it to the SuiNS.
+    /// Can only be performed once.
+    public fun add_to_suins(suins: &mut SuiNS, ctx: &mut TxContext) {
+        df::add(suins::app_uid_mut(App {}, suins), ControllerKey {}, Controller {
+            commitments: linked_table::new(ctx),
+            auction_house_finalized_at: constants::max_epoch_allowed(),
+        })
+    }
 
     /// #### Notice
     /// This function is the first step in the commit/reveal process, which is implemented to prevent front-running.
@@ -84,7 +80,7 @@ module suins::controller {
     /// #### Params
     /// `commitment`: hash from `make_commitment`
     public fun commit(suins: &mut SuiNS, commitment: vector<u8>, clock: &Clock) {
-        let commitments = suins::controller_commitments_mut(suins);
+        let commitments = &mut controller_mut(suins).commitments;
         remove_outdated_commitments(commitments, clock);
 
         linked_table::push_back(commitments, commitment, clock::timestamp_ms(clock));
@@ -409,7 +405,7 @@ module suins::controller {
             no_years
         );
         assert!(coin::value(payment) >= renew_fee, ENotEnoughFee);
-        suins::add_to_balance(suins, coin::split(payment, renew_fee, ctx));
+        suins::app_add_balance(App {}, suins, coin::into_balance(coin::split(payment, renew_fee, ctx)));
 
         let duration = (no_years as u64) * 365;
         registrar::renew(suins, constants::sui_tld(), label, duration, ctx);
@@ -439,7 +435,7 @@ module suins::controller {
     ) {
         assert!(0 < no_years && no_years <= 5, EInvalidNoYears);
         assert!(config::enable_controller(suins::get_config<Config>(suins)), ERegistrationIsDisabled);
-        assert!(tx_context::epoch(ctx) > suins::controller_auction_house_finalized_at(suins), EAuctionNotEndYet);
+        assert!(tx_context::epoch(ctx) > auction_house_finalized_at(suins), EAuctionNotEndYet);
 
         string_utils::validate_label(
             label,
@@ -493,7 +489,7 @@ module suins::controller {
         //     data: additional_data,
         // });
 
-        suins::add_to_balance(suins, coin::split(payment, registration_fee, ctx))
+        suins::app_add_balance(App {}, suins, coin::into_balance(coin::split(payment, registration_fee, ctx)))
     }
 
     // returns remaining_fee
@@ -548,7 +544,7 @@ module suins::controller {
         clock: &Clock,
         ctx: &TxContext,
     ) {
-        let commitments = suins::controller_commitments_mut(suins);
+        let commitments = &mut controller_mut(suins).commitments;
         assert!(linked_table::contains(commitments, commitment), ECommitmentNotExists);
         assert!(
             *linked_table::borrow(commitments, commitment) + MIN_COMMITMENT_AGE_IN_MS <= clock::timestamp_ms(clock),
@@ -611,7 +607,7 @@ module suins::controller {
 
     #[test_only]
     public fun commitment_len(suins: &SuiNS): u64 {
-        let commitments = suins::controller_commitments(suins);
+        let commitments = &controller(suins).commitments;
         linked_table::length(commitments)
     }
 
@@ -624,5 +620,48 @@ module suins::controller {
         ctx: &mut TxContext
     ): u64 {
         apply_referral_code(suins, payment, original_fee, &ascii::string(referral_code), ctx)
+    }
+
+    fun controller(suins: &SuiNS): &Controller {
+        df::borrow(suins::uid(suins), ControllerKey {})
+    }
+
+    fun controller_mut(suins: &mut SuiNS): &mut Controller {
+        df::borrow_mut(suins::app_uid_mut(App {}, suins), ControllerKey {})
+    }
+
+    fun auction_house_finalized_at(suins: &mut SuiNS): u64 {
+        controller(suins).auction_house_finalized_at
+    }
+
+    public(friend) fun auction_house_finalized_at_mut(suins: &mut SuiNS): &mut u64 {
+        &mut controller_mut(suins).auction_house_finalized_at
+    }
+
+    // === Events ===
+
+    struct NameRegisteredEvent has copy, drop {
+        tld: String,
+        label: String,
+        owner: address,
+        cost: u64,
+        expired_at: u64,
+        nft_id: ID,
+        referral_code: Option<ascii::String>,
+        discount_code: Option<ascii::String>,
+        url: Url,
+        data: String,
+    }
+
+    struct NameRenewedEvent has copy, drop {
+        tld: String,
+        label: String,
+        cost: u64,
+        duration: u64,
+    }
+
+    struct CommitmentAddedEvent has copy, drop {
+        commitment: vector<u8>,
+        timestamp_ms: u64,
     }
 }

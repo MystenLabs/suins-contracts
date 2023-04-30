@@ -6,17 +6,14 @@ module suins::suins {
     use sui::object::{Self, UID};
     use sui::table::{Self, Table};
     use sui::transfer;
-    use sui::linked_table::{Self, LinkedTable};
     use sui::balance::{Self, Balance};
     use sui::coin::{Self, Coin};
     use sui::sui::SUI;
     use sui::dynamic_field as df;
 
-    use suins::constants;
     use suins::name_record;
 
     friend suins::registry;
-    friend suins::controller;
     friend suins::auction;
 
     /// Trying to withdraw from an empty balance.
@@ -48,15 +45,6 @@ module suins::suins {
         /// Registrar object is a mapping of domain names to registration records (instance of `RegistrationRecord`).
         /// A registrar object can be created by calling `new_tld` and has a record with key `tld` to represent its tld.
         registrars: UID,
-        /// The controller object is responsible for managing the auction house.
-        controller: Controller,
-    }
-
-    struct Controller has store {
-        commitments: LinkedTable<vector<u8>, u64>,
-        /// set by `configure_auction`
-        /// the last epoch when bidder can call `finalize_auction`
-        auction_house_finalized_at: u64,
     }
 
     /// The one-time-witness used to claim Publisher object.
@@ -88,10 +76,6 @@ module suins::suins {
             reverse_registry: table::new(ctx),
             record_owner: table::new(ctx),
             registrars: object::new(ctx),
-            controller: Controller {
-                commitments: linked_table::new(ctx),
-                auction_house_finalized_at: constants::max_epoch_allowed(),
-            }
         };
 
         transfer::share_object(suins);
@@ -135,6 +119,12 @@ module suins::suins {
 
     // === Protected features ===
 
+    /// Mutable access to `SuiNS.UID` for authorized applications.
+    public fun app_uid_mut<App: drop>(_: App, self: &mut SuiNS): &mut UID {
+        assert!(is_app_authorized<App>(self), EAppNotAuthorized);
+        &mut self.id
+    }
+
     /// Borrow configuration object. Read-only mode for applications.
     public fun app_get_config_mut<App: drop, Config: store + drop>(_: App, self: &mut SuiNS): &mut Config {
         assert!(is_app_authorized<App>(self), EAppNotAuthorized);
@@ -167,6 +157,12 @@ module suins::suins {
     ) {
         assert!(is_app_authorized<App>(self), EAppNotAuthorized);
         *table::borrow_mut(&mut self.record_owner, domain_name) = owner;
+    }
+
+    /// Adds balance to the SuiNS.
+    public fun app_add_balance<App: drop>(_: App, self: &mut SuiNS, balance: Balance<SUI>) {
+        assert!(is_app_authorized<App>(self), EAppNotAuthorized);
+        balance::join(&mut self.balance, balance);
     }
 
     // === Config management ===
@@ -244,20 +240,13 @@ module suins::suins {
         *table::borrow(&self.record_owner, domain_name)
     }
 
+    // not sure about exposing just UID yet!
+    public fun uid(self: &SuiNS): &UID { &self.id }
+
     public fun registry(self: &SuiNS): &UID { &self.registry }
     public fun registrars(self: &SuiNS): &UID { &self.registrars }
     public fun reverse_registry(self: &SuiNS): &Table<address, String> {
         &self.reverse_registry
-    }
-
-    public fun controller_commitments(
-        self: &SuiNS
-    ): &LinkedTable<vector<u8>, u64> {
-        &self.controller.commitments
-    }
-
-    public fun controller_auction_house_finalized_at(self: &SuiNS): u64 {
-        self.controller.auction_house_finalized_at
     }
 
     public fun balance(self: &SuiNS): u64 {
@@ -268,14 +257,6 @@ module suins::suins {
 
     public(friend) fun reverse_registry_mut(self: &mut SuiNS): &mut Table<address, String> {
         &mut self.reverse_registry
-    }
-
-    public(friend) fun controller_commitments_mut(self: &mut SuiNS): &mut LinkedTable<vector<u8>, u64> {
-        &mut self.controller.commitments
-    }
-
-    public(friend) fun controller_auction_house_finalized_at_mut(self: &mut SuiNS): &mut u64 {
-        &mut self.controller.auction_house_finalized_at
     }
 
     /// Only used by auction
@@ -301,24 +282,14 @@ module suins::suins {
     #[test_only]
     /// Wrapper of module initializer for testing
     public fun init_for_testing(ctx: &mut TxContext): SuiNS {
-        let registry = object::new(ctx);
-        let record_owner = table::new(ctx);
-        let reverse_registry = table::new(ctx);
-        let registrars = object::new(ctx);
-        let controller = Controller {
-            commitments: linked_table::new(ctx),
-            auction_house_finalized_at: constants::max_epoch_allowed(),
-        };
-
         let admin_cap = AdminCap { id: object::new(ctx) };
         let suins = SuiNS {
             id: object::new(ctx),
             balance: balance::zero(),
-            registry,
-            record_owner,
-            reverse_registry,
-            registrars,
-            controller,
+            registry: object::new(ctx),
+            record_owner: table::new(ctx),
+            reverse_registry: table::new(ctx),
+            registrars: object::new(ctx)
         };
 
         authorize_app<Test>(&admin_cap, &mut suins);

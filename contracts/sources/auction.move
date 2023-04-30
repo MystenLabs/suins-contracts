@@ -21,6 +21,7 @@ module suins::auction {
     use suins::registrar;
     use suins::config::{Self, Config};
     use suins::suins::{Self, AdminCap, SuiNS};
+    use suins::controller;
     use suins::string_utils;
     use suins::constants;
 
@@ -162,7 +163,7 @@ module suins::auction {
 
         auction_house.start_auction_start_at = start_auction_start_at;
         auction_house.start_auction_end_at = start_auction_end_at;
-        *suins::controller_auction_house_finalized_at_mut(suins) = auction_house_close_at(
+        *controller::auction_house_finalized_at_mut(suins) = auction_house_close_at(
             auction_house
         ) + EXTRA_PERIOD;
     }
@@ -518,7 +519,7 @@ module suins::auction {
             };
             next_label = *linked_table::next(&auction_house.entries, label);
         };
-        *suins::controller_auction_house_finalized_at_mut(suins) = tx_context::epoch(ctx);
+        *controller::auction_house_finalized_at_mut(suins) = tx_context::epoch(ctx);
     }
 
     /// #### Notice
