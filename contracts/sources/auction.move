@@ -676,7 +676,7 @@ module suins::auction {
 
     // === Friend and Private Functions ===
 
-    public(friend) fun auction_house_close_at(auction: &AuctionHouse): u64 {
+    fun auction_house_close_at(auction: &AuctionHouse): u64 {
         auction.start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD
     }
 

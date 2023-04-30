@@ -14,7 +14,6 @@ module suins::suins {
     use suins::name_record;
 
     friend suins::registry;
-    friend suins::auction;
 
     /// Trying to withdraw from an empty balance.
     const ENoProfits: u64 = 0;
