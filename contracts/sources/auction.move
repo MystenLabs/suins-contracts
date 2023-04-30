@@ -807,8 +807,7 @@ module suins::auction {
         amount: u64,
     ) {
         if (amount > 0) {
-            let paid = balance::split(balance, amount);
-            balance::join(suins::balance_mut(suins), paid);
+            suins::join_balance(suins, balance::split(balance, amount))
         }
     }
 

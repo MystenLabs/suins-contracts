@@ -40,7 +40,7 @@ module suins::suins {
         /// The total balance of the SuiNS.
         balance: Balance<SUI>,
         /// Maps domain names to name records (instance of `NameRecord`).
-        // registry: Table<String, NameRecord>,
+        /// `String => (T = NameRecord)`
         registry: UID,
         /// Map from addresses to a configured default domain
         reverse_registry: Table<address, String>,
@@ -146,6 +146,16 @@ module suins::suins {
     // === Records creation ===
 
     // TODO: revisit this section once Registry is cleaned up.
+    // Thoughts:
+    // - generalizing NameRecord and utilizing type parameters is great
+    // but in the current implementation it conflicts with the ability
+    // to give owner the full power over the record. We can't call "owner check"
+    // on a type that we don't know.
+    // - idea - how about separate `domain_name => owner` mapping for each
+    // name record. This would free the format while preserving the ownership
+    // part free of the actual NameRecord type / format. The implication would
+    // be an extra dynamic field to track but it might not be too big of a deal
+    // given the flexibility it gives us.
 
     /// Mutable access to the name record.
     /// TODO: add reverse registry methods to the name record when it is changed.
@@ -233,10 +243,6 @@ module suins::suins {
 
     // === Friend and Private Functions ===
 
-    public(friend) fun registry_mut(self: &mut SuiNS): &mut UID {
-        &mut self.registry
-    }
-
     public(friend) fun reverse_registry(self: &SuiNS): &Table<address, String> {
         &self.reverse_registry
     }
@@ -261,13 +267,13 @@ module suins::suins {
         &mut self.controller.commitments
     }
 
-    /// Use carefully
-    public(friend) fun balance_mut(self: &mut SuiNS): &mut Balance<SUI> {
-        &mut self.balance
-    }
-
     public(friend) fun controller_auction_house_finalized_at_mut(self: &mut SuiNS): &mut u64 {
         &mut self.controller.auction_house_finalized_at
+    }
+
+    /// Only used by auction
+    public(friend) fun join_balance(self: &mut SuiNS, balance: Balance<SUI>) {
+        balance::join(&mut self.balance, balance);
     }
 
     public(friend) fun add_to_balance(self: &mut SuiNS, coin: Coin<SUI>) {
