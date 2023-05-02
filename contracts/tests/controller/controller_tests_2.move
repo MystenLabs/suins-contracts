@@ -11,13 +11,13 @@ module suins::controller_tests_2 {
 
     use suins::controller_tests::{test_init, set_auction_config};
     use suins::controller_tests;
-    use suins::auction_tests::ctx_new;
     use suins::registrar::{Self, RegistrationNFT};
     use suins::registry;
     use suins::suins::{Self, AdminCap};
     use suins::config::{Self, Config};
     use suins::suins::SuiNS;
     use suins::controller;
+    use suins::registrar_tests::ctx_new;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
