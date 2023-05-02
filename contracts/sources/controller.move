@@ -12,25 +12,26 @@ module suins::controller {
     use std::option::{Self, Option};
 
     use sui::url::Url;
+    use sui::sui::SUI;
     use sui::coin::{Self, Coin};
     use sui::hash::keccak256;
     use sui::event;
     use sui::linked_table::{Self, LinkedTable};
     use sui::object::ID;
     use sui::tx_context::{Self, TxContext};
-    use sui::sui::SUI;
-    use sui::clock::Clock;
-    use sui::clock;
+    use sui::clock::{Self, Clock};
+    use sui::dynamic_field as df;
 
     use suins::config::{Self, Config};
     use suins::registrar::{Self, RegistrationNFT};
     use suins::suins::{Self, SuiNS, AdminCap};
     use suins::string_utils;
+    use suins::constants;
+    use suins::promotion::{Self, Promotion};
 
     const MAX_COMMITMENT_AGE_IN_MS: u64 = 259_200_000;
     const MIN_COMMITMENT_AGE_IN_MS: u64 = 120_000;
     const MAX_OUTDATED_COMMITMENTS_TO_REMOVE: u64 = 50;
-    const SUI_TLD: vector<u8> = b"sui";
 
     // errors in the range of 301..400 indicate Sui Controller errors
     const ECommitmentNotExists: u64 = 302;
@@ -46,29 +47,28 @@ module suins::controller {
     const EAuctionNotEndYet: u64 = 316;
     const EInvalidNoYears: u64 = 317;
 
-    struct NameRegisteredEvent has copy, drop {
-        tld: String,
-        label: String,
-        owner: address,
-        cost: u64,
-        expired_at: u64,
-        nft_id: ID,
-        referral_code: Option<ascii::String>,
-        discount_code: Option<ascii::String>,
-        url: Url,
-        data: String,
+    friend suins::auction;
+
+    struct Controller has store {
+        commitments: LinkedTable<vector<u8>, u64>,
+        /// set by `configure_auction`
+        /// the last epoch when bidder can call `finalize_auction`
+        auction_house_finalized_at: u64,
     }
 
-    struct NameRenewedEvent has copy, drop {
-        tld: String,
-        label: String,
-        cost: u64,
-        duration: u64,
-    }
+    /// Controller witness.
+    struct App has drop {}
 
-    struct CommitmentAddedEvent has copy, drop {
-        commitment: vector<u8>,
-        timestamp_ms: u64,
+    /// Key to use when attaching a Controller.
+    struct ControllerKey has copy, store, drop {}
+
+    /// Harmless function to create a new Controller and attach it to the SuiNS.
+    /// Can only be performed once.
+    public fun add_to_suins(suins: &mut SuiNS, ctx: &mut TxContext) {
+        df::add(suins::app_uid_mut(App {}, suins), ControllerKey {}, Controller {
+            commitments: linked_table::new(ctx),
+            auction_house_finalized_at: constants::max_epoch_allowed(),
+        })
     }
 
     /// #### Notice
@@ -79,8 +79,8 @@ module suins::controller {
     ///
     /// #### Params
     /// `commitment`: hash from `make_commitment`
-    public entry fun commit(suins: &mut SuiNS, commitment: vector<u8>, clock: &Clock) {
-        let commitments = suins::controller_commitments_mut(suins);
+    public fun commit(suins: &mut SuiNS, commitment: vector<u8>, clock: &Clock) {
+        let commitments = &mut controller_mut(suins).commitments;
         remove_outdated_commitments(commitments, clock);
 
         linked_table::push_back(commitments, commitment, clock::timestamp_ms(clock));
@@ -107,7 +107,7 @@ module suins::controller {
     /// or label length isn't outside of the permitted range
     /// or `payment` doesn't have enough coins
     /// or either `referral_code` or `discount_code` is invalid
-    public entry fun register(
+    public fun register(
         suins: &mut SuiNS,
         label: String, // `label` is 1 level
         owner: address,
@@ -158,7 +158,7 @@ module suins::controller {
     /// or label length isn't outside of the permitted range
     /// or `payment` doesn't have enough coins
     /// or either `referral_code` or `discount_code` is invalid
-    public entry fun register_with_image(
+    public fun register_with_image(
         suins: &mut SuiNS,
         label: String, // `label` is 1 level
         owner: address,
@@ -203,7 +203,7 @@ module suins::controller {
     /// #### Params
     /// `referral_code`: referral code to be used
     /// `discount_code`: discount code to be used
-    public entry fun register_with_code(
+    public fun register_with_code(
         suins: &mut SuiNS,
         label: String, // `label` is 1 level
         owner: address,
@@ -250,7 +250,7 @@ module suins::controller {
     /// `hashed_msg`: sha256 of `raw_msg`
     /// `raw_msg`: the data to verify and update image url, with format: <ipfs_url>,<owner>,<expired_at>.
     /// Note: `owner` is a 40 hexadecimal string without `0x` prefix
-    public entry fun register_with_code_and_image(
+    public fun register_with_code_and_image(
         suins: &mut SuiNS,
         label: String, // `label` is 1 level
         owner: address,
@@ -296,7 +296,7 @@ module suins::controller {
     /// Panic
     /// Panic if domain name doesn't exist
     /// or `payment` doesn't have enough coins
-    public entry fun renew(
+    public fun renew(
         suins: &mut SuiNS,
         label: String,
         no_years: u8,
@@ -321,7 +321,7 @@ module suins::controller {
     /// or `signature` is empty
     /// or `hashed_msg` is empty
     /// or `msg` is empty
-    public entry fun renew_with_image(
+    public fun renew_with_image(
         suins: &mut SuiNS,
         label: String,
         no_years: u8,
@@ -337,7 +337,7 @@ module suins::controller {
         registrar::update_image_url(suins, nft, signature, hashed_msg, raw_msg, ctx);
     }
 
-    public entry fun new_reserved_domains(
+    public fun new_reserved_domains(
         _: &AdminCap,
         suins: &mut SuiNS,
         domains: vector<String>,
@@ -357,8 +357,8 @@ module suins::controller {
             let label = string::sub_string(domain, 0, index_of_dot);
             string_utils::validate_label(
                 label,
-                config::min_domain_length(),
-                config::max_domain_length()
+                constants::min_domain_length(),
+                constants::max_domain_length()
             );
             let tld = string::sub_string(domain, index_of_dot + 1, string::length(domain));
             let (nft_id, url, data) = registrar::register_with_image_internal(
@@ -405,13 +405,13 @@ module suins::controller {
             no_years
         );
         assert!(coin::value(payment) >= renew_fee, ENotEnoughFee);
-        suins::add_to_balance(suins, coin::split(payment, renew_fee, ctx));
+        suins::app_add_balance(App {}, suins, coin::into_balance(coin::split(payment, renew_fee, ctx)));
 
         let duration = (no_years as u64) * 365;
-        registrar::renew(suins, utf8(SUI_TLD), label, duration, ctx);
+        registrar::renew(suins, constants::sui_tld(), label, duration, ctx);
 
         event::emit(NameRenewedEvent {
-            tld: utf8(SUI_TLD),
+            tld: constants::sui_tld(),
             label,
             cost: renew_fee,
             duration,
@@ -435,12 +435,12 @@ module suins::controller {
     ) {
         assert!(0 < no_years && no_years <= 5, EInvalidNoYears);
         assert!(config::enable_controller(suins::get_config<Config>(suins)), ERegistrationIsDisabled);
-        assert!(tx_context::epoch(ctx) > suins::controller_auction_house_finalized_at(suins), EAuctionNotEndYet);
+        assert!(tx_context::epoch(ctx) > auction_house_finalized_at(suins), EAuctionNotEndYet);
 
         string_utils::validate_label(
             label,
-            config::min_domain_length(),
-            config::max_domain_length()
+            constants::min_domain_length(),
+            constants::max_domain_length()
         );
 
         let commitment = make_commitment(*string::bytes(&label), owner, secret);
@@ -460,7 +460,7 @@ module suins::controller {
                 apply_referral_code(suins, payment, registration_fee, option::borrow(&referral_code), ctx);
         };
 
-        let tld = utf8(SUI_TLD);
+        let tld = constants::sui_tld();
         let duration = (no_years as u64) * 365;
         let (_nft_id, _url, _additional_data) = registrar::register_with_image_internal(
             suins,
@@ -489,9 +489,7 @@ module suins::controller {
         //     data: additional_data,
         // });
 
-
-
-        suins::add_to_balance(suins, coin::split(payment, registration_fee, ctx))
+        suins::app_add_balance(App {}, suins, coin::into_balance(coin::split(payment, registration_fee, ctx)))
     }
 
     // returns remaining_fee
@@ -502,8 +500,8 @@ module suins::controller {
         referral_code: &ascii::String,
         ctx: &mut TxContext
     ): u64 {
-        let config = suins::get_config<Config>(suins);
-        let (rate, partner) = config::use_referral_code(config, &std::string::from_ascii(*referral_code));
+        let config = suins::get_config<Promotion>(suins);
+        let (rate, partner) = promotion::use_referral_code(config, &std::string::from_ascii(*referral_code));
         let remaining_fee = (original_fee / 100) * (100 - rate as u64);
         let payback_amount = original_fee - remaining_fee;
 
@@ -519,8 +517,8 @@ module suins::controller {
         referral_code: &ascii::String,
         ctx: &mut TxContext,
     ): u64 {
-        let config = suins::get_config_mut<Config>(suins);
-        let rate = config::use_discount_code(config, &std::string::from_ascii(*referral_code), ctx);
+        let config = suins::app_get_config_mut<App, Promotion>(App {}, suins);
+        let rate = promotion::use_discount_code(config, &std::string::from_ascii(*referral_code), ctx);
         (original_fee / 100) * (100 - rate as u64)
     }
 
@@ -546,7 +544,7 @@ module suins::controller {
         clock: &Clock,
         ctx: &TxContext,
     ) {
-        let commitments = suins::controller_commitments_mut(suins);
+        let commitments = &mut controller_mut(suins).commitments;
         assert!(linked_table::contains(commitments, commitment), ECommitmentNotExists);
         assert!(
             *linked_table::borrow(commitments, commitment) + MIN_COMMITMENT_AGE_IN_MS <= clock::timestamp_ms(clock),
@@ -557,13 +555,13 @@ module suins::controller {
             ECommitmentTooOld
         );
         linked_table::remove(commitments, commitment);
-        assert!(registrar::is_available(suins, utf8(SUI_TLD), label, ctx), ELabelUnavailable);
+        assert!(registrar::is_available(suins, constants::sui_tld(), label, ctx), ELabelUnavailable);
     }
 
     fun make_commitment(label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
         let domain_name = label;
         vector::append(&mut domain_name, b".");
-        vector::append(&mut domain_name, SUI_TLD);
+        vector::append(&mut domain_name, *string::bytes(&constants::sui_tld()));
 
         let owner_bytes = bcs::to_bytes(&owner);
         vector::append(&mut domain_name, owner_bytes);
@@ -594,6 +592,10 @@ module suins::controller {
     }
 
     #[test_only]
+    // First I was like - yeah, let's remove the unused argument. But then
+    // I saw how many tests are using this function and I was like - nah, I'm good.
+    //
+    // Maybe as a part of tests reorganization... yuck.
     public fun test_make_commitment(
         _tld: vector<u8>,
         label: vector<u8>,
@@ -605,7 +607,7 @@ module suins::controller {
 
     #[test_only]
     public fun commitment_len(suins: &SuiNS): u64 {
-        let commitments = suins::controller_commitments(suins);
+        let commitments = &controller(suins).commitments;
         linked_table::length(commitments)
     }
 
@@ -618,5 +620,48 @@ module suins::controller {
         ctx: &mut TxContext
     ): u64 {
         apply_referral_code(suins, payment, original_fee, &ascii::string(referral_code), ctx)
+    }
+
+    fun controller(suins: &SuiNS): &Controller {
+        df::borrow(suins::uid(suins), ControllerKey {})
+    }
+
+    fun controller_mut(suins: &mut SuiNS): &mut Controller {
+        df::borrow_mut(suins::app_uid_mut(App {}, suins), ControllerKey {})
+    }
+
+    fun auction_house_finalized_at(suins: &mut SuiNS): u64 {
+        controller(suins).auction_house_finalized_at
+    }
+
+    public(friend) fun auction_house_finalized_at_mut(suins: &mut SuiNS): &mut u64 {
+        &mut controller_mut(suins).auction_house_finalized_at
+    }
+
+    // === Events ===
+
+    struct NameRegisteredEvent has copy, drop {
+        tld: String,
+        label: String,
+        owner: address,
+        cost: u64,
+        expired_at: u64,
+        nft_id: ID,
+        referral_code: Option<ascii::String>,
+        discount_code: Option<ascii::String>,
+        url: Url,
+        data: String,
+    }
+
+    struct NameRenewedEvent has copy, drop {
+        tld: String,
+        label: String,
+        cost: u64,
+        duration: u64,
+    }
+
+    struct CommitmentAddedEvent has copy, drop {
+        commitment: vector<u8>,
+        timestamp_ms: u64,
     }
 }

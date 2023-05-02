@@ -25,7 +25,7 @@ module suins::registrar_tests {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
-            suins::test_init(ctx);
+            suins::test_setup::setup(ctx);
         };
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
@@ -92,7 +92,7 @@ module suins::registrar_tests {
             let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
 
             assert!(owner == FIRST_USER, 0);
-            assert!(target_address == FIRST_USER, 0);
+            assert!(target_address == std::option::some(FIRST_USER), 0);
             test_scenario::return_to_sender(scenario, nft);
             test_scenario::return_shared(suins);
         };
@@ -146,7 +146,7 @@ module suins::registrar_tests {
             let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
 
             assert!(owner == FIRST_USER, 0);
-            assert!(target_address == FIRST_USER, 0);
+            assert!(target_address == std::option::some(FIRST_USER), 0);
 
             test_scenario::return_to_sender(scenario, nft);
             test_scenario::return_shared(suins);
@@ -319,7 +319,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let owner = registry::owner(&suins, utf8(FIRST_DOMAIN_NAME));
+            let owner = suins::record_owner(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(SECOND_USER == owner, 0);
 
             test_scenario::return_shared(suins);
@@ -1473,7 +1473,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let owner = registry::owner(&suins, utf8(FIRST_DOMAIN_NAME));
+            let owner = suins::record_owner(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(SECOND_USER == owner, 0);
 
             test_scenario::return_shared(suins);
@@ -1577,7 +1577,7 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            let owner = registry::owner(&suins, utf8(FIRST_DOMAIN_NAME));
+            let owner = suins::record_owner(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(SECOND_USER == owner, 0);
 
             test_scenario::return_shared(suins);

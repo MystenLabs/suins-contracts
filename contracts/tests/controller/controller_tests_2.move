@@ -1,10 +1,16 @@
 #[test_only]
 module suins::controller_tests_2 {
+    use std::option::{some};
+    use std::string::utf8;
 
+    use sui::url;
+    use sui::clock::{Self, Clock};
     use sui::coin;
     use sui::test_scenario;
     use sui::sui::SUI;
-    use sui::url;
+
+    use suins::controller_tests::{test_init, set_auction_config, make_commitment};
+    use suins::controller_tests;
     use suins::auction_tests::ctx_new;
     use suins::registrar::{Self, RegistrationNFT};
     use suins::registry;
@@ -12,11 +18,6 @@ module suins::controller_tests_2 {
     use suins::config::{Self, Config};
     use suins::suins::SuiNS;
     use suins::controller;
-    use std::option;
-    use std::string::utf8;
-   use sui::clock::{Self, Clock};
-    use suins::controller_tests::{test_init, set_auction_config, make_commitment};
-    use suins::controller_tests;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -71,7 +72,7 @@ module suins::controller_tests_2 {
             test_scenario::return_to_sender(&mut scenario, admin_cap);
             test_scenario::return_shared(suins);
         };
-        make_commitment(&mut scenario, option::some(b"xyztu"));
+        make_commitment(&mut scenario, std::option::some(b"xyztu"));
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -88,7 +89,7 @@ module suins::controller_tests_2 {
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(suins::balance(&suins) == 0, 0);
             assert!(controller::commitment_len(&suins) == 1, 0);
-            assert!(!registry::record_exists(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
+            assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
             controller::register(
@@ -127,7 +128,7 @@ module suins::controller_tests_2 {
 
             let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(b"xyztu.sui"));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(target_address == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == some(FIRST_USER_ADDRESS), 0);
 
             test_scenario::return_to_sender(&mut scenario, nft);
             test_scenario::return_shared(suins);

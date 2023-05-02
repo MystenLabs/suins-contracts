@@ -1,32 +1,30 @@
 /// Implementation of auction module.
 /// More information in: ../../../docs
 module suins::auction {
-
-    use sui::object::UID;
-    use sui::table::{Self, Table};
-    use sui::tx_context::TxContext;
-    use sui::sui::SUI;
-    use sui::balance::{Self, Balance};
-    use sui::transfer;
-    use sui::object;
-    use sui::hash::keccak256;
-    use sui::coin::Coin;
-    use sui::event;
-    use sui::clock::{Self, Clock};
-    use sui::linked_table::{Self, LinkedTable};
-    use suins::registrar;
-    use suins::suins::{Self, AdminCap};
-    use suins::config::{Self, Config};
-    use suins::suins::SuiNS;
-    use suins::string_utils;
     use std::option::{Self, Option, none, some};
     use std::string::{Self, String, utf8};
     use std::vector;
     use std::bcs;
-    use sui::tx_context;
-    use sui::coin;
 
-    const SUI_TLD: vector<u8> = b"sui";
+    use sui::tx_context::{Self, TxContext};
+    use sui::balance::{Self, Balance};
+    use sui::object::{Self, UID};
+    use sui::table::{Self, Table};
+    use sui::coin::{Self, Coin};
+    use sui::sui::SUI;
+    use sui::transfer;
+    use sui::hash::keccak256;
+    use sui::event;
+    use sui::clock::{Self, Clock};
+    use sui::linked_table::{Self, LinkedTable};
+
+    use suins::registrar;
+    use suins::config::{Self, Config};
+    use suins::suins::{Self, AdminCap, SuiNS};
+    use suins::controller;
+    use suins::string_utils;
+    use suins::constants;
+
     // must always up-to-date with sui::sui::MIST_PER_SUI
     const BIDDING_PERIOD: u64 = 1;
     const REVEAL_PERIOD: u64 = 1;
@@ -56,6 +54,9 @@ module suins::auction {
     const EInvalidBiddingFee: u64 = 815;
     const ELabelUnavailable: u64 = 816;
     const EPaymentNotEnough: u64 = 817;
+
+    /// Authorization witness to call protected functions of suins.
+    struct App has drop {}
 
     struct BidDetail has store, copy, drop {
         // Using the address to simplify the typing;
@@ -152,7 +153,7 @@ module suins::auction {
     /// Panics
     /// Panics if `open_at` is less than `close_at`
     /// or current epoch is less than or equal `open_at`
-    public entry fun configure_auction(
+    public fun configure_auction(
         _: &AdminCap,
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
@@ -165,7 +166,7 @@ module suins::auction {
 
         auction_house.start_auction_start_at = start_auction_start_at;
         auction_house.start_auction_end_at = start_auction_end_at;
-        *suins::controller_auction_house_finalized_at_mut(suins) = auction_house_close_at(
+        *controller::auction_house_finalized_at_mut(suins) = auction_house_close_at(
             auction_house
         ) + EXTRA_PERIOD;
     }
@@ -189,7 +190,7 @@ module suins::auction {
     /// or the domain name is already opened
     /// or the domain name is not eligible for auction.
     /// or the length of the label must be within the range of 3-6 characters.
-    public entry fun start_an_auction(
+    public fun start_an_auction(
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
         label: String,
@@ -202,11 +203,11 @@ module suins::auction {
             ) <= auction_house.start_auction_end_at,
             EInvalidPhase,
         );
-        string_utils::validate_label(label, config::min_domain_length(), config::max_domain_length());
+        string_utils::validate_label(label, constants::min_domain_length(), constants::max_domain_length());
 
         let state = state(auction_house, label, tx_context::epoch(ctx));
         assert!(state == AUCTION_STATE_OPEN || state == AUCTION_STATE_REOPENED, EInvalidPhase);
-        assert!(registrar::is_available(suins, utf8(SUI_TLD), label, ctx), ELabelUnavailable);
+        assert!(registrar::is_available(suins, constants::sui_tld(), label, ctx), ELabelUnavailable);
 
         if (state == AUCTION_STATE_REOPENED) {
             // added in below statement
@@ -220,8 +221,8 @@ module suins::auction {
             winner: @0x0,
             second_highest_bidder: @0x0,
             is_finalized: false,
-            winning_bid_created_at_in_ms: suins::max_u64(),
-            second_highest_bid_created_at_in_ms: suins::max_u64(),
+            winning_bid_created_at_in_ms: constants::max_u64(),
+            second_highest_bid_created_at_in_ms: constants::max_u64(),
             winning_bid_id: @0x0,
         };
         linked_table::push_back(&mut auction_house.entries, label, entry);
@@ -246,7 +247,7 @@ module suins::auction {
     /// or `bid_value_mask` is less than `MIN_PRICE`
     /// or the sealed bid exists
     /// or payment doesn't have enough coin
-    public entry fun place_bid(
+    public fun place_bid(
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
         sealed_bid: vector<u8>,
@@ -317,7 +318,7 @@ module suins::auction {
     /// or the parameters don't match any sealed bid
     /// or the sealed bid has already been unsealed
     /// or `label` hasn't been started
-    public entry fun reveal_bid(
+    public fun reveal_bid(
         auction_house: &mut AuctionHouse,
         suins: &SuiNS,
         label: String,
@@ -403,7 +404,7 @@ module suins::auction {
     /// or sender has never ever placed a bid
     /// or `label` hasn't been started
     /// or the auction has already been finalized and sender is the winner
-    public entry fun finalize_auction(
+    public fun finalize_auction(
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
         label: String,
@@ -462,7 +463,7 @@ module suins::auction {
         register_winning_auction(suins, label, entry.winner, entry.second_highest_bid, ctx)
     }
 
-    public entry fun finalize_all_auctions_by_admin(
+    public fun finalize_all_auctions_by_admin(
         _: &AdminCap,
         auction_house: &mut AuctionHouse,
         suins: &mut SuiNS,
@@ -521,7 +522,7 @@ module suins::auction {
             };
             next_label = *linked_table::next(&auction_house.entries, label);
         };
-        *suins::controller_auction_house_finalized_at_mut(suins) = tx_context::epoch(ctx);
+        *controller::auction_house_finalized_at_mut(suins) = tx_context::epoch(ctx);
     }
 
     /// #### Notice
@@ -536,7 +537,7 @@ module suins::auction {
     /// Panics
     /// Panics if current epoch is less than or equal end_at
     /// or sender has never ever placed a bid
-    public entry fun withdraw(auction_house: &mut AuctionHouse, ctx: &mut TxContext) {
+    public fun withdraw(auction_house: &mut AuctionHouse, ctx: &mut TxContext) {
         assert!(tx_context::epoch(ctx) > auction_house_close_at(auction_house), EInvalidPhase);
 
         let bids_of_sender = table::borrow_mut(&mut auction_house.bid_details_by_bidder, tx_context::sender(ctx));
@@ -570,19 +571,19 @@ module suins::auction {
         };
     }
 
-    public entry fun set_bidding_fee(_: &AdminCap, auction_house: &mut AuctionHouse, new_bidding_fee: u64) {
+    public fun set_bidding_fee(_: &AdminCap, auction_house: &mut AuctionHouse, new_bidding_fee: u64) {
         assert!(
-            config::mist_per_sui() <= new_bidding_fee
-                && new_bidding_fee <= config::mist_per_sui() * 1_000_000,
+            constants::mist_per_sui() <= new_bidding_fee
+                && new_bidding_fee <= constants::mist_per_sui() * 1_000_000,
             EInvalidBiddingFee
         );
         auction_house.bidding_fee = new_bidding_fee;
     }
 
-    public entry fun set_start_an_auction_fee(_: &AdminCap, auction_house: &mut AuctionHouse, new_fee: u64) {
+    public fun set_start_an_auction_fee(_: &AdminCap, auction_house: &mut AuctionHouse, new_fee: u64) {
         assert!(
-            config::mist_per_sui() <= new_fee
-                && new_fee <= config::mist_per_sui() * 1_000_000,
+            constants::mist_per_sui() <= new_fee
+                && new_fee <= constants::mist_per_sui() * 1_000_000,
             EInvalidBiddingFee
         );
         auction_house.start_an_auction_fee = new_fee;
@@ -675,7 +676,7 @@ module suins::auction {
 
     // === Friend and Private Functions ===
 
-    public(friend) fun auction_house_close_at(auction: &AuctionHouse): u64 {
+    fun auction_house_close_at(auction: &AuctionHouse): u64 {
         auction.start_auction_end_at + BIDDING_PERIOD + REVEAL_PERIOD
     }
 
@@ -714,10 +715,9 @@ module suins::auction {
         winning_amount: u64,
         ctx: &mut TxContext
     ) {
-        let tld = utf8(SUI_TLD);
         registrar::register_with_image_internal(
             suins,
-            tld,
+            constants::sui_tld(),
             label,
             winner,
             365,
@@ -728,9 +728,9 @@ module suins::auction {
         );
         event::emit(NameRegisteredEvent {
             label,
-            tld,
             winner,
-            amount: winning_amount
+            amount: winning_amount,
+            tld: constants::sui_tld(),
         })
     }
 
@@ -781,10 +781,10 @@ module suins::auction {
             bid_details_by_bidder: table::new(ctx),
             entries: linked_table::new(ctx),
             balance: balance::zero(),
-            start_auction_start_at: suins::max_epoch_allowed(),
-            start_auction_end_at: suins::max_epoch_allowed() - 1,
-            bidding_fee: config::mist_per_sui(),
-            start_an_auction_fee: 10 * config::mist_per_sui(),
+            start_auction_start_at: constants::max_epoch_allowed(),
+            start_auction_end_at: constants::max_epoch_allowed() - 1,
+            bidding_fee: constants::mist_per_sui(),
+            start_an_auction_fee: 10 * constants::mist_per_sui(),
         });
     }
 
@@ -811,8 +811,7 @@ module suins::auction {
         amount: u64,
     ) {
         if (amount > 0) {
-            let paid = balance::split(balance, amount);
-            balance::join(suins::balance_mut(suins), paid);
+            suins::app_add_balance(App {}, suins, balance::split(balance, amount))
         }
     }
 
@@ -840,7 +839,7 @@ module suins::auction {
     fun add_to_suins(
         suins: &mut SuiNS, payment: &mut Coin<SUI>, amount: u64, ctx: &mut TxContext
     ) {
-        suins::add_to_balance(suins, coin::split(payment, amount, ctx))
+        suins::app_add_balance(App {}, suins, coin::into_balance(coin::split(payment, amount, ctx)))
         // add_to_balance(suins::controller_balance_mut(suins), payment, amount)
     }
 
@@ -898,10 +897,10 @@ module suins::auction {
             bid_details_by_bidder: table::new(ctx),
             entries: linked_table::new(ctx),
             balance: balance::zero(),
-            start_auction_start_at: suins::max_epoch_allowed(),
-            start_auction_end_at: suins::max_epoch_allowed() - 1,
-            bidding_fee: config::mist_per_sui(),
-            start_an_auction_fee: 10 * config::mist_per_sui(),
+            start_auction_start_at: constants::max_epoch_allowed(),
+            start_auction_end_at: constants::max_epoch_allowed() - 1,
+            bidding_fee: constants::mist_per_sui(),
+            start_an_auction_fee: 10 * constants::mist_per_sui(),
         });
     }
 }

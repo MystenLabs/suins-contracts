@@ -21,7 +21,7 @@ module suins::registry_tests {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
-            suins::test_init(ctx);
+            suins::test_setup::setup(ctx);
         };
 
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -43,7 +43,7 @@ module suins::registry_tests {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            registry::set_record_internal(
+            suins::add_record_for_testing(
                 &mut suins,
                 utf8(FIRST_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,
@@ -60,16 +60,14 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-
-            assert!(registry::owner(&suins, utf8(FIRST_DOMAIN_NAME)) == FIRST_USER_ADDRESS, 0);
-
+            assert!(suins::record_owner(&suins, utf8(FIRST_DOMAIN_NAME)) == FIRST_USER_ADDRESS, 0);
             test_scenario::return_shared(suins);
         };
 
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_record_internal(
+            suins::add_record_for_testing(
                 &mut suins,
                 utf8(FIRST_DOMAIN_NAME),
                 SECOND_USER_ADDRESS,
@@ -83,7 +81,7 @@ module suins::registry_tests {
             let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
 
             assert!(owner == SECOND_USER_ADDRESS, 0);
-            assert!(target_address == SECOND_USER_ADDRESS, 0);
+            assert!(target_address == std::option::some(SECOND_USER_ADDRESS), 0);
 
             test_scenario::return_shared(suins);
         };
@@ -98,7 +96,7 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_owner(
+            suins::transfer_ownership(
                 &mut suins,
                 utf8(FIRST_DOMAIN_NAME),
                 SECOND_USER_ADDRESS,
@@ -110,13 +108,13 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            assert!(registry::owner(&suins, utf8(FIRST_DOMAIN_NAME)) == SECOND_USER_ADDRESS, 0);
+            assert!(suins::record_owner(&suins, utf8(FIRST_DOMAIN_NAME)) == SECOND_USER_ADDRESS, 0);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
+    #[test, expected_failure(abort_code = sui::dynamic_field::EFieldDoesNotExist)]
     fun test_set_owner_abort_if_domain_name_not_exists() {
         let scenario = test_init();
         mint_record(&mut scenario);
@@ -125,7 +123,7 @@ module suins::registry_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            registry::set_owner(
+            suins::transfer_ownership(
                 &mut suins,
                 utf8(SECOND_DOMAIN_NAME),
                 SECOND_USER_ADDRESS,
@@ -136,7 +134,7 @@ module suins::registry_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registry::EUnauthorized)]
+    #[test, expected_failure(abort_code = suins::suins::ENotRecordOwner)]
     fun test_set_owner_abort_if_unauthorised() {
         let scenario = test_init();
         mint_record(&mut scenario);
@@ -144,7 +142,7 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_owner(
+            suins::transfer_ownership(
                 &mut suins,
                 utf8(FIRST_DOMAIN_NAME),
                 SECOND_USER_ADDRESS,

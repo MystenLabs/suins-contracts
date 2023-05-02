@@ -551,7 +551,7 @@ or the NFT expired.
     <b>let</b> registration = field::borrow&lt;String, <a href="base_registrar.md#0x0_base_registrar_RegistrationDetail">RegistrationDetail</a>&gt;(&registrar.id, label);
     <b>assert</b>!(registration.expiry &gt;= epoch(ctx), <a href="base_registrar.md#0x0_base_registrar_ELabelExpired">ELabelExpired</a>);
 
-    <a href="base_registry.md#0x0_base_registry_set_owner_internal">base_registry::set_owner_internal</a>(registry, nft.name, owner);
+    <a href="base_registry.md#0x0_base_registry_set_owner_internal">base_suins::transfer_ownership_internal</a>(registry, nft.name, owner);
     <a href="_emit">event::emit</a>(<a href="base_registrar.md#0x0_base_registrar_NameReclaimedEvent">NameReclaimedEvent</a> {
         node: nft.name,
         owner,

@@ -24,7 +24,7 @@ module suins::registry_tests_2 {
         let scenario = test_scenario::begin(SUINS_ADDRESS);
         {
             let ctx = test_scenario::ctx(&mut scenario);
-            suins::test_init(ctx);
+            suins::test_setup::setup(ctx);
         };
         scenario
     }
@@ -33,7 +33,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
-            registry::set_record_internal(
+            suins::add_record_for_testing(
                 &mut suins,
                 utf8(FIRST_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,
@@ -91,7 +91,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_record_internal(
+            suins::add_record_for_testing(
                 &mut suins,
                 utf8(SECOND_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,
@@ -143,7 +143,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_record_internal(
+            suins::add_record_for_testing(
                 &mut suins,
                 utf8(FIRST_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,
@@ -168,7 +168,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::new_record_test(
+            suins::add_record_for_testing(
                 &mut suins,
                 utf8(FIRST_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,
@@ -215,7 +215,7 @@ module suins::registry_tests_2 {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
+    #[test, expected_failure(abort_code = sui::dynamic_field::EFieldDoesNotExist)]
     fun test_get_name_aborts_if_not_own_the_name() {
         let scenario = test_init();
         set_default_name(&mut scenario);
@@ -238,7 +238,7 @@ module suins::registry_tests_2 {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
+    #[test, expected_failure(abort_code = sui::dynamic_field::EFieldDoesNotExist)]
     fun test_set_name_abort_if_record_not_exists_in_registry() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -250,14 +250,14 @@ module suins::registry_tests_2 {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
+    #[test, expected_failure(abort_code = sui::dynamic_field::EFieldDoesNotExist)]
     fun test_get_addr_returns_empty_if_domain_name_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let addr = registry::target_address(&suins, utf8(FIRST_DOMAIN_NAME));
-            assert!(addr == @0x0, 0);
+            assert!(addr == std::option::none(), 0);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -282,7 +282,7 @@ module suins::registry_tests_2 {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let addr = registry::target_address(&suins, utf8(FIRST_DOMAIN_NAME));
-            assert!(addr == FIRST_USER_ADDRESS, 0);
+            assert!(addr == std::option::some(FIRST_USER_ADDRESS), 0);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -318,13 +318,13 @@ module suins::registry_tests_2 {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let addr = registry::target_address(&suins, utf8(FIRST_DOMAIN_NAME));
-            assert!(addr == SECOND_USER_ADDRESS, 0);
+            assert!(addr == std::option::some(SECOND_USER_ADDRESS), 0);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registry::EUnauthorized)]
+    #[test, expected_failure(abort_code = suins::suins::ENotRecordOwner)]
     fun test_set_address_aborts_if_unauthorized() {
         let scenario = test_init();
         registry_tests::mint_record(&mut scenario);
@@ -354,7 +354,7 @@ module suins::registry_tests_2 {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registry::EUnauthorized)]
+    #[test, expected_failure(abort_code = suins::suins::ENotRecordOwner)]
     fun test_set_data_abort_if_unauthorized() {
         let scenario = test_init();
         registry_tests::mint_record(&mut scenario);
@@ -409,7 +409,7 @@ module suins::registry_tests_2 {
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            registry::set_record_internal(
+            suins::add_record_for_testing(
                 &mut suins,
                 utf8(SECOND_DOMAIN_NAME),
                 FIRST_USER_ADDRESS,
@@ -465,7 +465,7 @@ module suins::registry_tests_2 {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registry::EUnauthorized)]
+    #[test, expected_failure(abort_code = suins::suins::ENotRecordOwner)]
     fun test_set_contenthash_abort_if_unauthorized() {
         let scenario = test_init();
         registry_tests::mint_record(&mut scenario);
@@ -484,7 +484,7 @@ module suins::registry_tests_2 {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
+    #[test, expected_failure(abort_code = sui::dynamic_field::EFieldDoesNotExist)]
     fun test_set_contenthash_abort_if_domain_name_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -502,7 +502,7 @@ module suins::registry_tests_2 {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
+    #[test, expected_failure(abort_code = sui::dynamic_field::EFieldDoesNotExist)]
     fun test_get_contenthash_aborts_if_domain_name_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -514,7 +514,7 @@ module suins::registry_tests_2 {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
+    #[test, expected_failure(abort_code = sui::dynamic_field::EFieldDoesNotExist)]
     fun test_get_contenthash_returns_empty_with_wrong_domain_name() {
         let scenario = test_init();
         registry_tests::mint_record(&mut scenario);
@@ -540,7 +540,7 @@ module suins::registry_tests_2 {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
+    #[test, expected_failure(abort_code = sui::dynamic_field::EFieldDoesNotExist)]
     fun test_set_avatar_abort_if_domain_name_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SECOND_USER_ADDRESS);
@@ -596,7 +596,7 @@ module suins::registry_tests_2 {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
+    #[test, expected_failure(abort_code = sui::dynamic_field::EFieldDoesNotExist)]
     fun test_unset_contenthash_abort_if_domain_name_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
@@ -613,7 +613,7 @@ module suins::registry_tests_2 {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registry::EUnauthorized)]
+    #[test, expected_failure(abort_code = suins::suins::ENotRecordOwner)]
     fun test_unset_contenthash_abort_if_unauthorized() {
         let scenario = test_init();
         registry_tests::mint_record(&mut scenario);
@@ -623,8 +623,8 @@ module suins::registry_tests_2 {
             registry::set_data(
                 &mut suins,
                 utf8(FIRST_DOMAIN_NAME),
-                    utf8(CONTENTHASH),
-                        utf8(FIRST_CONTENTHASH),
+                utf8(CONTENTHASH),
+                utf8(FIRST_CONTENTHASH),
                 test_scenario::ctx(&mut scenario),
             );
             test_scenario::return_shared(suins);
@@ -636,7 +636,7 @@ module suins::registry_tests_2 {
             registry::unset_data(
                 &mut suins,
                 utf8(FIRST_DOMAIN_NAME),
-            utf8(CONTENTHASH),
+                utf8(CONTENTHASH),
                 test_scenario::ctx(&mut scenario),
             );
             test_scenario::return_shared(suins);
@@ -666,13 +666,13 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(target_address == SECOND_USER_ADDRESS, 0);
+            assert!(target_address == std::option::some(SECOND_USER_ADDRESS), 0);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = registry::EDomainNameNotExists)]
+    #[test, expected_failure(abort_code = sui::dynamic_field::EFieldDoesNotExist)]
     fun test_get_all_data_aborts_if_domain_name_not_exists() {
         let scenario = test_init();
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -693,7 +693,7 @@ module suins::registry_tests_2 {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
             assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(target_address == FIRST_USER_ADDRESS, 0);
+            assert!(target_address == std::option::some(FIRST_USER_ADDRESS), 0);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
@@ -721,7 +721,7 @@ module suins::registry_tests_2 {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let addr = registry::target_address(&suins, utf8(FIRST_DOMAIN_NAME));
-            assert!(addr == FIRST_USER_ADDRESS, 0);
+            assert!(addr == std::option::some(FIRST_USER_ADDRESS), 0);
             test_scenario::return_shared(suins);
         };
         test_scenario::end(scenario);
