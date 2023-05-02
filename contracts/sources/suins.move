@@ -1,5 +1,5 @@
 module suins::suins {
-    use std::option::some;
+    use std::option::{Self, some, Option};
     use std::string::String;
 
     use sui::tx_context::{sender, Self, TxContext};
@@ -137,8 +137,13 @@ module suins::suins {
         assert!(is_app_authorized<App>(self), EAppNotAuthorized);
         let name_record = name_record::new(some(owner));
         if (has_name_record(self, domain_name)) {
+            let record = df::borrow_mut(&mut self.registry, domain_name);
+            let old_target_address = name_record::target_address(record);
+
             *table::borrow_mut(&mut self.record_owner, domain_name) = owner;
-            *df::borrow_mut(&mut self.registry, domain_name) = name_record;
+            *record = name_record;
+
+            handle_invalidate_reverse_record(self, domain_name, old_target_address, some(owner));
         } else {
             table::add(&mut self.record_owner, domain_name, owner);
             df::add(&mut self.registry, domain_name, name_record)
@@ -256,6 +261,31 @@ module suins::suins {
 
     public(friend) fun reverse_registry_mut(self: &mut SuiNS): &mut Table<address, String> {
         &mut self.reverse_registry
+    }
+
+    public(friend) fun handle_invalidate_reverse_record(
+        self: &mut SuiNS,
+        domain_name: String,
+        old_target_address: Option<address>,
+        new_target_address: Option<address>,
+    ) {
+        if (old_target_address == new_target_address) {
+            return
+        };
+
+        if (option::is_none(&old_target_address)) {
+            return
+        };
+
+        let old_target_address = option::destroy_some(old_target_address);
+        let reverse_registry = reverse_registry_mut(self);
+
+        if (table::contains(reverse_registry, old_target_address)) {
+            let default_domain_name = table::borrow(reverse_registry, old_target_address);
+            if (*default_domain_name == domain_name) {
+                table::remove(reverse_registry, old_target_address);
+            }
+        };
     }
 
     public(friend) fun send_from_balance(self: &mut SuiNS, amount: u64, receiver: address, ctx: &mut TxContext) {

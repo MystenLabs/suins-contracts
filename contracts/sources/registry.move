@@ -2,7 +2,7 @@
 /// The owners of this only own the name, not own the registration.
 /// It primarily facilitates the lending and borrowing of domain names.
 module suins::registry {
-    use std::option::{Self, none, some, Option};
+    use std::option::{none, some, Option};
     use std::string::String;
 
     use sui::table;
@@ -90,15 +90,7 @@ module suins::registry {
         name_record::set_target_address(record, some(new_addr));
         event::emit(TargetAddressChangedEvent { domain_name, new_addr });
 
-        if (option::is_some(&old_target_address)) {
-            let old_target_address = option::destroy_some(old_target_address);
-            if (old_target_address != new_addr) {
-                let reverse_registry = suins::reverse_registry_mut(suins);
-                if (table::contains(reverse_registry, old_target_address)) {
-                    table::remove(reverse_registry, old_target_address);
-                };
-            };
-        }
+        suins::handle_invalidate_reverse_record(suins, domain_name, old_target_address, some(new_addr));
     }
 
     public fun unset_target_address(
@@ -112,13 +104,7 @@ module suins::registry {
         name_record::set_target_address(record, none());
         event::emit(TargetAddressRemovedEvent { domain_name });
 
-        if (option::is_some(&old_target_address)) {
-            let reverse_registry = suins::reverse_registry_mut(suins);
-            let old_target_address = option::destroy_some(old_target_address);
-            if (table::contains(reverse_registry, old_target_address)) {
-                table::remove(reverse_registry, old_target_address);
-            };
-        }
+        suins::handle_invalidate_reverse_record(suins, domain_name, old_target_address, none());
     }
 
     public fun set_default_domain_name(
