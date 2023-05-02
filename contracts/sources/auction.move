@@ -9,6 +9,7 @@ module suins::auction {
     // use sui::object::{Self, UID};
     use sui::coin::{Self, Coin};
     use sui::clock::{Self, Clock};
+    use sui::event;
     use sui::sui::SUI;
     use sui::linked_table::{Self, LinkedTable};
     use sui::dynamic_field as df;
@@ -141,6 +142,7 @@ module suins::auction {
             ctx,
         );
 
+        let starting_bid = balance::value(&bid);
         let bids = linked_table::new(ctx);
 
         // Insert the user's bid into the table
@@ -158,6 +160,14 @@ module suins::auction {
             bids,
             nft: some(nft),
         };
+
+        event::emit(AuctionStartedEvent {
+            label: auction.domain,
+            start_timestamp_ms: auction.start_timestamp_ms,
+            end_timestamp_ms: auction.end_timestamp_ms,
+            starting_bid,
+            bidder: auction.winner,
+        });
 
         auction
     }
@@ -180,10 +190,17 @@ module suins::auction {
 
         // get the current highest bid and ensure that the new bid is greater than the current winning bid
         let current_winning_bid = balance::value(linked_table::borrow(&auction.bids, auction.winner));
-        assert!(balance::value(&bid) > current_winning_bid, 0);
+        let bid_amount = balance::value(&bid);
+        assert!(bid_amount > current_winning_bid, 0);
 
         linked_table::push_front(&mut auction.bids, bidder, bid);
         auction.winner = bidder;
+
+        event::emit(BidEvent {
+            label,
+            bid: bid_amount,
+            bidder,
+        });
 
         // If there is less than `AUCTION_MIN_QUIET_PERIOD_MS` time left on the auction
         // then extend the auction so that there is `AUCTION_MIN_QUIET_PERIOD_MS` left.
@@ -191,26 +208,12 @@ module suins::auction {
         // time where there are no bids.
         if (auction.end_timestamp_ms - clock::timestamp_ms(clock) < AUCTION_MIN_QUIET_PERIOD_MS) {
             auction.end_timestamp_ms = clock::timestamp_ms(clock) + AUCTION_MIN_QUIET_PERIOD_MS;
-        };
-    }
 
-    /// #### Notice
-    /// Bidders use this function to claim the NFT or withdraw payment of their bids on `label`.
-    /// He/she also get the NFT representing the ownership of `label`.sui domain name.
-    /// If not the winner, he/she get back the payment that he/her deposited when place the bid.
-    /// We allow bidders to have multiple bids on one domain, this function checks all of them.
-    ///
-    /// Panics
-    /// Panics if auction state is not `FINALIZING`, `REOPENED` or `OWNED`
-    /// or sender has never ever placed a bid
-    /// or `label` hasn't been started
-    /// or the auction has already been finalized and sender is the winner
-    public fun finalize_auction(
-        _suins: &mut SuiNS,
-        _label: String,
-        _ctx: &mut TxContext
-    ) {
-        //
+            event::emit(AuctionExtendedEvent {
+                label,
+                end_timestamp_ms: auction.end_timestamp_ms,
+            });
+        };
     }
 
     /// #### Notice
@@ -321,21 +324,22 @@ module suins::auction {
 
     // === Events ===
 
-    struct NameRegisteredEvent has copy, drop {
-        tld: String,
-        label: String,
-        winner: address,
-        amount: u64,
-    }
-
-    struct NewBidEvent has copy, drop {
-        bidder: address,
-        sealed_bid: vector<u8>,
-        bid_value_mask: u64,
-    }
-
     struct AuctionStartedEvent has copy, drop {
         label: String,
-        start_at: u64,
+        start_timestamp_ms: u64,
+        end_timestamp_ms: u64,
+        starting_bid: u64,
+        bidder: address,
+    }
+
+    struct BidEvent has copy, drop {
+        label: String,
+        bid: u64,
+        bidder: address,
+    }
+
+    struct AuctionExtendedEvent has copy, drop {
+        label: String,
+        end_timestamp_ms: u64,
     }
 }
