@@ -726,4 +726,154 @@ module suins::registry_tests_2 {
         };
         test_scenario::end(scenario);
     }
+
+    #[test]
+    fun test_reverse_record_is_not_cleared_when_target_addr_of_different_domain_name_changes() {
+        let scenario = test_init();
+        set_default_name(&mut scenario);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            suins::add_record_for_testing(
+                &mut suins,
+                utf8(SECOND_DOMAIN_NAME),
+                FIRST_USER_ADDRESS,
+            );
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let name = registry::default_domain_name(&suins, FIRST_USER_ADDRESS);
+            assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            registry::set_target_address(&mut suins, utf8(SECOND_DOMAIN_NAME), SECOND_USER_ADDRESS, test_scenario::ctx(&mut scenario));
+
+            let reverse_registry = suins::reverse_registry(&suins);
+            assert!(sui::table::contains(reverse_registry, FIRST_USER_ADDRESS), 0);
+            let name = registry::default_domain_name(&suins, FIRST_USER_ADDRESS);
+            assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
+
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_reverse_record_is_not_cleared_when_target_addr_of_different_domain_name_is_unset() {
+        let scenario = test_init();
+        set_default_name(&mut scenario);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            suins::add_record_for_testing(
+                &mut suins,
+                utf8(SECOND_DOMAIN_NAME),
+                FIRST_USER_ADDRESS,
+            );
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let name = registry::default_domain_name(&suins, FIRST_USER_ADDRESS);
+            assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            registry::unset_target_address(&mut suins, utf8(SECOND_DOMAIN_NAME), test_scenario::ctx(&mut scenario));
+
+            let reverse_registry = suins::reverse_registry(&suins);
+            assert!(sui::table::contains(reverse_registry, FIRST_USER_ADDRESS), 0);
+            let name = registry::default_domain_name(&suins, FIRST_USER_ADDRESS);
+            assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
+
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_set_record_internal_clear_reverse_record() {
+        let scenario = test_init();
+        set_default_name(&mut scenario);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            suins::add_record_for_testing(
+                &mut suins,
+                utf8(SECOND_DOMAIN_NAME),
+                FIRST_USER_ADDRESS,
+            );
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let name = registry::default_domain_name(&suins, FIRST_USER_ADDRESS);
+            assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            suins::add_record_for_testing(
+                &mut suins,
+                utf8(FIRST_DOMAIN_NAME),
+                SECOND_USER_ADDRESS,
+            );
+
+            let reverse_registry = suins::reverse_registry(&suins);
+            assert!(!sui::table::contains(reverse_registry, FIRST_USER_ADDRESS), 0);
+
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::end(scenario);
+    }
+
+    #[test]
+    fun test_set_record_internal_not_clear_reverse_record_when_set_target_addr_of_different_domain_name() {
+        let scenario = test_init();
+        set_default_name(&mut scenario);
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            suins::add_record_for_testing(
+                &mut suins,
+                utf8(SECOND_DOMAIN_NAME),
+                FIRST_USER_ADDRESS,
+            );
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            let name = registry::default_domain_name(&suins, FIRST_USER_ADDRESS);
+            assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
+        {
+            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
+            suins::add_record_for_testing(
+                &mut suins,
+                utf8(SECOND_DOMAIN_NAME),
+                SECOND_USER_ADDRESS,
+            );
+
+            let reverse_registry = suins::reverse_registry(&suins);
+            assert!(sui::table::contains(reverse_registry, FIRST_USER_ADDRESS), 0);
+            let name = registry::default_domain_name(&suins, FIRST_USER_ADDRESS);
+            assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
+
+            test_scenario::return_shared(suins);
+        };
+        test_scenario::end(scenario);
+    }
 }
