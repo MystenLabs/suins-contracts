@@ -9,7 +9,8 @@ module suins::registrar_tests {
     use suins::registrar::{Self, RegistrationNFT, get_record_expired_at, assert_registrar_exists};
     use suins::config::Self;
     use std::string::{Self, utf8};
-    use suins::auction_tests::ctx_new;
+    use sui::tx_context::TxContext;
+    use sui::tx_context;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER: address = @0xB001;
@@ -46,6 +47,15 @@ module suins::registrar_tests {
             test_scenario::return_to_sender(&mut scenario, admin_cap);
         };
         scenario
+    }
+
+    public fun ctx_new(
+        sender: address,
+        tx_hash: vector<u8>,
+        epoch: u64,
+        ids_created: u64,
+    ): TxContext {
+        tx_context::new(sender, tx_hash, epoch, 0, ids_created)
     }
 
     fun register(scenario: &mut Scenario) {

@@ -1,6 +1,5 @@
 #[test_only]
 module suins::controller_tests {
-    use std::option;
     use std::string::utf8;
 
     use sui::coin::{Self, Coin};
@@ -10,17 +9,15 @@ module suins::controller_tests {
     use sui::url;
     use sui::dynamic_field;
 
-    use suins::auction::{make_seal_bid, finalize_all_auctions_by_admin, AuctionHouse};
     use suins::auction;
-    use suins::auction_tests::{start_an_auction_util, place_bid_util, reveal_bid_util, ctx_new};
     use suins::registrar::{Self, RegistrationNFT};
     use suins::registry;
     use suins::suins::{Self, AdminCap, SuiNS};
     use suins::config::{Self, Config};
     use suins::controller;
     use suins::string_utils;
-    use suins::auction_tests;
     use suins::promotion::{Self, Promotion};
+    use suins::registrar_tests::ctx_new;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -62,7 +59,6 @@ module suins::controller_tests {
         {
             let ctx = test_scenario::ctx(&mut scenario);
             suins::test_setup::setup(ctx);
-            auction::test_init(ctx);
             clock::share_for_testing(clock::create_for_testing(ctx));
         };
         test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
@@ -93,18 +89,14 @@ module suins::controller_tests {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         {
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-            let auction = test_scenario::take_shared<AuctionHouse>(scenario);
             let suins = test_scenario::take_shared<SuiNS>(scenario);
             auction::configure_auction(
                 &admin_cap,
-                &mut auction,
                 &mut suins,
                 START_AUCTION_START_AT,
-                START_AUCTION_END_AT,
                 test_scenario::ctx(scenario)
             );
             test_scenario::return_shared(suins);
-            test_scenario::return_shared(auction);
             test_scenario::return_to_sender(scenario, admin_cap);
         };
     }
@@ -1135,7 +1127,6 @@ module suins::controller_tests {
         {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
                 DEFAULT_TX_HASH,
@@ -1165,7 +1156,6 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 130 / 100, 0);
 
             coin::burn_for_testing(coin);
-            test_scenario::return_shared(auction);
             test_scenario::return_shared(clock);
             test_scenario::return_shared(suins);
         };
@@ -1207,7 +1197,6 @@ module suins::controller_tests {
         {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = ctx_new(
                 SECOND_USER_ADDRESS,
                 DEFAULT_TX_HASH,
@@ -1229,7 +1218,6 @@ module suins::controller_tests {
             );
 
             coin::burn_for_testing(coin);
-            test_scenario::return_shared(auction);
             test_scenario::return_shared(clock);
             test_scenario::return_shared(suins);
         };
@@ -1279,7 +1267,6 @@ module suins::controller_tests {
         {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
                 DEFAULT_TX_HASH,
@@ -1308,7 +1295,6 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN + (PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 30)/100 , 0);
 
             coin::burn_for_testing(coin);
-            test_scenario::return_shared(auction);
             test_scenario::return_shared(clock);
             test_scenario::return_shared(suins);
         };
@@ -1419,7 +1405,6 @@ module suins::controller_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
@@ -1442,7 +1427,6 @@ module suins::controller_tests {
             );
 
             coin::burn_for_testing(coin);
-            test_scenario::return_shared(auction);
             test_scenario::return_shared(clock);
             test_scenario::return_shared(suins);
         };
@@ -1579,7 +1563,6 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
-            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = ctx_new(
                 @0x0,
                 DEFAULT_TX_HASH,
@@ -1601,7 +1584,6 @@ module suins::controller_tests {
             );
 
             coin::burn_for_testing(coin);
-            test_scenario::return_shared(auction);
             test_scenario::return_shared(clock);
             test_scenario::return_shared(suins);
         };
@@ -1658,7 +1640,6 @@ module suins::controller_tests {
         {
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             // simulate user wait for next epoch to call `register`
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
@@ -1688,7 +1669,6 @@ module suins::controller_tests {
             assert!(coin::value(&coin) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 130 / 100, 0);
 
             coin::burn_for_testing(coin);
-            test_scenario::return_shared(auction);
             test_scenario::return_shared(clock);
             test_scenario::return_shared(suins);
         };
@@ -1732,7 +1712,6 @@ module suins::controller_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let clock = test_scenario::take_shared<Clock>(&mut scenario);
-            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
             let ctx = ctx_new(
                 FIRST_USER_ADDRESS,
                 DEFAULT_TX_HASH,
@@ -1755,7 +1734,6 @@ module suins::controller_tests {
             );
 
             coin::burn_for_testing(coin);
-            test_scenario::return_shared(auction);
             test_scenario::return_shared(clock);
             test_scenario::return_shared(suins);
         };
@@ -2237,259 +2215,6 @@ module suins::controller_tests {
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = controller::EAuctionNotEndYet)]
-    fun test_register_work_if_name_not_wait_for_being_finalized_but_auction_house_not_end_yet() {
-        let scenario = test_init();
-        set_auction_config(&mut scenario);
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let clock = test_scenario::take_shared<Clock>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                DEFAULT_TX_HASH,
-                START_AUCTION_END_AT,
-                0
-            );
-            let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, &mut ctx);
-
-            controller::register(
-                &mut suins,
-                utf8(FIRST_LABEL),
-                FIRST_USER_ADDRESS,
-                1,
-                &mut coin,
-                &clock,
-                &mut ctx,
-            );
-
-            coin::burn_for_testing(coin);
-            test_scenario::return_shared(suins);
-            test_scenario::return_shared(clock);
-        };
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = registrar::get_nft_fields(&nft);
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-
-            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
-
-            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, 0);
-            assert!(name == utf8(FIRST_DOMAIN_NAME), 0);
-            assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
-                0
-            );
-
-            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
-            assert!(expired_at == 121 + 365, 0);
-
-            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
-            assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(target_address == std::option::some(FIRST_USER_ADDRESS), 0);
-
-            test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test, expected_failure(abort_code = controller::EAuctionNotEndYet)]
-    fun test_register_abort_if_name_are_waiting_for_being_finalized() {
-        let scenario = test_init();
-        set_auction_config(&mut scenario);
-        start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
-        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000 * suins::constants::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(&mut scenario, seal_bid, 1100 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            reveal_bid_util(
-                &mut auction,
-                &suins,
-                START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                AUCTIONED_LABEL,
-                1000 * suins::constants::mist_per_sui(),
-                FIRST_SECRET,
-                FIRST_USER_ADDRESS,
-                2
-            );
-            test_scenario::return_shared(auction);
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let clock = test_scenario::take_shared<Clock>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                DEFAULT_TX_HASH,
-                START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + 1,
-                0
-            );
-            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
-
-            controller::register(
-                &mut suins,
-                utf8(AUCTIONED_LABEL),
-                FIRST_USER_ADDRESS,
-                1,
-                &mut coin,
-                &clock,
-                &mut ctx,
-            );
-
-            coin::burn_for_testing(coin);
-            test_scenario::return_shared(suins);
-            test_scenario::return_shared(clock);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test, expected_failure(abort_code = controller::EAuctionNotEndYet)]
-    fun test_register_abort_if_name_are_waiting_for_being_finalized_2() {
-        let scenario = test_init();
-        set_auction_config(&mut scenario);
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let clock = test_scenario::take_shared<Clock>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                DEFAULT_TX_HASH,
-                START_AUCTION_END_AT + 2,
-                0
-            );
-            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
-
-            controller::register(
-                &mut suins,
-                utf8(AUCTIONED_LABEL),
-                FIRST_USER_ADDRESS,
-                1,
-                &mut coin,
-                &clock,
-                &mut ctx,
-            );
-
-            coin::burn_for_testing(coin);
-            test_scenario::return_shared(clock);
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test]
-    fun test_register_works_if_auctioned_label_not_have_a_winner_and_extra_time_passes() {
-        let scenario = test_init();
-        set_auction_config(&mut scenario);
-        start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
-
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
-        {
-            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let config = suins::remove_config<Config>(&admin_cap, &mut suins);
-
-            config::set_enable_controller(&mut config, true);
-            suins::add_config(&admin_cap, &mut suins, config);
-
-            test_scenario::return_to_sender(&mut scenario, admin_cap);
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let clock = test_scenario::take_shared<Clock>(&mut scenario);
-            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                DEFAULT_TX_HASH,
-                START_AUCTION_END_AT + EXTRA_PERIOD + BIDDING_PERIOD + REVEAL_PERIOD + 1,
-                0
-            );
-            let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, &mut ctx);
-
-            controller::register(
-                &mut suins,
-                utf8(AUCTIONED_LABEL),
-                FIRST_USER_ADDRESS,
-                1,
-                &mut coin,
-                &clock,
-                &mut ctx,
-            );
-
-            coin::burn_for_testing(coin);
-            test_scenario::return_shared(suins);
-            test_scenario::return_shared(clock);
-            test_scenario::return_shared(auction);
-        };
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let (name, url) = registrar::get_nft_fields(&nft);
-            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
-
-            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN + START_AN_AUCTION_FEE, 0);
-            assert!(name == utf8(AUCTIONED_DOMAIN_NAME), 0);
-            assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
-                0
-            );
-
-            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
-            assert!(expired_at == START_AUCTION_END_AT + EXTRA_PERIOD + BIDDING_PERIOD + REVEAL_PERIOD + 1 + 365, 0);
-
-            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
-            assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(target_address == std::option::some(FIRST_USER_ADDRESS), 0);
-
-            test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test, expected_failure(abort_code = controller::EAuctionNotEndYet)]
-    fun test_register_works_if_auctioned_label_not_have_a_winner_and_auction_house_not_end() {
-        let scenario = test_init();
-        set_auction_config(&mut scenario);
-        start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let clock = test_scenario::take_shared<Clock>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                DEFAULT_TX_HASH,
-                START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + 1,
-                0
-            );
-            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
-
-            controller::register(
-                &mut suins,
-                utf8(AUCTIONED_LABEL),
-                FIRST_USER_ADDRESS,
-                1,
-                &mut coin,
-                &clock,
-                &mut ctx,
-            );
-
-            coin::burn_for_testing(coin);
-            test_scenario::return_shared(clock);
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
     #[test, expected_failure(abort_code = controller::ERegistrationIsDisabled)]
     fun test_register_abort_if_registration_is_disabled() {
         let scenario = test_init();
@@ -2965,283 +2690,6 @@ module suins::controller_tests {
             assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 3, 0);
             assert!(name == utf8(b"eastagile-123.sui"), 0);
             assert!(url == url::new_unsafe_from_bytes(b"QmQdesiADN2mPnebRz3pvkGMKcb8Qhyb1ayW2ybvAueJ7k"), 0);
-
-            test_scenario::return_shared(suins);
-            test_scenario::return_to_sender(&mut scenario, nft);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test, expected_failure(abort_code = controller::EAuctionNotEndYet)]
-    fun test_register_aborts_if_name_are_waiting_for_being_finalized_and_auction_house_not_end() {
-        let scenario = test_init();
-        set_auction_config(&mut scenario);
-        start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
-        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000 * suins::constants::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(&mut scenario, seal_bid, 1100 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            reveal_bid_util(
-                &mut auction,
-                &suins,
-                START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                AUCTIONED_LABEL,
-                1000 * suins::constants::mist_per_sui(),
-                FIRST_SECRET,
-                FIRST_USER_ADDRESS,
-                2
-            );
-            test_scenario::return_shared(auction);
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let clock = test_scenario::take_shared<Clock>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                DEFAULT_TX_HASH,
-                START_AUCTION_END_AT + EXTRA_PERIOD - 1,
-                0
-            );
-            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
-
-            controller::register(
-                &mut suins,
-                utf8(AUCTIONED_LABEL),
-                FIRST_USER_ADDRESS,
-                1,
-                &mut coin,
-                &clock,
-                &mut ctx,
-            );
-
-            coin::burn_for_testing(coin);
-            test_scenario::return_shared(clock);
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test]
-    fun test_register_works_if_name_are_waiting_for_being_finalized_and_extra_time_passes() {
-        let scenario = test_init();
-        set_auction_config(&mut scenario);
-        start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
-        let seal_bid = make_seal_bid(AUCTIONED_LABEL, FIRST_USER_ADDRESS, 1000 * suins::constants::mist_per_sui(), FIRST_SECRET);
-        place_bid_util(&mut scenario, seal_bid, 1100 * suins::constants::mist_per_sui(), FIRST_USER_ADDRESS, 0, option::none(), 10);
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            reveal_bid_util(
-                &mut auction,
-                &suins,
-                START_AN_AUCTION_AT + 1 + BIDDING_PERIOD,
-                AUCTIONED_LABEL,
-                1000 * suins::constants::mist_per_sui(),
-                FIRST_SECRET,
-                FIRST_USER_ADDRESS,
-                2
-            );
-            test_scenario::return_shared(auction);
-            test_scenario::return_shared(suins);
-        };
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let clock = test_scenario::take_shared<Clock>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                DEFAULT_TX_HASH,
-                START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + EXTRA_PERIOD + 1,
-                0
-            );
-            let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN, &mut ctx);
-
-            controller::register(
-                &mut suins,
-                utf8(AUCTIONED_LABEL),
-                FIRST_USER_ADDRESS,
-                1,
-                &mut coin,
-                &clock,
-                &mut ctx,
-            );
-
-            coin::burn_for_testing(coin);
-            test_scenario::return_shared(suins);
-            test_scenario::return_shared(clock);
-        };
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = registrar::get_nft_fields(&nft);
-
-            assert!(suins::balance(&suins) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN + START_AN_AUCTION_FEE + BIDDING_FEE, 0);
-            assert!(name == utf8(AUCTIONED_DOMAIN_NAME), 0);
-            assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
-                0
-            );
-
-            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
-            assert!(
-                expired_at ==
-                    START_AUCTION_END_AT + BIDDING_PERIOD + REVEAL_PERIOD + EXTRA_PERIOD + 1 + 365,
-                0
-            );
-
-            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
-
-            assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(target_address == std::option::some(FIRST_USER_ADDRESS), 0);
-
-            test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test, expected_failure(abort_code = controller::EAuctionNotEndYet)]
-    fun test_register_label_aborts_if_in_extra_period_and_admin_calls_finalize_all_but_in_same_epoch() {
-        let scenario = test_init();
-        set_auction_config(&mut scenario);
-        start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
-        {
-            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-
-            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE, 0);
-            finalize_all_auctions_by_admin(
-                &admin_cap,
-                &mut auction,
-                &mut suins,
-                &mut auction_tests::ctx_util(SUINS_ADDRESS, EXTRA_PERIOD_START_AT + 1, 20),
-            );
-            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE, 0);
-
-            test_scenario::return_shared(auction);
-            test_scenario::return_shared(suins);
-            test_scenario::return_to_sender(&mut scenario, admin_cap);
-        };
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let clock = test_scenario::take_shared<Clock>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                DEFAULT_TX_HASH,
-                EXTRA_PERIOD_START_AT + 1,
-                0
-            );
-            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
-
-            controller::register(
-                &mut suins,
-                utf8(AUCTIONED_LABEL),
-                FIRST_USER_ADDRESS,
-                1,
-                &mut coin,
-                &clock,
-                &mut ctx,
-            );
-
-            coin::burn_for_testing(coin);
-            test_scenario::return_shared(suins);
-            test_scenario::return_shared(clock);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test]
-    fun test_register_label_works_if_in_extra_period_and_admin_calls_finalize_all_in_previous_epoch() {
-        let scenario = test_init();
-        set_auction_config(&mut scenario);
-        start_an_auction_util(&mut scenario, AUCTIONED_LABEL);
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
-        {
-            let auction = test_scenario::take_shared<AuctionHouse>(&mut scenario);
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-
-            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE, 0);
-            finalize_all_auctions_by_admin(
-                &admin_cap,
-                &mut auction,
-                &mut suins,
-                &mut auction_tests::ctx_util(SUINS_ADDRESS, EXTRA_PERIOD_START_AT + 1, 20),
-            );
-            assert!(suins::balance(&suins) == START_AN_AUCTION_FEE, 0);
-
-            test_scenario::return_shared(auction);
-            test_scenario::return_shared(suins);
-            test_scenario::return_to_sender(&mut scenario, admin_cap);
-        };
-
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let clock = test_scenario::take_shared<Clock>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                DEFAULT_TX_HASH,
-                EXTRA_PERIOD_START_AT + 2,
-                0
-            );
-            let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 3, &mut ctx);
-            clock::increment_for_testing(&mut clock, 300_001);
-
-            assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
-            controller::register(
-                &mut suins,
-                utf8(AUCTIONED_LABEL),
-                FIRST_USER_ADDRESS,
-                1,
-                &mut coin,
-                &clock,
-                &mut ctx,
-            );
-
-            coin::burn_for_testing(coin);
-            test_scenario::return_shared(suins);
-            test_scenario::return_shared(clock);
-        };
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            assert!(test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
-            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-
-            let (name, url) = registrar::get_nft_fields(&nft);
-            assert!(name == utf8(AUCTIONED_DOMAIN_NAME), 0);
-            assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
-                0
-            );
-
-            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, AUCTIONED_LABEL);
-            assert!(expired_at == EXTRA_PERIOD_START_AT + 2 + 365, 0);
-
-            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(AUCTIONED_DOMAIN_NAME));
-            assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(target_address == std::option::some(FIRST_USER_ADDRESS), 0);
-
-            let registrar = registrar::get_registrar(&suins, SUI_REGISTRAR);
-            registrar::assert_nft_not_expires(
-                registrar,
-                &nft,
-                test_scenario::ctx(&mut scenario)
-            );
 
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, nft);
@@ -3749,33 +3197,7 @@ module suins::controller_tests {
         };
         test_scenario::end(scenario);
     }
-
-    #[test, expected_failure(abort_code = controller::EAuctionNotEndYet)]
-    fun test_register_aborts_admin_not_call_set_auction_config() {
-        let scenario = test_init();
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let clock = test_scenario::take_shared<Clock>(&mut scenario);
-            let coin = coin::mint_for_testing<SUI>(PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 3, test_scenario::ctx(&mut scenario));
-
-            controller::register(
-                &mut suins,
-                utf8(FIRST_LABEL),
-                FIRST_USER_ADDRESS,
-                2,
-                &mut coin,
-                &clock,
-                &mut auction_tests::ctx_util(SUINS_ADDRESS, EXTRA_PERIOD_END_AT + 1, 20),
-            );
-
-            coin::burn_for_testing(coin);
-            test_scenario::return_shared(clock);
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
+    
     #[test, expected_failure(abort_code = controller::EInvalidNoYears)]
     fun test_register_aborts_if_more_than_5_years() {
         let scenario = test_init();
