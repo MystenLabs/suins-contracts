@@ -106,13 +106,15 @@ module suins::auction {
         ctx: &mut TxContext
     ) {
         string_utils::validate_label(label, constants::min_domain_length(), constants::max_domain_length());
-        let config = suins::get_config<Config>(suins);
-        let min_price = config::calculate_price(config, (string::length(&label) as u8), 1);
-        assert!(bid_value >= min_price, EInvalidBidValue);
         let bid = balance::split(coin::balance_mut(payment), bid_value);
 
         // Check to see if there isn't an existing auction going on for this domain
         if (!linked_table::contains(&auction_house_mut(suins).auctions, label)) {
+            // The minnimum price only applies to newly created auctions
+            let config = suins::get_config<Config>(suins);
+            let min_price = config::calculate_price(config, (string::length(&label) as u8), 1);
+            assert!(balance::value(&bid) >= min_price, EInvalidBidValue);
+
             let auction = start_new_auction(suins, label, bid, clock, ctx);
             linked_table::push_back(&mut auction_house_mut(suins).auctions, label, auction);
             return
