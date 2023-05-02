@@ -9,7 +9,7 @@ module suins::controller_tests_2 {
     use sui::test_scenario;
     use sui::sui::SUI;
 
-    use suins::controller_tests::{test_init, set_auction_config, make_commitment};
+    use suins::controller_tests::{test_init, set_auction_config};
     use suins::controller_tests;
     use suins::auction_tests::ctx_new;
     use suins::registrar::{Self, RegistrationNFT};
@@ -26,8 +26,6 @@ module suins::controller_tests_2 {
     const FIRST_DOMAIN_NAME: vector<u8> = b"eastagile-123.sui";
     const SECOND_LABEL: vector<u8> = b"suinameservice";
     const THIRD_LABEL: vector<u8> = b"thirdsuinameservice";
-    const FIRST_SECRET: vector<u8> = b"oKz=QdYd)]ryKB%";
-    const SECOND_SECRET: vector<u8> = b"a9f8d4a8daeda2f35f02";
     const FIRST_INVALID_LABEL: vector<u8> = b"east.agile";
     const SECOND_INVALID_LABEL: vector<u8> = b"ea";
     const THIRD_INVALID_LABEL: vector<u8> = b"zkaoxpcbarubhtxkunajudxezneyczueajbggrynkwbepxjqjxrigrtgglhfjpax";
@@ -72,7 +70,6 @@ module suins::controller_tests_2 {
             test_scenario::return_to_sender(&mut scenario, admin_cap);
             test_scenario::return_shared(suins);
         };
-        make_commitment(&mut scenario, std::option::some(b"xyztu"));
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
@@ -88,7 +85,6 @@ module suins::controller_tests_2 {
 
             assert!(!registrar::record_exists(&suins, SUI_REGISTRAR, FIRST_LABEL), 0);
             assert!(suins::balance(&suins) == 0, 0);
-            assert!(controller::commitment_len(&suins) == 1, 0);
             assert!(!suins::has_name_record(&suins, utf8(FIRST_DOMAIN_NAME)), 0);
             assert!(!test_scenario::has_most_recent_for_sender<RegistrationNFT>(&mut scenario), 0);
 
@@ -97,13 +93,11 @@ module suins::controller_tests_2 {
                 utf8(b"xyztu"),
                 FIRST_USER_ADDRESS,
                 2,
-                FIRST_SECRET,
                 &mut coin,
                 &clock,
                 &mut ctx,
             );
             assert!(coin::value(&coin) == PRICE_OF_FIVE_AND_ABOVE_CHARACTER_DOMAIN * 3 - 1_000_000_000 * 2, 0);
-            assert!(controller::commitment_len(&suins) == 0, 0);
 
             coin::burn_for_testing(coin);
             test_scenario::return_shared(clock);

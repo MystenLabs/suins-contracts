@@ -7,19 +7,16 @@
 module suins::controller {
     use std::string::{Self, String, utf8};
     use std::ascii;
-    use std::bcs;
     use std::vector;
     use std::option::{Self, Option};
 
     use sui::url::Url;
     use sui::sui::SUI;
     use sui::coin::{Self, Coin};
-    use sui::hash::keccak256;
     use sui::event;
-    use sui::linked_table::{Self, LinkedTable};
     use sui::object::ID;
     use sui::tx_context::{Self, TxContext};
-    use sui::clock::{Self, Clock};
+    use sui::clock::Clock;
     use sui::dynamic_field as df;
 
     use suins::config::{Self, Config};
@@ -29,28 +26,19 @@ module suins::controller {
     use suins::constants;
     use suins::promotion::{Self, Promotion};
 
-    const MAX_COMMITMENT_AGE_IN_MS: u64 = 259_200_000;
-    const MIN_COMMITMENT_AGE_IN_MS: u64 = 120_000;
-    const MAX_OUTDATED_COMMITMENTS_TO_REMOVE: u64 = 50;
-
     // errors in the range of 301..400 indicate Sui Controller errors
-    const ECommitmentNotExists: u64 = 302;
-    const ECommitmentNotValid: u64 = 303;
-    const ECommitmentTooOld: u64 = 304;
     const ENotEnoughFee: u64 = 305;
     const EInvalidDuration: u64 = 306;
     const ELabelUnavailable: u64 = 308;
     const EInvalidCode: u64 = 311;
     const ERegistrationIsDisabled: u64 = 312;
     const EInvalidDomain: u64 = 314;
-    const ECommitmentTooSoon: u64 = 315;
     const EAuctionNotEndYet: u64 = 316;
     const EInvalidNoYears: u64 = 317;
 
     friend suins::auction;
 
     struct Controller has store {
-        commitments: LinkedTable<vector<u8>, u64>,
         /// set by `configure_auction`
         /// the last epoch when bidder can call `finalize_auction`
         auction_house_finalized_at: u64,
@@ -64,41 +52,19 @@ module suins::controller {
 
     /// Harmless function to create a new Controller and attach it to the SuiNS.
     /// Can only be performed once.
-    public fun add_to_suins(suins: &mut SuiNS, ctx: &mut TxContext) {
+    public fun add_to_suins(suins: &mut SuiNS, _ctx: &mut TxContext) {
         df::add(suins::app_uid_mut(App {}, suins), ControllerKey {}, Controller {
-            commitments: linked_table::new(ctx),
             auction_house_finalized_at: constants::max_epoch_allowed(),
         })
     }
 
     /// #### Notice
-    /// This function is the first step in the commit/reveal process, which is implemented to prevent front-running.
-    ///
-    /// #### Dev
-    /// This also removes outdated commitments.
-    ///
-    /// #### Params
-    /// `commitment`: hash from `make_commitment`
-    public fun commit(suins: &mut SuiNS, commitment: vector<u8>, clock: &Clock) {
-        let commitments = &mut controller_mut(suins).commitments;
-        remove_outdated_commitments(commitments, clock);
-
-        linked_table::push_back(commitments, commitment, clock::timestamp_ms(clock));
-        event::emit(CommitmentAddedEvent {
-            commitment,
-            timestamp_ms: clock::timestamp_ms(clock)
-        });
-    }
-
-    /// #### Notice
-    /// This function is the second step in the commit/reveal process, which is implemented to prevent front-running.
-    /// It acts as a gatekeeper for the `Registrar::Controller`, responsible for label validation and charging payment.
+    /// Responsible for label validation, registration and chargin payment
     ///
     /// #### Params
     /// `label`: label of the domain name being registered, the domain name has the form `label`.sui
     /// `owner`: owner address of created NFT
     /// `no_years`: in years
-    /// `secret`: the value used to create commitment in the first step
     ///
     /// Panic
     /// Panic if new registration is disabled
@@ -112,7 +78,6 @@ module suins::controller {
         label: String, // `label` is 1 level
         owner: address,
         no_years: u8,
-        secret: vector<u8>,
         payment: &mut Coin<SUI>,
         clock: &Clock,
         ctx: &mut TxContext,
@@ -122,7 +87,6 @@ module suins::controller {
             label,
             owner,
             no_years,
-            secret,
             payment,
             option::none(),
             option::none(),
@@ -145,7 +109,6 @@ module suins::controller {
     /// `label`: label of the domain name being registered, the domain name has the form `label`.sui
     /// `owner`: owner address of created NFT
     /// `no_years`: in years
-    /// `secret`: the value used to create commitment in the first step
     /// `signature`: secp256k1 of `hashed_msg`
     /// `hashed_msg`: sha256 of `raw_msg`
     /// `raw_msg`: the data to verify and update image url, with format: <ipfs_url>,<owner>,<expired_at>.
@@ -163,7 +126,6 @@ module suins::controller {
         label: String, // `label` is 1 level
         owner: address,
         no_years: u8,
-        secret: vector<u8>,
         payment: &mut Coin<SUI>,
         signature: vector<u8>,
         hashed_msg: vector<u8>,
@@ -178,7 +140,6 @@ module suins::controller {
             label,
             owner,
             no_years,
-            secret,
             payment,
             option::none(),
             option::none(),
@@ -208,7 +169,6 @@ module suins::controller {
         label: String, // `label` is 1 level
         owner: address,
         no_years: u8,
-        secret: vector<u8>,
         payment: &mut Coin<SUI>,
         referral_code: vector<u8>,
         discount_code: vector<u8>,
@@ -222,7 +182,6 @@ module suins::controller {
             label,
             owner,
             no_years,
-            secret,
             payment,
             referral_code,
             discount_code,
@@ -255,7 +214,6 @@ module suins::controller {
         label: String, // `label` is 1 level
         owner: address,
         no_years: u8,
-        secret: vector<u8>,
         payment: &mut Coin<SUI>,
         referral_code: vector<u8>,
         discount_code: vector<u8>,
@@ -273,7 +231,6 @@ module suins::controller {
             label,
             owner,
             no_years,
-            secret,
             payment,
             referral_code,
             discount_code,
@@ -423,14 +380,13 @@ module suins::controller {
         label: String, // label has only 1 level
         owner: address,
         no_years: u8,
-        secret: vector<u8>,
         payment: &mut Coin<SUI>,
         referral_code: Option<ascii::String>,
         discount_code: Option<ascii::String>,
         signature: vector<u8>,
         hashed_msg: vector<u8>,
         raw_msg: vector<u8>,
-        clock: &Clock,
+        _clock: &Clock, // TODO use clock for duration of registration
         ctx: &mut TxContext,
     ) {
         assert!(0 < no_years && no_years <= 5, EInvalidNoYears);
@@ -443,8 +399,7 @@ module suins::controller {
             constants::max_domain_length()
         );
 
-        let commitment = make_commitment(*string::bytes(&label), owner, secret);
-        consume_commitment(suins, label, commitment, clock, ctx);
+        assert!(registrar::is_available(suins, constants::sui_tld(), label, ctx), ELabelUnavailable);
 
         let len_of_label = (string::length(&label) as u8);
         let registration_fee = config::calculate_price(suins::get_config<Config>(suins), len_of_label, no_years);
@@ -522,53 +477,6 @@ module suins::controller {
         (original_fee / 100) * (100 - rate as u64)
     }
 
-    fun remove_outdated_commitments(commitments: &mut LinkedTable<vector<u8>, u64>, clock: &Clock) {
-        let front_element = linked_table::front(commitments);
-        let i = 0;
-
-        while (option::is_some(front_element) && i < MAX_OUTDATED_COMMITMENTS_TO_REMOVE) {
-            i = i + 1;
-
-            let created_at = linked_table::borrow(commitments, *option::borrow(front_element));
-            if (*created_at + MAX_COMMITMENT_AGE_IN_MS <= clock::timestamp_ms(clock)) {
-                linked_table::pop_front(commitments);
-                front_element = linked_table::front(commitments);
-            } else break;
-        };
-    }
-
-    fun consume_commitment(
-        suins: &mut SuiNS,
-        label: String,
-        commitment: vector<u8>,
-        clock: &Clock,
-        ctx: &TxContext,
-    ) {
-        let commitments = &mut controller_mut(suins).commitments;
-        assert!(linked_table::contains(commitments, commitment), ECommitmentNotExists);
-        assert!(
-            *linked_table::borrow(commitments, commitment) + MIN_COMMITMENT_AGE_IN_MS <= clock::timestamp_ms(clock),
-            ECommitmentTooSoon
-        );
-        assert!(
-            *linked_table::borrow(commitments, commitment) + MAX_COMMITMENT_AGE_IN_MS > clock::timestamp_ms(clock),
-            ECommitmentTooOld
-        );
-        linked_table::remove(commitments, commitment);
-        assert!(registrar::is_available(suins, constants::sui_tld(), label, ctx), ELabelUnavailable);
-    }
-
-    fun make_commitment(label: vector<u8>, owner: address, secret: vector<u8>): vector<u8> {
-        let domain_name = label;
-        vector::append(&mut domain_name, b".");
-        vector::append(&mut domain_name, *string::bytes(&constants::sui_tld()));
-
-        let owner_bytes = bcs::to_bytes(&owner);
-        vector::append(&mut domain_name, owner_bytes);
-        vector::append(&mut domain_name, secret);
-        keccak256(&domain_name)
-    }
-
     fun validate_codes(
         referral_code: vector<u8>,
         discount_code: vector<u8>
@@ -584,31 +492,6 @@ module suins::controller {
         if (discount_len > 0) discount = option::some(ascii::string(discount_code));
 
         (referral, discount)
-    }
-
-    #[test_only]
-    public fun max_commitment_age_in_ms(): u64 {
-        MAX_COMMITMENT_AGE_IN_MS
-    }
-
-    #[test_only]
-    // First I was like - yeah, let's remove the unused argument. But then
-    // I saw how many tests are using this function and I was like - nah, I'm good.
-    //
-    // Maybe as a part of tests reorganization... yuck.
-    public fun test_make_commitment(
-        _tld: vector<u8>,
-        label: vector<u8>,
-        owner: address,
-        secret: vector<u8>
-    ): vector<u8> {
-        make_commitment(label, owner, secret)
-    }
-
-    #[test_only]
-    public fun commitment_len(suins: &SuiNS): u64 {
-        let commitments = &controller(suins).commitments;
-        linked_table::length(commitments)
     }
 
     #[test_only]
@@ -658,10 +541,5 @@ module suins::controller {
         label: String,
         cost: u64,
         duration: u64,
-    }
-
-    struct CommitmentAddedEvent has copy, drop {
-        commitment: vector<u8>,
-        timestamp_ms: u64,
     }
 }
