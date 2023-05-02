@@ -715,17 +715,15 @@ module suins::auction {
         winning_amount: u64,
         ctx: &mut TxContext
     ) {
-        registrar::register_with_image_internal(
+        let nft = registrar::register_with_image_internal(
             suins,
             constants::sui_tld(),
             label,
             winner,
             365,
-            vector[],
-            vector[],
-            vector[],
             ctx
         );
+        sui::transfer::public_transfer(nft, winner);
         event::emit(NameRegisteredEvent {
             label,
             winner,
