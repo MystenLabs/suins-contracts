@@ -59,17 +59,16 @@ module suins::registrar_tests {
                 0
             );
 
-            registrar::register_with_image_internal(
+            let nft = registrar::register_with_image_internal(
                 &mut suins,
                 utf8(SUI_REGISTRAR),
                 utf8(FIRST_LABEL),
                 FIRST_USER,
                 365,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx
             );
+            sui::transfer::public_transfer(nft, FIRST_USER);
+
             test_scenario::return_shared(suins);
         };
 
@@ -114,17 +113,23 @@ module suins::registrar_tests {
                 0
             );
 
-            registrar::register_with_image_internal(
+            let nft = registrar::register_with_image_internal(
                 &mut suins,
                 utf8(SUI_REGISTRAR),
                 utf8(FIRST_LABEL),
                 FIRST_USER,
                 365,
+                &mut ctx
+            );
+            registrar::update_image_url(
+                &mut suins,
+                &mut nft,
                 signature,
                 hashed_msg,
                 raw_msg,
-                &mut ctx
+                &mut ctx,
             );
+            sui::transfer::public_transfer(nft, FIRST_USER);
             test_scenario::return_shared(suins);
         };
 
@@ -192,15 +197,12 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            registrar::register_with_image_internal(
+            registrar::register_and_transfer(
                 &mut suins,
                 utf8(SUI_REGISTRAR),
                 utf8(FIRST_LABEL),
                 FIRST_USER,
                 0,
-                vector[],
-                vector[],
-                vector[],
                 test_scenario::ctx(&mut scenario)
             );
 
@@ -223,15 +225,12 @@ module suins::registrar_tests {
                 10,
             );
 
-            registrar::register_with_image_internal(
+            registrar::register_and_transfer(
                 &mut suins,
                 utf8(SUI_REGISTRAR),
                 utf8(FIRST_LABEL),
                 FIRST_USER,
                 365,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx,
             );
 
@@ -412,15 +411,12 @@ module suins::registrar_tests {
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
 
-            registrar::register_with_image_internal(
+            registrar::register_and_transfer(
                 &mut suins,
                 utf8(b"com"),
                 utf8(FIRST_LABEL),
                 FIRST_USER,
                 365,
-                vector[],
-                vector[],
-                vector[],
                 test_scenario::ctx(&mut scenario)
             );
             test_scenario::return_shared(suins);
@@ -993,15 +989,12 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register_with_image_internal(
+            registrar::register_and_transfer(
                 &mut suins,
                 utf8(SUI_REGISTRAR),
                 utf8(FIRST_LABEL),
                 SECOND_USER,
                 365,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1048,15 +1041,12 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register_with_image_internal(
+            registrar::register_and_transfer(
                 &mut suins,
                 utf8(SUI_REGISTRAR),
                 utf8(FIRST_LABEL),
                 SECOND_USER,
                 365,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1103,15 +1093,12 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register_with_image_internal(
+            registrar::register_and_transfer(
                 &mut suins,
                 utf8(SUI_REGISTRAR),
                 utf8(FIRST_LABEL),
                 FIRST_USER,
                 365,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1159,15 +1146,12 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register_with_image_internal(
+            registrar::register_and_transfer(
                 &mut suins,
                 utf8(SUI_REGISTRAR),
                 utf8(FIRST_LABEL),
                 FIRST_USER,
                 365,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1215,15 +1199,12 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register_with_image_internal(
+            registrar::register_and_transfer(
                 &mut suins,
                 utf8(SUI_REGISTRAR),
                 utf8(THIRD_LABEL),
                 FIRST_USER,
                 365,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1271,15 +1252,12 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register_with_image_internal(
+            registrar::register_and_transfer(
                 &mut suins,
                 utf8(SUI_REGISTRAR),
                 utf8(THIRD_LABEL),
                 FIRST_USER,
                 365,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1327,15 +1305,12 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register_with_image_internal(
+            registrar::register_and_transfer(
                 &mut suins,
                 utf8(SUI_REGISTRAR),
                 utf8(THIRD_LABEL),
                 FIRST_USER,
                 365,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1383,15 +1358,12 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register_with_image_internal(
+            registrar::register_and_transfer(
                 &mut suins,
                 utf8(SUI_REGISTRAR),
                 utf8(THIRD_LABEL),
                 FIRST_USER,
                 365,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1437,15 +1409,12 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register_with_image_internal(
+            registrar::register_and_transfer(
                 &mut suins,
                 utf8(SUI_REGISTRAR),
                 utf8(FIRST_LABEL),
                 FIRST_USER,
                 365,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1495,15 +1464,12 @@ module suins::registrar_tests {
                 10
             );
 
-            registrar::register_with_image_internal(
+            registrar::register_and_transfer(
                 &mut suins,
                 utf8(SUI_REGISTRAR),
                 utf8(FIRST_LABEL),
                 FIRST_USER,
                 365,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1543,15 +1509,12 @@ module suins::registrar_tests {
                 20
             );
 
-            registrar::register_with_image_internal(
+            registrar::register_and_transfer(
                 &mut suins,
                 utf8(SUI_REGISTRAR),
                 utf8(FIRST_LABEL),
                 SECOND_USER,
                 365,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx
             );
             test_scenario::return_shared(suins);
@@ -1599,15 +1562,12 @@ module suins::registrar_tests {
                 20
             );
 
-            registrar::register_with_image_internal(
+            registrar::register_and_transfer(
                 &mut suins,
                 utf8(SUI_REGISTRAR),
                 utf8(FIRST_LABEL),
                 SECOND_USER,
                 365,
-                vector[],
-                vector[],
-                vector[],
                 &mut ctx
             );
             test_scenario::return_shared(suins);

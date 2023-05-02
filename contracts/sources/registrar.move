@@ -14,7 +14,6 @@ module suins::registrar {
     use sui::dynamic_field as df;
     use sui::table::{Self, Table};
     use sui::url::{Self, Url};
-    use sui::transfer;
     use sui::ecdsa_k1;
     use sui::event;
 
@@ -268,11 +267,8 @@ module suins::registrar {
         label: String,
         owner: address,
         duration: u64,
-        signature: vector<u8>,
-        hashed_msg: vector<u8>,
-        raw_msg: vector<u8>,
         ctx: &mut TxContext
-    ): (ID, Url, String) {
+    ): RegistrationNFT {
         // the calling fuction is responsible for checking emptyness of msg
         assert!(duration > 0, EInvalidDuration);
 
@@ -284,20 +280,7 @@ module suins::registrar {
         string::append_utf8(&mut domain_name, b".");
         string::append(&mut domain_name, tld);
 
-        let url;
-        let additional_data = utf8(vector[]);
-        if (vector::is_empty(&hashed_msg) || vector::is_empty(&raw_msg) || vector::is_empty(&signature))
-            url = url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY")
-        else {
-            assert_image_msg_match(suins, signature, hashed_msg, raw_msg);
-
-            let (ipfs, domain_name_msg, expired_at_msg, data) = deserialize_image_msg(raw_msg);
-            assert!(domain_name_msg == domain_name, EInvalidImageMessage);
-            assert!(expired_at_msg == expired_at, EInvalidImageMessage);
-
-            url = url::new_unsafe(string::to_ascii(ipfs));
-            additional_data = data
-        };
+        let url = url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY");
 
         let nft = RegistrationNFT {
             id: object::new(ctx),
@@ -315,10 +298,9 @@ module suins::registrar {
         };
 
         table::add(registrar, label, record);
-        transfer::transfer(nft, owner);
         suins::app_add_record(App {}, suins, domain_name, owner);
 
-        (nft_id, url, additional_data)
+        nft
     }
 
     /// this function doesn't charge fee
@@ -440,6 +422,26 @@ module suins::registrar {
     #[test_only]
     public fun set_nft_domain(nft: &mut RegistrationNFT, new_domain: String) {
         nft.name = new_domain;
+    }
+
+    #[test_only]
+    public fun register_and_transfer(
+        suins: &mut SuiNS,
+        tld: String,
+        label: String,
+        owner: address,
+        duration: u64,
+        ctx: &mut TxContext
+    ) {
+        let nft = register_with_image_internal(
+            suins,
+            tld,
+            label,
+            owner,
+            duration,
+            ctx,
+        );
+        sui::transfer::public_transfer(nft, owner);
     }
 
     public fun registrar(suins: &SuiNS, tld: String): &Table<String, RegistrationRecord> {
