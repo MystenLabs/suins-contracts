@@ -21,6 +21,9 @@ module suins::auction {
     use suins::registrar::RegistrationNFT;
     use suins::controller;
 
+    const AUCTION_BIDDING_PERIOD_MS: u64 = 2 * 24 * 60 * 60 * 1000; // 2 days
+    const AUCTION_MIN_QUIET_PERIOD_MS: u64 = 10 * 60 * 1000; // 10 minutes of quiet time
+
     const AUCTION_HOUSE_PERIOD: u64 = 30;
     const BIDDING_PERIOD: u64 = 2;
     const TWO_DAYS_IN_MS: u64 = 172_800_000;
@@ -148,7 +151,7 @@ module suins::auction {
         let auction = Auction {
             domain: label,
             start_timestamp_ms: clock::timestamp_ms(clock),
-            end_timestamp_ms: 0, // TODO
+            end_timestamp_ms: clock::timestamp_ms(clock) + AUCTION_BIDDING_PERIOD_MS,
             winner: tx_context::sender(ctx),
             bids,
             nft: some(nft),
@@ -179,6 +182,14 @@ module suins::auction {
 
         linked_table::push_front(&mut auction.bids, bidder, bid);
         auction.winner = bidder;
+
+        // If there is less than `AUCTION_MIN_QUIET_PERIOD_MS` time left on the auction
+        // then extend the auction so that there is `AUCTION_MIN_QUIET_PERIOD_MS` left.
+        // Auctions can't be finished until there is at least `AUCTION_MIN_QUIET_PERIOD_MS`
+        // time where there are no bids.
+        if (auction.end_timestamp_ms - clock::timestamp_ms(clock) < AUCTION_MIN_QUIET_PERIOD_MS) {
+            auction.end_timestamp_ms = clock::timestamp_ms(clock) + AUCTION_MIN_QUIET_PERIOD_MS;
+        };
     }
 
     /// #### Notice
