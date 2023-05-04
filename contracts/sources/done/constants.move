@@ -19,11 +19,15 @@ module suins::constants {
     const SUI_TLD: vector<u8> = b"sui";
     /// The amount of milliseconds in a year.
     const YEAR_MS: u64 = 365 * 24 * 60 * 60 * 1000;
+    /// Default value for the image_url; IPFS hash.
+    const DEFAULT_IMAGE: vector<u8> = b"QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY";
 
     // === Public functions ===
 
     /// Top level domain for SUI as a String.
     public fun sui_tld(): String { utf8(SUI_TLD) }
+    /// Default value for the image_url.
+    public fun default_image(): String { utf8(DEFAULT_IMAGE) }
     /// The amount of MIST in 1 SUI.
     public fun mist_per_sui(): u64 { MIST_PER_SUI }
     /// The minimum length of a domain name.

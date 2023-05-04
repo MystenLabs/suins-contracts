@@ -10,6 +10,7 @@ module suins::name_data {
     use sui::tx_context::TxContext;
 
     use suins::name_record::{Self, NameRecord};
+    use suins::registration_nft::RegistrationNFT;
     use suins::suins::{Self, SuiNS};
 
     /// Get the data from the NameRecord.
@@ -23,11 +24,11 @@ module suins::name_data {
     /// Set the data in the NameRecord.
     public fun set(
         suins: &mut SuiNS,
-        domain_name: String,
+        token: &RegistrationNFT,
         data: VecMap<String, String>,
         ctx: &mut TxContext
     ) {
-        let record_mut = suins::name_record_mut(suins, domain_name, ctx);
+        let record_mut = suins::name_record_mut(suins, token, ctx);
         name_record::set_data(record_mut, data)
     }
 }

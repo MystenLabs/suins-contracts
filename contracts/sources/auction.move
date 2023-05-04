@@ -17,9 +17,9 @@ module suins::auction {
     use suins::registrar;
     use suins::config::{Self, Config};
     use suins::suins::{Self, AdminCap, SuiNS};
+    use suins::registration_nft::RegistrationNFT;
     use suins::string_utils;
     use suins::constants;
-    use suins::registrar::RegistrationNFT;
     use suins::controller;
 
     const AUCTION_BIDDING_PERIOD_MS: u64 = 2 * 24 * 60 * 60 * 1000; // 2 days
@@ -132,14 +132,16 @@ module suins::auction {
     ): Auction {
         assert!(registrar::is_available(suins, constants::sui_tld(), label, ctx), ELabelUnavailable);
 
-        let nft = registrar::register_with_image_internal(
-            suins,
-            constants::sui_tld(),
-            label,
-            @0x0,
-            365,
-            ctx,
-        );
+
+        let nft = suins::app_add_record(App {}, suins, domain_name, owner);
+        // let nft = registrar::register_with_image_internal(
+        //     suins,
+        //     constants::sui_tld(),
+        //     label,
+        //     @0x0,
+        //     365,
+        //     ctx,
+        // );
 
         let starting_bid = balance::value(&bid);
         let bids = linked_table::new(ctx);

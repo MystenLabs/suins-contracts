@@ -13,6 +13,7 @@ module suins::name_record {
     use std::option::Option;
     use std::string::String;
     use sui::vec_map::{Self, VecMap};
+    use sui::object::ID;
 
     /// A single record in the registry.
     struct NameRecord has copy, store, drop {
@@ -27,6 +28,10 @@ module suins::name_record {
         NameRecord {
             target_address: target_address,
             data: vec_map::empty(),
+
+            // TODO: add the NFT ID when a new NameRecord is created
+            nft_id: ID,
+            expires_at: 0
         }
     }
 
@@ -70,18 +75,4 @@ module suins::name_record {
     public fun target_address(self: &NameRecord): Option<address> {
         self.target_address
     }
-
-    // TODO: do this when changing the 'target address' for the reverse registry.
-    // if (old_target_address != new_addr) {
-    //     let reverse_registry = suins::reverse_registry_mut(suins);
-    //     if (table::contains(reverse_registry, old_target_address)) {
-    //         table::remove(reverse_registry, old_target_address);
-    //     };
-    // };
-
-    // TODO: do this when unsetting the 'target address' for the reverse registry.
-    // let reverse_registry = suins::reverse_registry_mut(suins);
-    // if (table::contains(reverse_registry, old_target_address)) {
-    //     table::remove(reverse_registry, old_target_address);
-    // };
 }
