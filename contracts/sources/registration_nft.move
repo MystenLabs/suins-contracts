@@ -7,6 +7,7 @@ module suins::registration_nft {
     use std::string::String;
     use sui::object::{Self, UID};
     use sui::tx_context::TxContext;
+    use sui::clock::{timestamp_ms, Clock};
 
     use suins::constants;
 
@@ -24,24 +25,45 @@ module suins::registration_nft {
         expires_at: u64
     }
 
-    /// Can only be called by the SuiNS, creates a new `RegistrationNFT`.
+    /// Can only be called by the SuiNS, creates a new `RegistrationNFT`. By
+    /// default we set expiration timeout to 1 year (but this needs to be verified).
+    /// TODO: verify the expiration timeout.
     public(friend) fun new(
         domain_name: String,
-        image_url: String,
+        clock: &Clock,
         ctx: &mut TxContext
     ): RegistrationNFT {
         RegistrationNFT {
             domain_name,
             id: object::new(ctx),
             image_url: constants::default_image(),
-            expires_at: 0
+            expires_at: timestamp_ms(clock) + constants::year_ms()
         }
+    }
+
+    /// Calculate the price of the `RegistrationNFT` based on the domain name length.
+    public(friend) fun set_expires_at(self: &mut RegistrationNFT, expires_at: u64) {
+        self.expires_at = expires_at;
+    }
+
+    /// Check whether the `RegistrationNFT` has expired by comparing the
+    /// expiration timeout with the current time.
+    public fun has_expired(self: &RegistrationNFT, clock: &Clock): bool {
+        self.expires_at < timestamp_ms(clock)
+    }
+
+    /// Check whether the `RegistrationNFT` has expired by comparing the
+    /// expiration timeout with the current time. This function also takes into
+    /// account the grace period.
+    public fun has_expired_with_grace(self: &RegistrationNFT, clock: &Clock): bool {
+        (self.expires_at + constants::grace_period_ms()) < timestamp_ms(clock)
     }
 
     // === Getters ===
 
     /// Get the `domain_name` field of the `RegistrationNFT`.
     public fun domain(self: &RegistrationNFT): String { self.domain_name }
+
     /// Get the `expires_at` field of the `RegistrationNFT`.
     public fun expires_at(self: &RegistrationNFT): u64 { self.expires_at }
 }

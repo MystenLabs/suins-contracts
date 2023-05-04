@@ -8,6 +8,7 @@ module suins::suins {
     use sui::dynamic_field as df;
     use sui::object::{Self, UID};
     use sui::table::{Self, Table};
+    use sui::clock::Clock;
     use sui::transfer;
     use sui::sui::SUI;
 
@@ -22,6 +23,8 @@ module suins::suins {
     const EAppNotAuthorized: u64 = 2;
     /// Beep boop.
     const EDefaultDomainNameNotMatch: u64 = 3;
+    /// The RegistrationNFT has expired.
+    const ENftExpired: u64 = 4;
 
     /// An admin capability. The admin has full control over the application.
     /// This object must be issued only once during module initialization.
@@ -126,10 +129,13 @@ module suins::suins {
 
     /// Add a new record to the SuiNS.
     public fun app_add_record<App: drop>(
-        _: App, self: &mut SuiNS, domain_name: String, owner: address, ctx: &mut TxContext
+        _: App, self: &mut SuiNS, domain_name: String, clock: &Clock, ctx: &mut TxContext
     ): RegistrationNFT {
+        let owner = sender(ctx);
+        let nft = nft::new(domain_name, clock, ctx);
+
         assert!(is_app_authorized<App>(self), EAppNotAuthorized);
-        let name_record = name_record::new(some(owner));
+        let name_record = name_record::new(some(owner), object::id(&nft), nft::expires_at(&nft));
         if (has_name_record(self, domain_name)) {
             let record = df::borrow_mut(&mut self.registry, domain_name);
             let old_target_address = name_record::target_address(record);
@@ -141,7 +147,7 @@ module suins::suins {
             df::add(&mut self.registry, domain_name, name_record)
         };
 
-        nft::new(domain_name, domain_name, ctx)
+        nft
     }
 
     /// Adds balance to the SuiNS.
@@ -172,45 +178,10 @@ module suins::suins {
         df::remove(&mut self.id, ConfigKey<Config> {})
     }
 
-    // === Records creation ===
-
-    // TODO: revisit this section once Registry is cleaned up.
-    // Thoughts:
-    // - generalizing NameRecord and utilizing type parameters is great
-    // but in the current implementation it conflicts with the ability
-    // to give owner the full power over the record. We can't call "owner check"
-    // on a type that we don't know.
-    // - idea - how about separate `domain_name => owner` mapping for each
-    // name record. This would free the format while preserving the ownership
-    // part free of the actual NameRecord type / format. The implication would
-    // be an extra dynamic field to track but it might not be too big of a deal
-    // given the flexibility it gives us.
-
-
-    // New approach: instead of trying to make NameRecord swappable in apps, we
-    // can provide a unified interface to access the NameRecord and keep the
-    // implementation in the SuiNS.
-    //
-    // Package upgrades allow us to change the implementation of the NameRecord
-    // if the NameRecord does not appear anywhere in the function signatures
-    // (eg dependencies can be removed / replaced as long as they're used in the
-    // function body).
-
-    // The main question here is: how certain are we that `target_address`
-    // functionality will not change? If we're certain, we can keep the set of
-    // functions in the SuiNS while preserving the ability to change the
-    // implementation of the NameRecord (by not exposing it in function signatures).
-
-    // Two approaches here:
-    // - either provide a function "get_record" and "set_record"; reverse registry
-    // in this case needs to be managed by a separate "registry" module;
-    // - contain both in the SuiNS and provide an interface for everything at
-    // once. no need for registry then;
-
     // === Ex Registry Code ===
 
-    public fun set_target_address(self: &mut SuiNS, token: &RegistrationNFT, new_target: address) {
-        // check expiration //
+    public fun set_target_address(self: &mut SuiNS, token: &RegistrationNFT, clock: &Clock, new_target: address) {
+        assert!(!nft::has_expired_with_grace(token, clock), ENftExpired);
 
         let domain_name = nft::domain(token);
         let record: &mut NameRecord = df::borrow_mut(&mut self.registry, domain_name);
@@ -220,8 +191,8 @@ module suins::suins {
         handle_invalidate_reverse_record(self, domain_name, old_target, some(new_target));
     }
 
-    public fun unset_target_address(self: &mut SuiNS, token: &RegistrationNFT) {
-        // check expiration //
+    public fun unset_target_address(self: &mut SuiNS, token: &RegistrationNFT, clock: &Clock) {
+        assert!(!nft::has_expired_with_grace(token, clock), ENftExpired);
 
         let domain_name = nft::domain(token);
         let record: &mut NameRecord = df::borrow_mut(&mut self.registry, domain_name);
@@ -244,7 +215,9 @@ module suins::suins {
 
     // linking address and RegistrationNFT
 
-    public fun set_default_domain_name(self: &mut SuiNS, token: &RegistrationNFT, ctx: &mut TxContext) {
+    public fun set_default_domain_name(self: &mut SuiNS, token: &RegistrationNFT, clock: &Clock, ctx: &mut TxContext) {
+        assert!(!nft::has_expired_with_grace(token, clock), ENftExpired);
+
         let sender = sender(ctx);
         let default_domain = nft::domain(token);
         let record = df::borrow(&self.registry, default_domain);
@@ -263,7 +236,6 @@ module suins::suins {
         table::remove(&mut self.reverse_registry, sender(ctx));
     }
 
-
     // === Name Record ===
 
     /// Read the `name_record` for the specified `domain_name`.
@@ -275,8 +247,9 @@ module suins::suins {
     /// TODO: add reverse registry methods to the name record when it is changed.
     /// TODO: see `name_record` module for details.
     public fun name_record_mut<Record: store + drop>(
-        self: &mut SuiNS, token: &RegistrationNFT, ctx: &mut TxContext
+        self: &mut SuiNS, token: &RegistrationNFT, clock: &Clock
     ): &mut Record {
+        assert!(!nft::has_expired_with_grace(token, clock), ENftExpired);
         df::borrow_mut(&mut self.registry, nft::domain(token))
     }
 

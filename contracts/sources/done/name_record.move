@@ -21,17 +21,21 @@ module suins::name_record {
         target_address: Option<address>,
         /// Additional data which may be stored in a record
         data: VecMap<String, String>,
+        /// The ID of the `RegistrationNFT` assigned to this record. It is
+        /// possible that the ID changes if the record expires and is purchased
+        /// by someone else.
+        nft_id: ID,
+        /// Timestamp in milliseconds when the record expires.
+        expires_at: u64
     }
 
     /// Create a new NameRecord.
-    public fun new(target_address: Option<address>): NameRecord {
+    public fun new(target_address: Option<address>, nft_id: ID, expires_at: u64): NameRecord {
         NameRecord {
             target_address: target_address,
             data: vec_map::empty(),
-
-            // TODO: add the NFT ID when a new NameRecord is created
-            nft_id: ID,
-            expires_at: 0
+            nft_id,
+            expires_at
         }
     }
 
@@ -57,22 +61,17 @@ module suins::name_record {
         self.target_address = new_address;
     }
 
-    // === Mutable ===
-
-    /// Read the `data` field from the `NameRecord`.
-    public fun data_mut(self: &mut NameRecord): &mut VecMap<String, String> {
-        &mut self.data
-    }
-
     // === Getters ===
 
     /// Read the `data` field from the `NameRecord`.
-    public fun data(self: &NameRecord): &VecMap<String, String> {
-        &self.data
-    }
+    public fun data(self: &NameRecord): &VecMap<String, String> { &self.data }
 
     /// Read the `target_address` field from the `NameRecord`.
-    public fun target_address(self: &NameRecord): Option<address> {
-        self.target_address
-    }
+    public fun target_address(self: &NameRecord): Option<address> { self.target_address }
+
+    /// Read the `nft_id` field from the `NameRecord`.
+    public fun nft_id(self: &NameRecord): ID { self.nft_id }
+
+    /// Read the `expires_at` field from the `NameRecord`.
+    public fun expires_at(self: &NameRecord): u64 { self.expires_at }
 }

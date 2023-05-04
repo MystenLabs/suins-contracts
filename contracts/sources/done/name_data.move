@@ -7,7 +7,7 @@
 module suins::name_data {
     use std::string::String;
     use sui::vec_map::VecMap;
-    use sui::tx_context::TxContext;
+    use sui::clock::Clock;
 
     use suins::name_record::{Self, NameRecord};
     use suins::registration_nft::RegistrationNFT;
@@ -25,10 +25,10 @@ module suins::name_data {
     public fun set(
         suins: &mut SuiNS,
         token: &RegistrationNFT,
-        data: VecMap<String, String>,
-        ctx: &mut TxContext
+        clock: &Clock,
+        data: VecMap<String, String>
     ) {
-        let record_mut = suins::name_record_mut(suins, token, ctx);
+        let record_mut = suins::name_record_mut(suins, token, clock);
         name_record::set_data(record_mut, data)
     }
 }

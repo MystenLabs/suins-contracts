@@ -2,7 +2,7 @@
 /// More information in: ../../../docs
 module suins::auction {
     use std::option::{Self, Option, none, some};
-    use std::string::{Self, String};
+    use std::string::{Self, utf8, String};
 
     use sui::tx_context::{Self, TxContext};
     use sui::balance::{Self, Balance};
@@ -14,13 +14,12 @@ module suins::auction {
     use sui::linked_table::{Self, LinkedTable};
     use sui::dynamic_field as df;
 
-    use suins::registrar;
     use suins::config::{Self, Config};
     use suins::suins::{Self, AdminCap, SuiNS};
     use suins::registration_nft::RegistrationNFT;
     use suins::string_utils;
+    use suins::name_record;
     use suins::constants;
-    use suins::controller;
 
     const AUCTION_BIDDING_PERIOD_MS: u64 = 2 * 24 * 60 * 60 * 1000; // 2 days
     const AUCTION_MIN_QUIET_PERIOD_MS: u64 = 10 * 60 * 1000; // 10 minutes of quiet time
@@ -70,22 +69,22 @@ module suins::auction {
     ///
     /// Panics
     /// Panics if current epoch is less than or equal `start_at`
-    public fun configure_auction(
-        _: &AdminCap,
-        suins: &mut SuiNS,
-        start_at: u64,
-        ctx: &mut TxContext
-    ) {
-        assert!(tx_context::epoch(ctx) <= start_at, EInvalidConfigParam);
+    // public fun configure_auction(
+    //     _: &AdminCap,
+    //     suins: &mut SuiNS,
+    //     start_at: u64,
+    //     ctx: &mut TxContext
+    // ) {
+    //     assert!(tx_context::epoch(ctx) <= start_at, EInvalidConfigParam);
 
-        let auction_house = AuctionHouse {
-            auctions: linked_table::new(ctx),
-            start_at,
-        };
+    //     let auction_house = AuctionHouse {
+    //         auctions: linked_table::new(ctx),
+    //         start_at,
+    //     };
 
-        *controller::auction_house_finalized_at_mut(suins) = auction_house_close_at(&auction_house);
-        df::add(suins::app_uid_mut(App {}, suins), AuctionHouseKey {}, auction_house);
-    }
+    //     *controller::auction_house_finalized_at_mut(suins) = auction_house_close_at(&auction_house);
+    //     df::add(suins::app_uid_mut(App {}, suins), AuctionHouseKey {}, auction_house);
+    // }
 
     /// #### Notice
     /// Bidders use this function to place a new bid.
@@ -130,10 +129,26 @@ module suins::auction {
         clock: &Clock,
         ctx: &mut TxContext
     ): Auction {
-        assert!(registrar::is_available(suins, constants::sui_tld(), label, ctx), ELabelUnavailable);
+        // assert!(registrar::is_available(suins, constants::sui_tld(), label, ctx), ELabelUnavailable);
 
+        // TODO: DOMAIN
+        // build domain from label + tld
+        // currently just pass a label
+        let domain_name = copy label;
+        string::append(&mut domain_name, utf8(b"."));
+        string::append(&mut domain_name, constants::sui_tld());
 
-        let nft = suins::app_add_record(App {}, suins, domain_name, owner);
+        // check that the domain is available by making either that there's no name_record yet
+        // and there is but it expired more than the grace period ago :laughing:
+        if (suins::has_name_record(suins, domain_name)) {
+            let record = suins::name_record(suins, domain_name);
+            assert!(
+                (name_record::expires_at(record) + constants::grace_period_ms())
+                < clock::timestamp_ms(clock)
+            , ELabelUnavailable);
+        };
+
+        let nft = suins::app_add_record(App {}, suins, domain_name, clock, ctx);
         // let nft = registrar::register_with_image_internal(
         //     suins,
         //     constants::sui_tld(),

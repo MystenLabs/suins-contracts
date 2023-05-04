@@ -21,6 +21,8 @@ module suins::constants {
     const YEAR_MS: u64 = 365 * 24 * 60 * 60 * 1000;
     /// Default value for the image_url; IPFS hash.
     const DEFAULT_IMAGE: vector<u8> = b"QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY";
+    /// Grace period in milliseconds.
+    const GRACE_PERIOD_MS: u64 = 30 * 24 * 60 * 60 * 1000;
 
     // === Public functions ===
 
@@ -42,4 +44,6 @@ module suins::constants {
     public fun max_bps(): u16 { MAX_BPS }
     /// The amount of milliseconds in a year.
     public fun year_ms(): u64 { YEAR_MS }
+    /// Grace period in milliseconds after which the domain expires.
+    public fun grace_period_ms(): u64 { GRACE_PERIOD_MS }
 }
