@@ -2232,151 +2232,6 @@ let (owner, target_address) = (suins::record_owner(&suins, utf8(AUCTIONED_DOMAIN
         test_scenario::end(scenario);
     }
 
-    #[test, expected_failure(abort_code = controller::ERegistrationIsDisabled)]
-    fun test_register_abort_if_registration_is_disabled() {
-        let scenario = test_init();
-        set_auction_config(&mut scenario);
-
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
-        {
-            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let config = suins::remove_config<Config>(&admin_cap, &mut suins);
-
-            config::set_enable_controller(&mut config, false);
-            suins::add_config(&admin_cap, &mut suins, config);
-
-            test_scenario::return_to_sender(&mut scenario, admin_cap);
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let clock = test_scenario::take_shared<Clock>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                DEFAULT_TX_HASH,
-                221,
-                0
-            );
-            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
-
-            controller::register(
-                &mut suins,
-                utf8(AUCTIONED_LABEL),
-                FIRST_USER_ADDRESS,
-                1,
-                &mut coin,
-                &clock,
-                &mut ctx,
-            );
-
-            coin::burn_for_testing(coin);
-            test_scenario::return_shared(clock);
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = registrar::get_nft_fields(&nft);
-
-            assert!(suins::balance(&suins) == 1000000, 0);
-            assert!(name == utf8(AUCTIONED_DOMAIN_NAME), 0);
-            assert!(
-                url == url::new_unsafe_from_bytes(b"ipfs://QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY"),
-                0
-            );
-
-            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_LABEL);
-            assert!(expired_at == 221 + 365, 0);
-
-                        let record = suins::name_record(&suins, utf8(AUCTIONED_DOMAIN_NAME));
-let (owner, target_address) = (suins::record_owner(&suins, utf8(AUCTIONED_DOMAIN_NAME)), name_record::target_address(record));
-
-            assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(target_address == std::option::none(), 0);
-
-            test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
-    #[test, expected_failure(abort_code = controller::ERegistrationIsDisabled)]
-    fun test_register_abort_if_registration_is_disabled_2() {
-        let scenario = test_init();
-        set_auction_config(&mut scenario);
-
-        test_scenario::next_tx(&mut scenario, SUINS_ADDRESS);
-        {
-            let admin_cap = test_scenario::take_from_sender<AdminCap>(&mut scenario);
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let config = suins::remove_config<Config>(&admin_cap, &mut suins);
-
-
-            config::set_enable_controller(&mut config, false);
-            suins::add_config(&admin_cap, &mut suins, config);
-
-            test_scenario::return_to_sender(&mut scenario, admin_cap);
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let clock = test_scenario::take_shared<Clock>(&mut scenario);
-            let ctx = ctx_new(
-                @0x0,
-                DEFAULT_TX_HASH,
-                221,
-                0
-            );
-            let coin = coin::mint_for_testing<SUI>(3000000, &mut ctx);
-
-            controller::register(
-                &mut suins,
-                utf8(AUCTIONED_LABEL),
-                FIRST_USER_ADDRESS,
-                1,
-                &mut coin,
-                &clock,
-                &mut ctx,
-            );
-
-            coin::burn_for_testing(coin);
-            test_scenario::return_shared(suins);
-            test_scenario::return_shared(clock);
-        };
-        test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
-        {
-            let nft = test_scenario::take_from_sender<RegistrationNFT>(&mut scenario);
-            let (name, url) = registrar::get_nft_fields(&nft);
-            let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-
-            registrar::assert_registrar_exists(&suins, SUI_REGISTRAR);
-
-            assert!(suins::balance(&suins) == 1000000, 0);
-            assert!(name == utf8(AUCTIONED_DOMAIN_NAME), 0);
-            assert!(
-                url == url::new_unsafe_from_bytes(b""),
-                0
-            );
-
-            let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, FIRST_DOMAIN_NAME);
-            assert!(expired_at == 221 + 365, 0);
-
-                        let record = suins::name_record(&suins, utf8(AUCTIONED_DOMAIN_NAME));
-let (owner, target_address) = (suins::record_owner(&suins, utf8(AUCTIONED_DOMAIN_NAME)), name_record::target_address(record));
-
-            assert!(owner == FIRST_USER_ADDRESS, 0);
-            assert!(target_address == std::option::none(), 0);
-
-            test_scenario::return_to_sender(&mut scenario, nft);
-            test_scenario::return_shared(suins);
-        };
-        test_scenario::end(scenario);
-    }
-
     #[test]
     fun test_register_works_if_registration_is_reenabled() {
         let scenario = test_init();
@@ -2387,8 +2242,6 @@ let (owner, target_address) = (suins::record_owner(&suins, utf8(AUCTIONED_DOMAIN
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = suins::remove_config<Config>(&admin_cap, &mut suins);
 
-            config::set_enable_controller(&mut config, false);
-
             suins::add_config(&admin_cap, &mut suins, config);
             test_scenario::return_shared(suins);
             test_scenario::return_to_sender(&mut scenario, admin_cap);
@@ -2399,7 +2252,6 @@ let (owner, target_address) = (suins::record_owner(&suins, utf8(AUCTIONED_DOMAIN
 
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
             let config = suins::remove_config<Config>(&admin_cap, &mut suins);
-            config::set_enable_controller(&mut config, true);
 
             suins::add_config(&admin_cap, &mut suins, config);
             test_scenario::return_shared(suins);

@@ -278,7 +278,7 @@ module suins::controller {
         ctx: &mut TxContext,
     ) {
         assert!(0 < no_years && no_years <= 5, EInvalidNoYears);
-        assert!(config::enable_controller(suins::get_config<Config>(suins)), ERegistrationIsDisabled);
+        assert!(true, ERegistrationIsDisabled);
         assert!(tx_context::epoch(ctx) > auction_house_finalized_at(suins), EAuctionNotEndYet);
 
         string_utils::validate_label(

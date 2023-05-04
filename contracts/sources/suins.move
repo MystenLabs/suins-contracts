@@ -394,7 +394,6 @@ module suins::suins {
         add_config(&admin_cap, &mut suins, promotion::new());
         add_config(&admin_cap, &mut suins, config::new(
             vector[],
-            true,
             1200 * suins::constants::mist_per_sui(),
             200 * suins::constants::mist_per_sui(),
             50 * suins::constants::mist_per_sui(),

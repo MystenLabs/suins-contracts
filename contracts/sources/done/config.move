@@ -20,7 +20,6 @@ module suins::config {
     /// and fitting the needs of the application.
     struct Config has store, drop {
         public_key: vector<u8>,
-        enable_controller: bool,
         three_char_price: u64,
         fouch_char_price: u64,
         five_plus_char_price: u64,
@@ -30,14 +29,12 @@ module suins::config {
     /// Define all properties from the start.
     public fun new(
         public_key: vector<u8>,
-        enable_controller: bool,
         three_char_price: u64,
         fouch_char_price: u64,
         five_plus_char_price: u64,
     ): Config {
         Config {
             public_key,
-            enable_controller,
             three_char_price,
             fouch_char_price,
             five_plus_char_price,
@@ -49,11 +46,6 @@ module suins::config {
     /// Change the value of the `public_key` field.
     public fun set_public_key(self: &mut Config, value: vector<u8>) {
         self.public_key = value;
-    }
-
-    /// Change the value of the `enable_controller` field.
-    public fun set_enable_controller(self: &mut Config, value: bool) {
-        self.enable_controller = value;
     }
 
     /// Change the value of the `three_char_price` field.
@@ -97,9 +89,6 @@ module suins::config {
 
     /// Get the value of the `public_key` field.
     public fun public_key(self: &Config): vector<u8> { self.public_key }
-
-    /// Get the value of the `enable_controller` field.
-    public fun enable_controller(self: &Config): bool {  self.enable_controller }
 
     /// Get the value of the `three_char_price` field.
     public fun three_char_price(self: &Config): u64 { self.three_char_price }

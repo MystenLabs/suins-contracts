@@ -17,6 +17,8 @@ module suins::constants {
     const MAX_DOMAIN_LENGTH: u8 = 63;
     /// Top level domain for SUI.
     const SUI_TLD: vector<u8> = b"sui";
+    /// The amount of milliseconds in a year.
+    const YEAR_MS: u64 = 365 * 24 * 60 * 60 * 1000;
 
     // === Public functions ===
 
@@ -34,4 +36,6 @@ module suins::constants {
     public fun max_u64(): u64 { MAX_U64 }
     /// Maximum value for basis points.
     public fun max_bps(): u16 { MAX_BPS }
+    /// The amount of milliseconds in a year.
+    public fun year_ms(): u64 { YEAR_MS }
 }
