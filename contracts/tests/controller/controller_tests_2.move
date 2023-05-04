@@ -12,11 +12,11 @@ module suins::controller_tests_2 {
     use suins::controller_tests::{test_init, set_auction_config};
     use suins::controller_tests;
     use suins::registrar::{Self, RegistrationNFT};
-    use suins::registry;
     use suins::suins::{Self, AdminCap};
     use suins::config::{Self, Config};
     use suins::suins::SuiNS;
     use suins::controller;
+    use suins::name_record;
     use suins::registrar_tests::ctx_new;
 
     const SUINS_ADDRESS: address = @0xA001;
@@ -120,7 +120,9 @@ module suins::controller_tests_2 {
             let expired_at = registrar::get_record_expired_at(&suins, SUI_REGISTRAR, b"xyztu");
             assert!(expired_at == EXTRA_PERIOD_END_AT + 1 + 730, 0);
 
-            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(b"xyztu.sui"));
+            let record = suins::name_record(&suins, utf8(b"xyztu.sui"));
+let (owner, target_address) = (suins::record_owner(&suins, utf8(b"xyztu.sui")), name_record::target_address(record));
+
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(target_address == some(FIRST_USER_ADDRESS), 0);
 

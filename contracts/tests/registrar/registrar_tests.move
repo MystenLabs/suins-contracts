@@ -1,16 +1,17 @@
 #[test_only]
 module suins::registrar_tests {
 
+    use std::string::{Self, utf8};
     use sui::test_scenario::{Self, Scenario};
     use sui::url;
     use sui::dynamic_field;
-    use suins::suins::{Self, SuiNS, AdminCap};
-    use suins::registry;
-    use suins::registrar::{Self, RegistrationNFT, get_record_expired_at, assert_registrar_exists};
-    use suins::config::Self;
-    use std::string::{Self, utf8};
     use sui::tx_context::TxContext;
     use sui::tx_context;
+
+    use suins::suins::{Self, SuiNS, AdminCap};
+    use suins::registrar::{Self, RegistrationNFT, get_record_expired_at, assert_registrar_exists};
+    use suins::config::Self;
+    use suins::name_record;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER: address = @0xB001;
@@ -98,7 +99,8 @@ module suins::registrar_tests {
                 0
             );
 
-            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let record = suins::name_record(&suins, utf8(FIRST_DOMAIN_NAME));
+            let (owner, target_address) = (suins::record_owner(&suins, utf8(FIRST_DOMAIN_NAME)), name_record::target_address(record));
 
             assert!(owner == FIRST_USER, 0);
             assert!(target_address == std::option::some(FIRST_USER), 0);
@@ -158,7 +160,8 @@ module suins::registrar_tests {
                 0
             );
 
-            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let record = suins::name_record(&suins, utf8(FIRST_DOMAIN_NAME));
+let (owner, target_address) = (suins::record_owner(&suins, utf8(FIRST_DOMAIN_NAME)), name_record::target_address(record));
 
             assert!(owner == FIRST_USER, 0);
             assert!(target_address == std::option::some(FIRST_USER), 0);

@@ -44,44 +44,6 @@ module suins::registrar {
     /// Registrar app witness.
     struct App has drop {}
 
-
-    /// Maps tlds to registrar objects, each registrar object is responsible for domains of a particular tld.
-    /// Registrar object is a mapping of domain names to registration records (instance of `RegistrationRecord`).
-    /// A registrar object can be created by calling `new_tld` and has a record with key `tld` to represent its tld.
-    // registrars: Table<String, Table<String, RegistrationRecord>>,
-
-    /// each registration records has a corresponding name records
-    struct RegistrationRecord has store, drop {
-        expired_at: u64,
-        nft_id: ID,
-    }
-
-    /// NFT representing ownership of a domain
-    struct RegistrationNFT has key, store {
-        id: UID,
-        /// name and url fields have special meaning in sui explorer and extension
-        /// if url is a ipfs image, this image is showed on sui explorer and extension
-        name: String,
-        url: Url,
-    }
-
-    struct NameRenewedEvent has copy, drop {
-        label: String,
-        expired_at: u64,
-    }
-
-    struct NameReclaimedEvent has copy, drop {
-        domain_name: String,
-        owner: address,
-    }
-
-    struct ImageUpdatedEvent has copy, drop {
-        sender: address,
-        domain_name: String,
-        new_image: Url,
-        data: String,
-    }
-
     /// #### Notice
     /// The admin uses this function to create a new `BaseRegistrar` share object
     /// that manages domains having the same top level domain.
@@ -169,7 +131,6 @@ module suins::registrar {
         let (ipfs, domain_name_msg, expired_at, additional_data) = deserialize_image_msg(raw_msg);
 
         assert!(domain_name_msg == nft.name, EInvalidImageMessage);
-
         assert!(expired_at == name_expires_at_internal(registrar, label), EInvalidImageMessage);
 
         nft.url = url::new_unsafe_from_bytes(*string::bytes(&ipfs));
@@ -450,5 +411,44 @@ module suins::registrar {
 
     public fun registrar_mut(suins: &mut SuiNS, tld: String): &mut Table<String, RegistrationRecord> {
         df::borrow_mut(suins::app_registrars_mut(App {}, suins), tld)
+    }
+
+    // === Events ===
+
+    // Maps tlds to registrar objects, each registrar object is responsible for domains of a particular tld.
+    // Registrar object is a mapping of domain names to registration records (instance of `RegistrationRecord`).
+    // A registrar object can be created by calling `new_tld` and has a record with key `tld` to represent its tld.
+    // registrars: Table<String, Table<String, RegistrationRecord>>,
+
+    /// each registration records has a corresponding name records
+    struct RegistrationRecord has store, drop {
+        expired_at: u64,
+        nft_id: ID,
+    }
+
+    /// NFT representing ownership of a domain
+    struct RegistrationNFT has key, store {
+        id: UID,
+        /// name and url fields have special meaning in sui explorer and extension
+        /// if url is a ipfs image, this image is showed on sui explorer and extension
+        name: String,
+        url: Url,
+    }
+
+    struct NameRenewedEvent has copy, drop {
+        label: String,
+        expired_at: u64,
+    }
+
+    struct NameReclaimedEvent has copy, drop {
+        domain_name: String,
+        owner: address,
+    }
+
+    struct ImageUpdatedEvent has copy, drop {
+        sender: address,
+        domain_name: String,
+        new_image: Url,
+        data: String,
     }
 }

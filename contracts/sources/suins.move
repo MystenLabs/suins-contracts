@@ -1,5 +1,5 @@
 module suins::suins {
-    use std::option::{Self, some, Option};
+    use std::option::{Self, some, none, Option};
     use std::string::String;
 
     use sui::tx_context::{sender, Self, TxContext};
@@ -11,9 +11,9 @@ module suins::suins {
     use sui::sui::SUI;
     use sui::dynamic_field as df;
 
-    use suins::name_record;
+    use suins::name_record::{Self, NameRecord};
 
-    friend suins::registry;
+    // friend suins::registry;
 
     /// Trying to withdraw from an empty balance.
     const ENoProfits: u64 = 0;
@@ -21,6 +21,8 @@ module suins::suins {
     const ENotRecordOwner: u64 = 1;
     /// An application is not authorized to access the feature.
     const EAppNotAuthorized: u64 = 2;
+    /// Beep boop.
+    const EDefaultDomainNameNotMatch: u64 = 3;
 
     /// An admin capability. The admin has full control over the application.
     /// This object must be issued only once during module initialization.
@@ -125,7 +127,9 @@ module suins::suins {
     }
 
     /// Borrow configuration object. Read-only mode for applications.
-    public fun app_get_config_mut<App: drop, Config: store + drop>(_: App, self: &mut SuiNS): &mut Config {
+    public fun app_get_config_mut<App: drop, Config: store + drop>(
+        _: App, self: &mut SuiNS
+    ): &mut Config {
         assert!(is_app_authorized<App>(self), EAppNotAuthorized);
         df::borrow_mut(&mut self.id, ConfigKey<Config> {})
     }
@@ -205,6 +209,86 @@ module suins::suins {
     // be an extra dynamic field to track but it might not be too big of a deal
     // given the flexibility it gives us.
 
+
+    // New approach: instead of trying to make NameRecord swappable in apps, we
+    // can provide a unified interface to access the NameRecord and keep the
+    // implementation in the SuiNS.
+    //
+    // Package upgrades allow us to change the implementation of the NameRecord
+    // if the NameRecord does not appear anywhere in the function signatures
+    // (eg dependencies can be removed / replaced as long as they're used in the
+    // function body).
+
+    // The main question here is: how certain are we that `target_address`
+    // functionality will not change? If we're certain, we can keep the set of
+    // functions in the SuiNS while preserving the ability to change the
+    // implementation of the NameRecord (by not exposing it in function signatures).
+
+    // Two approaches here:
+    // - either provide a function "get_record" and "set_record"; reverse registry
+    // in this case needs to be managed by a separate "registry" module;
+    // - contain both in the SuiNS and provide an interface for everything at
+    // once. no need for registry then;
+
+    // === Ex Registry Code ===
+
+    public fun set_target_address(
+        self: &mut SuiNS, domain_name: String, new_target: address, ctx: &mut TxContext
+    ) {
+        assert!(record_owner(self, domain_name) == sender(ctx), ENotRecordOwner);
+
+        let record: &mut NameRecord = df::borrow_mut(&mut self.registry, domain_name);
+        let old_target = name_record::target_address(record);
+
+        name_record::set_target_address(record, some(new_target));
+        handle_invalidate_reverse_record(self, domain_name, old_target, some(new_target));
+    }
+
+    public fun unset_target_address(self: &mut SuiNS, domain_name: String, ctx: &mut TxContext) {
+        assert!(record_owner(self, domain_name) == sender(ctx), ENotRecordOwner);
+
+        let record: &mut NameRecord = df::borrow_mut(&mut self.registry, domain_name);
+        let old_target = name_record::target_address(record);
+
+        name_record::set_target_address(record, none());
+        handle_invalidate_reverse_record(self, domain_name, old_target, none());
+    }
+
+    public fun target_address(self: &SuiNS, domain_name: String): Option<address> {
+        let record: &NameRecord = df::borrow(&self.registry, domain_name);
+        name_record::target_address(record)
+    }
+
+    // default domain name setting (address => domain lookup)
+    // what do we expect form this feature?
+
+    public fun default_domain_name(self: &SuiNS, for: address): String {
+        *table::borrow(&self.reverse_registry, for)
+    }
+
+    public fun set_default_domain_name(self: &mut SuiNS, default_domain: String, ctx: &mut TxContext) {
+        let sender = sender(ctx);
+        let record = df::borrow(&self.registry, default_domain);
+
+        assert!(some(sender) == name_record::target_address(record), EDefaultDomainNameNotMatch); // TODO: error code
+
+        if (table::contains(&self.reverse_registry, sender)) {
+            *table::borrow_mut(&mut self.reverse_registry, sender) = default_domain;
+        } else {
+            table::add(&mut self.reverse_registry, sender, default_domain);
+        };
+
+        // emit event? or just return?
+    }
+
+    // can be performed at any time, right? like I remove a record at my address?
+    public fun unset_default_domain_name(self: &mut SuiNS, ctx: &mut TxContext) {
+        table::remove(&mut self.reverse_registry, sender(ctx));
+    }
+
+
+    // === Name Record ===
+
     /// Read the `name_record` for the specified `domain_name`.
     public fun name_record<Record: store + drop>(self: &SuiNS, domain_name: String): &Record {
         df::borrow(&self.registry, domain_name)
@@ -246,16 +330,10 @@ module suins::suins {
 
     // not sure about exposing just UID yet!
     public fun uid(self: &SuiNS): &UID { &self.id }
-
     public fun registry(self: &SuiNS): &UID { &self.registry }
     public fun registrars(self: &SuiNS): &UID { &self.registrars }
-    public fun reverse_registry(self: &SuiNS): &Table<address, String> {
-        &self.reverse_registry
-    }
-
-    public fun balance(self: &SuiNS): u64 {
-        balance::value(&self.balance)
-    }
+    public fun reverse_registry(self: &SuiNS): &Table<address, String> { &self.reverse_registry }
+    public fun balance(self: &SuiNS): u64 { balance::value(&self.balance) }
 
     // === Friend and Private Functions ===
 
@@ -288,7 +366,9 @@ module suins::suins {
         };
     }
 
-    public(friend) fun send_from_balance(self: &mut SuiNS, amount: u64, receiver: address, ctx: &mut TxContext) {
+    public(friend) fun send_from_balance(
+        self: &mut SuiNS, amount: u64, receiver: address, ctx: &mut TxContext
+    ) {
         let coin = coin::take(&mut self.balance, amount, ctx);
         transfer::public_transfer(coin, receiver);
     }

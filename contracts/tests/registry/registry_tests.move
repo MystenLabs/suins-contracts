@@ -2,13 +2,12 @@
 module suins::registry_tests {
 
     use sui::test_scenario::{Self, Scenario};
-    use suins::registry;
+
     use suins::registrar;
     use std::string::utf8;
     use suins::suins::SuiNS;
+    use suins::name_record;
     use suins::suins::{Self, AdminCap};
-
-    friend suins::registry_tests_2;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -39,7 +38,7 @@ module suins::registry_tests {
         scenario
     }
 
-    public(friend) fun mint_record(scenario: &mut Scenario) {
+    public fun mint_record(scenario: &mut Scenario) {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
@@ -78,7 +77,8 @@ module suins::registry_tests {
         test_scenario::next_tx(&mut scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(&mut scenario);
-            let (owner, target_address) = registry::get_name_record_all_fields(&suins, utf8(FIRST_DOMAIN_NAME));
+            let record = suins::name_record(&suins, utf8(FIRST_DOMAIN_NAME));
+            let (owner, target_address) = (suins::record_owner(&suins, utf8(FIRST_DOMAIN_NAME)), name_record::target_address(record));
 
             assert!(owner == SECOND_USER_ADDRESS, 0);
             assert!(target_address == std::option::some(SECOND_USER_ADDRESS), 0);
