@@ -58,7 +58,6 @@ module suins::auction {
 
     struct AuctionHouse has store {
         auctions: LinkedTable<String, Auction>,
-
         start_at: u64,
     }
 

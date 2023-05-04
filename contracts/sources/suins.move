@@ -13,8 +13,6 @@ module suins::suins {
 
     use suins::name_record::{Self, NameRecord};
 
-    // friend suins::registry;
-
     /// Trying to withdraw from an empty balance.
     const ENoProfits: u64 = 0;
     /// Trying to access a name record that belongs to another account.

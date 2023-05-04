@@ -3,7 +3,7 @@
 ///
 /// Is module is relevant as long as the SuiNS is using the `name_record`
 /// module to store the information about the name record. If the record format
-/// (type) changes, this module should be updated accordingly.
+/// (type) changes, the module should be updated accordingly.
 module suins::name_data {
     use std::string::String;
     use sui::vec_map::VecMap;
