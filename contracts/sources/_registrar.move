@@ -95,33 +95,33 @@
 //     /// or `hash_msg` doesn't match `raw_msg`
 //     /// or `signature` doesn't match `hashed_msg` and `public_key` stored in Configuration
 //     /// or the data in NFTs don't match `raw_msg`
-//     public fun update_image_url(
-//         suins: &mut SuiNS,
-//         nft: &mut RegistrationNFT,
-//         signature: vector<u8>,
-//         hashed_msg: vector<u8>,
-//         raw_msg: vector<u8>,
-//         ctx: &mut TxContext,
-//     ) {
-//         let registrar = registrar(suins, get_tld(nft));
-//         let label = assert_nft_not_expires(registrar, nft, ctx);
+    // public fun update_image_url(
+    //     suins: &mut SuiNS,
+    //     nft: &mut RegistrationNFT,
+    //     signature: vector<u8>,
+    //     hashed_msg: vector<u8>,
+    //     raw_msg: vector<u8>,
+    //     ctx: &mut TxContext,
+    // ) {
+    //     let registrar = registrar(suins, get_tld(nft));
+    //     let label = assert_nft_not_expires(registrar, nft, ctx);
 
-//         assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
-//         assert_image_msg_match(suins, signature, hashed_msg, raw_msg);
+    //     assert_image_msg_not_empty(&signature, &hashed_msg, &raw_msg);
+    //     assert_image_msg_match(suins, signature, hashed_msg, raw_msg);
 
-//         let (ipfs, domain_name_msg, expired_at, additional_data) = deserialize_image_msg(raw_msg);
+    //     let (ipfs, domain_name_msg, expired_at, additional_data) = deserialize_image_msg(raw_msg);
 
-//         assert!(domain_name_msg == nft.name, EInvalidImageMessage);
-//         assert!(expired_at == name_expires_at_internal(registrar, label), EInvalidImageMessage);
+    //     assert!(domain_name_msg == nft.name, EInvalidImageMessage);
+    //     assert!(expired_at == name_expires_at_internal(registrar, label), EInvalidImageMessage);
 
-//         nft.url = url::new_unsafe_from_bytes(*string::bytes(&ipfs));
-//         event::emit(ImageUpdatedEvent {
-//             sender: tx_context::sender(ctx),
-//             domain_name: nft.name,
-//             new_image: nft.url,
-//             data: additional_data,
-//         })
-//     }
+    //     nft.url = url::new_unsafe_from_bytes(*string::bytes(&ipfs));
+    //     event::emit(ImageUpdatedEvent {
+    //         sender: tx_context::sender(ctx),
+    //         domain_name: nft.name,
+    //         new_image: nft.url,
+    //         data: additional_data,
+    //     })
+    // }
 
 //     // === Public Functions ===
 
