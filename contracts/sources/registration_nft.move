@@ -22,7 +22,7 @@ module suins::registration_nft {
         image_url: String,
         /// The domain name that the NFT is for.
         domain: Domain,
-        /// The expiration timestampt of the NFT.
+        /// The expiration timestamp of the NFT.
         expires_at: u64
     }
 
