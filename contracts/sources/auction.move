@@ -1,8 +1,9 @@
 /// Implementation of auction module.
 /// More information in: ../../../docs
 module suins::auction {
+    use std::vector;
     use std::option::{Self, Option, none, some};
-    use std::string::{Self, utf8, String};
+    use std::string::{Self, String};
 
     use sui::tx_context::{Self, TxContext};
     use sui::balance::{Self, Balance};
@@ -16,7 +17,6 @@ module suins::auction {
     use suins::config::{Self, Config};
     use suins::suins::{Self, AdminCap, SuiNS};
     use suins::registration_nft::RegistrationNFT;
-    use suins::string_utils;
     use suins::name_record;
     use suins::constants;
     use suins::domain::{Self, Domain};
@@ -59,7 +59,7 @@ module suins::auction {
     struct AuctionHouseKey has copy, store, drop {}
 
     struct AuctionHouse has store {
-        auctions: LinkedTable<String, Auction>,
+        auctions: LinkedTable<Domain, Auction>,
         start_at: u64,
     }
 
@@ -75,7 +75,7 @@ module suins::auction {
     /// or not in auction period
     public fun place_bid(
         suins: &mut SuiNS,
-        domain_name: Domain,
+        domain_name: String,
         bid_value: u64,
         payment: &mut Coin<SUI>,
         clock: &Clock,
@@ -86,22 +86,22 @@ module suins::auction {
         let bid = balance::split(coin::balance_mut(payment), bid_value);
 
         // make sure the domain is a .sui domain and not a subdomain
-        assert!(domain::tld(&domain) == constants::sui_tld(), 0);
+        assert!(domain::tld(&domain) == &constants::sui_tld(), 0);
         assert!(domain::labels_len(&domain) == 2, 0);
 
         // Check to see if there isn't an existing auction going on for this domain
         if (!linked_table::contains(&auction_house_mut(suins).auctions, domain)) {
             // The minnimum price only applies to newly created auctions
             let config = suins::get_config<Config>(suins);
-            let min_price = config::calculate_price(config, (string::length(&label) as u8), 1);
+            let min_price = config::calculate_price(config, (string::length(label) as u8), 1);
             assert!(balance::value(&bid) >= min_price, EInvalidBidValue);
 
-            let auction = start_new_auction(suins, label, bid, clock, ctx);
+            let auction = start_new_auction(suins, domain, bid, clock, ctx);
             linked_table::push_back(&mut auction_house_mut(suins).auctions, domain, auction);
             return
         };
 
-        bid_on_existing_auction(suins, label, bid, clock, ctx);
+        bid_on_existing_auction(suins, domain, bid, clock, ctx);
     }
 
     fun start_new_auction(
@@ -142,7 +142,7 @@ module suins::auction {
         };
 
         event::emit(AuctionStartedEvent {
-            label: auction.domain,
+            domain,
             start_timestamp_ms: auction.start_timestamp_ms,
             end_timestamp_ms: auction.end_timestamp_ms,
             starting_bid,
@@ -154,13 +154,13 @@ module suins::auction {
 
     fun bid_on_existing_auction(
         suins: &mut SuiNS,
-        label: String,
+        domain: Domain,
         bid: Balance<SUI>,
         clock: &Clock,
         ctx: &mut TxContext
     ) {
         let auction_house = auction_house_mut(suins);
-        let auction = linked_table::borrow_mut(&mut auction_house.auctions, label);
+        let auction = linked_table::borrow_mut(&mut auction_house.auctions, domain);
         let bidder = tx_context::sender(ctx);
 
         // Ensure that the auction is not over
@@ -177,7 +177,7 @@ module suins::auction {
         auction.winner = bidder;
 
         event::emit(BidEvent {
-            label,
+            domain,
             bid: bid_amount,
             bidder,
         });
@@ -190,7 +190,7 @@ module suins::auction {
             auction.end_timestamp_ms = clock::timestamp_ms(clock) + AUCTION_MIN_QUIET_PERIOD_MS;
 
             event::emit(AuctionExtendedEvent {
-                label,
+                domain,
                 end_timestamp_ms: auction.end_timestamp_ms,
             });
         };
@@ -300,7 +300,7 @@ module suins::auction {
     // === Events ===
 
     struct AuctionStartedEvent has copy, drop {
-        label: String,
+        domain: Domain,
         start_timestamp_ms: u64,
         end_timestamp_ms: u64,
         starting_bid: u64,
@@ -308,13 +308,13 @@ module suins::auction {
     }
 
     struct BidEvent has copy, drop {
-        label: String,
+        domain: Domain,
         bid: u64,
         bidder: address,
     }
 
     struct AuctionExtendedEvent has copy, drop {
-        label: String,
+        domain: Domain,
         end_timestamp_ms: u64,
     }
 }
