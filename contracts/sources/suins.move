@@ -24,8 +24,10 @@ module suins::suins {
     const EAppNotAuthorized: u64 = 2;
     /// Beep boop.
     const EDefaultDomainNameNotMatch: u64 = 3;
-    /// The RegistrationNFT has expired.
+    /// The `RegistrationNFT` has expired.
     const ENftExpired: u64 = 4;
+    /// Trying to use a `RegistrationNFT` that expired and was replaced.
+    const ENftIdNotMatch: u64 = 5;
 
     /// An admin capability. The admin has full control over the application.
     /// This object must be issued only once during module initialization.
@@ -82,7 +84,7 @@ module suins::suins {
     /// transaction. This is useful for the admin to withdraw funds from the SuiNS
     /// and then send them somewhere specific or keep at the address.
     public fun withdraw(_: &AdminCap, self: &mut SuiNS, ctx: &mut TxContext): Coin<SUI> {
-        let amount = balance(self);
+        let amount = balance::value(&self.balance);
         assert!(amount > 0, ENoProfits);
         coin::take(&mut self.balance, amount, ctx)
     }
@@ -118,14 +120,6 @@ module suins::suins {
     public fun app_uid_mut<App: drop>(_: App, self: &mut SuiNS): &mut UID {
         assert!(is_app_authorized<App>(self), EAppNotAuthorized);
         &mut self.id
-    }
-
-    /// Borrow configuration object. Read-only mode for applications.
-    public fun app_get_config_mut<App: drop, Config: store + drop>(
-        _: App, self: &mut SuiNS
-    ): &mut Config {
-        assert!(is_app_authorized<App>(self), EAppNotAuthorized);
-        df::borrow_mut(&mut self.id, ConfigKey<Config> {})
     }
 
     /// Add a new record to the SuiNS.
@@ -231,7 +225,7 @@ module suins::suins {
         let domain = nft::domain(token);
         let record = df::borrow(&self.registry, domain);
 
-        assert!(some(sender) == name_record::target_address(record), EDefaultDomainNameNotMatch); // TODO: error code
+        assert!(some(sender) == name_record::target_address(record), EDefaultDomainNameNotMatch);
 
         if (table::contains(&self.reverse_registry, sender)) {
             *table::borrow_mut(&mut self.reverse_registry, sender) = domain::to_string(&domain);
@@ -253,8 +247,6 @@ module suins::suins {
     }
 
     /// Mutable access to the name record.
-    /// TODO: add reverse registry methods to the name record when it is changed.
-    /// TODO: see `name_record` module for details.
     public fun name_record_mut<Record: store + drop>(
         self: &mut SuiNS, token: &RegistrationNFT, clock: &Clock
     ): &mut Record {
@@ -262,18 +254,14 @@ module suins::suins {
         df::borrow_mut(&mut self.registry, nft::domain(token))
     }
 
-    /// TODO: consider better name_record API.
+    /// Check if the `name_record` exists for the given `Domain`.
     public fun has_name_record(self: &SuiNS, domain: Domain): bool {
         df::exists_(&self.registry, domain)
     }
 
     // === Fields access ===
 
-    // not sure about exposing just UID yet!
-    public fun uid(self: &SuiNS): &UID { &self.id }
-    public fun registry(self: &SuiNS): &UID { &self.registry }
-    public fun reverse_registry(self: &SuiNS): &Table<address, String> { &self.reverse_registry }
-    public fun balance(self: &SuiNS): u64 { balance::value(&self.balance) }
+    // ... removing unless needed ...
 
     // === Friend and Private Functions ===
 

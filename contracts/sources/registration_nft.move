@@ -26,9 +26,7 @@ module suins::registration_nft {
         expires_at: u64
     }
 
-    /// Can only be called by the SuiNS, creates a new `RegistrationNFT`. By
-    /// default we set expiration timeout to 1 year (but this needs to be verified).
-    /// TODO: verify the expiration timeout.
+    /// Can only be called by the SuiNS, creates a new `RegistrationNFT`.
     public(friend) fun new(
         domain: Domain,
         no_years: u8,
