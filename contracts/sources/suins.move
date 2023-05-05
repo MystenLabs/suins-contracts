@@ -334,7 +334,9 @@ module suins::suins {
 
     #[test_only]
     /// Add a record for testing purposes.
-    public fun add_record_for_testing(self: &mut SuiNS, domain_name: String, owner: address) {
-        app_add_record(Test {}, self, domain_name, owner)
+    public fun add_record_for_testing(
+        self: &mut SuiNS, domain_name: String, clock: &Clock, ctx: &mut TxContext
+    ): RegistrationNFT {
+        app_add_record(Test {}, self, domain_name, clock, ctx)
     }
 }

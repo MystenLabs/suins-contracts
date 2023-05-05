@@ -8,6 +8,7 @@ module suins::promotion {
     use std::string::String;
     use sui::vec_map::{Self, VecMap};
     use sui::tx_context::{sender, TxContext};
+
     use suins::string_utils;
     use suins::constants;
 
@@ -19,7 +20,6 @@ module suins::promotion {
     const ENotExists: u64 = 2;
     /// Attempt to use Discount code that does not belong to the sender.
     const ENotOwner: u64 = 3;
-
 
     /// An object storing configuration for the promotion mechanics.
     /// Currently supported ones are referral and discount codes.

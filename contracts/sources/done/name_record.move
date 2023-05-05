@@ -30,7 +30,9 @@ module suins::name_record {
     }
 
     /// Create a new NameRecord.
-    public fun new(target_address: Option<address>, nft_id: ID, expires_at: u64): NameRecord {
+    public fun new(
+        target_address: Option<address>, nft_id: ID, expires_at: u64
+    ): NameRecord {
         NameRecord {
             target_address: target_address,
             data: vec_map::empty(),

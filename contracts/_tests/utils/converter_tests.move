@@ -1,6 +1,5 @@
 #[test_only]
 module suins::converter_tests {
-
     use suins::string_utils;
     use std::string::utf8;
 
