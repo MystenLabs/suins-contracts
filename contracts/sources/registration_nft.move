@@ -10,6 +10,7 @@ module suins::registration_nft {
     use sui::clock::{timestamp_ms, Clock};
 
     use suins::constants;
+    use suins::domain::Domain;
 
     // The one in only friend.
     friend suins::suins;
@@ -20,7 +21,7 @@ module suins::registration_nft {
         /// Short IPFS hash of the image to be displayed for the NFT.
         image_url: String,
         /// The domain name that the NFT is for.
-        domain_name: String,
+        domain: Domain,
         /// The expiration timestampt of the NFT.
         expires_at: u64
     }
@@ -29,12 +30,12 @@ module suins::registration_nft {
     /// default we set expiration timeout to 1 year (but this needs to be verified).
     /// TODO: verify the expiration timeout.
     public(friend) fun new(
-        domain_name: String,
+        domain: Domain,
         clock: &Clock,
         ctx: &mut TxContext
     ): RegistrationNFT {
         RegistrationNFT {
-            domain_name,
+            domain,
             id: object::new(ctx),
             image_url: constants::default_image(),
             expires_at: timestamp_ms(clock) + constants::year_ms()
@@ -61,8 +62,8 @@ module suins::registration_nft {
 
     // === Getters ===
 
-    /// Get the `domain_name` field of the `RegistrationNFT`.
-    public fun domain(self: &RegistrationNFT): String { self.domain_name }
+    /// Get the `domain` field of the `RegistrationNFT`.
+    public fun domain(self: &RegistrationNFT): Domain { self.domain }
 
     /// Get the `expires_at` field of the `RegistrationNFT`.
     public fun expires_at(self: &RegistrationNFT): u64 { self.expires_at }

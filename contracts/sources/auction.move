@@ -20,6 +20,7 @@ module suins::auction {
     use suins::string_utils;
     use suins::name_record;
     use suins::constants;
+    use suins::domain;
 
     const AUCTION_BIDDING_PERIOD_MS: u64 = 2 * 24 * 60 * 60 * 1000; // 2 days
     const AUCTION_MIN_QUIET_PERIOD_MS: u64 = 10 * 60 * 1000; // 10 minutes of quiet time
@@ -138,9 +139,11 @@ module suins::auction {
         string::append(&mut domain_name, utf8(b"."));
         string::append(&mut domain_name, constants::sui_tld());
 
+        let domain = domain::new(domain_name);
+
         // check that the domain is available by making either that there's no name_record yet
         // and there is but it expired more than the grace period ago :laughing:
-        if (suins::has_name_record(suins, domain_name)) {
+        if (suins::has_name_record(suins, domain)) {
             let record = suins::name_record(suins, domain_name);
             assert!(
                 (name_record::expires_at(record) + constants::grace_period_ms())
@@ -148,7 +151,8 @@ module suins::auction {
             , ELabelUnavailable);
         };
 
-        let nft = suins::app_add_record(App {}, suins, domain_name, clock, ctx);
+        let nft = suins::app_add_record(App {}, suins, domain, clock, ctx);
+
         // let nft = registrar::register_with_image_internal(
         //     suins,
         //     constants::sui_tld(),

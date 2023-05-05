@@ -4,6 +4,8 @@ module suins::admin {
     use std::string::String;
     use sui::clock::Clock;
     use sui::tx_context::TxContext;
+
+    use suins::domain;
     use suins::suins::{Self, AdminCap, SuiNS};
     use suins::registration_nft::RegistrationNFT;
 
@@ -14,7 +16,7 @@ module suins::admin {
     /// to protected functions. Must be called in order to use the rest
     /// of the functions.
     public fun authorize(cap: &AdminCap, suins: &mut SuiNS) {
-        suins::authorize_app<Admin>(cap, suins);
+        suins::authorize_app<Admin>(cap, suins)
     }
 
     /// Reserve a `domain` in the `SuiNS`.
@@ -25,6 +27,6 @@ module suins::admin {
         clock: &Clock,
         ctx: &mut TxContext
     ): RegistrationNFT {
-        suins::app_add_record(Admin {}, suins, domain, clock, ctx)
+        suins::app_add_record(Admin {}, suins, domain::new(domain), clock, ctx)
     }
 }

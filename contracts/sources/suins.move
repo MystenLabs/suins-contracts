@@ -14,6 +14,7 @@ module suins::suins {
 
     use suins::registration_nft::{Self as nft, RegistrationNFT};
     use suins::name_record::{Self, NameRecord};
+    use suins::domain::{Self, Domain};
 
     /// Trying to withdraw from an empty balance.
     const ENoProfits: u64 = 0;
@@ -129,22 +130,22 @@ module suins::suins {
 
     /// Add a new record to the SuiNS.
     public fun app_add_record<App: drop>(
-        _: App, self: &mut SuiNS, domain_name: String, clock: &Clock, ctx: &mut TxContext
+        _: App, self: &mut SuiNS, domain: Domain, clock: &Clock, ctx: &mut TxContext
     ): RegistrationNFT {
         let owner = sender(ctx);
-        let nft = nft::new(domain_name, clock, ctx);
+        let nft = nft::new(domain, clock, ctx);
 
         assert!(is_app_authorized<App>(self), EAppNotAuthorized);
         let name_record = name_record::new(some(owner), object::id(&nft), nft::expires_at(&nft));
-        if (has_name_record(self, domain_name)) {
-            let record = df::borrow_mut(&mut self.registry, domain_name);
+        if (has_name_record(self, domain)) {
+            let record = df::borrow_mut(&mut self.registry, domain);
             let old_target_address = name_record::target_address(record);
             *record = name_record;
 
-            handle_invalidate_reverse_record(self, domain_name, old_target_address, some(owner));
+            handle_invalidate_reverse_record(self, domain, old_target_address, some(owner));
         } else {
-            // table::add(&mut self.record_owner, domain_name, owner);
-            df::add(&mut self.registry, domain_name, name_record)
+            // table::add(&mut self.record_owner, domain, owner);
+            df::add(&mut self.registry, domain, name_record)
         };
 
         nft
@@ -183,64 +184,64 @@ module suins::suins {
     public fun set_target_address(self: &mut SuiNS, token: &RegistrationNFT, clock: &Clock, new_target: address) {
         assert!(!nft::has_expired_with_grace(token, clock), ENftExpired);
 
-        let domain_name = nft::domain(token);
-        let record: &mut NameRecord = df::borrow_mut(&mut self.registry, domain_name);
+        let domain = nft::domain(token);
+        let record: &mut NameRecord = df::borrow_mut(&mut self.registry, domain);
         let old_target = name_record::target_address(record);
 
         name_record::set_target_address(record, some(new_target));
-        handle_invalidate_reverse_record(self, domain_name, old_target, some(new_target));
+        handle_invalidate_reverse_record(self, domain, old_target, some(new_target));
     }
 
     public fun unset_target_address(self: &mut SuiNS, token: &RegistrationNFT, clock: &Clock) {
         assert!(!nft::has_expired_with_grace(token, clock), ENftExpired);
 
-        let domain_name = nft::domain(token);
-        let record: &mut NameRecord = df::borrow_mut(&mut self.registry, domain_name);
+        let domain = nft::domain(token);
+        let record: &mut NameRecord = df::borrow_mut(&mut self.registry, domain);
         let old_target = name_record::target_address(record);
 
         name_record::set_target_address(record, none());
-        handle_invalidate_reverse_record(self, domain_name, old_target, none());
+        handle_invalidate_reverse_record(self, domain, old_target, none());
     }
 
     // default domain name setting (address => domain lookup)
     // what do we expect form this feature?
 
-    public fun default_domain_name(self: &SuiNS, for: address): String {
+    public fun default_domain(self: &SuiNS, for: address): String {
         *table::borrow(&self.reverse_registry, for)
     }
 
-    public fun target_address(self: &SuiNS, domain_name: String): Option<address> {
-        name_record::target_address(df::borrow(&self.registry, domain_name))
+    public fun target_address(self: &SuiNS, domain: String): Option<address> {
+        name_record::target_address(df::borrow(&self.registry, domain))
     }
 
     // linking address and RegistrationNFT
 
-    public fun set_default_domain_name(self: &mut SuiNS, token: &RegistrationNFT, clock: &Clock, ctx: &mut TxContext) {
+    public fun set_default_domain(self: &mut SuiNS, token: &RegistrationNFT, clock: &Clock, ctx: &mut TxContext) {
         assert!(!nft::has_expired_with_grace(token, clock), ENftExpired);
 
         let sender = sender(ctx);
-        let default_domain = nft::domain(token);
-        let record = df::borrow(&self.registry, default_domain);
+        let domain = nft::domain(token);
+        let record = df::borrow(&self.registry, domain);
 
         assert!(some(sender) == name_record::target_address(record), EDefaultDomainNameNotMatch); // TODO: error code
 
         if (table::contains(&self.reverse_registry, sender)) {
-            *table::borrow_mut(&mut self.reverse_registry, sender) = default_domain;
+            *table::borrow_mut(&mut self.reverse_registry, sender) = domain::to_string(&domain);
         } else {
-            table::add(&mut self.reverse_registry, sender, default_domain);
+            table::add(&mut self.reverse_registry, sender, domain::to_string(&domain));
         };
     }
 
     // can be performed at any time, right? like I remove a record at my address?
-    public fun unset_default_domain_name(self: &mut SuiNS, ctx: &mut TxContext) {
+    public fun unset_default_domain(self: &mut SuiNS, ctx: &mut TxContext) {
         table::remove(&mut self.reverse_registry, sender(ctx));
     }
 
     // === Name Record ===
 
-    /// Read the `name_record` for the specified `domain_name`.
-    public fun name_record<Record: store + drop>(self: &SuiNS, domain_name: String): &Record {
-        df::borrow(&self.registry, domain_name)
+    /// Read the `name_record` for the specified `domain`.
+    public fun name_record<Record: store + drop>(self: &SuiNS, domain: String): &Record {
+        df::borrow(&self.registry, domain)
     }
 
     /// Mutable access to the name record.
@@ -254,8 +255,8 @@ module suins::suins {
     }
 
     /// TODO: consider better name_record API.
-    public fun has_name_record(self: &SuiNS, domain_name: String): bool {
-        df::exists_(&self.registry, domain_name)
+    public fun has_name_record(self: &SuiNS, domain: Domain): bool {
+        df::exists_(&self.registry, domain)
     }
 
     // === Fields access ===
@@ -270,7 +271,7 @@ module suins::suins {
 
     fun handle_invalidate_reverse_record(
         self: &mut SuiNS,
-        domain_name: String,
+        domain: Domain,
         old_target_address: Option<address>,
         new_target_address: Option<address>,
     ) {
@@ -286,8 +287,8 @@ module suins::suins {
         let reverse_registry = &mut self.reverse_registry;
 
         if (table::contains(reverse_registry, old_target_address)) {
-            let default_domain_name = table::borrow(reverse_registry, old_target_address);
-            if (*default_domain_name == domain_name) {
+            let default_domain = table::borrow(reverse_registry, old_target_address);
+            if (*default_domain == domain::to_string(&domain)) {
                 table::remove(reverse_registry, old_target_address);
             }
         };
@@ -337,6 +338,6 @@ module suins::suins {
     public fun add_record_for_testing(
         self: &mut SuiNS, domain_name: String, clock: &Clock, ctx: &mut TxContext
     ): RegistrationNFT {
-        app_add_record(Test {}, self, domain_name, clock, ctx)
+        app_add_record(Test {}, self, domain::new(domain_name), clock, ctx)
     }
 }
