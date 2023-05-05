@@ -1,7 +1,7 @@
-/// Temporarily moving `NameRecord` logic here until we figure out the
-/// best way to handle it.
-///
-/// This module is free from any non-framework dependencies.
+/// The `NameRecord` is a struct that represents a single record in the registry.
+/// Can be replaced by any other data structure due to the way `NameRecord`s are
+/// stored and managed. SuiNS has no direct and permanent dependency on this
+/// module.
 module suins::name_record {
     use std::option::Option;
     use std::string::String;

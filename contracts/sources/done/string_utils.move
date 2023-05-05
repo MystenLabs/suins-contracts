@@ -7,10 +7,10 @@ module suins::string_utils {
     use std::vector;
     use std::string::{Self, String};
 
-    /// TODO: Are we sure about error codes here?
-    const EInvalidLabel: u64 = 704;
+    /// Label did not pass validation.
+    const EInvalidLabel: u64 = 0;
     /// Emitted when the input string is not a valid number.
-    const EInvalidNumber: u64 = 601;
+    const EInvalidNumber: u64 = 1;
 
     /// Validate a given label, make sure that the length of the input string
     /// fits into the given range and that the characters are valid.
@@ -32,8 +32,8 @@ module suins::string_utils {
         while (index < len) {
             let character = *vector::borrow(label_bytes, index);
             assert!(
-                (0x61 <= character && character <= 0x7A)                           // a-z
-                    || (0x30 <= character && character <= 0x39)                    // 0-9
+                (0x61 <= character && character <= 0x7A             // a-z
+                    || (0x30 <= character && character <= 0x39)     // 0-9
                     || (character == 0x2D && index != 0 && index != len - 1),
                 EInvalidLabel
             );
