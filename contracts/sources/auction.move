@@ -19,7 +19,7 @@ module suins::auction {
     use suins::string_utils;
     use suins::name_record;
     use suins::constants;
-    use suins::domain;
+    use suins::domain::{Self, Domain};
 
     /// One year is the default duration for a domain.
     const DEFAULT_DURATION: u8 = 1;
@@ -47,7 +47,7 @@ module suins::auction {
     struct App has drop {}
 
     struct Auction has store {
-        domain: String, // TODO or is this a label???
+        domain: Domain,
         start_timestamp_ms: u64,
         end_timestamp_ms: u64,
         winner: address,
@@ -64,32 +64,6 @@ module suins::auction {
     }
 
     /// #### Notice
-    /// The admin uses this function to establish configuration parameters.
-    /// It is intended solely for use during the development phase.
-    ///
-    /// #### Params
-    /// `start_at`: epoch at which all names are available for auction.
-    ///
-    /// Panics
-    /// Panics if current epoch is less than or equal `start_at`
-    // public fun configure_auction(
-    //     _: &AdminCap,
-    //     suins: &mut SuiNS,
-    //     start_at: u64,
-    //     ctx: &mut TxContext
-    // ) {
-    //     assert!(tx_context::epoch(ctx) <= start_at, EInvalidConfigParam);
-
-    //     let auction_house = AuctionHouse {
-    //         auctions: linked_table::new(ctx),
-    //         start_at,
-    //     };
-
-    //     *controller::auction_house_finalized_at_mut(suins) = auction_house_close_at(&auction_house);
-    //     df::add(suins::app_uid_mut(App {}, suins), AuctionHouseKey {}, auction_house);
-    // }
-
-    /// #### Notice
     /// Bidders use this function to place a new bid.
     /// If there's no auction for `label`, starts a new auction.
     /// They transfer a payment of coins with a value equal to the bid value.
@@ -101,24 +75,29 @@ module suins::auction {
     /// or not in auction period
     public fun place_bid(
         suins: &mut SuiNS,
-        label: String,
+        domain_name: Domain,
         bid_value: u64,
         payment: &mut Coin<SUI>,
         clock: &Clock,
         ctx: &mut TxContext
     ) {
-        string_utils::validate_label(label, constants::min_domain_length(), constants::max_domain_length());
+        let domain = domain::new(domain_name);
+        let label = vector::borrow(domain::labels(&domain), 0);
         let bid = balance::split(coin::balance_mut(payment), bid_value);
 
+        // make sure the domain is a .sui domain and not a subdomain
+        assert!(domain::tld(&domain) == constants::sui_tld(), 0);
+        assert!(domain::labels_len(&domain) == 2, 0);
+
         // Check to see if there isn't an existing auction going on for this domain
-        if (!linked_table::contains(&auction_house_mut(suins).auctions, label)) {
+        if (!linked_table::contains(&auction_house_mut(suins).auctions, domain)) {
             // The minnimum price only applies to newly created auctions
             let config = suins::get_config<Config>(suins);
             let min_price = config::calculate_price(config, (string::length(&label) as u8), 1);
             assert!(balance::value(&bid) >= min_price, EInvalidBidValue);
 
             let auction = start_new_auction(suins, label, bid, clock, ctx);
-            linked_table::push_back(&mut auction_house_mut(suins).auctions, label, auction);
+            linked_table::push_back(&mut auction_house_mut(suins).auctions, domain, auction);
             return
         };
 
@@ -127,22 +106,11 @@ module suins::auction {
 
     fun start_new_auction(
         suins: &mut SuiNS,
-        label: String,
+        domain: Domain,
         bid: Balance<SUI>,
         clock: &Clock,
         ctx: &mut TxContext
     ): Auction {
-        // assert!(registrar::is_available(suins, constants::sui_tld(), label, ctx), ELabelUnavailable);
-
-        // TODO: DOMAIN
-        // build domain from label + tld
-        // currently just pass a label
-        let domain_name = copy label;
-        string::append(&mut domain_name, utf8(b"."));
-        string::append(&mut domain_name, constants::sui_tld());
-
-        let domain = domain::new(domain_name);
-
         // check that the domain is available by making either that there's no name_record yet
         // and there is but it expired more than the grace period ago :laughing:
         if (suins::has_name_record(suins, domain)) {
@@ -165,7 +133,7 @@ module suins::auction {
         );
 
         let auction = Auction {
-            domain: label,
+            domain,
             start_timestamp_ms: clock::timestamp_ms(clock),
             end_timestamp_ms: clock::timestamp_ms(clock) + AUCTION_BIDDING_PERIOD_MS,
             winner: tx_context::sender(ctx),
@@ -235,11 +203,12 @@ module suins::auction {
     /// sender has never placed a bid or they are the winner of the bid
     public fun withdraw(
         suins: &mut SuiNS,
-        label: String,
+        domain_name: String,
         ctx: &mut TxContext
     ): Coin<SUI> {
+        let domain = domain::new(domain_name);
         let auction_house = auction_house_mut(suins);
-        let auction = linked_table::borrow_mut(&mut auction_house.auctions, label);
+        let auction = linked_table::borrow_mut(&mut auction_house.auctions, domain);
 
         // Ensure the sender isn't the winner, winners cannot withdraw their bids
         assert!(tx_context::sender(ctx) != auction.winner, 0);
@@ -255,12 +224,13 @@ module suins::auction {
     /// sender is not the winner
     public fun claim(
         suins: &mut SuiNS,
-        label: String,
+        domain_name: String,
         clock: &Clock,
         ctx: &mut TxContext
     ): RegistrationNFT {
+        let domain = domain::new(domain_name);
         let auction_house = auction_house_mut(suins);
-        let auction = linked_table::borrow_mut(&mut auction_house.auctions, label);
+        let auction = linked_table::borrow_mut(&mut auction_house.auctions, domain);
 
         // Ensure that the auction is over
         assert!(clock::timestamp_ms(clock) > auction.end_timestamp_ms, 0);
@@ -272,8 +242,8 @@ module suins::auction {
         // and sending the proceeds of the auction to suins
         let nft = option::extract(&mut auction.nft);
         let bid = linked_table::remove(&mut auction.bids, tx_context::sender(ctx));
-        send_to_suins(suins, bid);
 
+        suins::app_add_balance(App {}, suins, bid);
         nft
     }
 
@@ -322,13 +292,6 @@ module suins::auction {
     }
 
     // === Transfers ===
-
-    fun send_to_suins(
-        suins: &mut SuiNS,
-        balance: Balance<SUI>,
-    ) {
-        suins::app_add_balance(App {}, suins, balance)
-    }
 
     fun auction_house_mut(suins: &mut SuiNS): &mut AuctionHouse {
         df::borrow_mut(suins::app_uid_mut(App {}, suins), AuctionHouseKey {})

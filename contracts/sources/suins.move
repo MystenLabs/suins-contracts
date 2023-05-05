@@ -92,7 +92,7 @@ module suins::suins {
     // === App Auth ===
 
     /// An authorization Key kept in the SuiNS - allows applications access
-    /// protected features of the SuiNS (such as add_to_balance, add_record
+    /// protected features of the SuiNS (such as app_add_balance, app_add_record
     /// etc.)
     /// The `App` type parameter is a witness which should be defined in the
     /// original module (Controller, Registry, Registrar - whatever).
