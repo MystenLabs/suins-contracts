@@ -23,7 +23,7 @@ module suins::admin {
     public fun reserve_domain(
         _: &AdminCap,
         suins: &mut SuiNS,
-        domain: String,
+        domain_name: String,
         clock: &Clock,
         ctx: &mut TxContext
     ): RegistrationNFT {

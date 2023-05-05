@@ -1,6 +1,6 @@
 /// Copying controller logic here to see what we can do with it.
 /// Stores the main user interaction logic (except for the Auction).
-module suins::controller {
+module suins_v2::controller {
     use std::vector;
     use std::string::{Self, String};
     use sui::coin::{Self, Coin};

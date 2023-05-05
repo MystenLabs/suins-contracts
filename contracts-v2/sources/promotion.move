@@ -4,7 +4,7 @@
 /// Serves its purpose, does not affect any public signatures of the suins nor
 /// Auction nor anything else, so can safely be injected or ejected whenever
 /// needed.
-module suins::promotion {
+module suins_v2::promotion {
     use std::string::String;
     use sui::vec_map::{Self, VecMap};
     use sui::tx_context::{sender, TxContext};

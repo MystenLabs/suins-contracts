@@ -11,7 +11,7 @@ module suins::registration_nft {
     use sui::bcs;
 
     use suins::constants;
-    use suins::domain::Domain;
+    use suins::domain::{Self, Domain};
 
     // The one in only friend.
     friend suins::suins;
@@ -62,17 +62,17 @@ module suins::registration_nft {
     ///
     public fun update_image(
         self: &mut RegistrationNFT,
-        signature: vector<u8>,
-        hashed_msg: vector<u8>,
+        _signature: vector<u8>,
+        _hashed_msg: vector<u8>,
         raw_msg: vector<u8>,
         clock: &Clock,
-        ctx: &mut TxContext,
+        _ctx: &mut TxContext,
     ) {
         // cryptography bits
         // TODO: need to get access to `public_key` here - how?
         // HINT: search `assert_image_msg_match` to find the function
 
-        let (ipfs_hash, domain_name, expires_at, data) = bcs_to_image_data(raw_msg);
+        let (ipfs_hash, domain_name, expires_at, _data) = bcs_to_image_data(raw_msg);
 
         assert!(!has_expired(self, clock), EExpired);
         assert!(self.expires_at == expires_at, EInvalidData);

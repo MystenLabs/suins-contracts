@@ -32,7 +32,7 @@ module suins::string_utils {
         while (index < len) {
             let character = *vector::borrow(label_bytes, index);
             assert!(
-                (0x61 <= character && character <= 0x7A             // a-z
+                (0x61 <= character && character <= 0x7A)            // a-z
                     || (0x30 <= character && character <= 0x39)     // 0-9
                     || (character == 0x2D && index != 0 && index != len - 1),
                 EInvalidLabel

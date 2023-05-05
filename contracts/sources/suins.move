@@ -246,22 +246,18 @@ module suins::suins {
         df::borrow(&self.registry, domain)
     }
 
-    /// Mutable access to the name record.
-    public fun name_record_mut<Record: store + drop>(
-        self: &mut SuiNS, token: &RegistrationNFT, clock: &Clock
-    ): &mut Record {
-        assert!(!nft::has_expired_with_grace(token, clock), ENftExpired);
-        df::borrow_mut(&mut self.registry, nft::domain(token))
-    }
+    // /// Mutable access to the name record.
+    // public fun name_record_mut<Record: store + drop>(
+    //     self: &mut SuiNS, token: &RegistrationNFT, clock: &Clock
+    // ): &mut Record {
+    //     assert!(!nft::has_expired_with_grace(token, clock), ENftExpired);
+    //     df::borrow_mut(&mut self.registry, nft::domain(token))
+    // }
 
     /// Check if the `name_record` exists for the given `Domain`.
     public fun has_name_record(self: &SuiNS, domain: Domain): bool {
         df::exists_(&self.registry, domain)
     }
-
-    // === Fields access ===
-
-    // ... removing unless needed ...
 
     // === Friend and Private Functions ===
 
@@ -293,7 +289,6 @@ module suins::suins {
     // === Testing ===
 
     #[test_only] use suins::config;
-    #[test_only] use suins::promotion;
     #[test_only] struct Test has drop {}
 
     #[test_only]
@@ -308,7 +303,6 @@ module suins::suins {
         };
 
         authorize_app<Test>(&admin_cap, &mut suins);
-        add_config(&admin_cap, &mut suins, promotion::new());
         add_config(&admin_cap, &mut suins, config::new(
             vector[],
             1200 * suins::constants::mist_per_sui(),

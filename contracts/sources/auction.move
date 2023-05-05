@@ -6,7 +6,6 @@ module suins::auction {
 
     use sui::tx_context::{Self, TxContext};
     use sui::balance::{Self, Balance};
-    // use sui::object::{Self, UID};
     use sui::coin::{Self, Coin};
     use sui::clock::{Self, Clock};
     use sui::event;
@@ -21,6 +20,9 @@ module suins::auction {
     use suins::name_record;
     use suins::constants;
     use suins::domain;
+
+    /// One year is the default duration for a domain.
+    const DEFAULT_DURATION: u8 = 1;
 
     const AUCTION_BIDDING_PERIOD_MS: u64 = 2 * 24 * 60 * 60 * 1000; // 2 days
     const AUCTION_MIN_QUIET_PERIOD_MS: u64 = 10 * 60 * 1000; // 10 minutes of quiet time
@@ -151,17 +153,7 @@ module suins::auction {
             , ELabelUnavailable);
         };
 
-        let nft = suins::app_add_record(App {}, suins, domain, 1, clock, ctx);
-
-        // let nft = registrar::register_with_image_internal(
-        //     suins,
-        //     constants::sui_tld(),
-        //     label,
-        //     @0x0,
-        //     365,
-        //     ctx,
-        // );
-
+        let nft = suins::app_add_record(App {}, suins, domain, DEFAULT_DURATION, clock, ctx);
         let starting_bid = balance::value(&bid);
         let bids = linked_table::new(ctx);
 
