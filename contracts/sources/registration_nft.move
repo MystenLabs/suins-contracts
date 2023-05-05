@@ -31,6 +31,7 @@ module suins::registration_nft {
     /// TODO: verify the expiration timeout.
     public(friend) fun new(
         domain: Domain,
+        no_years: u8,
         clock: &Clock,
         ctx: &mut TxContext
     ): RegistrationNFT {
@@ -38,7 +39,7 @@ module suins::registration_nft {
             domain,
             id: object::new(ctx),
             image_url: constants::default_image(),
-            expires_at: timestamp_ms(clock) + constants::year_ms()
+            expires_at: timestamp_ms(clock) + ((no_years as u64) * constants::year_ms())
         }
     }
 

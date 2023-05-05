@@ -26,37 +26,7 @@
 //     use suins::constants;
 //     use suins::promotion::{Self, Promotion};
 
-//     // errors in the range of 301..400 indicate Sui Controller errors
-//     const ENotEnoughFee: u64 = 305;
-//     const EInvalidDuration: u64 = 306;
-//     const ELabelUnavailable: u64 = 308;
-//     const EInvalidCode: u64 = 311;
-//     const ERegistrationIsDisabled: u64 = 312;
-//     const EInvalidDomain: u64 = 314;
-//     const EAuctionNotEndYet: u64 = 316;
-//     const EInvalidNoYears: u64 = 317;
 
-//     friend suins::auction;
-
-//     struct Controller has store {
-//         /// set by `configure_auction`
-//         /// the last epoch when bidder can call `finalize_auction`
-//         auction_house_finalized_at: u64,
-//     }
-
-//     /// Controller witness.
-//     struct App has drop {}
-
-//     /// Key to use when attaching a Controller.
-//     struct ControllerKey has copy, store, drop {}
-
-//     /// Harmless function to create a new Controller and attach it to the SuiNS.
-//     /// Can only be performed once.
-//     public fun add_to_suins(suins: &mut SuiNS, _ctx: &mut TxContext) {
-//         df::add(suins::app_uid_mut(App {}, suins), ControllerKey {}, Controller {
-//             auction_house_finalized_at: constants::max_epoch_allowed(),
-//         })
-//     }
 
 //     /// #### Notice
 //     /// Responsible for label validation, registration and chargin payment

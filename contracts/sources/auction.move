@@ -144,14 +144,14 @@ module suins::auction {
         // check that the domain is available by making either that there's no name_record yet
         // and there is but it expired more than the grace period ago :laughing:
         if (suins::has_name_record(suins, domain)) {
-            let record = suins::name_record(suins, domain_name);
+            let record = suins::name_record(suins, domain);
             assert!(
                 (name_record::expires_at(record) + constants::grace_period_ms())
                 < clock::timestamp_ms(clock)
             , ELabelUnavailable);
         };
 
-        let nft = suins::app_add_record(App {}, suins, domain, clock, ctx);
+        let nft = suins::app_add_record(App {}, suins, domain, 1, clock, ctx);
 
         // let nft = registrar::register_with_image_internal(
         //     suins,

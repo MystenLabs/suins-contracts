@@ -2,18 +2,15 @@
 /// best way to handle it.
 ///
 /// This module is free from any non-framework dependencies.
-///
-/// Thoughts:
-/// - we may change the table inside the SuiNS to a direct dynamic field
-/// this way we don't overpopulate the SuiNS with too many type restrictions
-/// and can change the format of the NameRecord later on (eg discard the use
-/// of this module completely)
-/// - having NameRecord flexible can save us a lot of headaches in the future
 module suins::name_record {
     use std::option::Option;
     use std::string::String;
+
+    use sui::clock::{timestamp_ms, Clock};
     use sui::vec_map::{Self, VecMap};
     use sui::object::ID;
+
+    use suins::constants;
 
     /// A single record in the registry.
     struct NameRecord has copy, store, drop {
@@ -64,6 +61,11 @@ module suins::name_record {
     }
 
     // === Getters ===
+
+    /// Check if the record has expired (including the grace period).
+    public fun has_expired(self: &NameRecord, clock: &Clock): bool {
+        (self.expires_at + constants::grace_period_ms()) < timestamp_ms(clock)
+    }
 
     /// Read the `data` field from the `NameRecord`.
     public fun data(self: &NameRecord): &VecMap<String, String> { &self.data }

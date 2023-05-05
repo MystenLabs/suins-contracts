@@ -129,11 +129,17 @@ module suins::suins {
     }
 
     /// Add a new record to the SuiNS.
+    /// The only way to register new records and create `RegistrationNFT`s.
     public fun app_add_record<App: drop>(
-        _: App, self: &mut SuiNS, domain: Domain, clock: &Clock, ctx: &mut TxContext
+        _: App,
+        self: &mut SuiNS,
+        domain: Domain,
+        no_years: u8,
+        clock: &Clock,
+        ctx: &mut TxContext
     ): RegistrationNFT {
         let owner = sender(ctx);
-        let nft = nft::new(domain, clock, ctx);
+        let nft = nft::new(domain, no_years, clock, ctx);
 
         assert!(is_app_authorized<App>(self), EAppNotAuthorized);
         let name_record = name_record::new(some(owner), object::id(&nft), nft::expires_at(&nft));
@@ -181,7 +187,9 @@ module suins::suins {
 
     // === Ex Registry Code ===
 
-    public fun set_target_address(self: &mut SuiNS, token: &RegistrationNFT, clock: &Clock, new_target: address) {
+    public fun set_target_address(
+        self: &mut SuiNS, token: &RegistrationNFT, clock: &Clock, new_target: address
+    ) {
         assert!(!nft::has_expired_with_grace(token, clock), ENftExpired);
 
         let domain = nft::domain(token);
@@ -240,7 +248,7 @@ module suins::suins {
     // === Name Record ===
 
     /// Read the `name_record` for the specified `domain`.
-    public fun name_record<Record: store + drop>(self: &SuiNS, domain: String): &Record {
+    public fun name_record<Record: store + drop>(self: &SuiNS, domain: Domain): &Record {
         df::borrow(&self.registry, domain)
     }
 
@@ -338,6 +346,6 @@ module suins::suins {
     public fun add_record_for_testing(
         self: &mut SuiNS, domain_name: String, clock: &Clock, ctx: &mut TxContext
     ): RegistrationNFT {
-        app_add_record(Test {}, self, domain::new(domain_name), clock, ctx)
+        app_add_record(Test {}, self, domain::new(domain_name), 1, clock, ctx)
     }
 }

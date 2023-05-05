@@ -12,13 +12,14 @@ module suins::name_data {
     use suins::name_record::{Self, NameRecord};
     use suins::registration_nft::RegistrationNFT;
     use suins::suins::{Self, SuiNS};
+    use suins::domain;
 
     /// Get the data from the NameRecord.
     public fun get(
         suins: &SuiNS,
         domain_name: String
     ): &VecMap<String, String> {
-        name_record::data(suins::name_record<NameRecord>(suins, domain_name))
+        name_record::data(suins::name_record<NameRecord>(suins, domain::new(domain_name)))
     }
 
     /// Set the data in the NameRecord.

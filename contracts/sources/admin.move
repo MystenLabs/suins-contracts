@@ -27,6 +27,6 @@ module suins::admin {
         clock: &Clock,
         ctx: &mut TxContext
     ): RegistrationNFT {
-        suins::app_add_record(Admin {}, suins, domain::new(domain), clock, ctx)
+        suins::app_add_record(Admin {}, suins, domain::new(domain), 1, clock, ctx)
     }
 }
