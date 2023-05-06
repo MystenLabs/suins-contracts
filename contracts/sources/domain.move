@@ -34,6 +34,8 @@ module suins::domain {
 
     /// Construct a new `Domain` instance from a vector of labels (and a TLD).
     /// Each label is validated to ensure it is a valid domain label.
+    ///
+    /// TODO: currently not used;
     public fun from_vector(labels: vector<String>): Domain {
         validate_labels(&labels);
         Domain {

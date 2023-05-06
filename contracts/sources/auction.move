@@ -64,9 +64,7 @@ module suins::auction {
         nft: Option<RegistrationNFT>,
     }
 
-    // /// Key to use when attaching a AuctionHouse.
-    // struct AuctionHouseKey has copy, store, drop {}
-
+    /// The AuctionHouse application.
     struct AuctionHouse has key, store {
         id: UID,
         balance: Balance<SUI>,
@@ -97,9 +95,8 @@ module suins::auction {
         let label = vector::borrow(domain::labels(&domain), 0);
 
         // make sure the domain is a .sui domain and not a subdomain
-        assert!(domain::tld(&domain) == &constants::sui_tld(), EIncorrectDomain);
-        assert!(domain::labels_len(&domain) == 2, 0);
-
+        assert!(domain::labels_len(&domain) == 2, EIncorrectDomain);
+        assert!(domain::tld(&domain) == &constants::sui_tld(), EIncorrectDomain);)
         assert!(!linked_table::contains(&self.auctions, domain), EAuctionStarted);
 
         // The minnimum price only applies to newly created auctions
@@ -148,13 +145,14 @@ module suins::auction {
     ): Auction {
         // check that the domain is available by making either that there's no name_record yet
         // and there is but it expired more than the grace period ago :laughing:
-        if (suins::has_name_record(suins, domain)) {
-            let record = suins::name_record(suins, domain);
-            assert!(
-                (name_record::expires_at(record) + constants::grace_period_ms())
-                < clock::timestamp_ms(clock)
-            , ELabelUnavailable);
-        };
+        assert!(!suins::has_name_record(suins, domain), ELabelUnavailable);
+        // if () {
+        //     let record = suins::name_record(suins, domain);
+        //     assert!(
+        //         (name_record::expires_at(record) + constants::grace_period_ms())
+        //         < clock::timestamp_ms(clock)
+        //     , ELabelUnavailable);
+        // };
 
         let nft = suins::app_add_record(App {}, suins, domain, DEFAULT_DURATION, clock, ctx);
         let starting_bid = balance::value(&bid);
