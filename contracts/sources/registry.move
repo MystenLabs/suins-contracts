@@ -11,8 +11,10 @@ module suins::registry {
     use suins::name_record::{Self, NameRecord};
     use suins::domain::{Self, Domain};
 
-    friend suins::suins;
+    friend suins::admin;
+    friend suins::auction;
     friend suins::controller;
+    friend suins::suins;
 
     /// The `RegistrationNFT` has expired.
     const ENftExpired: u64 = 4;

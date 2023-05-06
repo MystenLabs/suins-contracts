@@ -4,15 +4,8 @@ module suins::suins {
     use sui::coin::{Self, Coin};
     use sui::dynamic_field as df;
     use sui::object::{Self, UID};
-    use sui::clock::Clock;
     use sui::transfer;
     use sui::sui::SUI;
-
-    use suins::registration_nft::RegistrationNFT;
-    use suins::domain::Domain;
-
-    //TODO the entry points should be moved to a "controller" module
-    use suins::registry::{Self, Registry};
 
     /// Trying to withdraw from an empty balance.
     const ENoProfits: u64 = 0;
@@ -90,8 +83,7 @@ module suins::suins {
     // === App Auth ===
 
     /// An authorization Key kept in the SuiNS - allows applications access
-    /// protected features of the SuiNS (such as app_add_balance, app_add_record
-    /// etc.)
+    /// protected features of the SuiNS (such as app_add_balance, etc.)
     /// The `App` type parameter is a witness which should be defined in the
     /// original module (Controller, Registry, Registrar - whatever).
     struct AppKey<phantom App: drop> has copy, store, drop {}
@@ -122,21 +114,6 @@ module suins::suins {
     public fun app_uid_mut<App: drop>(_: App, self: &mut SuiNS): &mut UID {
         assert!(is_app_authorized<App>(self), EAppNotAuthorized);
         &mut self.id
-    }
-
-    /// Add a new record to the SuiNS.
-    /// The only way to register new records and create `RegistrationNFT`s.
-    public fun app_add_record<App: drop>(
-        _: App,
-        self: &mut SuiNS,
-        domain: Domain,
-        no_years: u8,
-        clock: &Clock,
-        ctx: &mut TxContext
-    ): RegistrationNFT {
-        assert!(is_app_authorized<App>(self), EAppNotAuthorized);
-        let registry = df::borrow_mut(&mut self.id, RegistryKey<Registry> {});
-        registry::add_record(registry, domain, no_years, clock, ctx)
     }
 
     /// Adds balance to the SuiNS.
@@ -191,7 +168,10 @@ module suins::suins {
     // === Testing ===
 
     #[test_only] use std::string::String;
+    #[test_only] use sui::clock::Clock;
+    #[test_only] use suins::registry::{Self, Registry};
     #[test_only] use suins::config;
+    #[test_only] use suins::registration_nft::RegistrationNFT;
     #[test_only] use suins::domain;
     #[test_only] struct Test has drop {}
 
@@ -231,6 +211,7 @@ module suins::suins {
     public fun add_record_for_testing(
         self: &mut SuiNS, domain_name: String, clock: &Clock, ctx: &mut TxContext
     ): RegistrationNFT {
-        app_add_record(Test {}, self, domain::new(domain_name), 1, clock, ctx)
+        let registry = registry_mut<Registry, Test>(self, Test {});
+        registry::add_record(registry, domain::new(domain_name), 1, clock, ctx)
     }
 }
