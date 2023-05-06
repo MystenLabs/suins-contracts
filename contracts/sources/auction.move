@@ -17,7 +17,6 @@ module suins::auction {
     use suins::config::{Self, Config};
     use suins::suins::{Self, AdminCap, SuiNS};
     use suins::registration_nft::RegistrationNFT;
-    use suins::name_record;
     use suins::constants;
     use suins::domain::{Self, Domain};
 
@@ -96,7 +95,7 @@ module suins::auction {
 
         // make sure the domain is a .sui domain and not a subdomain
         assert!(domain::labels_len(&domain) == 2, EIncorrectDomain);
-        assert!(domain::tld(&domain) == &constants::sui_tld(), EIncorrectDomain);)
+        assert!(domain::tld(&domain) == &constants::sui_tld(), EIncorrectDomain);
         assert!(!linked_table::contains(&self.auctions, domain), EAuctionStarted);
 
         // The minnimum price only applies to newly created auctions
