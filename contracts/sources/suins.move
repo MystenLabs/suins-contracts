@@ -114,6 +114,10 @@ module suins::suins {
         df::exists_(&self.id, AppKey<App>{})
     }
 
+    public fun assert_app_is_authorized<App: drop>(self: &SuiNS) {
+        assert!(is_app_authorized<App>(self), EAppNotAuthorized);
+    }
+
     // === Protected features ===
 
     /// Mutable access to `SuiNS.UID` for authorized applications.
