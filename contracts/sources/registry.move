@@ -12,6 +12,7 @@ module suins::registry {
     use suins::domain::{Self, Domain};
 
     friend suins::suins;
+    friend suins::controller;
 
     /// The `RegistrationNFT` has expired.
     const ENftExpired: u64 = 4;
@@ -76,6 +77,7 @@ module suins::registry {
         nft
     }
 
+    //TODO: think about doing the nft checks outside in the Controller
     public(friend) fun set_target_address(
         self: &mut Registry,
         nft: &RegistrationNFT,

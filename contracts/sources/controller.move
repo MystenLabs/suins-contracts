@@ -2,9 +2,10 @@
 /// Stores the main user interaction logic (except for the Auction).
 module suins::controller {
     use std::vector;
+    use std::option::Option;
     use std::string::{utf8, String};
     // use sui::coin::{Self, Coin};
-    use sui::tx_context::TxContext;
+    use sui::tx_context::{sender, TxContext};
     // use sui::clock::{timestamp_ms, Clock};
     use sui::clock::Clock;
     // use sui::sui::SUI;
@@ -15,9 +16,10 @@ module suins::controller {
     use suins::domain;
     // use suins::constants;
     // use suins::name_record;
-    // use suins::registry::{Self, Registry};
+    use suins::registry::{Self, Registry};
     use suins::suins::{Self, SuiNS};
     use suins::config::{Self, Config};
+    use suins::domain::Domain;
     use suins::registration_nft::{Self as nft, RegistrationNFT};
 
     /// Number of years passed is not within [1-5] interval.
@@ -45,7 +47,7 @@ module suins::controller {
 
 
     /// Authorization token for the app.
-    struct RegistrationApp has drop {}
+    struct App has drop {}
 
     // Allows direct purchases on domains longer than 5 symbols (6+ symbols).
     //
@@ -123,6 +125,32 @@ module suins::controller {
     //     suins::app_add_balance(App {}, suins, coin::into_balance(payment));
     //     // update the record
     // }
+
+    // === Update Records Functionality ===
+
+    public fun set_target_address(
+        suins: &mut SuiNS,
+        nft: &RegistrationNFT,
+        new_target: Option<address>,
+        clock: &Clock,
+    ) {
+        suins::assert_app_is_authorized<App>(suins);
+
+        let registry = suins::registry_mut<Registry, App>(suins, App {});
+        registry::set_target_address(registry, nft, new_target, clock);
+    }
+
+    public fun set_reverse_lookup(
+        suins: &mut SuiNS,
+        domain: Option<Domain>,
+        ctx: &TxContext,
+    ) {
+        suins::assert_app_is_authorized<App>(suins);
+
+        let registry = suins::registry_mut<Registry, App>(suins, App {});
+        let sender = sender(ctx);
+        registry::set_reverse_lookup(registry, sender, domain);
+    }
 
     // === Update Image Functionality ===
 

@@ -1,7 +1,5 @@
 module suins::suins {
-    use std::option::Option;
-
-    use sui::tx_context::{sender, Self, TxContext};
+    use sui::tx_context::{Self, TxContext};
     use sui::balance::{Self, Balance};
     use sui::coin::{Self, Coin};
     use sui::dynamic_field as df;
@@ -137,7 +135,7 @@ module suins::suins {
         ctx: &mut TxContext
     ): RegistrationNFT {
         assert!(is_app_authorized<App>(self), EAppNotAuthorized);
-        let registry = registry_mut<Registry>(self);
+        let registry = df::borrow_mut(&mut self.id, RegistryKey<Registry> {});
         registry::add_record(registry, domain, no_years, clock, ctx)
     }
 
@@ -175,7 +173,8 @@ module suins::suins {
         df::borrow(&self.id, RegistryKey<R> {})
     }
 
-    public(friend) fun registry_mut<R: store>(self: &mut SuiNS): &mut R {
+    public fun registry_mut<R: store, App: drop>(self: &mut SuiNS, _: App): &mut R {
+        assert_app_is_authorized<App>(self);
         df::borrow_mut(&mut self.id, RegistryKey<R> {})
     }
 
@@ -185,28 +184,6 @@ module suins::suins {
 
     fun remove_registry<R: store>(_: &AdminCap, self: &mut SuiNS): R {
         df::remove(&mut self.id, RegistryKey<R> {})
-    }
-
-    // === Ex Registry Code ===
-
-    public fun set_target_address(
-        self: &mut SuiNS,
-        nft: &RegistrationNFT,
-        new_target: Option<address>,
-        clock: &Clock,
-    ) {
-        let registry = registry_mut<Registry>(self);
-        registry::set_target_address(registry, nft, new_target, clock);
-    }
-
-    public fun set_reverse_lookup(
-        self: &mut SuiNS,
-        domain: Option<Domain>,
-        ctx: &TxContext,
-    ) {
-        let registry = registry_mut<Registry>(self);
-        let sender = sender(ctx);
-        registry::set_reverse_lookup(registry, sender, domain);
     }
 
     // === Friend and Private Functions ===
