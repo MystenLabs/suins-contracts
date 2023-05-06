@@ -47,6 +47,8 @@ module suins::auction {
     const EAuctionStarted: u64 = 6;
     /// Placing a bid in a not started
     const EAuctionNotStarted: u64 = 7;
+    /// The domain is not a .sui domain.
+    const EIncorrectDomain: u64 = 8;
 
     /// Authorization witness to call protected functions of suins.
     struct App has drop {}
@@ -95,7 +97,7 @@ module suins::auction {
         let label = vector::borrow(domain::labels(&domain), 0);
 
         // make sure the domain is a .sui domain and not a subdomain
-        assert!(domain::tld(&domain) == &constants::sui_tld(), 0);
+        assert!(domain::tld(&domain) == &constants::sui_tld(), EIncorrectDomain);
         assert!(domain::labels_len(&domain) == 2, 0);
 
         assert!(!linked_table::contains(&self.auctions, domain), EAuctionStarted);
