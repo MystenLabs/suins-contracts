@@ -28,7 +28,18 @@ module suins::domain {
         let labels = split_by_dot(domain);
         validate_labels(&labels);
         Domain {
-            labels,
+            labels
+        }
+    }
+
+    /// Construct a new `Domain` instance from a vector of labels (and a TLD).
+    /// Each label is validated to ensure it is a valid domain label.
+    ///
+    /// TODO: currently not used;
+    public fun from_vector(labels: vector<String>): Domain {
+        validate_labels(&labels);
+        Domain {
+            labels
         }
     }
 
@@ -59,6 +70,11 @@ module suins::domain {
 
     public fun labels(self: &Domain): &vector<String> {
         &self.labels
+    }
+
+    /// TODO: consider renaming, very common function
+    public fun labels_len(self: &Domain): u64 {
+        vector::length(&self.labels)
     }
 
     fun validate_labels(labels: &vector<String>) {
@@ -116,7 +132,7 @@ module suins::domain {
     }
 
     // === Tests ===
-    
+
     // TODO: add more tests
     #[test_only]
     use sui::test_utils::assert_eq;

@@ -1,26 +1,27 @@
 /// Implementation of auction module.
 /// More information in: ../../../docs
 module suins::auction {
+    use std::vector;
     use std::option::{Self, Option, none, some};
     use std::string::{Self, String};
 
     use sui::tx_context::{Self, TxContext};
     use sui::balance::{Self, Balance};
-    // use sui::object::{Self, UID};
     use sui::coin::{Self, Coin};
     use sui::clock::{Self, Clock};
     use sui::event;
+    use sui::object::{Self, UID};
     use sui::sui::SUI;
     use sui::linked_table::{Self, LinkedTable};
-    use sui::dynamic_field as df;
 
-    use suins::registrar;
     use suins::config::{Self, Config};
     use suins::suins::{Self, AdminCap, SuiNS};
-    use suins::string_utils;
+    use suins::registration_nft::RegistrationNFT;
     use suins::constants;
-    use suins::registrar::RegistrationNFT;
-    use suins::controller;
+    use suins::domain::{Self, Domain};
+
+    /// One year is the default duration for a domain.
+    const DEFAULT_DURATION: u8 = 1;
 
     const AUCTION_BIDDING_PERIOD_MS: u64 = 2 * 24 * 60 * 60 * 1000; // 2 days
     const AUCTION_MIN_QUIET_PERIOD_MS: u64 = 10 * 60 * 1000; // 10 minutes of quiet time
@@ -34,18 +35,27 @@ module suins::auction {
     const AUCTION_STATE_OWNED: u8 = 4;
     const AUCTION_STATE_REOPENED: u8 = 5;
 
-    const EAuctionHouseUnavailable: u64 = 801;
-    const ELabelUnavailable: u64 = 802;
-    const EBidExisted: u64 = 803;
-    const EInvalidBidValue: u64 = 804;
-    const EInvalidConfigParam: u64 = 805;
-    const EWinnerAlreadyClaimed: u64 = 806;
+    const EAuctionHouseUnavailable: u64 = 0;
+    const ELabelUnavailable: u64 = 1;
+    const EBidExisted: u64 = 2;
+    /// The bid value is too low (compared to min_bid or previous bid).
+    const EInvalidBidValue: u64 = 3;
+    const EInvalidConfigParam: u64 = 4;
+    const EWinnerAlreadyClaimed: u64 = 5;
+    /// Trying to start an action but it's already started.
+    const EAuctionStarted: u64 = 6;
+    /// Placing a bid in a not started
+    const EAuctionNotStarted: u64 = 7;
+    /// The domain is not a .sui domain.
+    const EIncorrectDomain: u64 = 8;
 
     /// Authorization witness to call protected functions of suins.
     struct App has drop {}
 
+    /// The Auction application.
     struct Auction has store {
-        domain: String, // TODO or is this a label???
+        domain: Domain,
+        // min_bid: u64,
         start_timestamp_ms: u64,
         end_timestamp_ms: u64,
         winner: address,
@@ -53,39 +63,49 @@ module suins::auction {
         nft: Option<RegistrationNFT>,
     }
 
-    /// Key to use when attaching a AuctionHouse.
-    struct AuctionHouseKey has copy, store, drop {}
-
-    struct AuctionHouse has store {
-        auctions: LinkedTable<String, Auction>,
-
+    /// The AuctionHouse application.
+    struct AuctionHouse has key, store {
+        id: UID,
+        balance: Balance<SUI>,
+        auctions: LinkedTable<Domain, Auction>,
         start_at: u64,
     }
 
-    /// #### Notice
-    /// The admin uses this function to establish configuration parameters.
-    /// It is intended solely for use during the development phase.
-    ///
-    /// #### Params
-    /// `start_at`: epoch at which all names are available for auction.
-    ///
-    /// Panics
-    /// Panics if current epoch is less than or equal `start_at`
-    public fun configure_auction(
-        _: &AdminCap,
-        suins: &mut SuiNS,
-        start_at: u64,
-        ctx: &mut TxContext
-    ) {
-        assert!(tx_context::epoch(ctx) <= start_at, EInvalidConfigParam);
-
-        let auction_house = AuctionHouse {
+    fun init(ctx: &mut TxContext) {
+        sui::transfer::share_object(AuctionHouse {
+            id: object::new(ctx),
+            balance: balance::zero(),
             auctions: linked_table::new(ctx),
-            start_at,
-        };
+            start_at: 0,
+        });
+    }
 
-        *controller::auction_house_finalized_at_mut(suins) = auction_house_close_at(&auction_house);
-        df::add(suins::app_uid_mut(App {}, suins), AuctionHouseKey {}, auction_house);
+    /// Start an auction if it's not started yet; and make the first bid.
+    public fun start_auction_and_place_bid(
+        self: &mut AuctionHouse,
+        suins: &mut SuiNS,
+        domain_name: String,
+        bid_value: u64,
+        payment: &mut Coin<SUI>,
+        clock: &Clock,
+        ctx: &mut TxContext,
+    ) {
+        let domain = domain::new(domain_name);
+        let label = vector::borrow(domain::labels(&domain), 0);
+
+        // make sure the domain is a .sui domain and not a subdomain
+        assert!(domain::labels_len(&domain) == 2, EIncorrectDomain);
+        assert!(domain::tld(&domain) == &constants::sui_tld(), EIncorrectDomain);
+        assert!(!linked_table::contains(&self.auctions, domain), EAuctionStarted);
+
+        // The minnimum price only applies to newly created auctions
+        let config = suins::get_config<Config>(suins);
+        let min_price = config::calculate_price(config, (string::length(label) as u8), 1);
+        let bid = balance::split(coin::balance_mut(payment), bid_value);
+        assert!(balance::value(&bid) >= min_price, EInvalidBidValue);
+
+        let auction = start_new_auction(suins, domain, bid, clock, ctx);
+        linked_table::push_back(&mut self.auctions, domain, auction)
     }
 
     /// #### Notice
@@ -99,49 +119,41 @@ module suins::auction {
     /// or `bid_value` is too low,
     /// or not in auction period
     public fun place_bid(
-        suins: &mut SuiNS,
-        label: String,
+        self: &mut AuctionHouse,
+        domain_name: String,
         bid_value: u64,
         payment: &mut Coin<SUI>,
         clock: &Clock,
         ctx: &mut TxContext
     ) {
-        string_utils::validate_label(label, constants::min_domain_length(), constants::max_domain_length());
+        let domain = domain::new(domain_name);
         let bid = balance::split(coin::balance_mut(payment), bid_value);
 
+        assert!(!linked_table::contains(&self.auctions, domain), EAuctionNotStarted);
+
         // Check to see if there isn't an existing auction going on for this domain
-        if (!linked_table::contains(&auction_house_mut(suins).auctions, label)) {
-            // The minnimum price only applies to newly created auctions
-            let config = suins::get_config<Config>(suins);
-            let min_price = config::calculate_price(config, (string::length(&label) as u8), 1);
-            assert!(balance::value(&bid) >= min_price, EInvalidBidValue);
-
-            let auction = start_new_auction(suins, label, bid, clock, ctx);
-            linked_table::push_back(&mut auction_house_mut(suins).auctions, label, auction);
-            return
-        };
-
-        bid_on_existing_auction(suins, label, bid, clock, ctx);
+        bid_on_existing_auction(self, domain, bid, clock, ctx);
     }
 
     fun start_new_auction(
         suins: &mut SuiNS,
-        label: String,
+        domain: Domain,
         bid: Balance<SUI>,
         clock: &Clock,
         ctx: &mut TxContext
     ): Auction {
-        assert!(registrar::is_available(suins, constants::sui_tld(), label, ctx), ELabelUnavailable);
+        // check that the domain is available by making either that there's no name_record yet
+        // and there is but it expired more than the grace period ago :laughing:
+        assert!(!suins::has_name_record(suins, domain), ELabelUnavailable);
+        // if () {
+        //     let record = suins::name_record(suins, domain);
+        //     assert!(
+        //         (name_record::expires_at(record) + constants::grace_period_ms())
+        //         < clock::timestamp_ms(clock)
+        //     , ELabelUnavailable);
+        // };
 
-        let nft = registrar::register_with_image_internal(
-            suins,
-            constants::sui_tld(),
-            label,
-            @0x0,
-            365,
-            ctx,
-        );
-
+        let nft = suins::app_add_record(App {}, suins, domain, DEFAULT_DURATION, clock, ctx);
         let starting_bid = balance::value(&bid);
         let bids = linked_table::new(ctx);
 
@@ -153,7 +165,7 @@ module suins::auction {
         );
 
         let auction = Auction {
-            domain: label,
+            domain,
             start_timestamp_ms: clock::timestamp_ms(clock),
             end_timestamp_ms: clock::timestamp_ms(clock) + AUCTION_BIDDING_PERIOD_MS,
             winner: tx_context::sender(ctx),
@@ -162,7 +174,7 @@ module suins::auction {
         };
 
         event::emit(AuctionStartedEvent {
-            label: auction.domain,
+            domain,
             start_timestamp_ms: auction.start_timestamp_ms,
             end_timestamp_ms: auction.end_timestamp_ms,
             starting_bid,
@@ -173,14 +185,13 @@ module suins::auction {
     }
 
     fun bid_on_existing_auction(
-        suins: &mut SuiNS,
-        label: String,
+        self: &mut AuctionHouse,
+        domain: Domain,
         bid: Balance<SUI>,
         clock: &Clock,
         ctx: &mut TxContext
     ) {
-        let auction_house = auction_house_mut(suins);
-        let auction = linked_table::borrow_mut(&mut auction_house.auctions, label);
+        let auction = linked_table::borrow_mut(&mut self.auctions, domain);
         let bidder = tx_context::sender(ctx);
 
         // Ensure that the auction is not over
@@ -197,7 +208,7 @@ module suins::auction {
         auction.winner = bidder;
 
         event::emit(BidEvent {
-            label,
+            domain,
             bid: bid_amount,
             bidder,
         });
@@ -210,7 +221,7 @@ module suins::auction {
             auction.end_timestamp_ms = clock::timestamp_ms(clock) + AUCTION_MIN_QUIET_PERIOD_MS;
 
             event::emit(AuctionExtendedEvent {
-                label,
+                domain,
                 end_timestamp_ms: auction.end_timestamp_ms,
             });
         };
@@ -222,12 +233,12 @@ module suins::auction {
     /// Panics
     /// sender has never placed a bid or they are the winner of the bid
     public fun withdraw(
-        suins: &mut SuiNS,
-        label: String,
+        self: &mut AuctionHouse,
+        domain_name: String,
         ctx: &mut TxContext
     ): Coin<SUI> {
-        let auction_house = auction_house_mut(suins);
-        let auction = linked_table::borrow_mut(&mut auction_house.auctions, label);
+        let domain = domain::new(domain_name);
+        let auction = linked_table::borrow_mut(&mut self.auctions, domain);
 
         // Ensure the sender isn't the winner, winners cannot withdraw their bids
         assert!(tx_context::sender(ctx) != auction.winner, 0);
@@ -242,13 +253,13 @@ module suins::auction {
     /// Panics
     /// sender is not the winner
     public fun claim(
-        suins: &mut SuiNS,
-        label: String,
+        self: &mut AuctionHouse,
+        domain_name: String,
         clock: &Clock,
         ctx: &mut TxContext
     ): RegistrationNFT {
-        let auction_house = auction_house_mut(suins);
-        let auction = linked_table::borrow_mut(&mut auction_house.auctions, label);
+        let domain = domain::new(domain_name);
+        let auction = linked_table::borrow_mut(&mut self.auctions, domain);
 
         // Ensure that the auction is over
         assert!(clock::timestamp_ms(clock) > auction.end_timestamp_ms, 0);
@@ -260,8 +271,8 @@ module suins::auction {
         // and sending the proceeds of the auction to suins
         let nft = option::extract(&mut auction.nft);
         let bid = linked_table::remove(&mut auction.bids, tx_context::sender(ctx));
-        send_to_suins(suins, bid);
 
+        balance::join(&mut self.balance, bid);
         nft
     }
 
@@ -269,11 +280,11 @@ module suins::auction {
     /// Admin uses this function to finalize and take the winning fee all auctions.
     public fun finalize_all_auctions_by_admin(
         _: &AdminCap,
-        suins: &mut SuiNS,
+        self: &mut AuctionHouse,
         ctx: &mut TxContext
     ) {
-        let auction_house = auction_house_mut(suins);
-        assert!(auction_house_close_at(auction_house) < tx_context::epoch(ctx), EAuctionHouseUnavailable);
+        assert!(auction_house_close_at(self) < tx_context::epoch(ctx), EAuctionHouseUnavailable);
+        // TODO?
     }
 
     // === Public Functions ===
@@ -309,23 +320,10 @@ module suins::auction {
         auction.start_at + AUCTION_HOUSE_PERIOD - 1
     }
 
-    // === Transfers ===
-
-    fun send_to_suins(
-        suins: &mut SuiNS,
-        balance: Balance<SUI>,
-    ) {
-        suins::app_add_balance(App {}, suins, balance)
-    }
-
-    fun auction_house_mut(suins: &mut SuiNS): &mut AuctionHouse {
-        df::borrow_mut(suins::app_uid_mut(App {}, suins), AuctionHouseKey {})
-    }
-
     // === Events ===
 
     struct AuctionStartedEvent has copy, drop {
-        label: String,
+        domain: Domain,
         start_timestamp_ms: u64,
         end_timestamp_ms: u64,
         starting_bid: u64,
@@ -333,13 +331,13 @@ module suins::auction {
     }
 
     struct BidEvent has copy, drop {
-        label: String,
+        domain: Domain,
         bid: u64,
         bidder: address,
     }
 
     struct AuctionExtendedEvent has copy, drop {
-        label: String,
+        domain: Domain,
         end_timestamp_ms: u64,
     }
 }

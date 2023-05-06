@@ -6,7 +6,7 @@ module suins::nft_policy {
     use sui::transfer;
     use sui::package::Publisher;
 
-    use suins::registrar::RegistrationNFT;
+    use suins::registration_nft::RegistrationNFT;
 
     /// Admin should only call this function once
     public entry fun init_policy(
@@ -23,14 +23,10 @@ module suins::nft_policy {
 
     // === Friend and Private Functions ===
 
-    #[test_only]
-    friend suins::nft_policy_tests;
+    #[test_only] struct Rule has drop {}
 
     #[test_only]
-    struct Rule has drop {}
-
-    #[test_only]
-    public(friend) fun new_rule_for_testing(): Rule {
+    public fun new_rule_for_testing(): Rule {
         Rule {}
     }
 }

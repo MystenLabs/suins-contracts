@@ -4,11 +4,12 @@
 /// Serves its purpose, does not affect any public signatures of the suins nor
 /// Auction nor anything else, so can safely be injected or ejected whenever
 /// needed.
-module suins::promotion {
-    use std::string::String;
+module suins_v2::promotion {
+    use std::ascii;
+    use std::string::{Self, String};
     use sui::vec_map::{Self, VecMap};
     use sui::tx_context::{sender, TxContext};
-    use suins::string_utils;
+
     use suins::constants;
 
     /// Trying to input an invalid BPS value.
@@ -19,7 +20,6 @@ module suins::promotion {
     const ENotExists: u64 = 2;
     /// Attempt to use Discount code that does not belong to the sender.
     const ENotOwner: u64 = 3;
-
 
     /// An object storing configuration for the promotion mechanics.
     /// Currently supported ones are referral and discount codes.
@@ -54,7 +54,7 @@ module suins::promotion {
         self: &mut Promotion, code: String, rate: u16, partner: address
     ) {
         assert_bps(rate);
-        assert!(string_utils::is_valid_ascii(code), EInvalidCharacter);
+        assert!(is_valid_ascii(code), EInvalidCharacter);
 
         let new_value = Referral { rate, partner };
         if (vec_map::contains(&self.referral_codes, &code)) {
@@ -91,7 +91,7 @@ module suins::promotion {
         self: &mut Promotion, code: String, rate: u16, user: address
     ) {
         assert_bps(rate);
-        assert!(string_utils::is_valid_ascii(code), EInvalidCharacter);
+        assert!(is_valid_ascii(code), EInvalidCharacter);
 
         let new_value = Discount { rate, user };
         if (vec_map::contains(&self.discount_codes, &code)) {
@@ -122,5 +122,11 @@ module suins::promotion {
     /// Internal check for BPS.
     fun assert_bps(bps: u16) {
         assert!(bps <= constants::max_bps(), EInvalidBpsValue);
+    }
+
+    /// Check whether a given string is a valid ASCII string.
+    fun is_valid_ascii(str: String): bool {
+        let ascii = string::to_ascii(str);
+        ascii::all_characters_printable(&ascii)
     }
 }
