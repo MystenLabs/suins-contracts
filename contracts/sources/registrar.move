@@ -444,6 +444,11 @@ module suins::registrar {
         sui::transfer::public_transfer(nft, owner);
     }
 
+    #[test_only]
+    public fun get_nft_id(nft: &RegistrationNFT): ID {
+        *object::uid_as_inner(&nft.id)
+    }
+
     public fun registrar(suins: &SuiNS, tld: String): &Table<String, RegistrationRecord> {
         df::borrow(suins::registrars(suins), tld)
     }

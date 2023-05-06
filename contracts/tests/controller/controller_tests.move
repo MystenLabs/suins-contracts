@@ -18,6 +18,7 @@ module suins::controller_tests {
     use suins::string_utils;
     use suins::promotion::{Self, Promotion};
     use suins::registrar_tests::ctx_new;
+    use sui::object::ID;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_USER_ADDRESS: address = @0xB001;
@@ -101,7 +102,7 @@ module suins::controller_tests {
         };
     }
 
-    public fun register(scenario: &mut Scenario) {
+    public fun register(scenario: &mut Scenario): ID {
         // register
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
@@ -136,7 +137,7 @@ module suins::controller_tests {
             test_scenario::return_shared(clock);
             test_scenario::return_shared(suins);
         };
-
+        let nft_id: ID;
         test_scenario::next_tx(scenario, FIRST_USER_ADDRESS);
         {
             let suins = test_scenario::take_shared<SuiNS>(scenario);
@@ -158,9 +159,11 @@ module suins::controller_tests {
             assert!(owner == FIRST_USER_ADDRESS, 0);
             assert!(target_address == std::option::some(FIRST_USER_ADDRESS), 0);
 
+            nft_id = registrar::get_nft_id(&nft);
             test_scenario::return_to_sender(scenario, nft);
             test_scenario::return_shared(suins);
         };
+        nft_id
     }
 
     #[test, expected_failure(abort_code = controller::ENotEnoughFee)]
