@@ -13,8 +13,8 @@ module suins::registration_nft {
     use suins::constants;
     use suins::domain::{Self, Domain};
 
-    // The one in only friend.
     friend suins::suins;
+    friend suins::registry;
 
     /// Trying to update an image in an expired `RegistrationNFT`.
     const EExpired: u64 = 0;

@@ -142,17 +142,6 @@ module suins::auction {
         clock: &Clock,
         ctx: &mut TxContext
     ): Auction {
-        // check that the domain is available by making either that there's no name_record yet
-        // and there is but it expired more than the grace period ago :laughing:
-        assert!(!suins::has_name_record(suins, domain), ELabelUnavailable);
-        // if () {
-        //     let record = suins::name_record(suins, domain);
-        //     assert!(
-        //         (name_record::expires_at(record) + constants::grace_period_ms())
-        //         < clock::timestamp_ms(clock)
-        //     , ELabelUnavailable);
-        // };
-
         let nft = suins::app_add_record(App {}, suins, domain, DEFAULT_DURATION, clock, ctx);
         let starting_bid = balance::value(&bid);
         let bids = linked_table::new(ctx);
