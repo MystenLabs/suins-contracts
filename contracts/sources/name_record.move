@@ -3,7 +3,7 @@
 /// stored and managed. SuiNS has no direct and permanent dependency on this
 /// module.
 module suins::name_record {
-    use std::option::Option;
+    use std::option::{Self, Option};
     use std::string::String;
 
     use sui::clock::{timestamp_ms, Clock};
@@ -14,27 +14,32 @@ module suins::name_record {
 
     /// A single record in the registry.
     struct NameRecord has copy, store, drop {
+        /// The ID of the `RegistrationNFT` assigned to this record.
+        ///
+        /// The owner of the corrisponding `RegistrationNFT` has the rights to
+        /// be able to change and adjust the `target_address` of this domain.
+        ///
+        /// It is possible that the ID changes if the record expires and is
+        /// purchased by someone else.
+        nft_id: ID,
+        /// Timestamp in milliseconds when the record expires.
+        expiration_timestamp_ms: u64,
         /// The target address that this domain points to
         target_address: Option<address>,
         /// Additional data which may be stored in a record
         data: VecMap<String, String>,
-        /// The ID of the `RegistrationNFT` assigned to this record. It is
-        /// possible that the ID changes if the record expires and is purchased
-        /// by someone else.
-        nft_id: ID,
-        /// Timestamp in milliseconds when the record expires.
-        expires_at: u64
     }
 
     /// Create a new NameRecord.
     public fun new(
-        target_address: Option<address>, nft_id: ID, expires_at: u64
+        nft_id: ID,
+        expiration_timestamp_ms: u64,
     ): NameRecord {
         NameRecord {
-            target_address: target_address,
-            data: vec_map::empty(),
             nft_id,
-            expires_at
+            expiration_timestamp_ms,
+            target_address: option::none(),
+            data: vec_map::empty(),
         }
     }
 
@@ -64,7 +69,7 @@ module suins::name_record {
 
     /// Check if the record has expired (including the grace period).
     public fun has_expired(self: &NameRecord, clock: &Clock): bool {
-        (self.expires_at + constants::grace_period_ms()) < timestamp_ms(clock)
+        (self.expiration_timestamp_ms + constants::grace_period_ms()) < timestamp_ms(clock)
     }
 
     /// Read the `data` field from the `NameRecord`.
@@ -76,6 +81,6 @@ module suins::name_record {
     /// Read the `nft_id` field from the `NameRecord`.
     public fun nft_id(self: &NameRecord): ID { self.nft_id }
 
-    /// Read the `expires_at` field from the `NameRecord`.
-    public fun expires_at(self: &NameRecord): u64 { self.expires_at }
+    /// Read the `expiration_timestamp_ms` field from the `NameRecord`.
+    public fun expiration_timestamp_ms(self: &NameRecord): u64 { self.expiration_timestamp_ms }
 }

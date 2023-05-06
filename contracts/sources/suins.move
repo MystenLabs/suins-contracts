@@ -124,6 +124,8 @@ module suins::suins {
 
     /// Add a new record to the SuiNS.
     /// The only way to register new records and create `RegistrationNFT`s.
+    ///
+    /// TODO we need to do better invariant checking here, if a record exists we don't want to override it if it hasn't expired yet
     public fun app_add_record<App: drop>(
         _: App,
         self: &mut SuiNS,
@@ -132,19 +134,17 @@ module suins::suins {
         clock: &Clock,
         ctx: &mut TxContext
     ): RegistrationNFT {
-        let owner = sender(ctx);
-        let nft = nft::new(domain, no_years, clock, ctx);
-
         assert!(is_app_authorized<App>(self), EAppNotAuthorized);
-        let name_record = name_record::new(some(owner), object::id(&nft), nft::expires_at(&nft));
+
+        let nft = nft::new(domain, no_years, clock, ctx);
+        let name_record = name_record::new(object::id(&nft), nft::expiration_timestamp_ms(&nft));
         if (has_name_record(self, domain)) {
             let record = df::borrow_mut(&mut self.registry, domain);
             let old_target_address = name_record::target_address(record);
             *record = name_record;
 
-            handle_invalidate_reverse_record(self, domain, old_target_address, some(owner));
+            handle_invalidate_reverse_record(self, domain, old_target_address, none());
         } else {
-            // table::add(&mut self.record_owner, domain, owner);
             df::add(&mut self.registry, domain, name_record)
         };
 

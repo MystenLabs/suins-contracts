@@ -26,12 +26,12 @@ module suins::registration_nft {
     /// The main access point for the user.
     struct RegistrationNFT has key, store {
         id: UID,
-        /// Short IPFS hash of the image to be displayed for the NFT.
-        image_url: String,
         /// The domain name that the NFT is for.
         domain: Domain,
-        /// The expiration timestamp of the NFT.
-        expires_at: u64
+        /// Timestamp in milliseconds when this NFT expires.
+        expiration_timestamp_ms: u64,
+        /// Short IPFS hash of the image to be displayed for the NFT.
+        image_url: String,
     }
 
     // === Protected methods ===
@@ -44,16 +44,16 @@ module suins::registration_nft {
         ctx: &mut TxContext
     ): RegistrationNFT {
         RegistrationNFT {
-            domain,
             id: object::new(ctx),
+            domain,
+            expiration_timestamp_ms: timestamp_ms(clock) + ((no_years as u64) * constants::year_ms()),
             image_url: constants::default_image(),
-            expires_at: timestamp_ms(clock) + ((no_years as u64) * constants::year_ms())
         }
     }
 
-    /// Calculate the price of the `RegistrationNFT` based on the domain name length.
-    public(friend) fun set_expires_at(self: &mut RegistrationNFT, expires_at: u64) {
-        self.expires_at = expires_at;
+    /// Sets the expiration_timestamp_ms for this NFT
+    public(friend) fun set_expiration_timestamp_ms(self: &mut RegistrationNFT, expiration_timestamp_ms: u64) {
+        self.expiration_timestamp_ms = expiration_timestamp_ms;
     }
 
     // === Public methods ===
@@ -72,10 +72,10 @@ module suins::registration_nft {
         // TODO: need to get access to `public_key` here - how?
         // HINT: search `assert_image_msg_match` to find the function
 
-        let (ipfs_hash, domain_name, expires_at, _data) = bcs_to_image_data(raw_msg);
+        let (ipfs_hash, domain_name, expiration_timestamp_ms, _data) = bcs_to_image_data(raw_msg);
 
         assert!(!has_expired(self, clock), EExpired);
-        assert!(self.expires_at == expires_at, EInvalidData);
+        assert!(self.expiration_timestamp_ms == expiration_timestamp_ms, EInvalidData);
         assert!(domain::to_string(&self.domain) == domain_name, EInvalidDomainData);
 
         self.image_url = ipfs_hash;
@@ -84,14 +84,14 @@ module suins::registration_nft {
     /// Check whether the `RegistrationNFT` has expired by comparing the
     /// expiration timeout with the current time.
     public fun has_expired(self: &RegistrationNFT, clock: &Clock): bool {
-        self.expires_at < timestamp_ms(clock)
+        self.expiration_timestamp_ms < timestamp_ms(clock)
     }
 
     /// Check whether the `RegistrationNFT` has expired by comparing the
     /// expiration timeout with the current time. This function also takes into
     /// account the grace period.
     public fun has_expired_with_grace(self: &RegistrationNFT, clock: &Clock): bool {
-        (self.expires_at + constants::grace_period_ms()) < timestamp_ms(clock)
+        (self.expiration_timestamp_ms + constants::grace_period_ms()) < timestamp_ms(clock)
     }
 
     // === Getters ===
@@ -99,8 +99,8 @@ module suins::registration_nft {
     /// Get the `domain` field of the `RegistrationNFT`.
     public fun domain(self: &RegistrationNFT): Domain { self.domain }
 
-    /// Get the `expires_at` field of the `RegistrationNFT`.
-    public fun expires_at(self: &RegistrationNFT): u64 { self.expires_at }
+    /// Get the `expiration_timestamp_ms` field of the `RegistrationNFT`.
+    public fun expiration_timestamp_ms(self: &RegistrationNFT): u64 { self.expiration_timestamp_ms }
 
     // === Utilities ===
 
@@ -110,7 +110,7 @@ module suins::registration_nft {
     /// struct MessageData {
     ///   ipfs_hash: String,
     ///   domain_name: String,
-    ///   expires_at: u64,
+    ///   expiration_timestamp_ms: u64,
     ///   data: String
     /// }
     /// ```
