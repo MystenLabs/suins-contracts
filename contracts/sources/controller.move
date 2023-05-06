@@ -154,9 +154,6 @@ module suins::controller {
 
     // === Update Image Functionality ===
 
-    /// Authorization token for the update image feature
-    struct UpdateImageApp has drop {}
-
     /// Updates the image attached to a `RegistrationNFT`.
     public fun update_image_url(
        suins: &mut SuiNS,
@@ -166,7 +163,7 @@ module suins::controller {
        clock: &Clock,
        _ctx: &mut TxContext,
     ) {
-        suins::assert_app_is_authorized<UpdateImageApp>(suins);
+        suins::assert_app_is_authorized<App>(suins);
         // let registry = suins::registry<Registry>(suins);
         let config = suins::get_config<Config>(suins);
 

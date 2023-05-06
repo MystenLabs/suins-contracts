@@ -52,6 +52,16 @@ module suins::registry {
         }
     }
 
+    public(friend) fun destroy_empty(self: Registry) {
+        let Registry {
+            registry,
+            reverse_registry,
+        } = self;
+
+        table::destroy_empty(registry);
+        table::destroy_empty(reverse_registry);
+    }
+
     /// Attempts to add a new record to the registry and returns a
     /// `RegistrationNFT` upon success.
     public(friend) fun add_record(
