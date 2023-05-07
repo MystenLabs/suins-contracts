@@ -79,7 +79,7 @@ module suins::controller {
         assert!(coin::value(&payment) == price, EIncorrectAmount);
 
         suins::app_add_balance(App {}, suins, coin::into_balance(payment));
-        let registry = suins::registry_mut<Registry, App>(suins, App {});
+        let registry = suins::app_registry_mut<App, Registry>(App {}, suins);
         registry::add_record(registry, domain, no_years, clock, ctx)
     }
 
@@ -117,7 +117,7 @@ module suins::controller {
 
         assert!(coin::value(&payment) == price, EIncorrectAmount);
 
-        let registry = suins::registry_mut<Registry, App>(suins, App {});
+        let registry = suins::app_registry_mut<App, Registry>(App {}, suins);
         let record = option::destroy_some(registry::lookup(registry, domain));
         assert!(!name_record::has_expired(&record, clock), 0);
         assert!(object::id(nft) == name_record::nft_id(&record), 0);
@@ -141,7 +141,7 @@ module suins::controller {
     ) {
         suins::assert_app_is_authorized<App>(suins);
 
-        let registry = suins::registry_mut<Registry, App>(suins, App {});
+        let registry = suins::app_registry_mut<App, Registry>(App {}, suins);
         registry::set_target_address(registry, nft, new_target, clock);
     }
 
@@ -152,7 +152,7 @@ module suins::controller {
     ) {
         suins::assert_app_is_authorized<App>(suins);
 
-        let registry = suins::registry_mut<Registry, App>(suins, App {});
+        let registry = suins::app_registry_mut<App, Registry>(App {}, suins);
         let sender = sender(ctx);
         registry::set_reverse_lookup(registry, sender, domain);
     }

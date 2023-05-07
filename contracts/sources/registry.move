@@ -11,9 +11,6 @@ module suins::registry {
     use suins::name_record::{Self, NameRecord};
     use suins::domain::{Self, Domain};
 
-    friend suins::admin;
-    friend suins::auction;
-    friend suins::controller;
     friend suins::suins;
 
     /// The `RegistrationNFT` has expired.
@@ -44,7 +41,7 @@ module suins::registry {
     }
 
     // === Friend Functions ===
-    
+
     public(friend) fun new(ctx: &mut TxContext): Registry {
         Registry {
             registry: table::new(ctx),
@@ -52,19 +49,9 @@ module suins::registry {
         }
     }
 
-    public(friend) fun destroy_empty(self: Registry) {
-        let Registry {
-            registry,
-            reverse_registry,
-        } = self;
-
-        table::destroy_empty(registry);
-        table::destroy_empty(reverse_registry);
-    }
-
     /// Attempts to add a new record to the registry and returns a
     /// `RegistrationNFT` upon success.
-    public(friend) fun add_record(
+    public fun add_record(
         self: &mut Registry,
         domain: Domain,
         no_years: u8,
@@ -90,7 +77,7 @@ module suins::registry {
     }
 
     //TODO: think about doing the nft checks outside in the Controller
-    public(friend) fun set_target_address(
+    public fun set_target_address(
         self: &mut Registry,
         nft: &RegistrationNFT,
         new_target: Option<address>,
@@ -110,7 +97,7 @@ module suins::registry {
         handle_invalidate_reverse_record(self, domain, old_target, new_target);
     }
 
-    public(friend) fun set_reverse_lookup(
+    public fun set_reverse_lookup(
         self: &mut Registry,
         address: address,
         domain: Option<Domain>,
@@ -132,7 +119,7 @@ module suins::registry {
         };
     }
 
-    public(friend) fun set_expiration_timestamp_ms(
+    public fun set_expiration_timestamp_ms(
         self: &mut Registry,
         domain: Domain,
         expiration_timestamp_ms: u64,
@@ -166,5 +153,18 @@ module suins::registry {
                 table::remove(reverse_registry, old_target_address);
             }
         };
+    }
+
+    // === Test Functions ===
+
+    #[test_only]
+    public fun destroy_empty(self: Registry) {
+        let Registry {
+            registry,
+            reverse_registry,
+        } = self;
+
+        table::destroy_empty(registry);
+        table::destroy_empty(reverse_registry);
     }
 }
