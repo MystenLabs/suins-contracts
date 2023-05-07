@@ -7,6 +7,7 @@ module suins::auction {
 
     use sui::tx_context::{Self, TxContext};
     use sui::balance::{Self, Balance};
+    use sui::transfer;
     use sui::coin::{Self, Coin};
     use sui::clock::{Self, Clock};
     use sui::event;
@@ -16,7 +17,7 @@ module suins::auction {
 
     use suins::config::{Self, Config};
     use suins::suins::{Self, AdminCap, SuiNS};
-    use suins::registration_nft::RegistrationNFT;
+    use suins::registration_nft::{Self as nft, RegistrationNFT};
     use suins::registry::{Self, Registry};
     use suins::domain::{Self, Domain};
     use suins::controller;
@@ -58,7 +59,7 @@ module suins::auction {
         start_timestamp_ms: u64,
         end_timestamp_ms: u64,
         winner: address,
-        bids: LinkedTable<address, Balance<SUI>>,
+        bids: LinkedTable<address, Coin<SUI>>,
         nft: Option<RegistrationNFT>,
     }
 
@@ -87,7 +88,7 @@ module suins::auction {
         ctx: &mut TxContext,
     ) {
         suins::assert_app_is_authorized<App>(suins);
-        
+
         let domain = domain::new(domain_name);
 
         // make sure the domain is a .sui domain and not a subdomain
@@ -99,12 +100,11 @@ module suins::auction {
         let config = suins::get_config<Config>(suins);
         let label = vector::borrow(domain::labels(&domain), 0);
         let min_price = config::calculate_price(config, (string::length(label) as u8), DEFAULT_DURATION);
-        let bid = coin::into_balance(bid);
-        assert!(balance::value(&bid) >= min_price, EInvalidBidValue);
+        assert!(coin::value(&bid) >= min_price, EInvalidBidValue);
 
         let registry = suins::app_registry_mut<App, Registry>(App {}, suins);
         let nft = registry::add_record(registry, domain, DEFAULT_DURATION, clock, ctx);
-        let starting_bid = balance::value(&bid);
+        let starting_bid = coin::value(&bid);
         let bids = linked_table::new(ctx);
 
         // Insert the user's bid into the table
@@ -149,7 +149,6 @@ module suins::auction {
         ctx: &mut TxContext
     ) {
         let domain = domain::new(domain_name);
-        let bid = coin::into_balance(bid);
 
         assert!(linked_table::contains(&self.auctions, domain), EAuctionNotStarted);
 
@@ -162,8 +161,8 @@ module suins::auction {
         assert!(bidder != auction.winner, 0);
 
         // get the current highest bid and ensure that the new bid is greater than the current winning bid
-        let current_winning_bid = balance::value(linked_table::borrow(&auction.bids, auction.winner));
-        let bid_amount = balance::value(&bid);
+        let current_winning_bid = coin::value(linked_table::borrow(&auction.bids, auction.winner));
+        let bid_amount = coin::value(&bid);
         assert!(bid_amount > current_winning_bid, 0);
 
         linked_table::push_front(&mut auction.bids, bidder, bid);
@@ -180,12 +179,19 @@ module suins::auction {
         // Auctions can't be finished until there is at least `AUCTION_MIN_QUIET_PERIOD_MS`
         // time where there are no bids.
         if (auction.end_timestamp_ms - clock::timestamp_ms(clock) < AUCTION_MIN_QUIET_PERIOD_MS) {
-            auction.end_timestamp_ms = clock::timestamp_ms(clock) + AUCTION_MIN_QUIET_PERIOD_MS;
+            let new_end_timestamp_ms = clock::timestamp_ms(clock) + AUCTION_MIN_QUIET_PERIOD_MS;
 
-            event::emit(AuctionExtendedEvent {
-                domain,
-                end_timestamp_ms: auction.end_timestamp_ms,
-            });
+            // Only extend the auction if the new auction end time is before
+            // the NFT's expiration timestamp
+            let nft = option::borrow(&auction.nft);
+            if (new_end_timestamp_ms < nft::expiration_timestamp_ms(nft)) {
+                auction.end_timestamp_ms = new_end_timestamp_ms;
+
+                event::emit(AuctionExtendedEvent {
+                    domain,
+                    end_timestamp_ms: auction.end_timestamp_ms,
+                });
+            }
         };
     }
 
@@ -204,9 +210,7 @@ module suins::auction {
 
         // Ensure the sender isn't the winner, winners cannot withdraw their bids
         assert!(tx_context::sender(ctx) != auction.winner, 0);
-        let bid = linked_table::remove(&mut auction.bids, tx_context::sender(ctx));
-
-        coin::from_balance(bid, ctx)
+        linked_table::remove(&mut auction.bids, tx_context::sender(ctx))
     }
 
     /// #### Notice
@@ -234,7 +238,7 @@ module suins::auction {
         let nft = option::extract(&mut auction.nft);
         let bid = linked_table::remove(&mut auction.bids, tx_context::sender(ctx));
 
-        balance::join(&mut self.balance, bid);
+        balance::join(&mut self.balance, coin::into_balance(bid));
         nft
     }
 
@@ -256,7 +260,7 @@ module suins::auction {
 
         if (linked_table::contains(&self.auctions, domain)) {
             let auction = linked_table::borrow(&self.auctions, domain);
-            let highest_amount = balance::value(linked_table::borrow(&auction.bids, auction.winner));
+            let highest_amount = coin::value(linked_table::borrow(&auction.bids, auction.winner));
             return (
                 some(auction.start_timestamp_ms),
                 some(auction.end_timestamp_ms),
@@ -269,32 +273,121 @@ module suins::auction {
 
     // === Admin Functions ===
 
-    /// #### Notice
-    /// Admin uses this function to finalize and take the winning fee all auctions.
-    public fun admin_withdraw(
+    public fun admin_withdraw_funds(
         _: &AdminCap,
         self: &mut AuctionHouse,
+        ctx: &mut TxContext,
+    ): Coin<SUI> {
+        let amount = balance::value(&self.balance);
+        assert!(amount > 0, 0);
+        coin::take(&mut self.balance, amount, ctx)
+    }
+
+    /// Admin functionality used to finalize a single auction.
+    ///
+    /// An `operation_limit` limit must be provided which controls how many
+    /// individual operations to perform. This allows the admin to be able to
+    /// make forward progress in finalizing auctions even in the presence of
+    /// thousands of bids.
+    ///
+    /// This will attempt to do as much as possible of the following
+    /// based on the provided `operation_limit`:
+    /// - claim the winning bid and place in `AuctionHouse.balance`
+    /// - push the `RegistrationNFT` to the winner
+    /// - push loosing bids back to their respective account owners
+    ///
+    /// Once all of the above has been done the auction is destroyed,
+    /// freeing on-chain storage.
+    public fun admin_try_finalize_auction(
+        admin: &AdminCap,
+        self: &mut AuctionHouse,
+        domain: String,
+        operation_limit: u64,
         clock: &Clock,
     ) {
-        let oldest_domain = *linked_table::back(&self.auctions);
+        let domain = domain::new(domain);
+        admin_try_finalize_auction_internal(admin, self, domain, operation_limit, clock);
+    }
 
-        while (is_some(&oldest_domain)) {
-            let domain = option::extract(&mut oldest_domain);
-            let auction = linked_table::borrow_mut(&mut self.auctions, domain);
-            if (
-                clock::timestamp_ms(clock) <= auction.end_timestamp_ms
-                    || !linked_table::contains(&mut auction.bids, auction.winner)
-            ) {
-                oldest_domain = *linked_table::prev(&self.auctions, domain);
-                continue
+    fun admin_try_finalize_auction_internal(
+        _: &AdminCap,
+        self: &mut AuctionHouse,
+        domain: Domain,
+        operation_limit: u64,
+        clock: &Clock,
+    ): u64 {
+        let auction = linked_table::remove(&mut self.auctions, domain);
+        // Ensure that the auction is over
+        assert!(clock::timestamp_ms(clock) > auction.end_timestamp_ms, 0);
+
+        while (is_some(linked_table::back(&auction.bids))) {
+            if (operation_limit == 0) {
+                linked_table::push_back(&mut self.auctions, domain, auction);
+                return operation_limit
             };
 
-            let bid = linked_table::borrow_mut(&mut auction.bids, auction.winner);
-            let amount = balance::value(bid);
-            // Leave a balance of 0, so that `claim` function still works if winner calls it later
-            balance::join(&mut self.balance, balance::split(bid, amount));
+            let (address, bid) = linked_table::pop_back(&mut auction.bids);
+            if (address == auction.winner) {
+                balance::join(&mut self.balance, coin::into_balance(bid));
+                let nft = option::extract(&mut auction.nft);
+                transfer::public_transfer(nft, auction.winner);
+            } else {
+                transfer::public_transfer(bid, address);
+            };
 
-            oldest_domain = *linked_table::prev(&self.auctions, domain);
+            operation_limit = operation_limit - 1;
+        };
+
+        let Auction {
+            domain: _,
+            start_timestamp_ms: _,
+            end_timestamp_ms: _,
+            winner: _,
+            bids,
+            nft,
+        } = auction;
+
+        linked_table::destroy_empty(bids);
+        option::destroy_none(nft);
+
+        operation_limit
+    }
+
+    /// Admin functionality used to finalize an arbitrary number of auctions.
+    ///
+    /// An `operation_limit` limit must be provided which controls how many
+    /// individual operations to perform. This allows the admin to be able to
+    /// make forward progress in finalizing auctions even in the presence of
+    /// thousands of auctions/bids.
+    public fun admin_try_finalize_auctions(
+        admin: &AdminCap,
+        self: &mut AuctionHouse,
+        operation_limit: u64,
+        clock: &Clock,
+    ) {
+        let next_domain = *linked_table::back(&self.auctions);
+
+        while (is_some(&next_domain)) {
+            if (operation_limit == 0) {
+                return
+            };
+            operation_limit = operation_limit - 1;
+
+            let domain = option::extract(&mut next_domain);
+            next_domain = *linked_table::prev(&self.auctions, domain);
+
+            let auction = linked_table::borrow(&self.auctions, domain);
+
+            // If the auction has ended, then try to finalize it
+            if (clock::timestamp_ms(clock) > auction.end_timestamp_ms) {
+                operation_limit = admin_try_finalize_auction_internal(
+                    admin,
+                    self,
+                    domain,
+                    operation_limit,
+                    clock
+                );
+            };
         };
     }
 
