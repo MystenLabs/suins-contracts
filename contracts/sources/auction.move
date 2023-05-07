@@ -2,7 +2,7 @@
 /// More information in: ../../../docs
 module suins::auction {
     use std::vector;
-    use std::option::{Self, Option, none, some};
+    use std::option::{Self, Option, none, some, is_some};
     use std::string::{Self, String};
 
     use sui::tx_context::{Self, TxContext};
@@ -67,7 +67,6 @@ module suins::auction {
         id: UID,
         balance: Balance<SUI>,
         auctions: LinkedTable<Domain, Auction>,
-        start_at: u64,
     }
 
     fun init(ctx: &mut TxContext) {
@@ -75,7 +74,6 @@ module suins::auction {
             id: object::new(ctx),
             balance: balance::zero(),
             auctions: linked_table::new(ctx),
-            start_at: 0,
         });
     }
 
@@ -84,11 +82,12 @@ module suins::auction {
         self: &mut AuctionHouse,
         suins: &mut SuiNS,
         domain_name: String,
-        bid_value: u64,
-        payment: &mut Coin<SUI>,
+        bid: Coin<SUI>,
         clock: &Clock,
         ctx: &mut TxContext,
     ) {
+        suins::assert_app_is_authorized<App>(suins);
+        
         let domain = domain::new(domain_name);
 
         // make sure the domain is a .sui domain and not a subdomain
@@ -99,50 +98,12 @@ module suins::auction {
         // The minnimum price only applies to newly created auctions
         let config = suins::get_config<Config>(suins);
         let label = vector::borrow(domain::labels(&domain), 0);
-        let min_price = config::calculate_price(config, (string::length(label) as u8), 1);
-        let bid = balance::split(coin::balance_mut(payment), bid_value);
+        let min_price = config::calculate_price(config, (string::length(label) as u8), DEFAULT_DURATION);
+        let bid = coin::into_balance(bid);
         assert!(balance::value(&bid) >= min_price, EInvalidBidValue);
 
-        let auction = start_new_auction(suins, domain, bid, clock, ctx);
-        linked_table::push_back(&mut self.auctions, domain, auction)
-    }
-
-    /// #### Notice
-    /// Bidders use this function to place a new bid.
-    /// If there's no auction for `label`, starts a new auction.
-    /// They transfer a payment of coins with a value equal to the bid value.
-    ///
-    /// Panics
-    /// Panics if `label` is invalid
-    /// or `label` has been registered
-    /// or `bid_value` is too low,
-    /// or not in auction period
-    public fun place_bid(
-        self: &mut AuctionHouse,
-        domain_name: String,
-        bid_value: u64,
-        payment: &mut Coin<SUI>,
-        clock: &Clock,
-        ctx: &mut TxContext
-    ) {
-        let domain = domain::new(domain_name);
-        let bid = balance::split(coin::balance_mut(payment), bid_value);
-
-        assert!(!linked_table::contains(&self.auctions, domain), EAuctionNotStarted);
-
-        // Check to see if there isn't an existing auction going on for this domain
-        bid_on_existing_auction(self, domain, bid, clock, ctx);
-    }
-
-    fun start_new_auction(
-        suins: &mut SuiNS,
-        domain: Domain,
-        bid: Balance<SUI>,
-        clock: &Clock,
-        ctx: &mut TxContext
-    ): Auction {
         let registry = suins::app_registry_mut<App, Registry>(App {}, suins);
-        let nft = registry::add_record(registry, domain, 1, clock, ctx);
+        let nft = registry::add_record(registry, domain, DEFAULT_DURATION, clock, ctx);
         let starting_bid = balance::value(&bid);
         let bids = linked_table::new(ctx);
 
@@ -170,16 +131,28 @@ module suins::auction {
             bidder: auction.winner,
         });
 
-        auction
+        linked_table::push_back(&mut self.auctions, domain, auction)
     }
 
-    fun bid_on_existing_auction(
+    /// #### Notice
+    /// Bidders use this function to place a new bid.
+    ///
+    /// Panics
+    /// Panics if `domain` is invalid
+    /// or there isn't an auction for `domain`
+    /// or `bid` is too low,
+    public fun place_bid(
         self: &mut AuctionHouse,
-        domain: Domain,
-        bid: Balance<SUI>,
+        domain_name: String,
+        bid: Coin<SUI>,
         clock: &Clock,
         ctx: &mut TxContext
     ) {
+        let domain = domain::new(domain_name);
+        let bid = coin::into_balance(bid);
+
+        assert!(linked_table::contains(&self.auctions, domain), EAuctionNotStarted);
+
         let auction = linked_table::borrow_mut(&mut self.auctions, domain);
         let bidder = tx_context::sender(ctx);
 
@@ -221,7 +194,7 @@ module suins::auction {
     ///
     /// Panics
     /// sender has never placed a bid or they are the winner of the bid
-    public fun withdraw(
+    public fun withdraw_bid(
         self: &mut AuctionHouse,
         domain_name: String,
         ctx: &mut TxContext
@@ -265,49 +238,67 @@ module suins::auction {
         nft
     }
 
-    /// #### Notice
-    /// Admin uses this function to finalize and take the winning fee all auctions.
-    public fun finalize_all_auctions_by_admin(
-        _: &AdminCap,
-        self: &mut AuctionHouse,
-        ctx: &mut TxContext
-    ) {
-        assert!(auction_house_close_at(self) < tx_context::epoch(ctx), EAuctionHouseUnavailable);
-        // TODO?
-    }
-
     // === Public Functions ===
 
     /// #### Notice
     /// Get metadata of an auction
     ///
     /// #### Params
-    /// label label of the domain name being auctioned, the domain name has the form `label`.sui
+    /// The domain name being auctioned.
     ///
     /// #### Return
-    /// (`start_at`, `highest_bid`, `second_highest_bid`, `winner`, `is_finalized`)
-    public fun get_entry(
-        _auction_house: &AuctionHouse,
-        _label: String,
-    ): (Option<u64>, Option<u64>, Option<address>, Option<bool>) {
-        // if (linked_table::contains(&auction_house.entries, label)) {
-        //     let entry = linked_table::borrow(&auction_house.entries, label);
-        //     return (
-        //         some(entry.started_at_in_ms),
-        //         some(entry.highest_bid),
-        //         some(entry.winner),
-        //         some(entry.is_claimed),
-        //     )
-        // };
+    /// (`start_timestamp_ms`, `end_timestamp_ms`, `winner`, `highest_amount`)
+    public fun get_auction_metadata(
+        self: &AuctionHouse,
+        domain_name: String,
+    ): (Option<u64>, Option<u64>, Option<address>, Option<u64>) {
+        let domain = domain::new(domain_name);
+
+        if (linked_table::contains(&self.auctions, domain)) {
+            let auction = linked_table::borrow(&self.auctions, domain);
+            let highest_amount = balance::value(linked_table::borrow(&auction.bids, auction.winner));
+            return (
+                some(auction.start_timestamp_ms),
+                some(auction.end_timestamp_ms),
+                some(auction.winner),
+                some(highest_amount)
+            )
+        };
         (none(), none(), none(), none())
     }
 
-    // === Friend and Private Functions ===
+    // === Admin Functions ===
 
-    /// Last epoch to bid
-    fun auction_house_close_at(auction: &AuctionHouse): u64 {
-        auction.start_at + AUCTION_HOUSE_PERIOD - 1
+    /// #### Notice
+    /// Admin uses this function to finalize and take the winning fee all auctions.
+    public fun admin_withdraw(
+        _: &AdminCap,
+        self: &mut AuctionHouse,
+        clock: &Clock,
+    ) {
+        let oldest_domain = *linked_table::back(&self.auctions);
+
+        while (is_some(&oldest_domain)) {
+            let domain = option::extract(&mut oldest_domain);
+            let auction = linked_table::borrow_mut(&mut self.auctions, domain);
+            if (
+                clock::timestamp_ms(clock) <= auction.end_timestamp_ms
+                    || !linked_table::contains(&mut auction.bids, auction.winner)
+            ) {
+                oldest_domain = *linked_table::prev(&self.auctions, domain);
+                continue
+            };
+
+            let bid = linked_table::borrow_mut(&mut auction.bids, auction.winner);
+            let amount = balance::value(bid);
+            // Leave a balance of 0, so that `claim` function still works if winner calls it later
+            balance::join(&mut self.balance, balance::split(bid, amount));
+
+            oldest_domain = *linked_table::prev(&self.auctions, domain);
+        };
     }
+
+    // === Friend and Private Functions ===
 
     // === Events ===
 
@@ -328,5 +319,21 @@ module suins::auction {
     struct AuctionExtendedEvent has copy, drop {
         domain: Domain,
         end_timestamp_ms: u64,
+    }
+
+    // === Testing ===
+
+    #[test_only]
+    public fun init_for_testing(ctx: &mut TxContext) {
+        sui::transfer::share_object(AuctionHouse {
+            id: object::new(ctx),
+            balance: balance::zero(),
+            auctions: linked_table::new(ctx),
+        });
+    }
+
+    #[test_only]
+    public fun total_balance(self: &AuctionHouse): u64 {
+        balance::value(&self.balance)
     }
 }

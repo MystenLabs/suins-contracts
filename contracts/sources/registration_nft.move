@@ -74,4 +74,13 @@ module suins::registration_nft {
 
     /// Get the `expiration_timestamp_ms` field of the `RegistrationNFT`.
     public fun expiration_timestamp_ms(self: &RegistrationNFT): u64 { self.expiration_timestamp_ms }
+
+    
+    // === Testing ===
+
+    #[test_only]
+    public fun burn_for_testing(nft: RegistrationNFT) {
+        let RegistrationNFT { id, image_url: _, domain: _, expiration_timestamp_ms: _ } = nft;
+        object::delete(id);
+    }
 }
