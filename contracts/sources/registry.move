@@ -132,6 +132,15 @@ module suins::registry {
         };
     }
 
+    public(friend) fun set_expiration_timestamp_ms(
+        self: &mut Registry,
+        domain: Domain,
+        expiration_timestamp_ms: u64,
+    ) {
+        let record = table::borrow_mut(&mut self.registry, domain);
+        name_record::set_expiration_timestamp_ms(record, expiration_timestamp_ms);
+    }
+
     // === Private Functions ===
 
     fun handle_invalidate_reverse_record(
