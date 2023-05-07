@@ -3,18 +3,18 @@
 module suins::controller {
     use std::vector;
     use std::option::Option;
-    use std::string::{utf8, String};
-    // use sui::coin::{Self, Coin};
+    use std::string::{Self, utf8, String};
+    use sui::coin::{Self, Coin};
     use sui::tx_context::{sender, TxContext};
     // use sui::clock::{timestamp_ms, Clock};
     use sui::clock::Clock;
-    // use sui::sui::SUI;
+    use sui::sui::SUI;
     // use sui::object;
     use sui::bcs;
     use sui::ecdsa_k1;
 
     use suins::domain;
-    // use suins::constants;
+    use suins::constants;
     // use suins::name_record;
     use suins::registry::{Self, Registry};
     use suins::suins::{Self, SuiNS};
@@ -45,45 +45,43 @@ module suins::controller {
     const EInvalidDomainData: u64 = 2;
     const ESignatureNotMatch: u64 = 210;
 
-
     /// Authorization token for the app.
     struct App has drop {}
 
-    // Allows direct purchases on domains longer than 5 symbols (6+ symbols).
+    // Allows direct purchases of domains
     //
     // Makes sure that:
     // - the domain is not already registered (or, if active, expired)
     // - the domain TLD is .sui
     // - the domain is not a subdomain
-    // - the domain length is higher than 5 symbols
     // - number of years is within [1-5] interval
-    // public fun register(
-    //     suins: &mut SuiNS,
-    //     domain_name: String,
-    //     no_years: u8,
-    //     payment: Coin<SUI>,
-    //     clock: &Clock,
-    //     ctx: &mut TxContext
-    // ): RegistrationNFT {
-    //     let config = suins::get_config<Config>(suins);
-    //     let price = config::calculate_price(config, 6, no_years);
-    //     let domain = domain::new(domain_name);
-    //     let labels = domain::labels(&domain);
+    public fun register(
+        suins: &mut SuiNS,
+        domain_name: String,
+        no_years: u8,
+        payment: Coin<SUI>,
+        clock: &Clock,
+        ctx: &mut TxContext
+    ): RegistrationNFT {
+        suins::assert_app_is_authorized<App>(suins);
 
-    //     assert!(vector::length(labels) == 2, EInvalidDomain);
-    //     assert!(string::length(vector::borrow(labels, 0)) > 5, EInvalidDomainLength);
-    //     assert!(domain::tld(&domain) == &constants::sui_tld(), EInvalidTld);
-    //     assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
-    //     assert!(coin::value(&payment) == price, EIncorrectAmount);
+        let config = suins::get_config<Config>(suins);
+        assert!(config::is_user_registration_enabled(config), 0);
 
-    //     // if the domain is already registered but expired (!) we can re-register it
-    //     if (suins::has_name_record(suins, domain)) {
-    //         assert!(name_record::has_expired(suins::name_record(suins, domain), clock), ENotExpired);
-    //     };
+        let domain = domain::new(domain_name);
+        assert_valid_user_registerable_domain(&domain);
 
-    //     suins::app_add_balance(App {}, suins, coin::into_balance(payment));
-    //     suins::app_add_record(App {}, suins, domain, no_years, clock, ctx)
-    // }
+        assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
+
+        let label = vector::borrow(domain::labels(&domain), 0);
+        let price = config::calculate_price(config, (string::length(label) as u8), no_years);
+
+        assert!(coin::value(&payment) == price, EIncorrectAmount);
+
+        suins::app_add_balance(App {}, suins, coin::into_balance(payment));
+        let registry = suins::registry_mut<Registry, App>(suins, App {});
+        registry::add_record(registry, domain, no_years, clock, ctx)
+    }
 
     // /// Renew a registered domain name by a number of years (not exceeding 5).
     // /// The domain name must be already registered and active; `RegistrationNFT`
@@ -215,5 +213,18 @@ module suins::controller {
             expiration_timestamp_ms,
             data,
         )
+    }
+
+    /// === Helpers ===
+
+    /// Asserts that a domain is registerable by a user:
+    /// - TLD is "sui"
+    /// - only has 1 label, "name", other than the TLD
+    /// - "name" is >= 3 characters long
+    public fun assert_valid_user_registerable_domain(domain: &Domain) {
+        assert!(domain::tld(domain) == &constants::sui_tld(), EInvalidTld);
+        let labels = domain::labels(domain);
+        assert!(vector::length(labels) == 2, EInvalidDomain);
+        assert!(string::length(vector::borrow(labels, 0)) >= 3, EInvalidDomainLength);
     }
 }

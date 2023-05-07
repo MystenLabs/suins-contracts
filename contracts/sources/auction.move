@@ -17,9 +17,9 @@ module suins::auction {
     use suins::config::{Self, Config};
     use suins::suins::{Self, AdminCap, SuiNS};
     use suins::registration_nft::RegistrationNFT;
-    use suins::constants;
     use suins::registry::{Self, Registry};
     use suins::domain::{Self, Domain};
+    use suins::controller;
 
     /// One year is the default duration for a domain.
     const DEFAULT_DURATION: u8 = 1;
@@ -47,8 +47,6 @@ module suins::auction {
     const EAuctionStarted: u64 = 6;
     /// Placing a bid in a not started
     const EAuctionNotStarted: u64 = 7;
-    /// The domain is not a .sui domain.
-    const EIncorrectDomain: u64 = 8;
 
     /// Authorization witness to call protected functions of suins.
     struct App has drop {}
@@ -92,15 +90,15 @@ module suins::auction {
         ctx: &mut TxContext,
     ) {
         let domain = domain::new(domain_name);
-        let label = vector::borrow(domain::labels(&domain), 0);
 
         // make sure the domain is a .sui domain and not a subdomain
-        assert!(domain::labels_len(&domain) == 2, EIncorrectDomain);
-        assert!(domain::tld(&domain) == &constants::sui_tld(), EIncorrectDomain);
+        controller::assert_valid_user_registerable_domain(&domain);
+
         assert!(!linked_table::contains(&self.auctions, domain), EAuctionStarted);
 
         // The minnimum price only applies to newly created auctions
         let config = suins::get_config<Config>(suins);
+        let label = vector::borrow(domain::labels(&domain), 0);
         let min_price = config::calculate_price(config, (string::length(label) as u8), 1);
         let bid = balance::split(coin::balance_mut(payment), bid_value);
         assert!(balance::value(&bid) >= min_price, EInvalidBidValue);
