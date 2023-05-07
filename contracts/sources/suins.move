@@ -122,6 +122,13 @@ module suins::suins {
         balance::join(&mut self.balance, balance);
     }
 
+    /// Get a mutable access to the `Registry` object. Can only be performed by authorized
+    /// applications.
+    public fun app_registry_mut<App: drop, R: store>(_: App, self: &mut SuiNS): &mut R {
+        assert_app_is_authorized<App>(self);
+        df::borrow_mut(&mut self.id, RegistryKey<R> {})
+    }
+
     // === Config management ===
 
     /// Attach dynamic configuration object to the application.
@@ -150,12 +157,7 @@ module suins::suins {
         df::borrow(&self.id, RegistryKey<R> {})
     }
 
-    public fun registry_mut<R: store, App: drop>(self: &mut SuiNS, _: App): &mut R {
-        assert_app_is_authorized<App>(self);
-        df::borrow_mut(&mut self.id, RegistryKey<R> {})
-    }
-
-    fun add_registry<R: store>(_: &AdminCap, self: &mut SuiNS, registry: R) {
+    public fun add_registry<R: store>(_: &AdminCap, self: &mut SuiNS, registry: R) {
         df::add(&mut self.id, RegistryKey<R> {}, registry);
     }
 
@@ -211,7 +213,7 @@ module suins::suins {
     public fun add_record_for_testing(
         self: &mut SuiNS, domain_name: String, clock: &Clock, ctx: &mut TxContext
     ): RegistrationNFT {
-        let registry = registry_mut<Registry, Test>(self, Test {});
+        let registry = app_registry_mut<Test, Registry>(Test {}, self, );
         registry::add_record(registry, domain::new(domain_name), 1, clock, ctx)
     }
 }

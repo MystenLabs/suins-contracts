@@ -28,7 +28,7 @@ module suins::admin {
         clock: &Clock,
         ctx: &mut TxContext
     ): RegistrationNFT {
-        let registry = suins::registry_mut<Registry, Admin>(suins, Admin {});
+        let registry = suins::app_registry_mut<Admin, Registry>(Admin {}, suins);
         registry::add_record(registry, domain::new(domain_name), 1, clock, ctx)
     }
 }

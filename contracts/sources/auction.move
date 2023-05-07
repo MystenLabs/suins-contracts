@@ -141,7 +141,7 @@ module suins::auction {
         clock: &Clock,
         ctx: &mut TxContext
     ): Auction {
-        let registry = suins::registry_mut<Registry, App>(suins, App {});
+        let registry = suins::app_registry_mut<App, Registry>(App {}, suins);
         let nft = registry::add_record(registry, domain, 1, clock, ctx);
         let starting_bid = balance::value(&bid);
         let bids = linked_table::new(ctx);
