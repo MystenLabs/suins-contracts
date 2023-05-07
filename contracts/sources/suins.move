@@ -1,20 +1,11 @@
 module suins::suins {
-    use std::option::{Self, some, none, Option};
-    use std::string::String;
-
-    use sui::tx_context::{sender, Self, TxContext};
+    use sui::tx_context::{Self, TxContext};
     use sui::balance::{Self, Balance};
     use sui::coin::{Self, Coin};
     use sui::dynamic_field as df;
     use sui::object::{Self, UID};
-    use sui::table::{Self, Table};
-    use sui::clock::Clock;
     use sui::transfer;
     use sui::sui::SUI;
-
-    use suins::registration_nft::{Self as nft, RegistrationNFT};
-    use suins::name_record::{Self, NameRecord};
-    use suins::domain::{Self, Domain};
 
     /// Trying to withdraw from an empty balance.
     const ENoProfits: u64 = 0;
@@ -39,11 +30,11 @@ module suins::suins {
         id: UID,
         /// The total balance of the SuiNS.
         balance: Balance<SUI>,
-        /// Maps domain names to name records (instance of `NameRecord`).
-        /// `String => (T = NameRecord { nft_id, target_address })`
-        registry: UID,
-        /// Map from addresses to a configured default domain.
-        reverse_registry: Table<address, String>
+
+        // === Dynamic Fields ===
+
+        // registry: RegistryKey<R> -> R
+        // config: ConfigKey<C> -> C
     }
 
     /// The one-time-witness used to claim Publisher object.
@@ -55,6 +46,8 @@ module suins::suins {
     /// that different configurations can be stored at the same time. Eg
     /// currently we store application `Config` and `Promotion` configuration.
     struct ConfigKey<phantom Config> has copy, store, drop {}
+
+    struct RegistryKey<phantom Config> has copy, store, drop {}
 
     /// Module initializer:
     /// - create SuiNS object
@@ -71,8 +64,6 @@ module suins::suins {
         let suins = SuiNS {
             id: object::new(ctx),
             balance: balance::zero(),
-            registry: object::new(ctx),
-            reverse_registry: table::new(ctx),
         };
 
         transfer::share_object(suins);
@@ -92,8 +83,7 @@ module suins::suins {
     // === App Auth ===
 
     /// An authorization Key kept in the SuiNS - allows applications access
-    /// protected features of the SuiNS (such as app_add_balance, app_add_record
-    /// etc.)
+    /// protected features of the SuiNS (such as app_add_balance, etc.)
     /// The `App` type parameter is a witness which should be defined in the
     /// original module (Controller, Registry, Registrar - whatever).
     struct AppKey<phantom App: drop> has copy, store, drop {}
@@ -114,41 +104,16 @@ module suins::suins {
         df::exists_(&self.id, AppKey<App>{})
     }
 
+    public fun assert_app_is_authorized<App: drop>(self: &SuiNS) {
+        assert!(is_app_authorized<App>(self), EAppNotAuthorized);
+    }
+
     // === Protected features ===
 
     /// Mutable access to `SuiNS.UID` for authorized applications.
     public fun app_uid_mut<App: drop>(_: App, self: &mut SuiNS): &mut UID {
         assert!(is_app_authorized<App>(self), EAppNotAuthorized);
         &mut self.id
-    }
-
-    /// Add a new record to the SuiNS.
-    /// The only way to register new records and create `RegistrationNFT`s.
-    ///
-    /// TODO we need to do better invariant checking here, if a record exists we don't want to override it if it hasn't expired yet
-    public fun app_add_record<App: drop>(
-        _: App,
-        self: &mut SuiNS,
-        domain: Domain,
-        no_years: u8,
-        clock: &Clock,
-        ctx: &mut TxContext
-    ): RegistrationNFT {
-        assert!(is_app_authorized<App>(self), EAppNotAuthorized);
-
-        let nft = nft::new(domain, no_years, clock, ctx);
-        let name_record = name_record::new(object::id(&nft), nft::expiration_timestamp_ms(&nft));
-        if (has_name_record(self, domain)) {
-            let record = df::borrow_mut(&mut self.registry, domain);
-            let old_target_address = name_record::target_address(record);
-            *record = name_record;
-
-            handle_invalidate_reverse_record(self, domain, old_target_address, none());
-        } else {
-            df::add(&mut self.registry, domain, name_record)
-        };
-
-        nft
     }
 
     /// Adds balance to the SuiNS.
@@ -179,116 +144,35 @@ module suins::suins {
         df::remove(&mut self.id, ConfigKey<Config> {})
     }
 
-    // === Ex Registry Code ===
+    // === Registry ===
 
-    public fun set_target_address(
-        self: &mut SuiNS, token: &RegistrationNFT, clock: &Clock, new_target: address
-    ) {
-        assert!(!nft::has_expired_with_grace(token, clock), ENftExpired);
-
-        let domain = nft::domain(token);
-        let record: &mut NameRecord = df::borrow_mut(&mut self.registry, domain);
-        let old_target = name_record::target_address(record);
-
-        name_record::set_target_address(record, some(new_target));
-        handle_invalidate_reverse_record(self, domain, old_target, some(new_target));
+    public fun registry<R: store>(self: &SuiNS): &R {
+        df::borrow(&self.id, RegistryKey<R> {})
     }
 
-    public fun unset_target_address(self: &mut SuiNS, token: &RegistrationNFT, clock: &Clock) {
-        assert!(!nft::has_expired_with_grace(token, clock), ENftExpired);
-
-        let domain = nft::domain(token);
-        let record: &mut NameRecord = df::borrow_mut(&mut self.registry, domain);
-        let old_target = name_record::target_address(record);
-
-        name_record::set_target_address(record, none());
-        handle_invalidate_reverse_record(self, domain, old_target, none());
+    public fun registry_mut<R: store, App: drop>(self: &mut SuiNS, _: App): &mut R {
+        assert_app_is_authorized<App>(self);
+        df::borrow_mut(&mut self.id, RegistryKey<R> {})
     }
 
-    // default domain name setting (address => domain lookup)
-    // what do we expect form this feature?
-
-    public fun default_domain(self: &SuiNS, for: address): String {
-        *table::borrow(&self.reverse_registry, for)
+    fun add_registry<R: store>(_: &AdminCap, self: &mut SuiNS, registry: R) {
+        df::add(&mut self.id, RegistryKey<R> {}, registry);
     }
 
-    public fun target_address(self: &SuiNS, domain: String): Option<address> {
-        name_record::target_address(df::borrow(&self.registry, domain))
-    }
-
-    // linking address and RegistrationNFT
-
-    public fun set_default_domain(self: &mut SuiNS, token: &RegistrationNFT, clock: &Clock, ctx: &mut TxContext) {
-        assert!(!nft::has_expired_with_grace(token, clock), ENftExpired);
-
-        let sender = sender(ctx);
-        let domain = nft::domain(token);
-        let record = df::borrow(&self.registry, domain);
-
-        assert!(some(sender) == name_record::target_address(record), EDefaultDomainNameNotMatch);
-
-        if (table::contains(&self.reverse_registry, sender)) {
-            *table::borrow_mut(&mut self.reverse_registry, sender) = domain::to_string(&domain);
-        } else {
-            table::add(&mut self.reverse_registry, sender, domain::to_string(&domain));
-        };
-    }
-
-    // can be performed at any time, right? like I remove a record at my address?
-    public fun unset_default_domain(self: &mut SuiNS, ctx: &mut TxContext) {
-        table::remove(&mut self.reverse_registry, sender(ctx));
-    }
-
-    // === Name Record ===
-
-    /// Read the `name_record` for the specified `domain`.
-    public fun name_record<Record: store + drop>(self: &SuiNS, domain: Domain): &Record {
-        df::borrow(&self.registry, domain)
-    }
-
-    // /// Mutable access to the name record.
-    // public fun name_record_mut<Record: store + drop>(
-    //     self: &mut SuiNS, token: &RegistrationNFT, clock: &Clock
-    // ): &mut Record {
-    //     assert!(!nft::has_expired_with_grace(token, clock), ENftExpired);
-    //     df::borrow_mut(&mut self.registry, nft::domain(token))
-    // }
-
-    /// Check if the `name_record` exists for the given `Domain`.
-    public fun has_name_record(self: &SuiNS, domain: Domain): bool {
-        df::exists_(&self.registry, domain)
+    fun remove_registry<R: store>(_: &AdminCap, self: &mut SuiNS): R {
+        df::remove(&mut self.id, RegistryKey<R> {})
     }
 
     // === Friend and Private Functions ===
 
-    fun handle_invalidate_reverse_record(
-        self: &mut SuiNS,
-        domain: Domain,
-        old_target_address: Option<address>,
-        new_target_address: Option<address>,
-    ) {
-        if (old_target_address == new_target_address) {
-            return
-        };
-
-        if (option::is_none(&old_target_address)) {
-            return
-        };
-
-        let old_target_address = option::destroy_some(old_target_address);
-        let reverse_registry = &mut self.reverse_registry;
-
-        if (table::contains(reverse_registry, old_target_address)) {
-            let default_domain = table::borrow(reverse_registry, old_target_address);
-            if (*default_domain == domain::to_string(&domain)) {
-                table::remove(reverse_registry, old_target_address);
-            }
-        };
-    }
-
     // === Testing ===
 
+    #[test_only] use std::string::String;
+    #[test_only] use sui::clock::Clock;
+    #[test_only] use suins::registry::{Self, Registry};
     #[test_only] use suins::config;
+    #[test_only] use suins::registration_nft::RegistrationNFT;
+    #[test_only] use suins::domain;
     #[test_only] struct Test has drop {}
 
     #[test_only]
@@ -298,8 +182,6 @@ module suins::suins {
         let suins = SuiNS {
             id: object::new(ctx),
             balance: balance::zero(),
-            registry: object::new(ctx),
-            reverse_registry: table::new(ctx),
         };
 
         authorize_app<Test>(&admin_cap, &mut suins);
@@ -309,6 +191,7 @@ module suins::suins {
             200 * suins::constants::mist_per_sui(),
             50 * suins::constants::mist_per_sui(),
         ));
+        add_registry(&admin_cap, &mut suins, registry::new(ctx));
         transfer::transfer(admin_cap, tx_context::sender(ctx));
         suins
     }
@@ -328,6 +211,7 @@ module suins::suins {
     public fun add_record_for_testing(
         self: &mut SuiNS, domain_name: String, clock: &Clock, ctx: &mut TxContext
     ): RegistrationNFT {
-        app_add_record(Test {}, self, domain::new(domain_name), 1, clock, ctx)
+        let registry = registry_mut<Registry, Test>(self, Test {});
+        registry::add_record(registry, domain::new(domain_name), 1, clock, ctx)
     }
 }

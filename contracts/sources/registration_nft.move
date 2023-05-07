@@ -4,24 +4,16 @@
 ///
 ///
 module suins::registration_nft {
-    use std::string::{utf8, String};
+    use std::string::{String};
     use sui::object::{Self, UID};
     use sui::tx_context::TxContext;
     use sui::clock::{timestamp_ms, Clock};
-    use sui::bcs;
 
     use suins::constants;
-    use suins::domain::{Self, Domain};
+    use suins::domain::Domain;
 
-    // The one in only friend.
-    friend suins::suins;
-
-    /// Trying to update an image in an expired `RegistrationNFT`.
-    const EExpired: u64 = 0;
-    /// Message data cannot be parsed.
-    const EInvalidData: u64 = 1;
-    /// The parsed name does not match the expected domain.
-    const EInvalidDomainData: u64 = 2;
+    friend suins::controller;
+    friend suins::registry;
 
     /// The main access point for the user.
     struct RegistrationNFT has key, store {
@@ -56,30 +48,11 @@ module suins::registration_nft {
         self.expiration_timestamp_ms = expiration_timestamp_ms;
     }
 
-    // === Public methods ===
-
-    /// Update the image URl for the `RegistrationNFT`. Can only be performed by
-    ///
-    public fun update_image(
-        self: &mut RegistrationNFT,
-        _signature: vector<u8>,
-        _hashed_msg: vector<u8>,
-        raw_msg: vector<u8>,
-        clock: &Clock,
-        _ctx: &mut TxContext,
-    ) {
-        // cryptography bits
-        // TODO: need to get access to `public_key` here - how?
-        // HINT: search `assert_image_msg_match` to find the function
-
-        let (ipfs_hash, domain_name, expiration_timestamp_ms, _data) = bcs_to_image_data(raw_msg);
-
-        assert!(!has_expired(self, clock), EExpired);
-        assert!(self.expiration_timestamp_ms == expiration_timestamp_ms, EInvalidData);
-        assert!(domain::to_string(&self.domain) == domain_name, EInvalidDomainData);
-
-        self.image_url = ipfs_hash;
+    public(friend) fun update_image_url(self: &mut RegistrationNFT, image_url: String) {
+        self.image_url = image_url;
     }
+
+    // === Public methods ===
 
     /// Check whether the `RegistrationNFT` has expired by comparing the
     /// expiration timeout with the current time.
@@ -101,28 +74,4 @@ module suins::registration_nft {
 
     /// Get the `expiration_timestamp_ms` field of the `RegistrationNFT`.
     public fun expiration_timestamp_ms(self: &RegistrationNFT): u64 { self.expiration_timestamp_ms }
-
-    // === Utilities ===
-
-    /// Parses the message bytes into the image data.
-    ///
-    /// ```
-    /// struct MessageData {
-    ///   ipfs_hash: String,
-    ///   domain_name: String,
-    ///   expiration_timestamp_ms: u64,
-    ///   data: String
-    /// }
-    /// ```
-    ///
-    fun bcs_to_image_data(msg_bytes: vector<u8>): (String, String, u64, String) {
-        let bcs = bcs::new(msg_bytes);
-
-        (
-            utf8(bcs::peel_vec_u8(&mut bcs)),
-            utf8(bcs::peel_vec_u8(&mut bcs)),
-            bcs::peel_u64(&mut bcs),
-            utf8(bcs::peel_vec_u8(&mut bcs))
-        )
-    }
 }

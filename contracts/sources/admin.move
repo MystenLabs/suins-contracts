@@ -8,6 +8,7 @@ module suins::admin {
     use suins::domain;
     use suins::suins::{Self, AdminCap, SuiNS};
     use suins::registration_nft::RegistrationNFT;
+    use suins::registry::{Self, Registry};
 
     /// The authorization witness.
     struct Admin has drop {}
@@ -27,6 +28,7 @@ module suins::admin {
         clock: &Clock,
         ctx: &mut TxContext
     ): RegistrationNFT {
-        suins::app_add_record(Admin {}, suins, domain::new(domain_name), 1, clock, ctx)
+        let registry = suins::registry_mut<Registry, Admin>(suins, Admin {});
+        registry::add_record(registry, domain::new(domain_name), 1, clock, ctx)
     }
 }
