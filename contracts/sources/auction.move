@@ -28,15 +28,6 @@ module suins::auction {
     const AUCTION_BIDDING_PERIOD_MS: u64 = 2 * 24 * 60 * 60 * 1000; // 2 days
     const AUCTION_MIN_QUIET_PERIOD_MS: u64 = 10 * 60 * 1000; // 10 minutes of quiet time
 
-    const AUCTION_HOUSE_PERIOD: u64 = 30;
-    const BIDDING_PERIOD: u64 = 2;
-    const TWO_DAYS_IN_MS: u64 = 172_800_000;
-    const AUCTION_STATE_UNAVAILABLE: u8 = 1;
-    const AUCTION_STATE_OPEN: u8 = 2;
-    const AUCTION_STATE_BIDDING: u8 = 3;
-    const AUCTION_STATE_OWNED: u8 = 4;
-    const AUCTION_STATE_REOPENED: u8 = 5;
-
     const EAuctionHouseUnavailable: u64 = 0;
     const ELabelUnavailable: u64 = 1;
     const EBidExisted: u64 = 2;
@@ -96,7 +87,7 @@ module suins::auction {
 
         assert!(!linked_table::contains(&self.auctions, domain), EAuctionStarted);
 
-        // The minnimum price only applies to newly created auctions
+        // The minimum price only applies to newly created auctions
         let config = suins::get_config<Config>(suins);
         let label = vector::borrow(domain::labels(&domain), 0);
         let min_price = config::calculate_price(config, (string::length(label) as u8), DEFAULT_DURATION);

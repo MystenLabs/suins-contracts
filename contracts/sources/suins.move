@@ -9,16 +9,8 @@ module suins::suins {
 
     /// Trying to withdraw from an empty balance.
     const ENoProfits: u64 = 0;
-    /// Trying to access a name record that belongs to another account.
-    const ENotRecordOwner: u64 = 1;
     /// An application is not authorized to access the feature.
-    const EAppNotAuthorized: u64 = 2;
-    /// Beep boop.
-    const EDefaultDomainNameNotMatch: u64 = 3;
-    /// The `RegistrationNFT` has expired.
-    const ENftExpired: u64 = 4;
-    /// Trying to use a `RegistrationNFT` that expired and was replaced.
-    const ENftIdNotMatch: u64 = 5;
+    const EAppNotAuthorized: u64 = 1;
 
     /// An admin capability. The admin has full control over the application.
     /// This object must be issued only once during module initialization.
@@ -112,13 +104,13 @@ module suins::suins {
 
     /// Mutable access to `SuiNS.UID` for authorized applications.
     public fun app_uid_mut<App: drop>(_: App, self: &mut SuiNS): &mut UID {
-        assert!(is_app_authorized<App>(self), EAppNotAuthorized);
+        assert_app_is_authorized<App>(self);
         &mut self.id
     }
 
     /// Adds balance to the SuiNS.
     public fun app_add_balance<App: drop>(_: App, self: &mut SuiNS, balance: Balance<SUI>) {
-        assert!(is_app_authorized<App>(self), EAppNotAuthorized);
+        assert_app_is_authorized<App>(self);
         balance::join(&mut self.balance, balance);
     }
 
