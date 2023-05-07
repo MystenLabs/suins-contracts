@@ -7,8 +7,6 @@ module suins::constants {
 
     /// Max value for basis points.
     const MAX_BPS: u16 = 10000;
-    /// The u64_MAX value.
-    const MAX_U64: u64 = 18446744073709551615;
     /// The amount of MIST in 1 SUI.
     const MIST_PER_SUI: u64 = 1_000_000_000;
     /// The minimum length of a domain name.
@@ -21,7 +19,7 @@ module suins::constants {
     const YEAR_MS: u64 = 365 * 24 * 60 * 60 * 1000;
     /// Default value for the image_url; IPFS hash.
     const DEFAULT_IMAGE: vector<u8> = b"QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY";
-    /// Grace period in milliseconds.
+    /// 30 day Grace period in milliseconds.
     const GRACE_PERIOD_MS: u64 = 30 * 24 * 60 * 60 * 1000;
 
     // === Public functions ===
@@ -36,10 +34,6 @@ module suins::constants {
     public fun min_domain_length(): u8 { MIN_DOMAIN_LENGTH }
     /// The maximum length of a domain name.
     public fun max_domain_length(): u8 { MAX_DOMAIN_LENGTH }
-    /// Maximum value for epoch.
-    public fun max_epoch_allowed(): u64 { MAX_U64 - 365 }
-    /// Maximum value of u64.
-    public fun max_u64(): u64 { MAX_U64 }
     /// Maximum value for basis points.
     public fun max_bps(): u16 { MAX_BPS }
     /// The amount of milliseconds in a year.
