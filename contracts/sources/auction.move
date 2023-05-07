@@ -17,7 +17,7 @@ module suins::auction {
 
     use suins::config::{Self, Config};
     use suins::suins::{Self, AdminCap, SuiNS};
-    use suins::registration_nft::RegistrationNFT;
+    use suins::registration_nft::{Self as nft, RegistrationNFT};
     use suins::registry::{Self, Registry};
     use suins::domain::{Self, Domain};
     use suins::controller;
@@ -88,7 +88,7 @@ module suins::auction {
         ctx: &mut TxContext,
     ) {
         suins::assert_app_is_authorized<App>(suins);
-        
+
         let domain = domain::new(domain_name);
 
         // make sure the domain is a .sui domain and not a subdomain
@@ -179,12 +179,19 @@ module suins::auction {
         // Auctions can't be finished until there is at least `AUCTION_MIN_QUIET_PERIOD_MS`
         // time where there are no bids.
         if (auction.end_timestamp_ms - clock::timestamp_ms(clock) < AUCTION_MIN_QUIET_PERIOD_MS) {
-            auction.end_timestamp_ms = clock::timestamp_ms(clock) + AUCTION_MIN_QUIET_PERIOD_MS;
+            let new_end_timestamp_ms = clock::timestamp_ms(clock) + AUCTION_MIN_QUIET_PERIOD_MS;
 
-            event::emit(AuctionExtendedEvent {
-                domain,
-                end_timestamp_ms: auction.end_timestamp_ms,
-            });
+            // Only extend the auction if the new auction end time is before
+            // the NFT's expiration timestamp
+            let nft = option::borrow(&auction.nft);
+            if (new_end_timestamp_ms < nft::expiration_timestamp_ms(nft)) {
+                auction.end_timestamp_ms = new_end_timestamp_ms;
+
+                event::emit(AuctionExtendedEvent {
+                    domain,
+                    end_timestamp_ms: auction.end_timestamp_ms,
+                });
+            }
         };
     }
 
@@ -327,7 +334,7 @@ module suins::auction {
             } else {
                 transfer::public_transfer(bid, address);
             };
-            
+
             operation_limit = operation_limit - 1;
         };
 
@@ -362,7 +369,7 @@ module suins::auction {
 
         while (is_some(&next_domain)) {
             if (operation_limit == 0) {
-                return 
+                return
             };
             operation_limit = operation_limit - 1;
 
