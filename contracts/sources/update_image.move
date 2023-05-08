@@ -17,7 +17,8 @@ module suins::update_image {
     const EInvalidData: u64 = 1;
     /// The parsed name does not match the expected domain.
     const EInvalidDomainData: u64 = 2;
-    const ESignatureNotMatch: u64 = 210;
+    /// Invalid signature for the message.
+    const ESignatureNotMatch: u64 = 3;
 
     /// Authorization token for the app.
     struct App has drop {}

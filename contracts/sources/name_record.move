@@ -65,6 +65,7 @@ module suins::name_record {
         self.target_address = new_address;
     }
 
+    /// Set the `expiration_timestamp_ms` field of the `NameRecord`.
     public fun set_expiration_timestamp_ms(
         self: &mut NameRecord,
         expiration_timestamp_ms: u64,
