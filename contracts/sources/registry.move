@@ -12,7 +12,7 @@ module suins::registry {
     use suins::domain::{Self, Domain};
 
     /// The `RegistrationNFT` has expired.
-    const ENftExpired: u64 = 4;
+    const ENftExpired: u64 = 0;
 
     struct Registry has store {
         registry: Table<Domain, NameRecord>,
