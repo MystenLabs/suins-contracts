@@ -41,24 +41,23 @@ module suins::auction {
     const EAuctionNotStarted: u64 = 7;
 
     /// Authorization witness to call protected functions of suins.
-    struct Auction has drop {}
-
-    /// The Auction application.
-    struct Auction has store {
-        domain: Domain,
-        // min_bid: u64,
-        start_timestamp_ms: u64,
-        end_timestamp_ms: u64,
-        winner: address,
-        bids: LinkedTable<address, Coin<SUI>>,
-        nft: Option<RegistrationNFT>,
-    }
+    struct App has drop {}
 
     /// The AuctionHouse application.
     struct AuctionHouse has key, store {
         id: UID,
         balance: Balance<SUI>,
         auctions: LinkedTable<Domain, Auction>,
+    }
+
+    /// The Auction application.
+    struct Auction has store {
+        domain: Domain,
+        start_timestamp_ms: u64,
+        end_timestamp_ms: u64,
+        winner: address,
+        bids: LinkedTable<address, Coin<SUI>>,
+        nft: Option<RegistrationNFT>,
     }
 
     fun init(ctx: &mut TxContext) {
@@ -78,7 +77,7 @@ module suins::auction {
         clock: &Clock,
         ctx: &mut TxContext,
     ) {
-        suins::assert_app_is_authorized<Auction>(suins);
+        suins::assert_app_is_authorized<App>(suins);
 
         let domain = domain::new(domain_name);
 
@@ -93,7 +92,7 @@ module suins::auction {
         let min_price = config::calculate_price(config, (string::length(label) as u8), DEFAULT_DURATION);
         assert!(coin::value(&bid) >= min_price, EInvalidBidValue);
 
-        let registry = suins::app_registry_mut<Auction, Registry>(Auction {}, suins);
+        let registry = suins::app_registry_mut<App, Registry>(App {}, suins);
         let nft = registry::add_record(registry, domain, DEFAULT_DURATION, clock, ctx);
         let starting_bid = coin::value(&bid);
         let bids = linked_table::new(ctx);
