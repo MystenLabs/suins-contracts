@@ -10,7 +10,7 @@ module suins::controller {
     use suins::registry::{Self, Registry};
     use suins::suins::{Self, SuiNS};
     use suins::domain::Domain;
-    use suins::registration_nft::RegistrationNFT;
+    use suins::registration_nft::{Self as nft, RegistrationNFT};
 
     /// Trying to register a subdomain (only *.sui is currently allowed).
     const EInvalidDomain: u64 = 1;
@@ -33,7 +33,10 @@ module suins::controller {
         suins::assert_app_is_authorized<App>(suins);
 
         let registry = suins::app_registry_mut<App, Registry>(App {}, suins);
-        registry::set_target_address(registry, nft, new_target, clock);
+        registry::assert_nft_is_authorized(registry, nft, clock);
+
+        let domain = nft::domain(nft);
+        registry::set_target_address(registry, domain, new_target);
     }
 
     public fun set_reverse_lookup(

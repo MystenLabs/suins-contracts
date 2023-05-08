@@ -68,16 +68,11 @@ module suins::registry {
         nft
     }
 
-    //TODO: think about doing the nft checks outside in the Controller
     public fun set_target_address(
         self: &mut Registry,
-        nft: &RegistrationNFT,
+        domain: Domain,
         new_target: Option<address>,
-        clock: &Clock,
     ) {
-        assert_nft_is_authorized(self, nft, clock);
-
-        let domain = nft::domain(nft);
         let record = table::borrow_mut(&mut self.registry, domain);
         let old_target = name_record::target_address(record);
 
