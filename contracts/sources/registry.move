@@ -14,31 +14,20 @@ module suins::registry {
     /// The `RegistrationNFT` has expired.
     const ENftExpired: u64 = 0;
 
+    /// The `Registry` object. Attached as a dynamic field to the `SuiNS` object,
+    /// and the `suins` module controls the access to the `Registry`.
+    ///
+    /// Contains two tables necessary for the lookup.
     struct Registry has store {
+        /// The `registry` table maps `Domain` to `NameRecord`.
+        /// Added / replaced in the `add_record` function.
         registry: Table<Domain, NameRecord>,
+        /// The `reverse_registry` table maps `address` to `domain_name`.
+        /// Updated in the `set_reverse_lookup` function.
         reverse_registry: Table<address, String>,
     }
 
     // === Public Functions ===
-
-    public fun lookup(self: &Registry, domain: Domain): Option<NameRecord> {
-        if (table::contains(&self.registry, domain)) {
-            let record = table::borrow(&self.registry, domain);
-            some(*record)
-        } else {
-            none()
-        }
-    }
-
-    public fun reverse_lookup(self: &Registry, address: address): Option<String> {
-        if (table::contains(&self.reverse_registry, address)) {
-            some(*table::borrow(&self.reverse_registry, address))
-        } else {
-            none()
-        }
-    }
-
-    // === Friend Functions ===
 
     public fun new(ctx: &mut TxContext): Registry {
         Registry {
@@ -84,7 +73,6 @@ module suins::registry {
         assert!(!nft::has_expired(nft, clock), ENftExpired);
 
         let domain = nft::domain(nft);
-
         let record = table::borrow_mut(&mut self.registry, domain);
         assert!(!name_record::has_expired(record, clock), 0);
         assert!(object::id(nft) == name_record::nft_id(record), 0);
@@ -124,6 +112,27 @@ module suins::registry {
     ) {
         let record = table::borrow_mut(&mut self.registry, domain);
         name_record::set_expiration_timestamp_ms(record, expiration_timestamp_ms);
+    }
+
+    // === Reads ===
+
+    /// Returns the `NameRecord` associated with the given domain or None.
+    public fun lookup(self: &Registry, domain: Domain): Option<NameRecord> {
+        if (table::contains(&self.registry, domain)) {
+            let record = table::borrow(&self.registry, domain);
+            some(*record)
+        } else {
+            none()
+        }
+    }
+
+    /// Returns the `domain_name` associated with the given address or None.
+    public fun reverse_lookup(self: &Registry, address: address): Option<String> {
+        if (table::contains(&self.reverse_registry, address)) {
+            some(*table::borrow(&self.reverse_registry, address))
+        } else {
+            none()
+        }
     }
 
     // === Private Functions ===

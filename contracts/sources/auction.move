@@ -24,21 +24,19 @@ module suins::auction {
 
     /// One year is the default duration for a domain.
     const DEFAULT_DURATION: u8 = 1;
+    /// The auction bidding period is 2 days.
+    const AUCTION_BIDDING_PERIOD_MS: u64 = 2 * 24 * 60 * 60 * 1000;
+    /// The auction quiet period is 10 minutes.
+    const AUCTION_MIN_QUIET_PERIOD_MS: u64 = 10 * 60 * 1000;
 
-    const AUCTION_BIDDING_PERIOD_MS: u64 = 2 * 24 * 60 * 60 * 1000; // 2 days
-    const AUCTION_MIN_QUIET_PERIOD_MS: u64 = 10 * 60 * 1000; // 10 minutes of quiet time
+    // === Abort codes ===
 
-    const EAuctionHouseUnavailable: u64 = 0;
-    const ELabelUnavailable: u64 = 1;
-    const EBidExisted: u64 = 2;
     /// The bid value is too low (compared to min_bid or previous bid).
-    const EInvalidBidValue: u64 = 3;
-    const EInvalidConfigParam: u64 = 4;
-    const EWinnerAlreadyClaimed: u64 = 5;
+    const EInvalidBidValue: u64 = 0;
     /// Trying to start an action but it's already started.
-    const EAuctionStarted: u64 = 6;
+    const EAuctionStarted: u64 = 1;
     /// Placing a bid in a not started
-    const EAuctionNotStarted: u64 = 7;
+    const EAuctionNotStarted: u64 = 2;
 
     /// Authorization witness to call protected functions of suins.
     struct App has drop {}
