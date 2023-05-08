@@ -196,6 +196,19 @@ module suins::suins {
     }
 
     #[test_only]
+    /// Create an admin cap - only for testing.
+    public fun create_admin_cap_for_testing(ctx: &mut TxContext): AdminCap {
+        AdminCap { id: object::new(ctx) }
+    }
+
+    #[test_only]
+    /// Burn the admin cap - only for testing.
+    public fun burn_admin_cap_for_testing(admin_cap: AdminCap) {
+        let AdminCap { id } = admin_cap;
+        object::delete(id);
+    }
+
+    #[test_only]
     public fun authorize_app_for_testing<App: drop>(self: &mut SuiNS) {
         df::add(&mut self.id, AppKey<App> {}, true)
     }

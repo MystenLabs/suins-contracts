@@ -10,7 +10,7 @@ module suins::config_tests {
     use std::hash::sha3_256 as hash;
     use suins::config::{Self, Config};
 
-    // consts for default values
+    // consts for fees (starting prices)
     const THREE: u64 = 9_000_000_000; // 9 SUI
     const FOUR: u64 = 5_000_000_000; // 5 SUI
     const FIVE_PLUS: u64 = 2_000_000_000; // 2 SUI

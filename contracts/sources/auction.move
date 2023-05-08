@@ -381,8 +381,6 @@ module suins::auction {
         };
     }
 
-    // === Friend and Private Functions ===
-
     // === Events ===
 
     struct AuctionStartedEvent has copy, drop {
