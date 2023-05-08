@@ -24,7 +24,6 @@ module suins::config {
     /// be replaced with any other module providing similar interface
     /// and fitting the needs of the application.
     struct Config has store, drop {
-        is_user_registration_enabled: bool,
         public_key: vector<u8>,
         three_char_price: u64,
         four_char_price: u64,
@@ -42,7 +41,6 @@ module suins::config {
         assert!(vector::length(&public_key) == 32, EInvalidPublicKey);
 
         Config {
-            is_user_registration_enabled: false,
             public_key,
             three_char_price,
             four_char_price,
@@ -51,10 +49,6 @@ module suins::config {
     }
 
     // === Modification: one per property ===
-
-    public fun set_is_user_registration_enabled(self: &mut Config, value: bool) {
-        self.is_user_registration_enabled = value;
-    }
 
     /// Change the value of the `public_key` field.
     public fun set_public_key(self: &mut Config, value: vector<u8>) {
@@ -101,10 +95,6 @@ module suins::config {
 
 
     // === Reads: one per property ===
-
-    public fun is_user_registration_enabled(self: &Config): bool {
-        self.is_user_registration_enabled
-    }
 
     /// Get the value of the `public_key` field.
     public fun public_key(self: &Config): &vector<u8> { &self.public_key }
