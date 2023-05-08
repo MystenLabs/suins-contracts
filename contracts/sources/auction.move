@@ -39,6 +39,12 @@ module suins::auction {
     const EAuctionStarted: u64 = 6;
     /// Placing a bid in a not started
     const EAuctionNotStarted: u64 = 7;
+    const EAuctionNotEndedYet: u64 = 8;
+    const EAuctionEnded: u64 = 9;
+    const ENotWinner: u64 = 10;
+    const EWinnerCannotPlaceBid: u64 = 11;
+    const EBidAmountTooLow: u64 = 12;
+    const ENoProfits: u64 = 13;
 
     /// Authorization witness to call protected functions of suins.
     struct App has drop {}
@@ -147,14 +153,14 @@ module suins::auction {
         let bidder = tx_context::sender(ctx);
 
         // Ensure that the auction is not over
-        assert!(clock::timestamp_ms(clock) <= auction.end_timestamp_ms, 0);
+        assert!(clock::timestamp_ms(clock) <= auction.end_timestamp_ms, EAuctionEnded);
         // Ensure the bidder isn't already the winner
-        assert!(bidder != auction.winner, 0);
+        assert!(bidder != auction.winner, EWinnerCannotPlaceBid);
 
         // get the current highest bid and ensure that the new bid is greater than the current winning bid
         let current_winning_bid = coin::value(linked_table::borrow(&auction.bids, auction.winner));
         let bid_amount = coin::value(&bid);
-        assert!(bid_amount > current_winning_bid, 0);
+        assert!(bid_amount > current_winning_bid, EBidAmountTooLow);
 
         linked_table::push_front(&mut auction.bids, bidder, bid);
         auction.winner = bidder;
@@ -200,7 +206,7 @@ module suins::auction {
         let auction = linked_table::borrow_mut(&mut self.auctions, domain);
 
         // Ensure the sender isn't the winner, winners cannot withdraw their bids
-        assert!(tx_context::sender(ctx) != auction.winner, 0);
+        assert!(tx_context::sender(ctx) != auction.winner, ENotWinner);
         linked_table::remove(&mut auction.bids, tx_context::sender(ctx))
     }
 
@@ -219,10 +225,10 @@ module suins::auction {
         let auction = linked_table::borrow_mut(&mut self.auctions, domain);
 
         // Ensure that the auction is over
-        assert!(clock::timestamp_ms(clock) > auction.end_timestamp_ms, 0);
+        assert!(clock::timestamp_ms(clock) > auction.end_timestamp_ms, EAuctionNotEndedYet);
 
         // Ensure the sender is the winner
-        assert!(tx_context::sender(ctx) == auction.winner, 0);
+        assert!(tx_context::sender(ctx) == auction.winner, ENotWinner);
 
         // Extract the NFT and their bid, returning the NFT to the user
         // and sending the proceeds of the auction to suins
@@ -270,7 +276,7 @@ module suins::auction {
         ctx: &mut TxContext,
     ): Coin<SUI> {
         let amount = balance::value(&self.balance);
-        assert!(amount > 0, 0);
+        assert!(amount > 0, ENoProfits);
         coin::take(&mut self.balance, amount, ctx)
     }
 
@@ -309,7 +315,7 @@ module suins::auction {
     ): u64 {
         let auction = linked_table::remove(&mut self.auctions, domain);
         // Ensure that the auction is over
-        assert!(clock::timestamp_ms(clock) > auction.end_timestamp_ms, 0);
+        assert!(clock::timestamp_ms(clock) > auction.end_timestamp_ms, EAuctionNotEndedYet);
 
         while (is_some(linked_table::back(&auction.bids))) {
             if (operation_limit == 0) {
