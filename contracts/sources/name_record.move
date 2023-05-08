@@ -65,7 +65,6 @@ module suins::name_record {
         self.target_address = new_address;
     }
 
-    /// Set the `expiration_timestamp_ms` field of the `NameRecord`.
     public fun set_expiration_timestamp_ms(
         self: &mut NameRecord,
         expiration_timestamp_ms: u64,
@@ -77,6 +76,11 @@ module suins::name_record {
 
     /// Check if the record has expired (including the grace period).
     public fun has_expired(self: &NameRecord, clock: &Clock): bool {
+        self.expiration_timestamp_ms < timestamp_ms(clock)
+    }
+
+    /// Check if the record has expired, taking into account the grace period.
+    public fun has_expired_past_grace_period(self: &NameRecord, clock: &Clock): bool {
         (self.expiration_timestamp_ms + constants::grace_period_ms()) < timestamp_ms(clock)
     }
 

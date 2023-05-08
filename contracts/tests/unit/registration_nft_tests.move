@@ -32,7 +32,7 @@ module suins::registation_nft_tests {
 
         // test if the first NFT would have expired by then (but no grace period)
         assert_eq(nft::has_expired(&nft, &clock), true);
-        assert_eq(nft::has_expired_with_grace(&nft, &clock), false);
+        assert_eq(nft::has_expired_past_grace_period(&nft, &clock), false);
         burn(nft);
 
         // create a new NFT with expiration in 2 years

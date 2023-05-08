@@ -70,7 +70,7 @@ module suins::registration_nft {
     /// Check whether the `RegistrationNFT` has expired by comparing the
     /// expiration timeout with the current time. This function also takes into
     /// account the grace period.
-    public fun has_expired_with_grace(self: &RegistrationNFT, clock: &Clock): bool {
+    public fun has_expired_past_grace_period(self: &RegistrationNFT, clock: &Clock): bool {
         (self.expiration_timestamp_ms + constants::grace_period_ms()) < timestamp_ms(clock)
     }
 
