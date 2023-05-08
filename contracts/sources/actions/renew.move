@@ -71,10 +71,7 @@ module suins::renew {
         let new_expiration_timestamp_ms = expiration_timestamp_ms + ((no_years as u64) * constants::year_ms());
         assert!(new_expiration_timestamp_ms - timestamp_ms(clock) <= 5 * constants::year_ms(), EInvalidNewExpiredAt);
 
-        registry::set_expiration_timestamp_ms(registry, domain, new_expiration_timestamp_ms);
-        nft::set_expiration_timestamp_ms(nft, new_expiration_timestamp_ms);
-
+        registry::set_expiration_timestamp_ms(registry, nft, domain, new_expiration_timestamp_ms);
         suins::app_add_balance(App {}, suins, coin::into_balance(payment));
     }
-
 }
