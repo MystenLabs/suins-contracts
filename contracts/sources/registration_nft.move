@@ -13,6 +13,7 @@ module suins::registration_nft {
     use suins::domain::Domain;
 
     friend suins::controller;
+    friend suins::renew;
     friend suins::registry;
 
     /// The main access point for the user.

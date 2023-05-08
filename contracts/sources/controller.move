@@ -2,19 +2,17 @@
 /// Stores the main user interaction logic (except for the Auction).
 module suins::controller {
     use std::vector;
-    use std::option::{Self, Option};
+    use std::option::Option;
     use std::string::{Self, utf8, String};
     use sui::coin::{Self, Coin};
     use sui::tx_context::{sender, TxContext};
-    use sui::clock::{timestamp_ms, Clock};
+    use sui::clock::Clock;
     use sui::sui::SUI;
-    use sui::object;
     use sui::bcs;
     use sui::ecdsa_k1;
 
     use suins::domain;
     use suins::constants;
-    use suins::name_record;
     use suins::registry::{Self, Registry};
     use suins::suins::{Self, SuiNS};
     use suins::config::{Self, Config};
@@ -33,8 +31,6 @@ module suins::controller {
     const EIncorrectAmount: u64 = 4;
     /// Trying to purchase a domain that is already registered and active.
     const ENotExpired: u64 = 5;
-    /// The NFT does not match the currently active `nft_id` in the `NameRecord`.
-    const EInvalidToken: u64 = 6;
 
     /// Trying to update an image in an expired `RegistrationNFT`.
     const EExpired: u64 = 0;
@@ -81,54 +77,6 @@ module suins::controller {
         suins::app_add_balance(App {}, suins, coin::into_balance(payment));
         let registry = suins::app_registry_mut<App, Registry>(App {}, suins);
         registry::add_record(registry, domain, no_years, clock, ctx)
-    }
-
-    /// Renew a registered domain name by a number of years (not exceeding 5).
-    /// The domain name must be already registered and active; `RegistrationNFT`
-    /// serves as the proof of that.
-    ///
-    /// We make sure that (in order):
-    /// - the domain is already registered and active
-    /// - the RegistrationNFT matches the NameRecord.nft_id
-    /// - the domain TLD is .sui
-    /// - the domain is not a subdomain
-    /// - number of years is within [1-5] interval
-    /// - the new expiration does not exceed 5 years from now
-    /// - the payment matches the price for the domain
-    public fun renew(
-        suins: &mut SuiNS,
-        nft: &mut RegistrationNFT,
-        no_years: u8,
-        payment: Coin<SUI>,
-        clock: &Clock,
-    ) {
-        suins::assert_app_is_authorized<App>(suins);
-
-        let config = suins::get_config<Config>(suins);
-
-        assert!(!nft::has_expired_with_grace(nft, clock), 0);
-        let domain = nft::domain(nft);
-        assert_valid_user_registerable_domain(&domain);
-
-        assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
-
-        let label = vector::borrow(domain::labels(&domain), 0);
-        let price = config::calculate_price(config, (string::length(label) as u8), no_years);
-
-        assert!(coin::value(&payment) == price, EIncorrectAmount);
-
-        let registry = suins::app_registry_mut<App, Registry>(App {}, suins);
-        let record = option::destroy_some(registry::lookup(registry, domain));
-        assert!(!name_record::has_expired(&record, clock), 0);
-        assert!(object::id(nft) == name_record::nft_id(&record), 0);
-        let expiration_timestamp_ms = name_record::expiration_timestamp_ms(&record);
-        let new_expiration_timestamp_ms = expiration_timestamp_ms + ((no_years as u64) * constants::year_ms());
-        assert!(new_expiration_timestamp_ms - timestamp_ms(clock) <= 5 * constants::year_ms(), EInvalidNewExpiredAt);
-
-        registry::set_expiration_timestamp_ms(registry, domain, new_expiration_timestamp_ms);
-        nft::set_expiration_timestamp_ms(nft, new_expiration_timestamp_ms);
-
-        suins::app_add_balance(App {}, suins, coin::into_balance(payment));
     }
 
     // === Update Records Functionality ===
