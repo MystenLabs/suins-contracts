@@ -25,10 +25,13 @@ module suins::admin {
         _: &AdminCap,
         suins: &mut SuiNS,
         domain_name: String,
+        no_years: u8,
         clock: &Clock,
         ctx: &mut TxContext
     ): RegistrationNFT {
         let registry = suins::app_registry_mut<Admin, Registry>(Admin {}, suins);
-        registry::add_record(registry, domain::new(domain_name), 1, clock, ctx)
+        registry::add_record(
+            registry, domain::new(domain_name), no_years, clock, ctx
+        )
     }
 }
