@@ -22,6 +22,11 @@ module suins::update_image {
     /// Authorization token for the app.
     struct App has drop {}
 
+    /// Authorize the `update_image` module to access the application.
+    public fun authorize_app(cap: &AdminCap, suins: &mut SuiNS) {
+        suins::authorize_app<App>(cap, suins);
+    }
+
     /// Updates the image attached to a `RegistrationNFT`.
     public fun update_image_url(
        suins: &mut SuiNS,

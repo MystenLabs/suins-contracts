@@ -11,8 +11,6 @@ module suins::registry {
     use suins::name_record::{Self, NameRecord};
     use suins::domain::{Self, Domain};
 
-    friend suins::suins;
-
     /// The `RegistrationNFT` has expired.
     const ENftExpired: u64 = 4;
 
@@ -42,7 +40,7 @@ module suins::registry {
 
     // === Friend Functions ===
 
-    public(friend) fun new(ctx: &mut TxContext): Registry {
+    public fun new(ctx: &mut TxContext): Registry {
         Registry {
             registry: table::new(ctx),
             reverse_registry: table::new(ctx),

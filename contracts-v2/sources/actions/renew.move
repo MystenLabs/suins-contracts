@@ -76,5 +76,4 @@ module suins::renew {
 
         suins::app_add_balance(App {}, suins, coin::into_balance(payment));
     }
-
 }
