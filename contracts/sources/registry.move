@@ -52,7 +52,7 @@ module suins::registry {
     ): RegistrationNFT {
         // First check to see if there is already an entry for this domain
         if (table::contains(&self.registry, domain)) {
-            // Remove the record and assert that it has expired
+            // Remove the record and assert that it has expired past the grace period
             let record = table::remove(&mut self.registry, domain);
             assert!(name_record::has_expired_past_grace_period(&record, clock), 0);
 
