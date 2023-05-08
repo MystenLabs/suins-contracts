@@ -15,6 +15,9 @@ module suins::registry {
 
     /// The `RegistrationNFT` has expired.
     const ENftExpired: u64 = 4;
+    /// The `NameRecord` has expired.
+    const ERecordExpired: u64 = 3;
+    const EIdMismatch: u64 = 2;
 
     /// The `Registry` object. Attached as a dynamic field to the `SuiNS` object,
     /// and the `suins` module controls the access to the `Registry`.
@@ -51,7 +54,7 @@ module suins::registry {
         if (table::contains(&self.registry, domain)) {
             // Remove the record and assert that it has expired
             let record = table::remove(&mut self.registry, domain);
-            assert!(name_record::has_expired(&record, clock), 0);
+            assert!(name_record::has_expired_past_grace_period(&record, clock), 0);
 
             let old_target_address = name_record::target_address(&record);
             handle_invalidate_reverse_record(self, domain, old_target_address, none());
@@ -72,13 +75,10 @@ module suins::registry {
         new_target: Option<address>,
         clock: &Clock,
     ) {
-        assert!(!nft::has_expired(nft, clock), ENftExpired);
+        assert_nft_is_authorized(self, nft, clock);
 
         let domain = nft::domain(nft);
         let record = table::borrow_mut(&mut self.registry, domain);
-        assert!(!name_record::has_expired(record, clock), 0);
-        assert!(object::id(nft) == name_record::nft_id(record), 0);
-
         let old_target = name_record::target_address(record);
 
         name_record::set_target_address(record, new_target);
@@ -135,6 +135,18 @@ module suins::registry {
         } else {
             none()
         }
+    }
+
+    /// Asserts that the provided NFT:
+    /// 1. Matches the ID in the corresponding `Record`
+    /// 2. Has not expired (does not take into account the grace period)
+    public fun assert_nft_is_authorized(self: &Registry, nft: &RegistrationNFT, clock: &Clock) {
+        let domain = nft::domain(nft);
+        let record = table::borrow(&self.registry, domain);
+
+        assert!(object::id(nft) == name_record::nft_id(record), EIdMismatch);
+        assert!(!name_record::has_expired(record, clock), ERecordExpired);
+        assert!(!nft::has_expired(nft, clock), ENftExpired);
     }
 
     // === Private Functions ===

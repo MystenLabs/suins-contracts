@@ -52,7 +52,7 @@ module suins::renew {
 
         let config = suins::get_config<Config>(suins);
 
-        assert!(!nft::has_expired_with_grace(nft, clock), 0);
+        assert!(!nft::has_expired_past_grace_period(nft, clock), 0);
         let domain = nft::domain(nft);
         assert_valid_user_registerable_domain(&domain);
 
@@ -65,7 +65,7 @@ module suins::renew {
 
         let registry = suins::app_registry_mut<App, Registry>(App {}, suins);
         let record = option::destroy_some(registry::lookup(registry, domain));
-        assert!(!name_record::has_expired(&record, clock), 0);
+        assert!(!name_record::has_expired_past_grace_period(&record, clock), 0);
         assert!(object::id(nft) == name_record::nft_id(&record), 0);
         let expiration_timestamp_ms = name_record::expiration_timestamp_ms(&record);
         let new_expiration_timestamp_ms = expiration_timestamp_ms + ((no_years as u64) * constants::year_ms());
