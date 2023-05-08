@@ -1,8 +1,7 @@
-/// Module to wrap all constants used across the project. A sigleton and not
-/// meant to be modified (only extended).
+/// Module to wrap all constants used across the project. Not sure if we want
+/// to keep it but better have it organized during the active development phase.
 ///
-/// This module is free from any non-framework dependencies and serves as a
-/// single place of storing constants and proving convenient APIs for reading.
+/// This module is free from any non-framework dependencies.
 module suins::constants {
     use std::string::{utf8, String};
 
