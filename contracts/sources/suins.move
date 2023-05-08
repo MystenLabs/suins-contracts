@@ -1,3 +1,22 @@
+/// The main module of the SuiNS application, defines the `SuiNS` object and
+/// the authorization mechanism for interacting with the main data storage.
+///
+/// Authorization mechanic:
+/// The Admin can authorize applications to access protected features of the
+/// SuiNS, they're named with a prefix `app_*`. Once authorized, application can
+/// get mutable access to the `Registry` and add to the application `Balance`.
+///
+/// At any moment any of the applications can be deathorized by the Admin
+/// making it impossible for the deauthorized module to access the registry.
+/// ---
+/// Package Upgrades in mind:
+/// - None of the public functions of the SuiNS feature any specific types -
+/// instead we use generics to define the actual types in arbitrary modules.
+/// - The `Registry` itself (the main feature of the application) is stored as
+/// a dynamic field so that we can change the type and the module that serves
+/// the registry without breaking the SuiNS compatibility.
+/// - Any of the old modules can be deauthorized hence disabling its access to
+/// the registry and the balance.
 module suins::suins {
     use sui::tx_context::{Self, TxContext};
     use sui::balance::{Self, Balance};
@@ -18,15 +37,15 @@ module suins::suins {
 
     /// The main application object. Stores the state of the application,
     /// used for adding / removing and reading name records.
+    ///
+    /// Dynamic fields:
+    /// - `registry: RegistryKey<R> -> R`
+    /// - `config: ConfigKey<C> -> C`
     struct SuiNS has key {
         id: UID,
-        /// The total balance of the SuiNS.
+        /// The total balance of the SuiNS. Can be added to by authorized apps.
+        /// Can be withdrawn only by the application Admin.
         balance: Balance<SUI>,
-
-        // === Dynamic Fields ===
-
-        // registry: RegistryKey<R> -> R
-        // config: ConfigKey<C> -> C
     }
 
     /// The one-time-witness used to claim Publisher object.
@@ -36,9 +55,14 @@ module suins::suins {
 
     /// Key under which a configuration is stored. It is type dependent, so
     /// that different configurations can be stored at the same time. Eg
-    /// currently we store application `Config` and `Promotion` configuration.
+    /// currently we store application `Config` (and `Promotion` configuration).
     struct ConfigKey<phantom Config> has copy, store, drop {}
 
+    /// Key under which the Registry object is stored.
+    ///
+    /// In the V1, the object stored under this key is `Registry`, however, for
+    /// future migration purposes (if we ever need to change the Registry), we
+    /// keep the phantom parameter so two different Registries can co-exist.
     struct RegistryKey<phantom Config> has copy, store, drop {}
 
     /// Module initializer:
@@ -96,17 +120,13 @@ module suins::suins {
         df::exists_(&self.id, AppKey<App>{})
     }
 
+    /// Assert that an application is authorized to access protected features of
+    /// the SuiNS. Aborts with `EAppNotAuthorized` if not.
     public fun assert_app_is_authorized<App: drop>(self: &SuiNS) {
         assert!(is_app_authorized<App>(self), EAppNotAuthorized);
     }
 
     // === Protected features ===
-
-    /// Mutable access to `SuiNS.UID` for authorized applications.
-    public fun app_uid_mut<App: drop>(_: App, self: &mut SuiNS): &mut UID {
-        assert_app_is_authorized<App>(self);
-        &mut self.id
-    }
 
     /// Adds balance to the SuiNS.
     public fun app_add_balance<App: drop>(_: App, self: &mut SuiNS, balance: Balance<SUI>) {
@@ -145,19 +165,15 @@ module suins::suins {
 
     // === Registry ===
 
+    /// Get a read-only access to the `Registry` object.
     public fun registry<R: store>(self: &SuiNS): &R {
         df::borrow(&self.id, RegistryKey<R> {})
     }
 
+    /// Add a registry to the SuiNS. Can only be performed by the admin.
     public fun add_registry<R: store>(_: &AdminCap, self: &mut SuiNS, registry: R) {
         df::add(&mut self.id, RegistryKey<R> {}, registry);
     }
-
-    fun remove_registry<R: store>(_: &AdminCap, self: &mut SuiNS): R {
-        df::remove(&mut self.id, RegistryKey<R> {})
-    }
-
-    // === Friend and Private Functions ===
 
     // === Testing ===
 
@@ -193,6 +209,19 @@ module suins::suins {
     #[test_only]
     public fun share_for_testing(self: SuiNS) {
         transfer::share_object(self)
+    }
+
+    #[test_only]
+    /// Create an admin cap - only for testing.
+    public fun create_admin_cap_for_testing(ctx: &mut TxContext): AdminCap {
+        AdminCap { id: object::new(ctx) }
+    }
+
+    #[test_only]
+    /// Burn the admin cap - only for testing.
+    public fun burn_admin_cap_for_testing(admin_cap: AdminCap) {
+        let AdminCap { id } = admin_cap;
+        object::delete(id);
     }
 
     #[test_only]

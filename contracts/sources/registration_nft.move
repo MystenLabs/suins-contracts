@@ -13,8 +13,10 @@ module suins::registration_nft {
     use suins::domain::Domain;
 
     friend suins::registry;
-    friend suins::renew;
     friend suins::update_image;
+
+    // not until v2
+    // friend suins::renew;
 
     /// The main access point for the user.
     struct RegistrationNFT has key, store {
@@ -76,7 +78,6 @@ module suins::registration_nft {
     /// Get the `expiration_timestamp_ms` field of the `RegistrationNFT`.
     public fun expiration_timestamp_ms(self: &RegistrationNFT): u64 { self.expiration_timestamp_ms }
 
-    
     // === Testing ===
 
     #[test_only]
