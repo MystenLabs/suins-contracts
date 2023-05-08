@@ -4,17 +4,8 @@
 version = 0
 
 dependencies = [
-  { name = "Kiosk" },
   { name = "Sui" },
   { name = "suins" },
-]
-
-[[move.package]]
-name = "Kiosk"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "testnet", subdir = "kiosk" }
-
-dependencies = [
-  { name = "Sui" },
 ]
 
 [[move.package]]

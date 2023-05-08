@@ -1,18 +1,9 @@
-/// Module holding the application configuration for the V1 of the SuiNS
-/// application. Responsible for providing the configuration type `Config` as
-/// well as methods to read it. Additionally, implements necessary input checks
-/// to lessen the chance of a mistake during deployment / configuration stages.
+/// Replacement for the `configuration` module (hence - the name).
+/// Simplifies config creation, removes friends, and basically can be
+/// created by anyone on the network with the exception that they won't
+/// be able to use it in any way. :)
 ///
-/// Contains no access-control checks and all methods are public for the
-/// following reasons:
-/// - configuration can only be attached by the application Admin;
-/// - attached to the SuiNS object directly and can only be *read* by other parts of the system;
-///
-/// Notes:
-/// - set_* methods are currently not used;
-/// - a simpler way to update the configuration would be to remove it completely
-/// and set again within the same Programmable Transaction Block (can only be
-/// performed by Admin)
+/// This module is (almost) free from any non-framework dependencies.
 module suins::config {
     use std::vector;
     use suins::constants;

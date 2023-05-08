@@ -24,38 +24,41 @@ module suins::auction {
 
     /// One year is the default duration for a domain.
     const DEFAULT_DURATION: u8 = 1;
-    /// The auction bidding period is 2 days.
-    const AUCTION_BIDDING_PERIOD_MS: u64 = 2 * 24 * 60 * 60 * 1000;
-    /// The auction quiet period is 10 minutes.
-    const AUCTION_MIN_QUIET_PERIOD_MS: u64 = 10 * 60 * 1000;
 
-    // === Abort codes ===
+    const AUCTION_BIDDING_PERIOD_MS: u64 = 2 * 24 * 60 * 60 * 1000; // 2 days
+    const AUCTION_MIN_QUIET_PERIOD_MS: u64 = 10 * 60 * 1000; // 10 minutes of quiet time
 
+    const EAuctionHouseUnavailable: u64 = 0;
+    const ELabelUnavailable: u64 = 1;
+    const EBidExisted: u64 = 2;
     /// The bid value is too low (compared to min_bid or previous bid).
-    const EInvalidBidValue: u64 = 0;
+    const EInvalidBidValue: u64 = 3;
+    const EInvalidConfigParam: u64 = 4;
+    const EWinnerAlreadyClaimed: u64 = 5;
     /// Trying to start an action but it's already started.
-    const EAuctionStarted: u64 = 1;
+    const EAuctionStarted: u64 = 6;
     /// Placing a bid in a not started
-    const EAuctionNotStarted: u64 = 2;
+    const EAuctionNotStarted: u64 = 7;
 
     /// Authorization witness to call protected functions of suins.
     struct App has drop {}
+
+    /// The Auction application.
+    struct Auction has store {
+        domain: Domain,
+        // min_bid: u64,
+        start_timestamp_ms: u64,
+        end_timestamp_ms: u64,
+        winner: address,
+        bids: LinkedTable<address, Coin<SUI>>,
+        nft: Option<RegistrationNFT>,
+    }
 
     /// The AuctionHouse application.
     struct AuctionHouse has key, store {
         id: UID,
         balance: Balance<SUI>,
         auctions: LinkedTable<Domain, Auction>,
-    }
-
-    /// The Auction application.
-    struct Auction has store {
-        domain: Domain,
-        start_timestamp_ms: u64,
-        end_timestamp_ms: u64,
-        winner: address,
-        bids: LinkedTable<address, Coin<SUI>>,
-        nft: Option<RegistrationNFT>,
     }
 
     fun init(ctx: &mut TxContext) {
@@ -378,6 +381,8 @@ module suins::auction {
             };
         };
     }
+
+    // === Friend and Private Functions ===
 
     // === Events ===
 
