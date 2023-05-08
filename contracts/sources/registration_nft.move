@@ -12,9 +12,9 @@ module suins::registration_nft {
     use suins::constants;
     use suins::domain::Domain;
 
-    friend suins::controller;
-    friend suins::renew;
     friend suins::registry;
+    friend suins::renew;
+    friend suins::update_image;
 
     /// The main access point for the user.
     struct RegistrationNFT has key, store {
