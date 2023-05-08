@@ -4,7 +4,7 @@
 /// - create config and make sure the values can be retrieved and updated
 /// - price calculation should be correct for each length and duration
 /// - config must save the user from making a dummy mistake and provide
-/// the basic validation for parameters (public_key, years, other settings)
+///   the basic validation for parameters (public_key, years, other settings)
 ///
 module suins::config_tests {
     use std::hash::sha3_256 as hash;
