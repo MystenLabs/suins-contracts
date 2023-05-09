@@ -1,5 +1,3 @@
-/// Copying controller logic here to see what we can do with it.
-/// Stores the main user interaction logic (except for the Auction).
 module suins::renew {
     use std::vector;
     use std::option;
@@ -50,28 +48,31 @@ module suins::renew {
     ) {
         suins::assert_app_is_authorized<App>(suins);
 
-        let config = suins::get_config<Config>(suins);
-
-        assert!(!nft::has_expired_with_grace(nft, clock), 0);
         let domain = nft::domain(nft);
+        let registry = suins::registry<Registry>(suins);
+
+        // Lookup the existing record and verify ownership and expiration including grace period
+        let record = option::destroy_some(registry::lookup(registry, domain));
+        assert!(object::id(nft) == name_record::nft_id(&record), 0);
+        assert!(!name_record::has_expired_past_grace_period(&record, clock), 0);
+        assert!(!nft::has_expired_past_grace_period(nft, clock), 0);
+
         assert_valid_user_registerable_domain(&domain);
 
+        let config = suins::get_config<Config>(suins);
         assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
-
         let label = vector::borrow(domain::labels(&domain), 0);
         let price = config::calculate_price(config, (string::length(label) as u8), no_years);
-
         assert!(coin::value(&payment) == price, EIncorrectAmount);
 
-        let registry = suins::app_registry_mut<App, Registry>(App {}, suins);
-        let record = option::destroy_some(registry::lookup(registry, domain));
-        assert!(!name_record::has_expired(&record, clock), 0);
-        assert!(object::id(nft) == name_record::nft_id(&record), 0);
         let expiration_timestamp_ms = name_record::expiration_timestamp_ms(&record);
         let new_expiration_timestamp_ms = expiration_timestamp_ms + ((no_years as u64) * constants::year_ms());
+        // Ensure that the new expiration timestamp is less than 5 years from now
         assert!(new_expiration_timestamp_ms - timestamp_ms(clock) <= 5 * constants::year_ms(), EInvalidNewExpiredAt);
 
+        let registry = suins::app_registry_mut<App, Registry>(App {}, suins);
         registry::set_expiration_timestamp_ms(registry, nft, domain, new_expiration_timestamp_ms);
+
         suins::app_add_balance(App {}, suins, coin::into_balance(payment));
     }
 }

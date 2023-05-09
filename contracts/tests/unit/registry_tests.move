@@ -3,6 +3,7 @@
 module suins::registry_tests {
     use std::string::utf8;
     use std::vector;
+    use sui::object;
     use sui::tx_context::{Self, TxContext};
     use sui::clock::{Self, Clock};
     use sui::test_utils::assert_eq;
@@ -51,6 +52,9 @@ module suins::registry_tests {
         // override the record
         let nft_2 = registry::add_record(&mut registry, domain, 2, &clock, &mut ctx);
         let record = registry::remove_record_for_testing(&mut registry, domain);
+
+        // make sure the old NFT is no longer matches to the domain
+        assert!(object::id(&nft) != record::nft_id(&record), 0);
 
         assert_eq(nft::expiration_timestamp_ms(&nft_2), record::expiration_timestamp_ms(&record));
         assert_eq(nft::expiration_timestamp_ms(&nft_2), clock::timestamp_ms(&clock) + (2 * constants::year_ms()));

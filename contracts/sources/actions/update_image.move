@@ -6,7 +6,7 @@ module suins::update_image {
     use sui::ecdsa_k1;
 
     use suins::domain;
-    // use suins::registry::{Self, Registry};
+    use suins::registry::{Self, Registry};
     use suins::suins::{Self, SuiNS};
     use suins::config::{Self, Config};
     use suins::registration_nft::{Self as nft, RegistrationNFT};
@@ -32,8 +32,9 @@ module suins::update_image {
        clock: &Clock,
     ) {
         suins::assert_app_is_authorized<App>(suins);
-        // TODO do we want to verify ownership?
-        // let registry = suins::registry<Registry>(suins);
+        let registry = suins::registry<Registry>(suins);
+        registry::assert_nft_is_authorized(registry, nft, clock);
+
         let config = suins::get_config<Config>(suins);
 
         assert!(
@@ -43,7 +44,6 @@ module suins::update_image {
 
         let (ipfs_hash, domain_name, expiration_timestamp_ms, _data) = image_data_from_bcs(raw_msg);
 
-        assert!(!nft::has_expired(nft, clock), EExpired);
         assert!(nft::expiration_timestamp_ms(nft) == expiration_timestamp_ms, EInvalidData);
         assert!(domain::to_string(&nft::domain(nft)) == domain_name, EInvalidDomainData);
 

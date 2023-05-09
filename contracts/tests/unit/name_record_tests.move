@@ -54,17 +54,20 @@ module suins::name_record_tests {
         let record = record::new(nft_id, 1000); // expires in 1 second
         let clock = clock::create_for_testing(&mut ctx);
 
-        // clock is 0, record expires in 30 days (grace period) + 1 second
+        // clock is 0, record expires in 1 second with a 30 days (grace period)
         assert_eq(record::has_expired(&record, &clock), false);
+        assert_eq(record::has_expired_past_grace_period(&record, &clock), false);
 
         // increment time by 30 days to check if the grace period is working;
         // in just 1 second from that the record will expire
         clock::increment_for_testing(&mut clock, constants::grace_period_ms());
-        assert_eq(record::has_expired(&record, &clock), false);
+        assert_eq(record::has_expired(&record, &clock), true);
+        assert_eq(record::has_expired_past_grace_period(&record, &clock), false);
 
         // increment time by 1 second to check if record has expired
         clock::increment_for_testing(&mut clock, constants::grace_period_ms() + 1000);
         assert_eq(record::has_expired(&record, &clock), true);
+        assert_eq(record::has_expired_past_grace_period(&record, &clock), true);
 
         clock::destroy_for_testing(clock);
     }
