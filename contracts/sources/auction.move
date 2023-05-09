@@ -277,6 +277,23 @@ module suins::auction {
         coin::take(&mut self.balance, amount, ctx)
     }
 
+    public fun admin_collect_fund(
+        _: &AdminCap,
+        self: &mut AuctionHouse,
+        domain_name: String,
+        clock: &Clock,
+        ctx: &mut TxContext,
+    ) {
+        let domain = domain::new(domain_name);
+        let auction = linked_table::borrow_mut(&mut self.auctions, domain);
+        // Ensure that the auction is over
+        assert!(clock::timestamp_ms(clock) > auction.end_timestamp_ms, EAuctionNotEndedYet);
+
+        let bid = linked_table::borrow_mut(&mut auction.bids, auction.winner);
+        let amount = coin::value(bid);
+        balance::join(&mut self.balance, coin::into_balance(coin::split(bid, amount, ctx)));
+    }
+
     /// Admin functionality used to finalize a single auction.
     ///
     /// An `operation_limit` limit must be provided which controls how many

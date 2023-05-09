@@ -110,7 +110,7 @@ module suins::suins {
     }
 
     /// Deauthorize an application by removing its authorization key.
-    public fun deathorize_app<App: drop>(_: &AdminCap, self: &mut SuiNS): bool {
+    public fun deauthorize_app<App: drop>(_: &AdminCap, self: &mut SuiNS): bool {
         df::remove(&mut self.id, AppKey<App>{})
     }
 
