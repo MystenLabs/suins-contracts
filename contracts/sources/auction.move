@@ -280,11 +280,11 @@ module suins::auction {
     public fun admin_collect_fund(
         _: &AdminCap,
         self: &mut AuctionHouse,
-        domain: String,
+        domain_name: String,
         clock: &Clock,
         ctx: &mut TxContext,
     ) {
-        let domain = domain::new(domain);
+        let domain = domain::new(domain_name);
         let auction = linked_table::borrow_mut(&mut self.auctions, domain);
         // Ensure that the auction is over
         assert!(clock::timestamp_ms(clock) > auction.end_timestamp_ms, EAuctionNotEndedYet);
