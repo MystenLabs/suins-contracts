@@ -14,10 +14,13 @@ module suins::registry {
     friend suins::suins;
 
     /// The `RegistrationNFT` has expired.
-    const ENftExpired: u64 = 4;
+    const ENftExpired: u64 = 0;
+    /// Trying to override a record that is not expired.
+    const ERecordNotExpired: u64 = 1;
+    /// The `RegistrationNFT` does not match the `NameRecord`.
+    const EIdMismatch: u64 = 2;
     /// The `NameRecord` has expired.
     const ERecordExpired: u64 = 3;
-    const EIdMismatch: u64 = 2;
 
     /// The `Registry` object. Attached as a dynamic field to the `SuiNS` object,
     /// and the `suins` module controls the access to the `Registry`.
@@ -54,7 +57,7 @@ module suins::registry {
         if (table::contains(&self.registry, domain)) {
             // Remove the record and assert that it has expired past the grace period
             let record = table::remove(&mut self.registry, domain);
-            assert!(name_record::has_expired_past_grace_period(&record, clock), 0);
+            assert!(name_record::has_expired_past_grace_period(&record, clock), ERecordNotExpired);
 
             let old_target_address = name_record::target_address(&record);
             handle_invalidate_reverse_record(self, domain, old_target_address, none());
@@ -93,7 +96,7 @@ module suins::registry {
         let domain = option::destroy_some(domain);
         let record = table::borrow(&self.registry, domain);
 
-        assert!(some(address) == name_record::target_address(record), 0);
+        assert!(some(address) == name_record::target_address(record), EIdMismatch);
 
         if (table::contains(&self.reverse_registry, address)) {
             *table::borrow_mut(&mut self.reverse_registry, address) = domain::to_string(&domain);
@@ -102,16 +105,28 @@ module suins::registry {
         };
     }
 
+    /// Update the `expiration_timestamp_ms` of the given `RegistrationNFT` and
+    /// `NameRecord`. Requires the `RegistrationNFT` to make sure that both
+    /// timestamps are in sync.
     public fun set_expiration_timestamp_ms(
         self: &mut Registry,
+        nft: &mut RegistrationNFT,
         domain: Domain,
         expiration_timestamp_ms: u64,
     ) {
         let record = table::borrow_mut(&mut self.registry, domain);
+
+        assert!(object::id(nft) == name_record::nft_id(record), 0);
         name_record::set_expiration_timestamp_ms(record, expiration_timestamp_ms);
+        nft::set_expiration_timestamp_ms(nft, expiration_timestamp_ms);
     }
 
     // === Reads ===
+
+    /// Check whether the given `domain` is registered in the `Registry`.
+    public fun has_record(self: &Registry, domain: Domain): bool {
+        table::contains(&self.registry, domain)
+    }
 
     /// Returns the `NameRecord` associated with the given domain or None.
     public fun lookup(self: &Registry, domain: Domain): Option<NameRecord> {
@@ -139,6 +154,7 @@ module suins::registry {
         let domain = nft::domain(nft);
         let record = table::borrow(&self.registry, domain);
 
+        // The NFT does not
         assert!(object::id(nft) == name_record::nft_id(record), EIdMismatch);
         assert!(!name_record::has_expired(record, clock), ERecordExpired);
         assert!(!nft::has_expired(nft, clock), ENftExpired);
@@ -174,7 +190,21 @@ module suins::registry {
     // === Test Functions ===
 
     #[test_only]
-    public fun destroy_empty(self: Registry) {
+    /// Create a new `Registry` for testing Purposes.
+    public fun new_for_testing(ctx: &mut TxContext): Registry {
+        new(ctx)
+    }
+
+    #[test_only]
+    public fun remove_record_for_testing(
+        self: &mut Registry,
+        domain: Domain,
+    ): NameRecord {
+        table::remove(&mut self.registry, domain)
+    }
+
+    #[test_only]
+    public fun destroy_empty_for_testing(self: Registry) {
         let Registry {
             registry,
             reverse_registry,

@@ -61,7 +61,6 @@ module suins::registation_nft_tests {
         burn(nft);
     }
 
-
     // === Helpers ===
 
     fun new(
