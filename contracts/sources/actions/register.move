@@ -18,8 +18,6 @@ module suins::register {
     /// Trying to register a subdomain (only *.sui is currently allowed).
     /// The payment does not match the price for the domain.
     const EIncorrectAmount: u64 = 4;
-    /// Trying to purchase a domain that is already registered and active.
-    const ENotExpired: u64 = 5;
 
     /// Authorization token for the app.
     struct App has drop {}
