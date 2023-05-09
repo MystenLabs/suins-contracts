@@ -1,7 +1,6 @@
 /// Implementation of auction module.
 /// More information in: ../../../docs
 module suins::auction {
-    use std::vector;
     use std::option::{Self, Option, none, some, is_some};
     use std::string::{Self, String};
 
@@ -91,7 +90,7 @@ module suins::auction {
 
         // The minimum price only applies to newly created auctions
         let config = suins::get_config<Config>(suins);
-        let label = vector::borrow(domain::labels(&domain), 0);
+        let label = domain::sld(&domain);
         let min_price = config::calculate_price(config, (string::length(label) as u8), DEFAULT_DURATION);
         assert!(coin::value(&bid) >= min_price, EInvalidBidValue);
 
