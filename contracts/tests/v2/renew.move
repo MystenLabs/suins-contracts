@@ -23,6 +23,7 @@ module suins::renew {
     const EIncorrectAmount: u64 = 1;
 
     const EInvalidNewExpiredAt: u64 = 2;
+    const EGracePeriodPassed: u64 = 3;
 
     /// Authorization token for the app.
     struct Renew has drop {}
@@ -54,7 +55,7 @@ module suins::renew {
         // Lookup the existing record and verify ownership and expiration including grace period
         let record = option::destroy_some(registry::lookup(registry, domain));
         assert!(object::id(nft) == name_record::nft_id(&record), 0);
-        assert!(!name_record::has_expired_past_grace_period(&record, clock), 0);
+        assert!(!name_record::has_expired_past_grace_period(&record, clock), EGracePeriodPassed);
         assert!(!nft::has_expired_past_grace_period(nft, clock), 0);
 
         registry::assert_valid_user_registerable_domain(&domain);

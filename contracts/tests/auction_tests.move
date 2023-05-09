@@ -5,13 +5,13 @@ module suins::auction_tests {
     use sui::clock::{Self, Clock};
     use sui::coin::{Self, Coin};
 
-    use suins::registration_nft::{Self, RegistrationNFT};
     use suins::auction::{
-        place_bid, claim, withdraw_bid, AuctionHouse, start_auction_and_place_bid, total_balance,
-        admin_try_finalize_auction, admin_try_finalize_auctions, admin_withdraw_funds, admin_collect_fund
+    place_bid, claim, withdraw_bid, AuctionHouse, start_auction_and_place_bid, total_balance,
+    admin_try_finalize_auction, admin_try_finalize_auctions, admin_withdraw_funds, admin_collect_fund
     };
+    use suins::registration_nft::{Self, RegistrationNFT};
     use suins::domain;
-    use suins::controller;
+    use suins::registry;
     use suins::constants::{Self, mist_per_sui};
     use suins::suins::{Self, SuiNS, AdminCap};
     use suins::auction::{Self, App as AuctionApp};
@@ -23,9 +23,10 @@ module suins::auction_tests {
     const FIRST_ADDRESS: address = @0xB001;
     const SECOND_ADDRESS: address = @0xB002;
     const THIRD_ADDRESS: address = @0xB003;
-    const FIRST_DOMAIN_NAME: vector<u8> = b"test.sui";
+    const FIRST_DOMAIN_NAME: vector<u8> = b"tes-t2.sui";
     const SECOND_DOMAIN_NAME: vector<u8> = b"tesq.sui";
     const AUCTION_BIDDING_PERIOD_MS: u64 = 2 * 24 * 60 * 60 * 1000;
+    const AUCTION_MIN_QUIET_PERIOD_MS: u64 = 10 * 60 * 1000; // 10 minutes of quiet time
 
     public fun test_init(): Scenario {
         let scenario_val = test_scenario::begin(SUINS_ADDRESS);
@@ -99,7 +100,9 @@ module suins::auction_tests {
     fun withdraw_util(scenario: &mut Scenario, sender: address, domain_name: String): Coin<SUI> {
         test_scenario::next_tx(scenario, sender);
         let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+
         let returned_payment = withdraw_bid(&mut auction_house, domain_name, ctx(scenario));
+
         test_scenario::return_shared(auction_house);
         returned_payment
     }
@@ -199,17 +202,30 @@ module suins::auction_tests {
         test_scenario::return_shared(auction_house);
     }
 
-    #[test]
-    fun test_normal_auction_flow() {
-        let scenario_val = test_init();
-        let scenario = &mut scenario_val;
+    public fun normal_auction_flow(scenario: &mut Scenario) {
         start_auction_and_place_bid_util(
             scenario,
             FIRST_ADDRESS,
             utf8(FIRST_DOMAIN_NAME),
             1200 * mist_per_sui()
         );
-        place_bid_util(scenario, SECOND_ADDRESS, utf8(FIRST_DOMAIN_NAME), 1210 * mist_per_sui(), 0);
+        assert_auction(
+            scenario,
+            utf8(FIRST_DOMAIN_NAME),
+            0,
+            AUCTION_BIDDING_PERIOD_MS,
+            FIRST_ADDRESS,
+            1200 * mist_per_sui()
+        );
+        place_bid_util(scenario, SECOND_ADDRESS, utf8(FIRST_DOMAIN_NAME), 1210 * mist_per_sui(), 10);
+        assert_auction(
+            scenario,
+            utf8(FIRST_DOMAIN_NAME),
+            0,
+            AUCTION_BIDDING_PERIOD_MS,
+            SECOND_ADDRESS,
+            1210 * mist_per_sui()
+        );
 
         let nft = claim_util(scenario, SECOND_ADDRESS, utf8(FIRST_DOMAIN_NAME), AUCTION_BIDDING_PERIOD_MS + 1);
         assert!(registration_nft::domain(&nft) == domain::new(utf8(FIRST_DOMAIN_NAME)), 0);
@@ -224,8 +240,14 @@ module suins::auction_tests {
         let funds = admin_withdraw_funds_util(scenario);
         assert!(coin::value(&funds) == 1210 * mist_per_sui(), 0);
         assert_balance(scenario, 0);
-
         coin::burn_for_testing(funds);
+    }
+
+    #[test]
+    fun test_normal_auction_flow() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        normal_auction_flow(scenario);
         test_scenario::end(scenario_val);
     }
 
@@ -248,7 +270,7 @@ module suins::auction_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction   ::ENotWinner)]
+    #[test, expected_failure(abort_code = auction::ENotWinner)]
     fun test_winner_cannot_withdraw_bid() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -469,7 +491,7 @@ module suins::auction_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = controller::EInvalidTld)]
+    #[test, expected_failure(abort_code = registry::EInvalidTld)]
     fun test_start_auction_aborts_with_wrong_tld() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;

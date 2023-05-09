@@ -245,4 +245,9 @@ module suins::suins {
         let registry = app_registry_mut<Test, Registry>(Test {}, self, );
         registry::add_record(registry, domain::new(domain_name), 1, clock, ctx)
     }
+
+    #[test_only]
+    public fun total_balance(self: &SuiNS): u64 {
+        balance::value(&self.balance)
+    }
 }
