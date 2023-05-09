@@ -11,27 +11,25 @@ module suins::update_image {
     use suins::config::{Self, Config};
     use suins::registration_nft::{Self as nft, RegistrationNFT};
 
-    /// Trying to update an image in an expired `RegistrationNFT`.
-    const EExpired: u64 = 0;
     /// Message data cannot be parsed.
-    const EInvalidData: u64 = 1;
+    const EInvalidData: u64 = 0;
     /// The parsed name does not match the expected domain.
-    const EInvalidDomainData: u64 = 2;
+    const EInvalidDomainData: u64 = 1;
     /// Invalid signature for the message.
-    const ESignatureNotMatch: u64 = 3;
+    const ESignatureNotMatch: u64 = 2;
 
     /// Authorization token for the app.
-    struct App has drop {}
+    struct UpdateImage has drop {}
 
     /// Updates the image attached to a `RegistrationNFT`.
-    public fun update_image_url(
+    entry fun update_image_url(
        suins: &mut SuiNS,
        nft: &mut RegistrationNFT,
        raw_msg: vector<u8>,
        signature: vector<u8>,
        clock: &Clock,
     ) {
-        suins::assert_app_is_authorized<App>(suins);
+        suins::assert_app_is_authorized<UpdateImage>(suins);
         let registry = suins::registry<Registry>(suins);
         registry::assert_nft_is_authorized(registry, nft, clock);
 

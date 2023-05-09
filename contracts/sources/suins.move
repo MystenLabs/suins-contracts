@@ -186,6 +186,14 @@ module suins::suins {
     #[test_only] struct Test has drop {}
 
     #[test_only]
+    public fun new_for_testing(ctx: &mut TxContext): (SuiNS, AdminCap) {
+        (
+            SuiNS { id: object::new(ctx), balance: balance::zero() },
+            AdminCap { id: object::new(ctx) }
+        )
+    }
+
+    #[test_only]
     /// Wrapper of module initializer for testing
     public fun init_for_testing(ctx: &mut TxContext): SuiNS {
         let admin_cap = AdminCap { id: object::new(ctx) };
