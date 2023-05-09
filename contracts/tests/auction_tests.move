@@ -1,11 +1,14 @@
 #[test_only]
 module suins::auction_tests {
-    use suins::auction::{place_bid, claim, withdraw_bid, AuctionHouse, start_auction_and_place_bid, total_balance, admin_try_finalize_auction, admin_try_finalize_auctions, admin_withdraw_funds};
     use sui::test_scenario::{Self, Scenario, ctx};
     use sui::sui::SUI;
     use sui::clock::{Self, Clock};
     use sui::coin::{Self, Coin};
 
+    use suins::auction::{
+        place_bid, claim, withdraw_bid, AuctionHouse, start_auction_and_place_bid, total_balance,
+        admin_try_finalize_auction, admin_try_finalize_auctions, admin_withdraw_funds
+    };
     use suins::registration_nft::{Self, RegistrationNFT};
     use suins::domain;
     use suins::constants;
@@ -29,81 +32,79 @@ module suins::auction_tests {
     public fun test_init(): Scenario {
         let scenario_val = test_scenario::begin(SUINS_ADDRESS);
         let scenario = &mut scenario_val;
-        {
-            let suins = suins::init_for_testing(ctx(scenario));
-            suins::authorize_app_for_testing<AuctionApp>(&mut suins);
-            suins::share_for_testing(suins);
-            auction::init_for_testing(ctx(scenario));
-            let clock = clock::create_for_testing(ctx(scenario));
-            clock::share_for_testing(clock);
-        };
+        let suins = suins::init_for_testing(ctx(scenario));
+        suins::authorize_app_for_testing<AuctionApp>(&mut suins);
+        suins::share_for_testing(suins);
+        auction::init_for_testing(ctx(scenario));
+        let clock = clock::create_for_testing(ctx(scenario));
+        clock::share_for_testing(clock);
         scenario_val
     }
 
-    public fun start_auction_and_place_bid_util(scenario: &mut Scenario, sender: address, domain_name: String, amount: u64) {
+    public fun start_auction_and_place_bid_util(
+        scenario: &mut Scenario,
+        sender: address,
+        domain_name: String,
+        amount: u64
+    ) {
         test_scenario::next_tx(scenario, sender);
-        {
-            let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
-            let suins = test_scenario::take_shared<SuiNS>(scenario);
-            let payment = coin::mint_for_testing<SUI>(amount, ctx(scenario));
-            let clock = test_scenario::take_shared<Clock>(scenario);
+        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+        let suins = test_scenario::take_shared<SuiNS>(scenario);
+        let payment = coin::mint_for_testing<SUI>(amount, ctx(scenario));
+        let clock = test_scenario::take_shared<Clock>(scenario);
 
-            start_auction_and_place_bid(
-                &mut auction_house,
-                &mut suins,
-                domain_name,
-                payment,
-                &clock,
-                ctx(scenario)
-            );
+        start_auction_and_place_bid(
+            &mut auction_house,
+            &mut suins,
+            domain_name,
+            payment,
+            &clock,
+            ctx(scenario)
+        );
 
-            test_scenario::return_shared(clock);
-            test_scenario::return_shared(suins);
-            test_scenario::return_shared(auction_house);
-        };
+        test_scenario::return_shared(clock);
+        test_scenario::return_shared(suins);
+        test_scenario::return_shared(auction_house);
     }
 
     fun place_bid_util(scenario: &mut Scenario, sender: address, domain_name: String, value: u64, clock_tick: u64) {
         test_scenario::next_tx(scenario, sender);
-        {
-            let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
-            let payment = coin::mint_for_testing<SUI>(value, ctx(scenario));
-            let clock = test_scenario::take_shared<Clock>(scenario);
-            clock::increment_for_testing(&mut clock, clock_tick);
+        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+        let payment = coin::mint_for_testing<SUI>(value, ctx(scenario));
+        let clock = test_scenario::take_shared<Clock>(scenario);
+        clock::increment_for_testing(&mut clock, clock_tick);
 
-            place_bid(&mut auction_house, domain_name, payment, &clock, ctx(scenario));
+        place_bid(&mut auction_house, domain_name, payment, &clock, ctx(scenario));
 
-            test_scenario::return_shared(clock);
-            test_scenario::return_shared(auction_house);
-        };
+        test_scenario::return_shared(clock);
+        test_scenario::return_shared(auction_house);
     }
 
-    public fun claim_util(scenario: &mut Scenario, sender: address, domain_name: String, clock_tick: u64): RegistrationNFT {
+    public fun claim_util(
+        scenario: &mut Scenario,
+        sender: address,
+        domain_name: String,
+        clock_tick: u64
+    ): RegistrationNFT {
         test_scenario::next_tx(scenario, sender);
-        let nft;
-        {
-            let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
-            let clock = test_scenario::take_shared<Clock>(scenario);
+        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+        let clock = test_scenario::take_shared<Clock>(scenario);
 
-            clock::increment_for_testing(&mut clock, clock_tick);
-            nft = claim(&mut auction_house, domain_name, &clock, ctx(scenario));
+        clock::increment_for_testing(&mut clock, clock_tick);
+        let nft = claim(&mut auction_house, domain_name, &clock, ctx(scenario));
 
-            test_scenario::return_shared(clock);
-            test_scenario::return_shared(auction_house);
-        };
+        test_scenario::return_shared(clock);
+        test_scenario::return_shared(auction_house);
         nft
     }
 
     fun withdraw_util(scenario: &mut Scenario, sender: address, domain_name: String): Coin<SUI> {
         test_scenario::next_tx(scenario, sender);
-        let returned_payment;
-        {
-            let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
 
-            returned_payment = withdraw_bid(&mut auction_house, domain_name, ctx(scenario));
+        let returned_payment = withdraw_bid(&mut auction_house, domain_name, ctx(scenario));
 
-            test_scenario::return_shared(auction_house);
-        };
+        test_scenario::return_shared(auction_house);
         returned_payment
     }
 
@@ -114,48 +115,41 @@ module suins::auction_tests {
         clock_tick: u64
     ) {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
-        {
-            let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-            let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
-            let clock = test_scenario::take_shared<Clock>(scenario);
+        let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
+        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+        let clock = test_scenario::take_shared<Clock>(scenario);
 
-            clock::increment_for_testing(&mut clock, clock_tick);
-            admin_try_finalize_auction(&admin_cap, &mut auction_house, domain, operation_limit, &clock);
+        clock::increment_for_testing(&mut clock, clock_tick);
+        admin_try_finalize_auction(&admin_cap, &mut auction_house, domain, operation_limit, &clock);
 
-            test_scenario::return_shared(clock);
-            test_scenario::return_shared(auction_house);
-            test_scenario::return_to_sender(scenario, admin_cap);
-        };
+        test_scenario::return_shared(clock);
+        test_scenario::return_shared(auction_house);
+        test_scenario::return_to_sender(scenario, admin_cap);
     }
 
     fun admin_try_finalize_auctions_util(scenario: &mut Scenario, operation_limit: u64, clock_tick: u64) {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
-        {
-            let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-            let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
-            let clock = test_scenario::take_shared<Clock>(scenario);
+        let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
+        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+        let clock = test_scenario::take_shared<Clock>(scenario);
 
-            clock::increment_for_testing(&mut clock, clock_tick);
-            admin_try_finalize_auctions(&admin_cap, &mut auction_house, operation_limit, &clock);
+        clock::increment_for_testing(&mut clock, clock_tick);
+        admin_try_finalize_auctions(&admin_cap, &mut auction_house, operation_limit, &clock);
 
-            test_scenario::return_shared(clock);
-            test_scenario::return_shared(auction_house);
-            test_scenario::return_to_sender(scenario, admin_cap);
-        };
+        test_scenario::return_shared(clock);
+        test_scenario::return_shared(auction_house);
+        test_scenario::return_to_sender(scenario, admin_cap);
     }
 
     fun admin_withdraw_funds_util(scenario: &mut Scenario): Coin<SUI> {
-        let funds;
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
-        {
-            let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-            let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+        let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
+        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
 
-            funds = admin_withdraw_funds(&admin_cap, &mut auction_house, ctx(scenario));
+        let funds = admin_withdraw_funds(&admin_cap, &mut auction_house, ctx(scenario));
 
-            test_scenario::return_shared(auction_house);
-            test_scenario::return_to_sender(scenario, admin_cap);
-        };
+        test_scenario::return_shared(auction_house);
+        test_scenario::return_to_sender(scenario, admin_cap);
         funds
     }
 
