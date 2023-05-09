@@ -1,15 +1,18 @@
 module suins::registry {
     use std::option::{Self, none, some, Option};
-    use std::string::String;
+    use std::string::{Self, String};
+    use std::vector;
 
     use sui::tx_context::TxContext;
     use sui::object;
     use sui::table::{Self, Table};
     use sui::clock::Clock;
+    use sui::vec_map::VecMap;
 
     use suins::registration_nft::{Self as nft, RegistrationNFT};
     use suins::name_record::{Self, NameRecord};
     use suins::domain::{Self, Domain};
+    use suins::constants;
 
     friend suins::suins;
 
@@ -21,6 +24,16 @@ module suins::registry {
     const EIdMismatch: u64 = 2;
     /// The `NameRecord` has expired.
     const ERecordExpired: u64 = 3;
+    /// The reverse lookup record does not match the `NameRecord`.
+    const ERecordMismatch: u64 = 4;
+    /// Trying to add a reverse lookup record while the target is empty.
+    const ETargetNotSet: u64 = 5;
+    /// Trying to register a subdomain (only *.sui is currently allowed).
+    const EInvalidDomain: u64 = 6;
+    /// Trying to register a domain name in a different TLD (not .sui).
+    const EInvalidTld: u64 = 7;
+    /// Trying to register domain name that is shorter than 3 symbols.
+    const EInvalidDomainLength: u64 = 8;
 
     /// The `Registry` object. Attached as a dynamic field to the `SuiNS` object,
     /// and the `suins` module controls the access to the `Registry`.
@@ -83,20 +96,22 @@ module suins::registry {
         handle_invalidate_reverse_record(self, domain, old_target, new_target);
     }
 
+    public fun unset_reverse_lookup(self: &mut Registry, address: address) {
+        table::remove(&mut self.reverse_registry, address);
+    }
+
+    /// Reverse lookup can only be set for the record that has the target address.
+    /// TODO: Should it be this way?
     public fun set_reverse_lookup(
         self: &mut Registry,
         address: address,
-        domain: Option<Domain>,
+        domain: Domain,
     ) {
-        if (option::is_none(&domain)) {
-            table::remove(&mut self.reverse_registry, address);
-            return
-        };
-
-        let domain = option::destroy_some(domain);
         let record = table::borrow(&self.registry, domain);
+        let target = name_record::target_address(record);
 
-        assert!(some(address) == name_record::target_address(record), EIdMismatch);
+        assert!(option::is_some(&target), ETargetNotSet);
+        assert!(some(address) == target, ERecordMismatch);
 
         if (table::contains(&self.reverse_registry, address)) {
             *table::borrow_mut(&mut self.reverse_registry, address) = domain::to_string(&domain);
@@ -116,9 +131,19 @@ module suins::registry {
     ) {
         let record = table::borrow_mut(&mut self.registry, domain);
 
-        assert!(object::id(nft) == name_record::nft_id(record), 0);
+        assert!(object::id(nft) == name_record::nft_id(record), EIdMismatch);
         name_record::set_expiration_timestamp_ms(record, expiration_timestamp_ms);
         nft::set_expiration_timestamp_ms(nft, expiration_timestamp_ms);
+    }
+
+    /// Update the `data` of the given `NameRecord` using a `RegistrationNFT`.
+    public fun set_data(
+        self: &mut Registry,
+        domain: Domain,
+        data: VecMap<String, String>
+    ) {
+        let record = table::borrow_mut(&mut self.registry, domain);
+        name_record::set_data(record, data);
     }
 
     // === Reads ===
@@ -160,6 +185,12 @@ module suins::registry {
         assert!(!nft::has_expired(nft, clock), ENftExpired);
     }
 
+    /// Returns the `data` associated with the given `Domain`.
+    public fun get_data(self: &Registry, domain: Domain): &VecMap<String, String> {
+        let record = table::borrow(&self.registry, domain);
+        name_record::data(record)
+    }
+
     // === Private Functions ===
 
     fun handle_invalidate_reverse_record(
@@ -185,6 +216,20 @@ module suins::registry {
                 table::remove(reverse_registry, old_target_address);
             }
         };
+    }
+
+    // === Helpers ===
+
+    /// Asserts that a domain is registerable by a user:
+    /// - TLD is "sui"
+    /// - only has 1 label, "name", other than the TLD
+    /// - "name" is >= 3 characters long
+    public fun assert_valid_user_registerable_domain(domain: &Domain) {
+        let labels = domain::labels(domain);
+
+        assert!(vector::length(labels) == 2, EInvalidDomain);
+        assert!(domain::tld(domain) == &constants::sui_tld(), EInvalidTld);
+        assert!(string::length(vector::borrow(labels, 0)) >= 3, EInvalidDomainLength);
     }
 
     // === Test Functions ===

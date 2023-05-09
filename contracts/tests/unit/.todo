@@ -3,8 +3,8 @@
 - [x] config.move
 - [?] constants.move
 - [ ] controller.move
-- [?] domain.move
+- [x] domain.move
 - [x] name_record.move
 - [x] registration_nft.move
 - [ ] registry.move
-- [ ] suins.move
+- [x] suins.move

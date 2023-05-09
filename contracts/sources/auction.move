@@ -20,7 +20,6 @@ module suins::auction {
     use suins::registration_nft::{Self as nft, RegistrationNFT};
     use suins::registry::{Self, Registry};
     use suins::domain::{Self, Domain};
-    use suins::controller;
 
     /// One year is the default duration for a domain.
     const DEFAULT_DURATION: u8 = 1;
@@ -86,7 +85,7 @@ module suins::auction {
         let domain = domain::new(domain_name);
 
         // make sure the domain is a .sui domain and not a subdomain
-        controller::assert_valid_user_registerable_domain(&domain);
+        registry::assert_valid_user_registerable_domain(&domain);
 
         assert!(!linked_table::contains(&self.auctions, domain), EAuctionStarted);
 

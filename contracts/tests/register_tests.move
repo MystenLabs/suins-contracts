@@ -8,13 +8,12 @@ module suins::register_tests {
     use sui::coin;
     use sui::sui::SUI;
 
-    use suins::register::{Self, App as RegisterApp, register};
+    use suins::register::{Self, Register, register};
     use suins::constants::{mist_per_sui, grace_period_ms, year_ms};
     use suins::suins::{Self, SuiNS, total_balance, AdminCap};
     use suins::registration_nft::RegistrationNFT;
     use suins::registration_nft;
     use suins::domain;
-    use suins::controller;
     use suins::registry ;
     use suins::auction_tests;
     use suins::auction::{Self, App as AuctionApp};
@@ -28,7 +27,7 @@ module suins::register_tests {
         let scenario = &mut scenario_val;
         {
             let suins = suins::init_for_testing(ctx(scenario));
-            suins::authorize_app_for_testing<RegisterApp>(&mut suins);
+            suins::authorize_app_for_testing<Register>(&mut suins);
             suins::authorize_app_for_testing<AuctionApp>(&mut suins);
             suins::share_for_testing(suins);
             let clock = clock::create_for_testing(ctx(scenario));
@@ -63,7 +62,7 @@ module suins::register_tests {
         let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
         let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-        suins::deauthorize_app<RegisterApp>(&admin_cap, &mut suins);
+        suins::deauthorize_app<Register>(&admin_cap, &mut suins);
 
         test_scenario::return_shared(suins);
         test_scenario::return_to_sender(scenario, admin_cap);
@@ -102,7 +101,7 @@ module suins::register_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = controller::EInvalidTld)]
+    #[test, expected_failure(abort_code = registry::EInvalidTld)]
     fun test_register_if_not_sui_tld() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -247,7 +246,7 @@ module suins::register_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = controller::EInvalidDomain)]
+    #[test, expected_failure(abort_code = registry::EInvalidDomain)]
     fun test_register_if_domain_name_contains_subdomain() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;

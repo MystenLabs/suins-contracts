@@ -2,6 +2,7 @@
 ///
 module suins::registry_tests {
     use std::string::utf8;
+    use std::option::{Self, some};
     use std::vector;
     use sui::object;
     use sui::tx_context::{Self, TxContext};
@@ -13,6 +14,8 @@ module suins::registry_tests {
     use suins::registry::{Self, Registry};
     use suins::domain::{Self, Domain};
     use suins::constants;
+
+    // === Registry + Record Addition ===
 
     #[test]
     fun test_registry() {
@@ -79,6 +82,95 @@ module suins::registry_tests {
 
         abort 1337
     }
+
+    // === Target Address ===
+
+    #[test]
+    /// 1. Create a registry, add a record;
+    /// 2. Call `set_target_address` and make sure that the address is set;
+    /// 3. Check target address lookup; check that record has correct target;
+    fun set_target_address() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        // create a record for the test domain with expiration set to 1 year
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        registry::set_target_address(&mut registry, domain, some(@0x2));
+
+        // try to find a record and then get a record
+        let search = registry::lookup(&registry, domain);
+        let record = registry::remove_record_for_testing(&mut registry, domain);
+
+        // make sure the search is a success
+        assert!(option::is_some(&search), 0);
+        assert_eq(option::extract(&mut search), record);
+        assert_eq(record::target_address(&record), some(@0x2));
+
+        wrapup(registry, clock);
+        burn_nfts(vector[ nft ]);
+    }
+
+    // === Reverse Lookup ===
+
+    #[test]
+    /// 1. Create a registry, add a record;
+    /// 2. Call `set_target_address` and make sure that the address is set;
+    /// 3. Call `set_reverse_lookup` and make sure that reverse registry updated;
+    fun set_reverse_lookup() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+
+        // set the `domain` points to @0x0; set the reverse lookup too
+        registry::set_target_address(&mut registry, domain, some(@0xB0B));
+        registry::set_reverse_lookup(&mut registry, @0xB0B, domain);
+
+        // search for the reverse_lookup record
+        let search = registry::reverse_lookup(&registry, @0xB0B);
+
+        assert!(option::is_some(&search), 0);
+        assert!(option::extract(&mut search) == domain::to_string(&domain), 0);
+
+        // wrapup
+        registry::unset_reverse_lookup(&mut registry, @0xB0B);
+        let _ = registry::remove_record_for_testing(&mut registry, domain);
+
+        wrapup(registry, clock);
+        burn_nfts(vector[ nft ]);
+    }
+
+    #[test, expected_failure(abort_code = suins::registry::ETargetNotSet)]
+    /// 1. Create a registry, add a record;
+    /// 2. Try calling `set_reverse_lookup` and fail
+    fun set_reverse_lookup_fail_target_not_set() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+        let _nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+
+        // set the `domain` points to @0x0
+        registry::set_reverse_lookup(&mut registry, @0x0, domain);
+
+        abort 1337
+    }
+
+    #[test, expected_failure(abort_code = suins::registry::ERecordMismatch)]
+    /// 1. Create a registry, add a record;
+    /// 2. Set target_address to address Alice
+    /// 2. Try calling `set_reverse_lookup` and use address Bob
+    fun set_reverse_lookup_fail_record_mismatch() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+        let _nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+
+        // set the `domain` points to @0x0
+        registry::set_target_address(&mut registry, domain, some(@0xB0B));
+        registry::set_reverse_lookup(&mut registry, @0xA11CE, domain);
+
+        abort 1337
+    }
+
+    // === XXX ===
+
 
     // === Helpers ===
 

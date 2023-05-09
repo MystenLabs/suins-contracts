@@ -7,8 +7,8 @@ module suins::renew_tests {
     use sui::sui::SUI;
     use sui::clock::{Self, Clock};
 
-    use suins::renew::{Self, App as RenewApp, renew};
-    use suins::register::App as RegisterApp;
+    use suins::renew::{Self, Renew, renew};
+    use suins::register::Register;
     use suins::register_tests::{register_util, assert_balance};
     use suins::constants::{mist_per_sui, year_ms};
     use suins::suins::{Self, SuiNS, AdminCap};
@@ -22,8 +22,8 @@ module suins::renew_tests {
         let scenario = &mut scenario_val;
         {
             let suins = suins::init_for_testing(ctx(scenario));
-            suins::authorize_app_for_testing<RenewApp>(&mut suins);
-            suins::authorize_app_for_testing<RegisterApp>(&mut suins);
+            suins::authorize_app_for_testing<Renew>(&mut suins);
+            suins::authorize_app_for_testing<Register>(&mut suins);
             suins::share_for_testing(suins);
             let clock = clock::create_for_testing(ctx(scenario));
             clock::share_for_testing(clock);
@@ -49,7 +49,7 @@ module suins::renew_tests {
         let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
         let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-        suins::deauthorize_app<RenewApp>(&admin_cap, &mut suins);
+        suins::deauthorize_app<Renew>(&admin_cap, &mut suins);
 
         test_scenario::return_shared(suins);
         test_scenario::return_to_sender(scenario, admin_cap);

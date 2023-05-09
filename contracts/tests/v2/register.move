@@ -1,3 +1,4 @@
+#[test_only]
 module suins::register {
     use std::vector;
     use std::string::{Self, String};
@@ -6,7 +7,7 @@ module suins::register {
     use sui::clock::Clock;
     use sui::sui::SUI;
 
-    use suins::controller::assert_valid_user_registerable_domain;
+    use suins::registry::assert_valid_user_registerable_domain;
     use suins::domain;
     use suins::registry::{Self, Registry};
     use suins::suins::{Self, SuiNS};
@@ -20,7 +21,7 @@ module suins::register {
     const EIncorrectAmount: u64 = 4;
 
     /// Authorization token for the app.
-    struct App has drop {}
+    struct Register has drop {}
 
     // Allows direct purchases of domains
     //
@@ -37,7 +38,7 @@ module suins::register {
         clock: &Clock,
         ctx: &mut TxContext
     ): RegistrationNFT {
-        suins::assert_app_is_authorized<App>(suins);
+        suins::assert_app_is_authorized<Register>(suins);
 
         let config = suins::get_config<Config>(suins);
 
@@ -51,8 +52,8 @@ module suins::register {
 
         assert!(coin::value(&payment) == price, EIncorrectAmount);
 
-        suins::app_add_balance(App {}, suins, coin::into_balance(payment));
-        let registry = suins::app_registry_mut<App, Registry>(App {}, suins);
+        suins::app_add_balance(Register {}, suins, coin::into_balance(payment));
+        let registry = suins::app_registry_mut<Register, Registry>(Register {}, suins);
         registry::add_record(registry, domain, no_years, clock, ctx)
     }
 }
