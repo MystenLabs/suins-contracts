@@ -1,5 +1,4 @@
 #[test_only]
-///
 module suins::registry_tests {
     use std::string::utf8;
     use std::option::{Self, some};
@@ -129,7 +128,7 @@ module suins::registry_tests {
         let search = registry::reverse_lookup(&registry, @0xB0B);
 
         assert!(option::is_some(&search), 0);
-        assert!(option::extract(&mut search) == domain::to_string(&domain), 0);
+        assert!(option::extract(&mut search) == domain, 0);
 
         // wrapup
         registry::unset_reverse_lookup(&mut registry, @0xB0B);

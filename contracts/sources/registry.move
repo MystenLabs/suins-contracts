@@ -10,7 +10,7 @@ module suins::registry {
 
     use suins::registration_nft::{Self as nft, RegistrationNFT};
     use suins::name_record::{Self, NameRecord};
-    use suins::domain::{Self, Domain};
+    use suins::domain::Domain;
 
     friend suins::suins;
 
@@ -37,7 +37,7 @@ module suins::registry {
         registry: Table<Domain, NameRecord>,
         /// The `reverse_registry` table maps `address` to `domain_name`.
         /// Updated in the `set_reverse_lookup` function.
-        reverse_registry: Table<address, String>,
+        reverse_registry: Table<address, Domain>,
     }
 
     // === Friend Functions ===
@@ -65,7 +65,7 @@ module suins::registry {
             assert!(name_record::has_expired_past_grace_period(&record, clock), ERecordNotExpired);
 
             let old_target_address = name_record::target_address(&record);
-            handle_invalidate_reverse_record(self, domain, old_target_address, none());
+            handle_invalidate_reverse_record(self, &domain, old_target_address, none());
         };
 
         // If we've made it to this point then we know that we are able to
@@ -85,7 +85,7 @@ module suins::registry {
         let old_target = name_record::target_address(record);
 
         name_record::set_target_address(record, new_target);
-        handle_invalidate_reverse_record(self, domain, old_target, new_target);
+        handle_invalidate_reverse_record(self, &domain, old_target, new_target);
     }
 
     public fun unset_reverse_lookup(self: &mut Registry, address: address) {
@@ -93,7 +93,6 @@ module suins::registry {
     }
 
     /// Reverse lookup can only be set for the record that has the target address.
-    /// TODO: Should it be this way?
     public fun set_reverse_lookup(
         self: &mut Registry,
         address: address,
@@ -106,9 +105,9 @@ module suins::registry {
         assert!(some(address) == target, ERecordMismatch);
 
         if (table::contains(&self.reverse_registry, address)) {
-            *table::borrow_mut(&mut self.reverse_registry, address) = domain::to_string(&domain);
+            *table::borrow_mut(&mut self.reverse_registry, address) = domain;
         } else {
-            table::add(&mut self.reverse_registry, address, domain::to_string(&domain));
+            table::add(&mut self.reverse_registry, address, domain);
         };
     }
 
@@ -156,7 +155,7 @@ module suins::registry {
     }
 
     /// Returns the `domain_name` associated with the given address or None.
-    public fun reverse_lookup(self: &Registry, address: address): Option<String> {
+    public fun reverse_lookup(self: &Registry, address: address): Option<Domain> {
         if (table::contains(&self.reverse_registry, address)) {
             some(*table::borrow(&self.reverse_registry, address))
         } else {
@@ -187,7 +186,7 @@ module suins::registry {
 
     fun handle_invalidate_reverse_record(
         self: &mut Registry,
-        domain: Domain,
+        domain: &Domain,
         old_target_address: Option<address>,
         new_target_address: Option<address>,
     ) {
@@ -204,7 +203,7 @@ module suins::registry {
 
         if (table::contains(reverse_registry, old_target_address)) {
             let default_domain = table::borrow(reverse_registry, old_target_address);
-            if (*default_domain == domain::to_string(&domain)) {
+            if (default_domain == domain) {
                 table::remove(reverse_registry, old_target_address);
             }
         };
