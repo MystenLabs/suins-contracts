@@ -236,7 +236,7 @@ module suins::register_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = domain::EInvalidDomain)]
+    #[test, expected_failure(abort_code = config::ELabelTooShort)]
     fun test_register_if_domain_name_too_short() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
