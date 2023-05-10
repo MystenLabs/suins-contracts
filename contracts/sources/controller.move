@@ -85,4 +85,39 @@ module suins::controller {
 
         registry::set_data(registry, domain, data);
     }
+
+    // === Testing ===
+
+    #[test_only]
+    public fun set_target_address_for_testing(
+        suins: &mut SuiNS, nft: &RegistrationNFT, new_target: Option<address>, clock: &Clock
+    ) {
+        set_target_address(suins, nft, new_target, clock)
+    }
+
+    #[test_only]
+    public fun set_reverse_lookup_for_testing(
+        suins: &mut SuiNS, domain_name: String, ctx: &TxContext
+    ) {
+        set_reverse_lookup(suins, domain_name, ctx)
+    }
+
+    #[test_only]
+    public fun unset_reverse_lookup_for_testing(suins: &mut SuiNS, ctx: &TxContext) {
+        unset_reverse_lookup(suins, ctx)
+    }
+
+    #[test_only]
+    public fun set_user_data_for_testing(
+        suins: &mut SuiNS, nft: &RegistrationNFT, key: String, value: String, clock: &Clock
+    ) {
+        set_user_data(suins, nft, key, value, clock);
+    }
+
+    #[test_only]
+    public fun unset_user_data_for_testing(
+        suins: &mut SuiNS, nft: &RegistrationNFT, key: String, clock: &Clock
+    ) {
+        unset_user_data(suins, nft, key, clock);
+    }
 }
