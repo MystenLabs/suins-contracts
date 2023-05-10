@@ -204,7 +204,7 @@ module suins::suins {
 
         authorize_app<Test>(&admin_cap, &mut suins);
         add_config(&admin_cap, &mut suins, config::new(
-            b"00000000000000000000000000000000",
+            b"000000000000000000000000000000000",
             1200 * suins::constants::mist_per_sui(),
             200 * suins::constants::mist_per_sui(),
             50 * suins::constants::mist_per_sui(),
