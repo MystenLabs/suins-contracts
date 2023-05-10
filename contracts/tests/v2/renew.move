@@ -57,7 +57,7 @@ module suins::renew {
         assert!(!name_record::has_expired_past_grace_period(&record, clock), EGracePeriodPassed);
         assert!(!nft::has_expired_past_grace_period(nft, clock), 0);
 
-        registry::assert_valid_user_registerable_domain(&domain);
+        config::assert_valid_user_registerable_domain(&domain);
 
         let config = suins::get_config<Config>(suins);
         assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);

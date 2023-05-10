@@ -14,7 +14,8 @@ module suins::register_tests {
     use suins::registration_nft::RegistrationNFT;
     use suins::registration_nft;
     use suins::domain;
-    use suins::registry ;
+    use suins::registry;
+    use suins::config;
     use suins::auction_tests;
     use suins::auction::{Self, App as AuctionApp};
 
@@ -101,7 +102,7 @@ module suins::register_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = registry::EInvalidTld)]
+    #[test, expected_failure(abort_code = config::EInvalidTld)]
     fun test_register_if_not_sui_tld() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -246,7 +247,7 @@ module suins::register_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = registry::EInvalidDomain)]
+    #[test, expected_failure(abort_code = config::EInvalidDomain)]
     fun test_register_if_domain_name_contains_subdomain() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;

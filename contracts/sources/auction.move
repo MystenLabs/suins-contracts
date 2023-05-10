@@ -84,7 +84,7 @@ module suins::auction {
         let domain = domain::new(domain_name);
 
         // make sure the domain is a .sui domain and not a subdomain
-        registry::assert_valid_user_registerable_domain(&domain);
+        config::assert_valid_user_registerable_domain(&domain);
 
         assert!(!linked_table::contains(&self.auctions, domain), EAuctionStarted);
 

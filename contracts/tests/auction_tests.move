@@ -10,8 +10,8 @@ module suins::auction_tests {
     admin_try_finalize_auction, admin_try_finalize_auctions, admin_withdraw_funds, admin_collect_fund
     };
     use suins::registration_nft::{Self, RegistrationNFT};
+    use suins::config;
     use suins::domain;
-    use suins::registry;
     use suins::constants::{Self, mist_per_sui};
     use suins::suins::{Self, SuiNS, AdminCap};
     use suins::auction::{Self, App as AuctionApp};
@@ -491,7 +491,7 @@ module suins::auction_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = registry::EInvalidTld)]
+    #[test, expected_failure(abort_code = config::EInvalidTld)]
     fun test_start_auction_aborts_with_wrong_tld() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
