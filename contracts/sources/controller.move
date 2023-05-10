@@ -9,6 +9,12 @@ module suins::controller {
     use suins::registry::{Self, Registry};
     use suins::suins::{Self, SuiNS};
     use suins::registration_nft::{Self as nft, RegistrationNFT};
+    use std::string;
+
+    const AVATAR: vector<u8> = b"avatar";
+    const CONTENT_HASH: vector<u8> = b"content_hash";
+
+    const EUnsupportedKey: u64 = 0;
 
     /// Authorization token for the controller.
     struct Controller has drop {}
@@ -52,6 +58,8 @@ module suins::controller {
         let domain = nft::domain(nft);
 
         registry::assert_nft_is_authorized(registry, nft, clock);
+        let key_bytes = *string::bytes(&key);
+        assert!(key_bytes == AVATAR || key_bytes == CONTENT_HASH, EUnsupportedKey);
 
         if (vec_map::contains(&data, &key)) {
             vec_map::remove(&mut data, &key);
