@@ -11,8 +11,7 @@ module suins::registry {
     use suins::registration_nft::{Self as nft, RegistrationNFT};
     use suins::name_record::{Self, NameRecord};
     use suins::domain::Domain;
-
-    friend suins::suins;
+    use suins::suins::AdminCap;
 
     /// The `RegistrationNFT` has expired.
     const ENftExpired: u64 = 0;
@@ -40,9 +39,7 @@ module suins::registry {
         reverse_registry: Table<address, Domain>,
     }
 
-    // === Friend Functions ===
-
-    public(friend) fun new(ctx: &mut TxContext): Registry {
+    public fun new(_: &AdminCap, ctx: &mut TxContext): Registry {
         Registry {
             registry: table::new(ctx),
             reverse_registry: table::new(ctx),
@@ -210,11 +207,20 @@ module suins::registry {
     }
 
     // === Test Functions ===
+    #[test_only] use suins::suins::{add_registry, SuiNS};
+
+    #[test_only]
+    public fun init_for_testing(cap: &AdminCap, suins: &mut SuiNS, ctx: &mut TxContext) {
+        add_registry(cap, suins, new(cap, ctx));
+    }
 
     #[test_only]
     /// Create a new `Registry` for testing Purposes.
     public fun new_for_testing(ctx: &mut TxContext): Registry {
-        new(ctx)
+        Registry {
+            registry: table::new(ctx),
+            reverse_registry: table::new(ctx),
+        }
     }
 
     #[test_only]

@@ -34,6 +34,16 @@ module suins::register_tests {
             let clock = clock::create_for_testing(ctx(scenario));
             clock::share_for_testing(clock);
         };
+        {
+            test_scenario::next_tx(scenario, SUINS_ADDRESS);
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+
+            registry::init_for_testing(&admin_cap, &mut suins, ctx(scenario));
+
+            test_scenario::return_shared(suins);
+            test_scenario::return_to_sender(scenario, admin_cap);
+        };
         scenario_val
     }
 

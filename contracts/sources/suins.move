@@ -177,12 +177,7 @@ module suins::suins {
 
     // === Testing ===
 
-    #[test_only] use std::string::String;
-    #[test_only] use sui::clock::Clock;
-    #[test_only] use suins::registry::{Self, Registry};
     #[test_only] use suins::config;
-    #[test_only] use suins::registration_nft::RegistrationNFT;
-    #[test_only] use suins::domain;
     #[test_only] struct Test has drop {}
 
     #[test_only]
@@ -209,7 +204,6 @@ module suins::suins {
             200 * suins::constants::mist_per_sui(),
             50 * suins::constants::mist_per_sui(),
         ));
-        add_registry(&admin_cap, &mut suins, registry::new(ctx));
         transfer::transfer(admin_cap, tx_context::sender(ctx));
         suins
     }
@@ -235,15 +229,6 @@ module suins::suins {
     #[test_only]
     public fun authorize_app_for_testing<App: drop>(self: &mut SuiNS) {
         df::add(&mut self.id, AppKey<App> {}, true)
-    }
-
-    #[test_only]
-    /// Add a record for testing purposes.
-    public fun add_record_for_testing(
-        self: &mut SuiNS, domain_name: String, clock: &Clock, ctx: &mut TxContext
-    ): RegistrationNFT {
-        let registry = app_registry_mut<Test, Registry>(Test {}, self, );
-        registry::add_record(registry, domain::new(domain_name), 1, clock, ctx)
     }
 
     #[test_only]

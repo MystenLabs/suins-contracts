@@ -13,6 +13,7 @@ module suins::renew_tests {
     use suins::constants::{mist_per_sui, year_ms};
     use suins::suins::{Self, SuiNS, AdminCap};
     use suins::registration_nft::{Self, RegistrationNFT};
+    use suins::registry;
 
     const SUINS_ADDRESS: address = @0xA001;
     const DOMAIN_NAME: vector<u8> = b"abc.sui";
@@ -27,6 +28,16 @@ module suins::renew_tests {
             suins::share_for_testing(suins);
             let clock = clock::create_for_testing(ctx(scenario));
             clock::share_for_testing(clock);
+        };
+        {
+            test_scenario::next_tx(scenario, SUINS_ADDRESS);
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+
+            registry::init_for_testing(&admin_cap, &mut suins, ctx(scenario));
+
+            test_scenario::return_shared(suins);
+            test_scenario::return_to_sender(scenario, admin_cap);
         };
         scenario_val
     }

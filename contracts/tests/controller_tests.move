@@ -1,6 +1,5 @@
 #[test_only]
 module suins::controller_tests {
-
     use std::string::{utf8, String};
     use std::option::{Option, extract, some, none};
 
@@ -18,8 +17,8 @@ module suins::controller_tests {
     use suins::register_tests::register_util;
     use suins::controller::{Self, Controller, set_target_address_for_testing, set_reverse_lookup_for_testing, unset_reverse_lookup_for_testing, set_user_data_for_testing, unset_user_data_for_testing};
     use suins::registry::{Self, Registry, lookup, reverse_lookup};
-    use suins::domain;
     use suins::name_record;
+    use suins::domain::{Self, Domain};
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_ADDRESS: address = @0xB001;
@@ -39,6 +38,16 @@ module suins::controller_tests {
             suins::share_for_testing(suins);
             let clock = clock::create_for_testing(ctx(scenario));
             clock::share_for_testing(clock);
+        };
+        {
+            test_scenario::next_tx(scenario, SUINS_ADDRESS);
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+
+            registry::init_for_testing(&admin_cap, &mut suins, ctx(scenario));
+
+            test_scenario::return_shared(suins);
+            test_scenario::return_to_sender(scenario, admin_cap);
         };
         scenario_val
     }
@@ -131,7 +140,7 @@ module suins::controller_tests {
         data
     }
 
-    fun reverse_lookup_util(scenario: &mut Scenario, addr: address, expected_domain_name: Option<String>) {
+    fun reverse_lookup_util(scenario: &mut Scenario, addr: address, expected_domain_name: Option<Domain>) {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         let suins = test_scenario::take_shared<SuiNS>(scenario);
 
@@ -226,13 +235,13 @@ module suins::controller_tests {
         set_target_address_util(scenario, FIRST_ADDRESS, some(SECOND_ADDRESS), 0);
         reverse_lookup_util(scenario, SECOND_ADDRESS, none());
         set_reverse_lookup_util(scenario, SECOND_ADDRESS, utf8(DOMAIN_NAME));
-        reverse_lookup_util(scenario, SECOND_ADDRESS, some(utf8(DOMAIN_NAME)));
+        reverse_lookup_util(scenario, SECOND_ADDRESS, some(domain::new(utf8(DOMAIN_NAME))));
 
         set_target_address_util(scenario, FIRST_ADDRESS, some(FIRST_ADDRESS), 0);
         reverse_lookup_util(scenario, FIRST_ADDRESS, none());
         reverse_lookup_util(scenario, SECOND_ADDRESS, none());
         set_reverse_lookup_util(scenario, FIRST_ADDRESS, utf8(DOMAIN_NAME));
-        reverse_lookup_util(scenario, FIRST_ADDRESS, some(utf8(DOMAIN_NAME)));
+        reverse_lookup_util(scenario, FIRST_ADDRESS, some(domain::new(utf8(DOMAIN_NAME))));
         reverse_lookup_util(scenario, SECOND_ADDRESS, none());
 
         test_scenario::end(scenario_val);
@@ -284,7 +293,7 @@ module suins::controller_tests {
 
         set_target_address_util(scenario, FIRST_ADDRESS, some(SECOND_ADDRESS), 0);
         set_reverse_lookup_util(scenario, SECOND_ADDRESS, utf8(DOMAIN_NAME));
-        reverse_lookup_util(scenario, SECOND_ADDRESS, some(utf8(DOMAIN_NAME)));
+        reverse_lookup_util(scenario, SECOND_ADDRESS, some(domain::new(utf8(DOMAIN_NAME))));
         unset_reverse_lookup_util(scenario, SECOND_ADDRESS);
         reverse_lookup_util(scenario, SECOND_ADDRESS, none());
 
