@@ -47,7 +47,7 @@ module suins::config {
         four_char_price: u64,
         five_plus_char_price: u64,
     ): Config {
-        assert!(vector::length(&public_key) == 32, EInvalidPublicKey);
+        assert!(vector::length(&public_key) == 33, EInvalidPublicKey);
 
         Config {
             public_key,
@@ -61,7 +61,7 @@ module suins::config {
 
     /// Change the value of the `public_key` field.
     public fun set_public_key(self: &mut Config, value: vector<u8>) {
-        assert!(vector::length(&value) == 32, EInvalidPublicKey);
+        assert!(vector::length(&value) == 33, EInvalidPublicKey);
         self.public_key = value;
     }
 
