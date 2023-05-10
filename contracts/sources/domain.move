@@ -12,7 +12,7 @@ module suins::domain {
     /// The maximum length of a full domain
     const MAX_DOMAIN_LENGTH: u64 = 200;
     /// The minimum length of an individual label in a domain.
-    const MIN_LABEL_LENGTH: u64 = 3;
+    const MIN_LABEL_LENGTH: u64 = 1;
     /// The maximum length of an individual label in a domain.
     const MAX_LABEL_LENGTH: u64 = 63;
 
@@ -87,27 +87,6 @@ module suins::domain {
         vector::length(&self.labels)
     }
 
-    #[test_only]
-    public fun is_subdomain(self: &Domain, other: &Domain): bool {
-        let len_self = number_of_levels(self);
-        let len_other = number_of_levels(other);
-        let index = 0;
-
-        if (len_self > len_other) {
-            return false
-        };
-
-        while (index < len_self && index < len_other) {
-            if (label(self, index) != label(other, index)) {
-                return false
-            };
-            
-            index = index + 1;
-        };
-
-        true
-    }
-
     fun validate_labels(labels: &vector<String>) {
         assert!(!vector::is_empty(labels), EInvalidDomain);
 
@@ -132,7 +111,7 @@ module suins::domain {
 
         while (index < len) {
             let character = *vector::borrow(label_bytes, index);
-            let is_valid_character = 
+            let is_valid_character =
                 (0x61 <= character && character <= 0x7A)                   // a-z
                 || (0x30 <= character && character <= 0x39)                // 0-9
                 || (character == 0x2D && index != 0 && index != len - 1);  // '-' not at beginning or end
@@ -207,7 +186,7 @@ module suins::domain {
     fun valid_domains() {
         test_valid_domain(b"abc.123", vector[b"abc", b"123"]);
         test_valid_domain(b"suins.sui", vector[b"suins", b"sui"]);
-        // test_valid_domain(b"1.2.3.4.5.6.7.8.9.0.sui", vector[b"1", b"2", b"3", b"4", b"5", b"6", b"7", b"8", b"9", b"0", b"sui"]);
+        test_valid_domain(b"1.2.3.4.5.6.7.8.9.0.sui", vector[b"1", b"2", b"3", b"4", b"5", b"6", b"7", b"8", b"9", b"0", b"sui"]);
         test_valid_domain(b"pay.mysten.sui", vector[b"pay", b"mysten", b"sui"]);
         test_valid_domain(b"abcdefghijklmnopqrstuvxyz0123456789.move", vector[b"abcdefghijklmnopqrstuvxyz0123456789", b"move"]);
         test_valid_domain(b"a----b.sui", vector[b"a----b", b"sui"]);
@@ -227,6 +206,27 @@ module suins::domain {
         expect_valid_label(b"aaa-", false);
         expect_valid_label(b"a-a", true);
         expect_valid_label(b"abcdefghijklmnopqrstuvxyz-0123456789", true);
+    }
+
+    #[test_only]
+    fun is_subdomain(self: &Domain, other: &Domain): bool {
+        let len_self = number_of_levels(self);
+        let len_other = number_of_levels(other);
+        let index = 0;
+
+        if (len_self > len_other) {
+            return false
+        };
+
+        while (index < len_self && index < len_other) {
+            if (label(self, index) != label(other, index)) {
+                return false
+            };
+
+            index = index + 1;
+        };
+
+        true
     }
 
     #[test_only]
