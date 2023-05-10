@@ -10,40 +10,34 @@ module suins::domain {
     const EInvalidDomain: u64 = 0;
 
     /// The maximum length of a full domain
-    const MAX_DOMAIN_LENGTH: u64 = 250;
+    const MAX_DOMAIN_LENGTH: u64 = 200;
     /// The minimum length of an individual label in a domain.
     const MIN_LABEL_LENGTH: u64 = 3;
     /// The maximum length of an individual label in a domain.
     const MAX_LABEL_LENGTH: u64 = 63;
 
+    /// Representation of a valid SuiNS `Domain`.
     struct Domain has copy, drop, store {
-        // Vector of labels
-        //TODO do we want this as ["name", "sui"] or ["sui", "name"]?
+        /// Vector of labels that make up a domain.
+        ///
+        /// Labels are stored in reverse order such that the TLD is always in position `0`.
+        /// e.g. domain "pay.name.sui" will be stored in the vector as ["sui", "name", "pay"].
         labels: vector<String>,
     }
 
+    // Construct a `Domain` by parsing and validating the provided string
     public fun new(domain: String): Domain {
         assert!(string::length(&domain) <= MAX_DOMAIN_LENGTH, EInvalidDomain);
 
         let labels = split_by_dot(domain);
         validate_labels(&labels);
+        vector::reverse(&mut labels);
         Domain {
             labels
         }
     }
 
-    /// Construct a new `Domain` instance from a vector of labels (and a TLD).
-    /// Each label is validated to ensure it is a valid domain label.
-    ///
-    /// TODO: currently not used;
-    public fun from_vector(labels: vector<String>): Domain {
-        validate_labels(&labels);
-        Domain {
-            labels
-        }
-    }
-
-    /// Converts a domain into a fully-qualified string representation
+    /// Converts a domain into a fully-qualified string representation.
     public fun to_string(self: &Domain): String {
         let dot = utf8(b".");
         let len = vector::length(&self.labels);
@@ -51,7 +45,7 @@ module suins::domain {
         let out = string::utf8(vector::empty());
 
         while (i < len) {
-            let part = vector::borrow(&self.labels, i);
+            let part = vector::borrow(&self.labels, (len - i) - 1);
             string::append(&mut out, *part);
 
             i = i + 1;
@@ -63,18 +57,55 @@ module suins::domain {
         out
     }
 
+    /// Returns the `label` in a domain specified by `level`.
+    ///
+    /// Given the domain "pay.name.sui" the individual labels have the following levels:
+    /// - "pay" - `2`
+    /// - "name" - `1`
+    /// - "sui" - `0`
+    ///
+    /// This means that the TLD will always be at level `0`.
+    public fun label(self: &Domain, level: u64): &String {
+        vector::borrow(&self.labels, level)
+    }
+
+    /// Returns the TLD (Top-Level Domain) of a `Domain`.
+    ///
+    /// "name.sui" -> "sui"
     public fun tld(self: &Domain): &String {
-        let len = vector::length(&self.labels);
-        vector::borrow(&self.labels, len - 1)
+        label(self, 0)
     }
 
-    public fun labels(self: &Domain): &vector<String> {
-        &self.labels
+    /// Returns the SLD (Second-Level Domain) of a `Domain`.
+    ///
+    /// "name.sui" -> "sui"
+    public fun sld(self: &Domain): &String {
+        label(self, 1)
     }
 
-    /// TODO: consider renaming, very common function
-    public fun labels_len(self: &Domain): u64 {
+    public fun number_of_levels(self: &Domain): u64 {
         vector::length(&self.labels)
+    }
+
+    #[test_only]
+    public fun is_subdomain(self: &Domain, other: &Domain): bool {
+        let len_self = number_of_levels(self);
+        let len_other = number_of_levels(other);
+        let index = 0;
+
+        if (len_self > len_other) {
+            return false
+        };
+
+        while (index < len_self && index < len_other) {
+            if (label(self, index) != label(other, index)) {
+                return false
+            };
+            
+            index = index + 1;
+        };
+
+        true
     }
 
     fun validate_labels(labels: &vector<String>) {
@@ -85,28 +116,35 @@ module suins::domain {
 
         while (index < len) {
             let label = vector::borrow(labels, index);
-            validate_label(label);
+            assert!(is_valid_label(label), EInvalidDomain);
             index = index + 1;
         }
     }
 
-    fun validate_label(label: &String) {
+    fun is_valid_label(label: &String): bool {
         let len = string::length(label);
         let label_bytes = string::bytes(label);
         let index = 0;
 
-        assert!(len >= MIN_LABEL_LENGTH && len <= MAX_LABEL_LENGTH, EInvalidDomain);
+        if (!(len >= MIN_LABEL_LENGTH && len <= MAX_LABEL_LENGTH)) {
+            return false
+        };
 
         while (index < len) {
             let character = *vector::borrow(label_bytes, index);
-             assert!(
-                 (0x61 <= character && character <= 0x7A)                       // a-z
-                     || (0x30 <= character && character <= 0x39)                // 0-9
-                     || (character == 0x2D && index != 0 && index != len - 1),  // '-' not at beginning or end
-                 EInvalidDomain
-             );
+            let is_valid_character = 
+                (0x61 <= character && character <= 0x7A)                   // a-z
+                || (0x30 <= character && character <= 0x39)                // 0-9
+                || (character == 0x2D && index != 0 && index != len - 1);  // '-' not at beginning or end
+
+            if (!is_valid_character) {
+                return false
+            };
+
             index = index + 1;
         };
+
+        true
     }
 
     /// Splits a string `s` by the character `.` into a vector of subslices, excluding the `.`
@@ -133,17 +171,76 @@ module suins::domain {
 
     // === Tests ===
 
-    // TODO: add more tests
     #[test_only]
     use sui::test_utils::assert_eq;
 
+    #[test_only]
+    fun test_valid_domain(name: vector<u8>, expected_labels: vector<vector<u8>>) {
+        let name = utf8(name);
+        let domain = new(name);
+        let expected_labels = prep_expected_labels(expected_labels);
+        assert_eq(domain.labels, expected_labels);
+        assert_eq(name, to_string(&domain));
+
+        // Validate `domain::label` function
+        let len = vector::length(&expected_labels);
+        let index = 0;
+
+        while (index < len) {
+            let label = vector::borrow(&expected_labels, index);
+            assert_eq(*label, *label(&domain, index));
+            index = index + 1;
+        }
+    }
+
+    #[test_only]
+    fun prep_expected_labels(labels: vector<vector<u8>>): vector<String> {
+        let out = vector[];
+        while (!vector::is_empty(&labels)) {
+            let label = vector::pop_back(&mut labels);
+            vector::push_back(&mut out, utf8(label));
+        };
+        out
+    }
+
     #[test]
-    fun domain_simple() {
-        let s = utf8(b"abc.123");
-        let expected = vector[utf8(b"abc"), utf8(b"123")];
-        let actual = new(s);
-        assert_eq(actual.labels, expected);
-        assert_eq(to_string(&actual), s);
+    fun valid_domains() {
+        test_valid_domain(b"abc.123", vector[b"abc", b"123"]);
+        test_valid_domain(b"suins.sui", vector[b"suins", b"sui"]);
+        // test_valid_domain(b"1.2.3.4.5.6.7.8.9.0.sui", vector[b"1", b"2", b"3", b"4", b"5", b"6", b"7", b"8", b"9", b"0", b"sui"]);
+        test_valid_domain(b"pay.mysten.sui", vector[b"pay", b"mysten", b"sui"]);
+        test_valid_domain(b"abcdefghijklmnopqrstuvxyz0123456789.move", vector[b"abcdefghijklmnopqrstuvxyz0123456789", b"move"]);
+        test_valid_domain(b"a----b.sui", vector[b"a----b", b"sui"]);
+    }
+
+    #[test_only]
+    fun expect_valid_label(label: vector<u8>, is_valid: bool) {
+        let label = utf8(label);
+        assert_eq(is_valid_label(&label), is_valid);
+    }
+
+    #[test]
+    fun test_valid_labels() {
+        expect_valid_label(b"", false);
+        expect_valid_label(b"-", false);
+        expect_valid_label(b"-aaa", false);
+        expect_valid_label(b"aaa-", false);
+        expect_valid_label(b"a-a", true);
+        expect_valid_label(b"abcdefghijklmnopqrstuvxyz-0123456789", true);
+    }
+
+    #[test_only]
+    fun expect_is_subdomain(domain: vector<u8>, subdomain: vector<u8>, expected: bool) {
+        let domain = new(utf8(domain));
+        let subdomain = new(utf8(subdomain));
+        assert_eq(is_subdomain(&domain, &subdomain), expected);
+    }
+
+    #[test]
+    fun test_is_subdomain() {
+        expect_is_subdomain(b"mysten.sui", b"pay.mysten.sui", true);
+        expect_is_subdomain(b"pay.mysten.sui", b"mysten.sui", false);
+        expect_is_subdomain(b"mysten.sui", b"pay.move.sui", false);
     }
 
     #[test]

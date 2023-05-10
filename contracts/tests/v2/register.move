@@ -1,6 +1,5 @@
 #[test_only]
 module suins::register {
-    use std::vector;
     use std::string::{Self, String};
     use sui::coin::{Self, Coin};
     use sui::tx_context::TxContext;
@@ -47,7 +46,7 @@ module suins::register {
 
         assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
 
-        let label = vector::borrow(domain::labels(&domain), 0);
+        let label = domain::sld(&domain);
         let price = config::calculate_price(config, (string::length(label) as u8), no_years);
 
         assert!(coin::value(&payment) == price, EIncorrectAmount);

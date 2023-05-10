@@ -1,7 +1,6 @@
 module suins::registry {
     use std::option::{Self, none, some, Option};
     use std::string::{Self, String};
-    use std::vector;
 
     use sui::tx_context::TxContext;
     use sui::object;
@@ -225,11 +224,9 @@ module suins::registry {
     /// - only has 1 label, "name", other than the TLD
     /// - "name" is >= 3 characters long
     public fun assert_valid_user_registerable_domain(domain: &Domain) {
-        let labels = domain::labels(domain);
-
-        assert!(vector::length(labels) == 2, EInvalidDomain);
+        assert!(domain::number_of_levels(domain) == 2, EInvalidDomain);
         assert!(domain::tld(domain) == &constants::sui_tld(), EInvalidTld);
-        assert!(string::length(vector::borrow(labels, 0)) >= 3, EInvalidDomainLength);
+        assert!(string::length(domain::sld(domain)) >= 3, EInvalidDomainLength);
     }
 
     // === Test Functions ===
