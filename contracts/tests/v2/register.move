@@ -6,7 +6,6 @@ module suins::register {
     use sui::clock::Clock;
     use sui::sui::SUI;
 
-    use suins::registry::assert_valid_user_registerable_domain;
     use suins::domain;
     use suins::registry::{Self, Registry};
     use suins::suins::{Self, SuiNS};
@@ -42,7 +41,7 @@ module suins::register {
         let config = suins::get_config<Config>(suins);
 
         let domain = domain::new(domain_name);
-        assert_valid_user_registerable_domain(&domain);
+        config::assert_valid_user_registerable_domain(&domain);
 
         assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
 

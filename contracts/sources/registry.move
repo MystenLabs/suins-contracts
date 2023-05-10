@@ -1,6 +1,6 @@
 module suins::registry {
     use std::option::{Self, none, some, Option};
-    use std::string::{Self, String};
+    use std::string::String;
 
     use sui::tx_context::TxContext;
     use sui::object;
@@ -11,7 +11,6 @@ module suins::registry {
     use suins::registration_nft::{Self as nft, RegistrationNFT};
     use suins::name_record::{Self, NameRecord};
     use suins::domain::{Self, Domain};
-    use suins::constants;
 
     friend suins::suins;
 
@@ -27,12 +26,6 @@ module suins::registry {
     const ERecordMismatch: u64 = 4;
     /// Trying to add a reverse lookup record while the target is empty.
     const ETargetNotSet: u64 = 5;
-    /// Trying to register a subdomain (only *.sui is currently allowed).
-    const EInvalidDomain: u64 = 6;
-    /// Trying to register a domain name in a different TLD (not .sui).
-    const EInvalidTld: u64 = 7;
-    /// Trying to register domain name that is shorter than 3 symbols.
-    const EInvalidDomainLength: u64 = 8;
 
     /// The `Registry` object. Attached as a dynamic field to the `SuiNS` object,
     /// and the `suins` module controls the access to the `Registry`.
@@ -215,18 +208,6 @@ module suins::registry {
                 table::remove(reverse_registry, old_target_address);
             }
         };
-    }
-
-    // === Helpers ===
-
-    /// Asserts that a domain is registerable by a user:
-    /// - TLD is "sui"
-    /// - only has 1 label, "name", other than the TLD
-    /// - "name" is >= 3 characters long
-    public fun assert_valid_user_registerable_domain(domain: &Domain) {
-        assert!(domain::number_of_levels(domain) == 2, EInvalidDomain);
-        assert!(domain::tld(domain) == &constants::sui_tld(), EInvalidTld);
-        assert!(string::length(domain::sld(domain)) >= 3, EInvalidDomainLength);
     }
 
     // === Test Functions ===

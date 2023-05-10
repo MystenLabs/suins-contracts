@@ -6,6 +6,7 @@ module suins::admin {
     use sui::tx_context::TxContext;
 
     use suins::domain;
+    use suins::config;
     use suins::suins::{Self, AdminCap, SuiNS};
     use suins::registration_nft::RegistrationNFT;
     use suins::registry::{Self, Registry};
@@ -29,9 +30,9 @@ module suins::admin {
         clock: &Clock,
         ctx: &mut TxContext
     ): RegistrationNFT {
+        let domain = domain::new(domain_name);
+        config::assert_valid_user_registerable_domain(&domain);
         let registry = suins::app_registry_mut<Admin, Registry>(Admin {}, suins);
-        registry::add_record(
-            registry, domain::new(domain_name), no_years, clock, ctx
-        )
+        registry::add_record(registry, domain, no_years, clock, ctx)
     }
 }

@@ -15,7 +15,9 @@
 /// performed by Admin)
 module suins::config {
     use std::vector;
+    use std::string;
     use suins::constants;
+    use suins::domain::{Self, Domain};
 
     /// A label is too short to be registered.
     const ELabelTooShort: u64 = 0;
@@ -23,10 +25,14 @@ module suins::config {
     const ELabelTooLong: u64 = 1;
     /// The price value is invalid.
     const EInvalidPrice: u64 = 2;
-    /// The public key length is not 32 bytes.
+    /// The public key is not a Secp256k1 public key which is of length 33 bytes 
     const EInvalidPublicKey: u64 = 3;
     /// Incorrect number of years passed to the function.
     const ENoYears: u64 = 4;
+    /// Trying to register a subdomain (only *.sui is currently allowed).
+    const EInvalidDomain: u64 = 5;
+    /// Trying to register a domain name in a different TLD (not .sui).
+    const EInvalidTld: u64 = 6;
 
     /// The configuration object, holds current settings of the SuiNS
     /// application. Does not carry any business logic and can easily
@@ -116,6 +122,20 @@ module suins::config {
 
     /// Get the value of the `five_plus_char_price` field.
     public fun five_plus_char_price(self: &Config): u64 { self.five_plus_char_price }
+
+    // === Helpers ===
+
+    /// Asserts that a domain is registerable by a user:
+    /// - TLD is "sui"
+    /// - only has 1 label, "name", other than the TLD
+    /// - "name" is >= 3 characters long
+    public fun assert_valid_user_registerable_domain(domain: &Domain) {
+        assert!(domain::number_of_levels(domain) == 2, EInvalidDomain);
+        assert!(domain::tld(domain) == &constants::sui_tld(), EInvalidTld);
+        let length = string::length(domain::sld(domain));
+        assert!(length >= (constants::min_domain_length() as u64), ELabelTooShort);
+        assert!(length <= (constants::max_domain_length() as u64), ELabelTooLong);
+    }
 
     // === Internal ===
 
