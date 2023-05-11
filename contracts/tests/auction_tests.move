@@ -1,12 +1,15 @@
 #[test_only]
 module suins::auction_tests {
+    use std::option;
+    use std::string::{String, utf8};
+
     use sui::test_scenario::{Self, Scenario, ctx};
     use sui::sui::SUI;
     use sui::clock::{Self, Clock};
     use sui::coin::{Self, Coin};
 
     use suins::auction::{
-    place_bid, claim, withdraw_bid, AuctionHouse, start_auction_and_place_bid, total_balance,
+    Self, App as AuctionApp, place_bid, claim, withdraw_bid, AuctionHouse, start_auction_and_place_bid, total_balance,
     admin_try_finalize_auction, admin_try_finalize_auctions, admin_withdraw_funds, admin_collect_fund
     };
     use suins::registration_nft::{Self, RegistrationNFT};
@@ -14,10 +17,7 @@ module suins::auction_tests {
     use suins::domain;
     use suins::constants::{Self, mist_per_sui};
     use suins::suins::{Self, SuiNS, AdminCap};
-    use suins::auction::{Self, App as AuctionApp};
-
-    use std::option;
-    use std::string::{String, utf8};
+    use suins::registry;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_ADDRESS: address = @0xB001;
@@ -31,12 +31,24 @@ module suins::auction_tests {
     public fun test_init(): Scenario {
         let scenario_val = test_scenario::begin(SUINS_ADDRESS);
         let scenario = &mut scenario_val;
-        let suins = suins::init_for_testing(ctx(scenario));
-        suins::authorize_app_for_testing<AuctionApp>(&mut suins);
-        suins::share_for_testing(suins);
-        auction::init_for_testing(ctx(scenario));
-        let clock = clock::create_for_testing(ctx(scenario));
-        clock::share_for_testing(clock);
+        {
+            let suins = suins::init_for_testing(ctx(scenario));
+            suins::authorize_app_for_testing<AuctionApp>(&mut suins);
+            suins::share_for_testing(suins);
+            auction::init_for_testing(ctx(scenario));
+            let clock = clock::create_for_testing(ctx(scenario));
+            clock::share_for_testing(clock);
+        };
+        {
+            test_scenario::next_tx(scenario, SUINS_ADDRESS);
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
+            let suins = test_scenario::take_shared<SuiNS>(scenario);
+
+            registry::init_for_testing(&admin_cap, &mut suins, ctx(scenario));
+
+            test_scenario::return_shared(suins);
+            test_scenario::return_to_sender(scenario, admin_cap);
+        };
         scenario_val
     }
 

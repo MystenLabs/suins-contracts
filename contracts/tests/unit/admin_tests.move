@@ -16,6 +16,7 @@ module suins::admin_tests {
     use suins::constants;
     use suins::domain;
     use suins::suins;
+    use suins::registry;
 
     /// The admin account.
     const ADMIN: address = @suins;
@@ -45,6 +46,7 @@ module suins::admin_tests {
         let suins = suins::init_for_testing(&mut ctx);
         let cap = suins::create_admin_cap_for_testing(&mut ctx);
         let clock = clock::create_for_testing(&mut ctx);
+        registry::init_for_testing(&cap, &mut suins, &mut ctx);
 
         suins::authorize_app_for_testing<Admin>(&mut suins);
 
