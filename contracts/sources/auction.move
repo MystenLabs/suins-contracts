@@ -58,8 +58,8 @@ module suins::auction {
         start_timestamp_ms: u64,
         end_timestamp_ms: u64,
         winner: address,
-        bids: LinkedTable<address, Coin<SUI>>,
-        nft: Option<RegistrationNFT>,
+        current_bid: Coin<SUI>,
+        nft: RegistrationNFT,
     }
 
     fun init(ctx: &mut TxContext) {
@@ -97,22 +97,14 @@ module suins::auction {
         let registry = suins::app_registry_mut<App, Registry>(App {}, suins);
         let nft = registry::add_record(registry, domain, DEFAULT_DURATION, clock, ctx);
         let starting_bid = coin::value(&bid);
-        let bids = linked_table::new(ctx);
-
-        // Insert the user's bid into the table
-        linked_table::push_front(
-            &mut bids,
-            tx_context::sender(ctx),
-            bid,
-        );
 
         let auction = Auction {
             domain,
             start_timestamp_ms: clock::timestamp_ms(clock),
             end_timestamp_ms: clock::timestamp_ms(clock) + AUCTION_BIDDING_PERIOD_MS,
             winner: tx_context::sender(ctx),
-            bids,
-            nft: some(nft),
+            current_bid: bid,
+            nft,
         };
 
         event::emit(AuctionStartedEvent {
@@ -123,7 +115,7 @@ module suins::auction {
             bidder: auction.winner,
         });
 
-        linked_table::push_back(&mut self.auctions, domain, auction)
+        linked_table::push_front(&mut self.auctions, domain, auction)
     }
 
     /// #### Notice
@@ -141,24 +133,31 @@ module suins::auction {
         ctx: &mut TxContext
     ) {
         let domain = domain::new(domain_name);
+        let bidder = tx_context::sender(ctx);
 
         assert!(linked_table::contains(&self.auctions, domain), EAuctionNotStarted);
 
-        let auction = linked_table::borrow_mut(&mut self.auctions, domain);
-        let bidder = tx_context::sender(ctx);
+        let Auction {
+            domain,
+            start_timestamp_ms,
+            end_timestamp_ms,
+            winner,
+            current_bid,
+            nft,
+        } = linked_table::remove(&mut self.auctions, domain);
 
         // Ensure that the auction is not over
-        assert!(clock::timestamp_ms(clock) <= auction.end_timestamp_ms, EAuctionEnded);
+        assert!(clock::timestamp_ms(clock) <= end_timestamp_ms, EAuctionEnded);
         // Ensure the bidder isn't already the winner
-        assert!(bidder != auction.winner, EWinnerCannotPlaceBid);
+        assert!(bidder != winner, EWinnerCannotPlaceBid);
 
         // get the current highest bid and ensure that the new bid is greater than the current winning bid
-        let current_winning_bid = coin::value(linked_table::borrow(&auction.bids, auction.winner));
+        let current_winning_bid = coin::value(&current_bid);
         let bid_amount = coin::value(&bid);
         assert!(bid_amount > current_winning_bid, EBidAmountTooLow);
 
-        linked_table::push_front(&mut auction.bids, bidder, bid);
-        auction.winner = bidder;
+        // Return the previous winner their bid
+        sui::transfer::public_transfer(current_bid, winner);
 
         event::emit(BidEvent {
             domain,
@@ -170,39 +169,31 @@ module suins::auction {
         // then extend the auction so that there is `AUCTION_MIN_QUIET_PERIOD_MS` left.
         // Auctions can't be finished until there is at least `AUCTION_MIN_QUIET_PERIOD_MS`
         // time where there are no bids.
-        if (auction.end_timestamp_ms - clock::timestamp_ms(clock) < AUCTION_MIN_QUIET_PERIOD_MS) {
+        if (end_timestamp_ms - clock::timestamp_ms(clock) < AUCTION_MIN_QUIET_PERIOD_MS) {
             let new_end_timestamp_ms = clock::timestamp_ms(clock) + AUCTION_MIN_QUIET_PERIOD_MS;
 
             // Only extend the auction if the new auction end time is before
             // the NFT's expiration timestamp
-            let nft = option::borrow(&auction.nft);
-            if (new_end_timestamp_ms < nft::expiration_timestamp_ms(nft)) {
-                auction.end_timestamp_ms = new_end_timestamp_ms;
+            if (new_end_timestamp_ms < nft::expiration_timestamp_ms(&nft)) {
+                end_timestamp_ms = new_end_timestamp_ms;
 
                 event::emit(AuctionExtendedEvent {
                     domain,
-                    end_timestamp_ms: auction.end_timestamp_ms,
+                    end_timestamp_ms: end_timestamp_ms,
                 });
             }
         };
-    }
 
-    /// #### Notice
-    /// Bidders use this function to withdraw their bid from a particular auction
-    ///
-    /// Panics
-    /// sender has never placed a bid or they are the winner of the bid
-    public fun withdraw_bid(
-        self: &mut AuctionHouse,
-        domain_name: String,
-        ctx: &mut TxContext
-    ): Coin<SUI> {
-        let domain = domain::new(domain_name);
-        let auction = linked_table::borrow_mut(&mut self.auctions, domain);
+        let auction = Auction {
+            domain,
+            start_timestamp_ms,
+            end_timestamp_ms,
+            winner: tx_context::sender(ctx),
+            current_bid: bid,
+            nft,
+        };
 
-        // Ensure the sender isn't the winner, winners cannot withdraw their bids
-        assert!(tx_context::sender(ctx) != auction.winner, ENotWinner);
-        linked_table::remove(&mut auction.bids, tx_context::sender(ctx))
+        linked_table::push_front(&mut self.auctions, domain, auction);
     }
 
     /// #### Notice
@@ -217,20 +208,33 @@ module suins::auction {
         ctx: &mut TxContext
     ): RegistrationNFT {
         let domain = domain::new(domain_name);
-        let auction = linked_table::borrow_mut(&mut self.auctions, domain);
+
+        let Auction {
+            domain: _,
+            start_timestamp_ms,
+            end_timestamp_ms,
+            winner,
+            current_bid,
+            nft,
+        } = linked_table::remove(&mut self.auctions, domain);
 
         // Ensure that the auction is over
-        assert!(clock::timestamp_ms(clock) > auction.end_timestamp_ms, EAuctionNotEndedYet);
+        assert!(clock::timestamp_ms(clock) > end_timestamp_ms, EAuctionNotEndedYet);
 
         // Ensure the sender is the winner
-        assert!(tx_context::sender(ctx) == auction.winner, ENotWinner);
+        assert!(tx_context::sender(ctx) == winner, ENotWinner);
+
+        event::emit(AuctionFinalizedEvent {
+            domain,
+            start_timestamp_ms,
+            end_timestamp_ms,
+            winning_bid: coin::value(&current_bid),
+            winner,
+        });
 
         // Extract the NFT and their bid, returning the NFT to the user
         // and sending the proceeds of the auction to suins
-        let nft = option::extract(&mut auction.nft);
-        let bid = linked_table::remove(&mut auction.bids, tx_context::sender(ctx));
-
-        balance::join(&mut self.balance, coin::into_balance(bid));
+        balance::join(&mut self.balance, coin::into_balance(current_bid));
         nft
     }
 
@@ -252,7 +256,7 @@ module suins::auction {
 
         if (linked_table::contains(&self.auctions, domain)) {
             let auction = linked_table::borrow(&self.auctions, domain);
-            let highest_amount = coin::value(linked_table::borrow(&auction.bids, auction.winner));
+            let highest_amount = coin::value(&auction.current_bid);
             return (
                 some(auction.start_timestamp_ms),
                 some(auction.end_timestamp_ms),
@@ -287,9 +291,8 @@ module suins::auction {
         // Ensure that the auction is over
         assert!(clock::timestamp_ms(clock) > auction.end_timestamp_ms, EAuctionNotEndedYet);
 
-        let bid = linked_table::borrow_mut(&mut auction.bids, auction.winner);
-        let amount = coin::value(bid);
-        balance::join(&mut self.balance, coin::into_balance(coin::split(bid, amount, ctx)));
+        let amount = coin::value(&mut auction.current_bid);
+        balance::join(&mut self.balance, coin::into_balance(coin::split(&mut auction.current_bid, amount, ctx)));
     }
 
     /// Admin functionality used to finalize a single auction.
@@ -307,59 +310,44 @@ module suins::auction {
     ///
     /// Once all of the above has been done the auction is destroyed,
     /// freeing on-chain storage.
-    public fun admin_try_finalize_auction(
+    public fun admin_finalize_auction(
         admin: &AdminCap,
         self: &mut AuctionHouse,
         domain: String,
-        operation_limit: u64,
         clock: &Clock,
     ) {
         let domain = domain::new(domain);
-        admin_try_finalize_auction_internal(admin, self, domain, operation_limit, clock);
+        admin_finalize_auction_internal(admin, self, domain, clock);
     }
 
-    fun admin_try_finalize_auction_internal(
+    fun admin_finalize_auction_internal(
         _: &AdminCap,
         self: &mut AuctionHouse,
         domain: Domain,
-        operation_limit: u64,
         clock: &Clock,
-    ): u64 {
-        let auction = linked_table::remove(&mut self.auctions, domain);
-        // Ensure that the auction is over
-        assert!(clock::timestamp_ms(clock) > auction.end_timestamp_ms, EAuctionNotEndedYet);
-
-        while (is_some(linked_table::back(&auction.bids))) {
-            if (operation_limit == 0) {
-                linked_table::push_back(&mut self.auctions, domain, auction);
-                return operation_limit
-            };
-
-            let (address, bid) = linked_table::pop_back(&mut auction.bids);
-            if (address == auction.winner) {
-                balance::join(&mut self.balance, coin::into_balance(bid));
-                let nft = option::extract(&mut auction.nft);
-                transfer::public_transfer(nft, auction.winner);
-            } else {
-                transfer::public_transfer(bid, address);
-            };
-
-            operation_limit = operation_limit - 1;
-        };
-
+    ) {
         let Auction {
             domain: _,
-            start_timestamp_ms: _,
-            end_timestamp_ms: _,
-            winner: _,
-            bids,
+            start_timestamp_ms,
+            end_timestamp_ms,
+            winner,
+            current_bid,
             nft,
-        } = auction;
+        } = linked_table::remove(&mut self.auctions, domain);
 
-        linked_table::destroy_empty(bids);
-        option::destroy_none(nft);
+        // Ensure that the auction is over
+        assert!(clock::timestamp_ms(clock) > end_timestamp_ms, EAuctionNotEndedYet);
 
-        operation_limit
+        event::emit(AuctionFinalizedEvent {
+            domain,
+            start_timestamp_ms,
+            end_timestamp_ms,
+            winning_bid: coin::value(&current_bid),
+            winner,
+        });
+
+        balance::join(&mut self.balance, coin::into_balance(current_bid));
+        transfer::public_transfer(nft, winner);
     }
 
     /// Admin functionality used to finalize an arbitrary number of auctions.
@@ -389,11 +377,10 @@ module suins::auction {
 
             // If the auction has ended, then try to finalize it
             if (clock::timestamp_ms(clock) > auction.end_timestamp_ms) {
-                operation_limit = admin_try_finalize_auction_internal(
+                admin_finalize_auction_internal(
                     admin,
                     self,
                     domain,
-                    operation_limit,
                     clock
                 );
             };
@@ -408,6 +395,14 @@ module suins::auction {
         end_timestamp_ms: u64,
         starting_bid: u64,
         bidder: address,
+    }
+
+    struct AuctionFinalizedEvent has copy, drop {
+        domain: Domain,
+        start_timestamp_ms: u64,
+        end_timestamp_ms: u64,
+        winning_bid: u64,
+        winner: address,
     }
 
     struct BidEvent has copy, drop {
