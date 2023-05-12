@@ -1,9 +1,10 @@
 /// Admin features of the SuiNS application. Meant to be called directly
 /// by the suins admin.
 module suins::admin {
+    use std::vector;
     use std::string::String;
     use sui::clock::Clock;
-    use sui::tx_context::TxContext;
+    use sui::tx_context::{sender, TxContext};
 
     use suins::domain;
     use suins::config;
@@ -34,5 +35,24 @@ module suins::admin {
         config::assert_valid_user_registerable_domain(&domain);
         let registry = suins::app_registry_mut<Admin, Registry>(Admin {}, suins);
         registry::add_record(registry, domain, no_years, clock, ctx)
+    }
+
+    /// Reserve a list of domains.
+    entry fun reserve_domains(
+        _: &AdminCap,
+        suins: &mut SuiNS,
+        domains: vector<String>,
+        no_years: u8,
+        clock: &Clock,
+        ctx: &mut TxContext
+    ) {
+        let sender = sender(ctx);
+        let registry = suins::app_registry_mut<Admin, Registry>(Admin {}, suins);
+        while (!vector::is_empty(&domains)) {
+            let domain = domain::new(vector::pop_back(&mut domains));
+            config::assert_valid_user_registerable_domain(&domain);
+            let nft = registry::add_record(registry, domain, no_years, clock, ctx);
+            sui::transfer::public_transfer(nft, sender);
+        };
     }
 }
