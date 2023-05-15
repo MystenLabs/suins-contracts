@@ -267,20 +267,7 @@ module suins::auction {
         (none(), none(), none(), none())
     }
 
-    // === Admin Functions ===
-
-    public fun admin_withdraw_funds(
-        _: &AdminCap,
-        self: &mut AuctionHouse,
-        ctx: &mut TxContext,
-    ): Coin<SUI> {
-        let amount = balance::value(&self.balance);
-        assert!(amount > 0, ENoProfits);
-        coin::take(&mut self.balance, amount, ctx)
-    }
-
-    public fun admin_collect_fund(
-        _: &AdminCap,
+    public fun collect_winning_auction_fund(
         self: &mut AuctionHouse,
         domain_name: String,
         clock: &Clock,
@@ -293,6 +280,18 @@ module suins::auction {
 
         let amount = coin::value(&mut auction.current_bid);
         balance::join(&mut self.balance, coin::into_balance(coin::split(&mut auction.current_bid, amount, ctx)));
+    }
+
+    // === Admin Functions ===
+
+    public fun admin_withdraw_funds(
+        _: &AdminCap,
+        self: &mut AuctionHouse,
+        ctx: &mut TxContext,
+    ): Coin<SUI> {
+        let amount = balance::value(&self.balance);
+        assert!(amount > 0, ENoProfits);
+        coin::take(&mut self.balance, amount, ctx)
     }
 
     /// Admin functionality used to finalize a single auction.
