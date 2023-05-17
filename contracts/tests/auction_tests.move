@@ -10,7 +10,7 @@ module suins::auction_tests {
 
     use suins::auction::{
     Self, App as AuctionApp, place_bid, claim, AuctionHouse, start_auction_and_place_bid, total_balance,
-    admin_finalize_auction, admin_try_finalize_auctions, admin_withdraw_funds, admin_collect_fund
+    admin_finalize_auction, admin_try_finalize_auctions, admin_withdraw_funds, collect_winning_auction_fund
     };
     use suins::registration_nft::{Self, RegistrationNFT};
     use suins::config;
@@ -117,16 +117,14 @@ module suins::auction_tests {
 
     fun admin_collect_fund_util(scenario: &mut Scenario, domain_name: String, clock_tick: u64) {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
-        let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
         let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
         let clock = test_scenario::take_shared<Clock>(scenario);
 
         clock::increment_for_testing(&mut clock, clock_tick);
-        admin_collect_fund(&admin_cap, &mut auction_house, domain_name, &clock, ctx(scenario));
+        collect_winning_auction_fund(&mut auction_house, domain_name, &clock, ctx(scenario));
 
         test_scenario::return_shared(clock);
         test_scenario::return_shared(auction_house);
-        test_scenario::return_to_sender(scenario, admin_cap);
     }
 
     fun admin_try_finalize_auction_util(
