@@ -74,7 +74,7 @@ module suins::name_record {
 
     // === Getters ===
 
-    /// Check if the record has expired (including the grace period).
+    /// Check if the record has expired.
     public fun has_expired(self: &NameRecord, clock: &Clock): bool {
         self.expiration_timestamp_ms < timestamp_ms(clock)
     }
