@@ -9,7 +9,7 @@ module suins::update_image {
     use suins::registry::{Self, Registry};
     use suins::suins::{Self, SuiNS};
     use suins::config::{Self, Config};
-    use suins::registration_nft::{Self as nft, RegistrationNFT};
+    use suins::suins_registration::{Self as nft, SuinsRegistration};
 
     /// Message data cannot be parsed.
     const EInvalidData: u64 = 0;
@@ -21,10 +21,10 @@ module suins::update_image {
     /// Authorization token for the app.
     struct UpdateImage has drop {}
 
-    /// Updates the image attached to a `RegistrationNFT`.
+    /// Updates the image attached to a `SuinsRegistration`.
     entry fun update_image_url(
        suins: &mut SuiNS,
-       nft: &mut RegistrationNFT,
+       nft: &mut SuinsRegistration,
        raw_msg: vector<u8>,
        signature: vector<u8>,
        clock: &Clock,

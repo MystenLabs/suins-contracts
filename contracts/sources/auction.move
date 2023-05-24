@@ -16,7 +16,7 @@ module suins::auction {
 
     use suins::config::{Self, Config};
     use suins::suins::{Self, AdminCap, SuiNS};
-    use suins::registration_nft::{Self as nft, RegistrationNFT};
+    use suins::suins_registration::{Self as nft, SuinsRegistration};
     use suins::registry::{Self, Registry};
     use suins::domain::{Self, Domain};
 
@@ -59,7 +59,7 @@ module suins::auction {
         end_timestamp_ms: u64,
         winner: address,
         current_bid: Coin<SUI>,
-        nft: RegistrationNFT,
+        nft: SuinsRegistration,
     }
 
     fun init(ctx: &mut TxContext) {
@@ -206,7 +206,7 @@ module suins::auction {
         domain_name: String,
         clock: &Clock,
         ctx: &mut TxContext
-    ): RegistrationNFT {
+    ): SuinsRegistration {
         let domain = domain::new(domain_name);
 
         let Auction {
@@ -304,7 +304,7 @@ module suins::auction {
     /// This will attempt to do as much as possible of the following
     /// based on the provided `operation_limit`:
     /// - claim the winning bid and place in `AuctionHouse.balance`
-    /// - push the `RegistrationNFT` to the winner
+    /// - push the `SuinsRegistration` to the winner
     /// - push loosing bids back to their respective account owners
     ///
     /// Once all of the above has been done the auction is destroyed,

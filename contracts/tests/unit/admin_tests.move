@@ -1,7 +1,7 @@
 #[test_only]
 /// Testing strategy:
 ///
-/// - Admin can add new records to SuiNS and get the RegistrationNFTs
+/// - Admin can add new records to SuiNS and get the SuinsRegistrations
 /// for the registered domains.
 /// - Admin keeps the registration NFTs at their account for now.
 ///
@@ -12,7 +12,7 @@ module suins::admin_tests {
     use sui::test_utils::assert_eq;
 
     use suins::admin::{Self, Admin};
-    use suins::registration_nft as nft;
+    use suins::suins_registration as nft;
     use suins::constants;
     use suins::domain;
     use suins::suins;

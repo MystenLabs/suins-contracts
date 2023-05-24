@@ -9,7 +9,7 @@ module suins::admin {
     use suins::domain;
     use suins::config;
     use suins::suins::{Self, AdminCap, SuiNS};
-    use suins::registration_nft::RegistrationNFT;
+    use suins::suins_registration::SuinsRegistration;
     use suins::registry::{Self, Registry};
 
     /// The authorization witness.
@@ -30,7 +30,7 @@ module suins::admin {
         no_years: u8,
         clock: &Clock,
         ctx: &mut TxContext
-    ): RegistrationNFT {
+    ): SuinsRegistration {
         let domain = domain::new(domain_name);
         config::assert_valid_user_registerable_domain(&domain);
         let registry = suins::app_registry_mut<Admin, Registry>(Admin {}, suins);

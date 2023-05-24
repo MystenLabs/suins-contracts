@@ -8,7 +8,7 @@ module suins::controller {
     use suins::domain;
     use suins::registry::{Self, Registry};
     use suins::suins::{Self, SuiNS};
-    use suins::registration_nft::{Self as nft, RegistrationNFT};
+    use suins::suins_registration::{Self as nft, SuinsRegistration};
     use std::string;
 
     const AVATAR: vector<u8> = b"avatar";
@@ -24,7 +24,7 @@ module suins::controller {
     /// User-facing function (upgradable) - set the target address of a domain.
     entry fun set_target_address(
         suins: &mut SuiNS,
-        nft: &RegistrationNFT,
+        nft: &SuinsRegistration,
         new_target: Option<address>,
         clock: &Clock,
     ) {
@@ -50,7 +50,7 @@ module suins::controller {
 
     /// User-facing function (upgradable) - add a new key-value pair to the name record's data.
     entry fun set_user_data(
-        suins: &mut SuiNS, nft: &RegistrationNFT, key: String, value: String, clock: &Clock
+        suins: &mut SuiNS, nft: &SuinsRegistration, key: String, value: String, clock: &Clock
     ) {
 
         let registry = suins::app_registry_mut<Controller, Registry>(Controller {}, suins);
@@ -71,7 +71,7 @@ module suins::controller {
 
     /// User-facing function (upgradable) - remove a key from the name record's data.
     entry fun unset_user_data(
-        suins: &mut SuiNS, nft: &RegistrationNFT, key: String, clock: &Clock
+        suins: &mut SuiNS, nft: &SuinsRegistration, key: String, clock: &Clock
     ) {
         let registry = suins::app_registry_mut<Controller, Registry>(Controller {}, suins);
         let data = *registry::get_data(registry, nft::domain(nft));
@@ -90,7 +90,7 @@ module suins::controller {
 
     #[test_only]
     public fun set_target_address_for_testing(
-        suins: &mut SuiNS, nft: &RegistrationNFT, new_target: Option<address>, clock: &Clock
+        suins: &mut SuiNS, nft: &SuinsRegistration, new_target: Option<address>, clock: &Clock
     ) {
         set_target_address(suins, nft, new_target, clock)
     }
@@ -109,14 +109,14 @@ module suins::controller {
 
     #[test_only]
     public fun set_user_data_for_testing(
-        suins: &mut SuiNS, nft: &RegistrationNFT, key: String, value: String, clock: &Clock
+        suins: &mut SuiNS, nft: &SuinsRegistration, key: String, value: String, clock: &Clock
     ) {
         set_user_data(suins, nft, key, value, clock);
     }
 
     #[test_only]
     public fun unset_user_data_for_testing(
-        suins: &mut SuiNS, nft: &RegistrationNFT, key: String, clock: &Clock
+        suins: &mut SuiNS, nft: &SuinsRegistration, key: String, clock: &Clock
     ) {
         unset_user_data(suins, nft, key, clock);
     }

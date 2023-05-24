@@ -13,7 +13,7 @@ module suins::renew {
     use suins::registry::{Self, Registry};
     use suins::suins::{Self, SuiNS};
     use suins::config::{Self, Config};
-    use suins::registration_nft::{Self as nft, RegistrationNFT};
+    use suins::suins_registration::{Self as nft, SuinsRegistration};
 
     /// Number of years passed is not within [1-5] interval.
     const EInvalidYearsArgument: u64 = 0;
@@ -28,12 +28,12 @@ module suins::renew {
     struct Renew has drop {}
 
     /// Renew a registered domain name by a number of years (not exceeding 5).
-    /// The domain name must be already registered and active; `RegistrationNFT`
+    /// The domain name must be already registered and active; `SuinsRegistration`
     /// serves as the proof of that.
     ///
     /// We make sure that (in order):
     /// - the domain is already registered and active
-    /// - the RegistrationNFT matches the NameRecord.nft_id
+    /// - the SuinsRegistration matches the NameRecord.nft_id
     /// - the domain TLD is .sui
     /// - the domain is not a subdomain
     /// - number of years is within [1-5] interval
@@ -41,7 +41,7 @@ module suins::renew {
     /// - the payment matches the price for the domain
     public fun renew(
         suins: &mut SuiNS,
-        nft: &mut RegistrationNFT,
+        nft: &mut SuinsRegistration,
         no_years: u8,
         payment: Coin<SUI>,
         clock: &Clock,

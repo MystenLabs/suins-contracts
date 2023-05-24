@@ -1,5 +1,5 @@
-/// Handles creation of the `RegistrationNFT`s. Separates the logic of creating
-/// a `RegistrationNFT`. New `RegistrationNFT`s can be created only by the
+/// Handles creation of the `SuinsRegistration`s. Separates the logic of creating
+/// a `SuinsRegistration`. New `SuinsRegistration`s can be created only by the
 /// `registry` and this module is tightly coupled with it.
 ///
 /// When reviewing the module, make sure that:
@@ -7,7 +7,7 @@
 /// - mutable functions can't be called directly by the owner
 /// - all getters are public and take an immutable reference
 ///
-module suins::registration_nft {
+module suins::suins_registration {
     use std::string::{String};
     use sui::object::{Self, UID};
     use sui::tx_context::TxContext;
@@ -20,7 +20,7 @@ module suins::registration_nft {
     friend suins::update_image;
 
     /// The main access point for the user.
-    struct RegistrationNFT has key, store {
+    struct SuinsRegistration has key, store {
         id: UID,
         /// The parsed domain.
         domain: Domain,
@@ -34,15 +34,15 @@ module suins::registration_nft {
 
     // === Protected methods ===
 
-    /// Creates a new `RegistrationNFT`.
+    /// Creates a new `SuinsRegistration`.
     /// Can only be called by the `registry` module.
     public(friend) fun new(
         domain: Domain,
         no_years: u8,
         clock: &Clock,
         ctx: &mut TxContext
-    ): RegistrationNFT {
-        RegistrationNFT {
+    ): SuinsRegistration {
+        SuinsRegistration {
             id: object::new(ctx),
             domain_name: domain::to_string(&domain),
             domain,
@@ -52,43 +52,43 @@ module suins::registration_nft {
     }
 
     /// Sets the `expiration_timestamp_ms` for this NFT.
-    public(friend) fun set_expiration_timestamp_ms(self: &mut RegistrationNFT, expiration_timestamp_ms: u64) {
+    public(friend) fun set_expiration_timestamp_ms(self: &mut SuinsRegistration, expiration_timestamp_ms: u64) {
         self.expiration_timestamp_ms = expiration_timestamp_ms;
     }
 
     /// Updates the `image_url` field for this NFT. Is only called in the `update_image` for now.
-    public(friend) fun update_image_url(self: &mut RegistrationNFT, image_url: String) {
+    public(friend) fun update_image_url(self: &mut SuinsRegistration, image_url: String) {
         self.image_url = image_url;
     }
 
     // === Public methods ===
 
-    /// Check whether the `RegistrationNFT` has expired by comparing the
+    /// Check whether the `SuinsRegistration` has expired by comparing the
     /// expiration timeout with the current time.
-    public fun has_expired(self: &RegistrationNFT, clock: &Clock): bool {
+    public fun has_expired(self: &SuinsRegistration, clock: &Clock): bool {
         self.expiration_timestamp_ms < timestamp_ms(clock)
     }
 
-    /// Check whether the `RegistrationNFT` has expired by comparing the
+    /// Check whether the `SuinsRegistration` has expired by comparing the
     /// expiration timeout with the current time. This function also takes into
     /// account the grace period.
-    public fun has_expired_past_grace_period(self: &RegistrationNFT, clock: &Clock): bool {
+    public fun has_expired_past_grace_period(self: &SuinsRegistration, clock: &Clock): bool {
         (self.expiration_timestamp_ms + constants::grace_period_ms()) < timestamp_ms(clock)
     }
 
     // === Getters ===
 
-    /// Get the `domain` field of the `RegistrationNFT`.
-    public fun domain(self: &RegistrationNFT): Domain { self.domain }
+    /// Get the `domain` field of the `SuinsRegistration`.
+    public fun domain(self: &SuinsRegistration): Domain { self.domain }
 
-    /// Get the `domain_name` field of the `RegistrationNFT`.
-    public fun domain_name(self: &RegistrationNFT): String { self.domain_name }
+    /// Get the `domain_name` field of the `SuinsRegistration`.
+    public fun domain_name(self: &SuinsRegistration): String { self.domain_name }
 
-    /// Get the `expiration_timestamp_ms` field of the `RegistrationNFT`.
-    public fun expiration_timestamp_ms(self: &RegistrationNFT): u64 { self.expiration_timestamp_ms }
+    /// Get the `expiration_timestamp_ms` field of the `SuinsRegistration`.
+    public fun expiration_timestamp_ms(self: &SuinsRegistration): u64 { self.expiration_timestamp_ms }
 
-    /// Get the `image_url` field of the `RegistrationNFT`.
-    public fun image_url(self: &RegistrationNFT): String { self.image_url }
+    /// Get the `image_url` field of the `SuinsRegistration`.
+    public fun image_url(self: &SuinsRegistration): String { self.image_url }
 
     // === Testing ===
 
@@ -98,13 +98,13 @@ module suins::registration_nft {
         no_years: u8,
         clock: &Clock,
         ctx: &mut TxContext
-    ): RegistrationNFT {
+    ): SuinsRegistration {
         new(domain, no_years, clock, ctx)
     }
 
     #[test_only]
     public fun set_expiration_timestamp_ms_for_testing(
-        self: &mut RegistrationNFT,
+        self: &mut SuinsRegistration,
         expiration_timestamp_ms: u64
     ) {
         set_expiration_timestamp_ms(self, expiration_timestamp_ms);
@@ -112,15 +112,15 @@ module suins::registration_nft {
 
     #[test_only]
     public fun update_image_url_for_testing(
-        self: &mut RegistrationNFT,
+        self: &mut SuinsRegistration,
         image_url: String
     ) {
         update_image_url(self, image_url);
     }
 
     #[test_only]
-    public fun burn_for_testing(nft: RegistrationNFT) {
-        let RegistrationNFT {
+    public fun burn_for_testing(nft: SuinsRegistration) {
+        let SuinsRegistration {
             id,
             image_url: _,
             domain: _,

@@ -11,7 +11,7 @@ module suins::registation_nft_tests {
     use sui::clock::{Self, Clock};
     use sui::test_utils::assert_eq;
 
-    use suins::registration_nft::{Self as nft, RegistrationNFT};
+    use suins::suins_registration::{Self as nft, SuinsRegistration};
     use suins::constants;
     use suins::domain;
 
@@ -68,7 +68,7 @@ module suins::registation_nft_tests {
         no_years: u8,
         clock: &Clock,
         ctx: &mut TxContext,
-    ): RegistrationNFT {
+    ): SuinsRegistration {
         nft::new_for_testing(
             domain::new(domain_name),
             no_years,
@@ -77,7 +77,7 @@ module suins::registation_nft_tests {
         )
     }
 
-    fun burn(nft: RegistrationNFT) {
+    fun burn(nft: SuinsRegistration) {
         nft::burn_for_testing(nft)
     }
 }

@@ -8,16 +8,16 @@ module suins::registry {
     use sui::clock::Clock;
     use sui::vec_map::VecMap;
 
-    use suins::registration_nft::{Self as nft, RegistrationNFT};
+    use suins::suins_registration::{Self as nft, SuinsRegistration};
     use suins::name_record::{Self, NameRecord};
     use suins::domain::Domain;
     use suins::suins::AdminCap;
 
-    /// The `RegistrationNFT` has expired.
+    /// The `SuinsRegistration` has expired.
     const ENftExpired: u64 = 0;
     /// Trying to override a record that is not expired.
     const ERecordNotExpired: u64 = 1;
-    /// The `RegistrationNFT` does not match the `NameRecord`.
+    /// The `SuinsRegistration` does not match the `NameRecord`.
     const EIdMismatch: u64 = 2;
     /// The `NameRecord` has expired.
     const ERecordExpired: u64 = 3;
@@ -47,14 +47,14 @@ module suins::registry {
     }
 
     /// Attempts to add a new record to the registry and returns a
-    /// `RegistrationNFT` upon success.
+    /// `SuinsRegistration` upon success.
     public fun add_record(
         self: &mut Registry,
         domain: Domain,
         no_years: u8,
         clock: &Clock,
         ctx: &mut TxContext,
-    ): RegistrationNFT {
+    ): SuinsRegistration {
         // First check to see if there is already an entry for this domain
         if (table::contains(&self.registry, domain)) {
             // Remove the record and assert that it has expired past the grace period
@@ -108,12 +108,12 @@ module suins::registry {
         };
     }
 
-    /// Update the `expiration_timestamp_ms` of the given `RegistrationNFT` and
-    /// `NameRecord`. Requires the `RegistrationNFT` to make sure that both
+    /// Update the `expiration_timestamp_ms` of the given `SuinsRegistration` and
+    /// `NameRecord`. Requires the `SuinsRegistration` to make sure that both
     /// timestamps are in sync.
     public fun set_expiration_timestamp_ms(
         self: &mut Registry,
-        nft: &mut RegistrationNFT,
+        nft: &mut SuinsRegistration,
         domain: Domain,
         expiration_timestamp_ms: u64,
     ) {
@@ -124,7 +124,7 @@ module suins::registry {
         nft::set_expiration_timestamp_ms(nft, expiration_timestamp_ms);
     }
 
-    /// Update the `data` of the given `NameRecord` using a `RegistrationNFT`.
+    /// Update the `data` of the given `NameRecord` using a `SuinsRegistration`.
     public fun set_data(
         self: &mut Registry,
         domain: Domain,
@@ -163,7 +163,7 @@ module suins::registry {
     /// Asserts that the provided NFT:
     /// 1. Matches the ID in the corresponding `Record`
     /// 2. Has not expired (does not take into account the grace period)
-    public fun assert_nft_is_authorized(self: &Registry, nft: &RegistrationNFT, clock: &Clock) {
+    public fun assert_nft_is_authorized(self: &Registry, nft: &SuinsRegistration, clock: &Clock) {
         let domain = nft::domain(nft);
         let record = table::borrow(&self.registry, domain);
 

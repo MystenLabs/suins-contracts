@@ -5,6 +5,6 @@
 - [ ] controller.move
 - [x] domain.move
 - [x] name_record.move
-- [x] registration_nft.move
+- [x] suins_registration.move
 - [ ] registry.move
 - [x] suins.move

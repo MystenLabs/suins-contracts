@@ -13,7 +13,7 @@ module suins::controller_tests {
     use suins::register::Register;
     use suins::constants::{mist_per_sui, year_ms};
     use suins::suins::{Self, SuiNS, AdminCap};
-    use suins::registration_nft::RegistrationNFT;
+    use suins::suins_registration::SuinsRegistration;
     use suins::register_tests::register_util;
     use suins::controller::{Self, Controller, set_target_address_for_testing, set_reverse_lookup_for_testing, unset_reverse_lookup_for_testing, set_user_data_for_testing, unset_user_data_for_testing};
     use suins::registry::{Self, Registry, lookup, reverse_lookup};
@@ -60,7 +60,7 @@ module suins::controller_tests {
     public fun set_target_address_util(scenario: &mut Scenario, sender: address, target: Option<address>, clock_tick: u64) {
         test_scenario::next_tx(scenario, sender);
         let suins = test_scenario::take_shared<SuiNS>(scenario);
-        let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
+        let nft = test_scenario::take_from_sender<SuinsRegistration>(scenario);
         let clock = test_scenario::take_shared<Clock>(scenario);
 
         clock::increment_for_testing(&mut clock, clock_tick);
@@ -92,7 +92,7 @@ module suins::controller_tests {
     public fun set_user_data_util(scenario: &mut Scenario, sender: address, key: String, value: String, clock_tick: u64) {
         test_scenario::next_tx(scenario, sender);
         let suins = test_scenario::take_shared<SuiNS>(scenario);
-        let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
+        let nft = test_scenario::take_from_sender<SuinsRegistration>(scenario);
         let clock = test_scenario::take_shared<Clock>(scenario);
 
         clock::increment_for_testing(&mut clock, clock_tick);
@@ -106,7 +106,7 @@ module suins::controller_tests {
     public fun unset_user_data_util(scenario: &mut Scenario, sender: address, key: String, clock_tick: u64) {
         test_scenario::next_tx(scenario, sender);
         let suins = test_scenario::take_shared<SuiNS>(scenario);
-        let nft = test_scenario::take_from_sender<RegistrationNFT>(scenario);
+        let nft = test_scenario::take_from_sender<SuinsRegistration>(scenario);
         let clock = test_scenario::take_shared<Clock>(scenario);
 
         clock::increment_for_testing(&mut clock, clock_tick);

@@ -8,7 +8,7 @@ module suins::registry_tests {
     use sui::clock::{Self, Clock};
     use sui::test_utils::assert_eq;
 
-    use suins::registration_nft::{Self as nft, RegistrationNFT};
+    use suins::suins_registration::{Self as nft, SuinsRegistration};
     use suins::name_record as record;
     use suins::registry::{Self, Registry};
     use suins::domain::{Self, Domain};
@@ -186,7 +186,7 @@ module suins::registry_tests {
         clock::destroy_for_testing(clock);
     }
 
-    fun burn_nfts(nfts: vector<RegistrationNFT>) {
+    fun burn_nfts(nfts: vector<SuinsRegistration>) {
         while (vector::length(&nfts) > 0) {
             nft::burn_for_testing(vector::pop_back(&mut nfts));
         };

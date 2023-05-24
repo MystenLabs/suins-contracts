@@ -10,7 +10,7 @@ module suins::register {
     use suins::registry::{Self, Registry};
     use suins::suins::{Self, SuiNS};
     use suins::config::{Self, Config};
-    use suins::registration_nft::RegistrationNFT;
+    use suins::suins_registration::SuinsRegistration;
 
     /// Number of years passed is not within [1-5] interval.
     const EInvalidYearsArgument: u64 = 0;
@@ -35,7 +35,7 @@ module suins::register {
         payment: Coin<SUI>,
         clock: &Clock,
         ctx: &mut TxContext
-    ): RegistrationNFT {
+    ): SuinsRegistration {
         suins::assert_app_is_authorized<Register>(suins);
 
         let config = suins::get_config<Config>(suins);
