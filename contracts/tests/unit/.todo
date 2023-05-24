@@ -1,0 +1,10 @@
+- [x] admin.move
+- [ ] auction.move
+- [x] config.move
+- [?] constants.move
+- [ ] controller.move
+- [x] domain.move
+- [x] name_record.move
+- [x] suins_registration.move
+- [ ] registry.move
+- [x] suins.move
