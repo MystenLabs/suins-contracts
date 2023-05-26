@@ -11,7 +11,7 @@
 ##### This diagram shows all the interaction between `Bidders`, `Smart Contract` and `Admin`
 
 ```mermaid
-end
+
 sequenceDiagram
     participant Alice
     participant Bob
