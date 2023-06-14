@@ -81,6 +81,12 @@ module suins::suins_registration {
 
     // === Getters ===
 
+    /// Get the `id` field of the `SuinsRegistration`.
+    public fun uid(self: &SuinsRegistration): &UID { &self.id }
+
+    /// Get the mutable `id` field of the `SuinsRegistration`.
+    public fun uid_mut(self: &mut SuinsRegistration): &mut UID { &mut self.id }
+
     /// Get the `domain` field of the `SuinsRegistration`.
     public fun domain(self: &SuinsRegistration): Domain { self.domain }
 
