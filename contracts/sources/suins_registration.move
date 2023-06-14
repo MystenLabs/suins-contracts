@@ -76,6 +76,13 @@ module suins::suins_registration {
         (self.expiration_timestamp_ms + constants::grace_period_ms()) < timestamp_ms(clock)
     }
 
+    /// === UID Access ===
+    /// `SuinsRegistration` UID to allow reading dynamic fields.
+    public fun uid(self: &SuinsRegistration): &UID { &self.id }
+
+    /// Expose mutable access to the `SuinsRegistration` `UID` to allow dynamic field attachment.
+    public fun uid_mut(self: &mut SuinsRegistration): &mut UID { &mut self.id }
+
     // === Getters ===
 
     /// Get the `domain` field of the `SuinsRegistration`.
