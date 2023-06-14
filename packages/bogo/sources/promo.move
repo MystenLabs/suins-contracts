@@ -4,8 +4,8 @@
 /// Buy 1 get 1 free promotion for DayOne NFT holders.
 ///
 /// For every SuinsRegistration presented a user gets a free domain name of the
-/// same length as the one registered. To do so, the user must present the
-/// DayOne NFT to the promo module and `start` the process.
+/// same (or more) length as the one registered. To do so, the user must present
+/// the DayOne NFT to the promo module and `start` the process.
 ///
 /// Then the user must present all of the SuinsRegistration NFT with the desired
 /// domain names to the `register` function.
@@ -41,7 +41,7 @@ module bogo::promo {
     }
 
     /// While the promo action is active and the Tracker is present, show the
-    /// SuinsRegistration to get a domain with the same length.
+    /// SuinsRegistration to get a domain with the same or more length.
     public fun register(
         _tracker: &Tracker,
         registration: &mut SuinsRegistration,
@@ -50,7 +50,7 @@ module bogo::promo {
         let registered = suins_registration::domain_name(registration);
 
         assert!(!df::exists_(suins_registration::uid(registration), UsedKey {}), EAlreadyUsed);
-        assert!(length(&registered) == length(&domain_name), ELengthMismatch);
+        assert!(length(&registered) <= length(&domain_name), ELengthMismatch);
 
         df::add(suins_registration::uid_mut(registration), UsedKey {}, true);
 
