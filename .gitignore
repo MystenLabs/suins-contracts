@@ -8,3 +8,4 @@ sui.log.*
 .coverage_map.mvcov
 
 **/.env
+node_modules
