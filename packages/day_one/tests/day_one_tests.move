@@ -73,7 +73,7 @@ module suins::day_one_tests {
     #[test]
     #[expected_failure(abort_code = bogo::EDomainAlreadyUsed)]
     fun failure_test_domain_already_used() {
-      // an e2e scenario were we just purchase 3 domains normally using 3 registered ones.
+        // tries to reuse the same SuinsRegistration for a second time.
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         test_scenario::next_tx(scenario, USER_ADDRESS);
@@ -120,7 +120,7 @@ module suins::day_one_tests {
     #[test]
     #[expected_failure(abort_code = bogo::ESizeMissMatch)]
     fun failure_test_length_missmatch() {
-      // an e2e scenario were we just purchase 3 domains normally using 3 registered ones.
+      // Tries to register a 4 letter domain while presenting a 3 letter one.
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         test_scenario::next_tx(scenario, USER_ADDRESS);
@@ -142,7 +142,7 @@ module suins::day_one_tests {
     #[test]
     #[expected_failure(abort_code = bogo::ENotPurchasedInAuction)]
     fun failure_test_domain_not_bought_in_auction() {
-      // an e2e scenario were we just purchase 3 domains normally using 3 registered ones.
+        // tries to use a fresh domain to get another one for free.
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         test_scenario::next_tx(scenario, USER_ADDRESS);
@@ -170,6 +170,7 @@ module suins::day_one_tests {
     #[test]
     #[expected_failure(abort_code = bogo::ESizeMissMatch)]
     fun failure_test_length_missmatch_2() {
+        // Tries to claim a 3 letter name using a 4 letter domain.
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         test_scenario::next_tx(scenario, USER_ADDRESS);
@@ -192,6 +193,7 @@ module suins::day_one_tests {
     #[test]
     #[expected_failure(abort_code = bogo::ESizeMissMatch)]
     fun failure_test_length_missmatch_3() {
+        // tries to get a 4 digit name using a 5 digit one.
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
         test_scenario::next_tx(scenario, USER_ADDRESS);
@@ -199,7 +201,6 @@ module suins::day_one_tests {
         let (domain1, domain2, domain3, day_one) = prepare(ctx(scenario), &clock);
         let suins = test_scenario::take_shared<SuiNS>(scenario);
 
-        // using a 5 digit domain and trying to get a 4 digit one.
         let new_name_1 = bogo::claim(&mut day_one, &mut suins, &mut domain3, utf8(b"woww.sui"), &clock, ctx(scenario));
         burn_domain(new_name_1);
         
