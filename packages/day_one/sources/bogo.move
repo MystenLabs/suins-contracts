@@ -31,10 +31,7 @@ module day_one::bogo {
     // This will define if a domain name was bought in an auction.
     // The only way to understand that, is to check that the expiration day is 
     // less than last_day of auctions + 1 year.
-    // TODO: Replace this with the actual one when publishing.
-    // Note: We could also make this more dynamic and attach to do a Shared object
-    // so we can create a setter by AdminCap. Not sure it's worth doing it in our scenario.
-    const LAST_VALID_EXPIRATION_DATE: u64 = 1722790030 * 1000; // August 4th, 2024 
+    const LAST_VALID_EXPIRATION_DATE: u64 = 1721047730 * 1000; // Monday, 15 July 2024 12:48:50 UTC
 
     // Default registration duration is 1 year.
     const DEFAULT_DURATION: u8 = 1;

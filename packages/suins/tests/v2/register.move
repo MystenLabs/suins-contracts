@@ -1,6 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+#[test_only]
 module suins::register {
     use std::string::{Self, String};
     use sui::coin::{Self, Coin};
