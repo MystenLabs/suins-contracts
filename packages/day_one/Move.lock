@@ -5,6 +5,7 @@ version = 0
 
 dependencies = [
   { name = "Sui" },
+  { name = "suins" },
 ]
 
 [[move.package]]
@@ -17,4 +18,12 @@ source = { git = "https://github.com/MystenLabs/sui.git", rev = "2d985a3", subdi
 
 dependencies = [
   { name = "MoveStdlib" },
+]
+
+[[move.package]]
+name = "suins"
+source = { local = "../suins" }
+
+dependencies = [
+  { name = "Sui" },
 ]

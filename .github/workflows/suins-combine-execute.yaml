@@ -1,0 +1,137 @@
+---
+name: SuiNS - Combine and Execute Multi-Sig TX
+
+on:
+  workflow_dispatch:
+    inputs:
+      rpc:
+        description: 'RPC for sui client'
+        required: true
+        default: 'https://rpc.mainnet.sui.io:443'
+        type: string
+      sui_tools_image:
+        description: 'image reference of sui_tools'
+        default: 'mysten/sui-tools:2d985a342263ae224966e871b24beeafe11d782a'
+        required: true
+        type: string
+      all_pks:
+        description: 'ordered pubkeys (separate by spaces)'
+        required: true
+        type: string
+        default: 'AD+3mg5J5olToTEYrcxJ6DaVxUCWCBYOgI9dADaSlh/D AOSeqn1vaDsfKyErF5Oe2z6X0yD25HytzYxIN0sM9cSX AJdLYYKG/CTI9yFl68meoO8gHKUcTLpip6AYRXsS0H3g ANSiX5Dt4GGMydZKGlUdhbvJbJq/A4G5CwotC3h3LImf AKvhJE5Kuto6KRqWaD8vtPJ7u2glSdZTfK5AWnFQ5jhu AIsWkAJaleXuv6gq9Vtyxfigpr/9RqzRYCyB0pz8AWYS'
+      all_sigs:
+        description: 'All ordered signatures (separate by spaces)'
+        required: true
+        type: string
+        default: ''
+      weights:
+        description: 'weights for each key'
+        required: true
+        default: '1 1 1 1 1 1'
+        type: string
+      threshold:
+        description: 'multisig account threshold'
+        required: true
+        default: '3'
+        type: string
+      test_data_only:
+        description: 'Just a test for data output from artifacts'
+        required: true
+        default: false
+        type: boolean
+      execute_tx:
+        description: 'execute combined musig tx'
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  suins_combine_and_execute:
+    name: Suins Combine and Execute tx
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create client.yaml and keystore
+        working-directory: .
+        env:
+          NETWORK: mainnet
+          RPC: ${{ inputs.rpc }}
+        run: |
+          mkdir sui_config
+          touch sui_config/sui.keystore
+          cat <<EOF > sui_config/sui.keystore
+          [
+            "AJJqjgjU5B9vG2xV2c5kd51eyLYJ0yuEcSYRjzCKIQhT"
+          ]
+          EOF
+          cat <<EOF > sui_config/client.yaml
+          ---
+          keystore:
+            File: $HOME/.sui/sui_config/sui.keystore
+          envs:
+            - alias: $NETWORK
+              rpc: "$RPC"
+              ws: ~
+          EOF
+          mkdir $HOME/.sui
+          cp -r sui_config $HOME/.sui/sui_config
+
+      - name: Set up sui environment
+        working-directory: .
+        run: |
+          docker pull docker.io/${{ inputs.sui_tools_image }}
+          docker create --name tmp_cont docker.io/${{ inputs.sui_tools_image }}
+          docker cp tmp_cont:/usr/local/bin/sui sui
+          ./sui client addresses
+          ./sui client switch --address 0x2ffe93910ae4bc68eccc5418b748abcfc417d6a94c4e3e8414cdea92b20e8768
+
+      - name: Download artifact
+        id: download-artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: suins-build-tx.yaml
+          workflow_conclusion: success
+          name: transaction-data
+          path: scripts/tx
+
+      - name: Transaction Data being executed
+        run: |
+          cat scripts/tx/tx-data.txt
+
+      - name: Combine tx
+        if: ${{ !inputs.test_data_only }}
+        run: |
+          set -x 
+          ALL_PKS="${{ inputs.all_pks }}"
+          ALL_SIGS="${{ inputs.all_sigs }}"
+          echo "debug"
+          echo $ALL_PKS
+          echo $ALL_SIGS
+          combined_musig="$(./sui keytool multi-sig-combine-partial-sig \
+            --pks $(echo $ALL_PKS) \
+            --weights $(echo ${{ inputs.weights }}) \
+            --threshold $(echo ${{ inputs.threshold }}) \
+            --sigs $(echo $ALL_SIGS) \
+            | grep serialized \
+            | cut -d'"' -f 2)"
+          echo $ALL_PKS > scripts/tx/pks.txt
+          echo $ALL_SIGS > scripts/tx/sigs.txt
+          echo $combined_musig > scripts/tx/combined_musig.txt
+
+      - name: execute signed tx
+        if: ${{ !inputs.test_data_only && inputs.execute_tx }}
+        run: |
+          set -x
+          echo "combined musig"
+          echo "$(cat scripts/tx/combined_musig.txt)"
+          result="$(./sui client execute-signed-tx \
+            --tx-bytes $(cat scripts/tx/tx-data.txt) \
+            --signatures $(cat scripts/tx/combined_musig.txt))"
+          echo $result > scripts/tx/result.txt
+          cat scripts/tx/result.txt
+
+      - name: Upload Transaction Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: combine-and-execute-transaction
+          path: scripts/tx

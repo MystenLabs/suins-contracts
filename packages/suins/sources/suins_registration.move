@@ -93,6 +93,12 @@ module suins::suins_registration {
     /// Get the `image_url` field of the `SuinsRegistration`.
     public fun image_url(self: &SuinsRegistration): String { self.image_url }
 
+    // get a read-only `uid` field of `SuinsRegistration`.
+    public fun uid(self: &SuinsRegistration): &UID { &self.id }
+
+    /// Get the mutable `id` field of the `SuinsRegistration`.
+    public fun uid_mut(self: &mut SuinsRegistration): &mut UID { &mut self.id }
+
     // === Testing ===
 
     #[test_only]

@@ -8,3 +8,6 @@ sui.log.*
 .coverage_map.mvcov
 
 **/.env
+node_modules
+tx-data.txt*
+.DS_STORE*

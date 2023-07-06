@@ -1,0 +1,114 @@
+---
+name: Build SuiNS TX
+
+on:
+  workflow_dispatch:
+    inputs:
+      transaction_type:
+        description: 'select transaction type to create'
+        type: choice
+        options:
+          - Main package upgrade
+          - Publish DayOne Package
+          - Display, transfer policy & scripts
+      sui_tools_image:
+        description: 'image reference of sui_tools'
+        default: 'mysten/sui-tools:2d985a342263ae224966e871b24beeafe11d782a'
+      rpc:
+        description: 'RPC url'
+        required: true
+        default: 'https://suins-rpc.mainnet.sui.io:443'
+        type: string
+      gas_object_id:
+        description: 'object id to get gas from for multisig transaction'
+        required: true
+        type: string
+        default: '0x7a261dae36d8be1e30955540a9dbd2ff13922d87129c675b82aeb45e36eb89ed'
+
+jobs:
+  suins:
+    name: suins create tx
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Selected transaction type
+        run: |
+          echo ${{ inputs.transaction_type }}
+
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Create client.yaml and keystore
+        working-directory: .
+        env:
+          NETWORK: mainnet
+          RPC: ${{ inputs.rpc }}
+        run: |
+          mkdir sui_config
+          touch sui_config/sui.keystore
+          cat <<EOF > sui_config/sui.keystore
+          [
+            "AJJqjgjU5B9vG2xV2c5kd51eyLYJ0yuEcSYRjzCKIQhT"
+          ]
+          EOF
+          cat <<EOF > sui_config/client.yaml
+          ---
+          keystore:
+            File: $HOME/.sui/sui_config/sui.keystore
+          envs:
+            - alias: $NETWORK
+              rpc: "$RPC"
+              ws: ~
+          EOF
+          mkdir $HOME/.sui
+          cp -r sui_config $HOME/.sui/sui_config
+
+      - name: Set up sui environment
+        working-directory: .
+        run: |
+          docker pull docker.io/${{ inputs.sui_tools_image }}
+          docker create --name tmp_cont docker.io/${{ inputs.sui_tools_image }}
+          docker cp tmp_cont:/usr/local/bin/sui sui
+
+      - name: NPM BUILD TX Environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.16
+
+      - name: Do a global PNPM install
+        run: |
+          npm install -g pnpm
+
+      - name: Set up working directory
+        run: |
+          cd scripts && pnpm install
+
+      - name: Main Package Upgrade
+        if: ${{ inputs.transaction_type == 'Main package upgrade' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+        run: |
+          cd scripts && pnpm transactions::main_package::upgrade 
+
+      - name: Publish DayOne Package
+        if: ${{ inputs.transaction_type == 'Publish DayOne Package' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+        run: |
+          cd scripts && pnpm transactions::day_one::publish 
+
+      - name: Show Transaction Data (To sign)
+        run: |
+          cat scripts/tx/tx-data.txt
+
+      - name: Upload Transaction Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: transaction-data
+          path: scripts/tx
