@@ -17,14 +17,14 @@ export type AirdropConfig = {
 
 export const mainnetConfig: AirdropConfig = {
     isMainnet: true,
-    packageId: 'TBD',
+    packageId: '0xbf1431324a4a6eadd70e0ac6c5a16f36492f255ed4d011978b2cf34ad738efe6',
     dropListObj: {
-        objectId: 'TBD',
-        initialSharedVersion: 'TBD',
+        objectId: '0xde761c5e1bd3bdece2fd8d57be72b7a85f09d44438cafc731a693fc856ccff28',
+        initialSharedVersion: '3854467',
         mutable: true
     },
-    publisher: 'TBD',
-    setupCap: 'TBD',
+    publisher: '0x7b9fa20eb51210af6060f88fd1468b405d6306f6518deecf93c5ab1955165ce0',
+    setupCap: '0x3ac4499e0d0da8b4902691131bc6d63143e065a8182db23ee033533d00efe22a',
     // these are static. 
     massMintingAddress: '0x245937f348ad9cd4f0478b9766a611d8c16cf3c4d08045d6168ef5a356cb3eb9',
     baseCoinObjectId: '0x0021765dfb6569a5a8e52bacdd81fe0ae9169d264b416e924ece14edac64b6fa',
