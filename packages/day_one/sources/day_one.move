@@ -6,6 +6,7 @@ module day_one::day_one {
     use std::option;
     use std::vector;
 
+    use sui::package;
     use sui::object::{Self, UID};
     use sui::transfer;
     use sui::tx_context::{TxContext, sender};
@@ -35,8 +36,14 @@ module day_one::day_one {
     // Error emitted when passing more than 1000 hashes to the setup function.
     const ETooManyHashes: u64 = 1;
 
+    /// OTW for the Publisher object
+    struct DAY_ONE has drop {}
+
     /// Share the `DropList` object, send the `SetupCap` to the publisher.
-    fun init(ctx: &mut TxContext) {
+    fun init(otw: DAY_ONE, ctx: &mut TxContext) {
+        // Claim the `Publisher` for the package!
+        package::claim_and_keep(otw, ctx);
+        
         transfer::share_object(DropList { id: object::new(ctx), total_minted: 0 });
         // For SuiNS, we need 1 SetupCap to manage all the required addresses. We'll be setting up around 75K addresses.
         // We can mint 2K objects per run!
