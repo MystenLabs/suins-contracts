@@ -213,6 +213,29 @@ module suins::day_one_tests {
     }
 
     #[test]
+    #[expected_failure(abort_code = bogo::ESizeMissMatch)]
+    fun failure_test_length_missmatch_4() {
+        // tries to get an 8 digit name using a 3 digit one.
+        // protects the user from mistakes.
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        test_scenario::next_tx(scenario, USER_ADDRESS);
+        let clock = test_scenario::take_shared<Clock>(scenario);
+        let (domain1, domain2, domain3, day_one) = prepare(ctx(scenario), &clock);
+        let suins = test_scenario::take_shared<SuiNS>(scenario);
+
+        let new_name_1 = bogo::claim(&mut day_one, &mut suins, &mut domain1, utf8(b"wowowowo.sui"), &clock, ctx(scenario));
+        burn_domain(new_name_1);
+        
+        // clean up all these domains.
+        cleanup(domain1, domain2, domain3, day_one);
+
+        test_scenario::return_shared(suins);
+        test_scenario::return_shared(clock);
+        test_scenario::end(scenario_val);
+    }
+
+    #[test]
     fun test_acceptable_length_missmatch() {
         // We allow purchasing a domain of size 5+ if we pass a 5 length domain.
         // we only care about 3 & 4 digits.

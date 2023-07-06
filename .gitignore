@@ -9,3 +9,5 @@ sui.log.*
 
 **/.env
 node_modules
+tx-data.txt*
+.DS_STORE*

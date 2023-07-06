@@ -31,7 +31,7 @@ module day_one::bogo {
     // This will define if a domain name was bought in an auction.
     // The only way to understand that, is to check that the expiration day is 
     // less than last_day of auctions + 1 year.
-    const LAST_VALID_EXPIRATION_DATE: u64 = 1721047730 * 1000; // Monday, 15 July 2024 12:48:50 UTC
+    const LAST_VALID_EXPIRATION_DATE: u64 = 1721499031 * 1000; // Saturday, 20 July 2024 18:10:31 UTC
 
     // Default registration duration is 1 year.
     const DEFAULT_DURATION: u8 = 1;
@@ -68,11 +68,13 @@ module day_one::bogo {
         let new_domain = domain::new(domain_name);
         let new_domain_size = domain_length(&new_domain);
 
+        let domain_size = domain_length(&nft::domain(domain_nft));
+
         // make sure the domain is valid.
         config::assert_valid_user_registerable_domain(&new_domain);
 
         // if size < 5, we need to make sure we're getting a domain name of the same size.
-        assert!(!(new_domain_size < 5 && domain_length(&nft::domain(domain_nft)) != new_domain_size), ESizeMissMatch);
+        assert!(!((domain_size < 5 || new_domain_size < 5) && domain_size != new_domain_size), ESizeMissMatch);
 
         // activate the day_one_nft if it's not activated.
         // This will grant it access to future promotions.
