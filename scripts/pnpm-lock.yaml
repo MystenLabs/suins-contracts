@@ -11,6 +11,9 @@ dependencies:
   '@mysten/sui.js':
     specifier: ^0.37.1
     version: 0.37.1
+  '@types/blake2':
+    specifier: ^4.0.1
+    version: 4.0.1
   blake2:
     specifier: ^5.0.0
     version: 5.0.0
@@ -157,6 +160,12 @@ packages:
 
   /@tsconfig/node16@1.0.4:
     resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
+    dev: false
+
+  /@types/blake2@4.0.1:
+    resolution: {integrity: sha512-zcBydVD4uEsGo5gFRfm2phVMLqgrGJqcTZaT6lkZMWJzYovUi6wwraUJKdY1eO92q0bhWWVSAH4OnSp2m7rCfQ==}
+    dependencies:
+      '@types/node': 20.3.3
     dev: false
 
   /@types/node@20.3.3:

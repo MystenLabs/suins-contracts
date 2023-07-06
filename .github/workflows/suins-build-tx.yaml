@@ -10,7 +10,7 @@ on:
         options:
           - Main package upgrade
           - Publish DayOne Package
-          - DayOne display, transfer policy & setup script
+          - DayOne display transfer policy and setup script
       sui_tools_image:
         description: 'image reference of sui_tools'
         default: 'mysten/sui-tools:2d985a342263ae224966e871b24beeafe11d782a'
@@ -104,7 +104,7 @@ jobs:
           cd scripts && pnpm transactions::day_one::publish 
 
       - name: Setup DayOne Airdrop
-        if: ${{ inputs.transaction_type == 'DayOne display, transfer policy & setup script' }}
+        if: ${{ inputs.transaction_type == 'DayOne display transfer policy and setup script' }}
         env:
           NODE_ENV: production
           GAS_OBJECT: ${{ inputs.gas_object_id }}

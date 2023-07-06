@@ -15,6 +15,7 @@
   "dependencies": {
     "@mysten/kiosk": "^0.3.3",
     "@mysten/sui.js": "^0.37.1",
+    "@types/blake2": "^4.0.1",
     "blake2": "^5.0.0",
     "dotenv": "^16.3.1",
     "ts-node": "^10.9.1",
