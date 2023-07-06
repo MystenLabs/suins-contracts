@@ -107,8 +107,8 @@ jobs:
         run: |
           cat scripts/tx/tx-data.txt
 
-      # - name: Upload Transaction Artifact
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: transaction-data
-      #     path: scripts/tx
+      - name: Upload Transaction Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: transaction-data
+          path: scripts/tx
