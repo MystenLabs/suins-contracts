@@ -8,7 +8,7 @@ This directory contains the main suins package.
 
 
 V2 rev: 2d985a3
-V2: TBD (pending package upgrade)
+V2: `0xb7004c7914308557f7afbaf0dca8dd258e18e306cb7a45b28019f3d0a693f162`
 
 V1 rev: (was testnet)
 V1: `0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0`

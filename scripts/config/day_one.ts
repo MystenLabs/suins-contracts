@@ -26,8 +26,8 @@ export const mainnetConfig: AirdropConfig = {
     publisher: 'TBD',
     setupCap: 'TBD',
     // these are static. 
-    massMintingAddress: 'TBD',
-    baseCoinObjectId: 'TBD',
+    massMintingAddress: '0x245937f348ad9cd4f0478b9766a611d8c16cf3c4d08045d6168ef5a356cb3eb9',
+    baseCoinObjectId: '0x0021765dfb6569a5a8e52bacdd81fe0ae9169d264b416e924ece14edac64b6fa',
 
     // the buffer package to help setup the amount of addresses.
     bufferPackageId: '0xfeecbb29272d34b78c402b894ea63b48cff4a717dafc96df8aa205edca89610c'
