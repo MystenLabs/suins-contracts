@@ -6,7 +6,7 @@ dotenv.config();
 import { prepareMultisigTx } from "../airdrop/helper";
 import { deauthorizeBogoApp } from "../airdrop/deauthorize-app";
 
-const authorizeApp = async () => {
+const deauthorizeApp = async () => {
     // read addresses from file
     // convert to batches.
     const tx = await deauthorizeBogoApp('mainnet');
@@ -16,4 +16,4 @@ const authorizeApp = async () => {
     prepareMultisigTx(tx, 'mainnet');
 }
 
-authorizeApp();
+deauthorizeApp();
