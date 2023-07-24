@@ -1,4 +1,4 @@
-import { Connection, Ed25519Keypair, JsonRpcProvider, ObjectId, RawSigner, SuiAddress, SuiTransactionBlockResponse, TransactionArgument, TransactionBlock, bcs, getExecutionStatus, getExecutionStatusGasSummary, getExecutionStatusType, isValidSuiAddress, normalizeSuiAddress, testnetConnection, toB64 }
+import { Connection, Ed25519Keypair, ExportedKeypair, JsonRpcProvider, ObjectId, RawSigner, SuiAddress, SuiTransactionBlockResponse, TransactionArgument, TransactionBlock, bcs, fromExportedKeypair, getExecutionStatus, getExecutionStatusGasSummary, getExecutionStatusType, isValidSuiAddress, normalizeSuiAddress, testnetConnection, toB64 }
     from "@mysten/sui.js";
 
 import * as blake2 from 'blake2';
@@ -6,6 +6,7 @@ import fs from "fs";
 import { AirdropConfig, addressConfig, mainnetConfig } from "../config/day_one";
 import { Network, mainPackage } from "../config/constants";
 import { execSync } from 'child_process';
+import { fromHEX } from "@mysten/bcs";
 
 export const MAX_MINTS_PER_TRANSACTION = 2_000;
 export const TOTAL_RANDOM_ADDRESSES = 48 * MAX_MINTS_PER_TRANSACTION; // attempt with 95K.
@@ -17,13 +18,17 @@ export const executeTx = async (signer: RawSigner, tx: TransactionBlock, options
     chunkNum: number,
     failedChunks: number[]
 }) => {
+
+    const requestOptions = options?.isAirdropExecution ? {
+        showEffects: true
+    } : {
+        showObjectChanges: true,
+        showEffects: true
+    }
     return signer
         .signAndExecuteTransactionBlock({
             transactionBlock: tx,
-            options: {
-                showObjectChanges: true,
-                showEffects: true,
-            },
+            options: requestOptions,
         })
         .then(function (res) {
             if (!(options?.isAirdropExecution)) {
@@ -122,6 +127,18 @@ export const prepareSigner = (provider: JsonRpcProvider): RawSigner => {
     const keypair = Ed25519Keypair.deriveKeypair(phrase!);
 
     return new RawSigner(keypair, provider);
+}
+
+export const prepareSignerFromPrivateKey = (network: Network) => {
+    const privateKey = process.env.PRIVATE_KEY || '';
+    if (!privateKey) throw new Error(`ERROR: Private key not exported or exported wrong! Please run 'export PRIVATE_KEY="<mnemonic>"'`);
+    const keyPair: ExportedKeypair = {
+        schema: 'ED25519',
+        privateKey: toB64(fromHEX(privateKey)),
+    };
+
+    const config = mainPackage[network];
+    return new RawSigner(fromExportedKeypair(keyPair), config.provider);
 }
 
 // converts an array of addresses to a buffer using the `buffer` module.

@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@mysten/bcs':
+    specifier: ^0.7.3
+    version: 0.7.3
   '@mysten/kiosk':
     specifier: ^0.3.3
     version: 0.3.3
