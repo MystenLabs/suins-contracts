@@ -9,8 +9,8 @@ on:
         type: choice
         options:
           - Main package upgrade
-          - Publish DayOne Package
-          - DayOne display transfer policy and setup script
+          - Enable BOGO App
+          - Disable BOGO App
       sui_tools_image:
         description: 'image reference of sui_tools'
         default: 'mysten/sui-tools:2d985a342263ae224966e871b24beeafe11d782a'
@@ -111,7 +111,27 @@ jobs:
           NETWORK: mainnet
           ORIGIN: gh_action
         run: |
-          cd scripts && pnpm migrations::day_one::setup 
+          cd scripts && pnpm migrations::day_one::setup
+
+      - name: Enable DayOne BOGO Deal
+        if: ${{ inputs.transaction_type == 'Enable BOGO App' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+        run: |
+          cd scripts && pnpm migrations::day_one::authorize
+
+      - name: Disable DayOne BOGO Deal
+        if: ${{ inputs.transaction_type == 'Disable BOGO App' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+        run: |
+          cd scripts && pnpm migrations::day_one::deauthorize
 
       - name: Show Transaction Data (To sign)
         run: |
