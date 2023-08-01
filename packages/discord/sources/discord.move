@@ -1,6 +1,27 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+
+// The overall concept of the discord system is a way to
+// reward discord community members, who get specific roles on discord based on their actions.
+
+// The approach is that we have a Discord shared object.
+// We define a specific role-set off-chain, and we save it in the format:
+// role_id (0-256) (corresponds to off-chain naming ~ e.g. 0 -> Master, 1 -> Another_Role) | discount_percentage
+
+// After the setup has been done, the BE can sign messages to:
+// 1. Attach roles to a discordId. DiscordID is our "unique" trusted actor here,
+//    since the users will be able to call the BE only through a discord bot, which can recognize their discord id internally.
+// 2. Set the user's address. That helps map a discordId to an on-chain address, so that this address can convert the points to coupons.
+
+// After any setup has been made, a user, whose address belongs to a mapping, can come in and
+// claim coupons based on the available points.
+// E.g., if the `Member` has 100 points, the user can come and claim any amount of coupons that count up to 100%.
+// The moment the coupon is generated, the address can't change.
+
+// The coupon's format that is being generated is `ds_{discord_id}_{coupons_claimed}`. 
+// That help us have a unique set of coupon names, with no collision chances.
+
 module discord::discord{
     use std::string::{Self, String};
     use std::vector;
@@ -13,9 +34,7 @@ module discord::discord{
     use sui::ecdsa_k1;
     use sui::address;
 
-
     // Errors
-
     const EInvalidPublicKey: u64 = 0;
     const EInvalidDiscount: u64 = 1;
     const ERoleAlreadyExists: u64 = 2;
@@ -24,9 +43,12 @@ module discord::discord{
     const ERoleNotExists: u64 = 5;
     const ERoleAlreadyAssigned: u64 = 6;
     const ESignatureNotMatch: u64 = 7; // invalid signature supplied.
+    const EAddressNoMapping: u64 = 8;
+    const ENotEnoughPoints: u64 = 9;
 
     // authorization struct, to allow the app to create coupons in the coupon system.
     struct DiscordApp has drop {}
+
     // Capability for Discord Application.
     struct DiscordCap has key, store {
         id: UID
@@ -63,7 +85,7 @@ module discord::discord{
     }
 
     // A signature protected route, which the BE signs, which allows adding roles.
-    // Can be called by anyone, only works for the discord_id / roles mapping.
+    // Can be called by anyone, only works for the { discord_id -> roles[] } mapping.
     public fun attach_roles(self: &mut Discord, signature: vector<u8>, discord_id: String, roles: vector<u8>) {
 
         let msg_bytes = vector::empty<u8>();
@@ -74,14 +96,13 @@ module discord::discord{
         // The signed message should contain a valid `discord_id : roles` mapping
         assert!(ecdsa_k1::secp256k1_verify(&signature, &self.public_key, &msg_bytes, 1), ESignatureNotMatch);
 
-        let member: Member;
-        if (table::contains(&self.users, discord_id)) {
-            member = table::remove(&mut self.users, discord_id); // remove the table 
-        }else {
-            member = new_member_internal();
-        };
 
-        table::add(&mut self.users, discord_id, add_roles_internal(member, roles, self.discord_roles));
+        // if the table doens't contain that discord membership,add it.
+        if (!table::contains(&self.users, discord_id)) table::add(&mut self.users, discord_id, new_member_internal());
+
+        let member = table::borrow_mut(&mut self.users, discord_id); // remove the table 
+
+        add_roles_internal(member, roles, &self.discord_roles);
     }
 
     // A function to set the address mapping for a DiscordID <-> Address.
@@ -107,7 +128,27 @@ module discord::discord{
 
     // A user protected function to generate a coupon based on Membership data.
     // Only claimable if there's a mapping {discord_id -> address (which needs to be the sender)}
-    // public fun claim_coupon(discord_id: String, amount: u64)
+    public fun claim_coupon(self: &mut Discord, amount: u8, ctx: &mut TxContext) {
+
+        // check the amount asked is valid.
+        assert_is_valid_discount(amount);
+
+        // check that the address mapping has a discord id.
+        assert!(table::contains(&self.address_mapping, sender(ctx)), EAddressNoMapping);
+
+        // borrow discord id from table
+        let discord_id = *table::borrow(&self.address_mapping, sender(ctx));
+        assert!(table::contains(&self.users, discord_id), EDiscordIdNotFound);
+
+        let member = table::borrow_mut(&mut self.users, discord_id);
+        assert!(member.available_points >= (amount as u64), ENotEnoughPoints);
+
+
+        member.available_points = member.available_points - (amount as u64);
+
+        // TODO: CREATE A COUPON BASED ON THE AMOUNT.
+
+    }
 
 
     // Admin Actions
@@ -115,6 +156,7 @@ module discord::discord{
         assert!(vector::length(&key) > 0, EInvalidPublicKey);
         self.public_key = key;
     }
+
 
     // We allow adding discord roles, but not removing one.
     // This way we make sure that unique role_ids are mapped per Member.
@@ -133,11 +175,9 @@ module discord::discord{
     }
 
 
-
-    // internal function to add roles to a member.
+    // internal function to add roles to a member and save the points.
     // Aborts if the member already had these roles.
-    // Also saves points.
-    fun add_roles_internal(member: Member, roles: vector<u8>, discord_roles: VecMap<u8, u8>): Member {
+    fun add_roles_internal(member: &mut Member, roles: vector<u8>, discord_roles: &VecMap<u8, u8>) {
         // checks if new roles vector is empty.
         assert!(!vector::is_empty(&roles), ENoRolesFound);
 
@@ -148,23 +188,21 @@ module discord::discord{
             assert!(!vector::contains(&member.roles, &role), ERoleAlreadyAssigned);
 
             // 2. This role needs to be valid (exist in discord_roles)
-            assert!(vec_map::contains(&discord_roles, &role), ERoleNotExists);
+            assert!(vec_map::contains(discord_roles, &role), ERoleNotExists);
 
             // add role to the member.
             vector::push_back(&mut member.roles, role);
             // add discount to the member's available points. We can cast u8 to u64 safely.
-            member.available_points = member.available_points + (*vec_map::get(&discord_roles, &role) as u64);
+            member.available_points = member.available_points + (*vec_map::get(discord_roles, &role) as u64);
         };
-
-        member
     }
 
-    fun new_member_internal(): Member {
+    // fn to generate a new Member.
+    public fun new_member_internal(): Member {
         Member {
             available_points: 0,
             roles: vector::empty(),
             coupons_claimed: 0
         }
     }
-
 }
