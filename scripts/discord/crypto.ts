@@ -3,7 +3,7 @@
 
 import * as secp from "@noble/secp256k1";
 import dotenv from "dotenv";
-import { readEnvAndReplaceTableId } from "../config/utils";
+import { readEnvAndReplaceKey } from "../config/utils";
 import { bcs } from "@mysten/sui.js";
 
 dotenv.config();
@@ -47,6 +47,6 @@ export const generateKeyPair = async () => {
     let privateKey = secp.utils.randomPrivateKey();
     let publicKey = secp.getPublicKey(privateKey);
 
-    readEnvAndReplaceTableId('PRIVATE_KEY', privateKey.toString());
-    readEnvAndReplaceTableId('PUBLIC_KEY', publicKey.toString());
+    readEnvAndReplaceKey('PRIVATE_KEY', privateKey.toString());
+    readEnvAndReplaceKey('PUBLIC_KEY', publicKey.toString());
 }

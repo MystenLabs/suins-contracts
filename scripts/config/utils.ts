@@ -7,7 +7,7 @@ import fs from "fs";
 
 
 /* Read and Replace an ENV Variable, for ease of use of the contracts. */
-export const readEnvAndReplaceTableId = (key: string, value: string) => {
+export const readEnvAndReplaceKey = (key: string, value: string) => {
 
     let keyExisted = false;
     const env = fs.readFileSync('.env').toString().split('\n').filter(x => !!x).map(x => x.split('='));
