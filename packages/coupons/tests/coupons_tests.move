@@ -23,7 +23,6 @@ module coupons::coupon_tests {
         };
     }
 
-
     // test the e2e experience for coupons!
     #[test]
     fun test_e2e() {

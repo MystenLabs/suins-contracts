@@ -8,7 +8,6 @@
     "transactions::main_package::upgrade": "ts-node transactions/main_package_upgrade.ts",
     "migrations::day_one::authorize": "ts-node transactions/authorize_bogo_app.ts",
     "migrations::day_one::deauthorize": "ts-node transactions/deauthorize_bogo_app.ts"
-    
   },
   "keywords": [],
   "author": "",
@@ -17,6 +16,7 @@
     "@mysten/bcs": "^0.7.3",
     "@mysten/kiosk": "^0.3.3",
     "@mysten/sui.js": "^0.37.1",
+    "@noble/secp256k1": "^1.7.1",
     "@types/blake2": "^4.0.1",
     "blake2": "^5.0.0",
     "dotenv": "^16.3.1",

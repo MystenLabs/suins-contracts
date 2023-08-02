@@ -35,15 +35,26 @@ module discord::discord{
     use sui::address;
 
     // Errors
+
+    // Public Key is not valid (empty array)
     const EInvalidPublicKey: u64 = 0;
+    // Discount not in range [0,100]
     const EInvalidDiscount: u64 = 1;
+    // Member already has that role attached
     const ERoleAlreadyExists: u64 = 2;
+    // Discord ID not found, even though mapping exists.
     const EDiscordIdNotFound: u64 = 3;
+    // Tries to attach empty vector of roles.
     const ENoRolesFound: u64 = 4;
+    // Tries to attach a non existing role to a member
     const ERoleNotExists: u64 = 5;
+    // Tries to attach a role which the member has already claimed the rewards for.
     const ERoleAlreadyAssigned: u64 = 6;
-    const ESignatureNotMatch: u64 = 7; // invalid signature supplied.
+    // Not a matching signature, can't do any attaching
+    const ESignatureNotMatch: u64 = 7;
+    // Tries to claim a coupon without being in the system
     const EAddressNoMapping: u64 = 8;
+    // Tries to claim a coupon higher than the available points.
     const ENotEnoughPoints: u64 = 9;
 
     // authorization struct, to allow the app to create coupons in the coupon system.
@@ -55,7 +66,7 @@ module discord::discord{
     }
 
     // A Discord Member profile.
-    struct Member has copy, store, drop {
+    struct Member has store {
         available_points: u64,
         roles: vector<u8>,
         coupons_claimed: u64
@@ -92,15 +103,14 @@ module discord::discord{
         vector::append(&mut msg_bytes, *string::bytes(&discord_id));
         vector::append(&mut msg_bytes, roles);
 
-        // verify that the signed message is valid.
+        // Verify that the signed message is valid.
         // The signed message should contain a valid `discord_id : roles` mapping
         assert!(ecdsa_k1::secp256k1_verify(&signature, &self.public_key, &msg_bytes, 1), ESignatureNotMatch);
-
 
         // if the table doens't contain that discord membership,add it.
         if (!table::contains(&self.users, discord_id)) table::add(&mut self.users, discord_id, new_member_internal());
 
-        let member = table::borrow_mut(&mut self.users, discord_id); // remove the table 
+        let member = table::borrow_mut(&mut self.users, discord_id); // borrow a mutable reference. 
 
         add_roles_internal(member, roles, &self.discord_roles);
     }
@@ -130,6 +140,8 @@ module discord::discord{
     // Only claimable if there's a mapping {discord_id -> address (which needs to be the sender)}
     public fun claim_coupon(self: &mut Discord, amount: u8, ctx: &mut TxContext) {
 
+        // TODO: First check should be an authorization check that we can indeed create a coupon.
+
         // check the amount asked is valid.
         assert_is_valid_discount(amount);
 
@@ -143,20 +155,23 @@ module discord::discord{
         let member = table::borrow_mut(&mut self.users, discord_id);
         assert!(member.available_points >= (amount as u64), ENotEnoughPoints);
 
-
         member.available_points = member.available_points - (amount as u64);
+        member.coupons_claimed = member.coupons_claimed + 1;
 
-        // TODO: CREATE A COUPON BASED ON THE AMOUNT.
+        // TODO: CREATE A COUPON BASED ON THE AMOUNT, USING THE COUPONS SYSTEM.
+        // STEPS TO ACCOMPLISH:
+        // 1. Add `coupons` dependency.
+        // 2. Authorize `DiscordApp` to be able to create new coupons there.
+        // 3. Generate the coupon code based on discord.
 
     }
 
-
     // Admin Actions
+
     public fun set_public_key(_: &DiscordCap, self: &mut Discord, key: vector<u8>, ) {
         assert!(vector::length(&key) > 0, EInvalidPublicKey);
         self.public_key = key;
     }
-
 
     // We allow adding discord roles, but not removing one.
     // This way we make sure that unique role_ids are mapped per Member.
@@ -183,7 +198,6 @@ module discord::discord{
 
         while(!vector::is_empty(&roles)){
             let role = vector::pop_back(&mut roles);
-            // we need to check:
             // 1. Member shouldn't have this role
             assert!(!vector::contains(&member.roles, &role), ERoleAlreadyAssigned);
 
@@ -198,11 +212,46 @@ module discord::discord{
     }
 
     // fn to generate a new Member.
-    public fun new_member_internal(): Member {
+    fun new_member_internal(): Member {
         Member {
             available_points: 0,
             roles: vector::empty(),
             coupons_claimed: 0
         }
+    }
+
+    // Getters
+
+    public fun coupons_claimed(member: &Member): u64 {
+        member.coupons_claimed
+    }
+
+    public fun available_points(member: &Member): u64 {
+        member.available_points
+    }
+
+    public fun roles(member: &Member): vector<u8> {
+        member.roles
+    }
+
+    public fun get_member(self: &Discord, discord_id: &String): &Member {
+        table::borrow(&self.users, *discord_id)
+    }
+
+    public fun get_discord_roles(self: &Discord): &VecMap<u8,u8> {
+        &self.discord_roles
+    }
+
+    public fun get_discord_users(self: &Discord): &Table<String, Member> {
+        &self.users
+    }
+
+    public fun get_addresses_mapping(self: &Discord): &Table<address, String> {
+        &self.address_mapping
+    }
+
+    #[test_only]
+    public fun init_for_testing(ctx: &mut TxContext) {
+        init(ctx)
     }
 }
