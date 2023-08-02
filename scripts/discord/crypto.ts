@@ -32,16 +32,6 @@ export const signMessage = async (bytes: Uint8Array) => {
     return signature;
 }
 
-export const verifyForAddress = async (address: string) => {
-    const isValid = secp.verify(
-        await signMessage(Buffer.from('0xfe09cf0b3d77678b99250572624bf74fe3b12af915c5db95f0ed5d755612eb68')),
-        await secp.utils.sha256(Buffer.from('0xfe09cf0b3d77678b99250572624bf74fe3b12af915c5db95f0ed5d755612eb68')), 
-        secp.getPublicKey(getPrivateKeyHex()));
-    console.log(isValid);
-}
-
-
-
 export const generateKeyPair = async () => {
 
     let privateKey = secp.utils.randomPrivateKey();
