@@ -4,8 +4,8 @@ import * as secp from "@noble/secp256k1";
 import { addressToBytes, getPrivateKeyHex, signMessage } from "./crypto";
 import { discordRoles } from "./constants";
 import { addDiscordRole, setPublicKey } from "./transactions/admin_actions";
-import { DiscordConfig } from "./discord_config";
-import { attachRoles, setAddress } from "./transactions/user_actions";
+import { DiscordConfig, localDiscordConfig } from "./discord_config";
+import { attachRoles, claimCoupon, setAddress } from "./transactions/user_actions";
 
 
 
@@ -79,12 +79,22 @@ const getDiscordMembers = async (tableId: string) => {
             console.dir(res, {depth: null});
         })
     }).catch(e=>{})
+}
 
+const claim = async (discord_id: string, amount: number, config: DiscordConfig) => {
+    const signer = prepareSigner(new JsonRpcProvider(testnetConnection));
+    
+    const tx = new TransactionBlock();
+    claimCoupon(tx, discord_id, amount, config);
+
+    await executeTx(signer, tx);
+    
 }
 // prepareContract(localDiscordConfig);
 // addSomeDummyDiscordMembers(localDiscordConfig);
 // getDiscordMembers('0x334624aacdc7add6b63da4d800bb4401b8b459bbda322252eb83114cd2f9615a')
 
+// claim('discord_usr_1', 20, localDiscordConfig);
 
 
 
