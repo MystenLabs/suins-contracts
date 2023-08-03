@@ -6,9 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "transactions::main_package::upgrade": "ts-node transactions/main_package_upgrade.ts",
-    "migrations::day_one::authorize": "ts-node transactions/authorize_bogo_app.ts",
-    "migrations::day_one::deauthorize": "ts-node transactions/deauthorize_bogo_app.ts"
-    
+    "migrations::day_one::deauthorize": "ts-node transactions/deauthorize_bogo_app.ts",
+    "transactions::registration::publish": "ts-node transactions/publish_registration.ts",
+    "migrations::registration::transition": "ts-node transactions/deauthorize_auction_authorize_registration.ts"
   },
   "keywords": [],
   "author": "",

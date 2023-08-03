@@ -11,8 +11,8 @@ module suins::renew_tests {
     use sui::clock::{Self, Clock};
 
     use suins::renew::{Self, Renew, renew};
-    use suins::register::Register;
-    use suins::register_tests::{register_util, assert_balance};
+    use suins::register_sample::Register;
+    use suins::register_sample_tests::{register_util, assert_balance};
     use suins::constants::{mist_per_sui, year_ms};
     use suins::suins::{Self, SuiNS, AdminCap};
     use suins::suins_registration::{Self, SuinsRegistration};

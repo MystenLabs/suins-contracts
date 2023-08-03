@@ -9,8 +9,9 @@ on:
         type: choice
         options:
           - Main package upgrade
-          - Enable BOGO App
           - Disable BOGO App
+          - Publish Registration Package
+          - Migrate to Direct Registrations
       sui_tools_image:
         description: 'image reference of sui_tools'
         default: 'mysten/sui-tools:2d985a342263ae224966e871b24beeafe11d782a'
@@ -93,35 +94,15 @@ jobs:
         run: |
           cd scripts && pnpm transactions::main_package::upgrade 
 
-      - name: Publish DayOne Package
-        if: ${{ inputs.transaction_type == 'Publish DayOne Package' }}
+      - name: Publish Registration Package
+        if: ${{ inputs.transaction_type == 'Publish Registration Package' }}
         env:
           NODE_ENV: production
           GAS_OBJECT: ${{ inputs.gas_object_id }}
           NETWORK: mainnet
           ORIGIN: gh_action
         run: |
-          cd scripts && pnpm transactions::day_one::publish 
-
-      - name: Setup DayOne Airdrop
-        if: ${{ inputs.transaction_type == 'DayOne display transfer policy and setup script' }}
-        env:
-          NODE_ENV: production
-          GAS_OBJECT: ${{ inputs.gas_object_id }}
-          NETWORK: mainnet
-          ORIGIN: gh_action
-        run: |
-          cd scripts && pnpm migrations::day_one::setup
-
-      - name: Enable DayOne BOGO Deal
-        if: ${{ inputs.transaction_type == 'Enable BOGO App' }}
-        env:
-          NODE_ENV: production
-          GAS_OBJECT: ${{ inputs.gas_object_id }}
-          NETWORK: mainnet
-          ORIGIN: gh_action
-        run: |
-          cd scripts && pnpm migrations::day_one::authorize
+          cd scripts && pnpm transactions::registration::publish     
 
       - name: Disable DayOne BOGO Deal
         if: ${{ inputs.transaction_type == 'Disable BOGO App' }}
@@ -132,6 +113,16 @@ jobs:
           ORIGIN: gh_action
         run: |
           cd scripts && pnpm migrations::day_one::deauthorize
+
+      - name: Migrate to direct registrations
+        if: ${{ inputs.transaction_type == 'Migrate to Direct Registrations' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+        run: |
+          cd scripts && pnpm migrations::registration::transition
 
       - name: Show Transaction Data (To sign)
         run: |
