@@ -18,7 +18,7 @@ export type PackageInfo = {
 export const mainPackage: Config = {
     mainnet: {
         packageId: '0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0',
-        registrationPackageId: 'TODO: Fill this in after publishing',
+        registrationPackageId: '0x9d451fa0139fef8f7c1f0bd5d7e45b7fa9dbb84c2e63c2819c7abd0a7f7d749d',
         upgradeCap: '0x9cda28244a0d0de294d2b271e772a9c33eb47d316c59913d7369b545b4af098c',
         publisherId: '0x7339f23f06df3601167d67a31752781d307136fd18304c48c928778e752caae1',
         adminAddress: '0xa81a2328b7bbf70ab196d6aca400b5b0721dec7615bf272d95e0b0df04517e72',
