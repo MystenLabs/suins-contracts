@@ -117,7 +117,10 @@ module discord::discord{
         assert!(ecdsa_k1::secp256k1_verify(&signature, &self.public_key, &msg_bytes, 1), ESignatureNotMatch);
 
         // if the table doens't contain that discord membership,add it.
-        if (!table::contains(&self.users, discord_id)) table::add(&mut self.users, discord_id, new_member_internal());
+        if (!table::contains(&self.users, discord_id)) table::add(&mut self.users, discord_id, Member {
+            available_points: 0,
+            roles: vec_set::empty(),
+        });
 
         let member = table::borrow_mut(&mut self.users, discord_id); // borrow a mutable reference. 
 
@@ -226,14 +229,6 @@ module discord::discord{
             // add discount to the member's available points. We can cast u8 to u64 safely.
             member.available_points = member.available_points + (*vec_map::get(discord_roles, &role) as u64);
         };
-    }
-
-    /// fn to generate a new Member.
-    fun new_member_internal(): Member {
-        Member {
-            available_points: 0,
-            roles: vec_set::empty(),
-        }
     }
 
     /// Getters
