@@ -1,6 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+#[test_only]
 module discord::discord_tests {
 
     use sui::test_scenario::{Self, Scenario, ctx};
