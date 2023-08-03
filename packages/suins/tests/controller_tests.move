@@ -13,11 +13,11 @@ module suins::controller_tests {
     use sui::dynamic_field;
     use sui::vec_map::{Self, VecMap};
 
-    use suins::register::Register;
+    use suins::register_sample::Register;
     use suins::constants::{mist_per_sui, year_ms};
     use suins::suins::{Self, SuiNS, AdminCap};
     use suins::suins_registration::SuinsRegistration;
-    use suins::register_tests::register_util;
+    use suins::register_sample_tests::register_util;
     use suins::controller::{Self, Controller, set_target_address_for_testing, set_reverse_lookup_for_testing, unset_reverse_lookup_for_testing, set_user_data_for_testing, unset_user_data_for_testing};
     use suins::registry::{Self, Registry, lookup, reverse_lookup};
     use suins::name_record;

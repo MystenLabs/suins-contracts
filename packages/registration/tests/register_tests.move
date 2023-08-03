@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #[test_only]
-module suins::register_sample_tests {
+module registration::register_tests {
 
     use std::string::{utf8, String};
 
@@ -11,7 +11,7 @@ module suins::register_sample_tests {
     use sui::coin;
     use sui::sui::SUI;
 
-    use suins::register_sample::{Self as register, Register, register};
+    use suins::register::{Self, Register, register};
     use suins::constants::{mist_per_sui, grace_period_ms, year_ms};
     use suins::suins::{Self, SuiNS, total_balance, AdminCap};
     use suins::suins_registration::SuinsRegistration;
