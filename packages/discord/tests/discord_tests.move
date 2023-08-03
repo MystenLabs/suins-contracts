@@ -85,7 +85,7 @@ module discord::discord_tests {
         {
             test_scenario::next_tx(scenario, tp::get_nth_user(1));
             let discord = test_scenario::take_shared<Discord>(scenario);
-            let member = discord::get_member(&discord, &tp::get_nth_discord_id(1));
+            let member = discord::member(&discord, &tp::get_nth_discord_id(1));
             assert!(discord::available_points(member) == 10, 0);
             test_scenario::return_shared(discord);
         };
