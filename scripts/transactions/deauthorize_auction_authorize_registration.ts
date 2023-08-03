@@ -30,7 +30,7 @@ const migrateToDirectRegistration = async () => {
           tx.object(mainPackage.mainnet.adminCap),
           tx.object(mainPackage.mainnet.suins),
         ],
-        typeArguments: [`${mainPackage.mainnet.registrationPackageId}::register::Register`],
+        typeArguments: [`${mainPackage.mainnet.registrationPackageId}::registration::Register`],
     });
 
     // prepare tx data.
