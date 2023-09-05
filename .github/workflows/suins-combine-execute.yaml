@@ -85,6 +85,11 @@ jobs:
           ./sui client addresses
           ./sui client switch --address 0x2ffe93910ae4bc68eccc5418b748abcfc417d6a94c4e3e8414cdea92b20e8768
 
+      - name: Install JQ
+        working-directory: .
+        run: |
+          sudo apt update -y && sudo apt install -y jq
+
       - name: Download artifact
         id: download-artifact
         uses: dawidd6/action-download-artifact@v2
@@ -111,9 +116,7 @@ jobs:
             --pks $(echo $ALL_PKS) \
             --weights $(echo ${{ inputs.weights }}) \
             --threshold $(echo ${{ inputs.threshold }}) \
-            --sigs $(echo $ALL_SIGS) \
-            | grep serialized \
-            | cut -d'"' -f 2)"
+            --sigs $(echo $ALL_SIGS) --json | jq .multisigSerialized | tr -d \" )"
           echo $ALL_PKS > scripts/tx/pks.txt
           echo $ALL_SIGS > scripts/tx/sigs.txt
           echo $combined_musig > scripts/tx/combined_musig.txt
