@@ -200,7 +200,7 @@ module coupons::coupons {
 
     // Add a coupon as an admin.
     /// To create a coupon, you have to call the PTB in the specific order
-    /// 1. (Optional) Call rules::domain_length_rule(type, length) // generate a length specific rule (e.g. only domains of size 5)
+    /// 1. (Optional) Call rules::new_domain_length_rule(type, length) // generate a length specific rule (e.g. only domains of size 5)
     /// 2. Call rules::coupon_rules(...) to create the coupon's ruleset.
     public fun admin_add_coupon(
         _: &AdminCap,

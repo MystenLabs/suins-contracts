@@ -63,7 +63,7 @@ module coupons::rules {
     }
 
     // Used in PTB when creating a coupon
-    public fun domain_length_rule(type: u8, length: u8): DomainLengthRule {
+    public fun new_domain_length_rule(type: u8, length: u8): DomainLengthRule {
         assert!(vector::contains(&constants::name_rules(), &type), EInvalidRuleCode);
 
         DomainLengthRule {

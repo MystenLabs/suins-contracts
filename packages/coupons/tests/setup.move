@@ -143,7 +143,7 @@ module coupons::setup {
             rules::new_coupon_rules(
                 // Only usable for domains with length >= 5. This discount wouldn't be applicable for others.
                 option::some(
-                    rules::domain_length_rule(
+                    rules::new_domain_length_rule(
                         constants::min_char_rule(),
                         5
                     )
@@ -165,7 +165,7 @@ module coupons::setup {
             rules::new_coupon_rules(
                 // Only usable for domains with fixed length of 3 digits.
                 option::some(
-                    rules::domain_length_rule(
+                    rules::new_domain_length_rule(
                         constants::fixed_length_rule(),
                         3
                     )
@@ -187,7 +187,7 @@ module coupons::setup {
             rules::new_coupon_rules(
                 // Only usable for 3 or 4 digit names (max char = 4)
                 option::some(
-                    rules::domain_length_rule(
+                    rules::new_domain_length_rule(
                         constants::max_char_rule(),
                         4
                     )
