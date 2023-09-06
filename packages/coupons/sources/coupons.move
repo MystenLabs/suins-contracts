@@ -232,7 +232,6 @@ module coupons::coupons {
     }
 
     // Remove a coupon as a registered app.
-    // A registered app can only remove a coupon that it has added.
     public fun app_remove_coupon(self: &mut Data, code: String) {
         internal_remove_coupon(self, code);
     }

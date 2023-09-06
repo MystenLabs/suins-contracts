@@ -171,7 +171,7 @@ module coupons::rules {
         // max characters rule -> Length of the name must be less than or equal to the rule's length
         if(rule.type == constants::max_char_rule()) return length <= rule.length;
 
-        // We default to fault!
+        // We default to false!
         false
     }
 
