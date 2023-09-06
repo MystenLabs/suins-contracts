@@ -15,14 +15,12 @@ module coupons::coupon_tests {
     // populate a lot of coupons with different cases.
     // This populates the coupon as an authorized app
     fun populate_coupons(scenario: &mut Scenario) {
-         {
-            test_scenario::next_tx(scenario, user());
-            let coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
+        test_scenario::next_tx(scenario, user());
+        let coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
 
-            let data_mut = coupons::app_data_mut<TestApp>(setup::test_app(), &mut coupon_house);
-            setup::populate_coupons(data_mut, ctx(scenario));
-            test_scenario::return_shared(coupon_house);
-        };
+        let data_mut = coupons::app_data_mut<TestApp>(setup::test_app(), &mut coupon_house);
+        setup::populate_coupons(data_mut, ctx(scenario));
+        test_scenario::return_shared(coupon_house);
     }
 
     // Please look up at `setup` file to see all the coupon names and their respective logic.
@@ -62,9 +60,23 @@ module coupons::coupon_tests {
         populate_coupons(scenario);
         // 5 SUI discount coupon.
         setup::admin_add_coupon(utf8(b"100_SUI_OFF"), constants::fixed_price_discount_type(), 100 * mist_per_sui(),  scenario);
-
         // Buy a name for free using the 100 SUI OFF coupon! 
         setup::register_with_coupon(utf8(b"100_SUI_OFF"), utf8(b"testo.sui"), 1, 0 * mist_per_sui(), 0, user(), scenario);
+        test_scenario::end(scenario_val);
+    }
+    #[test]
+    fun test_price_calculation(){
+        let scenario_val = setup::test_init();
+        let scenario = &mut scenario_val;
+        populate_coupons(scenario);
+        {
+            test_scenario::next_tx(scenario, user());
+            let coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
+            
+            let sale_price = coupons::calculate_sale_price(&mut coupon_house, 100, utf8(b"50_PERCENT_5_PLUS_NAMES"));
+            assert!(sale_price == 50, 1);
+            test_scenario::return_shared(coupon_house);
+        };
         test_scenario::end(scenario_val);
     }
     // Tests the e2e experience for coupons (a list of different coupons with different rules)

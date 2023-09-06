@@ -128,8 +128,8 @@ module coupons::coupons {
         // Validate name can be registered (is main domain (no subdomain) and length is valid)
         config::assert_valid_user_registerable_domain(&domain);
 
-        let original_price = config::calculate_price(config, (string::length(label) as u8), no_years);
-        let sale_price = calculate_sale_price(original_price, coupon);
+        let original_price = config::calculate_price(config, domain_length, no_years);
+        let sale_price = internal_calculate_sale_price(original_price, coupon);
 
         assert!(coin::value(&payment) == sale_price, EIncorrectAmount);
         suins::app_add_balance(CouponsApp {}, suins, coin::into_balance(payment));
@@ -144,8 +144,19 @@ module coupons::coupons {
         registry::add_record(registry, domain, no_years, clock, ctx)
     }
 
+    // A convenient helper to calculate the price in a PTB.
+    // Important: This function doesn't check the validity of the coupon (Whether the user can indeed use it)
+    // Nor does it calculate the original price. This is part of the Frontend anyways.
+    public fun calculate_sale_price(self: &mut CouponHouse, price: u64, coupon_code: String): u64 {
+        // Validate that specified coupon is valid.
+        assert!(table::contains(&mut self.data.coupons, coupon_code), ECouponNotExists);
+        // Borrow coupon from the table.
+        let coupon = table::borrow_mut(&mut self.data.coupons, coupon_code);
+        internal_calculate_sale_price(price, coupon)
+    }
+
     /// A helper to calculate the final price after the discount.
-    public fun calculate_sale_price(price: u64, coupon: &Coupon): u64{
+    fun internal_calculate_sale_price(price: u64, coupon: &Coupon): u64{
         
         // If it's fixed price, we just deduce the amount.
         if(coupon.type == constants::fixed_price_discount_type()){
@@ -236,7 +247,7 @@ module coupons::coupons {
 
     /// An internal function to create a coupon object.
     /// To create a coupon, you have to call the PTB in the specific order
-    /// 1. (Optional) Call rules::domain_size_rule(type, length) // generate a length specific rule (e.g. only domains of size 5)
+    /// 1. (Optional) Call rules::domain_length_rule(type, length) // generate a length specific rule (e.g. only domains of size 5)
     /// 2. Call rules::coupon_rules() to create the coupon's ruleset. 
     fun internal_create_coupon(
         type: u8,

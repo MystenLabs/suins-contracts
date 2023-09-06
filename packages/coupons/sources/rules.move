@@ -44,7 +44,7 @@ module coupons::rules {
     /// All rules are combined in `AND` fashion. 
     /// All of the checks have to pass for a coupon to be used.
     struct CouponRules has copy, store, drop {
-        size_rule: Option<DomainLengthRule>,
+        length_rule: Option<DomainLengthRule>,
         available_claims: Option<u16>,
         user: Option<address>,
         expiration: Option<u64>,
@@ -63,7 +63,7 @@ module coupons::rules {
     }
 
     // Used in PTB when creating a coupon
-    public fun domain_size_rule(type: u8, length: u8): DomainLengthRule {
+    public fun domain_length_rule(type: u8, length: u8): DomainLengthRule {
         assert!(vector::contains(&constants::name_rules(), &type), EInvalidRuleCode);
 
         DomainLengthRule {
@@ -82,14 +82,14 @@ module coupons::rules {
     /// 4. Might have an expiration date.
     /// 5. Might be valid only for registrations up to a maximum year.
     public fun new_coupon_rules(
-        size_rule: Option<DomainLengthRule>,
+        length_rule: Option<DomainLengthRule>,
         available_claims: Option<u16>,
         user: Option<address>,
         expiration: Option<u64>,
         max_years: Option<u8>
     ): CouponRules {
         CouponRules {
-            size_rule, available_claims, user, expiration, max_years
+            length_rule, available_claims, user, expiration, max_years
         }
     }
 
@@ -97,7 +97,7 @@ module coupons::rules {
     // This helps generate a coupon that can be used without any of the restrictions.
     public fun new_empty_rules(): CouponRules {
         CouponRules {
-            size_rule: option::none(),
+            length_rule: option::none(),
             available_claims: option::none(),
             user: option::none(),
             expiration: option::none(),
@@ -156,7 +156,7 @@ module coupons::rules {
     }
     /// We check the length of the name based on the domain length rule
     public fun is_coupon_valid_for_domain_size(rules: &CouponRules, length: u8): bool {
-        let optional_rule = &rules.size_rule;
+        let optional_rule = &rules.length_rule;
 
         // If the DomainLengthRule is not set, we pass this rule test.
         if(!option::is_some(optional_rule)) return true;
