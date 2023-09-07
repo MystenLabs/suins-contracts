@@ -8,7 +8,8 @@
     "transactions::main_package::upgrade": "ts-node transactions/main_package_upgrade.ts",
     "migrations::day_one::deauthorize": "ts-node transactions/deauthorize_bogo_app.ts",
     "transactions::registration::publish": "ts-node transactions/publish_registration.ts",
-    "migrations::registration::transition": "ts-node transactions/deauthorize_auction_authorize_registration.ts"
+    "migrations::registration::transition": "ts-node transactions/deauthorize_auction_authorize_registration.ts",
+    "transfer::names": "ts-node reserved-names/transfer-names.ts"
   },
   "keywords": [],
   "author": "",
