@@ -133,7 +133,7 @@ jobs:
           NETWORK: mainnet
           ORIGIN: gh_action
         run: |
-          cd scripts && transfer::names
+          cd scripts && pnpm transfer::names
 
       - name: Show Transaction Data (To sign)
         run: |
