@@ -34,17 +34,6 @@ module coupons::rules {
     /// Error when creating years range.
     const EInvalidYears: u64 = 8;
 
-
-    /// Constants
-    // A rule that allows any length
-    const ANY_NAME_RULE: u8 = 0;
-    // Allow only the length of a specific size (e..g only 20 digits)
-    const FIXED_LENGTH_RULE: u8 = 1;
-    // Allow only the length >= size (e.g. >= 20 digits)
-    const MIN_CHAR_RULE: u8 = 2;
-    // Allow only the length <= size (e.g. <=4 digits)
-    const MAX_CHAR_RULE: u8 = 3;
-
     /// The Struct that holds the coupon's rules.
     /// All rules are combined in `AND` fashion. 
     /// All of the checks have to pass for a coupon to be used.
