@@ -39,7 +39,7 @@ module coupons::rules {
     /// All of the checks have to pass for a coupon to be used.
     struct CouponRules has copy, store, drop {
         length: Option<Range>,
-        available_claims: Option<u16>,
+        available_claims: Option<u64>,
         user: Option<address>,
         expiration: Option<u64>,
         years: Option<Range>
@@ -55,7 +55,7 @@ module coupons::rules {
     /// 5. Might be valid only for registrations in a range [from, to]
     public fun new_coupon_rules(
         length: Option<Range>,
-        available_claims: Option<u16>,
+        available_claims: Option<u64>,
         user: Option<address>,
         expiration: Option<u64>,
         years: Option<Range>
