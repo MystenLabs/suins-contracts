@@ -14,11 +14,11 @@ const exampleCouponsCreation = async (config: PackageInfo) => {
         .setLengthRule([5,63])
         .toTransaction(txb, config);
 
-    // // 50% OFF for all with at least 2 years
+    // // 50% OFF for 3 or 4 letter names with at least 2 years of purchase.
     new PercentageOffCoupon(50)
         .setName("DISCOUNT50")
         .setAvailableClaims(100)
-        .setYears([3,5])
+        .setYears([2,5])
         .setLengthRule([3,4])
         .toTransaction(txb, config);
 
