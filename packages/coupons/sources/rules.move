@@ -12,9 +12,10 @@ module coupons::rules {
 
     use coupons::constants;
 
+    use suins::constants::{Self as suins_constants};
     // Errors
     /// Error when you try to create a DomainLengthRule with invalid type.
-    const EInvalidRuleCode: u64 = 0;
+    const EInvalidLengthRule: u64 = 0;
     /// Error when you try to use a coupon that isn't valid for these years.
     const ENotValidYears: u64 = 1;
     /// Error when you try to use a coupon which doesn't match to the domain's size.
@@ -29,6 +30,9 @@ module coupons::rules {
     const EInvalidUser: u64 = 6;
     /// Error when coupon has expired
     const ECouponExpired: u64 = 7;
+    /// Error when max years are invalid. Max years have to be either none, or an array of 2, incrementing (e.g. [1,3]) 
+    /// and in the ragne of 1 to 5.
+    const EInvalidMaxYears: u64 = 8;
 
     /// Constants
     // A rule that allows any length
@@ -44,64 +48,78 @@ module coupons::rules {
     /// All rules are combined in `AND` fashion. 
     /// All of the checks have to pass for a coupon to be used.
     struct CouponRules has copy, store, drop {
-        length_rule: Option<DomainLengthRule>,
+        length: Option<vector<u8>>,
         available_claims: Option<u16>,
         user: Option<address>,
         expiration: Option<u64>,
-        max_years: Option<u8>
-    }
-
-     /// A simple struct that contains a characters rule
-     /// Using this format, we can create all the possible combinations on teh domain length.
-     /// `any_name_rule`: allows the coupon to be claimable for all domain lengths
-     /// `fixed_length_rule`: allows the coupon to be claimable only for domains equal to `length`.
-     /// `min_char_rule`: allows the coupon to be claimable only for domains >= `length`
-     /// `max_char_rule`: allows the coupon to be claimable only for domains <= `length`
-    struct DomainLengthRule has copy, store, drop {
-        type: u8, // any of the length rule types [fixed_legth_rule, min_char_rule, max_char_rule]. Could have been enum.
-        length: u8 // Our names are [3,64] length.
-    }
-
-    // Used in PTB when creating a coupon
-    public fun new_domain_length_rule(type: u8, length: u8): DomainLengthRule {
-        assert!(vector::contains(&constants::name_rules(), &type), EInvalidRuleCode);
-
-        DomainLengthRule {
-            type,
-            length
-        }
+        years: Option<vector<u8>>
     }
 
     /// This is used in a PTB when creating a coupon.
     /// Creates a CouponRules object to be used to create a coupon.
-    /// We have a fixed set of Rules for our coupons:
-    /// 1. Length rule (described on constants file)
-    /// All the other cases are optional, and work in `AND` fashion (all these must be valid for a coupon to be claimable)
+    /// All rules are optional, and can be chained (`AND`) format.
+    /// 1. Length: The name has to be in range [from, to]
     /// 2. Max available claims 
     /// 3. Only for a specific address
     /// 4. Might have an expiration date.
-    /// 5. Might be valid only for registrations up to a maximum year.
+    /// 5. Might be valid only for registrations in a range [from, to]
     public fun new_coupon_rules(
-        length_rule: Option<DomainLengthRule>,
+        length: Option<vector<u8>>,
         available_claims: Option<u16>,
         user: Option<address>,
         expiration: Option<u64>,
-        max_years: Option<u8>
+        years: Option<vector<u8>>
     ): CouponRules {
+        assert!(is_valid_length_rule(length), EInvalidLengthRule);
+        assert!(is_valid_years_rule(years), EInvalidMaxYears);
         CouponRules {
-            length_rule, available_claims, user, expiration, max_years
+            length, available_claims, user, expiration, years
         }
+    }
+
+    /// Validates that a `range` vector is valid. 
+    /// To be valid, it must be length 2 (-> [from,to])
+    /// `to` has to be >= `from`
+    /// `from` has to be >= floor
+    /// `to` has to be <= ceil
+    fun is_valid_range_vec(vec: &vector<u8>, floor: u8, ceil: u8): bool {
+        if(vector::length(vec) != 2) return false;
+        let from = *vector::borrow(vec, 0);
+        let to = *vector::borrow(vec, 1);
+
+        from >= floor && to <= ceil && to >= from
+    }
+
+    /// A helper to check if the number is in range.
+    fun is_between(elements: &vector<u8>, number: u8): bool {
+        if(vector::length(elements) != 2) return false;
+        let from = *vector::borrow(elements, 0);
+        let to = *vector::borrow(elements, 1);
+
+        number >= from && number <= to
+    }
+
+    fun is_valid_length_rule(length: Option<vector<u8>>): bool {
+        if(option::is_none(&length)) return true;
+        is_valid_range_vec(option::borrow(&length), suins_constants::min_domain_length(), suins_constants::max_domain_length())
+    }
+
+    /// Check if expiration is set, that to > from
+    fun is_valid_years_rule(years: Option<vector<u8>>): bool {
+        // option::none is valid.
+        if(option::is_none(&years)) return true;
+        is_valid_range_vec(option::borrow(&years), 1, 5)
     }
 
     // A convenient helper to create a zero rule `CouponRules` object.
     // This helps generate a coupon that can be used without any of the restrictions.
     public fun new_empty_rules(): CouponRules {
         CouponRules {
-            length_rule: option::none(),
+            length: option::none(),
             available_claims: option::none(),
             user: option::none(),
             expiration: option::none(),
-            max_years: option::none()
+            years: option::none()
         }
     }
 
@@ -131,9 +149,14 @@ module coupons::rules {
     }
 
     // Checks if a target amount of years is valid for claim.
+    // Our years is either empty, or a vector [from, to] (e.g. [1,2])
+    // That means we can create a combination of:
+    // 1. Exact years (e.g. 2 years, by passing [2,2])
+    // 2. Range of years (e.g. [1,3])
     public fun is_coupon_valid_for_domain_years(rules: &CouponRules, target: u8): bool {
-        if(option::is_none(&rules.max_years)) return true;
-        return target <= *option::borrow(&rules.max_years)
+        if(option::is_none(&rules.years)) return true;
+
+        is_between(option::borrow(&rules.years), target)
     }
 
     public fun assert_is_valid_discount_type(type: u8) {
@@ -156,23 +179,10 @@ module coupons::rules {
     }
     /// We check the length of the name based on the domain length rule
     public fun is_coupon_valid_for_domain_size(rules: &CouponRules, length: u8): bool {
-        let optional_rule = &rules.length_rule;
+        // If the vec is not set, we pass this rule test.
+        if(option::is_none(&rules.length)) return true;
 
-        // If the DomainLengthRule is not set, we pass this rule test.
-        if(!option::is_some(optional_rule)) return true;
-
-        // Get rule.
-        let rule = *option::borrow(optional_rule);
-
-        // fixed name rule -> length must be equal to the rule's size
-        if(rule.type == constants::fixed_length_rule()) return length == rule.length;
-        // min characters rule -> Length of the name must be greater or equal to the rule's length
-        if(rule.type == constants::min_char_rule()) return length >= rule.length;
-        // max characters rule -> Length of the name must be less than or equal to the rule's length
-        if(rule.type == constants::max_char_rule()) return length <= rule.length;
-
-        // We default to false!
-        false
+        is_between(option::borrow(&rules.length), length)
     }
 
 

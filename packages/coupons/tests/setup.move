@@ -90,7 +90,7 @@ module coupons::setup {
         coupons::app_add_coupon(
             data_mut, 
             utf8(b"5_SUI_DISCOUNT"), 
-            constants::fixed_price_discount_type(), 
+            constants::fixed_price_discount_type(),
             5 * MIST_PER_SUI,
             rules::new_coupon_rules(
                 option::none(), // domain length rule,
@@ -113,7 +113,7 @@ module coupons::setup {
                 option::none(), // claimable as many times as needed
                 option::none(), // user specific
                 option::none(), // expiration timestamp
-                option::some(2) // Maximum of 2 years
+                option::some(vector[1,2]) // Maximum of 2 years
             ),
             ctx
         );
@@ -142,12 +142,7 @@ module coupons::setup {
             50, // 25%
             rules::new_coupon_rules(
                 // Only usable for domains with length >= 5. This discount wouldn't be applicable for others.
-                option::some(
-                    rules::new_domain_length_rule(
-                        constants::min_char_rule(),
-                        5
-                    )
-                ), // domain length rule,
+                option::some(vector[5, 63]), // domain length rule,
                 option::some(1), // claimable once.
                 option::none(), // claimable by anyone
                 option::none(), // expiration timestamp
@@ -164,12 +159,7 @@ module coupons::setup {
             50, // 50%
             rules::new_coupon_rules(
                 // Only usable for domains with fixed length of 3 digits.
-                option::some(
-                    rules::new_domain_length_rule(
-                        constants::fixed_length_rule(),
-                        3
-                    )
-                ), // domain length rule,
+                option::some(vector[3,3]), // domain length rule,
                 option::none(), // claimable once.
                 option::none(), // claimable by anyone
                 option::some(1), // expiration timestamp.
@@ -186,16 +176,11 @@ module coupons::setup {
             50, // 50%
             rules::new_coupon_rules(
                 // Only usable for 3 or 4 digit names (max char = 4)
-                option::some(
-                    rules::new_domain_length_rule(
-                        constants::max_char_rule(),
-                        4
-                    )
-                ), // domain length rule,
+                option::some(vector[3,4]), // domain length rule,
                 option::some(1), // claimable once.
                 option::some(user()), // claimable a specific address
                 option::some(1), // expires at 1 clock tick
-                option::some(2) // Maximum of 2 years
+                option::some(vector[1, 2]) // Maximum of 2 years
             ),
             ctx
         );

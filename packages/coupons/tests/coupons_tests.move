@@ -3,6 +3,7 @@
 
 #[test_only]
 module coupons::coupon_tests {
+    use std::option;
     use std::string::{utf8};
 
     use sui::test_scenario::{Self, Scenario, ctx};
@@ -11,6 +12,7 @@ module coupons::coupon_tests {
     use coupons::setup::{Self, TestApp, user, user_two, mist_per_sui};
     use coupons::coupons::{Self, CouponHouse};
     use coupons::constants::{Self};
+    use coupons::rules;
 
     // populate a lot of coupons with different cases.
     // This populates the coupon as an authorized app
@@ -64,6 +66,37 @@ module coupons::coupon_tests {
         setup::register_with_coupon(utf8(b"100_SUI_OFF"), utf8(b"testo.sui"), 1, 0 * mist_per_sui(), 0, user(), scenario);
         test_scenario::end(scenario_val);
     }
+    #[test]
+    fun specific_max_years(){
+        rules::new_coupon_rules(
+            option::none(),
+            option::none(),
+            option::none(),
+            option::none(),
+            option::some(vector[1,1])
+        );
+    }
+    #[test, expected_failure(abort_code=coupons::rules::EInvalidMaxYears)]
+    fun max_years_failure(){
+        rules::new_coupon_rules(
+            option::none(),
+            option::none(),
+            option::none(),
+            option::none(),
+            option::some(vector[0,1])
+        );
+    }
+    #[test, expected_failure(abort_code=coupons::rules::EInvalidMaxYears)]
+    fun max_years_two_failure(){
+        rules::new_coupon_rules(
+            option::none(),
+            option::none(),
+            option::none(),
+            option::none(),
+            option::some(vector[5,4])
+        );
+    }
+
     #[test]
     fun test_price_calculation(){
         let scenario_val = setup::test_init();
