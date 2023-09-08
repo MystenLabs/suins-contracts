@@ -1,18 +1,23 @@
-import { Connection, JsonRpcProvider, ObjectId, SuiAddress, testnetConnection } from "@mysten/sui.js"
+import { Connection, JsonRpcProvider, type SharedObjectRef } from "@mysten/sui.js"
 
 export type Network = 'mainnet' | 'testnet'
 
 export type Config = Record<Network, PackageInfo>
 
 export type PackageInfo = {
-    packageId: ObjectId;
+    packageId: string;
     registrationPackageId: string;
-    upgradeCap?: ObjectId;
-    publisherId:ObjectId;
-    adminAddress: SuiAddress;
+    upgradeCap?: string;
+    publisherId: string;
+    adminAddress: string;
     provider: JsonRpcProvider;
-    adminCap: ObjectId;
-    suins: ObjectId;
+    adminCap: string;
+    suins: string;
+    coupons: {
+        packageId: string;
+        couponHouse: SharedObjectRef;
+        tableId: string;
+    };
 }
 
 export const mainPackage: Config = {
@@ -26,8 +31,16 @@ export const mainPackage: Config = {
         suins: '0x6e0ddefc0ad98889c04bab9639e512c21766c5e6366f89e696956d9be6952871',
         provider: new JsonRpcProvider(new Connection({
             fullnode: 'https://suins-rpc.mainnet.sui.io'
-        }))
-
+        })),
+        coupons: {
+            packageId: 'TODO: Fill in when published',
+            couponHouse: {
+                objectId: 'TODO: Fill in when published',
+                initialSharedVersion: 'TODO: Fill in when',
+                mutable: true
+            },
+            tableId: 'TODO: Fill it in when published'
+        }
     },
     testnet: {
         packageId: '0x701b8ca1c40f11288a1ed2de0a9a2713e972524fbab748a7e6c137225361653f',
@@ -38,10 +51,15 @@ export const mainPackage: Config = {
         suins: '0xedc672fadedee348108618da7555f771d4fec8d3331779a8411ff8184aded726',
         provider: new JsonRpcProvider(new Connection({
             fullnode: 'https://suins-rpc.testnet.sui.io:443'
-        }))
+        })),
+        coupons: {
+            packageId: '0xa9e5c66ffa31fe4529acd94fe821a494f945cc6f34d7a82610fe36e8c8173442',
+            couponHouse: {
+                objectId: '0x936e27aecf271e628689fd93b088bee165e85eb944232006f7877a1a1642f73d',
+                initialSharedVersion: '8425952',
+                mutable: true
+            },
+            tableId: '0xc489181d54624f327cc6ea670d10ce6fa9e0a669c22ecd4792b350cb65821773'
+        }
     }
 }
-
-
-
-
