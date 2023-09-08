@@ -13,6 +13,7 @@ module coupons::coupon_tests {
     use coupons::coupons::{Self, CouponHouse};
     use coupons::constants::{Self};
     use coupons::rules;
+    use coupons::range;
 
     // populate a lot of coupons with different cases.
     // This populates the coupon as an authorized app
@@ -73,27 +74,27 @@ module coupons::coupon_tests {
             option::none(),
             option::none(),
             option::none(),
-            option::some(vector[1,1])
+            option::some(range::new(1,1))
         );
     }
-    #[test, expected_failure(abort_code=coupons::rules::EInvalidMaxYears)]
+    #[test, expected_failure(abort_code=coupons::rules::EInvalidYears)]
     fun max_years_failure(){
         rules::new_coupon_rules(
             option::none(),
             option::none(),
             option::none(),
             option::none(),
-            option::some(vector[0,1])
+            option::some(range::new(0,1))
         );
     }
-    #[test, expected_failure(abort_code=coupons::rules::EInvalidMaxYears)]
+    #[test, expected_failure(abort_code=coupons::range::EInvalidRange)]
     fun max_years_two_failure(){
         rules::new_coupon_rules(
             option::none(),
             option::none(),
             option::none(),
             option::none(),
-            option::some(vector[5,4])
+            option::some(range::new(5,4))
         );
     }
 

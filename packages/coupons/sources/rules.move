@@ -11,6 +11,7 @@ module coupons::rules {
     use sui::clock::{Self, Clock};
 
     use coupons::constants;
+    use coupons::range::{Self, Range};
 
     use suins::constants::{Self as suins_constants};
     // Errors
@@ -30,9 +31,9 @@ module coupons::rules {
     const EInvalidUser: u64 = 6;
     /// Error when coupon has expired
     const ECouponExpired: u64 = 7;
-    /// Error when max years are invalid. Max years have to be either none, or an array of 2, incrementing (e.g. [1,3]) 
-    /// and in the ragne of 1 to 5.
-    const EInvalidMaxYears: u64 = 8;
+    /// Error when creating years range.
+    const EInvalidYears: u64 = 8;
+
 
     /// Constants
     // A rule that allows any length
@@ -48,11 +49,11 @@ module coupons::rules {
     /// All rules are combined in `AND` fashion. 
     /// All of the checks have to pass for a coupon to be used.
     struct CouponRules has copy, store, drop {
-        length: Option<vector<u8>>,
+        length: Option<Range>,
         available_claims: Option<u16>,
         user: Option<address>,
         expiration: Option<u64>,
-        years: Option<vector<u8>>
+        years: Option<Range>
     }
 
     /// This is used in a PTB when creating a coupon.
@@ -64,51 +65,29 @@ module coupons::rules {
     /// 4. Might have an expiration date.
     /// 5. Might be valid only for registrations in a range [from, to]
     public fun new_coupon_rules(
-        length: Option<vector<u8>>,
+        length: Option<Range>,
         available_claims: Option<u16>,
         user: Option<address>,
         expiration: Option<u64>,
-        years: Option<vector<u8>>
+        years: Option<Range>
     ): CouponRules {
-        assert!(is_valid_length_rule(length), EInvalidLengthRule);
-        assert!(is_valid_years_rule(years), EInvalidMaxYears);
+        assert!(is_valid_years_range(&years), EInvalidYears);
+        assert!(is_valid_length_range(&length), EInvalidLengthRule);
         CouponRules {
             length, available_claims, user, expiration, years
         }
     }
 
-    /// Validates that a `range` vector is valid. 
-    /// To be valid, it must be length 2 (-> [from,to])
-    /// `to` has to be >= `from`
-    /// `from` has to be >= floor
-    /// `to` has to be <= ceil
-    fun is_valid_range_vec(vec: &vector<u8>, floor: u8, ceil: u8): bool {
-        if(vector::length(vec) != 2) return false;
-        let from = *vector::borrow(vec, 0);
-        let to = *vector::borrow(vec, 1);
-
-        from >= floor && to <= ceil && to >= from
+    fun is_valid_years_range(range: &Option<Range>): bool {
+        if(option::is_none(range)) return true;
+        let range = option::borrow(range);
+        range::from(range) >= 1 && range::to(range) <= 5
     }
 
-    /// A helper to check if the number is in range.
-    fun is_between(elements: &vector<u8>, number: u8): bool {
-        if(vector::length(elements) != 2) return false;
-        let from = *vector::borrow(elements, 0);
-        let to = *vector::borrow(elements, 1);
-
-        number >= from && number <= to
-    }
-
-    fun is_valid_length_rule(length: Option<vector<u8>>): bool {
-        if(option::is_none(&length)) return true;
-        is_valid_range_vec(option::borrow(&length), suins_constants::min_domain_length(), suins_constants::max_domain_length())
-    }
-
-    /// Check if expiration is set, that to > from
-    fun is_valid_years_rule(years: Option<vector<u8>>): bool {
-        // option::none is valid.
-        if(option::is_none(&years)) return true;
-        is_valid_range_vec(option::borrow(&years), 1, 5)
+    fun is_valid_length_range(range: &Option<Range>): bool {
+        if(option::is_none(range)) return true;
+        let range = option::borrow(range);
+        range::from(range) >= suins_constants::min_domain_length() && range::to(range) <= suins_constants::max_domain_length()
     }
 
     // A convenient helper to create a zero rule `CouponRules` object.
@@ -156,7 +135,7 @@ module coupons::rules {
     public fun is_coupon_valid_for_domain_years(rules: &CouponRules, target: u8): bool {
         if(option::is_none(&rules.years)) return true;
 
-        is_between(option::borrow(&rules.years), target)
+        range::is_between(option::borrow(&rules.years), target)
     }
 
     public fun assert_is_valid_discount_type(type: u8) {
@@ -182,7 +161,7 @@ module coupons::rules {
         // If the vec is not set, we pass this rule test.
         if(option::is_none(&rules.length)) return true;
 
-        is_between(option::borrow(&rules.length), length)
+        range::is_between(option::borrow(&rules.length), length)
     }
 
 
