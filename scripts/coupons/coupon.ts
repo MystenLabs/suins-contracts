@@ -1,48 +1,5 @@
 import { TransactionBlock, isValidSuiAddress } from "@mysten/sui.js";
-import { Config, PackageInfo } from "../config/constants";
-
-export type CouponRules = {
-    length?: number[];
-    availableClaims?: number;
-    user?: string;
-    expiration?: string;
-    years?: number[]
-}
-
-const emptyOption = (txb: TransactionBlock, type: string) => {
-    return txb.pure({
-        None: true
-    }, `Option<${type}>`)
-};
-
-const filledOption = (txb: TransactionBlock, value: any, type: string) => {
-    return txb.pure({
-        Some: value
-    }, `Option<${type}>`)
-};
-
-const optionalRangeConstructor = (txb: TransactionBlock, config: PackageInfo, range?: number[]) => {
-
-    if(!range) return txb.moveCall({
-            target: "0x1::option::none", 
-            typeArguments: [ `${config.coupons.packageId}::range::Range` ],
-            arguments: []
-        });;
-
-    let rangeArg = txb.moveCall({
-        target: `${config.coupons.packageId}::range::new`,
-        arguments: [
-            txb.pure(range[0], 'u8'),
-            txb.pure(range[1], 'u8'),
-        ]
-    });
-
-    return txb.moveCall({
-            target: "0x1::option::some", 
-            typeArguments: [ `${config.coupons.packageId}::range::Range` ],
-            arguments: [ rangeArg ]
-        });
-}
+import { PackageInfo } from "../config/constants";
 
 export class CouponType {
     name?: string;
@@ -153,4 +110,47 @@ export class PercentageOffCoupon extends CouponType {
         if(Number(value) <=0 || Number(value) >= 100) throw new Error("Percentage discount can be in (0, 100] range, 0 exclusive.")
         super(value, 0);
     }
+}
+
+export type CouponRules = {
+    length?: number[];
+    availableClaims?: number;
+    user?: string;
+    expiration?: string;
+    years?: number[]
+}
+
+const emptyOption = (txb: TransactionBlock, type: string) => {
+    return txb.pure({
+        None: true
+    }, `Option<${type}>`)
+};
+
+const filledOption = (txb: TransactionBlock, value: any, type: string) => {
+    return txb.pure({
+        Some: value
+    }, `Option<${type}>`)
+};
+
+const optionalRangeConstructor = (txb: TransactionBlock, config: PackageInfo, range?: number[]) => {
+
+    if(!range) return txb.moveCall({
+            target: "0x1::option::none", 
+            typeArguments: [ `${config.coupons.packageId}::range::Range` ],
+            arguments: []
+        });;
+
+    let rangeArg = txb.moveCall({
+        target: `${config.coupons.packageId}::range::new`,
+        arguments: [
+            txb.pure(range[0], 'u8'),
+            txb.pure(range[1], 'u8'),
+        ]
+    });
+
+    return txb.moveCall({
+            target: "0x1::option::some", 
+            typeArguments: [ `${config.coupons.packageId}::range::Range` ],
+            arguments: [ rangeArg ]
+        });
 }
