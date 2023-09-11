@@ -199,9 +199,9 @@ module discord::discord{
     }
 
 
-    /// discount is in range [0,100]
+    /// discount is in range (0,100]
     public fun assert_is_valid_discount(discount: u8) {
-        assert!(discount >= 0 && discount <= 100, EInvalidDiscount);
+        assert!(discount > 0 && discount <= 100, EInvalidDiscount);
     }
 
 
@@ -243,7 +243,7 @@ module discord::discord{
     public fun member_claimed_coupons(member: &Member): vector<String> {
         member.claimed_coupons
     }
-    
+
     public fun discord_roles(self: &Discord): &VecMap<u8,u8> {
         &self.discord_roles
     }
