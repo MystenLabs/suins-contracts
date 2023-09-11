@@ -62,7 +62,7 @@ module discord::discord_tests {
             test_scenario::next_tx(scenario, tp::get_nth_user(0));
             let discord = test_scenario::take_shared<Discord>(scenario);
             let clock = test_scenario::take_shared<Clock>(scenario);
-            discord::claim_coupon(&mut discord, tp::get_nth_discord_id(0), 50, &clock, ctx(scenario));
+            discord::claim_for_testing(&mut discord, tp::get_nth_discord_id(0), 50, ctx(scenario));
 
             test_scenario::return_shared(clock);
             test_scenario::return_shared(discord);
@@ -71,7 +71,7 @@ module discord::discord_tests {
             test_scenario::next_tx(scenario, tp::get_nth_user(1));
             let discord = test_scenario::take_shared<Discord>(scenario);
             let clock = test_scenario::take_shared<Clock>(scenario);
-            discord::claim_coupon(&mut discord, tp::get_nth_discord_id(1), 100, &clock, ctx(scenario));
+            discord::claim_for_testing(&mut discord, tp::get_nth_discord_id(1), 100, ctx(scenario));
             test_scenario::return_shared(clock);
             test_scenario::return_shared(discord);
         };
@@ -79,7 +79,8 @@ module discord::discord_tests {
             test_scenario::next_tx(scenario, tp::get_nth_user(1));
             let discord = test_scenario::take_shared<Discord>(scenario);
             let clock = test_scenario::take_shared<Clock>(scenario);
-            discord::claim_coupon(&mut discord, tp::get_nth_discord_id(1), 40, &clock, ctx(scenario));
+            discord::claim_for_testing(&mut discord, tp::get_nth_discord_id(1), 40, ctx(scenario));
+    
             test_scenario::return_shared(clock);
             test_scenario::return_shared(discord);
         };
@@ -176,7 +177,7 @@ module discord::discord_tests {
             test_scenario::next_tx(scenario, tp::get_nth_user(0));
             let discord = test_scenario::take_shared<Discord>(scenario);
             let clock = test_scenario::take_shared<Clock>(scenario);
-            discord::claim_coupon(&mut discord,tp::get_nth_discord_id(0), 60,&clock, ctx(scenario));
+            discord::claim_for_testing(&mut discord,tp::get_nth_discord_id(0), 60, ctx(scenario));
             test_scenario::return_shared(clock);
             test_scenario::return_shared(discord);
         };
@@ -191,7 +192,7 @@ module discord::discord_tests {
             test_scenario::next_tx(scenario, tp::get_nth_user(0));
             let discord = test_scenario::take_shared<Discord>(scenario);
             let clock = test_scenario::take_shared<Clock>(scenario);
-            discord::claim_coupon(&mut discord, tp::get_nth_discord_id(0), 45,&clock, ctx(scenario));
+            discord::claim_for_testing(&mut discord, tp::get_nth_discord_id(0), 45, ctx(scenario));
             test_scenario::return_shared(clock);
             test_scenario::return_shared(discord);
         };
@@ -199,7 +200,7 @@ module discord::discord_tests {
             test_scenario::next_tx(scenario, tp::get_nth_user(0));
             let discord = test_scenario::take_shared<Discord>(scenario);
              let clock = test_scenario::take_shared<Clock>(scenario);
-            discord::claim_coupon(&mut discord, tp::get_nth_discord_id(0), 6, &clock, ctx(scenario));
+            discord::claim_for_testing(&mut discord, tp::get_nth_discord_id(0), 6, ctx(scenario));
             test_scenario::return_shared(clock);
             test_scenario::return_shared(discord);
         };
@@ -216,7 +217,7 @@ module discord::discord_tests {
             test_scenario::next_tx(scenario, tp::get_nth_user(1));
             let discord = test_scenario::take_shared<Discord>(scenario);
             let clock = test_scenario::take_shared<Clock>(scenario);
-            discord::claim_coupon(&mut discord, tp::get_nth_discord_id(1), 110,&clock, ctx(scenario));
+            discord::claim_for_testing(&mut discord, tp::get_nth_discord_id(1), 110, ctx(scenario));
             test_scenario::return_shared(clock);
             test_scenario::return_shared(discord);
         };
@@ -232,7 +233,7 @@ module discord::discord_tests {
             test_scenario::next_tx(scenario, tp::get_nth_user(1));
             let discord = test_scenario::take_shared<Discord>(scenario);
             let clock = test_scenario::take_shared<Clock>(scenario);
-            discord::claim_coupon(&mut discord, tp::get_nth_discord_id(0), 50,&clock, ctx(scenario));
+            discord::claim_for_testing(&mut discord, tp::get_nth_discord_id(0), 50, ctx(scenario));
             test_scenario::return_shared(clock);
             test_scenario::return_shared(discord);
         };
