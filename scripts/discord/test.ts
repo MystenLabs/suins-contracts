@@ -3,11 +3,24 @@ import { executeTx, prepareSigner } from "../airdrop/helper";
 import * as secp from "@noble/secp256k1";
 import { addressToBytes, getPrivateKeyHex, signMessage } from "./crypto";
 import { discordRoles } from "./constants";
-import { addDiscordRole, setPublicKey } from "./transactions/admin_actions";
+import { addDiscordRole, authorizeDiscordApp, setPublicKey } from "./transactions/admin_actions";
 import { DiscordConfig, localDiscordConfig } from "./discord_config";
 import { attachRoles, claimCoupon, setAddress } from "./transactions/user_actions";
+import { Network, mainPackage } from "../config/constants";
 
 
+
+const authorize = async (discordConfig: DiscordConfig, network: Network) => {
+    const signer = prepareSigner(new JsonRpcProvider(testnetConnection));
+
+    const config = mainPackage[network];
+
+    const txb = new TransactionBlock();
+
+    authorizeDiscordApp(txb, config, discordConfig);
+
+    await executeTx(signer, txb);
+}
 
 
 const prepareContract = async (config: DiscordConfig) => {
@@ -29,9 +42,10 @@ const prepareContract = async (config: DiscordConfig) => {
 const addSomeDummyDiscordMembers = async (config: DiscordConfig) => {
     const signer = prepareSigner(new JsonRpcProvider(testnetConnection));
     let address = await signer.getAddress();
+    // let address = '0xc14621a1a24e9bf23dd219cd2c343348baa9199b62d71ac175cc91ca087d4795';
 
     const discord_members = Array.from({length: 10}).map((elem, index)=> ({
-        discord_id: `discord_usr_${index}`,
+        discord_id: `discord_usr_${index+12}`,
         roles: [discordRoles.master.id, discordRoles.earlyTester.id],
         rolesSignature: new Uint8Array(),
         addressSignature: new Uint8Array()
@@ -90,13 +104,17 @@ const claim = async (discord_id: string, amount: number, config: DiscordConfig) 
     await executeTx(signer, tx);
     
 }
+
+// authorize(localDiscordConfig, 'testnet');
 // prepareContract(localDiscordConfig);
 // addSomeDummyDiscordMembers(localDiscordConfig);
-// getDiscordMembers('0x334624aacdc7add6b63da4d800bb4401b8b459bbda322252eb83114cd2f9615a')
+// getDiscordMembers('0x015767b8cab58894c86dd4e381c6945efabf5aa0d70981db228ad6b64883cd95')
 
-// claim('discord_usr_1', 20, localDiscordConfig);
-
-
+// claim('discord_usr_15', 90, localDiscordConfig);
 
 
+
+// coupons:
+// 0aff0b32753a8c90d694d44bf0f31949f8b3344883c87d53a428382f22873819
+// 668f524ae868c7787439a20a77a73c76ff55bb46a278eebedbbeb48eaa15bd39
 
