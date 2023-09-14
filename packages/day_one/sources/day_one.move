@@ -152,4 +152,9 @@ module day_one::day_one {
 
         object::delete(id);
     }
+
+    #[test_only]
+    public fun activate_for_testing(nft: &mut DayOne) {
+        nft.active = true;
+    }
 }
