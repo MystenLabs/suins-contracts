@@ -40,6 +40,11 @@ module discounts::discounts {
     const ENotValidForDayOne: u64 = 5;
     /// Tries to claim with a non active DayOne
     const ENotActiveDayOne: u64 = 6;
+    /// Tries to register with invalid version of the app
+    const ENotValidVersion: u64 = 7;
+
+    /// A version handler that allows us to upgrade the app in the future.
+    const VERSION: u8 = 1;
 
     /// A key to authorize DiscountHouse to register names on SuiNS.
     struct DiscountHouseApp has drop {}
@@ -58,14 +63,16 @@ module discounts::discounts {
 
     // The Shared object responsible for the discounts.
     struct DiscountHouse has key, store {
-        id: UID
+        id: UID,
+        version: u8
     }
 
     /// Share the house.
     /// This will hold DFs with the configuration for different types.
     fun init(ctx: &mut TxContext){
         transfer::public_share_object(DiscountHouse {
-            id: object::new(ctx)
+            id: object::new(ctx),
+            version: VERSION
         })
     }
 
@@ -113,6 +120,9 @@ module discounts::discounts {
         clock: &Clock, 
         ctx: &mut TxContext
     ): SuinsRegistration {
+        /// Validate that the version of the app is the latest.
+        assert!(self.version == VERSION, ENotValidVersion);
+
         // validate that there's a configuration for type T.
         assert_config_exists<T>(self);
 
@@ -153,6 +163,12 @@ module discounts::discounts {
     public fun deauthorize_type<T>(_: &AdminCap, self: &mut DiscountHouse) {
         assert_config_exists<T>(self);
         df::remove_if_exists<DiscountKey<T>, DiscountConfig>(&mut self.id, DiscountKey<T>{});
+    }
+
+    /// An admin helper to set the version of the shared object.
+    /// Registrations are only possible if the latest version is being used.
+    public fun set_version(_: &AdminCap, self: &mut DiscountHouse, version: u8) {
+        self.version = version;
     }
 
 
