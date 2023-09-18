@@ -23,7 +23,7 @@ module discounts::discounts {
     use suins::domain;
     use suins::registry::{Self, Registry};
     use suins::suins::{Self, AdminCap, SuiNS};
-    use suins::config::{Self};
+    use suins::config;
     use suins::suins_registration::SuinsRegistration;
 
     use day_one::day_one::{DayOne, is_active};
@@ -53,8 +53,7 @@ module discounts::discounts {
     struct DiscountKey<phantom T> has copy, store, drop {}
 
     /// The Discount config for type T. 
-    /// We save the discount config for each letter configuration (3 chars, 4 chars, 5+ chars)
-    /// We can have fixed price sale or percentage discount. (0, 1)
+    /// We save the sale price for each letter configuration (3 chars, 4 chars, 5+ chars)
     struct DiscountConfig has copy, store, drop {
         three_char_price: u64,
         four_char_price: u64,
@@ -80,11 +79,11 @@ module discounts::discounts {
     public fun register<T>(
         self: &mut DiscountHouse,
         suins: &mut SuiNS,
+        _: &T,
         domain_name: String,
         no_years: u8,
         payment: Coin<SUI>,
         clock: &Clock,
-        _: &T,
         ctx: &mut TxContext
     ): SuinsRegistration {
         // For normal flow, we do not allow DayOne to be used.
@@ -95,19 +94,63 @@ module discounts::discounts {
     
     /// A special function for DayOne registration.
     /// We separate it from the normal registration flow because we only want it to be usable
-    /// from activated DayOnes.
+    /// for activated DayOnes.
     public fun register_with_day_one(
         self: &mut DiscountHouse,
         suins: &mut SuiNS,
+        day_one: &DayOne,
         domain_name: String,
         no_years: u8,
         payment: Coin<SUI>,
         clock: &Clock,
-        day_one: &DayOne,
         ctx: &mut TxContext
     ): SuinsRegistration {
         assert!(is_active(day_one), ENotActiveDayOne);
         internal_register_name<DayOne>(self, suins, domain_name, no_years, payment, clock, ctx)
+    }
+
+    /// Calculate the price of a label.
+    public fun calculate_price(self: &DiscountConfig, length: u8, years: u8): u64 {
+        assert!(0 < years && years <= 5, EInvalidYearsArgument);
+
+        let price = if (length == 3) {
+            self.three_char_price
+        } else if (length == 4) {
+            self.four_char_price
+        } else {
+            self.five_plus_char_price
+        };
+
+        ((price as u64) * (years as u64))
+    }
+
+    /// An admin action to deauthorize a type T from discounts.
+    public fun authorize_type<T>(
+        _: &AdminCap, 
+        self: &mut DiscountHouse, 
+        three_char_price: u64, 
+        four_char_price: u64, 
+        five_plus_char_price: u64
+    ) {
+        assert!(!df::exists_(&mut self.id, DiscountKey<T> {}), EConfigNotExists);
+
+        df::add(&mut self.id, DiscountKey<T>{}, DiscountConfig { 
+            three_char_price,
+            four_char_price,
+            five_plus_char_price
+        });
+    }
+
+    /// An admin action to deauthorize type T from getting discounts.
+    public fun deauthorize_type<T>(_: &AdminCap, self: &mut DiscountHouse) {
+        assert_config_exists<T>(self);
+        df::remove_if_exists<DiscountKey<T>, DiscountConfig>(&mut self.id, DiscountKey<T>{});
+    }
+
+    /// An admin helper to set the version of the shared object.
+    /// Registrations are only possible if the latest version is being used.
+    public fun set_version(_: &AdminCap, self: &mut DiscountHouse, version: u8) {
+        self.version = version;
     }
 
     /// Internal helper to handle the registration process
@@ -140,51 +183,6 @@ module discounts::discounts {
     
         let registry = suins::app_registry_mut<DiscountHouseApp, Registry>(DiscountHouseApp {}, suins);
         registry::add_record(registry, domain, no_years, clock, ctx)
-    }
-
-    /// An admin action to deauthorize a type T from discounts.
-    public fun authorize_type<T>(
-        _: &AdminCap, 
-        self: &mut DiscountHouse, 
-        three_char_price: u64, 
-        four_char_price: u64, 
-        five_plus_char_price: u64
-    ) {
-        assert!(!df::exists_(&mut self.id, DiscountKey<T> {}), EConfigNotExists);
-
-        df::add(&mut self.id, DiscountKey<T>{}, DiscountConfig { 
-            three_char_price,
-            four_char_price,
-            five_plus_char_price
-        });
-    }
-
-    /// An admin action to deauthorize type T from getting discounts.
-    public fun deauthorize_type<T>(_: &AdminCap, self: &mut DiscountHouse) {
-        assert_config_exists<T>(self);
-        df::remove_if_exists<DiscountKey<T>, DiscountConfig>(&mut self.id, DiscountKey<T>{});
-    }
-
-    /// An admin helper to set the version of the shared object.
-    /// Registrations are only possible if the latest version is being used.
-    public fun set_version(_: &AdminCap, self: &mut DiscountHouse, version: u8) {
-        self.version = version;
-    }
-
-
-    /// Calculate the price of a label.
-    public fun calculate_price(self: &DiscountConfig, length: u8, years: u8): u64 {
-        assert!(0 < years && years <= 5, EInvalidYearsArgument);
-
-        let price = if (length == 3) {
-            self.three_char_price
-        } else if (length == 4) {
-            self.four_char_price
-        } else {
-            self.five_plus_char_price
-        };
-
-        ((price as u64) * (years as u64))
     }
 
     fun assert_config_exists<T>(self: &mut DiscountHouse) {

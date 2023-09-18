@@ -154,7 +154,7 @@ module day_one::day_one {
     }
 
     #[test_only]
-    public fun activate_for_testing(nft: &mut DayOne) {
-        nft.active = true;
+    public fun set_is_active_for_testing(nft: &mut DayOne, status: bool) {
+        nft.active = status;
     }
 }

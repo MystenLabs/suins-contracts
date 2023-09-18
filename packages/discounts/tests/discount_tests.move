@@ -76,7 +76,7 @@ module discounts::discount_tests {
         let discount_house = ts::take_shared<DiscountHouse>(scenario);
         let clock = ts::take_shared<Clock>(scenario);
 
-        let name = discounts::register<T>(&mut discount_house, &mut suins, domain_name, no_years, payment, &clock, item, ctx(scenario));
+        let name = discounts::register<T>(&mut discount_house, &mut suins, item, domain_name, no_years, payment, &clock, ctx(scenario));
 
         transfer::public_transfer(name, user);
 
@@ -98,7 +98,7 @@ module discounts::discount_tests {
         let discount_house = ts::take_shared<DiscountHouse>(scenario);
         let clock = ts::take_shared<Clock>(scenario);
 
-        let name = discounts::register_with_day_one(&mut discount_house, &mut suins, domain_name, no_years, payment, &clock, item, ctx(scenario));
+        let name = discounts::register_with_day_one(&mut discount_house, &mut suins, item, domain_name, no_years, payment, &clock, ctx(scenario));
 
         transfer::public_transfer(name, user);
 
@@ -152,7 +152,7 @@ module discounts::discount_tests {
         let scenario = &mut scenario_val;
 
         let day_one = day_one::mint_for_testing(ctx(scenario));
-        day_one::activate_for_testing(&mut day_one);
+        day_one::set_is_active_for_testing(&mut day_one, true);
         let payment: Coin<SUI> = coin::mint_for_testing(MIST_PER_SUI, ctx(scenario));
 
         register_with_day_one(
@@ -174,7 +174,7 @@ module discounts::discount_tests {
         let scenario = &mut scenario_val;
 
         let day_one = day_one::mint_for_testing(ctx(scenario));
-        day_one::activate_for_testing(&mut day_one);
+        day_one::set_is_active_for_testing(&mut day_one, true);
         let payment: Coin<SUI> = coin::mint_for_testing(MIST_PER_SUI, ctx(scenario));
 
         register_with_type<DayOne>(
