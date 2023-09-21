@@ -234,9 +234,10 @@ export const inspectTransaction = async (tx: TransactionBlock, provider: JsonRpc
 
     const config = mainPackage[network];
 
-    const result = await provider.devInspectTransactionBlock({
-        transactionBlock: tx,
-        sender: config.adminAddress
+    const result = await provider.dryRunTransactionBlock({
+        transactionBlock: await tx.build({
+            provider
+        })
     });
     // log the result.
     console.dir(result, { depth: null }); 

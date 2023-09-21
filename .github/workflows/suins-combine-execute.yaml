@@ -11,7 +11,7 @@ on:
         type: string
       sui_tools_image:
         description: 'image reference of sui_tools'
-        default: 'mysten/sui-tools:2d985a342263ae224966e871b24beeafe11d782a'
+        default: 'mysten/sui-tools:mainnet'
         required: true
         type: string
       all_pks:

@@ -8,6 +8,7 @@ on:
         description: 'select transaction type to create'
         type: choice
         options:
+          - Update Display to Google Storage
           - Transfer Reserved Names
           - Main package upgrade
           - Disable BOGO App
@@ -15,7 +16,7 @@ on:
           - Migrate to Direct Registrations
       sui_tools_image:
         description: 'image reference of sui_tools'
-        default: 'mysten/sui-tools:2d985a342263ae224966e871b24beeafe11d782a'
+        default: 'mysten/sui-tools:mainnet'
       rpc:
         description: 'RPC url'
         required: true
@@ -134,6 +135,16 @@ jobs:
           ORIGIN: gh_action
         run: |
           cd scripts && pnpm transfer::names
+    
+      - name: Update Display to Google Storage
+        if: ${{ inputs.transaction_type == 'Update Display to Google Storage' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+        run: |
+          cd scripts && pnpm migrations::images::google-storage
 
       - name: Show Transaction Data (To sign)
         run: |
