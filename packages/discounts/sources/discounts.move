@@ -42,9 +42,15 @@ module discounts::discounts {
     const ENotActiveDayOne: u64 = 6;
     /// Tries to register with invalid version of the app
     const ENotValidVersion: u64 = 7;
+    /// Tries to setup a discount for a type with invalid prices (overflow)
+    const EInvalidPrices: u64 = 8;
 
     /// A version handler that allows us to upgrade the app in the future.
     const VERSION: u8 = 1;
+    /// The max value a type can have. U64 MAX / 5 (max years)
+    const MAX_SALE_PRICE: u64 = {
+        18446744073709551615 / 5
+    };
 
     /// A key to authorize DiscountHouse to register names on SuiNS.
     struct DiscountHouseApp has drop {}
@@ -124,7 +130,7 @@ module discounts::discounts {
         ((price as u64) * (years as u64))
     }
 
-    /// An admin action to deauthorize a type T from discounts.
+    /// An admin action to authorize a type T for special pricing.
     public fun authorize_type<T>(
         _: &AdminCap, 
         self: &mut DiscountHouse, 
@@ -132,6 +138,14 @@ module discounts::discounts {
         four_char_price: u64, 
         five_plus_char_price: u64
     ) {
+        // Validate that the prices are valid.
+        assert!(
+            three_char_price < MAX_SALE_PRICE &&
+            four_char_price < MAX_SALE_PRICE &&
+            five_plus_char_price < MAX_SALE_PRICE,
+            EInvalidPrices
+        );
+
         assert!(!df::exists_(&mut self.id, DiscountKey<T> {}), EConfigNotExists);
 
         df::add(&mut self.id, DiscountKey<T>{}, DiscountConfig { 
@@ -163,8 +177,7 @@ module discounts::discounts {
         clock: &Clock, 
         ctx: &mut TxContext
     ): SuinsRegistration {
-        /// Validate that the version of the app is the latest.
-        assert!(self.version == VERSION, ENotValidVersion);
+        assert_version_is_valid(self);
 
         // validate that there's a configuration for type T.
         assert_config_exists<T>(self);
@@ -183,6 +196,11 @@ module discounts::discounts {
     
         let registry = suins::app_registry_mut<DiscountHouseApp, Registry>(DiscountHouseApp {}, suins);
         registry::add_record(registry, domain, no_years, clock, ctx)
+    }
+
+    /// Validate that the version of the app is the latest.
+    fun assert_version_is_valid(self: &DiscountHouse) {
+        assert!(self.version == VERSION, ENotValidVersion);
     }
 
     fun assert_config_exists<T>(self: &mut DiscountHouse) {
