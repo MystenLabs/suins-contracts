@@ -8,9 +8,8 @@
     "transactions::main_package::upgrade": "ts-node transactions/main_package_upgrade.ts",
     "migrations::day_one::deauthorize": "ts-node transactions/deauthorize_bogo_app.ts",
     "transactions::registration::publish": "ts-node transactions/publish_registration.ts",
-    "migrations::registration::transition": "ts-node transactions/deauthorize_auction_authorize_registration.ts",
     "transfer::names": "ts-node reserved-names/transfer-names.ts",
-    "migrations::images::google-storage": "ts-node transactions/display_ipfs_to_google_storage.ts"
+    "withdraw:auction:profits":"ts-node transactions/withdraw_funds_20290927.ts"
   },
   "keywords": [],
   "author": "",
