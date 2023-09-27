@@ -1,6 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+#[test_only]
 module discounts::discount_tests {
 
     use std::string::{utf8, String};
@@ -14,7 +15,9 @@ module discounts::discount_tests {
     use suins::suins::{Self, SuiNS, AdminCap};
     use suins::registry;
     
-    use discounts::discounts::{Self, DiscountHouseApp, DiscountHouse};
+    use discounts::house::{Self, DiscountHouse, DiscountHouseApp};
+    use discounts::discounts;
+
     use day_one::day_one::{Self, DayOne};
 
     // an authorized type to test.
@@ -38,7 +41,7 @@ module discounts::discount_tests {
             let suins = suins::init_for_testing(ctx(scenario));
             suins::authorize_app_for_testing<DiscountHouseApp>(&mut suins);
             suins::share_for_testing(suins);
-            discounts::init_for_testing(ctx(scenario));
+            house::init_for_testing(ctx(scenario));
             let clock = clock::create_for_testing(ctx(scenario));
             clock::share_for_testing(clock);
         };
@@ -67,7 +70,6 @@ module discounts::discount_tests {
         item: &T, 
         scenario: &mut Scenario, 
         domain_name: String, 
-        no_years: u8, 
         payment: Coin<SUI>, 
         user: address
     ) {
@@ -76,7 +78,7 @@ module discounts::discount_tests {
         let discount_house = ts::take_shared<DiscountHouse>(scenario);
         let clock = ts::take_shared<Clock>(scenario);
 
-        let name = discounts::register<T>(&mut discount_house, &mut suins, item, domain_name, no_years, payment, &clock, ctx(scenario));
+        let name = discounts::register<T>(&mut discount_house, &mut suins, item, domain_name, payment, &clock, ctx(scenario));
 
         transfer::public_transfer(name, user);
 
@@ -88,8 +90,7 @@ module discounts::discount_tests {
     fun register_with_day_one(
         item: &DayOne, 
         scenario: &mut Scenario, 
-        domain_name: String, 
-        no_years: u8, 
+        domain_name: String,  
         payment: Coin<SUI>, 
         user: address
     ) {
@@ -98,7 +99,7 @@ module discounts::discount_tests {
         let discount_house = ts::take_shared<DiscountHouse>(scenario);
         let clock = ts::take_shared<Clock>(scenario);
 
-        let name = discounts::register_with_day_one(&mut discount_house, &mut suins, item, domain_name, no_years, payment, &clock, ctx(scenario));
+        let name = discounts::register_with_day_one(&mut discount_house, &mut suins, item, domain_name, payment, &clock, ctx(scenario));
 
         transfer::public_transfer(name, user);
 
@@ -119,7 +120,6 @@ module discounts::discount_tests {
             &test_item,
             scenario,
             utf8(b"test.sui"),
-            1,
             payment,
             USER_ADDRESS
         );
@@ -139,7 +139,6 @@ module discounts::discount_tests {
             &test_item,
             scenario,
             utf8(b"test.sui"),
-            1,
             payment,
             USER_ADDRESS
         );
@@ -159,7 +158,6 @@ module discounts::discount_tests {
             &day_one,
             scenario,
             utf8(b"test.sui"),
-            1,
             payment,
             USER_ADDRESS
         );
@@ -181,7 +179,6 @@ module discounts::discount_tests {
             &day_one,
             scenario,
             utf8(b"test.sui"),
-            1,
             payment,
             USER_ADDRESS
         );
@@ -202,7 +199,6 @@ module discounts::discount_tests {
             &day_one,
             scenario,
             utf8(b"test.sui"),
-            1,
             payment,
             USER_ADDRESS
         );
