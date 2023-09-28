@@ -12,7 +12,6 @@ module discounts::discounts {
     use std::string::{Self, String};
     use std::type_name::{Self as type};
 
-    use sui::object::{Self, UID};
     use sui::tx_context::{TxContext};
     use sui::dynamic_field::{Self as df};
     use sui::clock::{Clock};
@@ -32,23 +31,12 @@ module discounts::discounts {
     const EConfigExists: u64 = 1;
     /// A configuration doesn't exist
     const EConfigNotExists: u64 = 2;
-    /// Invalid years input
-    const EInvalidYearsArgument: u64 = 3;
     /// Invalid payment value
-    const EIncorrectAmount: u64 = 4;
+    const EIncorrectAmount: u64 = 3;
     /// Tries to use DayOne on regular register flow.
-    const ENotValidForDayOne: u64 = 5;
+    const ENotValidForDayOne: u64 = 4;
     /// Tries to claim with a non active DayOne
-    const ENotActiveDayOne: u64 = 6;
-    /// Tries to setup a discount for a type with invalid prices (overflow)
-    const EInvalidPrices: u64 = 8;
-
-    /// A version handler that allows us to upgrade the app in the future.
-    const VERSION: u8 = 1;
-    /// The max value a type can have. U64 MAX / 5 (max years)
-    const MAX_SALE_PRICE: u64 = {
-        18446744073709551615 / 5
-    };
+    const ENotActiveDayOne: u64 = 5;
 
     /// A key that opens up discounts for type T.
     struct DiscountKey<phantom T> has copy, store, drop {}
@@ -74,7 +62,7 @@ module discounts::discounts {
         // For normal flow, we do not allow DayOne to be used.
         // DayOne can only be used on `register_with_day_one` function.
         assert!(type::into_string(type::get<T>()) != type::into_string(type::get<DayOne>()), ENotValidForDayOne);
-        internal_register_name<T>(self, suins, domain_name, 1, payment, clock, ctx)
+        internal_register_name<T>(self, suins, domain_name, payment, clock, ctx)
     }
     
     /// A special function for DayOne registration.
@@ -90,12 +78,11 @@ module discounts::discounts {
         ctx: &mut TxContext
     ): SuinsRegistration {
         assert!(is_active(day_one), ENotActiveDayOne);
-        internal_register_name<DayOne>(self, suins, domain_name, 1, payment, clock, ctx)
+        internal_register_name<DayOne>(self, suins, domain_name, payment, clock, ctx)
     }
 
     /// Calculate the price of a label.
-    public fun calculate_price(self: &DiscountConfig, length: u8, years: u8): u64 {
-        assert!(0 < years && years <= 5, EInvalidYearsArgument);
+    public fun calculate_price(self: &DiscountConfig, length: u8): u64 {
 
         let price = if (length == 3) {
             self.three_char_price
@@ -105,7 +92,7 @@ module discounts::discounts {
             self.five_plus_char_price
         };
 
-        ((price as u64) * (years as u64))
+        price
     }
 
     /// An admin action to authorize a type T for special pricing.
@@ -116,15 +103,8 @@ module discounts::discounts {
         four_char_price: u64, 
         five_plus_char_price: u64
     ) {
-        // Validate that the prices are valid.
-        assert!(
-            three_char_price < MAX_SALE_PRICE &&
-            four_char_price < MAX_SALE_PRICE &&
-            five_plus_char_price < MAX_SALE_PRICE,
-            EInvalidPrices
-        );
 
-        assert!(!df::exists_(house::uid_mut(self), DiscountKey<T> {}), EConfigNotExists);
+        assert!(!df::exists_(house::uid_mut(self), DiscountKey<T> {}), EConfigExists);
 
         df::add(house::uid_mut(self), DiscountKey<T>{}, DiscountConfig { 
             three_char_price,
@@ -144,7 +124,6 @@ module discounts::discounts {
         self: &mut DiscountHouse,
         suins: &mut SuiNS,
         domain_name: String, 
-        no_years: u8, 
         payment: Coin<SUI>, 
         clock: &Clock, 
         ctx: &mut TxContext
@@ -154,13 +133,12 @@ module discounts::discounts {
         assert_config_exists<T>(self);
 
         let domain = domain::new(domain_name);
-        let price = calculate_price(df::borrow(house::uid_mut(self), DiscountKey<T>{}), (string::length(domain::sld(&domain)) as u8), no_years);
+        let price = calculate_price(df::borrow(house::uid_mut(self), DiscountKey<T>{}), (string::length(domain::sld(&domain)) as u8));
         
         assert!(coin::value(&payment) == price, EIncorrectAmount);
-
         suins::app_add_balance(house::suins_app_auth(), suins, coin::into_balance(payment));
 
-        house::friend_add_registry_entry(suins, domain, no_years, clock, ctx)
+        house::friend_add_registry_entry(suins, domain, clock, ctx)
     }
 
     fun assert_config_exists<T>(self: &mut DiscountHouse) {

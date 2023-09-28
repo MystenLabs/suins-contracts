@@ -21,14 +21,14 @@ module discounts::house {
     // The `discounts` module can use the shared object to attach configuration & claim names.
     friend discounts::discounts;
 
-
     /// Tries to register with invalid version of the app
     const ENotValidVersion: u64 = 1;
-
 
     /// A version handler that allows us to upgrade the app in the future.
     const VERSION: u8 = 1;
 
+    /// All promotions in this package are valid only for 1 year
+    const REGISTRATION_YEARS: u8 = 1;
 
     /// A key to authorize DiscountHouse to register names on SuiNS.
     struct DiscountHouseApp has drop {}
@@ -53,7 +53,6 @@ module discounts::house {
     public(friend) fun friend_add_registry_entry(
         suins: &mut SuiNS,
         domain: Domain,
-        no_years: u8,
         clock: &Clock,
         ctx: &mut TxContext
     ): SuinsRegistration {
@@ -64,7 +63,7 @@ module discounts::house {
         config::assert_valid_user_registerable_domain(&domain);
 
         let registry = suins::app_registry_mut<DiscountHouseApp, Registry>(DiscountHouseApp {}, suins);
-        registry::add_record(registry, domain, no_years, clock, ctx)
+        registry::add_record(registry, domain, REGISTRATION_YEARS, clock, ctx)
     }
 
     /// An admin helper to set the version of the shared object.
@@ -83,7 +82,6 @@ module discounts::house {
     public(friend) fun suins_app_auth(): DiscountHouseApp {
         DiscountHouseApp {}
     }
-
 
     /// Validate that the version of the app is the latest.
     public fun assert_version_is_valid(self: &DiscountHouse) {
