@@ -139,7 +139,8 @@ module discounts::free_claims {
     }
     
     /// An admin action to deauthorize type T from getting discounts.
-    /// Deauthorization also 
+    /// Deauthorization also brings storage rebates by destroying the table of used objects.
+    /// If we re-authorize a type, objects can be re-used, but that's considered a separate promotion.
     public fun deauthorize_type<T>(_: &AdminCap, self: &mut DiscountHouse) {
         assert_config_exists<T>(self);
         let FreeClaimsConfig { used_objects, domain_length_range: _ } = df::remove<FreeClaimsKey<T>, FreeClaimsConfig>(house::uid_mut(self), FreeClaimsKey<T>{});
