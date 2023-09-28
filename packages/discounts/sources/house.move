@@ -48,6 +48,17 @@ module discounts::house {
         })
     }
 
+    /// An admin helper to set the version of the shared object.
+    /// Registrations are only possible if the latest version is being used.
+    public fun set_version(_: &AdminCap, self: &mut DiscountHouse, version: u8) {
+        self.version = version;
+    }
+
+    /// Validate that the version of the app is the latest.
+    public fun assert_version_is_valid(self: &DiscountHouse) {
+        assert!(self.version == VERSION, ENotValidVersion);
+    }
+
     /// A function to save a new SuiNS name in the registry.
     /// Helps re-use the same code for all discounts based on type T of the package.
     public(friend) fun friend_add_registry_entry(
@@ -66,12 +77,6 @@ module discounts::house {
         registry::add_record(registry, domain, REGISTRATION_YEARS, clock, ctx)
     }
 
-    /// An admin helper to set the version of the shared object.
-    /// Registrations are only possible if the latest version is being used.
-    public fun set_version(_: &AdminCap, self: &mut DiscountHouse, version: u8) {
-        self.version = version;
-    }
-
     /// Returns the UID of the shared object so we can add custom configuration.
     /// from different modules we have. but keep using the same shared object.
     public(friend) fun uid_mut(self: &mut DiscountHouse): &mut UID {
@@ -82,12 +87,6 @@ module discounts::house {
     public(friend) fun suins_app_auth(): DiscountHouseApp {
         DiscountHouseApp {}
     }
-
-    /// Validate that the version of the app is the latest.
-    public fun assert_version_is_valid(self: &DiscountHouse) {
-        assert!(self.version == VERSION, ENotValidVersion);
-    }
-
 
     #[test_only]
     public fun init_for_testing(ctx: &mut TxContext) {
