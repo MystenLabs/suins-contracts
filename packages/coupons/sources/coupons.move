@@ -38,6 +38,9 @@ module coupons::coupons {
     /// Coupon doesn't exist.
     const ECouponNotExists: u64 = 5;
 
+    /// Our versioning of the coupons package.
+    const VERSION: u8 = 1;
+
     // use suins::config;
     use suins::domain;
     use suins::suins::{Self, AdminCap, SuiNS}; // re-use AdminCap for creating new coupons.
@@ -62,6 +65,7 @@ module coupons::coupons {
     struct CouponHouse has key, store {
         id: UID,
         data: Data,
+        version: u8
     }
 
     /// A Coupon has a type, a value and a ruleset.
@@ -79,7 +83,8 @@ module coupons::coupons {
     fun init(ctx: &mut TxContext){
         transfer::share_object(CouponHouse {
             id: object::new(ctx),
-            data: Data { coupons: table::new(ctx) }
+            data: Data { coupons: table::new(ctx) },
+            version: VERSION
         });
     }
 
@@ -94,6 +99,7 @@ module coupons::coupons {
         clock: &Clock,
         ctx: &mut TxContext
     ): SuinsRegistration {
+        assert_version_is_valid(self);
         // Validate that specified coupon is valid.
         assert!(table::contains(&mut self.data.coupons, coupon_code), ECouponNotExists);
 
@@ -155,23 +161,9 @@ module coupons::coupons {
         internal_calculate_sale_price(price, coupon)
     }
 
-    /// A helper to calculate the final price after the discount.
-    fun internal_calculate_sale_price(price: u64, coupon: &Coupon): u64{
-        
-        // If it's fixed price, we just deduce the amount.
-        if(coupon.type == constants::fixed_price_discount_type()){
-            if(coupon.amount > price) return 0; // protect underflow case.
-            return price - coupon.amount
-        };
-
-        // If it's discount price, we calculate the discount 
-        let discount =  (((price as u128) * (coupon.amount as u128) / 100) as u64);
-        // then remove it from the sale price.
-        price - discount
-    }
-
     // Get `Data` as an authorized app.
     public fun app_data_mut<App: drop>(_: App, self: &mut CouponHouse): &mut Data {
+        assert_version_is_valid(self);
         // verify app is authorized to get a mutable reference.
         assert_app_is_authorized<App>(self);
         &mut self.data
@@ -198,6 +190,17 @@ module coupons::coupons {
         df::remove(&mut self.id, AppKey<App>{})
     }
 
+    /// An admin helper to set the version of the shared object.
+    /// Registrations are only possible if the latest version is being used.
+    public fun set_version(_: &AdminCap, self: &mut CouponHouse, version: u8) {
+        self.version = version;
+    }
+
+    /// Validate that the version of the app is the latest.
+    public fun assert_version_is_valid(self: &CouponHouse) {
+        assert!(self.version == VERSION, EInvalidVersion);
+    }
+
     // Add a coupon as an admin.
     /// To create a coupon, you have to call the PTB in the specific order
     /// 1. (Optional) Call rules::new_domain_length_rule(type, length) // generate a length specific rule (e.g. only domains of size 5)
@@ -211,6 +214,7 @@ module coupons::coupons {
         rules: CouponRules,
         ctx: &mut TxContext
     ) {
+        assert_version_is_valid(self);
         internal_save_coupon(&mut self.data, code, internal_create_coupon(type, amount, rules, ctx));
     }
 
@@ -234,6 +238,21 @@ module coupons::coupons {
     // Remove a coupon as a registered app.
     public fun app_remove_coupon(self: &mut Data, code: String) {
         internal_remove_coupon(self, code);
+    }
+
+
+    /// A helper to calculate the final price after the discount.
+    fun internal_calculate_sale_price(price: u64, coupon: &Coupon): u64{
+        // If it's fixed price, we just deduce the amount.
+        if(coupon.type == constants::fixed_price_discount_type()){
+            if(coupon.amount > price) return 0; // protect underflow case.
+            return price - coupon.amount
+        };
+
+        // If it's discount price, we calculate the discount 
+        let discount =  (((price as u128) * (coupon.amount as u128) / 100) as u64);
+        // then remove it from the sale price.
+        price - discount
     }
 
     /// Private internal functions

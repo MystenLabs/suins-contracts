@@ -33,6 +33,8 @@ module coupons::rules {
     const ECouponExpired: u64 = 7;
     /// Error when creating years range.
     const EInvalidYears: u64 = 8;
+    /// Available claims can't be 0.
+    const EInvalidAvailableClaims: u64 = 9;
 
     /// The Struct that holds the coupon's rules.
     /// All rules are combined in `AND` fashion. 
@@ -62,21 +64,10 @@ module coupons::rules {
     ): CouponRules {
         assert!(is_valid_years_range(&years), EInvalidYears);
         assert!(is_valid_length_range(&length), EInvalidLengthRule);
+        assert!(option::is_none(&available_claims) || (*option::borrow(&available_claims) > 0), EInvalidAvailableClaims);
         CouponRules {
             length, available_claims, user, expiration, years
         }
-    }
-
-    fun is_valid_years_range(range: &Option<Range>): bool {
-        if(option::is_none(range)) return true;
-        let range = option::borrow(range);
-        range::from(range) >= 1 && range::to(range) <= 5
-    }
-
-    fun is_valid_length_range(range: &Option<Range>): bool {
-        if(option::is_none(range)) return true;
-        let range = option::borrow(range);
-        range::from(range) >= suins_constants::min_domain_length() && range::to(range) <= suins_constants::max_domain_length()
     }
 
     // A convenient helper to create a zero rule `CouponRules` object.
@@ -124,7 +115,7 @@ module coupons::rules {
     public fun is_coupon_valid_for_domain_years(rules: &CouponRules, target: u8): bool {
         if(option::is_none(&rules.years)) return true;
 
-        range::is_between(option::borrow(&rules.years), target)
+        range::is_in_range(option::borrow(&rules.years), target)
     }
 
     public fun assert_is_valid_discount_type(type: u8) {
@@ -150,7 +141,7 @@ module coupons::rules {
         // If the vec is not set, we pass this rule test.
         if(option::is_none(&rules.length)) return true;
 
-        range::is_between(option::borrow(&rules.length), length)
+        range::is_in_range(option::borrow(&rules.length), length)
     }
 
 
@@ -173,8 +164,23 @@ module coupons::rules {
 
     /// Check whether a coupon has expired 
     public fun is_coupon_expired(rules: &CouponRules, clock: &Clock): bool {
-        if(option::is_none(&rules.expiration)) return false;
+        if(option::is_none(&rules.expiration)){
+            return false
+        };
 
         clock::timestamp_ms(clock) > *option::borrow(&rules.expiration)
+    }
+
+
+    fun is_valid_years_range(range: &Option<Range>): bool {
+        if(option::is_none(range)) return true;
+        let range = option::borrow(range);
+        range::from(range) >= 1 && range::to(range) <= 5
+    }
+
+    fun is_valid_length_range(range: &Option<Range>): bool {
+        if(option::is_none(range)) return true;
+        let range = option::borrow(range);
+        range::from(range) >= suins_constants::min_domain_length() && range::to(range) <= suins_constants::max_domain_length()
     }
 }

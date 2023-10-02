@@ -25,7 +25,7 @@ module coupons::range {
     }
 
     // Verify that the number is in the range (includes from, to)
-    public fun is_between(range: &Range, number: u8): bool {
+    public fun is_in_range(range: &Range, number: u8): bool {
         number >= from(range) && number <= to(range)
     }
 
