@@ -15,6 +15,10 @@ export type PackageInfo = {
     suins: string;
     displayObject?: string;
     directSetupPackageId: string;
+    discountsPackage: {
+        packageId: string;
+        discountHouseId: string;
+    }
 }
 
 export const mainPackage: Config = {
@@ -30,6 +34,10 @@ export const mainPackage: Config = {
         provider: new JsonRpcProvider(new Connection({
             fullnode: 'https://suins-rpc.mainnet.sui.io'
         })),
+        discountsPackage: {
+            packageId: '',
+            discountHouseId: '',
+        },,
         directSetupPackageId: '0xdac22652eb400beb1f5e2126459cae8eedc116b73b8ad60b71e3e8d7fdb317e2'
 
     },
@@ -43,7 +51,11 @@ export const mainPackage: Config = {
         provider: new JsonRpcProvider(new Connection({
             fullnode: 'https://suins-rpc.testnet.sui.io:443'
         })),
-        directSetupPackageId: '0x9af70a4cb6d7144e68fd972eef672a74c7fe41aa5c0bb67ba40d7d1ae87bfb19'
+        directSetupPackageId: '0x9af70a4cb6d7144e68fd972eef672a74c7fe41aa5c0bb67ba40d7d1ae87bfb19',
+        discountsPackage: {
+            packageId: '0xa784ba6d2a3e7f0a51f332ce0cbb147e72b09b03ed56e96024178c538f9ff0ab',
+            discountHouseId: '0x599385bf98d823368069df46143ce9906aa4dec8beedfe8f560fcceb2b5580e5',
+        },
     }
 }
 
