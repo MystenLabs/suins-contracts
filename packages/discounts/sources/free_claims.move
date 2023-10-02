@@ -127,6 +127,7 @@ module discounts::free_claims {
         domain_length_range: vector<u8>,
         ctx: &mut TxContext
     ) {
+        house::assert_version_is_valid(self);
         assert!(!df::exists_(house::uid_mut(self), FreeClaimsKey<T> {}), EConfigExists);
 
         // validate the range is valid.
@@ -142,6 +143,7 @@ module discounts::free_claims {
     /// Deauthorization also brings storage rebates by destroying the table of used objects.
     /// If we re-authorize a type, objects can be re-used, but that's considered a separate promotion.
     public fun deauthorize_type<T>(_: &AdminCap, self: &mut DiscountHouse) {
+        house::assert_version_is_valid(self);
         assert_config_exists<T>(self);
         let FreeClaimsConfig { used_objects, domain_length_range: _ } = df::remove<FreeClaimsKey<T>, FreeClaimsConfig>(house::uid_mut(self), FreeClaimsKey<T>{});
 
@@ -153,9 +155,18 @@ module discounts::free_claims {
         linked_table::destroy_empty(used_objects);
     }
 
+    /// Worried by the 1000 DFs load limit, I introduce a `drop_type` function now
+    /// to make sure we can force-finish a promotion for type `T`.
+    public fun force_deauthorize_type<T>(_: &AdminCap, self: &mut DiscountHouse) {
+        house::assert_version_is_valid(self);
+        assert_config_exists<T>(self);
+        let FreeClaimsConfig { used_objects, domain_length_range: _ } = df::remove<FreeClaimsKey<T>, FreeClaimsConfig>(house::uid_mut(self), FreeClaimsKey<T>{});
+        linked_table::drop(used_objects);
+    }
+
     // Validate that there is a config for `T`
     fun assert_config_exists<T>(self: &mut DiscountHouse) {
-        assert!(df::exists_(house::uid_mut(self), FreeClaimsKey<T> {}), EConfigNotExists);
+        assert!(df::exists_with_type<FreeClaimsKey<T>, FreeClaimsConfig>(house::uid_mut(self), FreeClaimsKey<T> {}), EConfigNotExists);
     }
 
     /// Validate that the domain length is valid for the passed configuration.

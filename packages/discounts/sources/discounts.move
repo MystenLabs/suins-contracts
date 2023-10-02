@@ -103,7 +103,7 @@ module discounts::discounts {
         four_char_price: u64, 
         five_plus_char_price: u64
     ) {
-
+        house::assert_version_is_valid(self);
         assert!(!df::exists_(house::uid_mut(self), DiscountKey<T> {}), EConfigExists);
 
         df::add(house::uid_mut(self), DiscountKey<T>{}, DiscountConfig { 
@@ -115,8 +115,9 @@ module discounts::discounts {
 
     /// An admin action to deauthorize type T from getting discounts.
     public fun deauthorize_type<T>(_: &AdminCap, self: &mut DiscountHouse) {
+        house::assert_version_is_valid(self);
         assert_config_exists<T>(self);
-        df::remove_if_exists<DiscountKey<T>, DiscountConfig>(house::uid_mut(self), DiscountKey<T>{});
+        df::remove<DiscountKey<T>, DiscountConfig>(house::uid_mut(self), DiscountKey<T>{});
     }
 
     /// Internal helper to handle the registration process
@@ -142,6 +143,6 @@ module discounts::discounts {
     }
 
     fun assert_config_exists<T>(self: &mut DiscountHouse) {
-        assert!(df::exists_(house::uid_mut(self), DiscountKey<T> {}), EConfigNotExists);
+        assert!(df::exists_with_type<DiscountKey<T>, DiscountConfig>(house::uid_mut(self), DiscountKey<T> {}), EConfigNotExists);
     }
 }
