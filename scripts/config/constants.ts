@@ -30,7 +30,7 @@ export const mainPackage: Config = {
         provider: new JsonRpcProvider(new Connection({
             fullnode: 'https://suins-rpc.mainnet.sui.io'
         })),
-        directSetupPackageId: 'TODO: Fill this in'
+        directSetupPackageId: '0xdac22652eb400beb1f5e2126459cae8eedc116b73b8ad60b71e3e8d7fdb317e2'
 
     },
     testnet: {
