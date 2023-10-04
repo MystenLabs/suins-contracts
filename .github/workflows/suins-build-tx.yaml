@@ -123,7 +123,7 @@ jobs:
           NETWORK: mainnet
           ORIGIN: gh_action
         run: |
-          cd scripts && ts-node transactions/publish_utils.ts
+          cd scripts && pnpm publish-utils
 
       - name: Authorize Utils
         if: ${{ inputs.transaction_type == 'Authorize Utils' }}
@@ -133,7 +133,7 @@ jobs:
           NETWORK: mainnet
           ORIGIN: gh_action
         run: |
-          cd scripts && ts-node transactions/authorize_utils.ts
+          cd scripts && pnpm authorize-utils
 
       - name: Show Transaction Data (To sign)
         run: |
