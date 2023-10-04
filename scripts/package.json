@@ -9,7 +9,9 @@
     "migrations::day_one::deauthorize": "ts-node transactions/deauthorize_bogo_app.ts",
     "transactions::registration::publish": "ts-node transactions/publish_registration.ts",
     "transfer::names": "ts-node reserved-names/transfer-names.ts",
-    "withdraw:auction:profits":"ts-node transactions/withdraw_funds_20290927.ts"
+    "withdraw:auction:profits":"ts-node transactions/withdraw_funds_20290927.ts",
+    "publish-utils": "ts-node transactions/publish_utils.ts",
+    "authorize-utils": "ts-node transactions/authorize_utils.ts"
   },
   "keywords": [],
   "author": "",

@@ -5,15 +5,16 @@ export type Network = 'mainnet' | 'testnet'
 export type Config = Record<Network, PackageInfo>
 
 export type PackageInfo = {
-    packageId: ObjectId;
+    packageId: string;
     registrationPackageId: string;
-    upgradeCap?: ObjectId;
-    publisherId:ObjectId;
+    upgradeCap?: string;
+    publisherId: string;
     adminAddress: SuiAddress;
     provider: JsonRpcProvider;
-    adminCap: ObjectId;
-    suins: ObjectId;
-    displayObject?: ObjectId;
+    adminCap: string;
+    suins: string;
+    displayObject?: string;
+    directSetupPackageId: string;
 }
 
 export const mainPackage: Config = {
@@ -28,7 +29,8 @@ export const mainPackage: Config = {
         displayObject: '0x866fbd8e51b6637c25f0e811ece9a85eb417f3987ecdfefb80f15d1192d72b4c',
         provider: new JsonRpcProvider(new Connection({
             fullnode: 'https://suins-rpc.mainnet.sui.io'
-        }))
+        })),
+        directSetupPackageId: 'TODO: Fill this in'
 
     },
     testnet: {
@@ -40,7 +42,8 @@ export const mainPackage: Config = {
         suins: '0xedc672fadedee348108618da7555f771d4fec8d3331779a8411ff8184aded726',
         provider: new JsonRpcProvider(new Connection({
             fullnode: 'https://suins-rpc.testnet.sui.io:443'
-        }))
+        })),
+        directSetupPackageId: '0x9af70a4cb6d7144e68fd972eef672a74c7fe41aa5c0bb67ba40d7d1ae87bfb19'
     }
 }
 
