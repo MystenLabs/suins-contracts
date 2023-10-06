@@ -68,6 +68,34 @@ module suins::registry_tests {
         burn_nfts(vector[ nft, nft_2 ])
     }
 
+    #[test]
+    /// 1. Create a registry, increment clock to 1 year;
+    /// 2. Increment the clock to 1 year so that the record is expired, ignoring the grace period
+    /// 3. Override the record and discard the old data;
+    fun test_registry_expired_without_grace_period_override() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        // create a record for the test domain with expiration set to 1 year
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+
+        // increment the clock to 1 years + grace period
+        clock::increment_for_testing(&mut clock, constants::year_ms() + 1);
+
+        // override the record
+        let nft_2 = registry::add_record_ignoring_grace_period(&mut registry, domain, 2, &clock, &mut ctx);
+        let record = registry::remove_record_for_testing(&mut registry, domain);
+
+        // make sure the old NFT is no longer matches to the domain
+        assert!(object::id(&nft) != record::nft_id(&record), 0);
+
+        assert_eq(nft::expiration_timestamp_ms(&nft_2), record::expiration_timestamp_ms(&record));
+        assert_eq(nft::expiration_timestamp_ms(&nft_2), clock::timestamp_ms(&clock) + (2 * constants::year_ms()));
+
+        wrapup(registry, clock);
+        burn_nfts(vector[ nft, nft_2 ])
+    }
+
     #[test, expected_failure(abort_code = suins::registry::ERecordNotExpired)]
     /// 1. Create a registry, increment clock to 1 year;
     /// 2. Increment the clock to less than 1 year so that the record is expired;
@@ -83,6 +111,75 @@ module suins::registry_tests {
         let _nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
 
         abort 1337
+    }
+
+    #[test, expected_failure(abort_code = suins::registry::ERecordNotExpired)]
+    /// Check that `add_record` preserves the 
+    fun test_registry_grace_period() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        // create a record for the test domain with expiration set to 1 year
+        let _nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        // increment the clock to 1 years + grace period
+        clock::increment_for_testing(&mut clock, constants::year_ms() + 1);
+        // try to override the record and fail - not expired
+        let _nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+
+        abort 1337
+    }
+
+    // === Burn Names === 
+
+    #[test]
+    /// Checks that `burn_registration_object` burns `SuinsRegistration` object
+    /// but doesn't touch the NameRecord, as this name has been re-registered by a different user (after its expiration).
+    fun test_registry_burn_name() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        // create a record for the test domain with expiration set to 1 year
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+
+        // increment the clock to 1 years + grace period
+        clock::increment_for_testing(&mut clock, constants::year_ms() + constants::grace_period_ms() + 1);
+
+        // we re-register the same domain now that the other has expired.
+        let new_nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+
+        // we burn the first one as it is an expired name now.
+        registry::burn_registration_object(&mut registry, nft, &clock);
+
+        // we still have a registry entry though, it's not removed as the owner is different.
+        assert!(option::is_some(&registry::lookup(&registry, domain)), 1);
+
+        // remove the record so we can wrap this up.
+        registry::remove_record_for_testing(&mut registry, domain);
+
+        wrapup(registry, clock);
+        burn_nfts(vector[new_nft]);
+    }
+
+    #[test]
+    /// `burn_registration_object` burns the SuinsRegistration object as well as removes the record, 
+    /// since it still points to the old owner.
+    fun test_registry_burn_name_and_removes_record() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        // create a record for the test domain with expiration set to 1 year
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+
+        // increment the clock to 1 years + grace period
+        clock::increment_for_testing(&mut clock, constants::year_ms() + constants::grace_period_ms() + 1);
+
+        // we burn the first one as it is an expired name now.
+        registry::burn_registration_object(&mut registry, nft, &clock);
+
+        // we still have a registry entry though, it's not removed as the owner is different.
+        assert!(option::is_none(&registry::lookup(&registry, domain)), 1);
+
+        wrapup(registry, clock);
     }
 
     // === Target Address ===
