@@ -7,7 +7,7 @@ module subdomains::app {
     use std::string::{String};
 
     use sui::object::{Self, UID, ID};
-    use sui::tx_context::{Self, TxContext};
+    use sui::tx_context::{TxContext};
     use sui::table::{Self, Table};
     use sui::transfer;
     use sui::clock::Clock;
@@ -15,7 +15,7 @@ module subdomains::app {
 
     use suins::domain::{Self, Domain};
     use suins::registry::{Self, Registry};
-    use suins::suins::{Self, SuiNS, AdminCap};
+    use suins::suins::{Self, SuiNS};
     use suins::suins_registration::{Self, SuinsRegistration};
     use suins::name_record;
 
@@ -36,7 +36,7 @@ module subdomains::app {
     // The shared object. Holds the configuration for all subdomains registered in the system.
     struct SubDomainApp has key, store {
         id: UID,
-        setup: Table<Domain, SubDomainSetup>
+        setup: Table<Domain, SubDomainSetup>,
     }
 
     // For each subdomain, we save this configuration.
@@ -57,7 +57,7 @@ module subdomains::app {
         })
     }
 
-    // creates a new subdomain.
+    /// Creates a new subdomain.
     public fun new(
         suins: &mut SuiNS,
         subdomain_app: &mut SubDomainApp,
@@ -85,6 +85,8 @@ module subdomains::app {
         // if `parent` is a subdomain. We check the subdomain config to see if we are allowed to mint subdomains.
         // For regular names (e.g. example.sui), we can always mint subdomains.
         if(is_subdomain(&suins_registration::domain(parent))) {
+            // if there's no config for this parent, and the parent is a subdomain, we can't create deeper names.
+            assert!(table::contains(&subdomain_app.setup, suins_registration::domain(parent)), ECreationDisabledForSubDomain);
             let config = table::borrow(&mut subdomain_app.setup, suins_registration::domain(parent));
             assert!(config.allow_creation, ECreationDisabledForSubDomain);
         };
@@ -92,10 +94,6 @@ module subdomains::app {
         // Check whether a NameRecord exists for that subdomain.
         // if it exists: check whether it is expired. If it has expired, we can overwrite the old one.
         // if it doesn't exist: we can just register.
-        // *********** NOTE TO MYSELF **********
-        // We need to tweak `registry` to check at period instead of grace_period. Otherwise, 
-        // we will be unable to remove an expired subdomain. We don't have grace periods for subdomains.
-        // We treat their expiration date as the normal one.
         let existing_name_record = registry::lookup(registry, subdomain);
 
         if(option::is_some(&existing_name_record)) {
@@ -113,37 +111,33 @@ module subdomains::app {
         internal_create_subdomain(registry, subdomain, expiration_timestamp_ms, object::id(parent), clock, ctx)
     }
 
-
-
-    // extends the time of the subdomain
+    /// extends the time of the subdomain.
     public fun extend(
         _suins: &mut SuiNS,
         _subdomain_app: &mut SubDomainApp,
         _subdomain: &mut SuinsRegistration,
     ) {
-        
+
     }
 
+    /// Called by the parent domain to edit subdomain settings.
+    public fun edit_settings(){}
 
-    /// Creates the setup for a `Domain`, and updates it if it already exists.
+    /// Creates the setup for a `Domain`, or updates it if it already exists.
     fun internal_create_or_replace_setup(
         subdomain_app: &mut SubDomainApp,
-        domain: Domain,
+        subdomain: Domain,
         setup: SubDomainSetup
     ) {
-
-        if(table::contains(&subdomain_app.setup, domain)){
-            let _ = table::remove(&mut subdomain_app.setup, domain);
+        if(table::contains(&subdomain_app.setup, subdomain)){
+            let _ = table::remove(&mut subdomain_app.setup, subdomain);
         };
 
-        table::add(&mut subdomain_app.setup, domain, setup);  
+        table::add(&mut subdomain_app.setup, subdomain, setup);  
     }
 
-
-
-
-    // a function to add a subdomain to the registry with the correct expiration timestamp. 
-    // It doesn't check whether the expiration is valid. This needs to be checked on the calling function.
+    /// An internal function to add a subdomain to the registry with the correct expiration timestamp. 
+    /// It doesn't check whether the expiration is valid. This needs to be checked on the calling function.
     fun internal_create_subdomain(
         registry: &mut Registry,
         subdomain: Domain,
@@ -152,7 +146,7 @@ module subdomains::app {
         clock: &Clock,
         ctx: &mut TxContext,
     ): SuinsRegistration {
-        let nft = registry::add_record(registry, subdomain, 1, clock, ctx);
+        let nft = registry::add_record_ignoring_grace_period(registry, subdomain, 1, clock, ctx);
         // set the timestamp to the correct one. `add_record` only works with years :/
         registry::set_expiration_timestamp_ms(registry, &mut nft, subdomain, expiration_timestamp_ms);
 
