@@ -49,6 +49,19 @@ module suins::registry {
         }
     }
 
+    /// Attemps to add a new record to the registry without looking at the grace period. 
+    /// Currently used for subdomains where there's no grace period to respect.
+    /// Returns a `SuinsRegistration` upon success.
+    public fun add_record_ignoring_grace_period(
+        self: &mut Registry,
+        domain: Domain,
+        no_years: u8,
+        clock: &Clock,
+        ctx: &mut TxContext,
+    ): SuinsRegistration {
+        internal_add_record(self, domain, no_years, clock, false, ctx)
+    }
+
     /// Attempts to add a new record to the registry and returns a
     /// `SuinsRegistration` upon success.
     public fun add_record(
@@ -58,22 +71,31 @@ module suins::registry {
         clock: &Clock,
         ctx: &mut TxContext,
     ): SuinsRegistration {
-        // First check to see if there is already an entry for this domain
-        if (table::contains(&self.registry, domain)) {
-            // Remove the record and assert that it has expired past the grace period
-            let record = table::remove(&mut self.registry, domain);
-            assert!(name_record::has_expired_past_grace_period(&record, clock), ERecordNotExpired);
+        internal_add_record(self, domain, no_years, clock, true, ctx)
+    }
 
-            let old_target_address = name_record::target_address(&record);
-            handle_invalidate_reverse_record(self, &domain, old_target_address, none());
+    /// Attempts to burn an NFT and get storage rebates.
+    /// Only works if the NFT has expired.
+    public fun burn_registration_object(
+        self: &mut Registry,
+        nft: SuinsRegistration,
+        clock: &Clock
+    ) {
+        // First we make sure that the SuinsRegistration object has expired.
+        assert!(nft::has_expired(&nft, clock), ERecordNotExpired);
+
+        // Then, if the registry still has a record for this domain and the NFT ID matches, we remove it.
+        if(table::contains(&self.registry, nft::domain(&nft))) {
+            let domain_nft = nft::domain(&nft);
+            let record = table::borrow(&mut self.registry, domain_nft);
+
+            if(name_record::nft_id(record) == object::id(&nft)) {
+                let record = table::remove(&mut self.registry, domain_nft);
+                handle_invalidate_reverse_record(self, &domain_nft, name_record::target_address(&record), none());
+            }
         };
-
-        // If we've made it to this point then we know that we are able to
-        // register an entry for this domain.
-        let nft = nft::new(domain, no_years, clock, ctx);
-        let name_record = name_record::new(object::id(&nft), nft::expiration_timestamp_ms(&nft));
-        table::add(&mut self.registry, domain, name_record);
-        nft
+        // burn the NFT.
+        nft::burn(nft);
     }
 
     public fun set_target_address(
@@ -183,6 +205,37 @@ module suins::registry {
     }
 
     // === Private Functions ===
+
+    /// An internal helper to add a record, based on period.
+    fun internal_add_record(
+        self: &mut Registry,
+        domain: Domain,
+        no_years: u8,
+        clock: &Clock,
+        with_grace_period: bool,
+        ctx: &mut TxContext,
+    ): SuinsRegistration {
+        // First check to see if there is already an entry for this domain
+        if (table::contains(&self.registry, domain)) {
+            // Remove the record and assert that it has expired past the grace period
+            let record = table::remove(&mut self.registry, domain);
+
+            if (with_grace_period) {
+                assert!(name_record::has_expired_past_grace_period(&record, clock), ERecordNotExpired);
+            } else {
+                assert!(name_record::has_expired(&record, clock), ERecordNotExpired);
+            };
+
+            let old_target_address = name_record::target_address(&record);
+            handle_invalidate_reverse_record(self, &domain, old_target_address, none());
+        };
+        // If we've made it to this point then we know that we are able to
+        // register an entry for this domain.
+        let nft = nft::new(domain, no_years, clock, ctx);
+        let name_record = name_record::new(object::id(&nft), nft::expiration_timestamp_ms(&nft));
+        table::add(&mut self.registry, domain, name_record);
+        nft
+    }
 
     fun handle_invalidate_reverse_record(
         self: &mut Registry,
