@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 module registration::register {
+    use std::option::{Option};
     use std::string::{Self, String};
     use sui::coin::{Self, Coin};
     use sui::tx_context::TxContext;
@@ -36,6 +37,7 @@ module registration::register {
         no_years: u8,
         payment: Coin<SUI>,
         clock: &Clock,
+        reseller: Option<String>,
         ctx: &mut TxContext
     ): SuinsRegistration {
         suins::assert_app_is_authorized<Register>(suins);
@@ -52,7 +54,8 @@ module registration::register {
 
         assert!(coin::value(&payment) == price, EIncorrectAmount);
 
-        suins::app_add_balance(Register {}, suins, coin::into_balance(payment));
+        suins::reseller::handle_payment<Register>(Register {}, suins, payment, reseller, ctx);
+
         let registry = suins::app_registry_mut<Register, Registry>(Register {}, suins);
         registry::add_record(registry, domain, no_years, clock, ctx)
     }
