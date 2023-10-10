@@ -26,6 +26,8 @@ module suins::reseller {
     const EResellerNotExists: u64 = 2;
     /// The specified commission is invalid (not in range [1, 10_000])
     const EInvalidComission: u64 = 3;
+    /// Tries to handle payment with a disabled reseller code.
+    const EResellerDisabled: u64 = 4;
 
     /// The ResellerCap, which allows access to withdraw funds as a reseller.
     /// We can only have 1 of these per authorized reseller.
@@ -80,6 +82,7 @@ module suins::reseller {
 
     /// Withdraw all commissions earned as a reseller.
     public fun withdraw(self: &mut ResellerBoard, cap: &ResellerCap, ctx: &mut TxContext): Coin<SUI> {
+        // that's a sanity check since we don't have a way to remove a reseller (and do not plan to)
         assert!(table::contains(&self.resellers, cap.for), EResellerNotExists);
 
         let config = table::borrow_mut(&mut self.resellers, cap.for);
@@ -88,10 +91,12 @@ module suins::reseller {
     }
 
     /// Handles a payment for reselling system. 
-    /// Now, on our authorized modules, instead of calling `app_add_balance`,
-    /// we can call this payment handler instead, which supports reseller codes.
+    /// Now, on our authorized modules, instead of calling `app_add_balance`, we can call this payment handler 
+    /// instead, which supports reseller codes.
     /// This module on its own has no authorization, it just proxies the authorization from an authorized one.
     /// `A` must be an authorized app on its own. This just proxies the payment.
+    /// This method also doesn't offer validation. Price checking & amount checking should be 
+    /// done on modules that call this.
     public fun handle_payment<A: drop>(
         app: A,
         self: &mut ResellerBoard,
@@ -106,6 +111,8 @@ module suins::reseller {
             assert!(table::contains(&self.resellers, code), EResellerNotExists);
 
             let settings = table::borrow_mut(&mut self.resellers, code);
+
+            assert!(settings.enabled, EResellerDisabled);
             let value = coin::value(&payment);
             let commission = coin::split(&mut payment, calculate_comission_fee(value, settings.commission), ctx);
 
@@ -117,12 +124,19 @@ module suins::reseller {
 
     /// Allows to set the enabled (enable or disable) a reseller code.
     public fun set_enabled(self: &mut ResellerBoard, _: &AdminCap, reseller: String, enabled: bool) {
-
         assert!(table::contains(&self.resellers, reseller), EResellerNotExists);
 
         let config = table::borrow_mut(&mut self.resellers, reseller);
-
         config.enabled = enabled
+    }
+
+    /// Set the commission rate for the reseller code.
+    public fun set_commission(self: &mut ResellerBoard, _: &AdminCap, reseller: String, commission: u16) {
+         assert!(table::contains(&self.resellers, reseller), EResellerNotExists);
+         validate_commission(commission);
+        
+        let config = table::borrow_mut(&mut self.resellers, reseller);
+        config.commission = commission
     }
 
 
@@ -135,5 +149,10 @@ module suins::reseller {
     /// Valiates the commission is valid (is in range [1, 10_000])
     fun validate_commission(commission: u16) {
         assert!(commission > 0 && commission <= 10_000, EInvalidComission)
+    }
+
+    #[test_only]
+    public fun init_for_testing(ctx: &mut TxContext){
+        init(ctx)
     }
 }
