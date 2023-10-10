@@ -3,8 +3,8 @@
 
 // This module:
 // 1. Acts as a proxy for authorized apps to be able to register paying reseller fees (paying commission)
-// 2. Allows admin to authorize resellers with a specified CODE/COMISSION
-// 3. Allows authorized resellers to get their earnings
+// 2. Allows admin to authorize resellers with a specified fee.
+// 3. Allows authorized resellers to get their earnings by presenting the `ResellerCap`.
 module suins::reseller {
 
     use std::option::{Self, Option};
@@ -43,12 +43,12 @@ module suins::reseller {
     struct ResellerConfig has store {
         enabled: bool,
         balance: Balance<SUI>,
-        // 10_000 = 100% | 9_000 -> 99.99%
+        // 10_000 = 100% | 9_999 -> 99.99%
         commission: u16 // [1, 10_000]. Works with 2 digit precision.
     }
 
     /// The shared object that holds information about the resellers.
-    struct ResellerBoard has key, store { 
+    struct ResellerBoard has key, store {
         id: UID,
         resellers: Table<String, ResellerConfig>
     }
@@ -61,7 +61,8 @@ module suins::reseller {
         })
     }
 
-    /// Authorizes a new reseller in the system as an admin
+    /// Authorizes a new reseller in the system as an admin.
+    /// Returns a `ResellerCap` which can be transferred to the partner for winnings withdrawing.
     public fun authorize(self: &mut ResellerBoard, _: &AdminCap, reseller: String, commission: u16, ctx: &mut TxContext): ResellerCap {
         validate_commission(commission);
 
@@ -138,7 +139,6 @@ module suins::reseller {
         let config = table::borrow_mut(&mut self.resellers, reseller);
         config.commission = commission
     }
-
 
     /// Calculates the commission fee due to payment to the reseller.
     public fun calculate_comission_fee(payment: u64, commission: u16): u64 {
