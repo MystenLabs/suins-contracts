@@ -15,7 +15,6 @@ module suins::reseller {
     use sui::balance::{Self, Balance};
     use sui::sui::SUI;
     use sui::tx_context::{TxContext};
-    use sui::transfer;
     use sui::coin::{Self, Coin};
 
     use suins::suins::{Self, SuiNS, AdminCap};
@@ -48,27 +47,29 @@ module suins::reseller {
     }
 
     /// The shared object that holds information about the resellers.
-    struct ResellerBoard has key, store { 
-        id: UID,
+    struct ResellerBoard has store {
         resellers: Table<String, ResellerConfig>
     }
 
-    /// Shares the reseller board    
-    fun init(ctx: &mut TxContext) {
-        transfer::public_share_object(ResellerBoard {
-            id: object::new(ctx),
+    // Authorizes reseller app to get `ResellerBoard` registry from SuiNS.
+    struct ResellerApp has drop {}
+
+    /// Called once by an admin to set up the ResellerBoard.
+    public fun setup(self: &mut SuiNS, cap: &AdminCap, ctx: &mut TxContext) {
+        suins::add_registry(cap, self, ResellerBoard {
             resellers: table::new(ctx)
-        })
+        });
     }
 
     /// Authorizes a new reseller in the system as an admin
-    public fun authorize(self: &mut ResellerBoard, _: &AdminCap, reseller: String, commission: u16, ctx: &mut TxContext): ResellerCap {
+    public fun authorize(self: &mut SuiNS, _: &AdminCap, reseller: String, commission: u16, ctx: &mut TxContext): ResellerCap {
+        let board = reseller_registry(self);
+
         validate_commission(commission);
-
         // validate that this reseller doesn't already exist.
-        assert!(!table::contains(&self.resellers, reseller), EAlreadyExists);
+        assert!(!table::contains(&board.resellers, reseller), EAlreadyExists);
 
-        table::add(&mut self.resellers, reseller, ResellerConfig {
+        table::add(&mut board.resellers, reseller, ResellerConfig {
             enabled: true,
             balance: balance::zero(),
             commission
@@ -81,11 +82,13 @@ module suins::reseller {
     }
 
     /// Withdraw all commissions earned as a reseller.
-    public fun withdraw(self: &mut ResellerBoard, cap: &ResellerCap, ctx: &mut TxContext): Coin<SUI> {
-        // that's a sanity check since we don't have a way to remove a reseller (and do not plan to)
-        assert!(table::contains(&self.resellers, cap.for), EResellerNotExists);
+    public fun withdraw(self: &mut SuiNS, cap: &ResellerCap, ctx: &mut TxContext): Coin<SUI> {
 
-        let config = table::borrow_mut(&mut self.resellers, cap.for);
+        let board = reseller_registry(self);
+        // that's a sanity check since we don't have a way to remove a reseller (and do not plan to)
+        assert!(table::contains(&board.resellers, cap.for), EResellerNotExists);
+
+        let config = table::borrow_mut(&mut board.resellers, cap.for);
         let total = balance::value(&config.balance);
         coin::take(&mut config.balance, total, ctx)
     }
@@ -99,18 +102,18 @@ module suins::reseller {
     /// done on modules that call this.
     public fun handle_payment<A: drop>(
         app: A,
-        self: &mut ResellerBoard,
-        suins: &mut SuiNS,
+        self: &mut SuiNS,
         payment: Coin<SUI>,
         reseller: Option<String>,
         ctx: &mut TxContext
     ) {
         // If we have a reseller code, we take the commission fee.
         if(option::is_some(&reseller)){
+            let board = reseller_registry(self);
             let code = *option::borrow(&reseller);
-            assert!(table::contains(&self.resellers, code), EResellerNotExists);
+            assert!(table::contains(&board.resellers, code), EResellerNotExists);
 
-            let settings = table::borrow_mut(&mut self.resellers, code);
+            let settings = table::borrow_mut(&mut board.resellers, code);
 
             assert!(settings.enabled, EResellerDisabled);
             let value = coin::value(&payment);
@@ -118,27 +121,27 @@ module suins::reseller {
 
             balance::join(&mut settings.balance, coin::into_balance(commission));
         };
-        suins::app_add_balance(app, suins, coin::into_balance(payment))
+        suins::app_add_balance(app, self, coin::into_balance(payment))
     }
 
-
     /// Allows to set the enabled (enable or disable) a reseller code.
-    public fun set_enabled(self: &mut ResellerBoard, _: &AdminCap, reseller: String, enabled: bool) {
-        assert!(table::contains(&self.resellers, reseller), EResellerNotExists);
+    public fun set_enabled(self: &mut SuiNS, _: &AdminCap, reseller: String, enabled: bool) {
+        let board = reseller_registry(self);
+        assert!(table::contains(&board.resellers, reseller), EResellerNotExists);
 
-        let config = table::borrow_mut(&mut self.resellers, reseller);
+        let config = table::borrow_mut(&mut board.resellers, reseller);
         config.enabled = enabled
     }
 
     /// Set the commission rate for the reseller code.
-    public fun set_commission(self: &mut ResellerBoard, _: &AdminCap, reseller: String, commission: u16) {
-         assert!(table::contains(&self.resellers, reseller), EResellerNotExists);
+    public fun set_commission(self: &mut SuiNS, _: &AdminCap, reseller: String, commission: u16) {
+        let board = reseller_registry(self);
+         assert!(table::contains(&board.resellers, reseller), EResellerNotExists);
          validate_commission(commission);
         
-        let config = table::borrow_mut(&mut self.resellers, reseller);
+        let config = table::borrow_mut(&mut board.resellers, reseller);
         config.commission = commission
     }
-
 
     /// Calculates the commission fee due to payment to the reseller.
     public fun calculate_comission_fee(payment: u64, commission: u16): u64 {
@@ -151,8 +154,8 @@ module suins::reseller {
         assert!(commission > 0 && commission <= 10_000, EInvalidComission)
     }
 
-    #[test_only]
-    public fun init_for_testing(ctx: &mut TxContext){
-        init(ctx)
+    // Private accessor for the Resellers registry
+    fun reseller_registry(self: &mut SuiNS): &mut ResellerBoard {
+        suins::app_registry_mut<ResellerApp, ResellerBoard>(ResellerApp {}, self)
     }
 }
