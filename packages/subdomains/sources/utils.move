@@ -3,6 +3,7 @@
 
 module subdomains::utils {
     use std::string::{Self, String, utf8};
+    use std::vector;
 
     use suins::domain::{Self, Domain};
 
@@ -19,6 +20,8 @@ module subdomains::utils {
     const EInvalidParent: u64 = 3;
     /// tries to register a label of size less than 3.
     const EInvalidLabelSize: u64 = 4;
+    /// tries to register a domain with an unsupported tld.
+    const ENotSupportedTLD: u64 = 5;
 
     /// Derive the parent of a subdomain by the subdomain. 
     /// e.g. `subdomain.example.sui` -> `example.sui` 
@@ -59,6 +62,21 @@ module subdomains::utils {
             i = i - 1;
             assert!(domain::label(parent, i) == domain::label(child, i), EInvalidParent);
         }
+    }
+
+    /// Validates that the TLD of the domain is supported for subdomains.
+    /// In the beggining, only .sui names will be supported but we might 
+    /// want to add support for others (or not allow).
+    /// (E.g., with `.move` service, we might want to restrict how subdomains are created)
+    public fun validate_tld(supported_tlds: &vector<String>, domain: &Domain) {
+        let i=0;
+        while(i < vector::length(supported_tlds)) {
+            if(domain::tld(domain) == vector::borrow(supported_tlds, i)) {
+                return
+            };
+            i = i + 1;
+        };
+        abort ENotSupportedTLD
     }
 
     /// Validate that the subdomain label (e.g. `sub` in `sub.example.sui`) is valid.
