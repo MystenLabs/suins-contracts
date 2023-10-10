@@ -51,7 +51,7 @@ module suins::reseller {
         resellers: Table<String, ResellerConfig>
     }
 
-    // Authorizes reseller app to get `ResellerBoard` registry from SuiNS.
+    // Authorizes reseller app to use `ResellerBoard` registry from SuiNS shared object.
     struct ResellerApp has drop {}
 
     /// Called once by an admin to set up the ResellerBoard.
@@ -64,7 +64,7 @@ module suins::reseller {
     /// Authorizes a new reseller in the system as an admin.
     /// Returns a `ResellerCap` which can be transferred to the partner for winnings withdrawing.
     public fun authorize(self: &mut SuiNS, _: &AdminCap, reseller: String, commission: u16, ctx: &mut TxContext): ResellerCap {
-        let board = reseller_registry_mut(self);
+        let board = reseller_board_mut(self);
 
         validate_commission(commission);
         // validate that this reseller doesn't already exist.
@@ -85,7 +85,7 @@ module suins::reseller {
     /// Withdraw all commissions earned as a reseller.
     public fun withdraw(self: &mut SuiNS, cap: &ResellerCap, ctx: &mut TxContext): Coin<SUI> {
 
-        let board = reseller_registry_mut(self);
+        let board = reseller_board_mut(self);
         // that's a sanity check since we don't have a way to remove a reseller (and do not plan to)
         assert!(table::contains(&board.resellers, cap.for), EResellerNotExists);
 
@@ -110,7 +110,7 @@ module suins::reseller {
     ) {
         // If we have a reseller code, we take the commission fee.
         if(option::is_some(&reseller)){
-            let board = reseller_registry_mut(self);
+            let board = reseller_board_mut(self);
             let code = *option::borrow(&reseller);
             assert!(table::contains(&board.resellers, code), EResellerNotExists);
 
@@ -127,7 +127,7 @@ module suins::reseller {
 
     /// Allows to set the enabled (enable or disable) a reseller code.
     public fun set_enabled(self: &mut SuiNS, _: &AdminCap, reseller: String, enabled: bool) {
-        let board = reseller_registry_mut(self);
+        let board = reseller_board_mut(self);
         assert!(table::contains(&board.resellers, reseller), EResellerNotExists);
 
         let config = table::borrow_mut(&mut board.resellers, reseller);
@@ -136,7 +136,7 @@ module suins::reseller {
 
     /// Set the commission rate for the reseller code.
     public fun set_commission(self: &mut SuiNS, _: &AdminCap, reseller: String, commission: u16) {
-        let board = reseller_registry_mut(self);
+        let board = reseller_board_mut(self);
          assert!(table::contains(&board.resellers, reseller), EResellerNotExists);
          validate_commission(commission);
         
@@ -156,12 +156,12 @@ module suins::reseller {
     }
 
     /// Private immutable accessor for the Resellers registry
-    fun reseller_registry(self: &SuiNS): &ResellerBoard {
+    fun reseller_board(self: &SuiNS): &ResellerBoard {
         suins::registry<ResellerBoard>(self)
     }
 
     /// Private mutable accessor for the Resellers registry
-    fun reseller_registry_mut(self: &mut SuiNS): &mut ResellerBoard {
+    fun reseller_board_mut(self: &mut SuiNS): &mut ResellerBoard {
         suins::app_registry_mut<ResellerApp, ResellerBoard>(ResellerApp {}, self)
     }
 }
