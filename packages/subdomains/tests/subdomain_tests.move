@@ -11,7 +11,7 @@ module subdomains::subdomain_tests {
     use suins::suins::{Self, SuiNS, AdminCap};
     use suins::registry;
 
-    use subdomains::app::{Self, SubDomains, SubDomainApp};
+    use subdomains::subdomains::{Self, SubDomains, App};
 
     const USER_ADDRESS: address = @0x01;
 
@@ -19,7 +19,6 @@ module subdomains::subdomain_tests {
         let scenario_val = ts::begin(USER_ADDRESS);
         let scenario = &mut scenario_val;
         {
-            app::init_for_testing(ctx(scenario));
             let suins = suins::init_for_testing(ctx(scenario));
             suins::authorize_app_for_testing<SubDomains>(&mut suins);
             suins::share_for_testing(suins);
@@ -31,6 +30,7 @@ module subdomains::subdomain_tests {
             let admin_cap = ts::take_from_sender<AdminCap>(scenario);
             let suins = ts::take_shared<SuiNS>(scenario);
 
+            subdomains::setup(&mut suins, &admin_cap, ctx(scenario));
             registry::init_for_testing(&admin_cap, &mut suins, ctx(scenario));
 
             ts::return_shared(suins);
