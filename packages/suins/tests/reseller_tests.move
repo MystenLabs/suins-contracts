@@ -11,8 +11,8 @@ module suins::reseller_tests {
     use sui::coin::{Self, Coin};
     use sui::sui::SUI;
 
-    use suins::suins::{Self, SuiNS};
-    use suins::reseller::{Self, ResellerBoard, ResellerCap};
+    use suins::suins::{Self, SuiNS, AdminCap};
+    use suins::reseller::{Self, ResellerApp, ResellerCap};
 
     /// A test app to use for using the reseller system.
     struct TestApp has drop {}
@@ -158,11 +158,21 @@ module suins::reseller_tests {
         let scenario = &mut scenario_val;
         {
             ts::next_tx(scenario, ADMIN_ADDRESS);
-
             let suins = suins::init_for_testing(ctx(scenario));
-            reseller::init_for_testing(ctx(scenario));
-            suins::authorize_app_for_testing<TestApp>(&mut suins);
             suins::share_for_testing(suins);
+        };
+        {
+            ts::next_tx(scenario, ADMIN_ADDRESS);
+            let suins = ts::take_shared<SuiNS>(scenario);
+
+            let admin_cap = ts::take_from_sender<AdminCap>(scenario);
+            reseller::setup(&mut suins, &admin_cap, ctx(scenario));
+
+            suins::authorize_app_for_testing<TestApp>(&mut suins);
+            suins::authorize_app_for_testing<ResellerApp>(&mut suins);
+
+            ts::return_to_sender(scenario, admin_cap);
+            ts::return_shared(suins);
         };
 
         scenario_val
@@ -171,50 +181,48 @@ module suins::reseller_tests {
     fun authorize_reseller(scenario: &mut Scenario, reseller: String, commission: u16, user: address) {
         ts::next_tx(scenario, ADMIN_ADDRESS);
 
-        let app = ts::take_shared<ResellerBoard>(scenario);
+        let suins = ts::take_shared<SuiNS>(scenario);
         let admin_cap = suins::create_admin_cap_for_testing(ctx(scenario));
 
-        let cap = reseller::authorize(&mut app, &admin_cap, reseller, commission, ctx(scenario));
+        let cap = reseller::authorize(&mut suins, &admin_cap, reseller, commission, ctx(scenario));
         transfer::public_transfer(cap, user);
 
         suins::burn_admin_cap_for_testing(admin_cap);
-        ts::return_shared(app);
+        ts::return_shared(suins);
     }
 
     fun disable_reseller(scenario: &mut Scenario, reseller: String) {
         ts::next_tx(scenario, ADMIN_ADDRESS);
 
-        let app = ts::take_shared<ResellerBoard>(scenario);
+        let suins = ts::take_shared<SuiNS>(scenario);
         let admin_cap = suins::create_admin_cap_for_testing(ctx(scenario));
-        reseller::set_enabled(&mut app, &admin_cap, reseller, false);
+        reseller::set_enabled(&mut suins, &admin_cap, reseller, false);
 
         suins::burn_admin_cap_for_testing(admin_cap);
-        ts::return_shared(app);
+        ts::return_shared(suins);
     }
 
     fun set_reseller_commission(scenario: &mut Scenario, reseller: String, commission: u16){
         ts::next_tx(scenario, ADMIN_ADDRESS);
 
-        let app = ts::take_shared<ResellerBoard>(scenario);
+        let suins = ts::take_shared<SuiNS>(scenario);
         let admin_cap = suins::create_admin_cap_for_testing(ctx(scenario));
-        reseller::set_commission(&mut app, &admin_cap, reseller, commission);
+        reseller::set_commission(&mut suins, &admin_cap, reseller, commission);
 
         suins::burn_admin_cap_for_testing(admin_cap);
-        ts::return_shared(app);
+        ts::return_shared(suins);
     }
 
     fun pay_handler<App: drop>(app: App, scenario: &mut Scenario, amount: u64, code: Option<String>, user: address) {
         ts::next_tx(scenario, user);
 
         let suins = ts::take_shared<SuiNS>(scenario);
-        let board = ts::take_shared<ResellerBoard>(scenario);
 
         let payment: Coin<SUI> = coin::mint_for_testing(amount, ctx(scenario));
 
-        reseller::handle_payment(app, &mut board, &mut suins, payment, code, ctx(scenario));
+        reseller::handle_payment(app, &mut suins, payment, code, ctx(scenario));
 
         ts::return_shared(suins);
-        ts::return_shared(board);
     }
 
     fun assert_suins_balance(scenario: &mut Scenario, value: u64) {
@@ -229,14 +237,14 @@ module suins::reseller_tests {
 
         ts::next_tx(scenario, reseller);
         let cap = ts::take_from_sender<ResellerCap>(scenario);
-        let board = ts::take_shared<ResellerBoard>(scenario);
+        let suins = ts::take_shared<SuiNS>(scenario);
 
-        let coin = reseller::withdraw(&mut board, &cap, ctx(scenario));
+        let coin = reseller::withdraw(&mut suins, &cap, ctx(scenario));
 
         assert!(coin::value(&coin) == value, 1);
         transfer::public_transfer(coin, reseller);
 
-        ts::return_shared(board);
+        ts::return_shared(suins);
         ts::return_to_sender(scenario, cap);
     }
 }
