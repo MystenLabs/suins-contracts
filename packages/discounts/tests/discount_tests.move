@@ -3,7 +3,7 @@
 
 #[test_only]
 module discounts::discount_tests {
-
+    use std::option;
     use std::string::{utf8, String};
 
     use sui::test_scenario::{Self as ts, Scenario, ctx};
@@ -78,7 +78,7 @@ module discounts::discount_tests {
         let discount_house = ts::take_shared<DiscountHouse>(scenario);
         let clock = ts::take_shared<Clock>(scenario);
 
-        let name = discounts::register<T>(&mut discount_house, &mut suins, item, domain_name, payment, &clock, ctx(scenario));
+        let name = discounts::register<T>(&mut discount_house, &mut suins, item, domain_name, payment, &clock, option::none(), ctx(scenario));
 
         transfer::public_transfer(name, user);
 
@@ -99,7 +99,7 @@ module discounts::discount_tests {
         let discount_house = ts::take_shared<DiscountHouse>(scenario);
         let clock = ts::take_shared<Clock>(scenario);
 
-        let name = discounts::register_with_day_one(&mut discount_house, &mut suins, item, domain_name, payment, &clock, ctx(scenario));
+        let name = discounts::register_with_day_one(&mut discount_house, &mut suins, item, domain_name, payment, &clock, option::none(), ctx(scenario));
 
         transfer::public_transfer(name, user);
 

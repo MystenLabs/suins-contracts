@@ -11,7 +11,9 @@
     "transfer::names": "ts-node reserved-names/transfer-names.ts",
     "withdraw:auction:profits":"ts-node transactions/withdraw_funds_20290927.ts",
     "publish-utils": "ts-node transactions/publish_utils.ts",
-    "authorize-utils": "ts-node transactions/authorize_utils.ts"
+    "authorize-utils": "ts-node transactions/authorize_utils.ts",
+    "publish-discounts": "ts-node transactions/publish_discounts.ts",
+    "authorize-discounts": "ts-node transactions/quest_3_setup.ts"
   },
   "keywords": [],
   "author": "",

@@ -8,7 +8,7 @@
 /// Can be called only when promotions are active for a specific type T.
 /// Activation / deactivation happens through PTBs.
 module discounts::discounts {
-
+    use std::option::{Option};
     use std::string::{Self, String};
     use std::type_name::{Self as type};
 
@@ -57,6 +57,7 @@ module discounts::discounts {
         domain_name: String,
         payment: Coin<SUI>,
         clock: &Clock,
+        _reseller: Option<String>,
         ctx: &mut TxContext
     ): SuinsRegistration {
         // For normal flow, we do not allow DayOne to be used.
@@ -75,6 +76,7 @@ module discounts::discounts {
         domain_name: String,
         payment: Coin<SUI>,
         clock: &Clock,
+        _reseller: Option<String>,
         ctx: &mut TxContext
     ): SuinsRegistration {
         assert!(is_active(day_one), ENotActiveDayOne);

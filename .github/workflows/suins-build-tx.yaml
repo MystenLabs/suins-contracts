@@ -8,8 +8,8 @@ on:
         description: 'select transaction type to create'
         type: choice
         options:
-          - Publish Utils
-          - Authorize Utils
+          - Publish Discounts
+          - Authorize Discounts
           - Withdraw Auction Profits
           - Transfer Reserved Names
           - Main package upgrade
@@ -115,25 +115,25 @@ jobs:
         run: |
           cd scripts && pnpm withdraw:auction:profits
 
-      - name: Publish Utils
-        if: ${{ inputs.transaction_type == 'Publish Utils' }}
+      - name: Publish Discounts
+        if: ${{ inputs.transaction_type == 'Publish Discounts' }}
         env:
           NODE_ENV: production
           GAS_OBJECT: ${{ inputs.gas_object_id }}
           NETWORK: mainnet
           ORIGIN: gh_action
         run: |
-          cd scripts && pnpm publish-utils
+          cd scripts && pnpm publish-discounts
 
-      - name: Authorize Utils
-        if: ${{ inputs.transaction_type == 'Authorize Utils' }}
+      - name: Authorize Discounts
+        if: ${{ inputs.transaction_type == 'Authorize Discounts' }}
         env:
           NODE_ENV: production
           GAS_OBJECT: ${{ inputs.gas_object_id }}
           NETWORK: mainnet
           ORIGIN: gh_action
         run: |
-          cd scripts && pnpm authorize-utils
+          cd scripts && pnpm authorize-discounts
 
       - name: Show Transaction Data (To sign)
         run: |
