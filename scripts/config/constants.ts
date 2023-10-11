@@ -35,8 +35,8 @@ export const mainPackage: Config = {
             fullnode: 'https://suins-rpc.mainnet.sui.io'
         })),
         discountsPackage: {
-            packageId: 'TODO: FILL THIS IN',
-            discountHouseId: 'TODO: Fill this in',
+            packageId: '0x6a6ea140e095ddd82f7c745905054b3203129dd04a09d0375416c31161932d2d',
+            discountHouseId: '0x7fdd883c0b7427f18cdb498c4c87a4a79d6bec4783cb3f21aa3816bbc64ce8ef',
         },
         directSetupPackageId: '0xdac22652eb400beb1f5e2126459cae8eedc116b73b8ad60b71e3e8d7fdb317e2'
 
@@ -53,8 +53,8 @@ export const mainPackage: Config = {
         })),
         directSetupPackageId: '0x9af70a4cb6d7144e68fd972eef672a74c7fe41aa5c0bb67ba40d7d1ae87bfb19',
         discountsPackage: {
-            packageId: '0xa784ba6d2a3e7f0a51f332ce0cbb147e72b09b03ed56e96024178c538f9ff0ab',
-            discountHouseId: '0x599385bf98d823368069df46143ce9906aa4dec8beedfe8f560fcceb2b5580e5',
+            packageId: '0x319364827e018833f545d8291f0482c5859ead75663543dda153b50df83244eb',
+            discountHouseId: '0x5cee9eadc06ae2a330ba8caee517fc1502dffae6474454c45f79f0b00d148ec4',
         },
     }
 }
