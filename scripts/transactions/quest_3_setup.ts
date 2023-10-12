@@ -34,6 +34,18 @@ export type Range = {
     to: number;
 }
 
+// remove discount for type
+const removeDiscountForType = (txb: TransactionBlock, setup: PackageInfo, type: string) => {
+    txb.moveCall({
+        target: `${setup.discountsPackage.packageId}::discounts::deauthorize_type`,
+        arguments: [
+            txb.object(setup.adminCap),
+            txb.object(setup.discountsPackage.discountHouseId),
+        ],
+        typeArguments: [type]
+    });
+}
+
 // Sets up discount prices for type.
 const setupDiscountForType = (txb: TransactionBlock, setup: PackageInfo, type: string, prices: Discount) => {
     txb.moveCall({
@@ -81,10 +93,15 @@ const setup = async (network: Network) => {
     // setup `discount` both for free-claims & discounts by presenting type.
     // 3 chars -> 250 | 4 chars -> 50 | 5 chars+ -> 10
     const priceList: Discount = {
-        threeCharacterPrice: 250n * MIST_PER_SUI,
-        fourCharacterPrice: 50n * MIST_PER_SUI,
+        threeCharacterPrice: 450n * MIST_PER_SUI,
+        fourCharacterPrice: 90n * MIST_PER_SUI,
         fivePlusCharacterPrice: 10n * MIST_PER_SUI
     };
+
+    /// deauthorize. uplaod fixed
+    removeDiscountForType(txb, setup, SUIFREN_BULLSHARK_TYPE[network]);
+    removeDiscountForType(txb, setup, SUIFREN_CAPY_TYPE[network]);
+    removeDiscountForType(txb, setup, DAY_ONE_TYPE[network]);
 
     /// authorize the discounts package to allow name registrations.
     setupDiscountForType(txb, setup, SUIFREN_BULLSHARK_TYPE[network], priceList);
@@ -92,9 +109,9 @@ const setup = async (network: Network) => {
     setupDiscountForType(txb, setup, DAY_ONE_TYPE[network], priceList);
 
     // authorize the free claims to allow free claiming for 10+ names.
-    setupFreeClaimsForType(txb, setup, SUIFREN_BULLSHARK_TYPE[network], { from: 10, to: 63 });
-    setupFreeClaimsForType(txb, setup, SUIFREN_CAPY_TYPE[network], { from: 10, to: 63 });
-    setupFreeClaimsForType(txb, setup, DAY_ONE_TYPE[network], { from: 10, to: 63 });
+    // setupFreeClaimsForType(txb, setup, SUIFREN_BULLSHARK_TYPE[network], { from: 10, to: 63 });
+    // setupFreeClaimsForType(txb, setup, SUIFREN_CAPY_TYPE[network], { from: 10, to: 63 });
+    // setupFreeClaimsForType(txb, setup, DAY_ONE_TYPE[network], { from: 10, to: 63 });
 
     // for mainnet, we prepare the multi-sig tx.
     if(network === 'mainnet') return prepareMultisigTx(txb, 'mainnet');
