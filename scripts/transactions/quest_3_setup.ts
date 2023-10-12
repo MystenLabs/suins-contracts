@@ -80,15 +80,15 @@ const setup = async (network: Network) => {
 
     const txb = new TransactionBlock();
 
-    // authorize `discount` package to claim names
-    txb.moveCall({
-        target: `${setup.packageId}::suins::authorize_app`,
-        arguments: [
-          txb.object(setup.adminCap),
-          txb.object(setup.suins),
-        ],
-        typeArguments: [`${setup.discountsPackage.packageId}::house::DiscountHouseApp`],
-    });
+    // // authorize `discount` package to claim names
+    // txb.moveCall({
+    //     target: `${setup.packageId}::suins::authorize_app`,
+    //     arguments: [
+    //       txb.object(setup.adminCap),
+    //       txb.object(setup.suins),
+    //     ],
+    //     typeArguments: [`${setup.discountsPackage.packageId}::house::DiscountHouseApp`],
+    // });
 
     // setup `discount` both for free-claims & discounts by presenting type.
     // 3 chars -> 250 | 4 chars -> 50 | 5 chars+ -> 10
