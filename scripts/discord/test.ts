@@ -1,4 +1,4 @@
-import { JsonRpcProvider, TransactionBlock, testnetConnection } from "@mysten/sui.js";
+import { JsonRpcProvider, TransactionBlock, bcs, testnetConnection } from "@mysten/sui.js";
 import { executeTx, prepareSigner } from "../airdrop/helper";
 import * as secp from "@noble/secp256k1";
 import { addressToBytes, getPrivateKeyHex, signMessage } from "./crypto";
@@ -53,11 +53,11 @@ const addSomeDummyDiscordMembers = async (config: DiscordConfig) => {
 
     for(let member of discord_members){
         member.rolesSignature = await signMessage(
-            new Uint8Array([...Buffer.from(member.discord_id), ...member.roles])
+            new Uint8Array([...Buffer.from("roles_"), ...Buffer.from(member.discord_id), ...member.roles])
         );
 
         member.addressSignature = await signMessage(
-            new Uint8Array([...Buffer.from(member.discord_id), ...addressToBytes(address)])
+            new Uint8Array([...Buffer.from("address_"), ...bcs.ser('u32', 0), ...Buffer.from(member.discord_id), ...addressToBytes(address)])
         );
     }
 
@@ -105,11 +105,28 @@ const claim = async (discord_id: string, amount: number, config: DiscordConfig) 
     
 }
 
+const authorizeCouponsForTesting = async (network: Network) => {
+    const config = mainPackage[network];
+    const txb = new TransactionBlock();
+
+    txb.moveCall({
+        target: `${config.packageId}::suins::authorize_app`,
+        arguments: [
+          txb.object(config.adminCap),
+          txb.object(config.suins),
+        ],
+        typeArguments: [`0x86f392790aa609b76e5a4ee25be96153effc3c82f7394a928083059fc8fdf491::coupons::CouponsApp`],
+    });
+    const signer = prepareSigner(new JsonRpcProvider(testnetConnection));
+    await executeTx(signer, txb);
+}
+
 // authorize(localDiscordConfig, 'testnet');
 // prepareContract(localDiscordConfig);
 // addSomeDummyDiscordMembers(localDiscordConfig);
 // getDiscordMembers('0x015767b8cab58894c86dd4e381c6945efabf5aa0d70981db228ad6b64883cd95')
 
+// authorizeCouponsForTesting('testnet');
 // claim('discord_usr_15', 90, localDiscordConfig);
 
 
@@ -118,3 +135,54 @@ const claim = async (discord_id: string, amount: number, config: DiscordConfig) 
 // 0aff0b32753a8c90d694d44bf0f31949f8b3344883c87d53a428382f22873819
 // 668f524ae868c7787439a20a77a73c76ff55bb46a278eebedbbeb48eaa15bd39
 
+
+
+const recreateTestingSigs = async () => {
+
+    const sig_1 = await signMessage(
+        new Uint8Array([
+            ...Buffer.from("roles_"),
+            ...Buffer.from('discord_id_1'), 
+            ...[0,1]
+        ])
+    );
+
+    const sig_2 = await signMessage(
+        new Uint8Array([...Buffer.from("roles_"),...Buffer.from('discord_id_1'), ...[1,3]])
+    );
+
+    const sig_3 = await signMessage(
+        new Uint8Array([      ...Buffer.from("roles_"),...Buffer.from('discord_id_2'), ...[2,3]])
+    );
+
+    const sig_4 = await signMessage(
+        new Uint8Array([...Buffer.from("roles_"), ...Buffer.from('discord_id_2'), ...[5]])
+    );
+
+    const addr_sig_1 = await signMessage(
+        new Uint8Array([
+            ...Buffer.from("address_"),
+            ...bcs.ser('u32', 0).toBytes(),
+            ...Buffer.from('discord_id_1'), ...addressToBytes('0x5')
+        ])
+    );
+
+    console.log(...bcs.ser('u32', 0));
+    const addr_sig_2 = await signMessage(
+        new Uint8Array([
+            ...Buffer.from("address_"),
+            ...bcs.ser('u32', 0).toBytes(), 
+         ...Buffer.from('discord_id_2'), 
+         ...addressToBytes('0x6')])
+    );
+
+    console.log(sig_1);
+    console.log(sig_2);
+    console.log(sig_3);
+    console.log(sig_4);
+    console.log(addr_sig_1);
+    console.log(addr_sig_2);
+
+}
+
+// recreateTestingSigs();

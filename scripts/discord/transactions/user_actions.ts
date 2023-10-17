@@ -58,8 +58,8 @@ export const claimCoupon = (
             txb.sharedObjectRef(
                 // @ts-ignore-next-line until we merge the coupons PR.
                 config.coupons?.couponHouse ?? {
-                    objectId: '0x936e27aecf271e628689fd93b088bee165e85eb944232006f7877a1a1642f73d',
-                    initialSharedVersion: '8425952',
+                    objectId: '0x60a54b20a17beff0311963c1c775995572552e1c6b46955d87bdb021e9dac1e3',
+                    initialSharedVersion: '10771047',
                     mutable: true,
                 }),
             txb.pure(discordId),

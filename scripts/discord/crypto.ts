@@ -4,7 +4,7 @@
 import * as secp from "@noble/secp256k1";
 import dotenv from "dotenv";
 import { readEnvAndReplaceKey } from "../config/utils";
-import { bcs } from "@mysten/sui.js";
+import { bcs, normalizeSuiAddress } from "@mysten/sui.js";
 
 dotenv.config();
 
@@ -16,7 +16,7 @@ export const getPrivateKeyHex = () => {
 
 // Converts address to serialized version, similar to how the SC processes it.
 export const addressToBytes = (address: string): Uint8Array => {
-    return bcs.ser('address', address).toBytes();
+    return bcs.ser('address', normalizeSuiAddress(address)).toBytes();
 }
 
 // Signs a message that allows funds claiming for a specific address.

@@ -11,15 +11,15 @@ export const authorizeDiscordApp = (
     txb.moveCall({
         // TODO: Refactor to not have a default here.
         //@ts-ignore-next-line : This will be valid once coupon's PR is merged.
-        target: `${config.coupons?.packageId || '0xa9e5c66ffa31fe4529acd94fe821a494f945cc6f34d7a82610fe36e8c8173442'}::coupons::authorize_app`,
+        target: `${config.coupons?.packageId || '0x86f392790aa609b76e5a4ee25be96153effc3c82f7394a928083059fc8fdf491'}::coupons::authorize_app`,
         arguments: [
             txb.object(config.adminCap),
             // TODO: Replace with coupon constants once merged in.
             txb.sharedObjectRef(
                 // @ts-ignore-next-line until we merge the coupons PR.
                 config.coupons?.couponHouse ?? {
-                    objectId: '0x936e27aecf271e628689fd93b088bee165e85eb944232006f7877a1a1642f73d',
-                    initialSharedVersion: '8425952',
+                    objectId: '0x60a54b20a17beff0311963c1c775995572552e1c6b46955d87bdb021e9dac1e3',
+                    initialSharedVersion: '10771047',
                     mutable: true,
             }),
         ],
