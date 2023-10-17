@@ -41,9 +41,7 @@ export const setAddress = (
 }
 
 
-/** Set the address of a discord_id */
-// NOTE (02/08/2023): On the current testnet version, this doesn't create any coupons. 
-// It just consumes the point.
+/** Claim a coupon */
 export const claimCoupon = (
     txb: TransactionBlock,
     discordId: string,
