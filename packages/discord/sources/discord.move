@@ -74,13 +74,18 @@ module discord::discord{
         id: UID
     }
 
+    struct AddressMapping has store { 
+        updates: u32,
+        addr: address
+    }
+
     /// A Discord Member profile.
     struct Member has store, drop {
         /// Available points that can be converted into coupon codes. 1 point -> 1% discount.
         available_points: u64,
         /// Roles already assigned to a member. Helps us verify we never give the same rewards twice.
         roles: VecSet<u8>,
-        claimed_coupons: vector<String>
+        claimed_coupons: vector<String>,
     }
 
     /// Discord Shared Object.
@@ -90,10 +95,10 @@ module discord::discord{
         public_key: vector<u8>, 
         /// mapping a roleId -> percentage discount ([0,100]) (Up to 256 roles)
         discord_roles: VecMap<u8, u8>, 
-        ///  String -> DiscordId
+        /// DiscordId -> Member
         users: Table<String, Member>, 
         /// Mapping of DiscordId -> Address
-        address_mapping: Table<String, address> 
+        address_mapping: Table<String, AddressMapping> 
     }
 
     fun init(ctx: &mut TxContext){
@@ -138,20 +143,28 @@ module discord::discord{
     /// Can be called only by anyone, only works for a specific pair (address -> discordId)
     /// which is signed by the BE.
     public fun set_address(self: &mut Discord, signature: vector<u8>, discord_id: String, addr: address) {
+        let updates_count;
+        // IF there's a value, remove it and replace it with the new one.
+        if(table::contains(&self.address_mapping, discord_id)){
+            let entry_mut = table::borrow_mut(&mut self.address_mapping, discord_id);
+            entry_mut.addr = addr;
+            updates_count = entry_mut.updates + 1;
+            entry_mut.updates = updates_count;            
+        } else {
+            updates_count = 0;
+            table::add(&mut self.address_mapping, discord_id, AddressMapping {
+                updates: updates_count,
+                addr
+            });
+        };
 
         let msg_bytes = vector::empty<u8>();
         vector::append(&mut msg_bytes, *string::bytes(&discord_id));
         vector::append(&mut msg_bytes, address::to_bytes(addr));
+        vector::append(&mut msg_bytes, bcs::to_bytes(&updates_count));
 
         // verify that the signed message is the address of the user.
-        assert!(ecdsa_k1::secp256k1_verify(&signature, &self.public_key, &msg_bytes, 1), ESignatureNotMatch);
-
-        // IF there's a value, remove it and replace it with the new one.
-        if(table::contains(&self.address_mapping, discord_id)){
-            table::remove(&mut self.address_mapping, discord_id);
-        };
-        
-        table::add(&mut self.address_mapping, discord_id, addr);
+        assert!(ecdsa_k1::secp256k1_verify(&signature, &self.public_key, &msg_bytes, 1), ESignatureNotMatch); 
     }
 
 
@@ -252,7 +265,7 @@ module discord::discord{
         &self.users
     }
 
-    public fun address_mapping(self: &Discord): &Table<String, address> {
+    public fun address_mapping(self: &Discord): &Table<String, AddressMapping> {
         &self.address_mapping
     }
 
@@ -267,8 +280,8 @@ module discord::discord{
         assert!(table::contains(&self.users, discord_id), EDiscordIdNotFound);
 
         // Find the user mapped to that discord id.
-        let user = *table::borrow(&self.address_mapping, discord_id);
-        assert!(user == sender(ctx), EAddressNoMapping);
+        let mapping = table::borrow(&self.address_mapping, discord_id);
+        assert!(mapping.addr == sender(ctx), EAddressNoMapping);
 
         let member = table::borrow_mut(&mut self.users, discord_id);
         assert!(member.available_points >= (amount as u64), ENotEnoughPoints);
