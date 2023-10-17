@@ -1,6 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+#[test_only]
 module discord::test_payloads{
     use std::vector;
     use std::string::{String, utf8};
