@@ -168,6 +168,21 @@ module discord::discord_tests {
         test_scenario::end(scenario_val);
     }
 
+    #[test, expected_failure(abort_code=discord::discord::ESignatureNotMatch)]
+    fun try_to_reuse_signature_failure() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        prepare_data(scenario);
+        {
+            test_scenario::next_tx(scenario, tp::get_nth_user(0));
+            let discord = test_scenario::take_shared<Discord>(scenario);
+
+            discord::set_address(&mut discord, tp::get_nth_address_mapping_signature(0), tp::get_nth_discord_id(0), tp::get_nth_user(0));
+            test_scenario::return_shared(discord);
+        };
+        test_scenario::end(scenario_val);
+    }
+
     #[test, expected_failure(abort_code=discord::discord::ENotEnoughPoints)]
     fun claim_more_points_than_available_failure() {
         let scenario_val = test_init();

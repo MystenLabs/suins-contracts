@@ -19,7 +19,7 @@
 /// E.g., if the `Member` has 100 points, the user can come and claim any amount of coupons that count up to 100%.
 /// The moment the coupon is generated, the address can't change.
 
-/// The coupon's format that is being generated is random, and based on Clock + discord_id.
+/// The coupon's format that is being generated is calculated based on hash(discord_id + claim_idx)
 
 module discord::discord{
     use std::option;
@@ -120,6 +120,7 @@ module discord::discord{
     public fun attach_roles(self: &mut Discord, signature: vector<u8>, discord_id: String, roles: vector<u8>) {
 
         let msg_bytes = vector::empty<u8>();
+        vector::append(&mut msg_bytes, b"roles_");
         vector::append(&mut msg_bytes, *string::bytes(&discord_id));
         vector::append(&mut msg_bytes, roles);
 
@@ -143,25 +144,26 @@ module discord::discord{
     /// Can be called only by anyone, only works for a specific pair (address -> discordId)
     /// which is signed by the BE.
     public fun set_address(self: &mut Discord, signature: vector<u8>, discord_id: String, addr: address) {
-        let updates_count;
         // IF there's a value, remove it and replace it with the new one.
-        if(table::contains(&self.address_mapping, discord_id)){
+        let updates_count = if(table::contains(&self.address_mapping, discord_id)){
             let entry_mut = table::borrow_mut(&mut self.address_mapping, discord_id);
             entry_mut.addr = addr;
-            updates_count = entry_mut.updates + 1;
-            entry_mut.updates = updates_count;            
+            entry_mut.updates = entry_mut.updates + 1;
+            entry_mut.updates
         } else {
-            updates_count = 0;
             table::add(&mut self.address_mapping, discord_id, AddressMapping {
-                updates: updates_count,
+                updates: 0,
                 addr
             });
+            0
+
         };
 
         let msg_bytes = vector::empty<u8>();
+        vector::append(&mut msg_bytes, b"address_");
+        vector::append(&mut msg_bytes, bcs::to_bytes(&updates_count));
         vector::append(&mut msg_bytes, *string::bytes(&discord_id));
         vector::append(&mut msg_bytes, address::to_bytes(addr));
-        vector::append(&mut msg_bytes, bcs::to_bytes(&updates_count));
 
         // verify that the signed message is the address of the user.
         assert!(ecdsa_k1::secp256k1_verify(&signature, &self.public_key, &msg_bytes, 1), ESignatureNotMatch); 
