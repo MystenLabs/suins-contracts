@@ -13,7 +13,8 @@
     "publish-utils": "ts-node transactions/publish_utils.ts",
     "authorize-utils": "ts-node transactions/authorize_utils.ts",
     "publish-discounts": "ts-node transactions/publish_discounts.ts",
-    "authorize-discounts": "ts-node transactions/quest_3_setup.ts"
+    "authorize-discounts": "ts-node transactions/quest_3_setup.ts",
+    "disable-free-claims": "ts-node transactions/quest3/disable_free_claims.ts"
   },
   "keywords": [],
   "author": "",

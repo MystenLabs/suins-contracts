@@ -8,6 +8,7 @@ on:
         description: 'select transaction type to create'
         type: choice
         options:
+          - Disable Free Claims
           - Publish Discounts
           - Authorize Discounts
           - Withdraw Auction Profits
@@ -134,6 +135,16 @@ jobs:
           ORIGIN: gh_action
         run: |
           cd scripts && pnpm authorize-discounts
+
+      - name: Disable Free Claims
+        if: ${{ inputs.transaction_type == 'Disable Free Claims' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+        run: |
+          cd scripts && pnpm disable-free-claims
 
       - name: Show Transaction Data (To sign)
         run: |
