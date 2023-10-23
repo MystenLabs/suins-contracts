@@ -80,6 +80,11 @@ const setup = async (network: Network) => {
   const setup = mainPackage[network];
 
   const txb = new TransactionBlock();
+  txb.mergeCoins(txb.gas, [
+    txb.object(
+      "0xbb210191c48a3acbe8c306ef836037c7dc0e5920c7337d569755b52e38120554"
+    ),
+  ]);
   const [coin] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
 
   // Create SUI/ USDC
