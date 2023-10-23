@@ -21,6 +21,8 @@ const WETH =
   "0xaf8cd5edc19c4512f4259f0bee101a40d41ebed738ade5874359610ef8eeced5::coin::COIN";
 const USDT =
   "0xc060006111016b8a020ad5b33834984a437aaa7d3c74c18e09a95d48aceab08c::coin::COIN";
+const TESTNET_COIN =
+  "0x0c5f16ebb22a354ccb8f4dc163df0e729d0d37b565b4178046ea342ea0a93391::gold::GOLD";
 export const CREATION_FEE = 100 * 1e9;
 export const PACKAGE_ID = "0xdee9";
 export const MODULE_CLOB = "clob_v2";
@@ -33,6 +35,7 @@ const DEFAULT_TAKER_FEE = 200000;
 const DEFAULT_STABLE_MAKER_FEE = 100000;
 const DEFAULT_STABLE_TAKER_FEE = 100000;
 
+// export ADMIN_PHRASE="trophy conduct student type result lamp seven slam chest category tenant inherit"
 // List of deepbook pools today
 // data: [
 //     { BTC / USDC pool
@@ -78,57 +81,62 @@ const setup = async (network: Network) => {
   const setup = mainPackage[network];
 
   const txb = new TransactionBlock();
-  const [coin] = txb.splitCoins(txb.gas, [CREATION_FEE]);
+  const [coin] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
 
   // Create SUI/ USDC
   txb.moveCall({
     typeArguments: [SUI, WUSDCETH],
     target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
     arguments: [
-      txb.pure.u64(100),
-      txb.pure.u64(100000000),
-      txb.pure.u64(DEFAULT_TAKER_FEE),
-      txb.pure.u64(DEFAULT_MAKER_FEE),
+      txb.pure(100),
+      txb.pure(100000000),
+      txb.pure(DEFAULT_TAKER_FEE),
+      txb.pure(DEFAULT_MAKER_FEE),
       coin,
     ],
   });
+
+  const [coin2] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
 
   // Create USDT / USDC
   txb.moveCall({
     typeArguments: [USDT, WUSDCETH],
     target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
     arguments: [
-      txb.pure.u64(100000),
-      txb.pure.u64(100000),
-      txb.pure.u64(DEFAULT_STABLE_TAKER_FEE),
-      txb.pure.u64(DEFAULT_STABLE_MAKER_FEE),
-      coin,
+      txb.pure(100000),
+      txb.pure(100000),
+      txb.pure(DEFAULT_STABLE_TAKER_FEE),
+      txb.pure(DEFAULT_STABLE_MAKER_FEE),
+      coin2,
     ],
   });
+
+  const [coin3] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
 
   // Create WETH / USDC
   txb.moveCall({
     typeArguments: [WETH, WUSDCETH],
     target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
     arguments: [
-      txb.pure.u64(1000000),
-      txb.pure.u64(10000),
-      txb.pure.u64(DEFAULT_STABLE_TAKER_FEE),
-      txb.pure.u64(DEFAULT_STABLE_MAKER_FEE),
-      coin,
+      txb.pure(1000000),
+      txb.pure(10000),
+      txb.pure(DEFAULT_STABLE_TAKER_FEE),
+      txb.pure(DEFAULT_STABLE_MAKER_FEE),
+      coin3,
     ],
   });
+  const [coin4] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
 
   // Create WBTC / USDC
   txb.moveCall({
     typeArguments: [WBTC, WUSDCETH],
     target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
     arguments: [
-      txb.pure.u64(1000000),
-      txb.pure.u64(1000),
-      txb.pure.u64(DEFAULT_STABLE_TAKER_FEE),
-      txb.pure.u64(DEFAULT_STABLE_MAKER_FEE),
-      coin,
+      txb.pure(1000000),
+      txb.pure(1000),
+      txb.pure(DEFAULT_STABLE_TAKER_FEE),
+      txb.pure(DEFAULT_STABLE_MAKER_FEE),
+      coin4,
     ],
   });
 
@@ -139,5 +147,7 @@ const setup = async (network: Network) => {
   return executeTx(prepareSigner(setup.provider), txb);
 };
 
-if (process.env.NETWORK === "mainnet") setup("mainnet");
-else setup("testnet");
+// if (process.env.NETWORK === "mainnet") setup("mainnet");
+// else setup("testnet");
+
+setup("testnet");
