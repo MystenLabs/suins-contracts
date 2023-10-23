@@ -35,7 +35,6 @@ const DEFAULT_TAKER_FEE = 200000;
 const DEFAULT_STABLE_MAKER_FEE = 100000;
 const DEFAULT_STABLE_TAKER_FEE = 100000;
 
-// export ADMIN_PHRASE="trophy conduct student type result lamp seven slam chest category tenant inherit"
 // List of deepbook pools today
 // data: [
 //     { BTC / USDC pool
@@ -147,7 +146,5 @@ const setup = async (network: Network) => {
   return executeTx(prepareSigner(setup.provider), txb);
 };
 
-// if (process.env.NETWORK === "mainnet") setup("mainnet");
-// else setup("testnet");
-
-setup("testnet");
+if (process.env.NETWORK === "mainnet") setup("mainnet");
+else setup("testnet");
