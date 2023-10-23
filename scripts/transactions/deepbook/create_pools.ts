@@ -85,35 +85,35 @@ const setup = async (network: Network) => {
   //       "0xbb210191c48a3acbe8c306ef836037c7dc0e5920c7337d569755b52e38120554"
   //     ),
   //   ]);
-  const [coin] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
+  //   const [coin] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
 
-  // Create SUI/ USDC
-  txb.moveCall({
-    typeArguments: [SUI, WUSDCETH],
-    target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
-    arguments: [
-      txb.pure(100),
-      txb.pure(100000000),
-      txb.pure(DEFAULT_TAKER_FEE),
-      txb.pure(DEFAULT_MAKER_FEE),
-      coin,
-    ],
-  });
+  //   // Create SUI/ USDC
+  //   txb.moveCall({
+  //     typeArguments: [SUI, WUSDCETH],
+  //     target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
+  //     arguments: [
+  //       txb.pure(100),
+  //       txb.pure(100000000),
+  //       txb.pure(DEFAULT_TAKER_FEE),
+  //       txb.pure(DEFAULT_MAKER_FEE),
+  //       coin,
+  //     ],
+  //   });
 
-  const [coin2] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
+  //   const [coin2] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
 
-  // Create USDT / USDC
-  txb.moveCall({
-    typeArguments: [USDT, WUSDCETH],
-    target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
-    arguments: [
-      txb.pure(100000),
-      txb.pure(100000),
-      txb.pure(DEFAULT_STABLE_TAKER_FEE),
-      txb.pure(DEFAULT_STABLE_MAKER_FEE),
-      coin2,
-    ],
-  });
+  //   // Create USDT / USDC
+  //   txb.moveCall({
+  //     typeArguments: [USDT, WUSDCETH],
+  //     target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
+  //     arguments: [
+  //       txb.pure(100000),
+  //       txb.pure(100000),
+  //       txb.pure(DEFAULT_STABLE_TAKER_FEE),
+  //       txb.pure(DEFAULT_STABLE_MAKER_FEE),
+  //       coin2,
+  //     ],
+  //   });
 
   const [coin3] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
 
@@ -124,8 +124,8 @@ const setup = async (network: Network) => {
     arguments: [
       txb.pure(1000000),
       txb.pure(10000),
-      txb.pure(DEFAULT_STABLE_TAKER_FEE),
-      txb.pure(DEFAULT_STABLE_MAKER_FEE),
+      txb.pure(DEFAULT_TAKER_FEE),
+      txb.pure(DEFAULT_MAKER_FEE),
       coin3,
     ],
   });
@@ -138,8 +138,8 @@ const setup = async (network: Network) => {
     arguments: [
       txb.pure(1000000),
       txb.pure(1000),
-      txb.pure(DEFAULT_STABLE_TAKER_FEE),
-      txb.pure(DEFAULT_STABLE_MAKER_FEE),
+      txb.pure(DEFAULT_TAKER_FEE),
+      txb.pure(DEFAULT_MAKER_FEE),
       coin4,
     ],
   });
