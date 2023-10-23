@@ -24,11 +24,14 @@ const USDT =
 export const CREATION_FEE = 100 * 1e9;
 export const PACKAGE_ID = "0xdee9";
 export const MODULE_CLOB = "clob_v2";
-const DEFAULT_MAKER_FEE = 0;
-const DEFAULT_TAKER_FEE = 400000;
 
-const DEFAULT_STABLE_MAKER_FEE = 0;
-const DEFAULT_STABLE_TAKER_FEE = 200000;
+// 2 - 2 for fees on the more volatile assets
+const DEFAULT_MAKER_FEE = 200000;
+const DEFAULT_TAKER_FEE = 200000;
+
+// 1 - 1 for fees
+const DEFAULT_STABLE_MAKER_FEE = 100000;
+const DEFAULT_STABLE_TAKER_FEE = 100000;
 
 // List of deepbook pools today
 // data: [
