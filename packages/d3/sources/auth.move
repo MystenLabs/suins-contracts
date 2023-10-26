@@ -18,6 +18,9 @@ module d3::auth {
      // will be removed when `public(package)` is supported.
     friend d3::d3;
 
+    /// The cap is not authorized to mint names.
+    const ECapNotAuthorized: u64 = 1;
+
     /// Authorization token for the app.
     struct DThreeApp has drop {}
 
@@ -59,6 +62,17 @@ module d3::auth {
         transfer::transfer(cap, addr);
     }
 
+    /// Admin of SuiNS can deauthorize a Cap. 
+    /// Used in case of a cap leak from D3's BE.
+    public fun deauthorize_cap(suins: &mut SuiNS, _: &AdminCap, id: ID) {
+        let (cap_exists, index) = vector::index_of(d3_allowed_keys(suins), &id);
+    
+        if(cap_exists){
+            let _id = vector::remove(d3_allowed_keys_mut(suins), index);
+        }else {
+            abort ECapNotAuthorized
+        }
+    }
 
     /// These all will become public(package) when it is available.
     /// === Getters / Mut getters === 

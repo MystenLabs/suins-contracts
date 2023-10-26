@@ -7,7 +7,7 @@ module d3::d3 {
     use std::string::{String, utf8};
     use std::vector;
 
-    use sui::object::{Self, ID};
+    use sui::object::{Self};
     use sui::tx_context::{TxContext};
     use sui::clock::{Self, Clock};
     use sui::dynamic_field::{Self as df};
@@ -16,7 +16,7 @@ module d3::d3 {
 
     use suins::domain::{Self, Domain};
     use suins::registry::{Self, Registry};
-    use suins::suins::{SuiNS, AdminCap};
+    use suins::suins::SuiNS;
     use suins::config;
     use suins::suins_registration::{Self, SuinsRegistration};
 
@@ -115,18 +115,6 @@ module d3::d3 {
         registry::set_data(registry_mut, domain::new(domain_name), data);
     }
 
-    /// Admin of SuiNS can deauthorize a Cap. 
-    /// Used in case of a cap leak from D3's BE.
-    public fun deauthorize_cap(suins: &mut SuiNS, _: &AdminCap, id: ID) {
-        let (cap_exists, index) = vector::index_of(auth::d3_allowed_keys(suins), &id);
-    
-        if(cap_exists){
-            let _id = vector::remove(auth::d3_allowed_keys_mut(suins), index);
-        }else {
-            abort ECapNotAuthorized
-        }
-    }
-
     /// Validate whether a D3Cap is authorized for use in the app.
     public fun is_cap_authorized(suins: &SuiNS, cap: &DThreeCap): bool {
         vector::contains(auth::d3_allowed_keys(suins), &object::id(cap))
@@ -173,5 +161,17 @@ module d3::d3 {
         assert!(is_d3_compatible_name(&data), ENotD3CompatibleRecord);
 
         data
+    }
+
+    #[test_only]
+    public fun add_non_d3_domain_for_testing(
+        suins: &mut SuiNS,
+        domain_name: String,
+        clock: &Clock,
+        ctx: &mut TxContext
+    ): SuinsRegistration {
+        let registry = registry_mut(suins);
+
+        registry::add_record(registry, domain::new(domain_name), 1, clock, ctx)
     }
 }

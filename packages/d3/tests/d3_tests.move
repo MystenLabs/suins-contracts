@@ -8,6 +8,7 @@ module d3::d3_tests {
     use sui::test_scenario::{Self as ts, Scenario, ctx};
     use sui::clock::{Self, Clock};
     use sui::transfer;
+    use sui::object;
 
     use suins::registry::{Self};
     use suins::suins::{Self, SuiNS, AdminCap};
@@ -48,13 +49,13 @@ module d3::d3_tests {
     }
 
     /// A helper to mint a name as D3.
-    fun mint_name(scenario: &mut Scenario, domain_name: String, recipient: address){
+    fun mint_name(scenario: &mut Scenario, domain_name: String, years: u8, recipient: address){
         ts::next_tx(scenario, DTHREE_ADDRESS);
         let suins = ts::take_shared<SuiNS>(scenario);
         let cap = ts::take_from_sender<DThreeCap>(scenario);
         let clock = ts::take_shared<Clock>(scenario);
 
-        let name = d3::create_name(&mut suins, domain_name, 1, &clock, &cap, ctx(scenario));
+        let name = d3::create_name(&mut suins, domain_name, years, &clock, &cap, ctx(scenario));
         transfer::public_transfer(name, recipient);
 
         ts::return_to_sender(scenario, cap);
@@ -88,7 +89,7 @@ module d3::d3_tests {
         let scenario = &mut scenario_val;
 
         let name = utf8(b"d3name.sui");
-        mint_name(scenario, name, USER);
+        mint_name(scenario, name, 1, USER);
 
         // Lock the name.
         icann_lock_toggle(scenario, name, true);
@@ -116,10 +117,70 @@ module d3::d3_tests {
             assert!(!d3::registry_is_icann_locked_name(&suins, name), 0);
             ts::return_shared(suins);
         };
-        
-
         // We register a name using a DThreeCap.
 
         ts::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = d3::auth::ECapNotAuthorized)]
+    fun deauthorized_cap_failure() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+
+        ts::next_tx(scenario, SUINS_ADDRESS);
+
+        let suins = ts::take_shared<SuiNS>(scenario);
+        let admin_cap = ts::take_from_sender<AdminCap>(scenario);
+
+        auth::deauthorize_cap(&mut suins, &admin_cap, object::id(&admin_cap));
+        mint_name(scenario, utf8(b"d3name.sui"), 1, USER);        
+
+        abort 1337
+    }
+
+    #[test, expected_failure(abort_code = d3::d3::EDomainNotRegistered)]
+    fun non_existing_domain_failure() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+
+        // Lock the name.
+        icann_lock_toggle(scenario, utf8(b"test.sui"), true);
+
+        abort 1337
+    }
+
+    #[test, expected_failure(abort_code = d3::d3::ENotD3CompatibleRecord)]
+    fun non_d3_domain_edit_failure() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        let name = utf8(b"test.sui");
+
+        {
+             ts::next_tx(scenario, SUINS_ADDRESS);
+            let suins = ts::take_shared<SuiNS>(scenario);
+            let clock = ts::take_shared<Clock>(scenario);
+
+            let nft = d3::add_non_d3_domain_for_testing(&mut suins, name, &clock, ctx(scenario));
+
+            transfer::public_transfer(nft, USER);
+
+            ts::return_shared(suins);
+            ts::return_shared(clock);
+        };
+
+        icann_lock_toggle(scenario, name, true);
+
+        abort 1337
+    }
+
+    #[test, expected_failure(abort_code = d3::d3::EInvalidYearsArgument)]
+    fun too_many_years_failure() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+
+        let name = utf8(b"test.sui");
+        mint_name(scenario, name, 6, USER);
+
+        abort 1337
     }
 }
