@@ -10,9 +10,12 @@ module d3::d3 {
     use sui::object::{Self};
     use sui::tx_context::{TxContext};
     use sui::clock::{Self, Clock};
+    use sui::coin::{Self, Coin};
+    use sui::sui::SUI;
     use sui::dynamic_field::{Self as df};
     use sui::vec_map::{Self, VecMap};
     use sui::event;
+    use sui::balance;
 
     use suins::domain::{Self, Domain};
     use suins::registry::{Self, Registry};
@@ -31,6 +34,8 @@ module d3::d3 {
     const EDomainNotRegistered: u64 = 2;
     /// Tries to edit a non-d3 compatible name.
     const ENotD3CompatibleRecord: u64 = 3;
+    /// Tries to add D3 compatibility to an already compatible name.
+    const EAlreadyCompatible: u64 = 4;
 
     /// A DF key to show that a `SuinsRegistration` object is D3 compliant.
     /// Helpful for clients to query this without looking up the registry 
@@ -41,6 +46,30 @@ module d3::d3 {
     struct DThreeMintEvent has copy, drop {
         domain: Domain,
         timestamp_ms: u64
+    }
+
+    /// Adds d3 compatibility (by paying a specific fee) to a domain.
+    public fun add_d3_compatibility(
+        suins: &mut SuiNS,
+        nft: &mut SuinsRegistration,
+        payment: Coin<SUI>
+    ) {
+        auth::assert_app_authorized(suins);
+
+        // TODO: Implement check for payment amount.
+        // TODO: Add configuration for payment price.
+
+        assert!(!registry_is_compatible_d3_name(suins, suins_registration::domain_name(nft)), EAlreadyCompatible);
+
+        // Add payment
+        balance::join(auth::d3_balance_mut(suins), coin::into_balance(payment));
+
+        internal_add_d3_compatibility(registry_mut(suins), nft);
+
+        // Abort until we have complete implementation that checks payment amount (if it's proper).
+        // We'll probably also need to calculate the price based on the remaining period (until expiration).
+        // Note to self for renewals: We'll need to make sure that domain renewals strips these flags (or requires paying for these too).
+        abort 1337
     }
 
     // Allows registering from D3's side with D3 Cap
@@ -72,14 +101,7 @@ module d3::d3 {
 
         let registration = registry::add_record(registry, domain, no_years, clock, ctx);
 
-        // We attach the D3 eligibility flag to the SuinsRegistration object.
-        df::add(suins_registration::uid_mut(&mut registration), DThreeCompatibleName {}, true);
-
-        // We also attach the D3 eligibility to the NameRecord.
-        let metadata: VecMap<String, String> = vec_map::empty();
-        vec_map::insert(&mut metadata, d3_compatibility_metadata_key(), utf8(b"true"));
-
-        registry::set_data(registry, domain, metadata);
+        internal_add_d3_compatibility(registry, &mut registration);
 
         // Emit an event so we can track the minting of D3 names easily.
         event::emit(DThreeMintEvent {
@@ -98,6 +120,8 @@ module d3::d3 {
         let registry_mut = registry_mut(suins);
 
         let data = internal_get_record_data(registry_mut, domain_name);
+        assert!(is_d3_compatible_name(&data), ENotD3CompatibleRecord);
+
         vec_map::insert(&mut data, icann_lock_metadata_key(), utf8(b"true"));
 
         registry::set_data(registry_mut, domain::new(domain_name), data);
@@ -110,6 +134,8 @@ module d3::d3 {
         let registry_mut = registry_mut(suins);
 
         let data = internal_get_record_data(registry_mut, domain_name);
+        assert!(is_d3_compatible_name(&data), ENotD3CompatibleRecord);
+    
         vec_map::remove(&mut data, &icann_lock_metadata_key());
 
         registry::set_data(registry_mut, domain::new(domain_name), data);
@@ -141,6 +167,24 @@ module d3::d3 {
         vec_map::contains(data, &d3_compatibility_metadata_key())
     }
     
+
+    /// An internal helper to convert a record to D3 compatible.
+    /// 
+    /// 1. Adds Dynamic Field to SuinsRegistration
+    /// 2. Adds metadata in registry
+    /// 
+    fun internal_add_d3_compatibility(registry: &mut Registry, nft: &mut SuinsRegistration) {
+        // We attach the D3 eligibility flag to the SuinsRegistration object.
+        df::add(suins_registration::uid_mut(nft), DThreeCompatibleName {}, true);
+
+        // We also attach the D3 eligibility to the NameRecord.
+        let data = internal_get_record_data(registry, suins_registration::domain_name(nft));
+    
+        vec_map::insert(&mut data, d3_compatibility_metadata_key(), utf8(b"true"));
+
+        registry::set_data(registry, suins_registration::domain(nft), data);
+    }
+
     /// An internal helper to get record data (editable)
     /// 
     /// Validates:
@@ -157,8 +201,6 @@ module d3::d3 {
 
         assert!(registry::has_record(registry, domain::new(domain_name)), EDomainNotRegistered);
         let data = *registry::get_data(registry, domain);
-
-        assert!(is_d3_compatible_name(&data), ENotD3CompatibleRecord);
 
         data
     }
