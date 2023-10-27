@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /// The core of D3 functionality.
-/// 
 module d3::d3 {
     use std::string::{String, utf8};
     use std::vector;
