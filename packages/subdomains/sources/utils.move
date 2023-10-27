@@ -6,11 +6,16 @@ module subdomains::utils {
     use std::vector;
 
     use suins::domain::{Self, Domain};
+    use suins::constants::{sui_tld};
 
     /// the minimum size a subdomain label can have.
     const MIN_LABEL_SIZE: u8 = 3;
     /// the maximum depth a subdomain can have.
     const MAX_SUBDOMAIN_DEPTH: u8 = 8;
+
+    /// VecMap Keys for the NameRecord (that define whether a name can create or update)
+    const ALLOW_CREATION: vector<u8> = b"ALLOW_CREATION";
+    const ALLOW_TIME_EXTENSION: vector<u8> = b"ALLOW_TIME_EXTENSION";
 
     /// tries to register a subdomain with a depth more than the one allowed.
     const EDepthOutOfLimit: u64 = 1;
@@ -33,7 +38,7 @@ module subdomains::utils {
 
     public fun default_config(): SubDomainConfig {
         SubDomainConfig {
-            allowed_tlds: vector[utf8(b"sui")],
+            allowed_tlds: vector[sui_tld()],
             max_depth: MAX_SUBDOMAIN_DEPTH,
             min_label_size: MIN_LABEL_SIZE
         }
@@ -107,6 +112,14 @@ module subdomains::utils {
             i = i + 1;
         };
         abort ENotSupportedTLD
+    }
+
+    public fun allow_creation_key(): String{
+        utf8(ALLOW_CREATION)
+    }
+
+    public fun allow_extension_key(): String{
+        utf8(ALLOW_TIME_EXTENSION)
     }
 
     /// Validate that the subdomain label (e.g. `sub` in `sub.example.sui`) is valid.
