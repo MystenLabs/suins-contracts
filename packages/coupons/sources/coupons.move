@@ -41,12 +41,13 @@ module coupons::coupons {
     /// Our versioning of the coupons package.
     const VERSION: u8 = 1;
 
-    // use suins::config;
     use suins::domain;
     use suins::suins::{Self, AdminCap, SuiNS}; // re-use AdminCap for creating new coupons.
     use suins::suins_registration::SuinsRegistration;
     use suins::config::{Self, Config};
     use suins::registry::{Self, Registry};
+
+    use reserved::reserved_names::{Self, ReservedList};
 
     // Authorization for the Coupons on SuiNS, to be able to register names on the app.
     struct CouponsApp has drop {}
@@ -92,6 +93,7 @@ module coupons::coupons {
     public fun register_with_coupon(
         self: &mut CouponHouse,
         suins: &mut SuiNS,
+        reserved: &ReservedList,
         coupon_code: String,
         domain_name: String,
         no_years: u8,
@@ -112,7 +114,11 @@ module coupons::coupons {
         let config = suins::get_config<Config>(suins);
         let domain = domain::new(domain_name);
         let label = domain::sld(&domain);
-        
+
+        // Our validation on reserved names.
+        reserved_names::assert_is_not_offensive_name(reserved, *label);
+        reserved_names::assert_is_not_reserved_name(reserved, *label);
+
         let domain_length = (string::length(label) as u8);
 
         // Borrow coupon from the table.

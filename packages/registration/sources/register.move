@@ -14,6 +14,8 @@ module registration::register {
     use suins::config::{Self, Config};
     use suins::suins_registration::SuinsRegistration;
 
+
+    use reserved::reserved_names::{Self, ReservedList};
     /// Number of years passed is not within [1-5] interval.
     const EInvalidYearsArgument: u64 = 0;
     /// Trying to register a subdomain (only *.sui is currently allowed).
@@ -29,9 +31,11 @@ module registration::register {
     // - the domain is not already registered (or, if active, expired)
     // - the domain TLD is .sui
     // - the domain is not a subdomain
+    // - the domain is not reserved / offensive
     // - number of years is within [1-5] interval
     public fun register(
         suins: &mut SuiNS,
+        reserved: &ReservedList,
         domain_name: String,
         no_years: u8,
         payment: Coin<SUI>,
@@ -39,10 +43,13 @@ module registration::register {
         ctx: &mut TxContext
     ): SuinsRegistration {
         suins::assert_app_is_authorized<Register>(suins);
-
         let config = suins::get_config<Config>(suins);
-
         let domain = domain::new(domain_name);
+
+        // Our validation on reserved names.
+        reserved_names::assert_is_not_offensive_name(reserved, *domain::sld(&domain));
+        reserved_names::assert_is_not_reserved_name(reserved, *domain::sld(&domain));
+
         config::assert_valid_user_registerable_domain(&domain);
 
         assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);

@@ -19,6 +19,8 @@ module discounts::free_claims_tests {
 
     use day_one::day_one::{Self, DayOne};
 
+    use reserved::reserved_names;
+
     // An authorized type to test.
     struct TestAuthorized has key, store { id: UID }
 
@@ -84,17 +86,20 @@ module discounts::free_claims_tests {
         user: address
     ) {
         ts::next_tx(scenario, user);
+        let reserved = reserved_names::list_for_testing(ctx(scenario));
         let suins = ts::take_shared<SuiNS>(scenario);
         let discount_house = ts::take_shared<DiscountHouse>(scenario);
         let clock = ts::take_shared<Clock>(scenario);
 
-        let name = free_claims::free_claim<T>(&mut discount_house, &mut suins, item, domain_name, &clock, ctx(scenario));
+        let name = free_claims::free_claim<T>(&mut discount_house, &mut suins, &reserved, item, domain_name, &clock, ctx(scenario));
 
         transfer::public_transfer(name, user);
 
         ts::return_shared(discount_house);
         ts::return_shared(suins);
         ts::return_shared(clock);
+
+        reserved_names::burn_list_for_testing(reserved);
     }
 
     fun free_claim_with_day_one(
@@ -104,17 +109,20 @@ module discounts::free_claims_tests {
         user: address
     ) {
         ts::next_tx(scenario, user);
+        let reserved = reserved_names::list_for_testing(ctx(scenario));
         let suins = ts::take_shared<SuiNS>(scenario);
         let discount_house = ts::take_shared<DiscountHouse>(scenario);
         let clock = ts::take_shared<Clock>(scenario);
 
-        let name = free_claims::free_claim_with_day_one(&mut discount_house, &mut suins, item, domain_name, &clock, ctx(scenario));
+        let name = free_claims::free_claim_with_day_one(&mut discount_house, &mut suins, &reserved, item, domain_name, &clock, ctx(scenario));
 
         transfer::public_transfer(name, user);
 
         ts::return_shared(discount_house);
         ts::return_shared(suins);
         ts::return_shared(clock);
+        
+        reserved_names::burn_list_for_testing(reserved);
     }
 
     #[test]

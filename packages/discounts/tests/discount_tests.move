@@ -20,6 +20,8 @@ module discounts::discount_tests {
 
     use day_one::day_one::{Self, DayOne};
 
+    use reserved::reserved_names;
+
     // an authorized type to test.
     struct TestAuthorized has copy, store, drop {}
 
@@ -74,17 +76,20 @@ module discounts::discount_tests {
         user: address
     ) {
         ts::next_tx(scenario, user);
+
+        let reserved = reserved_names::list_for_testing(ctx(scenario));
         let suins = ts::take_shared<SuiNS>(scenario);
         let discount_house = ts::take_shared<DiscountHouse>(scenario);
         let clock = ts::take_shared<Clock>(scenario);
 
-        let name = discounts::register<T>(&mut discount_house, &mut suins, item, domain_name, payment, &clock, option::none(), ctx(scenario));
+        let name = discounts::register<T>(&mut discount_house, &mut suins, &reserved, item, domain_name, payment, &clock, option::none(), ctx(scenario));
 
         transfer::public_transfer(name, user);
 
         ts::return_shared(discount_house);
         ts::return_shared(suins);
         ts::return_shared(clock);
+        reserved_names::burn_list_for_testing(reserved);
     }
 
     fun register_with_day_one(
@@ -95,17 +100,19 @@ module discounts::discount_tests {
         user: address
     ) {
         ts::next_tx(scenario, user);
+        let reserved = reserved_names::list_for_testing(ctx(scenario));
         let suins = ts::take_shared<SuiNS>(scenario);
         let discount_house = ts::take_shared<DiscountHouse>(scenario);
         let clock = ts::take_shared<Clock>(scenario);
 
-        let name = discounts::register_with_day_one(&mut discount_house, &mut suins, item, domain_name, payment, &clock, option::none(), ctx(scenario));
+        let name = discounts::register_with_day_one(&mut discount_house, &mut suins, &reserved, item, domain_name, payment, &clock, option::none(), ctx(scenario));
 
         transfer::public_transfer(name, user);
 
         ts::return_shared(discount_house);
         ts::return_shared(suins);
         ts::return_shared(clock);
+        reserved_names::burn_list_for_testing(reserved);
     }
 
     #[test]

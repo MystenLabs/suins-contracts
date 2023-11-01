@@ -22,6 +22,8 @@ module registration::register_tests {
     use suins::auction_tests;
     use suins::auction::{Self, App as AuctionApp};
 
+    use reserved::reserved_names;
+
     const SUINS_ADDRESS: address = @0xA001;
     const AUCTIONED_DOMAIN_NAME: vector<u8> = b"tes-t2.sui";
     const DOMAIN_NAME: vector<u8> = b"abc.sui";
@@ -58,15 +60,18 @@ module registration::register_tests {
         clock_tick: u64
     ): SuinsRegistration {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
+
+        let reserved_list = reserved_names::list_for_testing(ctx(scenario));
         let suins = test_scenario::take_shared<SuiNS>(scenario);
         let payment = coin::mint_for_testing<SUI>(amount, ctx(scenario));
         let clock = test_scenario::take_shared<Clock>(scenario);
 
         clock::increment_for_testing(&mut clock, clock_tick);
-        let nft = register(&mut suins, domain_name, no_years, payment, &clock, ctx(scenario));
+        let nft = register(&mut suins, &reserved_list, domain_name, no_years, payment, &clock, ctx(scenario));
 
         test_scenario::return_shared(clock);
         test_scenario::return_shared(suins);
+        reserved_names::burn_list_for_testing(reserved_list);
 
         nft
     }

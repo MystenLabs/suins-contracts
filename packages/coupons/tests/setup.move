@@ -30,6 +30,8 @@ module coupons::setup {
 
     use suins::suins::{Self, AdminCap, SuiNS};
     use suins::registry;
+
+    use reserved::reserved_names;
     
     public fun test_init(): Scenario {
         let scenario_val = test_scenario::begin(ADMIN_ADDRESS);
@@ -233,6 +235,7 @@ module coupons::setup {
         test_scenario::next_tx(scenario, user);
         let clock = test_scenario::take_shared<Clock>(scenario);
         clock::increment_for_testing(&mut clock, clock_value);
+        let reserved = reserved_names::list_for_testing(ctx(scenario));
         let coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
         let suins = test_scenario::take_shared<SuiNS>(scenario);
 
@@ -240,7 +243,8 @@ module coupons::setup {
 
         let nft = coupons::register_with_coupon(
             &mut coupon_house, 
-            &mut suins, 
+            &mut suins,
+            &reserved,
             coupon_code, 
             domain_name, 
             no_years,
@@ -253,5 +257,6 @@ module coupons::setup {
         test_scenario::return_shared(coupon_house);
         test_scenario::return_shared(suins);
         test_scenario::return_shared(clock);
+        reserved_names::burn_list_for_testing(reserved);
     }
 }

@@ -27,6 +27,8 @@ module discounts::discounts {
 
     use day_one::day_one::{DayOne, is_active};
 
+    use reserved::reserved_names::{Self, ReservedList};
+
     /// A configuration already exists
     const EConfigExists: u64 = 1;
     /// A configuration doesn't exist
@@ -53,6 +55,7 @@ module discounts::discounts {
     public fun register<T>(
         self: &mut DiscountHouse,
         suins: &mut SuiNS,
+        reserved: &ReservedList,
         _: &T,
         domain_name: String,
         payment: Coin<SUI>,
@@ -63,7 +66,7 @@ module discounts::discounts {
         // For normal flow, we do not allow DayOne to be used.
         // DayOne can only be used on `register_with_day_one` function.
         assert!(type::into_string(type::get<T>()) != type::into_string(type::get<DayOne>()), ENotValidForDayOne);
-        internal_register_name<T>(self, suins, domain_name, payment, clock, ctx)
+        internal_register_name<T>(self, suins, reserved, domain_name, payment, clock, ctx)
     }
     
     /// A special function for DayOne registration.
@@ -72,6 +75,7 @@ module discounts::discounts {
     public fun register_with_day_one(
         self: &mut DiscountHouse,
         suins: &mut SuiNS,
+        reserved: &ReservedList,
         day_one: &DayOne,
         domain_name: String,
         payment: Coin<SUI>,
@@ -80,7 +84,7 @@ module discounts::discounts {
         ctx: &mut TxContext
     ): SuinsRegistration {
         assert!(is_active(day_one), ENotActiveDayOne);
-        internal_register_name<DayOne>(self, suins, domain_name, payment, clock, ctx)
+        internal_register_name<DayOne>(self, suins, reserved, domain_name, payment, clock, ctx)
     }
 
     /// Calculate the price of a label.
@@ -126,6 +130,7 @@ module discounts::discounts {
     fun internal_register_name<T>(
         self: &mut DiscountHouse,
         suins: &mut SuiNS,
+        reserved: &ReservedList,
         domain_name: String, 
         payment: Coin<SUI>, 
         clock: &Clock, 
@@ -136,6 +141,8 @@ module discounts::discounts {
         assert_config_exists<T>(self);
 
         let domain = domain::new(domain_name);
+        reserved_names::assert_is_not_reserved_name(reserved, *domain::sld(&domain));
+        reserved_names::assert_is_not_offensive_name(reserved, *domain::sld(&domain));
         let price = calculate_price(df::borrow(house::uid_mut(self), DiscountKey<T>{}), (string::length(domain::sld(&domain)) as u8));
         
         assert!(coin::value(&payment) == price, EIncorrectAmount);

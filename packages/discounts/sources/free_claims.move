@@ -30,6 +30,8 @@ module discounts::free_claims {
 
     use day_one::day_one::{DayOne, is_active};
 
+    use reserved::reserved_names::{Self, ReservedList};
+
     /// A configuration already exists
     const EConfigExists: u64 = 1;
     /// A configuration doesn't exist
@@ -61,6 +63,7 @@ module discounts::free_claims {
     public fun free_claim<T: key>(
         self: &mut DiscountHouse,
         suins: &mut SuiNS,
+        reserved: &ReservedList,
         object: &T,
         domain_name: String,
         clock: &Clock,
@@ -70,20 +73,21 @@ module discounts::free_claims {
         // DayOne can only be used on `register_with_day_one` function.
         assert!(type::into_string(type::get<T>()) != type::into_string(type::get<DayOne>()), ENotValidForDayOne);
 
-        internal_claim_free_name<T>(self, suins, domain_name, clock, object, ctx)
+        internal_claim_free_name<T>(self, suins, reserved, domain_name, clock, object, ctx)
     }
 
     // A function to register a free name using `DayOne`.
     public fun free_claim_with_day_one(
         self: &mut DiscountHouse,
         suins: &mut SuiNS,
+        reserved: &ReservedList,
         day_one: &DayOne,
         domain_name: String,
         clock: &Clock,
         ctx: &mut TxContext
     ): SuinsRegistration {
         assert!(is_active(day_one), ENotActiveDayOne);
-        internal_claim_free_name<DayOne>(self, suins, domain_name, clock, day_one, ctx)
+        internal_claim_free_name<DayOne>(self, suins, reserved, domain_name, clock, day_one, ctx)
     }
 
 
@@ -92,6 +96,7 @@ module discounts::free_claims {
     fun internal_claim_free_name<T: key>(
         self: &mut DiscountHouse,
         suins: &mut SuiNS,
+        reserved: &ReservedList,
         domain_name: String,
         clock: &Clock,
         object: &T,
@@ -114,6 +119,10 @@ module discounts::free_claims {
 
         // Now validate the domain, and that the rule applies here.
         let domain = domain::new(domain_name);
+
+        reserved_names::assert_is_not_reserved_name(reserved, *domain::sld(&domain));
+        reserved_names::assert_is_not_offensive_name(reserved, *domain::sld(&domain));
+
         assert_domain_length_eligible(&domain, config);
 
         house::friend_add_registry_entry(suins, domain, clock, ctx)
