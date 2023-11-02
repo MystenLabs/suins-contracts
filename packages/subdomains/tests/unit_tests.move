@@ -1,6 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+#[test_only]
 module subdomains::unit_tests {
     use std::string::{utf8};
     use suins::domain::{Self, new as new_domain, parent_from_child};
