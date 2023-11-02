@@ -128,7 +128,7 @@ module suins::registry {
         domain: Domain,
         clock: &Clock,
         target: address,
-        ctx: &mut TxContext
+        _ctx: &mut TxContext
     ) {
         // Validate tha the domain is a subdomain. We can't have `leaf` SLD names in any scenario,
         // as they 
