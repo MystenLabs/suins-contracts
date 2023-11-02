@@ -90,6 +90,39 @@ module suins::domain {
         vector::length(&self.labels)
     }
 
+    public fun is_subdomain(domain: &Domain): bool {
+        number_of_levels(domain) > 2
+    }
+
+    /// Derive the parent of a subdomain. 
+    /// e.g. `subdomain.example.sui` -> `example.sui` 
+    public fun parent_from_child(domain: &Domain): Domain {
+        let labels = domain.labels;
+        // we pop the last element and construct the parent from the remaining labels.
+        vector::pop_back(&mut labels);
+
+        Domain {
+            labels
+        }
+    }
+    
+    /// Checks if `parent` domain is a valid parent for `child`.
+    public fun is_parent_of(parent: &Domain, child: &Domain): bool {
+        if (number_of_levels(parent) >= number_of_levels(child)) {
+            return false
+        };
+
+        // remove last label from child, and compare the representations of both.
+        let child_labels = child.labels;
+        vector::pop_back(&mut child_labels);
+
+        // Compare the two names ignoring the last label of the child
+        // note: Could be more efficient (single loop), but it's still insignificant due to our nesting/domain length limits.
+        (to_string(parent) == to_string(&Domain {
+            labels: child_labels
+        }))
+    }
+
     fun validate_labels(labels: &vector<String>) {
         assert!(!vector::is_empty(labels), EInvalidDomain);
 
@@ -212,31 +245,10 @@ module suins::domain {
     }
 
     #[test_only]
-    fun is_subdomain(self: &Domain, other: &Domain): bool {
-        let len_self = number_of_levels(self);
-        let len_other = number_of_levels(other);
-        let index = 0;
-
-        if (len_self > len_other) {
-            return false
-        };
-
-        while (index < len_self && index < len_other) {
-            if (label(self, index) != label(other, index)) {
-                return false
-            };
-
-            index = index + 1;
-        };
-
-        true
-    }
-
-    #[test_only]
     fun expect_is_subdomain(domain: vector<u8>, subdomain: vector<u8>, expected: bool) {
         let domain = new(utf8(domain));
         let subdomain = new(utf8(subdomain));
-        assert_eq(is_subdomain(&domain, &subdomain), expected);
+        assert_eq(is_parent_of(&domain, &subdomain), expected);
     }
 
     #[test]

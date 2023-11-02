@@ -26,6 +26,22 @@ module suins::constants {
     /// 30 day Grace period in milliseconds.
     const GRACE_PERIOD_MS: u64 = 30 * 24 * 60 * 60 * 1000;
 
+    /// A leaf record doesn't expire. Expiration is retrieved by the parent's expiration.
+    /// We set it as the max value of u64 (and highest possible timestamp in the chain).
+    /// This will become non-functional on `Sun Jul 21 2554 23:34:33`, by which time I hope we'll have a better solution for time.
+    const LEAF_EXPIRATION_TIMESTAMP: u64 = 18446744073709551615;
+
+    /// Subdomain constants
+    /// 
+    /// These constants are the core of the subdomain functionality.
+    /// Even if we decide to change the subdomain module, these can
+    /// be re-used. They're added as metadata on NameRecord.
+    /// 
+    /// Whether a parent name can create child names. (name -> subdomain)
+    const ALLOW_CREATION: vector<u8> = b"SUB_C";
+    /// Whether a child-name can auto-renew (if the parent hasn't changed).
+    const ALLOW_TIME_EXTENSION: vector<u8> = b"SUB_TE";
+
     // === Public functions ===
 
     /// Top level domain for SUI as a String.
@@ -44,4 +60,12 @@ module suins::constants {
     public fun year_ms(): u64 { YEAR_MS }
     /// Grace period in milliseconds after which the domain expires.
     public fun grace_period_ms(): u64 { GRACE_PERIOD_MS }
+
+    /// Subdomain constants 
+    /// The NameRecord key that a subdomain can create child names.
+    public fun subdomain_allow_creation_key(): String{ utf8(ALLOW_CREATION) }
+    /// The NameRecord key that a subdomain can self-renew.
+    public fun subdomain_allow_extension_key(): String{ utf8(ALLOW_TIME_EXTENSION) }
+    /// A getter for a leaf name record's expiration timestamp.
+    public fun leaf_expiration_timestamp(): u64 { LEAF_EXPIRATION_TIMESTAMP }
 }

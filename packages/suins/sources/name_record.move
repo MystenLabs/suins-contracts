@@ -46,6 +46,19 @@ module suins::name_record {
         }
     }
 
+    /// Create a `leaf` NameRecord.
+    public fun new_leaf(
+        parent_id: ID,
+        target_address: Option<address>
+    ): NameRecord {
+        NameRecord {
+            nft_id: parent_id,
+            expiration_timestamp_ms: constants::leaf_expiration_timestamp(),
+            target_address,
+            data: vec_map::empty()
+        }
+    }
+
     // === Setters ===
 
     /// Set data as a vec_map directly overriding the data set in the
@@ -85,6 +98,11 @@ module suins::name_record {
     /// Check if the record has expired, taking into account the grace period.
     public fun has_expired_past_grace_period(self: &NameRecord, clock: &Clock): bool {
         (self.expiration_timestamp_ms + constants::grace_period_ms()) < timestamp_ms(clock)
+    }
+
+    /// Checks whether a name_record is a `leaf` record.
+    public fun is_leaf_record(self: &NameRecord): bool {
+        self.expiration_timestamp_ms == constants::leaf_expiration_timestamp()
     }
 
     /// Read the `data` field from the `NameRecord`.
