@@ -3,8 +3,8 @@
 
 module subdomains::unit_tests {
     use std::string::{utf8};
-    use suins::domain::{Self, new as new_domain};
-    use subdomains::utils::{validate_subdomain, parent_from_child, default_config};
+    use suins::domain::{Self, new as new_domain, parent_from_child};
+    use subdomains::utils::{validate_subdomain, default_config};
 
     // === Validity of subdomain | parent lengths (based on string) ===
     #[test]
@@ -17,15 +17,15 @@ module subdomains::unit_tests {
 
     #[test, expected_failure(abort_code=subdomains::utils::EDepthOutOfLimit)]
     fun test_too_large_subdomain_failure() {
-        validate_subdomain(&new_domain(utf8(b"example.sui")), &new_domain(utf8(b"sub.sub.sub.sub.sub.sub.sub.example.sui")), &default_config());
+        validate_subdomain(&new_domain(utf8(b"example.sui")), &new_domain(utf8(b"sub.sub.sub.sub.sub.sub.sub.sub.sub.example.sui")), &default_config());
     }
 
-    #[test, expected_failure(abort_code=subdomains::utils::EInvalidParentDepth)]
+    #[test, expected_failure(abort_code=subdomains::utils::EInvalidParent)]
     fun test_invalid_parent_length_failure() {
         validate_subdomain(&new_domain(utf8(b"example.sui")), &new_domain(utf8(b"sub.sub.example.sui")), &default_config());
     }
 
-    #[test, expected_failure(abort_code=subdomains::utils::EInvalidParentDepth)]
+    #[test, expected_failure(abort_code=subdomains::utils::EInvalidParent)]
     fun test_invalid_parent_smaller_length_failure() {
         validate_subdomain(&new_domain(utf8(b"sub.sub.example.sui")), &new_domain(utf8(b"sub.example.sui")), &default_config());
     }

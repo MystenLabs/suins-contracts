@@ -5,28 +5,22 @@ module subdomains::utils {
     use std::string::{Self, String, utf8};
     use std::vector;
 
-    use suins::domain::{Self, Domain};
+    use suins::domain::{Self, Domain, is_parent_of};
     use suins::constants::{sui_tld};
 
     /// the minimum size a subdomain label can have.
     const MIN_LABEL_SIZE: u8 = 3;
-    /// the maximum depth a subdomain can have.
-    const MAX_SUBDOMAIN_DEPTH: u8 = 8;
-
-    /// VecMap Keys for the NameRecord (that define whether a name can create or update)
-    const ALLOW_CREATION: vector<u8> = b"ALLOW_CREATION";
-    const ALLOW_TIME_EXTENSION: vector<u8> = b"ALLOW_TIME_EXTENSION";
+    /// the maximum depth a subdomain can have -> 8 (+ 2 for TLD, SLD)
+    const MAX_SUBDOMAIN_DEPTH: u8 = 10;
 
     /// tries to register a subdomain with a depth more than the one allowed.
     const EDepthOutOfLimit: u64 = 1;
-    /// tires to register a subdomain with the wrong parent (level)
-    const EInvalidParentDepth: u64 = 2;
     /// tries to register a subdomain with the wrong parent (based on name)
-    const EInvalidParent: u64 = 3;
+    const EInvalidParent: u64 = 2;
     /// tries to register a label of size less than 3.
-    const EInvalidLabelSize: u64 = 4;
+    const EInvalidLabelSize: u64 = 3;
     /// tries to register a domain with an unsupported tld.
-    const ENotSupportedTLD: u64 = 5;
+    const ENotSupportedTLD: u64 = 4;
 
     /// A Subdomain configuration object.
     /// Holds the allow-listed tlds, the max depth and the minimum label size.
@@ -57,46 +51,13 @@ module subdomains::utils {
         }
     }
 
-    /// Derive the parent of a subdomain by the subdomain. 
-    /// e.g. `subdomain.example.sui` -> `example.sui` 
-    public fun parent_from_child(domain: &Domain): Domain {
-        // skip last element, as this is the subdomain's digit.
-        let i = domain::number_of_levels(domain) - 1;
-        let domain_name: String = string::utf8(b"");
-        let dot = utf8(b".");
-
-        while(i > 0) {
-            i = i - 1;
-            string::append(&mut domain_name, *domain::label(domain, i));
-
-            if(i > 0) string::append(&mut domain_name, dot);
-        };
-
-        domain::new(domain_name)
-    }
-
-    /// Check whether a `Domain` is a subdomain.
-    public fun is_subdomain(domain: &Domain): bool {
-        domain::number_of_levels(domain) > 2
-    }
 
     /// Validates that the child name is a valid child for parent.
     public fun validate_subdomain(parent: &Domain, child: &Domain, config: &SubDomainConfig) {
         validate_tld(child, config);
         validate_subdomain_label(child, config);
         assert!((domain::number_of_levels(child) as u8) <= config.max_depth, EDepthOutOfLimit);
-    
-        // validate that the child has 1 more label vs the parent.
-        assert!((domain::number_of_levels(parent) + 1) == domain::number_of_levels(child), EInvalidParentDepth);
-
-        // we start at the parent's length, and we work our way down to tld.
-        let i = domain::number_of_levels(parent);
-
-        while(i > 0) {
-            // we start at domain::length() so we skip the subdomain's label.
-            i = i - 1;
-            assert!(domain::label(parent, i) == domain::label(child, i), EInvalidParent);
-        }
+        assert!(is_parent_of(parent, child), EInvalidParent);
     }
 
     /// Validates that the TLD of the domain is supported for subdomains.
@@ -112,14 +73,6 @@ module subdomains::utils {
             i = i + 1;
         };
         abort ENotSupportedTLD
-    }
-
-    public fun allow_creation_key(): String{
-        utf8(ALLOW_CREATION)
-    }
-
-    public fun allow_extension_key(): String{
-        utf8(ALLOW_TIME_EXTENSION)
     }
 
     /// Validate that the subdomain label (e.g. `sub` in `sub.example.sui`) is valid.
