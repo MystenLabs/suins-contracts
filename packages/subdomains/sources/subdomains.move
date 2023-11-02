@@ -123,30 +123,32 @@ module subdomains::subdomains {
     /// Extends the expiration of a `node` subdomain.
     public fun extend_expiration(
         suins: &mut SuiNS,
-        subdomain: &mut SuinsRegistration,
+        nft: &mut SuinsRegistration,
         expiration_timestamp_ms: u64,
         clock: &Clock
     ) {
         let registry = registry(suins);
-        let sub = &suins_registration::domain(subdomain);
-        let parent_domain = parent_from_child(sub);
+        let subdomain = &suins_registration::domain(nft);
+        let parent_domain = parent_from_child(subdomain);
 
         // first, we validate that we are indeed looking at a subdomain.
-        assert!(is_subdomain(sub), ENotSubdomain);
-        assert!(is_extension_allowed(&internal_get_domain_config(suins, *sub)), ECreationDisabledForSubDomain);
+        assert!(is_subdomain(subdomain), ENotSubdomain);
+        assert!(is_extension_allowed(&internal_get_domain_config(suins, *subdomain)), ECreationDisabledForSubDomain);
 
         // doing the full domain validation at ease.
-        validate_subdomain(&parent_domain, sub, &self(suins).config);
+        validate_subdomain(&parent_domain, subdomain, &self(suins).config);
 
-        let existing_name_record = registry::lookup(registry, *sub);
+        let existing_name_record = registry::lookup(registry, *subdomain);
         let parent_name_record = registry::lookup(registry, parent_domain);
 
         // we need to make sure this name record exists (both child + parent), otherwise we don't have a valid object.
         assert!(option::is_some(&existing_name_record) && option::is_some(&parent_name_record), ESubdomainReplaced);
-        assert!(parent(subdomain) == name_record::nft_id(option::borrow(&parent_name_record)), ESubdomainReplaced);
+        assert!(parent(nft) == name_record::nft_id(option::borrow(&parent_name_record)), ESubdomainReplaced);
     
         // validate that the requested expiration timestamp is not greater than the parent's one.
         assert!(expiration_timestamp_ms <= name_record::expiration_timestamp_ms(option::borrow(&parent_name_record)), EInvalidExpirationDate);
+
+        registry::set_expiration_timestamp_ms(registry_mut(suins), nft, *subdomain, expiration_timestamp_ms);
     }
 
     /// Called by the parent domain to edit a subdomain's settings.
