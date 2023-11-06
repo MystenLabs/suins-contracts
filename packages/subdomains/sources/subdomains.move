@@ -9,20 +9,20 @@
 /// 
 /// 1. Registering a new subdomain as a holder of Parent NFT.
 /// 2. Setup the subdomain with capabilities (creating nested names, extending to parent's renewal time).
-/// 3. Registering `leaf` names (who have no Cap)
-/// 4. Extending a subdomain expiration's time
+/// 3. Registering `leaf` names (whose parent acts as the Capability holder)
+/// 4. Removing `leaf` names
+/// 5. Extending a subdomain expiration's time
 /// 
 /// Comments:
 /// 
 /// 1. By attaching the creation/extension attributes as metadata to the subdomain's NameRecord, we can easily
-/// turn off this package completely, and retain the state on a different package deployment. This is useful
-/// both for effort-less upgrade-ability and gas-cost savings.
+/// turn off this package completely, and retain the state on a different package's deployment. This is useful
+/// both for effort-less upgradeability and gas savings.
 /// 
-/// TODOS:
+/// OPEN TODOS:
 /// 
 /// 1. Add offensive list of words (to prevent creating offensive subdomains) once the PR is landed
-/// 2. Add tests
-/// 3. Create a `Managed SuinsRegistration` package (completely external) to allow delegating subdomain creation (ENOKI requirement)
+/// 
 /// 
 module subdomains::subdomains {
     use std::option::{Self, Option};
@@ -61,7 +61,7 @@ module subdomains::subdomains {
     /// The key to store the parent's ID in the subdomain object.
     struct ParentKey has copy, store, drop {}
 
-    /// The subdomain's config Holds the configuration for all subdomains registered in the system.
+    /// The subdomain's config (specifies allowed TLDs, depth, sizes).
     struct App has store {
         config: SubDomainConfig
     }
@@ -97,11 +97,9 @@ module subdomains::subdomains {
         registry::add_leaf_record(registry_mut(suins), subdomain, clock, target, ctx)
     }
 
-    /// 
     /// Removes a `leaf` subdomain from the registry.
     /// 
     /// Management of the `leaf` subdomain can only be achieved through the parent's valid NFT.
-    /// 
     public fun remove_leaf(
         suins: &mut SuiNS,
         parent: &SuinsRegistration,
@@ -138,8 +136,7 @@ module subdomains::subdomains {
     ///     2.5 Checks if this subdomain already exists. [If it does, it aborts if it's not expired, overrides otherwise]
     /// 
     /// It then saves the configuration for that child (manage-able by the parent), and returns the SuinsRegistration object.
-    /// 
-    public fun create_node(
+    public fun create(
         suins: &mut SuiNS,
         parent: &SuinsRegistration,
         clock: &Clock,
@@ -203,8 +200,9 @@ module subdomains::subdomains {
     }
 
     /// Called by the parent domain to edit a subdomain's settings.
-    /// - Allows the parent domain to `disable` time extension.
-    /// - Allows the parent to `disable` subdomain (grand-children) creation --> Can't retract already created ones <--
+    /// - Allows the parent domain to toggle time extension.
+    /// - Allows the parent to toggle subdomain (grand-children) creation 
+    /// --> For the second (creation): Parent can't retract already created children, nor can limit the depth if allowed creations even once <--
     public fun edit_setup(
         suins: &mut SuiNS,
         parent: &SuinsRegistration,

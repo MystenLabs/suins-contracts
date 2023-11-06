@@ -116,11 +116,7 @@ module suins::domain {
         let child_labels = child.labels;
         vector::pop_back(&mut child_labels);
 
-        // Compare the two names ignoring the last label of the child
-        // note: Could be more efficient (single loop), but it's still insignificant due to our nesting/domain length limits.
-        (to_string(parent) == to_string(&Domain {
-            labels: child_labels
-        }))
+        child_labels == parent.labels
     }
 
     fun validate_labels(labels: &vector<String>) {
