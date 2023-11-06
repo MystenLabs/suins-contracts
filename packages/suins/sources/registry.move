@@ -112,15 +112,14 @@ module suins::registry {
     /// A `leaf` record is a record that is a subdomain and doesn't have
     /// an equivalent `SuinsRegistration` object.
     /// 
-    /// Instead, the parent's `SuinsRegistration` object is used to
-    /// manage the target_address, as well as altering expiration timestamps etc.
+    /// Instead, the parent's `SuinsRegistration` object is used to manage target_address & remove it / determine expiration.
     /// 
     /// 1. Leaf records can't have children. They only work as a resolving mechanism.
     /// 2. Leaf records must always have a `target` address (can't point to `none`).
     /// 3. Leaf records do not expire. Their expiration date is actually what defines their type.
     /// 
     /// Leaf record's expiration is defined by the parent's expiration. Since the parent can only be a `node`,
-    /// we need to check that the parent's NFT_ID is valid & the parent hasn't expired.
+    /// we need to check that the parent's NFT_ID is valid & hasn't expired.
     public fun add_leaf_record(
         self: &mut Registry,
         domain: Domain,
