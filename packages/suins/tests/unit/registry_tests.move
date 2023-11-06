@@ -374,7 +374,7 @@ module suins::registry_tests {
         abort 1337
     }
 
-    #[test, expected_failure(abort_code = suins::registry::ENotASubDomain)]
+    #[test, expected_failure(abort_code = suins::registry::EInvalidDepth)]
     /// Attempt to add a SLD record as a `leaf` record.
     fun add_sld_as_leaf_record_failure() {
         let ctx = tx_context::dummy();
@@ -468,8 +468,8 @@ module suins::registry_tests {
         registry::destroy_empty_for_testing(registry);
         clock::destroy_for_testing(clock);
     }
-
-    fun burn_nfts(nfts: vector<SuinsRegistration>) {
+    #[test_only] 
+    public fun burn_nfts(nfts: vector<SuinsRegistration>) {
         while (vector::length(&nfts) > 0) {
             nft::burn_for_testing(vector::pop_back(&mut nfts));
         };

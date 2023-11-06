@@ -3,17 +3,17 @@
 
 #[test_only]
 module subdomains::subdomain_tests {
-    use std::vector;
     use std::string::{String, utf8};
 
     use sui::test_scenario::{Self as ts, Scenario, ctx};
     use sui::clock::{Self, Clock};
-    use sui::transfer;
 
     use suins::domain;
+    use suins::constants::{grace_period_ms};
     use suins::suins::{Self, SuiNS, AdminCap};
     use suins::registry::{Self, Registry};
     use suins::suins_registration::{Self, SuinsRegistration};
+    use suins::registry_tests::{burn_nfts};
 
     use subdomains::subdomains::{Self, SubDomains};
 
@@ -46,7 +46,7 @@ module subdomains::subdomain_tests {
         // update subdomain's setup for testing
         update_subdomain_setup(&parent, utf8(b"node.test.sui"), false, false, scenario);
 
-        return_nfts(vector[parent, child, nested, another_child]);
+        burn_nfts(vector[parent, child, nested, another_child]);
         ts::end(scenario_val);
     }
 
@@ -100,6 +100,25 @@ module subdomains::subdomain_tests {
         abort 1337  
     }
 
+    #[test, expected_failure(abort_code=subdomains::subdomains::ESubdomainReplaced)]
+    fun tries_to_extend_while_parent_changed() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        let parent = create_sld_name(utf8(b"test.sui"), scenario);
+
+        // child is an expired name ofc.
+        let child = create_node_subdomain(&parent, utf8(b"node.test.sui"), 1, true, true, scenario);
+
+        increment_clock(suins_registration::expiration_timestamp_ms(&parent) +grace_period_ms() + 1 , scenario);
+
+        let _parent_w_different_owner = create_sld_name(utf8(b"test.sui"), scenario);
+
+        // any extension.
+        extend_node_subdomain(&mut child, 2, scenario);
+
+        abort 1337  
+    }
+
     #[test, expected_failure(abort_code=subdomains::subdomains::ENotSubdomain)]
     /// Tries to use an SLD name in the "time extension" feature.
     fun tries_to_extend_sld_name() {
@@ -118,13 +137,7 @@ module subdomains::subdomain_tests {
 
         let child = create_node_subdomain(&parent, utf8(b"node.test.sui"), 1, true, true, scenario);
 
-
-        ts::next_tx(scenario, USER_ADDRESS);
-        // child 1 must be expired here.
-        let clock = ts::take_shared<Clock>(scenario);
-        clock::increment_for_testing(&mut clock, 2);
-        ts::return_shared(clock);
-
+        increment_clock(2, scenario);
         create_leaf_subdomain(&child, utf8(b"node.node.test.sui"), TEST_ADDRESS, scenario);
 
         abort 1337  
@@ -134,22 +147,6 @@ module subdomains::subdomain_tests {
 
 
     /// == Helpers == 
-   
-    /// Transfer the NFTs to the user to clean up tests easily
-    fun return_nfts(nfts: vector<SuinsRegistration>) {
-        let len = vector::length(&nfts);
-        let i = len;
-
-        while(i > 0) {
-            i = i - 1;
-            let nft = vector::pop_back(&mut nfts);
-            
-            transfer::public_transfer(nft, USER_ADDRESS);
-
-        };
-
-        vector::destroy_empty(nfts);
-    }
 
     public fun test_init(): Scenario {
         let scenario_val = ts::begin(USER_ADDRESS);
@@ -259,5 +256,12 @@ module subdomains::subdomain_tests {
         ts::return_shared(suins);
         ts::return_shared(clock);
     } 
+
+    public fun increment_clock(to: u64, scenario: &mut Scenario){
+        ts::next_tx(scenario, USER_ADDRESS);
+        let clock = ts::take_shared<Clock>(scenario);
+        clock::increment_for_testing(&mut clock, to);
+        ts::return_shared(clock);
+    }
 
 }
