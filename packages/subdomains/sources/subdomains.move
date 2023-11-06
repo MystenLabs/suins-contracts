@@ -23,7 +23,6 @@
 /// 
 /// 1. Add offensive list of words (to prevent creating offensive subdomains) once the PR is landed
 /// 
-/// 
 module subdomains::subdomains {
     use std::option::{Self, Option};
     use std::string::{String, utf8};
