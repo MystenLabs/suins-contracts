@@ -227,7 +227,7 @@ module subdomains::subdomain_tests {
         let suins = ts::take_shared<SuiNS>(scenario);
         let clock = ts::take_shared<Clock>(scenario);
 
-        let nft = subdomains::create_node(&mut suins, parent, &clock, name, expiration, allow_creation, allow_extension, ctx(scenario));
+        let nft = subdomains::create(&mut suins, parent, &clock, name, expiration, allow_creation, allow_extension, ctx(scenario));
 
         ts::return_shared(suins);
         ts::return_shared(clock);

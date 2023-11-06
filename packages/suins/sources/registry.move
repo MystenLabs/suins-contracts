@@ -329,8 +329,9 @@ module suins::registry {
     ) {
         // First check to see if there is already an entry for this domain
         if (table::contains(&self.registry, domain)) {
-            // Remove the record and assert that it has expired past the grace period
+            // Remove the record and assert that it has expired (past the grace period if applicable)
             let record = table::remove(&mut self.registry, domain);
+
             // Special case for leaf records, we can override them iff their parent has changed or has expired.
             if(name_record::is_leaf_record(&record)) {
                 // find the parent of the leaf record.
