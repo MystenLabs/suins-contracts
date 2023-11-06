@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 module subdomains::utils {
-    use std::string::{Self, String, utf8};
+    use std::string::{Self, String};
     use std::vector;
 
     use suins::domain::{Self, Domain, is_parent_of};
