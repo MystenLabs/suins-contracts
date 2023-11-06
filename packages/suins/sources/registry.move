@@ -299,7 +299,7 @@ module suins::registry {
         name_record::is_leaf_record(&option::extract(&mut option_name_record))
     }
 
-    /// An internal helper to add a record, based on period.
+    /// An internal helper to add a record
     fun internal_add_record(
         self: &mut Registry,
         domain: Domain,

@@ -154,8 +154,8 @@ module subdomains::subdomains {
 
         // We create the `setup` for the particular SubDomain.
         // We save a setting like: `subdomain.example.sui` -> { allow_creation: true/false, allow_time_extension: true/false }
-        internal_set_flag(suins, subdomain, subdomain_allow_creation_key(), allow_creation);
-        internal_set_flag(suins, subdomain, subdomain_allow_extension_key(), allow_time_extension);
+        if(allow_creation) internal_set_flag(suins, subdomain, subdomain_allow_creation_key(), allow_creation);
+        if(allow_time_extension) internal_set_flag(suins, subdomain, subdomain_allow_extension_key(), allow_time_extension);
 
         nft
     }
