@@ -324,39 +324,35 @@ module suins::registry {
         clock: &Clock,
         with_grace_period: bool,
     ) {
-        // First check to see if there is already an entry for this domain
-        if (table::contains(&self.registry, domain)) {
-            // Remove the record and assert that it has expired (past the grace period if applicable)
-            let record = table::remove(&mut self.registry, domain);
+        // if the domain is not part of the registry, we can override.
+        if(!table::contains(&self.registry, domain)) return;
 
-            // Special case for leaf records, we can override them iff their parent has changed or has expired.
-            if(name_record::is_leaf_record(&record)) {
-                // find the parent of the leaf record.
-                let option_parent_name_record = lookup(self, domain::parent_from_child(&domain));
+        // Remove the record and assert that it has expired (past the grace period if applicable)
+        let record = table::remove(&mut self.registry, domain);
 
-                // if there's a parent (if not, we can just remove it, but I don't think we can ever get in this scenario),
-                // we need to check if the parent is valid.
-                // If the parent is valid, we need to check if the parent is expired.
-                if(option::is_some(&option_parent_name_record)) {
-                    let parent_name_record = option::extract(&mut option_parent_name_record);
+        // Special case for leaf records, we can override them iff their parent has changed or has expired.
+        if(name_record::is_leaf_record(&record)) {
+            // find the parent of the leaf record.
+            let option_parent_name_record = lookup(self, domain::parent_from_child(&domain));
 
-                    if(name_record::nft_id(&parent_name_record) == name_record::nft_id(&record)) {
-                        if(with_grace_period) {
-                            assert!(name_record::has_expired_past_grace_period(&parent_name_record, clock), ERecordNotExpired);
-                        } else {
-                            assert!(name_record::has_expired(&parent_name_record, clock), ERecordNotExpired);
-                        };
-                    };
-                }
-            }else if (with_grace_period) {
-                assert!(name_record::has_expired_past_grace_period(&record, clock), ERecordNotExpired);
-            } else {
-                assert!(name_record::has_expired(&record, clock), ERecordNotExpired);
-            };
+            // if there's a parent (if not, we can just remove it), we need to check if the parent is valid.
+            // -> If the parent is valid, we need to check if the parent is expired.
+            // -> If the parent is not valid (nft_id has changed), or if the parent doesn't exist anymore (owner burned it), we can override the leaf record.
+            if(option::is_some(&option_parent_name_record)) {
+                let parent_name_record = option::extract(&mut option_parent_name_record);
 
-            let old_target_address = name_record::target_address(&record);
-            handle_invalidate_reverse_record(self, &domain, old_target_address, none());
+                if(name_record::nft_id(&parent_name_record) == name_record::nft_id(&record)) {
+                    assert!(name_record::has_expired(&parent_name_record, clock), ERecordNotExpired);
+                };
+            }
+        }else if (with_grace_period) {
+            assert!(name_record::has_expired_past_grace_period(&record, clock), ERecordNotExpired);
+        } else {
+            assert!(name_record::has_expired(&record, clock), ERecordNotExpired);
         };
+
+        let old_target_address = name_record::target_address(&record);
+        handle_invalidate_reverse_record(self, &domain, old_target_address, none());
     }
 
     fun handle_invalidate_reverse_record(
