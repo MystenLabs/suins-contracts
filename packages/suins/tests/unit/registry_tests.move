@@ -80,6 +80,33 @@ module suins::registry_tests {
     }
 
     #[test]
+    /// Overrides a leaf record (by just adding it again) as a new domain owner, 
+    /// while this leaf name existed before.
+    fun override_leaf_record_after_change_of_parent_owner() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, _domain) = setup(&mut ctx);
+
+        let nft = registry::add_record(&mut registry, domain::new(utf8(b"test.sui")), 1, &clock, &mut ctx);
+
+        // add 2 leaf records as nft
+        registry::add_leaf_record(&mut registry, domain::new(utf8(b"test.test.sui")), &clock, @0x0, &mut ctx);
+        registry::add_leaf_record(&mut registry, domain::new(utf8(b"test2.test.sui")), &clock, @0x0, &mut ctx);
+
+        // increment the clock to 1 years + grace period
+        clock::increment_for_testing(&mut clock, constants::year_ms() + constants::grace_period_ms() + 1);
+
+        // become a new owner, `new_oner_nft`
+        let new_owner_nft = registry::add_record(&mut registry, domain::new(utf8(b"test.sui")), 1, &clock, &mut ctx);
+
+        // override both leaf records, one with a node subdomain, the other iwth a leaf subdomain 
+        let normal_subdomain_override = registry::add_record_ignoring_grace_period(&mut registry, domain::new(utf8(b"test.test.sui")), 1, &clock, &mut ctx);
+        registry::add_leaf_record(&mut registry, domain::new(utf8(b"test2.test.sui")), &clock, @0x1, &mut ctx);
+
+        burn_nfts(vector[ nft, new_owner_nft, normal_subdomain_override ]);
+        wrapup(registry, clock);
+    }
+
+    #[test]
     /// 1. Create a registry, increment clock to 1 year;
     /// 2. Increment the clock to 1 year so that the record is expired;
     /// 3. Override the record and discard the old data;
@@ -397,7 +424,7 @@ module suins::registry_tests {
     }
 
     #[test, expected_failure(abort_code = suins::registry::ERecordNotExpired)]
-    /// Tries to add a `leaf` record on-top of an existing subdomain (fails).
+    /// Tries to add a `node` record on-top of an existing subdomain (fails).
     fun try_to_override_existing_leaf_subdomain() {
         let ctx = tx_context::dummy();
         let (registry, clock, _domain) = setup(&mut ctx);
