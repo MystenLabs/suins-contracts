@@ -74,9 +74,7 @@ module subdomains::subdomains {
     }
 
     /// Creates a `leaf` subdomain
-    /// 
     /// A `leaf` subdomain, is a subdomain that is managed by the parent's NFT.
-    /// 
     public fun create_leaf(
         suins: &mut SuiNS,
         parent: &SuinsRegistration,
@@ -98,7 +96,6 @@ module subdomains::subdomains {
     }
 
     /// Removes a `leaf` subdomain from the registry.
-    /// 
     /// Management of the `leaf` subdomain can only be achieved through the parent's valid NFT.
     public fun remove_leaf(
         suins: &mut SuiNS,
@@ -108,15 +105,14 @@ module subdomains::subdomains {
     ) {
         let subdomain = domain::new(subdomain_name);
         
-        // all validation logic for subdomain creation / management.
+        // All validation logic for subdomain creation / management.
         // We pass `false` as last argument because even if we don't have create capabilities (anymore),
         // we can still remove a leaf name (we just can't add a new one).
         internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, false);
 
         // indexing purposes.
-        event::emit(SubDomainRemovedEvent {
+        event::emit(LeafSubDomainRemovedEvent {
             domain: subdomain,
-            is_leaf: true
         });
 
         registry::remove_leaf_record(registry_mut(suins), subdomain)
@@ -383,9 +379,8 @@ module subdomains::subdomains {
     }
 
     /// Even called when a `leaf` name is removed.
-    struct SubDomainRemovedEvent has copy, drop {
+    struct LeafSubDomainRemovedEvent has copy, drop {
         domain: Domain,
-        is_leaf: bool,
     }
 
     #[test_only]
