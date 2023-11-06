@@ -184,7 +184,9 @@ module subdomains::subdomains {
         // Validate that the parent of the name is the same as the actual parent
         // (to prevent cases where owner of the parent changed. When that happens, subdomains lose all abilities to renew / create subdomains)
         assert!(parent(nft) == name_record::nft_id(option::borrow(&parent_name_record)), ESubdomainReplaced);
-    
+
+        // validate that expiration date is > than the current.
+        assert!(expiration_timestamp_ms > suins_registration::expiration_timestamp_ms(nft), EInvalidExpirationDate);
         // validate that the requested expiration timestamp is not greater than the parent's one.
         assert!(expiration_timestamp_ms <= name_record::expiration_timestamp_ms(option::borrow(&parent_name_record)), EInvalidExpirationDate);
 
