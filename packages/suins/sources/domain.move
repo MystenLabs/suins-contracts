@@ -112,11 +112,7 @@ module suins::domain {
             return false
         };
 
-        // remove last label from child, and compare the representations of both.
-        let child_labels = child.labels;
-        vector::pop_back(&mut child_labels);
-
-        child_labels == parent.labels
+        parent_from_child(child).labels == parent.labels
     }
 
     fun validate_labels(labels: &vector<String>) {
