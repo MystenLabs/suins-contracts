@@ -341,6 +341,8 @@ module suins::registry {
             if(option::is_some(&option_parent_name_record)) {
                 let parent_name_record = option::extract(&mut option_parent_name_record);
 
+                // If the parent is the same and hasn't expired, we can't override the leaf record like this.
+                // We need to first remove + then call create (to protect accidental overrides).
                 if(name_record::nft_id(&parent_name_record) == name_record::nft_id(&record)) {
                     assert!(name_record::has_expired(&parent_name_record, clock), ERecordNotExpired);
                 };
