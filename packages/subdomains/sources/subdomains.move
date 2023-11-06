@@ -345,10 +345,10 @@ module subdomains::subdomains {
     /// Emits an event to help us index on our BE.
     fun internal_emit_tweak_event(domain: Domain, expiration_timestamp_ms: u64, is_leaf: bool, target: Option<address>) {
         event::emit(SubDomainTweakEvent {
-            domain: domain,
-            expiration_timestamp_ms: expiration_timestamp_ms,
-            is_leaf: is_leaf,
-            target: target
+            domain,
+            expiration_timestamp_ms,
+            is_leaf,
+            target
         });
     }
 
