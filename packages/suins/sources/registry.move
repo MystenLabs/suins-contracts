@@ -30,8 +30,8 @@ module suins::registry {
     const ETargetNotSet: u64 = 5;
     /// Trying to remove or operate on a non-leaf record as if it were a leaf record.
     const ENotLeafRecord: u64 = 6;
-    /// Trying to add a leaf record for a non-subdomain.
-    const ENotASubDomain: u64 = 7;
+    /// Trying to add a leaf record for a TLD or SLD.
+    const EInvalidDepth: u64 = 7;
     /// Trying to lookup a record that doesn't exist.
     const ERecordNotFound: u64 = 8;
 
@@ -128,8 +128,7 @@ module suins::registry {
         target: address,
         _ctx: &mut TxContext
     ) {
-        // Validate tha the domain is a subdomain. We can't have `leaf` SLD names (requires a valid parent).
-        assert!(domain::is_subdomain(&domain), ENotASubDomain);
+        assert!(domain::is_subdomain(&domain), EInvalidDepth);
 
         // get the parent of the domain
         let parent = domain::parent_from_child(&domain);
@@ -141,8 +140,7 @@ module suins::registry {
         let parent_name_record = option::extract(&mut option_parent_name_record);
 
         // Make sure that the parent isn't expired (because leaf record is invalid in that case).
-        // And it's a call here, that grace_period might be there but we won't allow creating subdomains within the grace period.
-        // Grace period is only there so you don't accidently forget to renew + lose your name.
+        // Ignores grace period is it's only there so you don't accidently forget to renew your name.
         assert!(!name_record::has_expired(&parent_name_record, clock), ERecordExpired);
 
         // Removes an existing record if it exists and is expired.
@@ -290,13 +288,13 @@ module suins::registry {
         domain: Domain
     ): bool {
         if(!domain::is_subdomain(&domain)) {
-            return false;
+            return false
         };
         
         let option_name_record = lookup(self, domain);
 
         if(option::is_none(&option_name_record)) {
-            return false;
+            return false
         };
 
         name_record::is_leaf_record(&option::extract(&mut option_name_record))
