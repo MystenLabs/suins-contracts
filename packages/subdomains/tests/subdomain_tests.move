@@ -143,6 +143,15 @@ module subdomains::subdomain_tests {
         abort 1337  
     }
 
+    #[test, expected_failure(abort_code=subdomains::utils::EInvalidParent)]
+    fun tries_to_created_nested_leaf_subdomain() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        let parent = create_sld_name(utf8(b"test.sui"), scenario);
+        create_leaf_subdomain(&parent, utf8(b"node.node.test.sui"), TEST_ADDRESS, scenario);
+
+        abort 1337  
+    }
 
 
 
