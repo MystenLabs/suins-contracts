@@ -41,8 +41,8 @@ const queryEventsPlanner = async (eventType: string, ) => {
 }
 
 
-while(true){
-    console.log("Event indexer initialized..");
-    setInterval(() => queryEventsPlanner(`${config.subdomainsPackageId}::subdomains::SubDomainTweakEvent`)), 1000);
-}
+// while(true){
+//     console.log("Event indexer initialized..");
+//     setInterval(() => queryEventsPlanner(`${config.subdomainsPackageId}::subdomains::SubDomainTweakEvent`)), 1000);
+// }
 
