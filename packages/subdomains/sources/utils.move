@@ -6,7 +6,7 @@ module subdomains::utils {
     use std::vector;
 
     use suins::domain::{Self, Domain, is_parent_of};
-    use suins::constants::{sui_tld};
+    use suins::constants::sui_tld;
 
     /// the minimum size a subdomain label can have.
     const MIN_LABEL_SIZE: u8 = 3;
