@@ -30,7 +30,7 @@ module subdomains::subdomains {
     use sui::object::{Self, ID};
     use sui::tx_context::{TxContext};
     use sui::clock::Clock;
-    use sui::dynamic_field::{Self as df};
+    use sui::dynamic_field as df;
     use sui::vec_map::{Self, VecMap};
     use sui::event;
 
