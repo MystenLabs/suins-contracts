@@ -296,7 +296,7 @@ module suins::registry {
             return false
         };
 
-        name_record::is_leaf_record(&option::extract(&mut option_name_record))
+        name_record::is_leaf_record(option::borrow(&option_name_record))
     }
 
     /// An internal helper to add a record
