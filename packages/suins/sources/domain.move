@@ -96,7 +96,7 @@ module suins::domain {
 
     /// Derive the parent of a subdomain. 
     /// e.g. `subdomain.example.sui` -> `example.sui` 
-    public fun parent_from_child(domain: &Domain): Domain {
+    public fun parent(domain: &Domain): Domain {
         let labels = domain.labels;
         // we pop the last element and construct the parent from the remaining labels.
         vector::pop_back(&mut labels);
@@ -112,7 +112,7 @@ module suins::domain {
             return false
         };
 
-        parent_from_child(child).labels == parent.labels
+        parent(child).labels == parent.labels
     }
 
     fun validate_labels(labels: &vector<String>) {

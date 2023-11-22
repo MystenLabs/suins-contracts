@@ -34,14 +34,14 @@ module subdomains::subdomains {
     use sui::vec_map::{Self, VecMap};
     use sui::event;
 
-    use suins::domain::{Self, Domain, is_subdomain, parent_from_child};
+    use suins::domain::{Self, Domain, is_subdomain};
     use suins::registry::{Self, Registry};
     use suins::suins::{Self, SuiNS, AdminCap};
     use suins::suins_registration::{Self, SuinsRegistration};
     use suins::constants::{subdomain_allow_extension_key, subdomain_allow_creation_key, leaf_expiration_timestamp};
     use suins::name_record;
 
-    use subdomains::utils::{Self, SubDomainConfig, validate_subdomain};
+    use subdomains::config::{Self, SubDomainConfig};
 
     /// Tries to create a subdomain that expires later than the parent.
     const EInvalidExpirationDate: u64 = 1;
@@ -68,7 +68,7 @@ module subdomains::subdomains {
     // We initialize the `App`
     public fun setup(suins: &mut SuiNS, cap: &AdminCap, _ctx: &mut TxContext){
         suins::add_registry(cap, suins, App {
-            config: utils::default_config()
+            config: config::default()
         })
     }
 
@@ -154,10 +154,13 @@ module subdomains::subdomains {
 
         // We create the `setup` for the particular SubDomain.
         // We save a setting like: `subdomain.example.sui` -> { allow_creation: true/false, allow_time_extension: true/false }
-        if(allow_creation) {
+        if (allow_creation) {
             internal_set_flag(suins, subdomain, subdomain_allow_creation_key(), allow_creation);
-        }
-        if(allow_time_extension) internal_set_flag(suins, subdomain, subdomain_allow_extension_key(), allow_time_extension);
+        };
+        
+        if (allow_time_extension){
+            internal_set_flag(suins, subdomain, subdomain_allow_extension_key(), allow_time_extension);
+        };
 
         nft
     }
@@ -170,7 +173,7 @@ module subdomains::subdomains {
     ) {
         let registry = registry(suins);
         let subdomain = suins_registration::domain(nft);
-        let parent_domain = parent_from_child(&subdomain);
+        let parent_domain = domain::parent(&subdomain);
 
         // first, we validate that we are indeed looking at a subdomain.
         assert!(is_subdomain(&subdomain), ENotSubdomain);
@@ -193,7 +196,7 @@ module subdomains::subdomains {
         assert!(expiration_timestamp_ms <= name_record::expiration_timestamp_ms(option::borrow(&parent_name_record)), EInvalidExpirationDate);
 
         // emit event for indexing.
-        internal_emit_tweak_event(subdomain, expiration_timestamp_ms, false, name_record::target_address(&option::extract(&mut existing_name_record)));
+        internal_emit_tweak_event(subdomain, expiration_timestamp_ms, false, name_record::target_address(option::borrow(&existing_name_record)));
 
         registry::set_expiration_timestamp_ms(registry_mut(suins), nft, subdomain, expiration_timestamp_ms);
     }
@@ -218,7 +221,7 @@ module subdomains::subdomains {
 
         // validate that the subdomain is valid for the supplied parent
         // (as well as it is valid in label length, total length, depth, etc).
-        validate_subdomain(&parent_domain, &subdomain, &app_config(suins).config);
+        config::assert_is_valid_subdomain(&parent_domain, &subdomain, &app_config(suins).config);
 
         // // validate that the parent can create subdomains, otherwise there's no point in allowing it to edit the setup.
         // internal_assert_parent_can_create_subdomains(suins, parent_domain);
@@ -245,12 +248,12 @@ module subdomains::subdomains {
         let config = internal_get_domain_config(self, subdomain);
         let is_enabled = vec_map::contains(&config, &key);
 
-        if(enable) {
-            if(!is_enabled){
+        if (enable) {
+            if (!is_enabled){
                 vec_map::insert(&mut config, key,  utf8(b"1"));
             }
         }else {
-            if(is_enabled){
+            if (is_enabled){
                 vec_map::remove(&mut config, &key);
             }
         };
@@ -295,13 +298,13 @@ module subdomains::subdomains {
         // validate that parent is a valid, non expired object.
         registry::assert_nft_is_authorized(registry(suins), parent, clock);
 
-        if(validate_creation) {
+        if (validate_creation) {
             // validate that the parent can create subdomains.
             internal_assert_parent_can_create_subdomains(suins, suins_registration::domain(parent));
         };
 
         // validate that the subdomain is valid for the supplied parent.
-        validate_subdomain(&suins_registration::domain(parent), &subdomain, &app_config(suins).config);
+        config::assert_is_valid_subdomain(&suins_registration::domain(parent), &subdomain, &app_config(suins).config);
     }
 
     /// Validate whether a `SuinsRegistration` object is eligible for creating a subdomain.
@@ -312,7 +315,7 @@ module subdomains::subdomains {
         parent: Domain,
     ) {
         // if the parent is not a subdomain, we can always create subdomains.
-        if(!is_subdomain(&parent)) {
+        if (!is_subdomain(&parent)) {
             return
         };
 
