@@ -94,12 +94,12 @@ module suins::registry {
         
         let domain = nft::domain(&nft);
         // Then, if the registry still has a record for this domain and the NFT ID matches, we remove it.
-        if(table::contains(&self.registry, domain)) {
+        if (table::contains(&self.registry, domain)) {
 
             let record = table::borrow(&mut self.registry, domain);
 
             // We wanna remove the record only if the NFT ID matches.
-            if(name_record::nft_id(record) == object::id(&nft)) {
+            if (name_record::nft_id(record) == object::id(&nft)) {
                 let record = table::remove(&mut self.registry, domain);
                 handle_invalidate_reverse_record(self, &domain, name_record::target_address(&record), none());
             }
@@ -130,13 +130,13 @@ module suins::registry {
         assert!(domain::is_subdomain(&domain), EInvalidDepth);
 
         // get the parent of the domain
-        let parent = domain::parent_from_child(&domain);
+        let parent = domain::parent(&domain);
         let option_parent_name_record = lookup(self, parent);
 
         assert!(option::is_some(&option_parent_name_record), ERecordNotFound);
 
         // finds existing parent record
-        let parent_name_record = option::extract(&mut option_parent_name_record);
+        let parent_name_record = *option::borrow(&option_parent_name_record);
 
         // Make sure that the parent isn't expired (because leaf record is invalid in that case).
         // Ignores grace period is it's only there so you don't accidently forget to renew your name.
@@ -286,13 +286,13 @@ module suins::registry {
         self: &Registry,
         domain: Domain
     ): bool {
-        if(!domain::is_subdomain(&domain)) {
+        if (!domain::is_subdomain(&domain)) {
             return false
         };
         
         let option_name_record = lookup(self, domain);
 
-        if(option::is_none(&option_name_record)) {
+        if (option::is_none(&option_name_record)) {
             return false
         };
 
@@ -325,25 +325,25 @@ module suins::registry {
         with_grace_period: bool,
     ) {
         // if the domain is not part of the registry, we can override.
-        if(!table::contains(&self.registry, domain)) return;
+        if (!table::contains(&self.registry, domain)) return;
 
         // Remove the record and assert that it has expired (past the grace period if applicable)
         let record = table::remove(&mut self.registry, domain);
 
         // Special case for leaf records, we can override them iff their parent has changed or has expired.
-        if(name_record::is_leaf_record(&record)) {
+        if (name_record::is_leaf_record(&record)) {
             // find the parent of the leaf record.
-            let option_parent_name_record = lookup(self, domain::parent_from_child(&domain));
+            let option_parent_name_record = lookup(self, domain::parent(&domain));
 
             // if there's a parent (if not, we can just remove it), we need to check if the parent is valid.
             // -> If the parent is valid, we need to check if the parent is expired.
             // -> If the parent is not valid (nft_id has changed), or if the parent doesn't exist anymore (owner burned it), we can override the leaf record.
-            if(option::is_some(&option_parent_name_record)) {
-                let parent_name_record = option::extract(&mut option_parent_name_record);
+            if (option::is_some(&option_parent_name_record)) {
+                let parent_name_record = *option::borrow(&option_parent_name_record);
 
                 // If the parent is the same and hasn't expired, we can't override the leaf record like this.
                 // We need to first remove + then call create (to protect accidental overrides).
-                if(name_record::nft_id(&parent_name_record) == name_record::nft_id(&record)) {
+                if (name_record::nft_id(&parent_name_record) == name_record::nft_id(&record)) {
                     assert!(name_record::has_expired(&parent_name_record, clock), ERecordNotExpired);
                 };
             }

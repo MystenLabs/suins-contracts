@@ -1,7 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-module subdomains::utils {
+module subdomains::config {
     use std::string::{Self, String};
     use std::vector;
 
@@ -30,7 +30,7 @@ module subdomains::utils {
         min_label_size: u8
     }
 
-    public fun default_config(): SubDomainConfig {
+    public fun default(): SubDomainConfig {
         SubDomainConfig {
             allowed_tlds: vector[sui_tld()],
             max_depth: MAX_SUBDOMAIN_DEPTH,
@@ -39,7 +39,7 @@ module subdomains::utils {
     }
 
     // Generates a custom config for Subdomains.
-    public fun new_config(
+    public fun new(
         allowed_tlds: vector<String>,
         max_depth: u8,
         min_label_size: u8
@@ -53,9 +53,9 @@ module subdomains::utils {
 
 
     /// Validates that the child name is a valid child for parent.
-    public fun validate_subdomain(parent: &Domain, child: &Domain, config: &SubDomainConfig) {
-        validate_tld(child, config);
-        validate_subdomain_label(child, config);
+    public fun assert_is_valid_subdomain(parent: &Domain, child: &Domain, config: &SubDomainConfig) {
+        assert_is_valid_tld(child, config);
+        assert_is_valid_label(child, config);
         assert!((domain::number_of_levels(child) as u8) <= config.max_depth, EDepthOutOfLimit);
         assert!(is_parent_of(parent, child), EInvalidParent);
     }
@@ -64,10 +64,10 @@ module subdomains::utils {
     /// In the beggining, only .sui names will be supported but we might 
     /// want to add support for others (or not allow).
     /// (E.g., with `.move` service, we might want to restrict how subdomains are created)
-    public fun validate_tld(domain: &Domain, config: &SubDomainConfig) {
+    fun assert_is_valid_tld(domain: &Domain, config: &SubDomainConfig) {
         let i=0;
-        while(i < vector::length(&config.allowed_tlds)) {
-            if(domain::tld(domain) == vector::borrow(&config.allowed_tlds, i)) {
+        while (i < vector::length(&config.allowed_tlds)) {
+            if (domain::tld(domain) == vector::borrow(&config.allowed_tlds, i)) {
                 return
             };
             i = i + 1;
@@ -76,7 +76,7 @@ module subdomains::utils {
     }
 
     /// Validate that the subdomain label (e.g. `sub` in `sub.example.sui`) is valid.
-    fun validate_subdomain_label(domain: &Domain, config: &SubDomainConfig) {
+    fun assert_is_valid_label(domain: &Domain, config: &SubDomainConfig) {
         // our label is the last vector element, as labels are stored in reverse order.
         let label = domain::label(domain, domain::number_of_levels(domain) - 1);
         assert!(string::length(label) >= (config.min_label_size as u64), EInvalidLabelSize);

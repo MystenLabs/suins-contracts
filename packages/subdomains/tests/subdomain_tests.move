@@ -61,7 +61,7 @@ module subdomains::subdomain_tests {
         abort 1337
     }
 
-    #[test, expected_failure(abort_code=subdomains::utils::EInvalidParent)]
+    #[test, expected_failure(abort_code=subdomains::config::EInvalidParent)]
     /// tries to create a child node using an invalid parent.
     fun invalid_parent_failure(){
         let scenario_val = test_init();
@@ -143,7 +143,7 @@ module subdomains::subdomain_tests {
         abort 1337  
     }
 
-    #[test, expected_failure(abort_code=subdomains::utils::EInvalidParent)]
+    #[test, expected_failure(abort_code=subdomains::config::EInvalidParent)]
     fun tries_to_created_nested_leaf_subdomain() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
