@@ -53,6 +53,8 @@ module subdomains::subdomains {
     const ENotSubdomain: u64 = 4;
     /// The subdomain has been replaced by a newer NFT, so it can't be renewed.
     const ESubdomainReplaced: u64 = 5;
+    /// Parent for a given subdomain has changed, hence time extension cannot be done.
+    const EParentChanged: u64 = 6;
 
     /// The authentication scheme for SuiNS.
     struct SubDomains has drop {}
@@ -157,7 +159,7 @@ module subdomains::subdomains {
         if (allow_creation) {
             internal_set_flag(suins, subdomain, subdomain_allow_creation_key(), allow_creation);
         };
-        
+
         if (allow_time_extension){
             internal_set_flag(suins, subdomain, subdomain_allow_extension_key(), allow_time_extension);
         };
@@ -188,7 +190,7 @@ module subdomains::subdomains {
         assert!(option::is_some(&existing_name_record) && option::is_some(&parent_name_record), ESubdomainReplaced);
         // Validate that the parent of the name is the same as the actual parent
         // (to prevent cases where owner of the parent changed. When that happens, subdomains lose all abilities to renew / create subdomains)
-        assert!(parent(nft) == name_record::nft_id(option::borrow(&parent_name_record)), ESubdomainReplaced);
+        assert!(parent(nft) == name_record::nft_id(option::borrow(&parent_name_record)), EParentChanged);
 
         // validate that expiration date is > than the current.
         assert!(expiration_timestamp_ms > suins_registration::expiration_timestamp_ms(nft), EInvalidExpirationDate);
