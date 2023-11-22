@@ -1,7 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-module managed::managed_tests {
+module managed_names::managed_tests {
     use std::option;
     use std::string::{String, utf8};
 
@@ -14,7 +14,7 @@ module managed::managed_tests {
     use suins::suins::{Self, SuiNS};
     use suins::domain;
 
-    use managed::managed::{Self, ManagedNamesApp, ReturnPromise};
+    use managed_names::managed::{Self, ManagedNamesApp, ReturnPromise};
 
     const USER: address = @0x1;
     const USER_TWO: address = @0x2;
@@ -78,7 +78,7 @@ module managed::managed_tests {
         ts::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code=managed::managed::EExpiredNFT)]
+    #[test, expected_failure(abort_code=managed_names::managed::EExpiredNFT)]
     fun attach_expired_failure() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -93,7 +93,7 @@ module managed::managed_tests {
         abort 1337
     }
 
-    #[test, expected_failure(abort_code=managed::managed::ENameNotExists)]
+    #[test, expected_failure(abort_code=managed_names::managed::ENameNotExists)]
     fun borrow_non_existing_name_failure() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -103,7 +103,7 @@ module managed::managed_tests {
         abort 1337
     }
 
-    #[test, expected_failure(abort_code=managed::managed::EInvalidReturnedNFT)]
+    #[test, expected_failure(abort_code=managed_names::managed::EInvalidReturnedNFT)]
     fun borrow_and_return_different_nft() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -121,7 +121,7 @@ module managed::managed_tests {
         abort 1337
     }
 
-    #[test, expected_failure(abort_code=managed::managed::ENotAuthorized)]
+    #[test, expected_failure(abort_code=managed_names::managed::ENotAuthorized)]
     fun try_to_borrow_as_unauthorized_user() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -135,7 +135,7 @@ module managed::managed_tests {
         abort 1337
     }
 
-    #[test, expected_failure(abort_code=managed::managed::ENotAuthorized)]
+    #[test, expected_failure(abort_code=managed_names::managed::ENotAuthorized)]
     fun try_to_remove_not_being_owner_but_being_authorized() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -150,7 +150,7 @@ module managed::managed_tests {
         abort 1337
     }
 
-    #[test, expected_failure(abort_code=managed::managed::ENotAuthorized)]
+    #[test, expected_failure(abort_code=managed_names::managed::ENotAuthorized)]
     fun try_to_remove_not_being_owner_not_authorized() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -165,7 +165,7 @@ module managed::managed_tests {
         abort 1337
     }
 
-    #[test, expected_failure(abort_code=managed::managed::ENotAuthorized)]
+    #[test, expected_failure(abort_code=managed_names::managed::ENotAuthorized)]
     fun remove_from_authorized_and_fail_to_borrow() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -184,7 +184,7 @@ module managed::managed_tests {
         abort 1337
     }
 
-    #[test, expected_failure(abort_code=managed::managed::ENotAuthorized)]
+    #[test, expected_failure(abort_code=managed_names::managed::ENotAuthorized)]
     fun revoke_addresses_as_non_owner() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -198,7 +198,7 @@ module managed::managed_tests {
         abort 1337
     }
 
-    #[test, expected_failure(abort_code=managed::managed::ENotAuthorized)]
+    #[test, expected_failure(abort_code=managed_names::managed::ENotAuthorized)]
     fun add_addresses_as_non_owner() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -212,7 +212,7 @@ module managed::managed_tests {
         abort 1337
     }
 
-    #[test, expected_failure(abort_code=managed::managed::ENameNotExists)]
+    #[test, expected_failure(abort_code=managed_names::managed::ENameNotExists)]
     fun remove_name_that_does_not_exist() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;

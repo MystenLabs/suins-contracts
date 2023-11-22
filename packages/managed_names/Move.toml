@@ -1,5 +1,5 @@
 [package]
-name = "managed"
+name = "managed_names"
 version = "0.0.1"
 
 [dependencies]
@@ -7,4 +7,4 @@ Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-fram
 suins = { local = "../suins" }
 
 [addresses]
-managed = "0x0"
+managed_names = "0x0"

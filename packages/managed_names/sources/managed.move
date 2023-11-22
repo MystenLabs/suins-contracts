@@ -15,7 +15,7 @@
 /// Since `SuiNS` is required as a parameter to create subdomains anyways, 
 /// we're also using it to store the managed names (to avoid using separate shared objects).
 /// 
-module managed::managed {
+module managed_names::managed {
     use std::vector;
     use std::string::{String};
     use std::option::{Self, Option};
