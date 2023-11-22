@@ -100,7 +100,7 @@ module subdomains::subdomain_tests {
         abort 1337  
     }
 
-    #[test, expected_failure(abort_code=subdomains::subdomains::ESubdomainReplaced)]
+    #[test, expected_failure(abort_code=subdomains::subdomains::EParentChanged)]
     fun tries_to_extend_while_parent_changed() {
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
