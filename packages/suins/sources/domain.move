@@ -112,7 +112,7 @@ module suins::domain {
             return false
         };
 
-        parent(child).labels == parent.labels
+        &parent(child).labels == &parent.labels
     }
 
     fun validate_labels(labels: &vector<String>) {
