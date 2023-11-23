@@ -38,6 +38,7 @@ module subdomains::subdomains {
     use suins::registry::{Self, Registry};
     use suins::suins::{Self, SuiNS, AdminCap};
     use suins::suins_registration::{Self, SuinsRegistration};
+    use suins::subdomain::{Self, SubDomain};
     use suins::constants::{subdomain_allow_extension_key, subdomain_allow_creation_key, leaf_expiration_timestamp};
     use suins::name_record;
 
@@ -49,12 +50,10 @@ module subdomains::subdomains {
     const ECreationDisabledForSubDomain: u64 = 2;
     /// Tries to extend the expiration of a subdomain which doesn't have the permission to do so.
     const EExtensionDisabledForSubDomain: u64 = 3;
-    /// Tries to extend the time using a domain that is not a subdomain.
-    const ENotSubdomain: u64 = 4;
     /// The subdomain has been replaced by a newer NFT, so it can't be renewed.
-    const ESubdomainReplaced: u64 = 5;
+    const ESubdomainReplaced: u64 = 4;
     /// Parent for a given subdomain has changed, hence time extension cannot be done.
-    const EParentChanged: u64 = 6;
+    const EParentChanged: u64 = 5;
 
     /// The authentication scheme for SuiNS.
     struct SubDomains has drop {}
@@ -90,7 +89,7 @@ module subdomains::subdomains {
         internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, true);
 
         // emit event for indexing
-        internal_emit_tweak_event(subdomain, leaf_expiration_timestamp(), true, option::some(target));
+        internal_emit_tweak_event(subdomain, leaf_expiration_timestamp(), true, option::none(), option::some(target));
 
         // Aborts with `suins::registry::ERecordExists` if the subdomain already exists.
         registry::add_leaf_record(registry_mut(suins), subdomain, clock, target, ctx)
@@ -142,7 +141,7 @@ module subdomains::subdomains {
         allow_creation: bool,
         allow_time_extension: bool,
         ctx: &mut TxContext
-    ): SuinsRegistration {
+    ): SubDomain {
         let subdomain = domain::new(subdomain_name);
         // all validation logic for subdomain creation / management.
         internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, true);
@@ -170,15 +169,14 @@ module subdomains::subdomains {
     /// Extends the expiration of a `node` subdomain.
     public fun extend_expiration(
         suins: &mut SuiNS,
-        nft: &mut SuinsRegistration,
+        sub_nft: &mut SubDomain,
         expiration_timestamp_ms: u64,
     ) {
         let registry = registry(suins);
+
+        let nft = subdomain::borrow_mut(sub_nft);
         let subdomain = suins_registration::domain(nft);
         let parent_domain = domain::parent(&subdomain);
-
-        // first, we validate that we are indeed looking at a subdomain.
-        assert!(is_subdomain(&subdomain), ENotSubdomain);
 
         // Check if time extension is allowed for this subdomain.
         assert!(is_extension_allowed(&internal_get_domain_config(suins, subdomain)), EExtensionDisabledForSubDomain);
@@ -197,10 +195,10 @@ module subdomains::subdomains {
         // validate that the requested expiration timestamp is not greater than the parent's one.
         assert!(expiration_timestamp_ms <= name_record::expiration_timestamp_ms(option::borrow(&parent_name_record)), EInvalidExpirationDate);
 
-        // emit event for indexing.
-        internal_emit_tweak_event(subdomain, expiration_timestamp_ms, false, name_record::target_address(option::borrow(&existing_name_record)));
-
         registry::set_expiration_timestamp_ms(registry_mut(suins), nft, subdomain, expiration_timestamp_ms);
+
+        // emit event for indexing.
+        internal_emit_tweak_event(subdomain, expiration_timestamp_ms, false, option::some(object::id(sub_nft)), name_record::target_address(option::borrow(&existing_name_record)));
     }
 
     /// Called by the parent domain to edit a subdomain's settings.
@@ -337,7 +335,7 @@ module subdomains::subdomains {
         parent_nft_id: ID,
         clock: &Clock,
         ctx: &mut TxContext,
-    ): SuinsRegistration {
+    ): SubDomain {
         let nft = registry::add_record_ignoring_grace_period(registry, subdomain, 1, clock, ctx);
         // set the timestamp to the correct one. `add_record` only works with years but we can correct it easily.
         registry::set_expiration_timestamp_ms(registry, &mut nft, subdomain, expiration_timestamp_ms);
@@ -346,18 +344,21 @@ module subdomains::subdomains {
         // is the same as the one currently holding the parent domain.
         df::add(suins_registration::uid_mut(&mut nft), ParentKey {}, parent_nft_id);
 
+        let subdomain_nft = subdomain::new(nft, clock, ctx);
+
         // emits an event for our indexing purposes.
-        internal_emit_tweak_event(subdomain, expiration_timestamp_ms, false, option::none());
-        nft
+        internal_emit_tweak_event(subdomain, expiration_timestamp_ms, false, option::some(object::id(&subdomain_nft)), option::none());
+        subdomain_nft
     }
 
     /// Emits an event to help us index on our BE.
-    fun internal_emit_tweak_event(domain: Domain, expiration_timestamp_ms: u64, is_leaf: bool, target: Option<address>) {
+    fun internal_emit_tweak_event(domain: Domain, expiration_timestamp_ms: u64, is_leaf: bool, subdomain_id: Option<ID>, target: Option<address>) {
         event::emit(SubDomainTweakEvent {
+            id: subdomain_id,
             domain,
             expiration_timestamp_ms,
             is_leaf,
-            target
+            target,
         });
     }
 
@@ -383,7 +384,8 @@ module subdomains::subdomains {
         domain: Domain,
         expiration_timestamp_ms: u64,
         is_leaf: bool,
-        target: Option<address>
+        target: Option<address>,
+        id: Option<ID>
     }
 
     /// Even called when a `leaf` name is removed.
