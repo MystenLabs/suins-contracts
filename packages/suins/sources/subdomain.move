@@ -3,13 +3,10 @@
 
 /// A wrapper for `SuinsRegistration` subdomain objects.
 /// 
-/// With the wrapper, we are allowing easier distinction between names & subdomains in the code.
-/// Main use-case is querying owned Subnames from RPC differently than Names.
+/// With the wrapper, we are allowing easier distinction between second 
+/// level names & subdomains in RPC Querying | filtering.
 /// 
-/// The wrapper adds some small issues in our current phase, since we do not support references in PTBs.
-/// 
-/// As a work-around, we'll have to proxy the calls temporarily (using a package that can get discared once the PTB references are in).
-/// We cannot support the wrapper with an `Option<SuinsRegistration>` (to proceed with borrow + return approach), as Display won't work for the wrapper.
+/// We maintain all core functionality unchanged for registry, expiration etc.
 module suins::subdomain {
     use sui::object::{Self, UID};
 
