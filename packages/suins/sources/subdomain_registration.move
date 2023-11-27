@@ -7,7 +7,7 @@
 /// level names & subdomains in RPC Querying | filtering.
 /// 
 /// We maintain all core functionality unchanged for registry, expiration etc.
-module suins::subdomain {
+module suins::subdomain_registration {
     use sui::object::{Self, UID};
 
     use sui::tx_context::TxContext;
@@ -26,19 +26,19 @@ module suins::subdomain {
     const ENameNotExpired: u64 = 3;
 
     /// A wrapper for SuinsRegistration object specifically for SubNames.
-    struct SubDomain has key, store {
+    struct SubDomainRegistration has key, store {
         id: UID,
         nft: SuinsRegistration
     }
 
     /// Creates a `SubName` wrapper for SuinsRegistration object (as long as it's for a subdomain).
-    public fun new(nft: SuinsRegistration, clock: &Clock, ctx: &mut TxContext): SubDomain {
+    public fun new(nft: SuinsRegistration, clock: &Clock, ctx: &mut TxContext): SubDomainRegistration {
         // Can't wrap a non-subdomain NFT.
         assert!(domain::is_subdomain(&suins_registration::domain(&nft)), ENotSubdomain);
         // Can't wrap an expired NFT.
         assert!(!suins_registration::has_expired(&nft, clock), EExpired);
 
-        SubDomain {
+        SubDomainRegistration {
             id: object::new(ctx),
             nft: nft
         }
@@ -46,11 +46,11 @@ module suins::subdomain {
 
     /// Destroys the wrapper and returns the SuinsRegistration object.
     /// Fails if the subname is not expired.
-    public fun destroy(name: SubDomain, clock: &Clock): SuinsRegistration {
+    public fun destroy(name: SubDomainRegistration, clock: &Clock): SuinsRegistration {
         // tries to unwrap a non-expired subname.
         assert!(suins_registration::has_expired(&name.nft, clock), ENameNotExpired);
         
-        let SubDomain {
+        let SubDomainRegistration {
             id, nft
         } = name;
 
@@ -59,11 +59,11 @@ module suins::subdomain {
         nft
     }
 
-    public fun borrow(name: &SubDomain): &SuinsRegistration {
+    public fun borrow(name: &SubDomainRegistration): &SuinsRegistration {
         &name.nft
     }
 
-    public fun borrow_mut(name: &mut SubDomain): &mut SuinsRegistration {
+    public fun borrow_mut(name: &mut SubDomainRegistration): &mut SuinsRegistration {
         &mut name.nft
     }
 }

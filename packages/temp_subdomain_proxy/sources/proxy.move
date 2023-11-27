@@ -15,24 +15,24 @@ module temp_subdomain_proxy::subdomain_proxy {
     use sui::clock::Clock;
 
     use suins::suins::SuiNS;
-    use suins::subdomain::{Self, SubDomain};
+    use suins::subdomain_registration::{Self, SubDomainRegistration};
     
     use subdomains::subdomains;
     use utils::direct_setup;
 
     public fun create_subdomain(
         suins: &mut SuiNS,
-        subdomain: &SubDomain,
+        subdomain: &SubDomainRegistration,
         clock: &Clock,
         subdomain_name: String,
         expiration_timestamp_ms: u64,
         allow_creation: bool,
         allow_time_extension: bool,
         ctx: &mut TxContext
-    ): SubDomain {
+    ): SubDomainRegistration {
         subdomains::create(
             suins,
-            subdomain::borrow(subdomain),
+            subdomain_registration::borrow(subdomain),
             clock,
             subdomain_name,
             expiration_timestamp_ms,
@@ -44,7 +44,7 @@ module temp_subdomain_proxy::subdomain_proxy {
 
     public fun create_leaf(
         suins: &mut SuiNS,
-        subdomain: &SubDomain,
+        subdomain: &SubDomainRegistration,
         clock: &Clock,
         subdomain_name: String,
         target: address,
@@ -52,7 +52,7 @@ module temp_subdomain_proxy::subdomain_proxy {
     ){
         subdomains::create_leaf(
             suins,
-            subdomain::borrow(subdomain),
+            subdomain_registration::borrow(subdomain),
             clock,
             subdomain_name,
             target,
@@ -62,13 +62,13 @@ module temp_subdomain_proxy::subdomain_proxy {
     
     public fun remove_leaf(
         suins: &mut SuiNS,
-        subdomain: &SubDomain,
+        subdomain: &SubDomainRegistration,
         clock: &Clock,
         subdomain_name: String,
     ) {
         subdomains::remove_leaf(
             suins,
-            subdomain::borrow(subdomain),
+            subdomain_registration::borrow(subdomain),
             clock,
             subdomain_name,
         );
@@ -76,13 +76,13 @@ module temp_subdomain_proxy::subdomain_proxy {
 
     public fun set_target_address(
         suins: &mut SuiNS,
-        subdomain: &SubDomain,
+        subdomain: &SubDomainRegistration,
         new_target: address,
         clock: &Clock,
     ) {
         direct_setup::set_target_address(
             suins,
-            subdomain::borrow(subdomain),
+            subdomain_registration::borrow(subdomain),
             new_target,
             clock,
         );

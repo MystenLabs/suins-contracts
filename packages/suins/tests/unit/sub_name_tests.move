@@ -9,7 +9,7 @@ module suins::sub_name_tests {
     use sui::clock;
 
     use suins::suins_registration;
-    use suins::subdomain;
+    use suins::subdomain_registration as subdomain;
     use suins::domain;
 
     #[test]
@@ -36,7 +36,7 @@ module suins::sub_name_tests {
         clock::destroy_for_testing(clock);
     }
 
-    #[test, expected_failure(abort_code=suins::subdomain::ENotSubdomain)]
+    #[test, expected_failure(abort_code=suins::subdomain_registration::ENotSubdomain)]
     fun try_wrap_non_subdomain() {
         let ctx = tx_context::dummy();
         let clock = clock::create_for_testing(&mut ctx);
@@ -44,12 +44,12 @@ module suins::sub_name_tests {
         let nft = suins_registration::new_for_testing(domain::new(utf8(b"example.sui")), 1, &clock, &mut ctx);
 
         // create subdomain from name
-        let sub_nft = subdomain::new(nft, &clock, &mut ctx);
+        let _sub_nft = subdomain::new(nft, &clock, &mut ctx);
 
         abort 1337
     }
 
-    #[test, expected_failure(abort_code=suins::subdomain::EExpired)]
+    #[test, expected_failure(abort_code=suins::subdomain_registration::EExpired)]
     fun try_wrap_expired_subname() {
         let ctx = tx_context::dummy();
         let clock = clock::create_for_testing(&mut ctx);
@@ -58,12 +58,12 @@ module suins::sub_name_tests {
         clock::set_for_testing(&mut clock, suins_registration::expiration_timestamp_ms(&nft) + 1);
 
         // create subdomain from name
-        let sub_nft = subdomain::new(nft, &clock, &mut ctx);
+        let _sub_nft = subdomain::new(nft, &clock, &mut ctx);
 
         abort 1337
     }
 
-    #[test, expected_failure(abort_code=suins::subdomain::ENameNotExpired)]
+    #[test, expected_failure(abort_code=suins::subdomain_registration::ENameNotExpired)]
     fun try_unwrap_non_expired_subdomain() {
         let ctx = tx_context::dummy();
         let clock = clock::create_for_testing(&mut ctx);
@@ -74,7 +74,7 @@ module suins::sub_name_tests {
         let sub_nft = subdomain::new(nft, &clock, &mut ctx);
 
         // try to destroy
-        nft = subdomain::destroy(sub_nft, &clock);
+        let _nft = subdomain::destroy(sub_nft, &clock);
 
 
         abort 1337
