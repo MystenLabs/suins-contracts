@@ -14,7 +14,7 @@ module subdomains::subdomain_tests {
     use suins::suins::{Self, SuiNS, AdminCap};
     use suins::registry::{Self, Registry};
     use suins::suins_registration::{Self, SuinsRegistration};
-    use suins::subdomain::{Self, SubDomain};
+    use suins::subdomain_registration::{Self, SubDomainRegistration};
     use suins::registry_tests::{burn_nfts};
 
     use subdomains::subdomains::{Self, SubDomains};
@@ -40,7 +40,7 @@ module subdomains::subdomain_tests {
         // Create a node name with the same name as the leaf that was deleted.
         let another_child = create_node_subdomain(&parent, utf8(b"leaf.test.sui"), 1, true, true, scenario);
 
-        let nested = create_node_subdomain(subdomain::borrow(&child), utf8(b"nested.node.test.sui"), 1, true, true, scenario);
+        let nested = create_node_subdomain(subdomain_registration::borrow(&child), utf8(b"nested.node.test.sui"), 1, true, true, scenario);
 
         // extend node's subdomain expiration to the limit.
         extend_node_subdomain(&mut child, suins_registration::expiration_timestamp_ms(&parent), scenario);
@@ -89,7 +89,7 @@ module subdomains::subdomain_tests {
 
         let child = create_node_subdomain(&parent, utf8(b"node.test.sui"), suins_registration::expiration_timestamp_ms(&parent), false, true, scenario);
 
-        let child_nft = subdomain::borrow(&child);
+        let child_nft = subdomain_registration::borrow(&child);
         let _nested = create_node_subdomain(child_nft, utf8(b"test.node.test.sui"), suins_registration::expiration_timestamp_ms(child_nft), false, true, scenario);
 
         abort 1337  
@@ -136,7 +136,7 @@ module subdomains::subdomain_tests {
         let child = create_node_subdomain(&parent, utf8(b"node.test.sui"), 1, true, true, scenario);
 
         increment_clock(2, scenario);
-        create_leaf_subdomain(subdomain::borrow(&child), utf8(b"node.node.test.sui"), TEST_ADDRESS, scenario);
+        create_leaf_subdomain(subdomain_registration::borrow(&child), utf8(b"node.node.test.sui"), TEST_ADDRESS, scenario);
 
         abort 1337  
     }
@@ -226,7 +226,7 @@ module subdomains::subdomain_tests {
     }
 
     /// Create a node subdomain
-    public fun create_node_subdomain(parent: &SuinsRegistration, name: String, expiration: u64, allow_creation: bool, allow_extension: bool, scenario: &mut Scenario): SubDomain {
+    public fun create_node_subdomain(parent: &SuinsRegistration, name: String, expiration: u64, allow_creation: bool, allow_extension: bool, scenario: &mut Scenario): SubDomainRegistration {
         ts::next_tx(scenario, USER_ADDRESS);
         let suins = ts::take_shared<SuiNS>(scenario);
         let clock = ts::take_shared<Clock>(scenario);
@@ -240,7 +240,7 @@ module subdomains::subdomain_tests {
     }
 
     /// Extend a node subdomain's expiration.
-    public fun extend_node_subdomain(nft: &mut SubDomain, expiration: u64, scenario: &mut Scenario) {
+    public fun extend_node_subdomain(nft: &mut SubDomainRegistration, expiration: u64, scenario: &mut Scenario) {
         ts::next_tx(scenario, USER_ADDRESS);
         let suins = ts::take_shared<SuiNS>(scenario);
         let clock = ts::take_shared<Clock>(scenario);

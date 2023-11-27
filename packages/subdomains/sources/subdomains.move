@@ -38,7 +38,7 @@ module subdomains::subdomains {
     use suins::registry::{Self, Registry};
     use suins::suins::{Self, SuiNS, AdminCap};
     use suins::suins_registration::{Self, SuinsRegistration};
-    use suins::subdomain::{Self, SubDomain};
+    use suins::subdomain_registration::{Self, SubDomainRegistration};
     use suins::constants::{subdomain_allow_extension_key, subdomain_allow_creation_key, leaf_expiration_timestamp};
     use suins::name_record;
 
@@ -141,7 +141,7 @@ module subdomains::subdomains {
         allow_creation: bool,
         allow_time_extension: bool,
         ctx: &mut TxContext
-    ): SubDomain {
+    ): SubDomainRegistration {
         let subdomain = domain::new(subdomain_name);
         // all validation logic for subdomain creation / management.
         internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, true);
@@ -153,7 +153,7 @@ module subdomains::subdomains {
         // Aborts with `suins::registry::ERecordExists` if the subdomain already exists.
         let nft = internal_create_subdomain(registry_mut(suins), subdomain, expiration_timestamp_ms, object::id(parent), clock, ctx);
 
-        // We create the `setup` for the particular SubDomain.
+        // We create the `setup` for the particular SubDomainRegistration.
         // We save a setting like: `subdomain.example.sui` -> { allow_creation: true/false, allow_time_extension: true/false }
         if (allow_creation) {
             internal_set_flag(suins, subdomain, subdomain_allow_creation_key(), allow_creation);
@@ -169,12 +169,12 @@ module subdomains::subdomains {
     /// Extends the expiration of a `node` subdomain.
     public fun extend_expiration(
         suins: &mut SuiNS,
-        sub_nft: &mut SubDomain,
+        sub_nft: &mut SubDomainRegistration,
         expiration_timestamp_ms: u64,
     ) {
         let registry = registry(suins);
 
-        let nft = subdomain::borrow_mut(sub_nft);
+        let nft = subdomain_registration::borrow_mut(sub_nft);
         let subdomain = suins_registration::domain(nft);
         let parent_domain = domain::parent(&subdomain);
 
@@ -226,7 +226,7 @@ module subdomains::subdomains {
         // // validate that the parent can create subdomains, otherwise there's no point in allowing it to edit the setup.
         // internal_assert_parent_can_create_subdomains(suins, parent_domain);
 
-        // We create the `setup` for the particular SubDomain.
+        // We create the `setup` for the particular SubDomainRegistration.
         // We save a setting like: `subdomain.example.sui` -> { allow_creation: true/false, allow_time_extension: true/false }
         internal_set_flag(suins, subdomain, subdomain_allow_creation_key(), allow_creation);
         internal_set_flag(suins, subdomain, subdomain_allow_extension_key(), allow_time_extension);
@@ -335,7 +335,7 @@ module subdomains::subdomains {
         parent_nft_id: ID,
         clock: &Clock,
         ctx: &mut TxContext,
-    ): SubDomain {
+    ): SubDomainRegistration {
         let nft = registry::add_record_ignoring_grace_period(registry, subdomain, 1, clock, ctx);
         // set the timestamp to the correct one. `add_record` only works with years but we can correct it easily.
         registry::set_expiration_timestamp_ms(registry, &mut nft, subdomain, expiration_timestamp_ms);
@@ -344,7 +344,7 @@ module subdomains::subdomains {
         // is the same as the one currently holding the parent domain.
         df::add(suins_registration::uid_mut(&mut nft), ParentKey {}, parent_nft_id);
 
-        let subdomain_nft = subdomain::new(nft, clock, ctx);
+        let subdomain_nft = subdomain_registration::new(nft, clock, ctx);
 
         // emits an event for our indexing purposes.
         internal_emit_tweak_event(subdomain, expiration_timestamp_ms, false, option::some(object::id(&subdomain_nft)), option::none());
