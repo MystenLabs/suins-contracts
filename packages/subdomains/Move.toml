@@ -2,9 +2,13 @@
 name = "subdomains"
 version = "0.0.1"
 
+#testnet
+published-at="0x948089208e8f8ec32af2477d6d1e69375224164c8c16b2ccc0c1a5c522003e1a"
+
 [dependencies]
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/mainnet" }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet", override=true }
 suins = { local = "../suins" }
 
 [addresses]
-subdomains = "0x0"
+#testnet
+subdomains = "0x948089208e8f8ec32af2477d6d1e69375224164c8c16b2ccc0c1a5c522003e1a"
