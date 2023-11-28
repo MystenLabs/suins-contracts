@@ -2,14 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as secp from "@noble/secp256k1";
-import dotenv from "dotenv";
+import "dotenv/config";
 import { readEnvAndReplaceKey } from "../config/utils";
 import { bcs, normalizeSuiAddress } from "@mysten/sui.js";
 
-dotenv.config();
 
 export const getPrivateKeyHex = () => {
-    const key = process.env['PRIVATE_KEY'] as string;
+    const key = process.env['CONTRACT_PRIVATE_KEY'] as string;
     //@ts-ignore-next-line
     return secp.utils.bytesToHex(new Uint8Array(key.split(",")));
 }
@@ -21,8 +20,6 @@ export const addressToBytes = (address: string): Uint8Array => {
 
 // Signs a message that allows funds claiming for a specific address.
 export const signMessage = async (bytes: Uint8Array) => {
-
-    console.log(secp.utils.bytesToHex(bytes));
     const signature = await secp.sign(
         await secp.utils.sha256(bytes),
         getPrivateKeyHex(),
@@ -37,6 +34,6 @@ export const generateKeyPair = async () => {
     let privateKey = secp.utils.randomPrivateKey();
     let publicKey = secp.getPublicKey(privateKey);
 
-    readEnvAndReplaceKey('PRIVATE_KEY', privateKey.toString());
-    readEnvAndReplaceKey('PUBLIC_KEY', publicKey.toString());
+    readEnvAndReplaceKey('CONTRACT_PRIVATE_KEY', privateKey.toString());
+    readEnvAndReplaceKey('CONTRACT_PUBLIC_KEY', publicKey.toString());
 }

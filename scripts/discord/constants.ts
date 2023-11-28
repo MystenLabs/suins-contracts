@@ -5,11 +5,11 @@ export const discordRoles = {
     },
     adept: {
         id: 1,
-        percentage: 25
+        percentage: 50
     },
     superOG: {
         id: 2,
-        percentage: 40
+        percentage: 75
     },
     citizen: {
         id: 3,
@@ -17,7 +17,7 @@ export const discordRoles = {
     },
     earlyTester: {
         id: 4,
-        percentage: 40
+        percentage: 90
     },
     supporter2022: {
         id: 5,
@@ -29,7 +29,7 @@ export const discordRoles = {
     },
     suinsFriend: {
         id: 7,
-        percentage: 20
+        percentage: 50
     },
     suinsVip: {
         id: 8,

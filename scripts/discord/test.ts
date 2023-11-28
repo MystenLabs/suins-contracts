@@ -1,5 +1,5 @@
 import { JsonRpcProvider, TransactionBlock, bcs, testnetConnection } from "@mysten/sui.js";
-import { executeTx, prepareSigner } from "../airdrop/helper";
+import { executeTx, prepareSigner, prepareSignerFromPrivateKey } from "../airdrop/helper";
 import * as secp from "@noble/secp256k1";
 import { addressToBytes, getPrivateKeyHex, signMessage } from "./crypto";
 import { discordRoles } from "./constants";
@@ -11,7 +11,7 @@ import { Network, mainPackage } from "../config/constants";
 
 
 const authorize = async (discordConfig: DiscordConfig, network: Network) => {
-    const signer = prepareSigner(new JsonRpcProvider(testnetConnection));
+    const signer = prepareSignerFromPrivateKey(network);
 
     const config = mainPackage[network];
 
@@ -23,9 +23,11 @@ const authorize = async (discordConfig: DiscordConfig, network: Network) => {
 }
 
 
-const prepareContract = async (config: DiscordConfig) => {
-    const signer = prepareSigner(new JsonRpcProvider(testnetConnection));
+const prepareContract = async (config: DiscordConfig, network: Network) => {
+    const signer = prepareSignerFromPrivateKey(network);
     const publicKey = secp.getPublicKey(getPrivateKeyHex());
+
+    console.log(publicKey);
 
     const tx = new TransactionBlock();
 
@@ -122,7 +124,7 @@ const authorizeCouponsForTesting = async (network: Network) => {
 }
 
 // authorize(localDiscordConfig, 'testnet');
-// prepareContract(localDiscordConfig);
+prepareContract(localDiscordConfig, 'testnet');
 // addSomeDummyDiscordMembers(localDiscordConfig);
 // getDiscordMembers('0x015767b8cab58894c86dd4e381c6945efabf5aa0d70981db228ad6b64883cd95')
 

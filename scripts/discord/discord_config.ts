@@ -7,11 +7,11 @@ export type DiscordConfig  = {
 }
 
 export const localDiscordConfig: DiscordConfig = {
-    packageId: '0x2351c4b276766b38dfffdece41e7e72e538ba6ce999a0acf582e93c21d7b880f',
-    discordCap: '0xf4018e67edc1701cc97b7c21b325192e90c1d3076789ca6f2016d13bcc9ffd10',
+    packageId: '0x980458dfbdd7c04e331bcd8968e1e8fc90509e158432f40ad49d797d1a78703a',
+    discordCap: '0xfbe226bae36f4b28912a9bd66032ae44a2db020791d1406549e521d070707799',
     discord: {
-        objectId: '0x3b8f48660de038a2f93644e88bddeb5d097c41caa7b72edc55b60cd0d185df12',
-        initialSharedVersion: '10771048',
+        objectId: '0x1eccf38086ffa59fc78c3bfaf7ab3d8b86298009b51223d1638a9dc8725cbc00',
+        initialSharedVersion: '17191327',
         mutable: true
     }
 }
