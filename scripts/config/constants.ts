@@ -15,10 +15,8 @@ export type PackageInfo = {
     suins: string;
     displayObject?: string;
     directSetupPackageId: string;
-    discountsPackage: {
-        packageId: string;
-        discountHouseId: string;
-    }
+    subdomainsPackageId: string;
+    tempSubdomainProxyPackageId: string;
 }
 
 export const mainPackage: Config = {
@@ -34,12 +32,9 @@ export const mainPackage: Config = {
         provider: new JsonRpcProvider(new Connection({
             fullnode: 'https://suins-rpc.mainnet.sui.io'
         })),
-        discountsPackage: {
-            packageId: '0x6a6ea140e095ddd82f7c745905054b3203129dd04a09d0375416c31161932d2d',
-            discountHouseId: '0x7fdd883c0b7427f18cdb498c4c87a4a79d6bec4783cb3f21aa3816bbc64ce8ef',
-        },
-        directSetupPackageId: '0xdac22652eb400beb1f5e2126459cae8eedc116b73b8ad60b71e3e8d7fdb317e2'
-
+        directSetupPackageId: '0xdac22652eb400beb1f5e2126459cae8eedc116b73b8ad60b71e3e8d7fdb317e2',
+        subdomainsPackageId: 'TODO: Fill this in',
+        tempSubdomainProxyPackageId: 'TODO: Fill this in'
     },
     testnet: {
         packageId: '0x701b8ca1c40f11288a1ed2de0a9a2713e972524fbab748a7e6c137225361653f',
@@ -52,13 +47,7 @@ export const mainPackage: Config = {
             fullnode: 'https://suins-rpc.testnet.sui.io:443'
         })),
         directSetupPackageId: '0x9af70a4cb6d7144e68fd972eef672a74c7fe41aa5c0bb67ba40d7d1ae87bfb19',
-        discountsPackage: {
-            packageId: '0x319364827e018833f545d8291f0482c5859ead75663543dda153b50df83244eb',
-            discountHouseId: '0x5cee9eadc06ae2a330ba8caee517fc1502dffae6474454c45f79f0b00d148ec4',
-        },
+        subdomainsPackageId: '0x948089208e8f8ec32af2477d6d1e69375224164c8c16b2ccc0c1a5c522003e1a',
+        tempSubdomainProxyPackageId: '0xe5ddb8bf3435a31cf64efb53164d35ca58d066a2447aaa6e76414141d2750a6e'
     }
 }
-
-
-
-
