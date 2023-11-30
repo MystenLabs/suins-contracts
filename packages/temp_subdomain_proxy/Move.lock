@@ -2,12 +2,13 @@
 
 [move]
 version = 0
-manifest_digest = "8812B4AD2B19354FBE468DA018D03E39C7AE3BED1F85182F14275B7CA0DC2A66"
-deps_digest = "3C4103934B1E040BB6B23F1D610B4EF9F2F1166A50A104EADCF77467C004C600"
+manifest_digest = "0C205091F4A7B23BD21BAD8D6CA35138BD2402DFA00586D85728C0AC85811B58"
+deps_digest = "060AD7E57DFB13104F21BE5F5C3759D03F0553FC3229247D9A7A6B45F50D03A3"
 
 dependencies = [
   { name = "Sui" },
-  { name = "suins" },
+  { name = "subdomains" },
+  { name = "utils" },
 ]
 
 [[move.package]]
@@ -23,9 +24,27 @@ dependencies = [
 ]
 
 [[move.package]]
+name = "subdomains"
+source = { local = "../subdomains" }
+
+dependencies = [
+  { name = "Sui" },
+  { name = "suins" },
+]
+
+[[move.package]]
 name = "suins"
 source = { local = "../suins" }
 
 dependencies = [
   { name = "Sui" },
+]
+
+[[move.package]]
+name = "utils"
+source = { local = "../utils" }
+
+dependencies = [
+  { name = "Sui" },
+  { name = "suins" },
 ]
