@@ -196,7 +196,7 @@ module subdomains::subdomains {
         registry::set_expiration_timestamp_ms(registry_mut(suins), nft, subdomain, expiration_timestamp_ms);
 
         // indexing purposes.
-        internal_emit_name_edited_event(subdomain, parent(nft), expiration_timestamp_ms, false, option::none(), option::none(), false);
+        internal_emit_name_edited_event(subdomain, parent(nft), expiration_timestamp_ms, false, option::some(object::id(sub_nft)), option::none(), false);
     }
 
     /// Called by the parent domain to edit a subdomain's settings.

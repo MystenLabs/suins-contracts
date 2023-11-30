@@ -6,7 +6,7 @@ version = "0.0.1"
 #published-at="TODO: Fill this in once published"
 
 #testnet
-#published-at="0x2509039f2890f51dec99b6849f01b55cc2d021bd578a7e1c73fe882197c2654c"
+#published-at="0xb0c14a9891efc8080e976db617a2d830183aa9034cbdf575dbb9e5856e38c283"
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet", override=true }
@@ -18,4 +18,4 @@ suins = { local = "../suins" }
 subdomains="0x0"
 
 #testnet
-#subdomains = "0x2509039f2890f51dec99b6849f01b55cc2d021bd578a7e1c73fe882197c2654c"
+#subdomains = "0xb0c14a9891efc8080e976db617a2d830183aa9034cbdf575dbb9e5856e38c283"
