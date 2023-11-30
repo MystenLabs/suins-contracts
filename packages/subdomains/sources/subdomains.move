@@ -89,7 +89,7 @@ module subdomains::subdomains {
         internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, true);
 
         // emit event for indexing
-        internal_emit_name_created_event(subdomain, object::id(parent), leaf_expiration_timestamp(), true, option::none(), option::some(target));
+        internal_emit_name_edited_event(subdomain, object::id(parent), leaf_expiration_timestamp(), true, option::none(), option::some(target), false);
 
         // Aborts with `suins::registry::ERecordExists` if the subdomain already exists.
         registry::add_leaf_record(registry_mut(suins), subdomain, clock, target, ctx)
@@ -111,10 +111,7 @@ module subdomains::subdomains {
         internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, false);
 
         // indexing purposes.
-        event::emit(SubDomainRemovedEvent {
-            domain: subdomain,
-            parent_id: object::id(parent)
-        });
+        internal_emit_name_edited_event(subdomain, object::id(parent), leaf_expiration_timestamp(), true, option::none(), option::none(), true);
 
         registry::remove_leaf_record(registry_mut(suins), subdomain)
     }
@@ -198,10 +195,8 @@ module subdomains::subdomains {
 
         registry::set_expiration_timestamp_ms(registry_mut(suins), nft, subdomain, expiration_timestamp_ms);
 
-        event::emit(SubDomainExtendedEvent {
-            domain: subdomain,
-            expiration_timestamp_ms
-        }); 
+        // indexing purposes.
+        internal_emit_name_edited_event(subdomain, parent(nft), expiration_timestamp_ms, false, option::none(), option::none(), false);
     }
 
     /// Called by the parent domain to edit a subdomain's settings.
@@ -350,19 +345,28 @@ module subdomains::subdomains {
         let subdomain_nft = subdomain_registration::new(nft, clock, ctx);
 
         // emits an event for our indexing purposes.
-        internal_emit_name_created_event(subdomain, parent_nft_id, expiration_timestamp_ms, false, option::some(object::id(&subdomain_nft)), option::none());
+        internal_emit_name_edited_event(subdomain, parent_nft_id, expiration_timestamp_ms, false, option::some(object::id(&subdomain_nft)), option::none(), false);
         subdomain_nft
     }
 
     /// Emits an event to help us index on our BE.
-    fun internal_emit_name_created_event(domain: Domain, parent_id: ID, expiration_timestamp_ms: u64, is_leaf: bool, subdomain_id: Option<ID>, target: Option<address>) {
-        event::emit(SubDomainCreatedEvent {
+    fun internal_emit_name_edited_event(
+        domain: Domain, 
+        parent_id: ID, 
+        expiration_timestamp_ms: u64, 
+        is_leaf: bool, 
+        subdomain_id: Option<ID>, 
+        target: Option<address>,
+        deleted: bool
+    ) {
+        event::emit(SubDomainEditedEvent {
             id: subdomain_id,
             parent_id,
             domain,
             expiration_timestamp_ms,
             is_leaf,
             target,
+            deleted
         });
     }
 
@@ -382,27 +386,22 @@ module subdomains::subdomains {
     // === Events ===
 
     /// Event that's indexed on our Indexer.
-    /// We save the created subdomain (out of which we can also extract the parent) and the expiration timestamp.
-    /// We reuse the same event both for creation and renewal of subdomain's expiration.
-    struct SubDomainCreatedEvent has copy, drop {
+    /// We reuse the same event both for creation and renewal of subdomain's expiration, as well as deletion of leaf names.
+    /// 
+    /// The main incentive in using a single event here, is to keep a consistent move-forward indexing scheme.
+    /// By separating the events, we wouldn't be able to efficiently write-forward, as many of the same operations could happen
+    /// in the same PTB.
+    /// 
+    /// We can't track by module, because we will not be able to track on-chain invocations for subdomains.
+    /// (as the calling module is the one being marked as the triggering one for each event)
+    struct SubDomainEditedEvent has copy, drop {
         domain: Domain,
         expiration_timestamp_ms: u64,
         is_leaf: bool,
         target: Option<address>,
         id: Option<ID>,
         parent_id: ID,
-    }
-
-    /// Time extended on a subdomain
-    struct SubDomainExtendedEvent has copy, drop {
-        domain: Domain,
-        expiration_timestamp_ms: u64,
-    }
-
-    /// Event called when a `leaf` name is removed.
-    struct SubDomainRemovedEvent has copy, drop {
-        domain: Domain,
-        parent_id: ID
+        deleted: bool
     }
 
     #[test_only]
