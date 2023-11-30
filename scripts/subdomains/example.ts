@@ -22,9 +22,9 @@ export const createNodeSubdomain = async (name: String, parent: string, isSubDom
             txb.object(parent), // parent name's object ID
             txb.object(SUI_CLOCK_OBJECT_ID), // Clock
             txb.pure(name, 'string'), // Subdomain `(e.g. example.manos.sui)
-            txb.pure(1716669320691), // expiration of subdomain. Must be <= parent's.
-            txb.pure(false), // allow creating children?
-            txb.pure(false), // allow extending time on its own? (if parent renews or expiration is less than parent's expiration?)
+            txb.pure(1716669320600), // expiration of subdomain. Must be <= parent's.
+            txb.pure(true), // allow creating children?
+            txb.pure(true), // allow extending time on its own? (if parent renews or expiration is less than parent's expiration?)
         ]
     });
 
@@ -54,9 +54,20 @@ export const createLeafSubdomainTx = (txb: TransactionBlock, name: string, paren
         txb.object(SUI_CLOCK_OBJECT_ID), // clock
         txb.pure(name, 'string'), // subdomain name (eg `example.manos.sui`)
         txb.pure(normalizeSuiAddress('0x2'), 'address') // target address (where does this leaf subdomain point to?)
-    ]
-});
+        ]
+    });
+}
 
+export const extendExpirationTx = (txb: TransactionBlock, subdomainId: string, expiration: number, config: PackageInfo) => {
+    // extend expiration of a subdomain
+    txb.moveCall({
+        target: `${config.subdomainsPackageId}::subdomains::extend_expiration`,
+        arguments: [
+            txb.object(config.suins),
+            txb.object(subdomainId),
+            txb.pure(expiration),
+        ]
+    });
 }
 
 export const createLeafSubdomain = async (name: string, parent: string) => {
@@ -73,11 +84,15 @@ export const createLeafSubdomain = async (name: string, parent: string) => {
 export const removeLeafSubdomain = async (name: string, parent: string, isSubDomainParent: boolean) => {
     const txb = new TransactionBlock();
 
-    const config = mainPackage.testnet;
+    removeLeafSubdomainTx(txb, name, parent, isSubDomainParent, mainPackage.testnet)
 
     const signer = prepareSignerFromPrivateKey('testnet');
 
-    // create a leaf subdomain
+    await executeTx(signer, txb);
+}
+
+export const removeLeafSubdomainTx = async (txb: TransactionBlock, name: string, parent: string, isSubDomainParent: boolean, config: PackageInfo) => {
+    // remove a leaf subdomain
     txb.moveCall({
         target: isSubDomainParent ? `${config.tempSubdomainProxyPackageId}::subdomain_proxy::remove_leaf` : `${config.subdomainsPackageId}::subdomains::remove_leaf`,
         arguments: [
@@ -87,8 +102,6 @@ export const removeLeafSubdomain = async (name: string, parent: string, isSubDom
             txb.pure(name, 'string'),
         ]
     });
-
-    await executeTx(signer, txb);
 }
 
 export const queryNameRecord = async (name: String) => {
@@ -121,8 +134,30 @@ const prepareManyNamesForTesting = async (startInt=0) => {
 
 }
 
+const complexPTBToTestIndexing = async () => {
+    const txb = new TransactionBlock();
+    const parentId = MANOS_SUI_OBJECT_ID;
+
+    const leafName = 'breaking-indexing.manos.sui';
+    const leafName2 = 'breaking-indexing2.manos.sui';
+
+    // createLeafSubdomainTx(txb, leafName, parentId, mainPackage.testnet, false);
+    // createLeafSubdomainTx(txb, leafName2, parentId, mainPackage.testnet, false);
+
+    extendExpirationTx(txb, '0xab13e1fc4fc418550ac9495c4fbca9ffc276c1bfb811b44fac7311fbc7f4cbea', 1716669320691, mainPackage.testnet);
+
+    // removeLeafSubdomainTx(txb, leafName, parentId, false, mainPackage.testnet);
+    // removeLeafSubdomainTx(txb, leafName2, parentId, false, mainPackage.testnet);
+    // createLeafSubdomainTx(txb, leafName, parentId, mainPackage.testnet, false);
+
+    const signer = prepareSignerFromPrivateKey('testnet');
+    await executeTx(signer, txb);
+}
+
 // prepareManyNamesForTesting(1000);
 // queryNameRecord('leaf.manos.sui');
-createNodeSubdomain('nested.manos.sui', MANOS_SUI_OBJECT_ID, false);
+// createNodeSubdomain('indexing5.manos.sui', MANOS_SUI_OBJECT_ID, false);
 // createLeafSubdomain('leaf.manos.sui', MANOS_SUI_OBJECT_ID);
 // removeLeafSubdomain('leaf.manos.sui', MANOS_SUI_OBJECT_ID);
+
+// complexPTBToTestIndexing();

@@ -47,7 +47,7 @@ export const mainPackage: Config = {
             fullnode: 'https://suins-rpc.testnet.sui.io:443'
         })),
         directSetupPackageId: '0x9af70a4cb6d7144e68fd972eef672a74c7fe41aa5c0bb67ba40d7d1ae87bfb19',
-        subdomainsPackageId: '0x948089208e8f8ec32af2477d6d1e69375224164c8c16b2ccc0c1a5c522003e1a',
-        tempSubdomainProxyPackageId: '0xe5ddb8bf3435a31cf64efb53164d35ca58d066a2447aaa6e76414141d2750a6e'
+        subdomainsPackageId: '0xb0c14a9891efc8080e976db617a2d830183aa9034cbdf575dbb9e5856e38c283',
+        tempSubdomainProxyPackageId: '0x471adb89c0b5094febfcde87f0a90ec32daea71755dd9eed9e68bc3e527562b5'
     }
 }
