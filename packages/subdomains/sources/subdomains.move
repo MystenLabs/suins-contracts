@@ -221,9 +221,6 @@ module subdomains::subdomains {
         // (as well as it is valid in label length, total length, depth, etc).
         config::assert_is_valid_subdomain(&parent_domain, &subdomain, &app_config(suins).config);
 
-        // // validate that the parent can create subdomains, otherwise there's no point in allowing it to edit the setup.
-        // internal_assert_parent_can_create_subdomains(suins, parent_domain);
-
         // We create the `setup` for the particular SubDomainRegistration.
         // We save a setting like: `subdomain.example.sui` -> { allow_creation: true/false, allow_time_extension: true/false }
         internal_set_flag(suins, subdomain, subdomain_allow_creation_key(), allow_creation);
@@ -289,8 +286,8 @@ module subdomains::subdomains {
         parent: &SuinsRegistration,
         clock: &Clock,
         subdomain: Domain,
-        // pass `true` for `validate_creation` if you want to validate that the parent can create subdomains.
-        // Not needed when editing the setup of a subdomain or removing leaf names.
+        // Set to `true` for `validate_creation` if you want to validate that the parent can create subdomains.
+        // Set to false when editing the setup of a subdomain or removing leaf names.
         validate_creation: bool
     ) {
         // validate that parent is a valid, non expired object.
