@@ -46,6 +46,32 @@ module suins::name_record {
         }
     }
 
+    /// A new constructor to allow for a more flexible creation of a `NameRecord`.
+    public fun new_extended(
+        nft_id: ID,
+        expiration_timestamp_ms: u64,
+        target_address: Option<address>,
+    ): NameRecord {
+        NameRecord {
+            nft_id,
+            expiration_timestamp_ms,
+            target_address,
+            data: vec_map::empty(),
+        }
+    }
+
+    /// Create a `leaf` NameRecord.
+    public fun new_leaf(
+        parent_id: ID,
+        target_address: Option<address>
+    ): NameRecord {
+        NameRecord {
+            nft_id: parent_id,
+            expiration_timestamp_ms: 0,
+            target_address,
+            data: vec_map::empty()
+        }
+    }
     // === Setters ===
 
     /// Set data as a vec_map directly overriding the data set in the

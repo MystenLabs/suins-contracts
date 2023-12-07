@@ -128,6 +128,8 @@ module suins::registry {
     }
 
     /// Update the `data` of the given `NameRecord` using a `SuinsRegistration`.
+    /// IMPORTANT: NEVER CALL THIS WITHOUT FIRST VALIDATING 
+    /// THAT SYSTEM FIELDS WERE NOT CHANGED.
     public fun set_data(
         self: &mut Registry,
         domain: Domain,
@@ -183,8 +185,7 @@ module suins::registry {
     }
 
     // === Private Functions ===
-
-    fun handle_invalidate_reverse_record(
+    public fun handle_invalidate_reverse_record(
         self: &mut Registry,
         domain: &Domain,
         old_target_address: Option<address>,

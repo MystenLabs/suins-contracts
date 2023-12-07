@@ -26,6 +26,11 @@ module suins::constants {
     /// 30 day Grace period in milliseconds.
     const GRACE_PERIOD_MS: u64 = 30 * 24 * 60 * 60 * 1000;
 
+    /// Namespace key for SLD registry.
+    const NAMESPACE_KEY: vector<u8> = b"NS_KEY";
+    /// Namespace table ID for SLD registry.
+    const NAMESPACE_TABLE_ID: vector<u8> = b"NS_TABLE_ID";
+
     // === Public functions ===
 
     /// Top level domain for SUI as a String.
@@ -44,4 +49,9 @@ module suins::constants {
     public fun year_ms(): u64 { YEAR_MS }
     /// Grace period in milliseconds after which the domain expires.
     public fun grace_period_ms(): u64 { GRACE_PERIOD_MS }
+
+    /// The namespace KEY for the main registry. Helps us handle RPC queries.
+    public fun namespace_key(): String { utf8(NAMESPACE_KEY) }
+    /// The namespace's table ID for faster lookup in RPC.
+    public fun namespace_table_id(): String { utf8(NAMESPACE_TABLE_ID) }
 }

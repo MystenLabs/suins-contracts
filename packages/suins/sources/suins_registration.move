@@ -21,6 +21,7 @@ module suins::suins_registration {
 
     friend suins::registry;
     friend suins::update_image;
+    friend suins::namespace;
 
     /// The main access point for the user.
     struct SuinsRegistration has key, store {
