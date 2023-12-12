@@ -8,6 +8,7 @@
 /// 1. Add events to keep the indexing running
 /// 2. Double-check business validation rules (e.g. allow only 3 digit labels?)
 /// 3. Finalize tests
+/// 4. Create an external module (probably in `utils` package) to allow creation of namespaces.
 module suins::namespace {
     use std::option::{Self, some, none, Option};
     use std::string::{Self, String};
@@ -30,6 +31,9 @@ module suins::namespace {
     use suins::registry::{Self, Registry};
     use suins::constants;
     use suins::subdomain_registration::{Self, SubDomainRegistration};
+
+    /// Initial version.
+    const VERSION: u8 = 1;
     
     /// Tries to create a namespace or domain for a domain that has expired. 
     const ENFTExpired: u64 = 1;
@@ -53,13 +57,16 @@ module suins::namespace {
     const ENameCreationDisabled: u64 = 10;
     /// Tries to create a namespace with a not-supported TLD.
     const ENotSupportedTLD: u64 = 11;
+    /// Tries to use the namespace on an older version of the pkg.
+    const EInvalidVersion: u64 = 12;
     
     /// A shared object that holds the registry of a subdomain's records.
     struct Namespace has key {
         id: UID,
         parent_nft_id: ID,
         parent: Domain,
-        registry: Table<Domain, SubNameRecord>
+        registry: Table<Domain, SubNameRecord>,
+        version: u8
     }
 
     /// Attached to the names to:
@@ -67,12 +74,14 @@ module suins::namespace {
     /// 2. Validate that the namespace is correct for a given NFT.
     struct NameSpaceData has copy, store, drop {}
 
-    // Creates a namespace for the given domain.
+    /// Creates a namespace for the given domain.
+    /// We need to use an external package to call this, which is authorized on the main `SuiNS` object.
+    /// We can enforce any kind of business logic there (e.g. charge creation of namespaces, etc.)
+    /// 
+    /// We cannot control what goes on in the namespace after we go live.
     public fun create_namespace(registry: &mut Registry, nft: &mut SuinsRegistration, clock: &Clock, ctx: &mut TxContext) {
-        // create the namespace.
-        let namespace = internal_create_namespace(registry, nft, clock, ctx);
         // share the registry.
-        transfer::share_object(namespace);
+        transfer::share_object(internal_create_namespace(registry, nft, clock, ctx));
     }
 
     /// Adds a record to the namespace.
@@ -86,6 +95,7 @@ module suins::namespace {
         clock: &Clock,
         ctx: &mut TxContext
     ): SubDomainRegistration {
+        assert_is_valid_version(self);
         let domain = domain::new(domain_name);
 
         // Checks that parent is not expired, parent is valid for this namespace,
@@ -145,6 +155,7 @@ module suins::namespace {
         target: address,
         _ctx: &mut TxContext
     ) {
+        assert_is_valid_version(self);
         let domain = domain::new(domain_name);
         // Checks that parent is not expired, parent is valid for this namespace,
         // and that the parent is indeed the parent for the given domain_name.
@@ -169,6 +180,7 @@ module suins::namespace {
         domain_name: String,
         clock: &Clock,
     ) {
+        assert_is_valid_version(self);
         let domain = domain::new(domain_name);
 
         // Checks that parent is not expired, parent is valid for this namespace, 
@@ -185,6 +197,7 @@ module suins::namespace {
     
     /// Returns the `SubNameRecord` associated with the given domain or None.
     public fun lookup(self: &Namespace, domain: Domain): Option<SubNameRecord> {
+        assert_is_valid_version(self);
         if (table::contains(&self.registry, domain)) {
             let record = table::borrow(&self.registry, domain);
             some(*record)
@@ -202,13 +215,28 @@ module suins::namespace {
         self.parent
     }
 
-
-    /// === Private helpers === 
-    /// 
     /// Get the namespace for the given domain.
     /// Check of existence is done in the caller.
     public fun namespace(registration: &SuinsRegistration): &ID {
         df::borrow<NameSpaceData, ID>(nft::uid(registration), NameSpaceData {})
+    }
+
+    /// A public function to bump the version of a namespace
+    /// based on the package's version.
+    /// 
+    /// Can be called by anyone to bump the version, and we can decide to
+    /// bump it for namespaces in any future package upgrade utilizing our indexing.
+    public fun bump_version(self: &mut Namespace) {
+        if(self.version < VERSION) {
+            self.version = VERSION
+        }
+    }
+
+    /// === Private helpers === 
+    /// 
+    /// A guard for future versioning of our namespaces
+    fun assert_is_valid_version(self: &Namespace) {
+        assert!(self.version == VERSION, EInvalidVersion);
     }
 
     fun internal_remove_existing_record_if_exists_and_expired(
@@ -371,7 +399,8 @@ module suins::namespace {
             id: name_space_id,
             parent_nft_id: object::id(nft),
             parent: parent_domain,
-            registry: table::new(ctx)
+            registry: table::new(ctx),
+            version: VERSION
         };
 
         // Update metadata of main registry to include the namespace ID.

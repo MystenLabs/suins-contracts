@@ -3,7 +3,7 @@
 
 #[test_only]
 module suins::subdomain_registration_tests {
-    use std::string::{utf8, String};
+    use std::string::utf8;
 
     use sui::tx_context;
     use sui::clock;

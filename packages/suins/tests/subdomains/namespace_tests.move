@@ -2,24 +2,22 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #[test_only]
+#[allow(unused_assignment)]
 module suins::namespace_tests {
-    
+    use std::string::{Self, utf8};
+    use std::option::{Self};
 
-    use std::string::{Self, utf8, String};
-    use std::option::{Self, some};
-    use std::vector;
     use sui::object;
-    use sui::tx_context::{Self, TxContext};
+    use sui::tx_context;
     use sui::clock::{Self, Clock};
     use sui::vec_map;
     use sui::address;
-
     use sui::test_scenario::{Self as ts, Scenario, ctx};
 
     use suins::registry::{Self, Registry};
     use suins::namespace::{Self, Namespace};
     use suins::suins::{Self, SuiNS};
-    use suins::registry_tests::{burn_nfts, setup, wrapup, burn_subname_nfts};
+    use suins::registry_tests::{burn_nfts, setup, burn_subname_nfts};
     use suins::domain;
     use suins::name_record;
     use suins::constants;
@@ -31,14 +29,13 @@ module suins::namespace_tests {
     struct TestApp has drop {}
 
     const USER: address = @0x1;
-    const ADMIN: address = @0x2;
 
+    #[test]
     // We test the flow e2e.
     // 1. Create a namespace.
     // 2. Add a node name to the namespace
     // 3. Validate the DF values are proper.
     // 4. Validate the registry has the right values.
-    #[test]
     fun test_e2e(){
         let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -91,8 +88,8 @@ module suins::namespace_tests {
         ts::end(scenario_val);
     }
 
-    /// Test e2e flows with leaf record additions and removals.
     #[test]
+    /// Test e2e flows with leaf record additions and removals.
     fun test_leafs_e2e() {
       let scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -149,8 +146,9 @@ module suins::namespace_tests {
     }
 
 
-    /// Tries to create a subdomain without first initializing a namespace.
+
     #[test, expected_failure(abort_code=suins::namespace::ENFTExpired)]
+    /// Tries to create a subdomain without first initializing a namespace.
     fun create_with_expired_nft() {
         let ctx = tx_context::dummy();
         let (registry, clock, domain) = setup(&mut ctx);
@@ -163,8 +161,9 @@ module suins::namespace_tests {
         abort 1337
     }
 
-    /// Tries to create a namespace after having created one already.
+
     #[test, expected_failure(abort_code=suins::namespace::ENameSpaceAlreadyCreated)]
+    /// Tries to create a namespace after having created one already.
     fun create_second_namespace() {
         let ctx = tx_context::dummy();
         let (registry, clock, domain) = setup(&mut ctx);
@@ -176,8 +175,9 @@ module suins::namespace_tests {
         abort 1337
     }
 
-    /// Tries to create a namespace after having created one already.
+
     #[test, expected_failure(abort_code=suins::namespace::ENotASLDName)]
+    /// Tries to create a namespace after having created one already.
     fun create_namespace_with_subdomain() {
         let ctx = tx_context::dummy();
         let (registry, clock, domain) = setup(&mut ctx);
@@ -190,8 +190,8 @@ module suins::namespace_tests {
         abort 1337
     }
 
-    /// Tries a record in a miss-matched namespace.
     #[test, expected_failure(abort_code=suins::namespace::ENamespaceMissmatch)]
+    /// Tries a record in a miss-matched namespace.
     fun create_subdomain_in_missmatched_namespace() {
         let ctx = tx_context::dummy();
         let (registry, clock, domain) = setup(&mut ctx);
@@ -201,12 +201,11 @@ module suins::namespace_tests {
 
         let namespace = namespace::create_namespace_for_testing(&mut registry, &mut nft_2, &clock, &mut ctx);
 
-        namespace::add_leaf_record(&mut namespace, &mut nft_1, utf8(b"leaf.test.sui"), &clock, USER, &mut ctx);
+        namespace::add_leaf_record(&mut namespace, &nft_1, utf8(b"leaf.test.sui"), &clock, USER, &mut ctx);
     
         abort 1337
     }
 
-    /// Tries a record in a miss-matched namespace.
     #[test, expected_failure(abort_code=suins::namespace::EInvalidParent)]
     fun create_with_invalid_parent() {
         let ctx = tx_context::dummy();
@@ -217,7 +216,7 @@ module suins::namespace_tests {
 
         let namespace = namespace::create_namespace_for_testing(&mut registry, &mut nft_2, &clock, &mut ctx);
 
-        namespace::add_leaf_record(&mut namespace, &mut nft_2, utf8(b"leaf.test.sui"), &clock, USER, &mut ctx);
+        namespace::add_leaf_record(&mut namespace, &nft_2, utf8(b"leaf.test.sui"), &clock, USER, &mut ctx);
     
         abort 1337
     }
