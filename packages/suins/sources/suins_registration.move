@@ -55,6 +55,21 @@ module suins::suins_registration {
         }
     }
 
+    /// Destroys the `SuinsRegistration` by deleting it from the store, returning
+    /// storage rebates to the caller.
+    /// Can only be called by the `registry` module.
+    public(friend) fun burn(self: SuinsRegistration) {
+        let SuinsRegistration {
+            id,
+            image_url: _,
+            domain: _,
+            domain_name: _,
+            expiration_timestamp_ms: _
+        } = self;
+
+        object::delete(id);
+    }
+
     /// Sets the `expiration_timestamp_ms` for this NFT.
     public(friend) fun set_expiration_timestamp_ms(self: &mut SuinsRegistration, expiration_timestamp_ms: u64) {
         self.expiration_timestamp_ms = expiration_timestamp_ms;

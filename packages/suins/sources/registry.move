@@ -210,6 +210,35 @@ module suins::registry {
         };
     }
 
+    /// Attempts to burn an NFT and get storage rebates. 
+    /// Only works if the NFT has expired.
+    public fun burn_registration_object(
+        self: &mut Registry,
+        nft: SuinsRegistration,
+        clock: &Clock
+    ) {
+        // First we make sure that the SuinsRegistration object has expired.
+        assert!(nft::has_expired(&nft, clock), ERecordNotExpired);
+
+        let domain = nft::domain(&nft);
+
+        // Then, if the registry still has a record for this domain and the NFT ID matches, we remove it.
+        if (table::contains(&self.registry, domain)) {
+            let record = table::borrow(&self.registry, domain);
+
+            if(name_record::nft_id(record) == object::id(&nft)) {
+                assert!(name_record::has_expired(record, clock), ERecordNotExpired);
+                // Remove the record and assert that it has expired past the grace period
+                let record = table::remove(&mut self.registry, domain);
+
+                let old_target_address = name_record::target_address(&record);
+                handle_invalidate_reverse_record(self, &domain, old_target_address, none());
+            };
+        };
+        // burn the NFT.
+        nft::burn(nft);
+    }
+
     // === Test Functions ===
     #[test_only] use suins::suins::{add_registry, SuiNS};
 
@@ -242,7 +271,7 @@ module suins::registry {
             reverse_registry,
         } = self;
 
-        table::destroy_empty(registry);
-        table::destroy_empty(reverse_registry);
+        table::drop(registry);
+        table::drop(reverse_registry);
     }
 }

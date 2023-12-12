@@ -10,7 +10,7 @@ module suins::sub_name_record {
     struct SubNameRecord has copy, store, drop {
         // The NameRecord's core data
         name_record: NameRecord,
-        // whether the subname is a leaf (no expiration)
+        // whether the subname is a leaf (no expiration).
         is_leaf: bool,
         // Whether to allow extending the expiration date of the subname
         allow_extension: bool,

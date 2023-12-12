@@ -141,6 +141,28 @@ module suins::registry_tests {
         burn_nfts(vector[ nft ]);
     }
 
+    #[test]
+    /// `burn_registration_object` burns the SuinsRegistration object as well as removes the record, 
+    /// since it still points to the old owner.
+    fun test_registry_burn_name_and_removes_record() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        // create a record for the test domain with expiration set to 1 year
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+
+        // increment the clock to 1 years + grace period
+        clock::increment_for_testing(&mut clock, constants::year_ms() + constants::grace_period_ms() + 1);
+
+        // we burn the first one as it is an expired name now.
+        registry::burn_registration_object(&mut registry, nft, &clock);
+
+        // we still have a registry entry though, it's not removed as the owner is different.
+        assert!(option::is_none(&registry::lookup(&registry, domain)), 1);
+
+        wrapup(registry, clock);
+    }
+
     #[test, expected_failure(abort_code = suins::registry::ETargetNotSet)]
     /// 1. Create a registry, add a record;
     /// 2. Try calling `set_reverse_lookup` and fail
@@ -167,6 +189,58 @@ module suins::registry_tests {
         // set the `domain` points to @0x0
         registry::set_target_address(&mut registry, domain, some(@0xB0B));
         registry::set_reverse_lookup(&mut registry, @0xA11CE, domain);
+
+        abort 1337
+    }
+
+    #[test]
+    fun burn_expired_suins_registration() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        // increment the clock to 1 years + grace period
+        clock::increment_for_testing(&mut clock, constants::year_ms() + 1);
+
+        // burn the registration object
+        registry::burn_registration_object(&mut registry, nft, &clock);
+
+        let name = registry::lookup(&registry, domain);
+        assert!(option::is_none(&name), 0);
+
+        wrapup(registry, clock);
+    }
+
+    #[test]
+    fun burn_expired_registration_without_overriding() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        // increment the clock to 1 years + grace period
+        clock::increment_for_testing(&mut clock, constants::year_ms() + constants::grace_period_ms() + 1);
+
+        // re-register 
+        let new_nft_post_expiration = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+
+        // burn the expired object
+        registry::burn_registration_object(&mut registry, nft, &clock);
+
+        // Validate that the record still exists (no invalidation happened), 
+        // since the name was bought again after this.
+        let name = registry::lookup(&registry, domain);
+        assert!(option::is_some(&name), 0);
+
+        wrapup(registry, clock);
+        burn_nfts(vector[ new_nft_post_expiration]);
+    }
+
+    #[test, expected_failure(abort_code = suins::registry::ERecordNotExpired)]
+    fun burn_non_expired_domain_failure() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+
+                // burn the expired object
+        registry::burn_registration_object(&mut registry, nft, &clock);
 
         abort 1337
     }

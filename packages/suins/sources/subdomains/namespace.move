@@ -10,7 +10,7 @@ module suins::namespace {
     use sui::tx_context::{TxContext};
 
     use sui::table::{Self, Table};
-    use sui::clock::Clock;
+    use sui::clock::{Self, Clock};
     use sui::dynamic_field::{Self as df};
     use sui::transfer;
     use sui::vec_map;
@@ -23,23 +23,31 @@ module suins::namespace {
     use suins::registry::{Self, Registry};
     use suins::constants;
     use suins::subdomain_registration::{Self, SubDomainRegistration};
-
-    /// Max nesting the subdomain can have.
-    /// It's better to start conservative, and then increase it if needed as we cannot decrease it again.
-    const MAX_DOMAIN_LEVELS: u64 = 10;
     
+    /// Tries to create a subdomain that hasn't initialized a namespace.
     const ENoNameSpaceAttached: u64 = 1;
+    /// Tries to create a namespace or domain for a domain that has expired. 
     const ENFTExpired: u64 = 2;
+    /// Tries to create a namespace for a domain that already has a namespace.
     const ENameSpaceAlreadyCreated: u64 = 3;
+    /// Tries to create a namespace for a domain that is not a SLD.
     const ENotASLDName: u64 = 4;
+    /// Tries to create a subdomain in a non-matching namespace.
     const ENamespaceMissmatch: u64 = 5;
+    /// Tries to override a record that hasn't expired yet.
     const ERecordNotExpired: u64 = 6;
-
+    /// Tries to remove a record that is not a leaf record.
     const ENotLeafRecord: u64 = 7;
-    const ERecordExpired: u64 = 8;
-    const EInvalidParent: u64 = 9;
-    const EInvalidExpirationDate: u64 = 10;
-    const EInvalidSubdomainDepth: u64 = 11;
+    /// Tries to create a subdomain with the wrong parent.
+    const EInvalidParent: u64 = 8;
+    /// Tries to create a subdomain with an invalid expiration date (after parents' expiration or not enough time)
+    const EInvalidExpirationDate: u64 = 9;
+    /// Tries to create a subdomain with an invalid depth (over the limit)
+    const EInvalidSubdomainDepth: u64 = 10;
+    /// Tries to create a subdomain without being allowed to do so.
+    const ENameCreationDisabled: u64 = 11;
+    /// Tries to create a namespace with a not-supported TLD.
+    const ENotSupportedTLD: u64 = 12;
     
     /// A shared object that holds the registry of a subdomain's records.
     struct Namespace has key {
@@ -60,7 +68,8 @@ module suins::namespace {
         let parent_domain = nft::domain(nft);
         // Validate that the parent is a valid TLD for our namespaces setup.
         // Explanation: We might not use the namespaces for `.move` service, for instance.
-        assert_is_accepted_tld(&parent_domain);
+        assert!(is_accepted_tld(&parent_domain), ENotSupportedTLD);
+
         // Validate that the NFT is still valid
         assert!(!nft::has_expired(nft, clock), ENFTExpired);
 
@@ -110,14 +119,14 @@ module suins::namespace {
         // Checks that parent is not expired, parent is valid for this namespace,
         // and that the parent is indeed the parent for the given domain_name.
         assert_parent_valid_for_domain(self, domain, parent, clock);
-        assert_is_valid_subdomain(&domain);
+        assert_is_valid_subdomain_depth(&domain);
 
         // make sure the expiration stamp is less or equal to the parent's expiration.
         assert!(expiration_timestamp_ms <= nft::expiration_timestamp_ms(parent), EInvalidExpirationDate);
+        // make sure expiration has the minimum duration.
+        assert!(expiration_timestamp_ms > clock::timestamp_ms(clock) + constants::minimum_subdomain_duration(), EInvalidExpirationDate);
 
-        // Validate accepted nesting etc.
-
-        // create nft and fix timestamp.
+        // Create NFT and fix timestamp.
         let nft = nft::new(domain, 1, clock, ctx);
         nft::set_expiration_timestamp_ms(&mut nft, expiration_timestamp_ms);
 
@@ -136,6 +145,9 @@ module suins::namespace {
         );
 
         let subdomain_registration = subdomain_registration::new(nft, clock, ctx);
+
+        // add the sub_name record to the registry
+        table::add(&mut self.registry, domain, sub_name_record);
 
         subdomain_registration
     }
@@ -163,7 +175,7 @@ module suins::namespace {
         // Checks that parent is not expired, parent is valid for this namespace,
         // and that the parent is indeed the parent for the given domain_name.
         assert_parent_valid_for_domain(self, domain, parent, clock);
-        assert_is_valid_subdomain(&domain);
+        assert_is_valid_subdomain_depth(&domain);
 
         // Removes an existing record if it exists and is expired.
         internal_remove_existing_record_if_exists_and_expired(self, domain, clock);
@@ -245,19 +257,20 @@ module suins::namespace {
     /// Validate that the parent is valid when creating the namespace. 
     /// If we want to unblock the creation of a namespace for other TLDs (e.g. .move)
     /// we need to do a package upgrade and redo the logic here.
-    fun assert_is_accepted_tld(domain: &Domain) {
-        assert!(domain::tld(domain) == &constants::sui_tld(), EInvalidParent);
+    fun is_accepted_tld(domain: &Domain): bool {
+        domain::tld(domain) == &constants::sui_tld()
     }
 
     /// Check the depth of the domain we're trying to create
-    fun assert_is_valid_subdomain(domain: &Domain){
-        assert!(domain::number_of_levels(domain) <= MAX_DOMAIN_LEVELS, EInvalidSubdomainDepth);
+    fun assert_is_valid_subdomain_depth(domain: &Domain){
+        assert!(domain::number_of_levels(domain) <= constants::max_domain_levels(), EInvalidSubdomainDepth);
     }
 
     /// Check that:
     /// 1. Parent is valid for the given namespace
     /// 2. Parent is not expired. We cannot use expired parents.
     /// 3. Passed domain is indeed a child of the parent.
+    /// 4. Creation is allowed for the parent.
     fun assert_parent_valid_for_domain(
         namespace: &Namespace,
         domain: Domain,
@@ -265,17 +278,65 @@ module suins::namespace {
         clock: &Clock
     ) {
         // validate that the NFT is valid for this namespace.
-        assert_is_nft_valid_for_namespace(namespace, parent);
+        assert!(is_nft_valid_for_namespace(namespace, parent), ENamespaceMissmatch);
+
         // Validate that the NFT is still valid.
         assert!(!nft::has_expired(parent, clock), ENFTExpired);
+
         // Validate that the parent is the actual parent for the given domain_name.
         assert!(domain::is_parent_of(&nft::domain(parent), &domain), EInvalidParent);
+
+        // Validate that creation is allowed for the parent.
+        assert!(is_creation_allowed(namespace, parent), ENameCreationDisabled);
+    }
+
+    /// Check if creation is allowed for parent.
+    fun is_creation_allowed(
+        namespace: &Namespace,
+        parent: &SuinsRegistration,
+    ): bool {
+        let parent_domain = nft::domain(parent);
+
+        if(!domain::is_subdomain(&parent_domain)){
+            return false;
+        };
+
+        let record = lookup(namespace, parent_domain);
+
+        if(option::is_none(&record)){
+            return false;
+        };
+
+        sub_name_record::is_creation_allowed(option::borrow(&record))
+    }
+
+    /// Check if time extension is allowed for this subdomain.
+    fun is_extension_allowed(
+        namespace: &Namespace,
+        subdomain: &SuinsRegistration,
+    ): bool {
+        let domain = nft::domain(subdomain);
+
+        if(!domain::is_subdomain(&domain)){
+            return false;
+        };
+
+        let record = lookup(namespace, domain);
+
+        if(option::is_none(&record)){
+            return false;
+        };
+
+        sub_name_record::is_extension_allowed(option::borrow(&record))
     }
 
     /// Validate that an NFT is valid for this namespace (> means it was created here).
-    fun assert_is_nft_valid_for_namespace(namespace: &Namespace, nft: &SuinsRegistration) {
-        assert!(internal_namespace_exists(nft::uid(nft)), ENoNameSpaceAttached);
-        assert!(&object::id(namespace) == internal_namespace(nft::uid(nft)), ENamespaceMissmatch);
+    fun is_nft_valid_for_namespace(namespace: &Namespace, nft: &SuinsRegistration): bool {
+        if(!internal_namespace_exists(nft::uid(nft))){
+            return false;
+        };
+
+        &object::id(namespace) == internal_namespace(nft::uid(nft))
     }
 
     /// Validate that a namespace has been attached to the NFT.
@@ -294,5 +355,4 @@ module suins::namespace {
     fun internal_tag_namespace(uid: &mut UID, id: ID) {
         df::add(uid, NameSpaceData {}, id);
     }
-
 }

@@ -26,10 +26,16 @@ module suins::constants {
     /// 30 day Grace period in milliseconds.
     const GRACE_PERIOD_MS: u64 = 30 * 24 * 60 * 60 * 1000;
 
+    /// Minimum duration for a subdomain in milliseconds. (1 day)
+    const MINIMUM_SUBDOMAIN_DURATION: u64 =  24 * 60 * 60 * 1000;
     /// Namespace key for SLD registry.
     const NAMESPACE_KEY: vector<u8> = b"NS_KEY";
     /// Namespace table ID for SLD registry.
     const NAMESPACE_TABLE_ID: vector<u8> = b"NS_TABLE_ID";
+
+    /// Max nesting subdomains can have.
+    /// We start conservative, and then increase it if needed as we cannot decrease it.
+    const MAX_DOMAIN_LEVELS: u64 = 8;
 
     // === Public functions ===
 
@@ -54,4 +60,9 @@ module suins::constants {
     public fun namespace_key(): String { utf8(NAMESPACE_KEY) }
     /// The namespace's table ID for faster lookup in RPC.
     public fun namespace_table_id(): String { utf8(NAMESPACE_TABLE_ID) }
+
+    /// Minimum duration for a subdomain in milliseconds. (1 day)
+    public fun minimum_subdomain_duration(): u64 { MINIMUM_SUBDOMAIN_DURATION }
+
+    public fun max_domain_levels(): u64 { MAX_DOMAIN_LEVELS }
 }
