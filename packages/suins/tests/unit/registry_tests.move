@@ -12,6 +12,7 @@ module suins::registry_tests {
     use sui::test_utils::assert_eq;
 
     use suins::suins_registration::{Self as nft, SuinsRegistration};
+    use suins::subdomain_registration::{Self as subdomain_nft, SubDomainRegistration};
     use suins::name_record as record;
     use suins::registry::{Self, Registry};
     use suins::domain::{Self, Domain};
@@ -250,7 +251,7 @@ module suins::registry_tests {
 
     // === Helpers ===
 
-    fun setup(ctx: &mut TxContext): (Registry, Clock, Domain) {
+    public fun setup(ctx: &mut TxContext): (Registry, Clock, Domain) {
         (
             registry::new_for_testing(ctx),
             clock::create_for_testing(ctx),
@@ -258,14 +259,22 @@ module suins::registry_tests {
         )
     }
 
-    fun wrapup(registry: Registry, clock: Clock) {
+    public fun wrapup(registry: Registry, clock: Clock) {
         registry::destroy_empty_for_testing(registry);
         clock::destroy_for_testing(clock);
     }
 
-    fun burn_nfts(nfts: vector<SuinsRegistration>) {
+    public fun burn_nfts(nfts: vector<SuinsRegistration>) {
         while (vector::length(&nfts) > 0) {
             nft::burn_for_testing(vector::pop_back(&mut nfts));
+        };
+        vector::destroy_empty(nfts);
+    }
+
+    public fun burn_subname_nfts(nfts: vector<SubDomainRegistration>, clock: &Clock) {
+        while (vector::length(&nfts) > 0) {
+            let nft = subdomain_nft::destroy(vector::pop_back(&mut nfts), clock);
+            nft::burn_for_testing(nft);
         };
         vector::destroy_empty(nfts);
     }

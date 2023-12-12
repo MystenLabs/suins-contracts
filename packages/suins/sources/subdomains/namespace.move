@@ -2,10 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /// A namespace is a registry tied to a SLD Domain. (e.g. test.sui )
+/// 
+/// 
+/// TODOS: 
+/// 1. Add events to keep indexing running
+/// 2. Double-check business validation rules (e.g. allow only 3 digit labels)
+/// 3. Finalize tests for all edge-cases.
 module suins::namespace {
     use std::option::{Self, some, none, Option};
     use std::string::{Self, String};
 
+    use sui::address;
     use sui::object::{Self, UID, ID};
     use sui::tx_context::{TxContext};
 
@@ -66,15 +73,16 @@ module suins::namespace {
     public fun create_namespace(registry: &mut Registry, nft: &mut SuinsRegistration, clock: &Clock, ctx: &mut TxContext) {
         // the parent domain (creating the namespace)
         let parent_domain = nft::domain(nft);
+
         // Validate that the parent is a valid TLD for our namespaces setup.
-        // Explanation: We might not use the namespaces for `.move` service, for instance.
+        // Explanation: We might not use the namespaces for `.move` service
         assert!(is_accepted_tld(&parent_domain), ENotSupportedTLD);
 
-        // Validate that the NFT is still valid
+        // Validate that the NFT is still valid.
         assert!(!nft::has_expired(nft, clock), ENFTExpired);
 
         // Validate that there's no namespace for that particular ID
-        assert!(!internal_namespace_exists(nft::uid(nft)), ENameSpaceAlreadyCreated);
+        assert!(!internal_namespace_exists(nft), ENameSpaceAlreadyCreated);
 
         // Validate that it's a SLD (only those have their own namespaces)
         assert!(!domain::is_subdomain(&parent_domain), ENotASLDName);
@@ -95,8 +103,8 @@ module suins::namespace {
         // Update metadata of main registry to include the namespace ID.
         // That allows the RPC to easily find which namespace to query for a given SLD domain.
         let metadata = *registry::get_data(registry, parent_domain);
-        vec_map::insert(&mut metadata, constants::namespace_key(), string::utf8(object::id_to_bytes(&object::id(&namespace))));
-        vec_map::insert(&mut metadata, constants::namespace_table_id(), string::utf8(object::id_to_bytes(&object::id(&namespace.registry))));
+        vec_map::insert(&mut metadata, constants::namespace_key(), address::to_string(object::id_address(&namespace)));
+        vec_map::insert(&mut metadata, constants::namespace_table_id(), address::to_string(object::id_address(&namespace.registry)));
         registry::set_data(registry, parent_domain, metadata);
 
         // share the registry.
@@ -119,6 +127,8 @@ module suins::namespace {
         // Checks that parent is not expired, parent is valid for this namespace,
         // and that the parent is indeed the parent for the given domain_name.
         assert_parent_valid_for_domain(self, domain, parent, clock);
+
+        // check depth of labels.
         assert_is_valid_subdomain_depth(&domain);
 
         // make sure the expiration stamp is less or equal to the parent's expiration.
@@ -219,13 +229,33 @@ module suins::namespace {
         }
     }
 
+    /// == Simple getters == 
+    public fun parent_nft_id(self: &Namespace): ID {
+        self.parent_nft_id
+    }
+
+    public fun parent(self: &Namespace): Domain {
+        self.parent
+    }
+
+
+    /// === Private helpers === 
+    /// 
+    /// Get the namespace for the given domain.
+    /// Check of existence is done in the caller.
+    public fun namespace(registration: &SuinsRegistration): &ID {
+        df::borrow<NameSpaceData, ID>(nft::uid(registration), NameSpaceData {})
+    }
+
     fun internal_remove_existing_record_if_exists_and_expired(
         namespace: &mut Namespace,
         domain: Domain,
         clock: &Clock
     ) {
         // if the domain is not part of the registry, we can override.
-        if (!table::contains(&namespace.registry, domain)) return;
+        if (!table::contains(&namespace.registry, domain)){
+            return
+        };
 
         // Remove the record and assert that it has expired (past the grace period if applicable)
         let record = table::remove(&mut namespace.registry, domain);
@@ -252,7 +282,6 @@ module suins::namespace {
             assert!(name_record::has_expired(&name_record, clock), ERecordNotExpired);
         };
     }
-
 
     /// Validate that the parent is valid when creating the namespace. 
     /// If we want to unblock the creation of a namespace for other TLDs (e.g. .move)
@@ -298,7 +327,7 @@ module suins::namespace {
         let parent_domain = nft::domain(parent);
 
         if(!domain::is_subdomain(&parent_domain)){
-            return false;
+            return true;
         };
 
         let record = lookup(namespace, parent_domain);
@@ -332,22 +361,16 @@ module suins::namespace {
 
     /// Validate that an NFT is valid for this namespace (> means it was created here).
     fun is_nft_valid_for_namespace(namespace: &Namespace, nft: &SuinsRegistration): bool {
-        if(!internal_namespace_exists(nft::uid(nft))){
+        if(!internal_namespace_exists(nft)){
             return false;
         };
 
-        &object::id(namespace) == internal_namespace(nft::uid(nft))
+        &object::id(namespace) == namespace(nft)
     }
 
     /// Validate that a namespace has been attached to the NFT.
-    fun internal_namespace_exists(uid: &UID): bool {
-        df::exists_with_type<NameSpaceData, ID>(uid, NameSpaceData {})
-    }
-
-    /// Get the namespace for the given domain.
-    /// Check of existence is done in the caller.
-    fun internal_namespace(uid: &UID): &ID {
-        df::borrow<NameSpaceData, ID>(uid, NameSpaceData {})
+    fun internal_namespace_exists(nft: &SuinsRegistration): bool {
+        df::exists_with_type<NameSpaceData, ID>(nft::uid(nft), NameSpaceData {})
     }
 
     /// Internal helper to tag an object with the namespace.
