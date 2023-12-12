@@ -184,32 +184,6 @@ module suins::registry {
         name_record::data(record)
     }
 
-    // === Private Functions ===
-    public fun handle_invalidate_reverse_record(
-        self: &mut Registry,
-        domain: &Domain,
-        old_target_address: Option<address>,
-        new_target_address: Option<address>,
-    ) {
-        if (old_target_address == new_target_address) {
-            return
-        };
-
-        if (option::is_none(&old_target_address)) {
-            return
-        };
-
-        let old_target_address = option::destroy_some(old_target_address);
-        let reverse_registry = &mut self.reverse_registry;
-
-        if (table::contains(reverse_registry, old_target_address)) {
-            let default_domain = table::borrow(reverse_registry, old_target_address);
-            if (default_domain == domain) {
-                table::remove(reverse_registry, old_target_address);
-            }
-        };
-    }
-
     /// Attempts to burn an NFT and get storage rebates. 
     /// Only works if the NFT has expired.
     public fun burn_registration_object(
@@ -237,6 +211,32 @@ module suins::registry {
         };
         // burn the NFT.
         nft::burn(nft);
+    }
+
+    // === Private Functions ===
+    fun handle_invalidate_reverse_record(
+        self: &mut Registry,
+        domain: &Domain,
+        old_target_address: Option<address>,
+        new_target_address: Option<address>,
+    ) {
+        if (old_target_address == new_target_address) {
+            return
+        };
+
+        if (option::is_none(&old_target_address)) {
+            return
+        };
+
+        let old_target_address = option::destroy_some(old_target_address);
+        let reverse_registry = &mut self.reverse_registry;
+
+        if (table::contains(reverse_registry, old_target_address)) {
+            let default_domain = table::borrow(reverse_registry, old_target_address);
+            if (default_domain == domain) {
+                table::remove(reverse_registry, old_target_address);
+            }
+        };
     }
 
     // === Test Functions ===
