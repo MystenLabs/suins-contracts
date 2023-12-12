@@ -45,7 +45,7 @@ module suins::sub_name_record {
         self.allow_extension
     }
 
-    public fun name_record(self: &SubNameRecord): NameRecord {
-        self.name_record
+    public fun name_record(self: &SubNameRecord): &NameRecord {
+        &self.name_record
     }
 }

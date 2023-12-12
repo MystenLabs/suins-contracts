@@ -5,9 +5,9 @@
 /// 
 /// 
 /// TODOS: 
-/// 1. Add events to keep indexing running
-/// 2. Double-check business validation rules (e.g. allow only 3 digit labels)
-/// 3. Finalize tests for all edge-cases.
+/// 1. Add events to keep the indexing running
+/// 2. Double-check business validation rules (e.g. allow only 3 digit labels?)
+/// 3. Finalize tests
 module suins::namespace {
     use std::option::{Self, some, none, Option};
     use std::string::{Self, String};
@@ -31,30 +31,28 @@ module suins::namespace {
     use suins::constants;
     use suins::subdomain_registration::{Self, SubDomainRegistration};
     
-    /// Tries to create a subdomain that hasn't initialized a namespace.
-    const ENoNameSpaceAttached: u64 = 1;
     /// Tries to create a namespace or domain for a domain that has expired. 
-    const ENFTExpired: u64 = 2;
+    const ENFTExpired: u64 = 1;
     /// Tries to create a namespace for a domain that already has a namespace.
-    const ENameSpaceAlreadyCreated: u64 = 3;
+    const ENameSpaceAlreadyCreated: u64 = 2;
     /// Tries to create a namespace for a domain that is not a SLD.
-    const ENotASLDName: u64 = 4;
+    const ENotASLDName: u64 = 3;
     /// Tries to create a subdomain in a non-matching namespace.
-    const ENamespaceMissmatch: u64 = 5;
+    const ENamespaceMissmatch: u64 = 4;
     /// Tries to override a record that hasn't expired yet.
-    const ERecordNotExpired: u64 = 6;
+    const ERecordNotExpired: u64 = 5;
     /// Tries to remove a record that is not a leaf record.
-    const ENotLeafRecord: u64 = 7;
+    const ENotLeafRecord: u64 = 6;
     /// Tries to create a subdomain with the wrong parent.
-    const EInvalidParent: u64 = 8;
+    const EInvalidParent: u64 = 7;
     /// Tries to create a subdomain with an invalid expiration date (after parents' expiration or not enough time)
-    const EInvalidExpirationDate: u64 = 9;
+    const EInvalidExpirationDate: u64 = 8;
     /// Tries to create a subdomain with an invalid depth (over the limit)
-    const EInvalidSubdomainDepth: u64 = 10;
+    const EInvalidSubdomainDepth: u64 = 9;
     /// Tries to create a subdomain without being allowed to do so.
-    const ENameCreationDisabled: u64 = 11;
+    const ENameCreationDisabled: u64 = 10;
     /// Tries to create a namespace with a not-supported TLD.
-    const ENotSupportedTLD: u64 = 12;
+    const ENotSupportedTLD: u64 = 11;
     
     /// A shared object that holds the registry of a subdomain's records.
     struct Namespace has key {
@@ -71,42 +69,8 @@ module suins::namespace {
 
     // Creates a namespace for the given domain.
     public fun create_namespace(registry: &mut Registry, nft: &mut SuinsRegistration, clock: &Clock, ctx: &mut TxContext) {
-        // the parent domain (creating the namespace)
-        let parent_domain = nft::domain(nft);
-
-        // Validate that the parent is a valid TLD for our namespaces setup.
-        // Explanation: We might not use the namespaces for `.move` service
-        assert!(is_accepted_tld(&parent_domain), ENotSupportedTLD);
-
-        // Validate that the NFT is still valid.
-        assert!(!nft::has_expired(nft, clock), ENFTExpired);
-
-        // Validate that there's no namespace for that particular ID
-        assert!(!internal_namespace_exists(nft), ENameSpaceAlreadyCreated);
-
-        // Validate that it's a SLD (only those have their own namespaces)
-        assert!(!domain::is_subdomain(&parent_domain), ENotASLDName);
-
-        let name_space_id = object::new(ctx);
-
-        // Add the namespace metadata to the NFT (to prevent multiple namespaces being created).
-        internal_tag_namespace(nft::uid_mut(nft), *object::uid_as_inner(&name_space_id));
-
-        // Create the Namespace for the object
-        let namespace = Namespace {
-            id: name_space_id,
-            parent_nft_id: object::id(nft),
-            parent: parent_domain,
-            registry: table::new(ctx)
-        };
-
-        // Update metadata of main registry to include the namespace ID.
-        // That allows the RPC to easily find which namespace to query for a given SLD domain.
-        let metadata = *registry::get_data(registry, parent_domain);
-        vec_map::insert(&mut metadata, constants::namespace_key(), address::to_string(object::id_address(&namespace)));
-        vec_map::insert(&mut metadata, constants::namespace_table_id(), address::to_string(object::id_address(&namespace.registry)));
-        registry::set_data(registry, parent_domain, metadata);
-
+        // create the namespace.
+        let namespace = internal_create_namespace(registry, nft, clock, ctx);
         // share the registry.
         transfer::share_object(namespace);
     }
@@ -274,12 +238,12 @@ module suins::namespace {
 
                 // If the parent is the same and hasn't expired, we can't override the leaf record like this.
                 // We need to first remove + then call create (to protect accidental overrides).
-                if (name_record::nft_id(&parent_name_record) == name_record::nft_id(&name_record)) {
-                    assert!(name_record::has_expired(&parent_name_record, clock), ERecordNotExpired);
+                if (name_record::nft_id(parent_name_record) == name_record::nft_id(name_record)) {
+                    assert!(name_record::has_expired(parent_name_record, clock), ERecordNotExpired);
                 };
             }
         } else {
-            assert!(name_record::has_expired(&name_record, clock), ERecordNotExpired);
+            assert!(name_record::has_expired(name_record, clock), ERecordNotExpired);
         };
     }
 
@@ -377,5 +341,52 @@ module suins::namespace {
     /// Tagging the namespace makes it easy to check if the namespace is correct for a passed NFT.
     fun internal_tag_namespace(uid: &mut UID, id: ID) {
         df::add(uid, NameSpaceData {}, id);
+    }
+
+    /// Internal helper to create namespace. Split so we can easily test it too.
+    fun internal_create_namespace(registry: &mut Registry, nft: &mut SuinsRegistration, clock: &Clock, ctx: &mut TxContext): Namespace {
+        // the parent domain (creating the namespace)
+        let parent_domain = nft::domain(nft);
+
+        // Validate that the parent is a valid TLD for our namespaces setup.
+        // Explanation: We might not use the namespaces for `.move` service
+        assert!(is_accepted_tld(&parent_domain), ENotSupportedTLD);
+
+        // Validate that the NFT is still valid.
+        assert!(!nft::has_expired(nft, clock), ENFTExpired);
+
+        // Validate that there's no namespace for that particular ID
+        assert!(!internal_namespace_exists(nft), ENameSpaceAlreadyCreated);
+
+        // Validate that it's a SLD (only those have their own namespaces)
+        assert!(!domain::is_subdomain(&parent_domain), ENotASLDName);
+
+        let name_space_id = object::new(ctx);
+
+        // Add the namespace metadata to the NFT (to prevent multiple namespaces being created).
+        internal_tag_namespace(nft::uid_mut(nft), *object::uid_as_inner(&name_space_id));
+
+        // Create the Namespace for the object
+        let namespace = Namespace {
+            id: name_space_id,
+            parent_nft_id: object::id(nft),
+            parent: parent_domain,
+            registry: table::new(ctx)
+        };
+
+        // Update metadata of main registry to include the namespace ID.
+        // That allows the RPC to easily find which namespace to query for a given SLD domain.
+        let metadata = *registry::get_data(registry, parent_domain);
+        vec_map::insert(&mut metadata, constants::namespace_key(), address::to_string(object::id_address(&namespace)));
+        vec_map::insert(&mut metadata, constants::namespace_table_id(), address::to_string(object::id_address(&namespace.registry)));
+        registry::set_data(registry, parent_domain, metadata);
+
+        namespace
+    }
+
+
+    #[test_only]
+    public fun create_namespace_for_testing(registry: &mut Registry, nft: &mut SuinsRegistration, clock: &Clock, ctx: &mut TxContext): Namespace {
+        internal_create_namespace(registry, nft, clock, ctx)
     }
 }
