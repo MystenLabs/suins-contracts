@@ -33,7 +33,7 @@ module suins::namespace {
     use suins::subdomain_registration::{Self, SubDomainRegistration};
 
     /// Initial version.
-    const VERSION: u8 = 1;
+    const VERSION: u8 = 0;
     
     /// Tries to create a namespace or domain for a domain that has expired. 
     const ENFTExpired: u64 = 1;
@@ -57,7 +57,7 @@ module suins::namespace {
     const ENameCreationDisabled: u64 = 10;
     /// Tries to create a namespace with a not-supported TLD.
     const ENotSupportedTLD: u64 = 11;
-    /// Tries to use the namespace on an older version of the pkg.
+    /// Tries to use the namespace on an older version of the package.
     const EInvalidVersion: u64 = 12;
     
     /// A shared object that holds the registry of a subdomain's records.
@@ -78,7 +78,8 @@ module suins::namespace {
     /// We need to use an external package to call this, which is authorized on the main `SuiNS` object.
     /// We can enforce any kind of business logic there (e.g. charge creation of namespaces, etc.)
     /// 
-    /// We cannot control what goes on in the namespace after we go live.
+    /// We cannot control what goes on in the namespace after we go live, but we can force a namespace
+    /// to use the latest version utilizing the `version` field.
     public fun create_namespace(registry: &mut Registry, nft: &mut SuinsRegistration, clock: &Clock, ctx: &mut TxContext) {
         // share the registry.
         transfer::share_object(internal_create_namespace(registry, nft, clock, ctx));
@@ -224,7 +225,7 @@ module suins::namespace {
     /// A public function to bump the version of a namespace
     /// based on the package's version.
     /// 
-    /// Can be called by anyone to bump the version, and we can decide to
+    /// Can be called by anyone to bump the version, and we can always decide to
     /// bump it for namespaces in any future package upgrade utilizing our indexing.
     public fun bump_version(self: &mut Namespace) {
         if(self.version < VERSION) {
