@@ -202,10 +202,9 @@ module suins::registry {
 
             if(name_record::nft_id(record) == object::id(&nft)) {
                 assert!(name_record::has_expired(record, clock), ERecordNotExpired);
-                // Remove the record and assert that it has expired past the grace period
-                let record = table::remove(&mut self.registry, domain);
+                let removed_record = table::remove(&mut self.registry, domain);
 
-                let old_target_address = name_record::target_address(&record);
+                let old_target_address = name_record::target_address(&removed_record);
                 handle_invalidate_reverse_record(self, &domain, old_target_address, none());
             };
         };
