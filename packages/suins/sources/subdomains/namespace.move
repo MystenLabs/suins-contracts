@@ -59,6 +59,8 @@ module suins::namespace {
     const ENotSupportedTLD: u64 = 11;
     /// Tries to use the namespace on an older version of the package.
     const EInvalidVersion: u64 = 12;
+    /// Sanity check: Shouldn't be thrown in any realistic scenario.
+    const EInvalidRecord: u64 = 13;
     
     /// A shared object that holds the registry of a subdomain's records.
     struct Namespace has key {
@@ -66,7 +68,7 @@ module suins::namespace {
         parent_nft_id: ID,
         parent: Domain,
         registry: Table<Domain, SubNameRecord>,
-        version: u8
+        version: u8,
     }
 
     /// Attached to the names to:
@@ -222,6 +224,28 @@ module suins::namespace {
         df::borrow<NameSpaceData, ID>(nft::uid(registration), NameSpaceData {})
     }
 
+    /// Set the target address for a subdomain.
+    public fun set_target_address(self: &mut Namespace, nft: &SuinsRegistration, clock: &Clock, target: address) {
+        assert_is_valid_version(self);
+
+        // Validate that the NFT is still valid.
+        assert!(!nft::has_expired(nft, clock), ENFTExpired);
+        
+        let domain = nft::domain(nft);
+        let sub_name_record = lookup(self, domain);
+
+        // Sanity check, this shouldn't ever happen if there's a matching NFT.
+        // It can get replaced, but not removed. And replacement is checked above on the NFT expiration.
+        assert!(option::is_some(&sub_name_record), EInvalidRecord);
+
+        let name_record = sub_name_record::name_record_mut(option::borrow_mut(&mut sub_name_record));
+
+        // For subdomains, we don't invalidate reverse entries.
+        // If we did care, we'd need to also do it when we create a name (to make sure there isn't a non expired one there)
+        // so we would have to go through the main registry (and create congestion there).
+        name_record::set_target_address(name_record, some(target));
+    }
+
     /// A public function to bump the version of a namespace
     /// based on the package's version.
     /// 
@@ -231,6 +255,18 @@ module suins::namespace {
         if(self.version < VERSION) {
             self.version = VERSION
         }
+    }
+
+    /// Immutable UID access.
+    public fun uid(self: &Namespace): &UID {
+        &self.id
+    }
+
+    /// Get the UID of the namespace as the parent name holder
+    /// Allows us to install 3rd party logic to the namespace.
+    public fun uid_mut(self: &mut Namespace, nft: &SuinsRegistration): &mut UID {
+        assert!(object::id(nft) == self.parent_nft_id, ENamespaceMissmatch);
+        &mut self.id
     }
 
     /// === Private helpers === 

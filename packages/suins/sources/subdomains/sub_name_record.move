@@ -48,4 +48,8 @@ module suins::sub_name_record {
     public fun name_record(self: &SubNameRecord): &NameRecord {
         &self.name_record
     }
+
+    public fun name_record_mut(self: &mut SubNameRecord): &mut NameRecord {
+        &mut self.name_record
+    }
 }

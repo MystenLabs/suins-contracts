@@ -6,7 +6,6 @@
 module suins::namespace_tests {
     use std::string::{Self, utf8};
     use std::option::{Self};
-
     use sui::object;
     use sui::tx_context;
     use sui::clock::{Self, Clock};
@@ -29,6 +28,7 @@ module suins::namespace_tests {
     struct TestApp has drop {}
 
     const USER: address = @0x1;
+
 
     #[test]
     // We test the flow e2e.
@@ -73,13 +73,19 @@ module suins::namespace_tests {
         let expiration = nft::expiration_timestamp_ms(&nft);
         let subname = namespace::add_record(&mut namespace, &nft,expiration, true, true, utf8(b"subdomain.test.sui"), &clock, ctx(scenario));
 
+        // go one level deeper.
+        let sub_subname = namespace::add_record(&mut namespace, sub_nft::borrow(&subname), expiration, true, true, utf8(b"nested.subdomain.test.sui"), &clock, ctx(scenario));
+        
+        // try setting the target address for the new name.
+        namespace::set_target_address(&mut namespace, sub_nft::borrow(&sub_subname), &clock, @0x3);
+        
         clock::increment_for_testing(&mut clock, expiration + 1);
         
         // check that subname's nft is also set correctly.
         assert!(namespace::namespace(sub_nft::borrow(&subname)) == &object::id(&namespace), 1);
 
         burn_nfts(vector[ nft ]);
-        burn_subname_nfts(vector[ subname ], &clock);
+        burn_subname_nfts(vector[ subname, sub_subname ], &clock);
 
         // return everything.
         ts::return_shared(suins);
@@ -237,6 +243,20 @@ module suins::namespace_tests {
         abort 1337
     }
 
+    #[test, expected_failure(abort_code=suins::namespace::EInvalidExpirationDate)]
+    fun create_expiration_too_short_lived() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        let nft = registry::add_record(&mut registry, domain::new(utf8(b"test.sui")), 1, &clock, &mut ctx);
+
+        let namespace = namespace::create_namespace_for_testing(&mut registry, &mut nft, &clock, &mut ctx);
+
+        let _subname = namespace::add_record(&mut namespace, &nft, clock::timestamp_ms(&clock), true, true, utf8(b"node.test.sui"), &clock, &mut ctx);
+    
+        abort 1337
+    }
+
     #[test, expected_failure(abort_code=suins::namespace::ERecordNotExpired)]
     fun override_non_expired_name() {
         let ctx = tx_context::dummy();
@@ -281,6 +301,43 @@ module suins::namespace_tests {
 
         namespace::create_namespace(&mut registry, &mut nft, &clock, &mut ctx);
     
+        abort 1337
+    }
+
+    #[test, expected_failure(abort_code=suins::namespace::ENameCreationDisabled)]
+    fun create_while_not_allowed_to_create() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        let nft = registry::add_record(&mut registry, domain::new(utf8(b"test.sui")), 1, &clock, &mut ctx);
+
+        let namespace = namespace::create_namespace_for_testing(&mut registry, &mut nft, &clock, &mut ctx);
+
+        let expiration = nft::expiration_timestamp_ms(&nft);
+
+        let subname = namespace::add_record(&mut namespace, &nft, expiration, false, true, utf8(b"node.test.sui"), &clock, &mut ctx);
+
+         let subname = namespace::add_record(&mut namespace, sub_nft::borrow(&subname), expiration, true, true, utf8(b"nested.node.test.sui"), &clock, &mut ctx);
+    
+        abort 1337
+    }
+
+    #[test, expected_failure(abort_code=suins::namespace::EInvalidSubdomainDepth)]
+    fun create_too_nested_name() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+        let nft = registry::add_record(&mut registry, domain::new(utf8(b"test.sui")), 1, &clock, &mut ctx);
+        let namespace = namespace::create_namespace_for_testing(&mut registry, &mut nft, &clock, &mut ctx);
+        let expiration = nft::expiration_timestamp_ms(&nft);
+
+        let subname = namespace::add_record(&mut namespace, &nft, expiration, true, true, utf8(b"1.test.sui"), &clock, &mut ctx);
+        let subname1 = namespace::add_record(&mut namespace, sub_nft::borrow(&subname), expiration, true, true, utf8(b"1.1.test.sui"), &clock, &mut ctx);
+        let subname2 = namespace::add_record(&mut namespace, sub_nft::borrow(&subname1), expiration, true, true, utf8(b"1.1.1.test.sui"), &clock, &mut ctx);
+        let subname3 = namespace::add_record(&mut namespace, sub_nft::borrow(&subname2), expiration, true, true, utf8(b"1.1.1.1.test.sui"), &clock, &mut ctx);
+        let subname4 = namespace::add_record(&mut namespace, sub_nft::borrow(&subname3), expiration, true, true, utf8(b"1.1.1.1.1.test.sui"), &clock, &mut ctx);
+        let subname5 = namespace::add_record(&mut namespace, sub_nft::borrow(&subname4), expiration, true, true, utf8(b"1.1.1.1.1.1.test.sui"), &clock, &mut ctx);
+        let subname6 = namespace::add_record(&mut namespace, sub_nft::borrow(&subname5), expiration, true, true, utf8(b"1.1.1.1.1.1.1.test.sui"), &clock, &mut ctx);
+        
         abort 1337
     }
 
