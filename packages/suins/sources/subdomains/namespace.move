@@ -3,12 +3,11 @@
 
 /// A namespace is a registry tied to a SLD Domain. (e.g. test.sui )
 /// 
-/// 
-/// TODOS: 
-/// 1. Add events to keep the indexing running
-/// 2. Double-check business validation rules (e.g. allow only 3 digit labels?)
-/// 3. Finalize tests
-/// 4. Create an external module (probably in `utils` package) to allow creation of namespaces.
+/// TODOS:
+/// 1. Add events to help indexing subdomains in our API.
+/// 2. Double-check business validation rules (e.g. shall we allow only 3 digit labels?).
+/// 3. Create an external module (probably in `utils` package) to allow creation of namespaces.
+/// 4. Add offensive words list to prevent creation of offensive subdomains. We'll probably use a static list (immutable).
 module suins::namespace {
     use std::option::{Self, some, none, Option};
     use std::string::{Self, String};
@@ -25,7 +24,6 @@ module suins::namespace {
 
     use suins::domain::{Self, Domain};
     use suins::name_record;
-
     use suins::sub_name_record::{Self, SubNameRecord};
     use suins::suins_registration::{Self as nft, SuinsRegistration};
     use suins::registry::{Self, Registry};
@@ -59,10 +57,10 @@ module suins::namespace {
     const ENotSupportedTLD: u64 = 11;
     /// Tries to use the namespace on an older version of the package.
     const EInvalidVersion: u64 = 12;
-    /// Sanity check: Shouldn't be thrown in any realistic scenario.
-    const EInvalidRecord: u64 = 13;
     /// Tries to borrow the namespace's UID mutably without being the owner of the parent NFT.
-    const EUnauthorizedNFT: u64 = 14;
+    const EUnauthorizedNFT: u64 = 13;
+    /// Tries to extend the expiration of a subdomain without being allowed to do so.
+    const ETimeExtensionDisabled: u64 = 14;
     
     /// A shared object that holds the registry of a subdomain's records.
     struct Namespace has key {
@@ -70,6 +68,9 @@ module suins::namespace {
         parent_nft_id: ID,
         parent: Domain,
         registry: Table<Domain, SubNameRecord>,
+        // We keep the expiration timestamp of the parent to make sure we don't create subdomains that outlive their parent.
+        // We can (permissionless-ly) bump it.
+        expiration_timestamp_ms: u64,
         version: u8,
     }
 
@@ -77,6 +78,9 @@ module suins::namespace {
     /// 1. Prevent multiple namespaces being created for the same domain.
     /// 2. Validate that the namespace is correct for a given NFT.
     struct NameSpaceData has copy, store, drop {}
+
+    /// A parent DF key to identify the parent of an NFT.
+    struct Parent has copy, store, drop {}
 
     /// Creates a namespace for the given domain.
     /// We need to use an external package to call this, which is authorized on the main `SuiNS` object.
@@ -121,6 +125,10 @@ module suins::namespace {
 
         // Tag the NFT with the namespace's ID, to quick-check that the namespace is correct for the NFT in future actions.
         internal_tag_namespace(nft::uid_mut(&mut nft), object::id(self));
+
+        // Tag the NFT with the parent, to prevent allowing extension if the parent changes.
+        internal_tag_parent(nft::uid_mut(&mut nft), object::id(parent));
+
 
         let sub_name_record = sub_name_record::new(
             name_record::new_extended(
@@ -199,6 +207,46 @@ module suins::namespace {
         // We can only call remove on a leaf record.
         assert!(sub_name_record::is_leaf(&record), ENotLeafRecord);
     }
+
+    /// Extend a name's expiration (if allowed).
+    public fun extend_expiration(self: &mut Namespace, nft: &mut SuinsRegistration, expiration_timestamp_ms: u64) {
+        assert_is_valid_version(self);
+
+        // validate that the NFT is valid for this namespace.
+        assert!(is_nft_valid_for_namespace(self, nft), ENamespaceMissmatch);
+
+        // Validate that the NFT's timestamp can be extended.
+        assert!(is_extension_allowed(self, nft), ETimeExtensionDisabled);
+
+        // Validate we're setting an expiration greater than the current one.
+        assert!(expiration_timestamp_ms > nft::expiration_timestamp_ms(nft), EInvalidExpirationDate);
+
+        // Find parent of NFT.
+        let parent = domain::parent(&nft::domain(nft));
+
+        // Check parent's expiration date.
+        let max_expiration = if (&parent == &self.parent) {
+            self.expiration_timestamp_ms
+        }else {
+            let parent_record = lookup(self, parent);
+            let parent_name_record = sub_name_record::name_record(option::borrow(&parent_record));
+
+            // Make sure parent has not changed.
+            assert!(&name_record::nft_id(parent_name_record) == nft_parent(nft), EInvalidParent);
+
+            name_record::expiration_timestamp_ms(parent_name_record)
+        };
+
+        // Validate expiration date <= parent's
+        assert!(expiration_timestamp_ms <= max_expiration, EInvalidExpirationDate);
+
+        let subdomain_record = table::borrow_mut(&mut self.registry, nft::domain(nft));
+        let name_record = sub_name_record::name_record_mut(subdomain_record);
+
+        // Update both the registry entry + the NFT's value.
+        name_record::set_expiration_timestamp_ms(name_record, expiration_timestamp_ms);
+        nft::set_expiration_timestamp_ms(nft, expiration_timestamp_ms);
+    }
     
     /// Returns the `SubNameRecord` associated with the given domain or None.
     public fun lookup(self: &Namespace, domain: Domain): Option<SubNameRecord> {
@@ -210,6 +258,7 @@ module suins::namespace {
             none()
         }
     }
+    
 
     /// == Simple getters == 
     public fun parent_nft_id(self: &Namespace): ID {
@@ -234,18 +283,28 @@ module suins::namespace {
         assert!(!nft::has_expired(nft, clock), ENFTExpired);
 
         let domain = nft::domain(nft);
-        let sub_name_record = lookup(self, domain);
+        let sub_name_record = table::borrow_mut(&mut self.registry, domain);
 
-        // Sanity check, this shouldn't ever happen if there's a matching NFT.
-        // It can get replaced, but not removed. And replacement is checked above on the NFT expiration.
-        assert!(option::is_some(&sub_name_record), EInvalidRecord);
-
-        let name_record = sub_name_record::name_record_mut(option::borrow_mut(&mut sub_name_record));
+        let name_record = sub_name_record::name_record_mut(sub_name_record);
 
         // For subdomains, we don't invalidate reverse entries.
         // If we did care, we'd need to also do it when we create a name (to make sure there isn't a non expired one there)
         // so we would have to go through the main registry (and create congestion there).
         name_record::set_target_address(name_record, some(target));
+    }
+
+    /// Extend the namespace's expiration date.
+    /// Recommended to be coupled when renewing a name as part of the PTB.
+    /// 
+    /// We could potentially make this completely permission-less by passing the `Registry` object
+    /// and looking up the parent, but that might create unnecessary congestion as people might build PTBs that automatically
+    /// extend the namespace expiration date (to avoid having to check off-chain before adding that PTB step).
+    /// 
+    /// Another approach is we can add a permission-less `entry` function to make sure that anyone can explicitly call it,
+    /// but only allow that one transaction in the PTB. (we can introduce it on a package upgrade)
+    public fun update_namespace_expiration(self: &mut Namespace, nft: &SuinsRegistration) {
+        assert!(object::id(nft) == self.parent_nft_id, EUnauthorizedNFT);
+        self.expiration_timestamp_ms = nft::expiration_timestamp_ms(nft);
     }
 
     /// A public function to bump the version of a namespace
@@ -254,7 +313,7 @@ module suins::namespace {
     /// Can be called by anyone to bump the version, and we can always decide to
     /// bump it for namespaces in any future package upgrade utilizing our indexing.
     public fun bump_version(self: &mut Namespace) {
-        if(self.version < VERSION) {
+        if (self.version < VERSION) {
             self.version = VERSION
         }
     }
@@ -357,13 +416,13 @@ module suins::namespace {
     ): bool {
         let parent_domain = nft::domain(parent);
 
-        if(!domain::is_subdomain(&parent_domain)){
+        if (!domain::is_subdomain(&parent_domain)){
             return true;
         };
 
         let record = lookup(namespace, parent_domain);
 
-        if(option::is_none(&record)){
+        if (option::is_none(&record)){
             return false;
         };
 
@@ -377,13 +436,13 @@ module suins::namespace {
     ): bool {
         let domain = nft::domain(subdomain);
 
-        if(!domain::is_subdomain(&domain)){
+        if (!domain::is_subdomain(&domain)){
             return false;
         };
 
         let record = lookup(namespace, domain);
 
-        if(option::is_none(&record)){
+        if (option::is_none(&record)){
             return false;
         };
 
@@ -392,7 +451,7 @@ module suins::namespace {
 
     /// Validate that an NFT is valid for this namespace (> means it was created here).
     fun is_nft_valid_for_namespace(namespace: &Namespace, nft: &SuinsRegistration): bool {
-        if(!internal_namespace_exists(nft)){
+        if (!internal_namespace_exists(nft)){
             return false;
         };
 
@@ -408,6 +467,16 @@ module suins::namespace {
     /// Tagging the namespace makes it easy to check if the namespace is correct for a passed NFT.
     fun internal_tag_namespace(uid: &mut UID, id: ID) {
         df::add(uid, NameSpaceData {}, id);
+    }
+
+    /// Returns the NFT's parent.
+    fun nft_parent(nft: &SuinsRegistration): &ID {
+        df::borrow<Parent, ID>(nft::uid(nft), Parent {})
+    }
+
+    /// Tag the parent NFT.
+    fun internal_tag_parent(uid: &mut UID, id: ID) {
+        df::add(uid, Parent {} , id);
     }
 
     /// Internal helper to create namespace. Split so we can easily test it too.
@@ -430,7 +499,7 @@ module suins::namespace {
 
         let name_space_id = object::new(ctx);
 
-        // Add the namespace metadata to the NFT (to prevent multiple namespaces being created).
+        // Add the namespace metadata to the NFT (to prevent multiple namespaces from being created).
         internal_tag_namespace(nft::uid_mut(nft), *object::uid_as_inner(&name_space_id));
 
         // Create the Namespace for the object
@@ -439,7 +508,8 @@ module suins::namespace {
             parent_nft_id: object::id(nft),
             parent: parent_domain,
             registry: table::new(ctx),
-            version: VERSION
+            expiration_timestamp_ms: nft::expiration_timestamp_ms(nft),
+            version: VERSION,
         };
 
         // Update metadata of main registry to include the namespace ID.

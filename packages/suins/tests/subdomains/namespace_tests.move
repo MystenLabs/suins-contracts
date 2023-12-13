@@ -16,7 +16,7 @@ module suins::namespace_tests {
     use suins::registry::{Self, Registry};
     use suins::namespace::{Self, Namespace};
     use suins::suins::{Self, SuiNS};
-    use suins::registry_tests::{burn_nfts, setup, wrapup, burn_subname_nfts};
+    use suins::registry_tests::{burn_nfts, setup, burn_subname_nfts};
     use suins::domain;
     use suins::name_record;
     use suins::constants;
@@ -151,6 +151,57 @@ module suins::namespace_tests {
         ts::end(scenario_val);
     }
 
+    #[test]
+    // Test some flows in which we extend the expiration of a node name successfuly.
+    fun extend_expiration_tests(){
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        let domain = domain::new(utf8(b"test.sui"));
+        let child_name = utf8(b"child.test.sui");
+
+        ts::next_tx(scenario, USER);
+        let suins = ts::take_shared<SuiNS>(scenario);
+        let registry = suins::app_registry_mut<TestApp, Registry>(TestApp {}, &mut suins);
+        let clock = ts::take_shared<Clock>(scenario);
+        // create a record for the test domain with expiration set to 1 year
+        let nft = registry::add_record(registry, domain, 1, &clock, ctx(scenario));
+        // create a namespace
+        namespace::create_namespace(registry, &mut nft, &clock, ctx(scenario));
+
+        ts::next_tx(scenario, USER);
+
+        // take the namespace and start validating that data is correctly set.
+        let namespace = ts::take_shared<Namespace>(scenario);
+        
+        let initial_expiration = nft::expiration_timestamp_ms(&nft) - 100;
+
+        // create a child for which we allow extension.
+        let child = namespace::add_record(&mut namespace, &nft, initial_expiration, true, true, child_name, &clock, ctx(scenario));
+        assert!(nft::expiration_timestamp_ms(sub_nft::borrow(&child)) == initial_expiration, 1);
+
+        // we extend the expiration of the child a bit.
+        namespace::extend_expiration(&mut namespace, sub_nft::borrow_mut(&mut child), initial_expiration + 50);
+
+        // check nft has the correct new expiration.
+        assert!(nft::expiration_timestamp_ms(sub_nft::borrow(&child)) == initial_expiration + 50, 1);
+
+        // check name_record has the correct new expiration.
+        assert!(name_record::expiration_timestamp_ms(
+            sub_name_record::name_record(option::borrow(&namespace::lookup(&namespace, domain::new(child_name))))) 
+            == initial_expiration + 50, 1);
+
+
+        burn_nfts(vector[ nft ]);
+
+        clock::increment_for_testing(&mut clock, initial_expiration + 51);
+
+        burn_subname_nfts(vector [child], &clock);
+        // return everything.
+        ts::return_shared(suins);
+        ts::return_shared(clock);
+        ts::return_shared(namespace);
+        ts::end(scenario_val);
+    }
 
     #[test]
     // Just some basic coverage on getters.
