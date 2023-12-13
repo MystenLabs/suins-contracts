@@ -16,7 +16,7 @@ module suins::namespace_tests {
     use suins::registry::{Self, Registry};
     use suins::namespace::{Self, Namespace};
     use suins::suins::{Self, SuiNS};
-    use suins::registry_tests::{burn_nfts, setup, burn_subname_nfts};
+    use suins::registry_tests::{burn_nfts, setup, wrapup, burn_subname_nfts};
     use suins::domain;
     use suins::name_record;
     use suins::constants;
@@ -151,6 +151,44 @@ module suins::namespace_tests {
         ts::end(scenario_val);
     }
 
+
+    #[test]
+    // Just some basic coverage on getters.
+    fun plain_coverage(){
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        let domain = domain::new(utf8(b"test.sui"));
+
+        ts::next_tx(scenario, USER);
+
+        let suins = ts::take_shared<SuiNS>(scenario);
+        let registry = suins::app_registry_mut<TestApp, Registry>(TestApp {}, &mut suins);
+        let clock = ts::take_shared<Clock>(scenario);
+
+        // create a record for the test domain with expiration set to 1 year
+        let nft = registry::add_record(registry, domain, 1, &clock, ctx(scenario));
+
+        // create a namespace
+        namespace::create_namespace(registry, &mut nft, &clock, ctx(scenario));
+
+        ts::next_tx(scenario, USER);
+
+        // take the namespace and start validating that data is correctly set.
+        let namespace = ts::take_shared<Namespace>(scenario);
+
+        let _uid = namespace::uid(&namespace);
+        let _uid_mut = namespace::uid_mut(&mut namespace, &nft);
+        let parent = namespace::parent(&namespace);
+
+        assert!(parent == domain, 1);
+
+        burn_nfts(vector[ nft ]);
+        // return everything.
+        ts::return_shared(suins);
+        ts::return_shared(clock);
+        ts::return_shared(namespace);
+        ts::end(scenario_val);
+    }
 
 
     #[test, expected_failure(abort_code=suins::namespace::ENFTExpired)]
@@ -338,6 +376,23 @@ module suins::namespace_tests {
         let subname5 = namespace::add_record(&mut namespace, sub_nft::borrow(&subname4), expiration, true, true, utf8(b"1.1.1.1.1.1.test.sui"), &clock, &mut ctx);
         let subname6 = namespace::add_record(&mut namespace, sub_nft::borrow(&subname5), expiration, true, true, utf8(b"1.1.1.1.1.1.1.test.sui"), &clock, &mut ctx);
         
+        abort 1337
+    }
+
+    #[test, expected_failure(abort_code=suins::namespace::EUnauthorizedNFT)]
+    /// Tries to create a subdomain without first initializing a namespace.
+    fun borrow_mut_without_parent_nft() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        let nft = registry::add_record(&mut registry, domain::new(utf8(b"test.sui")), 1, &clock, &mut ctx);
+        let expiration = nft::expiration_timestamp_ms(&nft);
+        let namespace = namespace::create_namespace_for_testing(&mut registry, &mut nft, &clock, &mut ctx);
+
+        let subname = namespace::add_record(&mut namespace, &nft, expiration, true, true, utf8(b"1.test.sui"), &clock, &mut ctx);
+
+        let _uid_mut = namespace::uid_mut(&mut namespace, sub_nft::borrow(&subname));
+    
         abort 1337
     }
 

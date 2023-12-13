@@ -61,6 +61,8 @@ module suins::namespace {
     const EInvalidVersion: u64 = 12;
     /// Sanity check: Shouldn't be thrown in any realistic scenario.
     const EInvalidRecord: u64 = 13;
+    /// Tries to borrow the namespace's UID mutably without being the owner of the parent NFT.
+    const EUnauthorizedNFT: u64 = 14;
     
     /// A shared object that holds the registry of a subdomain's records.
     struct Namespace has key {
@@ -230,7 +232,7 @@ module suins::namespace {
 
         // Validate that the NFT is still valid.
         assert!(!nft::has_expired(nft, clock), ENFTExpired);
-        
+
         let domain = nft::domain(nft);
         let sub_name_record = lookup(self, domain);
 
@@ -265,7 +267,7 @@ module suins::namespace {
     /// Get the UID of the namespace as the parent name holder
     /// Allows us to install 3rd party logic to the namespace.
     public fun uid_mut(self: &mut Namespace, nft: &SuinsRegistration): &mut UID {
-        assert!(object::id(nft) == self.parent_nft_id, ENamespaceMissmatch);
+        assert!(object::id(nft) == self.parent_nft_id, EUnauthorizedNFT);
         &mut self.id
     }
 
