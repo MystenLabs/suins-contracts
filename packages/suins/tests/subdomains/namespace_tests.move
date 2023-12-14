@@ -12,11 +12,12 @@ module suins::namespace_tests {
     use sui::vec_map;
     use sui::address;
     use sui::test_scenario::{Self as ts, Scenario, ctx};
+    use sui::transfer;
 
     use suins::registry::{Self, Registry};
     use suins::namespace::{Self, Namespace};
     use suins::suins::{Self, SuiNS};
-    use suins::registry_tests::{burn_nfts, setup, burn_subname_nfts};
+    use suins::registry_tests::{burn_nfts, setup, wrapup, burn_subname_nfts};
     use suins::domain;
     use suins::name_record;
     use suins::constants;
@@ -178,6 +179,10 @@ module suins::namespace_tests {
         // create a child for which we allow extension.
         let child = namespace::add_record(&mut namespace, &nft, initial_expiration, true, true, child_name, &clock, ctx(scenario));
         assert!(nft::expiration_timestamp_ms(sub_nft::borrow(&child)) == initial_expiration, 1);
+        // check name_record has the correct initial expiration.
+        assert!(name_record::expiration_timestamp_ms(
+            sub_name_record::name_record(option::borrow(&namespace::lookup(&namespace, domain::new(child_name))))) 
+            == initial_expiration, 1);
 
         // we extend the expiration of the child a bit.
         namespace::extend_expiration(&mut namespace, sub_nft::borrow_mut(&mut child), initial_expiration + 50);
@@ -241,6 +246,25 @@ module suins::namespace_tests {
         ts::end(scenario_val);
     }
 
+    #[test]
+    /// Extend a namespace's expiration based on renewal of the parent SLD.
+    fun extend_namespace_expiration() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let expiration = nft::expiration_timestamp_ms(&nft);
+
+        let namespace = namespace::create_namespace_for_testing(&mut registry, &mut nft, &clock, &mut ctx);
+
+        nft::set_expiration_timestamp_ms_for_testing(&mut nft, expiration + 100);
+
+        namespace::update_expiration(&mut namespace, &nft);
+
+        burn_nfts(vector[ nft ]);
+        wrapup(registry, clock);
+        namespace::burn_namespace_for_testing(namespace);
+    }
 
     #[test, expected_failure(abort_code=suins::namespace::ENFTExpired)]
     /// Tries to create a subdomain without first initializing a namespace.
@@ -444,6 +468,23 @@ module suins::namespace_tests {
 
         let _uid_mut = namespace::uid_mut(&mut namespace, sub_nft::borrow(&subname));
     
+        abort 1337
+    }
+
+    #[test, expected_failure(abort_code=suins::namespace::EUnauthorizedNFT)]
+    /// Extend a namespace's expiration based on renewal of the parent SLD.
+    fun extend_namespace_expiration_with_invalid_nft() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let nft2 = registry::add_record(&mut registry, domain::new(utf8(b"test2.sui")), 1, &clock, &mut ctx);
+        let expiration = nft::expiration_timestamp_ms(&nft);
+
+        let namespace = namespace::create_namespace_for_testing(&mut registry, &mut nft, &clock, &mut ctx);
+
+        namespace::update_expiration(&mut namespace, &nft2);
+
         abort 1337
     }
 

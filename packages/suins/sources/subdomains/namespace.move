@@ -258,7 +258,6 @@ module suins::namespace {
             none()
         }
     }
-    
 
     /// == Simple getters == 
     public fun parent_nft_id(self: &Namespace): ID {
@@ -302,9 +301,12 @@ module suins::namespace {
     /// 
     /// Another approach is we can add a permission-less `entry` function to make sure that anyone can explicitly call it,
     /// but only allow that one transaction in the PTB. (we can introduce it on a package upgrade)
-    public fun update_namespace_expiration(self: &mut Namespace, nft: &SuinsRegistration) {
+    public fun update_expiration(self: &mut Namespace, nft: &SuinsRegistration) {
         assert!(object::id(nft) == self.parent_nft_id, EUnauthorizedNFT);
-        self.expiration_timestamp_ms = nft::expiration_timestamp_ms(nft);
+
+        if(nft::expiration_timestamp_ms(nft) > self.expiration_timestamp_ms) {
+            self.expiration_timestamp_ms = nft::expiration_timestamp_ms(nft);
+        };
     }
 
     /// A public function to bump the version of a namespace
@@ -526,5 +528,20 @@ module suins::namespace {
     #[test_only]
     public fun create_namespace_for_testing(registry: &mut Registry, nft: &mut SuinsRegistration, clock: &Clock, ctx: &mut TxContext): Namespace {
         internal_create_namespace(registry, nft, clock, ctx)
+    }
+
+    #[test_only]
+    public fun burn_namespace_for_testing(namespace: Namespace) {
+        let Namespace {
+            id,
+            parent_nft_id: _,
+            parent: _,
+            registry,
+            expiration_timestamp_ms: _,
+            version: _,
+        } = namespace;
+
+        table::drop(registry);
+        object::delete(id);
     }
 }
