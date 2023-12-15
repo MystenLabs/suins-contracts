@@ -15,7 +15,7 @@ on:
           - Withdraw Auction Profits
           - Transfer Reserved Names
           - Main package upgrade
-          - Stock quest store
+          - Create Deepbook Pools
       sui_tools_image:
         description: 'image reference of sui_tools'
         default: 'mysten/sui-tools:mainnet'
@@ -168,8 +168,8 @@ jobs:
           name: transaction-data
           path: scripts/tx
 
-      - name: Stock Quest Store
-        if: ${{ inputs.transaction_type == 'Stock quest store' }}
+      - name: Create Deepbook Pools
+        if: ${{ inputs.transaction_type == 'Create Deepbook Pools' }}
         env:
           NODE_ENV: production
           GAS_OBJECT: ${{ inputs.gas_object_id }}
