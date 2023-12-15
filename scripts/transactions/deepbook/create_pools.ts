@@ -38,7 +38,7 @@ export const MAINNET_STORE_STOCK_CAP =
   "0x0871a8a0120542ba4b7319909a97ee944bb96e729c330d8a0ed2188fb33c3d2c";
 
 export const MAINNET_OPEN_STORE =
-  "0x58f6df360e1d410fc23a66313bd460171011c093d4b1c907c74fd329ed4ce28c::game::open_store";
+  "0x58f6df360e1d410fc23a66313bd460171011c093d4b1c907c74fd329ed4ce28c::game::stock_store";
 
 export const MAINNET_STORE =
   "0xa94cfa8523bb7b0c3ec23acf1eb9c9254a32ca78085847397a561da35578ea40";
