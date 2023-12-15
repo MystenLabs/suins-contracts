@@ -176,4 +176,4 @@ jobs:
           NETWORK: mainnet
           ORIGIN: gh_action
         run: |
-          cd scripts && pnpm setup-store-quest
+          cd scripts && pnpm create-deepbook-pools
