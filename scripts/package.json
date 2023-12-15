@@ -16,7 +16,8 @@
     "authorize-discounts": "ts-node transactions/quest_3_setup.ts",
     "disable-free-claims": "ts-node transactions/quest3/disable_free_claims.ts",
     "disable-discounts": "ts-node transactions/quest3/disable_discounts.ts",
-    "create-deepbook-pools": "ts-node transactions/deepbook/create_pools.ts"
+    "create-deepbook-pools": "ts-node transactions/deepbook/create_pools.ts",
+    "setup-store-quest": "ts-node transactions/quest3-5/create_store.ts"
   },
   "keywords": [],
   "author": "",
