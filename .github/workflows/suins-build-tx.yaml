@@ -15,6 +15,7 @@ on:
           - Withdraw Auction Profits
           - Transfer Reserved Names
           - Main package upgrade
+          - Stock quest store
       sui_tools_image:
         description: 'image reference of sui_tools'
         default: 'mysten/sui-tools:mainnet'
@@ -166,3 +167,13 @@ jobs:
         with:
           name: transaction-data
           path: scripts/tx
+
+      - name: Stock Quest Store
+        if: ${{ inputs.transaction_type == 'Stock quest store' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+        run: |
+          cd scripts && pnpm setup-store-quest
