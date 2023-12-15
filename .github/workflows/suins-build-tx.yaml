@@ -158,16 +158,6 @@ jobs:
         run: |
           cd scripts && pnpm disable-discounts
 
-      - name: Show Transaction Data (To sign)
-        run: |
-          cat scripts/tx/tx-data.txt
-
-      - name: Upload Transaction Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: transaction-data
-          path: scripts/tx
-
       - name: Create Deepbook Pools
         if: ${{ inputs.transaction_type == 'Create Deepbook Pools' }}
         env:
@@ -177,3 +167,13 @@ jobs:
           ORIGIN: gh_action
         run: |
           cd scripts && pnpm create-deepbook-pools
+
+      - name: Show Transaction Data (To sign)
+        run: |
+          cat scripts/tx/tx-data.txt
+
+      - name: Upload Transaction Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: transaction-data
+          path: scripts/tx
