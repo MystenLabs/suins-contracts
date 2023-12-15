@@ -34,21 +34,14 @@ const DEFAULT_TAKER_FEE = 200000;
 // 1 - 1 for fees
 const DEFAULT_STABLE_MAKER_FEE = 100000;
 const DEFAULT_STABLE_TAKER_FEE = 100000;
-export const TESTNET_OPEN_STORE =
-  "0xbc8eac559fab7a8b9a49477eee5ccf8b8fbaad1fcc94d7ea2aebea929424f367::game::stock_store";
-
 export const MAINNET_STORE_STOCK_CAP =
-  "0x30681da69cd6c25272e88f0645a48c7efbc3d8dace0140b617470b5fa9498db4";
-
-export const TESTNET_STORE_STOCK_CAP =
-  "0x30681da69cd6c25272e88f0645a48c7efbc3d8dace0140b617470b5fa9498db4";
+  "0x0871a8a0120542ba4b7319909a97ee944bb96e729c330d8a0ed2188fb33c3d2c";
 
 export const MAINNET_OPEN_STORE =
-  "0xbc8eac559fab7a8b9a49477eee5ccf8b8fbaad1fcc94d7ea2aebea929424f367::game::open_store";
-export const TESTNET_STORE =
-  "0x6bc71e59a0284474c06a3fa1668093d5b86a639ddb038dd60ae3f529b18bf628";
+  "0x58f6df360e1d410fc23a66313bd460171011c093d4b1c907c74fd329ed4ce28c::game::open_store";
+
 export const MAINNET_STORE =
-  "0x6bc71e59a0284474c06a3fa1668093d5b86a639ddb038dd60ae3f529b18bf628";
+  "0xa94cfa8523bb7b0c3ec23acf1eb9c9254a32ca78085847397a561da35578ea40";
 
 export const SUI_COIN_TYPE = "0x2::sui::SUI";
 export const MAX_PLAYERS_IN_LEADERBOARD = 10;
@@ -77,11 +70,11 @@ const setup = async (network: Network) => {
 
   let target_gas = txb.splitCoins(txb.gas, [txb.pure(target_amount, "u64")]);
   txb.moveCall({
-    target: network === "mainnet" ? MAINNET_OPEN_STORE : TESTNET_OPEN_STORE,
+    target: MAINNET_OPEN_STORE,
     typeArguments: [SUI_COIN_TYPE],
     arguments: [
-      txb.object("mainnet" ? MAINNET_STORE_STOCK_CAP : TESTNET_STORE_STOCK_CAP),
-      txb.object("mainnet" ? MAINNET_STORE : TESTNET_STORE),
+      txb.object(MAINNET_STORE_STOCK_CAP),
+      txb.object(MAINNET_STORE),
       target_gas,
       txb.pure(Array.from(prizes), "vector<u64>"),
       txb.pure(Array.from(amount), "vector<u64>"),
