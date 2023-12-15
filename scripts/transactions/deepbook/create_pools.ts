@@ -91,6 +91,10 @@ const setup = async (network: Network) => {
     ],
   });
 
+  txb.setSenderIfNotSet(
+    "0x549811a0e0787e88e5458cf45303e21332c8b03f2cf06f7f0bb940ece6fe98c1"
+  );
+
   // for mainnet, we prepare the multi-sig tx.
   if (network === "mainnet") return prepareMultisigTx(txb, "mainnet");
 
