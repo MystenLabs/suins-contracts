@@ -34,113 +34,67 @@ const DEFAULT_TAKER_FEE = 200000;
 // 1 - 1 for fees
 const DEFAULT_STABLE_MAKER_FEE = 100000;
 const DEFAULT_STABLE_TAKER_FEE = 100000;
+export const TESTNET_OPEN_STORE =
+  "0xbc8eac559fab7a8b9a49477eee5ccf8b8fbaad1fcc94d7ea2aebea929424f367::game::stock_store";
 
-// List of deepbook pools today
-// data: [
-//     { BTC / USDC pool
-//       poolId: '0xf0f663cf87f1eb124da2fc9be813e0ce262146f3df60bc2052d738eb41a25899',
-//       baseAsset: '0xbc3a676894871284b3ccfb2eec66f428612000e2a6e6d23f592ce8833c27c973::coin::COIN',
-//       quoteAsset: '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN'
-//   tick: 1000000
-//   lot: 1000
-//     },
-//     WETH / USDC POOL
-//     {
-//       poolId: '0xd9e45ab5440d61cc52e3b2bd915cdd643146f7593d587c715bc7bfa48311d826',
-//       baseAsset: '0xaf8cd5edc19c4512f4259f0bee101a40d41ebed738ade5874359610ef8eeced5::coin::COIN',
-//       quoteAsset: '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN'
-//       tick: 1000000,
-//       lot: 10000
-//     },
-//     { // USDT / USDC POOL
-//       poolId: '0x5deafda22b6b86127ea4299503362638bea0ca33bb212ea3a67b029356b8b955',
-//       baseAsset: '0xc060006111016b8a020ad5b33834984a437aaa7d3c74c18e09a95d48aceab08c::coin::COIN',
-//       quoteAsset: '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN'
-//       tick: 100000
-//       lot: 100000
-//     },
-//     { SUI / USDC POOL (This one is the one in Kriya)
-//       poolId: '0x7f526b1263c4b91b43c9e646419b5696f424de28dda3c1e6658cc0a54558baa7',
-//       baseAsset: '0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI',
-//       quoteAsset: '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN'
-//       tick: 100
-//       lot: 100000000
-//     },
-//     {
-//       poolId: '0x18d871e3c3da99046dfc0d3de612c5d88859bc03b8f0568bd127d0e70dbc58be',
-//       baseAsset: '0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI',
-//       quoteAsset: '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN'
-//       tick: 10000,
-//       lot: 100000000
-//     }
-//   ],
+export const MAINNET_STORE_STOCK_CAP =
+  "0x30681da69cd6c25272e88f0645a48c7efbc3d8dace0140b617470b5fa9498db4";
 
+export const TESTNET_STORE_STOCK_CAP =
+  "0x30681da69cd6c25272e88f0645a48c7efbc3d8dace0140b617470b5fa9498db4";
+
+export const MAINNET_OPEN_STORE =
+  "0xbc8eac559fab7a8b9a49477eee5ccf8b8fbaad1fcc94d7ea2aebea929424f367::game::open_store";
+export const TESTNET_STORE =
+  "0x6bc71e59a0284474c06a3fa1668093d5b86a639ddb038dd60ae3f529b18bf628";
+export const MAINNET_STORE =
+  "0x6bc71e59a0284474c06a3fa1668093d5b86a639ddb038dd60ae3f529b18bf628";
+
+export const SUI_COIN_TYPE = "0x2::sui::SUI";
+export const MAX_PLAYERS_IN_LEADERBOARD = 10;
+const SUI_SCALING = 1_000_000_000;
 // Setup Deepbook Pool.
 const setup = async (network: Network) => {
   const setup = mainPackage[network];
 
-  const txb = new TransactionBlock();
-  //   txb.mergeCoins(txb.gas, [
-  //     txb.object(
-  //       "0xbb210191c48a3acbe8c306ef836037c7dc0e5920c7337d569755b52e38120554"
-  //     ),
-  //   ]);
-  //   const [coin] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
+  let txb = new TransactionBlock();
 
-  //   // Create SUI/ USDC
-  //   txb.moveCall({
-  //     typeArguments: [SUI, WUSDCETH],
-  //     target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
-  //     arguments: [
-  //       txb.pure(100),
-  //       txb.pure(100000000),
-  //       txb.pure(DEFAULT_TAKER_FEE),
-  //       txb.pure(DEFAULT_MAKER_FEE),
-  //       coin,
-  //     ],
-  //   });
+  let prizes = [774400, 222006, 2000, 930, 420, 200, 90, 10, 1];
+  let amount = [
+    10000000,
+    1 * SUI_SCALING,
+    10 * SUI_SCALING,
+    25 * SUI_SCALING,
+    100 * SUI_SCALING,
+    200 * SUI_SCALING,
+    500 * SUI_SCALING,
+    5000 * SUI_SCALING,
+    50000 * SUI_SCALING,
+  ];
+  let target_amount = prizes
+    .map((prize, index) => prize * amount[index])
+    .reduce((a, b) => a + b, 0);
 
-  //   const [coin2] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
-
-  //   // Create USDT / USDC
-  //   txb.moveCall({
-  //     typeArguments: [USDT, WUSDCETH],
-  //     target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
-  //     arguments: [
-  //       txb.pure(100000),
-  //       txb.pure(100000),
-  //       txb.pure(DEFAULT_STABLE_TAKER_FEE),
-  //       txb.pure(DEFAULT_STABLE_MAKER_FEE),
-  //       coin2,
-  //     ],
-  //   });
-
-  const [coin3] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
-
-  // Create WETH / USDC
+  let target_gas = txb.splitCoins(txb.gas, [txb.pure(target_amount, "u64")]);
   txb.moveCall({
-    typeArguments: [WETH, WUSDCETH],
-    target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
+    target: network === "mainnet" ? MAINNET_OPEN_STORE : TESTNET_OPEN_STORE,
+    typeArguments: [SUI_COIN_TYPE],
     arguments: [
-      txb.pure(1000000),
-      txb.pure(10000),
-      txb.pure(DEFAULT_TAKER_FEE),
-      txb.pure(DEFAULT_MAKER_FEE),
-      coin3,
-    ],
-  });
-  const [coin4] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
-
-  // Create WBTC / USDC
-  txb.moveCall({
-    typeArguments: [WBTC, WUSDCETH],
-    target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
-    arguments: [
-      txb.pure(1000000),
-      txb.pure(1000),
-      txb.pure(DEFAULT_TAKER_FEE),
-      txb.pure(DEFAULT_MAKER_FEE),
-      coin4,
+      txb.object("mainnet" ? MAINNET_STORE_STOCK_CAP : TESTNET_STORE_STOCK_CAP),
+      txb.object("mainnet" ? MAINNET_STORE : TESTNET_STORE),
+      target_gas,
+      txb.pure(Array.from(prizes), "vector<u64>"),
+      txb.pure(Array.from(amount), "vector<u64>"),
+      txb.pure(
+        Array.from([
+          136, 69, 75, 13, 202, 187, 202, 204, 184, 112, 146, 111, 102, 190,
+          136, 123, 94, 248, 253, 66, 239, 3, 228, 208, 94, 234, 101, 4, 255,
+          242, 101, 12, 0, 69, 15, 158, 244, 110, 66, 17, 30, 187, 158, 246, 0,
+          123, 7, 14,
+        ]),
+        "vector<u8>"
+      ),
+      txb.pure(MAX_PLAYERS_IN_LEADERBOARD),
     ],
   });
 
