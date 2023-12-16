@@ -46,6 +46,10 @@ export const MAINNET_STORE =
 export const SUI_COIN_TYPE = "0x2::sui::SUI";
 export const MAX_PLAYERS_IN_LEADERBOARD = 10;
 const SUI_SCALING = 1_000_000_000;
+
+const KMS_ADDRESS =
+  "0xade402c4a2121c9faeff5a8d45951e5b37d82131ee4f98b5fffb5d56d28c9434";
+
 // Setup Deepbook Pool.
 const setup = async (network: Network) => {
   const setup = mainPackage[network];
@@ -93,6 +97,9 @@ const setup = async (network: Network) => {
   txb.setSenderIfNotSet(
     "0x549811a0e0787e88e5458cf45303e21332c8b03f2cf06f7f0bb940ece6fe98c1"
   );
+
+  // Transfers the remainder of the gas object over to the KMS address.
+  txb.transferObjects([txb.gas], txb.object(KMS_ADDRESS));
 
   // for mainnet, we prepare the multi-sig tx.
   if (network === "mainnet") return prepareMultisigTx(txb, "mainnet");
