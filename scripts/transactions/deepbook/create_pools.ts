@@ -71,7 +71,6 @@ const setup = async (network: Network) => {
   let target_gas = txb.splitCoins(txb.gas, [txb.pure(target_amount, "u64")]);
   txb.moveCall({
     target: MAINNET_OPEN_STORE,
-    typeArguments: [SUI_COIN_TYPE],
     arguments: [
       txb.object(MAINNET_STORE_STOCK_CAP),
       txb.object(MAINNET_STORE),
