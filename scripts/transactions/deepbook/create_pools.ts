@@ -79,12 +79,12 @@ const setup = async (network: Network) => {
       txb.pure(Array.from(prizes), "vector<u64>"),
       txb.pure(Array.from(amount), "vector<u64>"),
       txb.pure(
-        Array.from([
+        [
           136, 69, 75, 13, 202, 187, 202, 204, 184, 112, 146, 111, 102, 190,
           136, 123, 94, 248, 253, 66, 239, 3, 228, 208, 94, 234, 101, 4, 255,
           242, 101, 12, 0, 69, 15, 158, 244, 110, 66, 17, 30, 187, 158, 246, 0,
           123, 7, 14,
-        ]),
+        ],
         "vector<u8>"
       ),
       txb.pure(MAX_PLAYERS_IN_LEADERBOARD),
