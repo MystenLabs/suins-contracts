@@ -260,11 +260,47 @@ module suins::namespace_tests {
         nft::set_expiration_timestamp_ms_for_testing(&mut nft, expiration + 100);
 
         namespace::update_expiration(&mut namespace, &nft);
+        // call twice but has no difference in the effects.
+        namespace::update_expiration(&mut namespace, &nft);
+
+        assert!(namespace::expiration_timestamp_ms(&namespace) == expiration + 100, 1);
 
         burn_nfts(vector[ nft ]);
         wrapup(registry, clock);
         namespace::burn_namespace_for_testing(namespace);
     }
+
+    #[test]
+    fun override_leaf_record_of_expired_node_name() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+
+        let namespace = namespace::create_namespace_for_testing(&mut registry, &mut nft, &clock, &mut ctx);
+
+        // determine expiration.
+        let expiration = nft::expiration_timestamp_ms(&nft) - (constants::minimum_subdomain_duration() * 3);
+
+        let subname = namespace::add_record(&mut namespace, &nft, expiration, true, true, utf8(b"nest.hahaha.sui"), &clock, &mut ctx);
+        namespace::add_leaf_record(&mut namespace, sub_nft::borrow(&subname), utf8(b"more.nest.hahaha.sui"), &clock, USER, &mut ctx);
+
+        // subname has expired, so the leaf record must also be expired and can be ovewriten.
+        clock::increment_for_testing(&mut clock, expiration + 1);
+
+        // we override the node name normally as the previous one has expired.
+        let subname_2 = namespace::add_record(&mut namespace, &nft, expiration + constants::minimum_subdomain_duration() + 1, true, true, utf8(b"nest.hahaha.sui"), &clock, &mut ctx);
+
+        namespace::add_leaf_record(&mut namespace, sub_nft::borrow(&subname_2), utf8(b"more.nest.hahaha.sui"), &clock, USER, &mut ctx);
+
+        // increment to a far far away time.
+        clock::increment_for_testing(&mut clock, expiration *2 );
+        namespace::burn_namespace_for_testing(namespace);
+        burn_nfts(vector[ nft ]);
+        burn_subname_nfts(vector[ subname, subname_2 ], &clock);
+        wrapup(registry, clock);
+    }
+
 
     #[test, expected_failure(abort_code=suins::namespace::ENFTExpired)]
     /// Tries to create a subdomain without first initializing a namespace.
@@ -487,6 +523,123 @@ module suins::namespace_tests {
 
         abort 1337
     }
+
+    #[test, expected_failure(abort_code=suins::namespace::ETimeExtensionDisabled)]
+    /// Extend a namespace's expiration based on renewal of the parent SLD.
+    fun extend_expiration_while_not_allowed() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let expiration = nft::expiration_timestamp_ms(&nft) - 10;
+
+        let namespace = namespace::create_namespace_for_testing(&mut registry, &mut nft, &clock, &mut ctx);
+
+        let record = namespace::add_record(&mut namespace, &nft, expiration, false, false, utf8(b"1.hahaha.sui"), &clock, &mut ctx);
+
+        namespace::extend_expiration(&mut namespace, sub_nft::borrow_mut(&mut record), expiration + 1);
+
+        abort 1337
+    }
+
+    #[test, expected_failure(abort_code=suins::namespace::EInvalidExpirationDate)]
+    fun extend_without_changing_output() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let expiration = nft::expiration_timestamp_ms(&nft) - 10;
+
+        let namespace = namespace::create_namespace_for_testing(&mut registry, &mut nft, &clock, &mut ctx);
+
+        let record = namespace::add_record(&mut namespace, &nft, expiration, false, true, utf8(b"1.hahaha.sui"), &clock, &mut ctx);
+
+        namespace::extend_expiration(&mut namespace, sub_nft::borrow_mut(&mut record), expiration);
+
+        abort 1337
+    }
+
+    #[test, expected_failure(abort_code=suins::namespace::EInvalidExpirationDate)]
+    fun extend_exceeding_parent_failure() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let expiration = nft::expiration_timestamp_ms(&nft) - 10;
+
+        let namespace = namespace::create_namespace_for_testing(&mut registry, &mut nft, &clock, &mut ctx);
+
+        let record = namespace::add_record(&mut namespace, &nft, expiration, false, true, utf8(b"1.hahaha.sui"), &clock, &mut ctx);
+
+        namespace::extend_expiration(&mut namespace, sub_nft::borrow_mut(&mut record), expiration + 11);
+
+        abort 1337
+    }
+
+    #[test, expected_failure(abort_code=suins::namespace::ENamespaceMissmatch)]
+    fun extend_on_wrong_namespace() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let nft2 = registry::add_record(&mut registry, domain::new(utf8(b"1.hahaha.sui")), 1, &clock, &mut ctx);
+        let expiration = nft::expiration_timestamp_ms(&nft) - 10;
+
+        let namespace = namespace::create_namespace_for_testing(&mut registry, &mut nft, &clock, &mut ctx);
+
+        namespace::extend_expiration(&mut namespace, &mut nft2, expiration + 10);
+
+        abort 1337
+    }
+
+
+    #[test, expected_failure(abort_code=suins::namespace::ERecordNotExpired)]
+    fun override_leaf_record_with_no_expired_parent() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+
+        let namespace = namespace::create_namespace_for_testing(&mut registry, &mut nft, &clock, &mut ctx);
+
+        namespace::add_leaf_record(&mut namespace, &nft, utf8(b"leaf.hahaha.sui"), &clock, USER, &mut ctx);
+        namespace::add_leaf_record(&mut namespace, &nft, utf8(b"leaf.hahaha.sui"), &clock, USER, &mut ctx);
+
+        abort 1337
+    }
+
+    #[test, expected_failure(abort_code=suins::namespace::ERecordNotExpired)]
+    fun override_node_record_leaf_child_failure() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+
+        let namespace = namespace::create_namespace_for_testing(&mut registry, &mut nft, &clock, &mut ctx);
+        
+        let subname = namespace::add_record(&mut namespace, &nft, nft::expiration_timestamp_ms(&nft), true, true, utf8(b"nest.hahaha.sui"), &clock, &mut ctx);
+
+        namespace::add_leaf_record(&mut namespace, sub_nft::borrow(&subname), utf8(b"more.nest.hahaha.sui"), &clock, USER, &mut ctx);
+        namespace::add_leaf_record(&mut namespace, sub_nft::borrow(&subname), utf8(b"more.nest.hahaha.sui"), &clock, USER, &mut ctx);
+
+        abort 1337
+    }
+
+    #[test, expected_failure(abort_code=suins::namespace::ERecordNotExpired)]
+    fun override_node_that_has_not_expired() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+
+        let namespace = namespace::create_namespace_for_testing(&mut registry, &mut nft, &clock, &mut ctx);
+
+        let subname = namespace::add_record(&mut namespace, &nft, nft::expiration_timestamp_ms(&nft), true, true, utf8(b"nest.hahaha.sui"), &clock, &mut ctx);
+        let subname_2 = namespace::add_record(&mut namespace, &nft, nft::expiration_timestamp_ms(&nft), true, true, utf8(b"nest.hahaha.sui"), &clock, &mut ctx);
+
+        abort 1337
+    }
+
 
     /// Private helpers to prepare tests
     /// 

@@ -8,6 +8,7 @@
 /// 2. Double-check business validation rules (e.g. shall we allow only 3 digit labels?).
 /// 3. Create an external module (probably in `utils` package) to allow creation of namespaces.
 /// 4. Add offensive words list to prevent creation of offensive subdomains. We'll probably use a static list (immutable).
+/// 5. Add a `set_reverse_lookup` option on registry to allow setting a subdomain as the default for an address.
 module suins::namespace {
     use std::option::{Self, some, none, Option};
     use std::string::{Self, String};
@@ -117,7 +118,9 @@ module suins::namespace {
         // make sure the expiration stamp is less or equal to the parent's expiration.
         assert!(expiration_timestamp_ms <= nft::expiration_timestamp_ms(parent), EInvalidExpirationDate);
         // make sure expiration has the minimum duration.
-        assert!(expiration_timestamp_ms > clock::timestamp_ms(clock) + constants::minimum_subdomain_duration(), EInvalidExpirationDate);
+        assert!(expiration_timestamp_ms >= clock::timestamp_ms(clock) + constants::minimum_subdomain_duration(), EInvalidExpirationDate);
+
+        internal_remove_existing_record_if_exists_and_expired(self, domain, clock);
 
         // Create NFT and fix timestamp.
         let nft = nft::new(domain, 1, clock, ctx);
@@ -175,7 +178,6 @@ module suins::namespace {
         assert_parent_valid_for_domain(self, domain, parent, clock);
         assert_is_valid_subdomain_depth(&domain);
 
-        // Removes an existing record if it exists and is expired.
         internal_remove_existing_record_if_exists_and_expired(self, domain, clock);
 
         let name_record = name_record::new_leaf(object::id(parent), some(target));
@@ -332,6 +334,11 @@ module suins::namespace {
         &mut self.id
     }
 
+
+    public fun expiration_timestamp_ms(self: &Namespace): u64 {
+        self.expiration_timestamp_ms
+    }
+
     /// === Private helpers === 
     /// 
     /// A guard for future versioning of our namespaces
@@ -349,7 +356,7 @@ module suins::namespace {
             return
         };
 
-        // Remove the record and assert that it has expired (past the grace period if applicable)
+        // Remove the record and assert that it has expired.
         let record = table::remove(&mut namespace.registry, domain);
         let name_record = sub_name_record::name_record(&record);
 
@@ -358,18 +365,29 @@ module suins::namespace {
             // find the parent of the leaf record.
             let option_parent_name_record = lookup(namespace, domain::parent(&domain));
 
+            // If the parent is a SLD, it means that the parent cannot expire (otherwise the namespace would have expired).
+            // In order to replace a leaf record, we have to remove + re-add.
+            if(domain::number_of_levels(&domain) == 3) {
+                abort ERecordNotExpired
+            };
+
+            // I don't think that's a realistic scenario (We cannot have a child record without a parent record),
+            // but adding it for sanity.
+            if(!option::is_some(&option_parent_name_record)) {
+                return
+            };
+
             // if there's a parent (if not, we can just remove it), we need to check if the parent is valid.
             // -> If the parent is valid, we need to check if the parent is expired.
             // -> If the parent is not valid (nft_id has changed), or if the parent doesn't exist anymore (owner burned it), we can override the leaf record.
-            if (option::is_some(&option_parent_name_record)) {
-                let parent_name_record = sub_name_record::name_record(option::borrow(&option_parent_name_record));
+            let parent_name_record = sub_name_record::name_record(option::borrow(&option_parent_name_record));
 
-                // If the parent is the same and hasn't expired, we can't override the leaf record like this.
-                // We need to first remove + then call create (to protect accidental overrides).
-                if (name_record::nft_id(parent_name_record) == name_record::nft_id(name_record)) {
-                    assert!(name_record::has_expired(parent_name_record, clock), ERecordNotExpired);
-                };
-            }
+            // If the parent is the same and hasn't expired, we can't override the leaf record like this.
+            // We need to first remove + then call create (to protect accidental overrides).
+            if (name_record::nft_id(parent_name_record) == name_record::nft_id(name_record)) {
+                assert!(name_record::has_expired(parent_name_record, clock), ERecordNotExpired);
+            };
+    
         } else {
             assert!(name_record::has_expired(name_record, clock), ERecordNotExpired);
         };
