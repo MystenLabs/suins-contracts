@@ -17,7 +17,7 @@ module suins::namespace_tests {
     use suins::registry::{Self, Registry};
     use suins::namespace::{Self, Namespace};
     use suins::suins::{Self, SuiNS};
-    use suins::registry_tests::{burn_nfts, setup, wrapup, burn_subname_nfts};
+    use suins::registry_tests::{burn_nfts, setup, wrapup_non_empty, burn_subname_nfts};
     use suins::domain;
     use suins::name_record;
     use suins::constants;
@@ -266,7 +266,7 @@ module suins::namespace_tests {
         assert!(namespace::expiration_timestamp_ms(&namespace) == expiration + 100, 1);
 
         burn_nfts(vector[ nft ]);
-        wrapup(registry, clock);
+        wrapup_non_empty(registry, clock);
         namespace::burn_namespace_for_testing(namespace);
     }
 
@@ -298,7 +298,7 @@ module suins::namespace_tests {
         namespace::burn_namespace_for_testing(namespace);
         burn_nfts(vector[ nft ]);
         burn_subname_nfts(vector[ subname, subname_2 ], &clock);
-        wrapup(registry, clock);
+        wrapup_non_empty(registry, clock);
     }
 
 
@@ -616,7 +616,7 @@ module suins::namespace_tests {
         let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
 
         let namespace = namespace::create_namespace_for_testing(&mut registry, &mut nft, &clock, &mut ctx);
-        
+
         let subname = namespace::add_record(&mut namespace, &nft, nft::expiration_timestamp_ms(&nft), true, true, utf8(b"nest.hahaha.sui"), &clock, &mut ctx);
 
         namespace::add_leaf_record(&mut namespace, sub_nft::borrow(&subname), utf8(b"more.nest.hahaha.sui"), &clock, USER, &mut ctx);

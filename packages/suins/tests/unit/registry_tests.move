@@ -230,7 +230,7 @@ module suins::registry_tests {
         let name = registry::lookup(&registry, domain);
         assert!(option::is_some(&name), 0);
 
-        wrapup(registry, clock);
+        wrapup_non_empty(registry, clock);
         burn_nfts(vector[ new_nft_post_expiration]);
     }
 
@@ -261,6 +261,11 @@ module suins::registry_tests {
 
     public fun wrapup(registry: Registry, clock: Clock) {
         registry::destroy_empty_for_testing(registry);
+        clock::destroy_for_testing(clock);
+    }
+
+    public fun wrapup_non_empty(registry: Registry, clock: Clock) {
+        registry::destroy_for_testing(registry);
         clock::destroy_for_testing(clock);
     }
 
