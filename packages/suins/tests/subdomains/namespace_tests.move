@@ -593,7 +593,7 @@ module suins::namespace_tests {
     }
 
     #[test, expected_failure(abort_code=suins::namespace::EUnauthorizedNFT)]
-    fun extend_expiration_while_name_was_overriden() {
+    fun extend_expiration_while_name_was_replaced() {
         let ctx = tx_context::dummy();
         let (registry, clock, domain) = setup(&mut ctx);
 
@@ -617,6 +617,37 @@ module suins::namespace_tests {
 
         namespace::extend_expiration(&mut namespace, sub_nft::borrow_mut(&mut subname), expiration + (constants::minimum_subdomain_duration()*2) + 1);
 
+        abort 1337
+    }
+
+    #[test, expected_failure(abort_code=suins::namespace::EInvalidParent)]
+    fun extend_expiration_while_name_was_overriden() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+
+        let namespace = namespace::create_namespace_for_testing(&mut registry, &mut nft, &clock, &mut ctx);
+
+        // determine expiration.
+        let expiration = nft::expiration_timestamp_ms(&nft) - (constants::minimum_subdomain_duration() * 2);
+        let inner_expiration = nft::expiration_timestamp_ms(&nft) - (constants::minimum_subdomain_duration() * 3)  - 2;
+
+        // Base we start on.
+        let base_nft = namespace::add_record(&mut namespace, &nft, nft::expiration_timestamp_ms(&nft), true, true, utf8(b"nest.hahaha.sui"), &clock, &mut ctx);
+        // Create a subname of nest.hahaha.sui that will be overriden
+        let sub_nft = namespace::add_record(&mut namespace, sub_nft::borrow(&base_nft), expiration, true, true, utf8(b"more.nest.hahaha.sui"), &clock, &mut ctx);
+
+        let sub_child = namespace::add_record(&mut namespace, sub_nft::borrow(&sub_nft), inner_expiration, true, true, utf8(b"even.more.nest.hahaha.sui"), &clock, &mut ctx);
+
+        // subname has expired, so the leaf record must also be expired and can be ovewriten.
+        clock::increment_for_testing(&mut clock, expiration + 1);
+
+        // we override the node name normally as the previous one has expired.
+        let sub_nft_replacement = namespace::add_record(&mut namespace, sub_nft::borrow(&base_nft), expiration + constants::minimum_subdomain_duration() + 1, true, true, utf8(b"more.nest.hahaha.sui"), &clock, &mut ctx);
+
+        namespace::extend_expiration(&mut namespace, sub_nft::borrow_mut(&mut sub_child), inner_expiration + constants::minimum_subdomain_duration() + 1);
+      
         abort 1337
     }
 
