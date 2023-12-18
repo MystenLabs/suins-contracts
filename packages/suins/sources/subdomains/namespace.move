@@ -1,7 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-/// A namespace is a registry tied to a SLD Domain. (e.g. test.sui )
+/// A namespace is a registry tied to a SLD Domain. (e.g. test.sui)
 /// 
 /// TODOS:
 /// 1. Add events to help indexing subdomains in our API.
@@ -391,7 +391,6 @@ module suins::namespace {
             if (name_record::nft_id(parent_name_record) == name_record::nft_id(name_record)) {
                 assert!(name_record::has_expired(parent_name_record, clock), ERecordNotExpired);
             };
-    
         } else {
             assert!(name_record::has_expired(name_record, clock), ERecordNotExpired);
         };
@@ -441,13 +440,13 @@ module suins::namespace {
         let parent_domain = nft::domain(parent);
 
         if (!domain::is_subdomain(&parent_domain)){
-            return true;
+            return true
         };
 
         let record = lookup(namespace, parent_domain);
 
         if (option::is_none(&record)){
-            return false;
+            return false
         };
 
         sub_name_record::is_creation_allowed(option::borrow(&record))
@@ -461,13 +460,13 @@ module suins::namespace {
         let domain = nft::domain(subdomain);
 
         if (!domain::is_subdomain(&domain)){
-            return false;
+            return false
         };
 
         let record = lookup(namespace, domain);
 
         if (option::is_none(&record)){
-            return false;
+            return false
         };
 
         sub_name_record::is_extension_allowed(option::borrow(&record))
@@ -476,7 +475,7 @@ module suins::namespace {
     /// Validate that an NFT is valid for this namespace (> means it was created here).
     fun is_nft_valid_for_namespace(namespace: &Namespace, nft: &SuinsRegistration): bool {
         if (!internal_namespace_exists(nft)){
-            return false;
+            return false
         };
 
         &object::id(namespace) == namespace(nft)

@@ -699,6 +699,22 @@ module suins::namespace_tests {
         abort 1337
     }
 
+    #[test, expected_failure(abort_code=suins::namespace::ENFTExpired)]
+    fun set_target_address_with_expired_nft() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+
+        let namespace = namespace::create_namespace_for_testing(&mut registry, &mut nft, &clock, &mut ctx);
+        let subname = namespace::add_record(&mut namespace, &nft, nft::expiration_timestamp_ms(&nft), true, true, utf8(b"nest.hahaha.sui"), &clock, &mut ctx);
+        clock::increment_for_testing(&mut clock, nft::expiration_timestamp_ms(&nft) + 1);
+
+        namespace::set_target_address(&mut namespace, sub_nft::borrow(&subname), &clock, USER);
+
+        abort 1337
+    }
+
 
     /// Private helpers to prepare tests
     /// 
