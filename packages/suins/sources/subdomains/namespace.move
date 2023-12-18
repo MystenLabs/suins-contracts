@@ -226,6 +226,10 @@ module suins::namespace {
         // Find parent of NFT.
         let parent = domain::parent(&nft::domain(nft));
 
+        // verify that the ID in the registry has not changed.
+        let sub_name_record = lookup(self, nft::domain(nft));
+        assert!(name_record::nft_id(sub_name_record::name_record(option::borrow(&sub_name_record))) == object::id(nft), EUnauthorizedNFT);
+
         // Check parent's expiration date.
         let max_expiration = if (&parent == &self.parent) {
             self.expiration_timestamp_ms
