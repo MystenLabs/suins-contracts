@@ -16,14 +16,14 @@ module suins::subdomain_registration {
     use suins::suins_registration::{Self, SuinsRegistration};
     use suins::domain;
 
+    friend suins::namespace;
+
     /// === Error codes ===
     /// 
     /// NFT is expired.
     const EExpired: u64 = 1;
     /// NFT is not a subdomain.
     const ENotSubdomain: u64 = 2;
-    /// Tries to destroy a subdomain that has not expired.
-    const ENameNotExpired: u64 = 3;
 
     /// A wrapper for SuinsRegistration object specifically for SubNames.
     struct SubDomainRegistration has key, store {
@@ -46,10 +46,7 @@ module suins::subdomain_registration {
 
     /// Destroys the wrapper and returns the SuinsRegistration object.
     /// Fails if the subname is not expired.
-    public fun destroy(name: SubDomainRegistration, clock: &Clock): SuinsRegistration {
-        // tries to unwrap a non-expired subname.
-        assert!(suins_registration::has_expired(&name.nft, clock), ENameNotExpired);
-        
+    public(friend) fun destroy(name: SubDomainRegistration): SuinsRegistration {
         let SubDomainRegistration {
             id, nft
         } = name;
@@ -65,5 +62,15 @@ module suins::subdomain_registration {
 
     public fun borrow_mut(name: &mut SubDomainRegistration): &mut SuinsRegistration {
         &mut name.nft
+    }
+
+    #[test_only]
+    public fun destroy_for_testing(name: SubDomainRegistration): SuinsRegistration {
+        let SubDomainRegistration {
+            id, nft
+        } = name;
+
+        object::delete(id);
+        nft
     }
 }

@@ -278,7 +278,7 @@ module suins::registry_tests {
 
     public fun burn_subname_nfts(nfts: vector<SubDomainRegistration>, clock: &Clock) {
         while (vector::length(&nfts) > 0) {
-            let nft = subdomain_nft::destroy(vector::pop_back(&mut nfts), clock);
+            let nft = subdomain_nft::destroy_for_testing(vector::pop_back(&mut nfts));
             nft::burn_for_testing(nft);
         };
         vector::destroy_empty(nfts);

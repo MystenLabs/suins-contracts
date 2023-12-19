@@ -343,6 +343,12 @@ module suins::namespace {
         self.expiration_timestamp_ms
     }
 
+    /// Allows burning an epxired SubDomainRegistration
+    public fun destroy_registration(registry: &mut Registry, sub_nft: SubDomainRegistration, clock: &Clock) {
+        let nft = subdomain_registration::destroy(sub_nft);
+        registry::burn_registration_object(registry, nft, clock);
+    }
+
     /// === Private helpers === 
     /// 
     /// A guard for future versioning of our namespaces

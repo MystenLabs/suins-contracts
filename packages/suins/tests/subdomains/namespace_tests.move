@@ -301,6 +301,24 @@ module suins::namespace_tests {
         wrapup_non_empty(registry, clock);
     }
 
+    #[test]
+    fun burn_expired_subdomain() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+
+        let namespace = namespace::create_namespace_for_testing(&mut registry, &mut nft, &clock, &mut ctx);
+        let subname = namespace::add_record(&mut namespace, &nft, nft::expiration_timestamp_ms(&nft), true, true, utf8(b"nest.hahaha.sui"), &clock, &mut ctx);
+
+        clock::increment_for_testing(&mut clock, nft::expiration_timestamp_ms(&nft) + 1);
+
+        namespace::destroy_registration(&mut registry, subname, &clock);
+
+        namespace::burn_namespace_for_testing(namespace);
+        wrapup_non_empty(registry, clock);
+        burn_nfts(vector[ nft ]);
+    }
 
     #[test, expected_failure(abort_code=suins::namespace::ENFTExpired)]
     /// Tries to create a subdomain without first initializing a namespace.
@@ -711,6 +729,21 @@ module suins::namespace_tests {
         clock::increment_for_testing(&mut clock, nft::expiration_timestamp_ms(&nft) + 1);
 
         namespace::set_target_address(&mut namespace, sub_nft::borrow(&subname), &clock, USER);
+
+        abort 1337
+    }
+
+    #[test, expected_failure(abort_code=suins::registry::ERecordNotExpired)]
+    fun burn_non_expired_subdomain() {
+        let ctx = tx_context::dummy();
+        let (registry, clock, domain) = setup(&mut ctx);
+
+        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+
+        let namespace = namespace::create_namespace_for_testing(&mut registry, &mut nft, &clock, &mut ctx);
+        let subname = namespace::add_record(&mut namespace, &nft, nft::expiration_timestamp_ms(&nft), true, true, utf8(b"nest.hahaha.sui"), &clock, &mut ctx);
+
+        namespace::destroy_registration(&mut registry, subname, &clock);
 
         abort 1337
     }
