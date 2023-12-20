@@ -27,7 +27,7 @@ module suins::reserved_names {
     const EInvalidVersion: u64 = 4;
 
     /// A struct that holds the BlockedNames list.
-    struct ReservedNames has key {
+    struct ReservedNames has key, store {
         id: UID,
         // the list of reserved names. Our public registrations will be checking against it.
         reserved: Table<String, bool>,
