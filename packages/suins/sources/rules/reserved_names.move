@@ -22,7 +22,7 @@ module suins::reserved_names {
     /// The name is in the reserved list so it can't be used.
     const EReservedName: u64 = 2;
     /// The name is in the offensive list so it can't be used.
-    const EOffensiveName: u64 = 3;
+    const EBlockedName: u64 = 3;
     /// Tries to check against an expired or invalid list.
     const EInvalidVersion: u64 = 4;
 
@@ -31,8 +31,8 @@ module suins::reserved_names {
         id: UID,
         // the list of reserved names. Our public registrations will be checking against it.
         reserved: Table<String, bool>,
-        // the list of offensive names. Subdomains + registrations will be checking against.
-        offensive: Table<String, bool>,
+        // the list of blocked names. Subdomains + registrations will be checking against.
+        blocked: Table<String, bool>,
         // Allows us to use `frozen` objects & check versioning on our packages.
         version: u32
     }
@@ -54,7 +54,7 @@ module suins::reserved_names {
         ReservedNames {
             id: object::new(ctx),
             reserved: table::new(ctx),
-            offensive: table::new(ctx),
+            blocked: table::new(ctx),
             version
         }
     }
@@ -83,13 +83,13 @@ module suins::reserved_names {
 
     /// An easy assertion that the word is not in the offensive names list.
     /// We also validate against a version here.
-    public fun assert_is_not_offensive_name(self: &ReservedNames, name: String, expected_version: u32) {
+    public fun assert_is_not_blocked_name(self: &ReservedNames, name: String, expected_version: u32) {
         assert_is_valid_version(self, expected_version);
-        assert!(!is_offensive_name(self, name), EOffensiveName);
+        assert!(!is_blocked_name(self, name), EBlockedName);
     }
 
-    public fun is_offensive_name(self: &ReservedNames, name: String): bool {
-        table::contains(&self.offensive, name)
+    public fun is_blocked_name(self: &ReservedNames, name: String): bool {
+        table::contains(&self.blocked, name)
     }
 
     /// == Admin functionality == 
@@ -100,8 +100,8 @@ module suins::reserved_names {
     }
 
     /// Add a list of offensive names to the list as admin.
-    public fun add_offensive_names(self: &mut ReservedNames, words: vector<String>) {
-        internal_add_names_to_list(&mut self.offensive, words);
+    public fun add_blocked_names(self: &mut ReservedNames, words: vector<String>) {
+        internal_add_names_to_list(&mut self.blocked, words);
     }
 
     /// Remove a list of words from the reserved names list.
@@ -110,8 +110,8 @@ module suins::reserved_names {
     }
 
     /// Remove a list of words from the list as admin.
-    public fun remove_offensive_names(self: &mut ReservedNames, words: vector<String>) {
-        internal_remove_names_from_list(&mut self.offensive, words);
+    public fun remove_blocked_names(self: &mut ReservedNames, words: vector<String>) {
+        internal_remove_names_from_list(&mut self.blocked, words);
     }
 
     /// Validate that the frozen object has the expected version.
@@ -151,16 +151,16 @@ module suins::reserved_names {
         ReservedNames {
             id: object::new(ctx),
             reserved: table::new(ctx),
-            offensive: table::new(ctx),
+            blocked: table::new(ctx),
             version
         }
     }
 
     #[test_only]
     public fun burn_list_for_testing(list: ReservedNames){
-        let ReservedNames { reserved, offensive, id, version: _ } = list;
+        let ReservedNames { reserved, blocked, id, version: _ } = list;
         table::drop(reserved);
-        table::drop(offensive);
+        table::drop(blocked);
         object::delete(id);
     }
 }

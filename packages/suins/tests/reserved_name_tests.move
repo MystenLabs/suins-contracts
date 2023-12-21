@@ -64,19 +64,19 @@ module suins::reserved_name_tests {
         ts::next_tx(scenario, ADDR);
         let list = ts::take_immutable<ReservedNames>(scenario);
 
-        reserved_names::assert_is_not_offensive_name(&list, utf8(b"test"), 1);
+        reserved_names::assert_is_not_blocked_name(&list, utf8(b"test"), 1);
 
         abort 1337
     }
 
-    #[test, expected_failure(abort_code = suins::reserved_names::EOffensiveName)]
+    #[test, expected_failure(abort_code = suins::reserved_names::EBlockedName)]
     fun test_offensive_failure(){
         let scenario_val = ts::begin(ADDR);
         let scenario = &mut scenario_val;
 
         let names  = prepare_data(0, ctx(scenario));
 
-        reserved_names::assert_is_not_offensive_name(&names, utf8(b"bad_test"), 0);
+        reserved_names::assert_is_not_blocked_name(&names, utf8(b"bad_test"), 0);
 
         abort 1337
     }
@@ -113,7 +113,7 @@ module suins::reserved_name_tests {
         let names = reserved_names::new(&admin_cap, version, ctx);
 
         reserved_names::add_reserved_names(&mut names, some_reserved_names());
-        reserved_names::add_offensive_names(&mut names, some_offensive_names());
+        reserved_names::add_blocked_names(&mut names, some_offensive_names());
 
         suins::burn_admin_cap_for_testing(admin_cap);
 
