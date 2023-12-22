@@ -8,12 +8,12 @@
 /// 
 /// We maintain all core functionality unchanged for registry, expiration etc.
 module suins::subdomain_registration {
-    use sui::object::{Self, UID};
+    use sui::object::{Self, UID, ID};
 
     use sui::tx_context::TxContext;
     use sui::clock::Clock;
 
-    use suins::suins_registration::{Self, SuinsRegistration};
+    use suins::suins_registration::{Self as nft, SuinsRegistration};
     use suins::domain;
 
     friend suins::namespace;
@@ -34,9 +34,9 @@ module suins::subdomain_registration {
     /// Creates a `SubName` wrapper for SuinsRegistration object (as long as it's for a subdomain).
     public fun new(nft: SuinsRegistration, clock: &Clock, ctx: &mut TxContext): SubDomainRegistration {
         // Can't wrap a non-subdomain NFT.
-        assert!(domain::is_subdomain(&suins_registration::domain(&nft)), ENotSubdomain);
+        assert!(domain::is_subdomain(&nft::domain(&nft)), ENotSubdomain);
         // Can't wrap an expired NFT.
-        assert!(!suins_registration::has_expired(&nft, clock), EExpired);
+        assert!(!nft::has_expired(&nft, clock), EExpired);
 
         SubDomainRegistration {
             id: object::new(ctx),
@@ -56,11 +56,11 @@ module suins::subdomain_registration {
         nft
     }
 
-    public fun borrow(name: &SubDomainRegistration): &SuinsRegistration {
+    public fun nft(name: &SubDomainRegistration): &SuinsRegistration {
         &name.nft
     }
 
-    public fun borrow_mut(name: &mut SubDomainRegistration): &mut SuinsRegistration {
+    public fun nft_mut(name: &mut SubDomainRegistration): &mut SuinsRegistration {
         &mut name.nft
     }
 
