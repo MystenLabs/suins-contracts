@@ -23,7 +23,7 @@ const craftTx = async () => {
 
 	const generalProfits = txb.moveCall({
 		target: `${config.packageId}::suins::withdraw`,
-		arguments: [adminCapObj, config.suins],
+		arguments: [adminCapObj, txb.object(config.suins)],
 	})
 
 	txb.transferObjects(
