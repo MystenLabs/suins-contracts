@@ -16,7 +16,8 @@ module suins::reserved_names {
 
     use suins::suins::AdminCap;
 
-    /// == Error Codes ==
+    // == Error Codes ==
+
     /// No names in the passed list
     const ENoWordsInList: u64 = 1;
     /// The name is in the reserved list so it can't be used.
@@ -68,11 +69,11 @@ module suins::reserved_names {
         transfer::freeze_object(list);
     }
 
-    /// == Public functionality == 
-    ///
+    // == Public functionality == 
+    //
+
     /// An easy assertion that the word is not in the resered names list.
-    public fun assert_is_not_reserved_name(self: &ReservedNames, name: String, expected_version: u32) {
-        assert_is_valid_version(self, expected_version);
+    public fun assert_is_not_reserved_name(self: &ReservedNames, name: String) {
         assert!(!is_reserved_name(self, name), EReservedName);
     }
 
@@ -83,8 +84,7 @@ module suins::reserved_names {
 
     /// An easy assertion that the word is not in the offensive names list.
     /// We also validate against a version here.
-    public fun assert_is_not_blocked_name(self: &ReservedNames, name: String, expected_version: u32) {
-        assert_is_valid_version(self, expected_version);
+    public fun assert_is_not_blocked_name(self: &ReservedNames, name: String) {
         assert!(!is_blocked_name(self, name), EBlockedName);
     }
 
@@ -92,8 +92,8 @@ module suins::reserved_names {
         table::contains(&self.blocked, name)
     }
 
-    /// == Admin functionality == 
-    /// 
+    // == Admin functionality == 
+
     /// Add a list of reserved names to the list as admin.
     public fun add_reserved_names(self: &mut ReservedNames, words: vector<String>) {
         internal_add_names_to_list(&mut self.reserved, words);

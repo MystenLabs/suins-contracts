@@ -1,6 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+#[test_only]
 module suins::reserved_name_tests {
 
     use std::vector;
@@ -64,7 +65,7 @@ module suins::reserved_name_tests {
         ts::next_tx(scenario, ADDR);
         let list = ts::take_immutable<ReservedNames>(scenario);
 
-        reserved_names::assert_is_not_blocked_name(&list, utf8(b"test"), 1);
+        reserved_names::assert_is_valid_version(&list, 1);
 
         abort 1337
     }
@@ -76,7 +77,7 @@ module suins::reserved_name_tests {
 
         let names  = prepare_data(0, ctx(scenario));
 
-        reserved_names::assert_is_not_blocked_name(&names, utf8(b"bad_test"), 0);
+        reserved_names::assert_is_not_blocked_name(&names, utf8(b"bad_test"));
 
         abort 1337
     }
@@ -88,7 +89,7 @@ module suins::reserved_name_tests {
 
         let names  = prepare_data(0, ctx(scenario));
 
-        reserved_names::assert_is_not_reserved_name(&names, utf8(b"test"), 0);
+        reserved_names::assert_is_not_reserved_name(&names, utf8(b"test"));
 
         abort 1337
     }
