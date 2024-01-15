@@ -24,8 +24,6 @@
 /// 
 /// OPEN TODOS:
 /// 
-/// 1. Add offensive list of words (to prevent creating offensive subdomains) once the PR is landed
-/// 
 module subdomains::subdomains {
     use std::option;
     use std::string::{String, utf8};
@@ -46,6 +44,8 @@ module subdomains::subdomains {
 
     use subdomains::config::{Self, SubDomainConfig};
 
+    use denylist::denylist;
+
     /// Tries to create a subdomain that expires later than the parent or below the minimum.
     const EInvalidExpirationDate: u64 = 1;
     /// Tries to create a subdomain with a parent that is not allowed to do so.
@@ -56,6 +56,8 @@ module subdomains::subdomains {
     const ESubdomainReplaced: u64 = 4;
     /// Parent for a given subdomain has changed, hence time extension cannot be done.
     const EParentChanged: u64 = 5;
+    /// Checks whether a name is allowed or not (against blocked names list)
+    const ENotAllowedName: u64 = 6;
 
     /// Enabled metadata value.
     const ACTIVE_METADATA_VALUE: vector<u8> = b"1";
@@ -88,6 +90,8 @@ module subdomains::subdomains {
         target: address,
         ctx: &mut TxContext
     ) {
+        assert!(!denylist::is_blocked_name(suins, subdomain_name), ENotAllowedName);
+
         let subdomain = domain::new(subdomain_name);
         // all validation logic for subdomain creation / management.
         internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, true);
@@ -138,6 +142,8 @@ module subdomains::subdomains {
         allow_time_extension: bool,
         ctx: &mut TxContext
     ): SubDomainRegistration {
+        assert!(!denylist::is_blocked_name(suins, subdomain_name), ENotAllowedName);
+
         let subdomain = domain::new(subdomain_name);
         // all validation logic for subdomain creation / management.
         internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, true);
