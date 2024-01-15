@@ -77,7 +77,7 @@ module suins::registry_tests {
         assert!(option::is_none(&res), 0);
 
         burn_nfts(vector[ nft ]);
-        wrapup(registry, clock);
+        wrapup_non_empty(registry, clock);
     }
 
     #[test]
@@ -104,7 +104,7 @@ module suins::registry_tests {
         registry::add_leaf_record(&mut registry, domain::new(utf8(b"test2.test.sui")), &clock, @0x1, &mut ctx);
 
         burn_nfts(vector[ nft, new_owner_nft, normal_subdomain_override ]);
-        wrapup(registry, clock);
+        wrapup_non_empty(registry, clock);
     }
 
     #[test]
@@ -352,12 +352,12 @@ module suins::registry_tests {
         // burn the expired object
         registry::burn_registration_object(&mut registry, nft, &clock);
 
-        // Validate that the record still exists (no invalidation happened), 
+        // Validate that the record still exists (no invalidation happened),
         // since the name was bought again after this.
         let name = registry::lookup(&registry, domain);
         assert!(option::is_some(&name), 0);
         
-        wrapup(registry, clock);
+        wrapup_non_empty(registry, clock);
         burn_nfts(vector[ new_nft_post_expiration]);
     }
 
@@ -485,6 +485,12 @@ module suins::registry_tests {
         registry::destroy_empty_for_testing(registry);
         clock::destroy_for_testing(clock);
     }
+
+    fun wrapup_non_empty(registry: Registry, clock: Clock) {
+        registry::destroy_for_testing(registry);
+        clock::destroy_for_testing(clock);
+    }
+    
     #[test_only] 
     public fun burn_nfts(nfts: vector<SuinsRegistration>) {
         while (vector::length(&nfts) > 0) {

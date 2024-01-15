@@ -427,6 +427,17 @@ module suins::registry {
             reverse_registry,
         } = self;
 
+        table::destroy_empty(registry);
+        table::destroy_empty(reverse_registry);
+    }
+
+    #[test_only]
+    public fun destroy_for_testing(self: Registry) {
+        let Registry {
+            registry,
+            reverse_registry,
+        } = self;
+
         table::drop(registry);
         table::drop(reverse_registry);
     }
