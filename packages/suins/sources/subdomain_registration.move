@@ -16,6 +16,9 @@ module suins::subdomain_registration {
     use suins::suins_registration::{Self, SuinsRegistration};
     use suins::domain;
 
+    friend suins::registry;
+    #[test_only] friend suins::sub_name_tests;
+
     /// === Error codes ===
     /// 
     /// NFT is expired.
@@ -31,7 +34,8 @@ module suins::subdomain_registration {
         nft: SuinsRegistration
     }
 
-    /// Creates a `SubName` wrapper for SuinsRegistration object (as long as it's for a subdomain).
+    /// Creates a `SubName` wrapper for SuinsRegistration object 
+    /// (as long as it's used for a subdomain).
     public fun new(nft: SuinsRegistration, clock: &Clock, ctx: &mut TxContext): SubDomainRegistration {
         // Can't wrap a non-subdomain NFT.
         assert!(domain::is_subdomain(&suins_registration::domain(&nft)), ENotSubdomain);
@@ -46,7 +50,7 @@ module suins::subdomain_registration {
 
     /// Destroys the wrapper and returns the SuinsRegistration object.
     /// Fails if the subname is not expired.
-    public fun destroy(name: SubDomainRegistration, clock: &Clock): SuinsRegistration {
+    public(friend) fun burn(name: SubDomainRegistration, clock: &Clock): SuinsRegistration {
         // tries to unwrap a non-expired subname.
         assert!(suins_registration::has_expired(&name.nft, clock), ENameNotExpired);
         
@@ -59,11 +63,11 @@ module suins::subdomain_registration {
         nft
     }
 
-    public fun borrow(name: &SubDomainRegistration): &SuinsRegistration {
+    public fun nft(name: &SubDomainRegistration): &SuinsRegistration {
         &name.nft
     }
 
-    public fun borrow_mut(name: &mut SubDomainRegistration): &mut SuinsRegistration {
+    public fun nft_mut(name: &mut SubDomainRegistration): &mut SuinsRegistration {
         &mut name.nft
     }
 }

@@ -12,6 +12,8 @@ module subdomains::config {
     const MIN_LABEL_SIZE: u8 = 3;
     /// the maximum depth a subdomain can have -> 8 (+ 2 for TLD, SLD)
     const MAX_SUBDOMAIN_DEPTH: u8 = 10;
+     /// Minimum duration for a subdomain in milliseconds. (1 day)
+    const MINIMUM_SUBDOMAIN_DURATION: u64 = 24 * 60 * 60 * 1000;
 
     /// tries to register a subdomain with a depth more than the one allowed.
     const EDepthOutOfLimit: u64 = 1;
@@ -27,14 +29,16 @@ module subdomains::config {
     struct SubDomainConfig has copy, store, drop {
         allowed_tlds: vector<String>,
         max_depth: u8,
-        min_label_size: u8
+        min_label_size: u8,
+        minimum_duration: u64
     }
 
     public fun default(): SubDomainConfig {
         SubDomainConfig {
             allowed_tlds: vector[sui_tld()],
             max_depth: MAX_SUBDOMAIN_DEPTH,
-            min_label_size: MIN_LABEL_SIZE
+            min_label_size: MIN_LABEL_SIZE,
+            minimum_duration: MINIMUM_SUBDOMAIN_DURATION
         }
     }
 
@@ -42,15 +46,16 @@ module subdomains::config {
     public fun new(
         allowed_tlds: vector<String>,
         max_depth: u8,
-        min_label_size: u8
+        min_label_size: u8,
+        minimum_duration: u64
     ): SubDomainConfig {
         SubDomainConfig {
             allowed_tlds,
             max_depth,
-            min_label_size
+            min_label_size,
+            minimum_duration
         }
     }
-
 
     /// Validates that the child name is a valid child for parent.
     public fun assert_is_valid_subdomain(parent: &Domain, child: &Domain, config: &SubDomainConfig) {
@@ -58,6 +63,10 @@ module subdomains::config {
         assert_is_valid_label(child, config);
         assert!((domain::number_of_levels(child) as u8) <= config.max_depth, EDepthOutOfLimit);
         assert!(is_parent_of(parent, child), EInvalidParent);
+    }
+
+    public fun minimum_duration(config: &SubDomainConfig): u64 {
+        config.minimum_duration
     }
 
     /// Validates that the TLD of the domain is supported for subdomains.

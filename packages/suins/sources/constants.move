@@ -27,9 +27,7 @@ module suins::constants {
     const GRACE_PERIOD_MS: u64 = 30 * 24 * 60 * 60 * 1000;
 
     /// A leaf record doesn't expire. Expiration is retrieved by the parent's expiration.
-    /// We set it as the max value of u64 (and highest possible timestamp in the chain).
-    /// This will become non-functional on `Sun Jul 21 2554 23:34:33`, by which time I hope we'll have a better solution for time.
-    const LEAF_EXPIRATION_TIMESTAMP: u64 = 18446744073709551615;
+    const LEAF_EXPIRATION_TIMESTAMP: u64 = 0;
 
     /// Subdomain constants
     /// 
@@ -38,9 +36,9 @@ module suins::constants {
     /// be re-used. They're added as metadata on NameRecord.
     /// 
     /// Whether a parent name can create child names. (name -> subdomain)
-    const ALLOW_CREATION: vector<u8> = b"SUB_C";
+    const ALLOW_CREATION: vector<u8> = b"S_AC";
     /// Whether a child-name can auto-renew (if the parent hasn't changed).
-    const ALLOW_TIME_EXTENSION: vector<u8> = b"SUB_TE";
+    const ALLOW_TIME_EXTENSION: vector<u8> = b"S_ATE";
 
     // === Public functions ===
 

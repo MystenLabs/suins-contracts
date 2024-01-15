@@ -24,22 +24,21 @@
 /// 1. Add offensive list of words (to prevent creating offensive subdomains) once the PR is landed
 /// 
 module subdomains::subdomains {
-    use std::option::{Self, Option};
+    use std::option;
     use std::string::{String, utf8};
 
     use sui::object::{Self, ID};
     use sui::tx_context::{TxContext};
-    use sui::clock::Clock;
+    use sui::clock::{Self, Clock};
     use sui::dynamic_field as df;
     use sui::vec_map::{Self, VecMap};
-    use sui::event;
 
     use suins::domain::{Self, Domain, is_subdomain};
     use suins::registry::{Self, Registry};
     use suins::suins::{Self, SuiNS, AdminCap};
     use suins::suins_registration::{Self, SuinsRegistration};
     use suins::subdomain_registration::{Self, SubDomainRegistration};
-    use suins::constants::{subdomain_allow_extension_key, subdomain_allow_creation_key, leaf_expiration_timestamp};
+    use suins::constants::{subdomain_allow_extension_key, subdomain_allow_creation_key};
     use suins::name_record;
 
     use subdomains::config::{Self, SubDomainConfig};
@@ -75,7 +74,7 @@ module subdomains::subdomains {
 
     /// Creates a `leaf` subdomain
     /// A `leaf` subdomain, is a subdomain that is managed by the parent's NFT.
-    public fun create_leaf(
+    public fun new_leaf(
         suins: &mut SuiNS,
         parent: &SuinsRegistration,
         clock: &Clock,
@@ -84,12 +83,8 @@ module subdomains::subdomains {
         ctx: &mut TxContext
     ) {
         let subdomain = domain::new(subdomain_name);
-
         // all validation logic for subdomain creation / management.
         internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, true);
-
-        // emit event for indexing
-        internal_emit_name_edited_event(subdomain, object::id(parent), leaf_expiration_timestamp(), true, option::none(), option::some(target), false);
 
         // Aborts with `suins::registry::ERecordExists` if the subdomain already exists.
         registry::add_leaf_record(registry_mut(suins), subdomain, clock, target, ctx)
@@ -110,9 +105,6 @@ module subdomains::subdomains {
         // we can still remove a leaf name (we just can't add a new one).
         internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, false);
 
-        // indexing purposes.
-        internal_emit_name_edited_event(subdomain, object::id(parent), leaf_expiration_timestamp(), true, option::none(), option::none(), true);
-
         registry::remove_leaf_record(registry_mut(suins), subdomain)
     }
 
@@ -130,7 +122,7 @@ module subdomains::subdomains {
     ///     2.5 Checks if this subdomain already exists. [If it does, it aborts if it's not expired, overrides otherwise]
     /// 
     /// It then saves the configuration for that child (manage-able by the parent), and returns the SuinsRegistration object.
-    public fun create(
+    public fun new(
         suins: &mut SuiNS,
         parent: &SuinsRegistration,
         clock: &Clock,
@@ -144,6 +136,8 @@ module subdomains::subdomains {
         // all validation logic for subdomain creation / management.
         internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, true);
 
+        // Validate that the duration is at least the minimum duration.
+        assert!(expiration_timestamp_ms >= clock::timestamp_ms(clock) + config::minimum_duration(&app_config(suins).config), EInvalidExpirationDate);
         // validate that the requested expiration timestamp is not greater than the parent's one.
         assert!(expiration_timestamp_ms <= suins_registration::expiration_timestamp_ms(parent), EInvalidExpirationDate);
 
@@ -172,7 +166,7 @@ module subdomains::subdomains {
     ) {
         let registry = registry(suins);
 
-        let nft = subdomain_registration::borrow_mut(sub_nft);
+        let nft = subdomain_registration::nft_mut(sub_nft);
         let subdomain = suins_registration::domain(nft);
         let parent_domain = domain::parent(&subdomain);
 
@@ -184,6 +178,7 @@ module subdomains::subdomains {
 
         // we need to make sure this name record exists (both child + parent), otherwise we don't have a valid object.
         assert!(option::is_some(&existing_name_record) && option::is_some(&parent_name_record), ESubdomainReplaced);
+
         // Validate that the parent of the name is the same as the actual parent
         // (to prevent cases where owner of the parent changed. When that happens, subdomains lose all abilities to renew / create subdomains)
         assert!(parent(nft) == name_record::nft_id(option::borrow(&parent_name_record)), EParentChanged);
@@ -194,9 +189,6 @@ module subdomains::subdomains {
         assert!(expiration_timestamp_ms <= name_record::expiration_timestamp_ms(option::borrow(&parent_name_record)), EInvalidExpirationDate);
 
         registry::set_expiration_timestamp_ms(registry_mut(suins), nft, subdomain, expiration_timestamp_ms);
-
-        // indexing purposes.
-        internal_emit_name_edited_event(subdomain, parent(nft), expiration_timestamp_ms, false, option::some(object::id(sub_nft)), option::none(), false);
     }
 
     /// Called by the parent domain to edit a subdomain's settings.
@@ -225,6 +217,16 @@ module subdomains::subdomains {
         // We save a setting like: `subdomain.example.sui` -> { allow_creation: true/false, allow_time_extension: true/false }
         internal_set_flag(suins, subdomain, subdomain_allow_creation_key(), allow_creation);
         internal_set_flag(suins, subdomain, subdomain_allow_extension_key(), allow_time_extension);
+    }
+
+    /// Burns a `SubDomainRegistration` object if it is expired.
+    public fun burn(
+        suins: &mut SuiNS,
+        nft: SubDomainRegistration,
+        clock: &Clock,
+    ) {
+
+        registry::burn_subdomain_object(registry_mut(suins), nft, clock);
     }
 
     /// Parent ID of a subdomain
@@ -332,42 +334,18 @@ module subdomains::subdomains {
         ctx: &mut TxContext,
     ): SubDomainRegistration {
         let nft = registry::add_record_ignoring_grace_period(registry, subdomain, 1, clock, ctx);
-        // set the timestamp to the correct one. `add_record` only works with years but we can correct it easily.
+        // set the timestamp to the correct one. `add_record` only works with years but we can correct it easily here.
         registry::set_expiration_timestamp_ms(registry, &mut nft, subdomain, expiration_timestamp_ms);
 
         // attach the `ParentID` to the SuinsRegistration, so we validate that the parent who created this subdomain
         // is the same as the one currently holding the parent domain.
         df::add(suins_registration::uid_mut(&mut nft), ParentKey {}, parent_nft_id);
 
-        let subdomain_nft = subdomain_registration::new(nft, clock, ctx);
-
-        // emits an event for our indexing purposes.
-        internal_emit_name_edited_event(subdomain, parent_nft_id, expiration_timestamp_ms, false, option::some(object::id(&subdomain_nft)), option::none(), false);
-        subdomain_nft
-    }
-
-    /// Emits an event to help us index on our BE.
-    fun internal_emit_name_edited_event(
-        domain: Domain, 
-        parent_id: ID, 
-        expiration_timestamp_ms: u64, 
-        is_leaf: bool, 
-        subdomain_id: Option<ID>, 
-        target: Option<address>,
-        deleted: bool
-    ) {
-        event::emit(SubDomainEditedEvent {
-            id: subdomain_id,
-            parent_id,
-            domain,
-            expiration_timestamp_ms,
-            is_leaf,
-            target,
-            deleted
-        });
+        subdomain_registration::new(nft, clock, ctx)
     }
 
     // == Internal helper to access registry & app setup ==
+
     fun registry(suins: &SuiNS): &Registry {
         suins::registry<Registry>(suins)
     }
@@ -378,27 +356,6 @@ module subdomains::subdomains {
 
     fun app_config(suins: &SuiNS): &App {
         suins::registry<App>(suins)
-    }
-
-    // === Events ===
-
-    /// Event that's indexed on our Indexer.
-    /// We reuse the same event both for creation and renewal of subdomain's expiration, as well as deletion of leaf names.
-    /// 
-    /// The main incentive in using a single event here, is to keep a consistent move-forward indexing scheme.
-    /// By separating the events, we wouldn't be able to efficiently write-forward, as many of the same operations could happen
-    /// in the same PTB.
-    /// 
-    /// We can't track by module, because we will not be able to track on-chain invocations for subdomains.
-    /// (as the calling module is the one being marked as the triggering one for each event)
-    struct SubDomainEditedEvent has copy, drop {
-        domain: Domain,
-        expiration_timestamp_ms: u64,
-        is_leaf: bool,
-        target: Option<address>,
-        id: Option<ID>,
-        parent_id: ID,
-        deleted: bool
     }
 
     #[test_only]

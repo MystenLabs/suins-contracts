@@ -3,7 +3,7 @@
 
 #[test_only]
 module suins::sub_name_tests {
-    use std::string::{utf8, String};
+    use std::string::utf8;
 
     use sui::tx_context;
     use sui::clock;
@@ -24,12 +24,12 @@ module suins::sub_name_tests {
         // create subdomain from name
         let sub_nft = subdomain::new(nft, &clock, &mut ctx);
 
-        assert!(suins_registration::domain(subdomain::borrow(&sub_nft)) == domain, 1);
+        assert!(suins_registration::domain(subdomain::nft(&sub_nft)) == domain, 1);
 
         // destroy subdomain (added mut borrow for coverage)
-        clock::set_for_testing(&mut clock, suins_registration::expiration_timestamp_ms(subdomain::borrow_mut(&mut sub_nft)) + 1);
+        clock::set_for_testing(&mut clock, suins_registration::expiration_timestamp_ms(subdomain::nft_mut(&mut sub_nft)) + 1);
 
-        nft = subdomain::destroy(sub_nft, &clock);
+        nft = subdomain::burn(sub_nft, &clock);
 
         suins_registration::burn_for_testing(nft);
 
@@ -74,8 +74,7 @@ module suins::sub_name_tests {
         let sub_nft = subdomain::new(nft, &clock, &mut ctx);
 
         // try to destroy
-        let _nft = subdomain::destroy(sub_nft, &clock);
-
+        let _nft = subdomain::burn(sub_nft, &clock);
 
         abort 1337
     }

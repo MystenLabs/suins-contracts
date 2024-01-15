@@ -15,6 +15,7 @@ module suins::registry {
     use suins::name_record::{Self, NameRecord};
     use suins::domain::{Self, Domain};
     use suins::suins::AdminCap;
+    use suins::subdomain_registration::{Self, SubDomainRegistration};
 
     /// The `SuinsRegistration` has expired.
     const ENftExpired: u64 = 0;
@@ -96,8 +97,8 @@ module suins::registry {
         // Then, if the registry still has a record for this domain and the NFT ID matches, we remove it.
         if (table::contains(&self.registry, domain)) {
 
-            let record = table::borrow(&mut self.registry, domain);
-
+            let record = table::borrow(&self.registry, domain);
+            
             // We wanna remove the record only if the NFT ID matches.
             if (name_record::nft_id(record) == object::id(&nft)) {
                 let record = table::remove(&mut self.registry, domain);
@@ -106,6 +107,17 @@ module suins::registry {
         };
         // burn the NFT.
         nft::burn(nft);
+    }
+
+    /// Attempts to burn a subdomain registration object, 
+    /// and also invalidates any records in the registry / reverse registry.
+    public fun burn_subdomain_object(
+        self: &mut Registry,
+        nft: SubDomainRegistration,
+        clock: &Clock
+    ) {
+        let nft = subdomain_registration::burn(nft, clock);
+        burn_registration_object(self, nft, clock);
     }
 
     /// Adds a `leaf` record to the registry.
@@ -219,6 +231,8 @@ module suins::registry {
     }
 
     /// Update the `data` of the given `NameRecord` using a `SuinsRegistration`.
+    /// Use with caution and validate(!!) that any system fields are not removed (accidently),
+    /// when building authorized packages that can write the metadata field.
     public fun set_data(
         self: &mut Registry,
         domain: Domain,
@@ -281,7 +295,6 @@ module suins::registry {
     /// and don't have their own `SuinsRegistration` object Cap. The `SuinsRegistration` of the parent
     /// is the one that manages them.
     /// 
-    /// They are only used for resolving names for app usage, such as `username.mystenlabs.sui`.
     fun is_leaf_record(
         self: &Registry,
         domain: Domain

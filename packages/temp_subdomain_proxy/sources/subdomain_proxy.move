@@ -20,7 +20,7 @@ module temp_subdomain_proxy::subdomain_proxy {
     use subdomains::subdomains;
     use utils::direct_setup;
 
-    public fun create_subdomain(
+    public fun new(
         suins: &mut SuiNS,
         subdomain: &SubDomainRegistration,
         clock: &Clock,
@@ -30,9 +30,9 @@ module temp_subdomain_proxy::subdomain_proxy {
         allow_time_extension: bool,
         ctx: &mut TxContext
     ): SubDomainRegistration {
-        subdomains::create(
+        subdomains::new(
             suins,
-            subdomain_registration::borrow(subdomain),
+            subdomain_registration::nft(subdomain),
             clock,
             subdomain_name,
             expiration_timestamp_ms,
@@ -42,7 +42,7 @@ module temp_subdomain_proxy::subdomain_proxy {
         )
     }
 
-    public fun create_leaf(
+    public fun new_leaf(
         suins: &mut SuiNS,
         subdomain: &SubDomainRegistration,
         clock: &Clock,
@@ -50,9 +50,9 @@ module temp_subdomain_proxy::subdomain_proxy {
         target: address,
         ctx: &mut TxContext
     ){
-        subdomains::create_leaf(
+        subdomains::new_leaf(
             suins,
-            subdomain_registration::borrow(subdomain),
+            subdomain_registration::nft(subdomain),
             clock,
             subdomain_name,
             target,
@@ -68,7 +68,7 @@ module temp_subdomain_proxy::subdomain_proxy {
     ) {
         subdomains::remove_leaf(
             suins,
-            subdomain_registration::borrow(subdomain),
+            subdomain_registration::nft(subdomain),
             clock,
             subdomain_name,
         );
@@ -82,7 +82,7 @@ module temp_subdomain_proxy::subdomain_proxy {
     ) {
         direct_setup::set_target_address(
             suins,
-            subdomain_registration::borrow(subdomain),
+            subdomain_registration::nft(subdomain),
             new_target,
             clock,
         );
