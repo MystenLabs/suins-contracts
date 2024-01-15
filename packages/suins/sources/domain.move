@@ -13,7 +13,7 @@ module suins::domain {
     const EInvalidDomain: u64 = 0;
 
     /// The maximum length of a full domain
-    const MAX_DOMAIN_LENGTH: u64 = 253;
+    const MAX_DOMAIN_LENGTH: u64 = 235;
     /// The minimum length of an individual label in a domain.
     const MIN_LABEL_LENGTH: u64 = 1;
     /// The maximum length of an individual label in a domain.

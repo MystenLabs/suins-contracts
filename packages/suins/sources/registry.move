@@ -148,17 +148,17 @@ module suins::registry {
         assert!(option::is_some(&option_parent_name_record), ERecordNotFound);
 
         // finds existing parent record
-        let parent_name_record = *option::borrow(&option_parent_name_record);
+        let parent_name_record = option::borrow(&option_parent_name_record);
 
         // Make sure that the parent isn't expired (because leaf record is invalid in that case).
         // Ignores grace period is it's only there so you don't accidently forget to renew your name.
-        assert!(!name_record::has_expired(&parent_name_record, clock), ERecordExpired);
+        assert!(!name_record::has_expired(parent_name_record, clock), ERecordExpired);
 
         // Removes an existing record if it exists and is expired.
         remove_existing_record_if_exists_and_expired(self, domain, clock, false);
         
         // adds the `leaf` record to the registry.
-        table::add(&mut self.registry, domain, name_record::new_leaf(name_record::nft_id(&parent_name_record), some(target)));
+        table::add(&mut self.registry, domain, name_record::new_leaf(name_record::nft_id(parent_name_record), some(target)));
     }
 
     /// Can be used to remove a leaf record.
@@ -352,12 +352,12 @@ module suins::registry {
             // -> If the parent is valid, we need to check if the parent is expired.
             // -> If the parent is not valid (nft_id has changed), or if the parent doesn't exist anymore (owner burned it), we can override the leaf record.
             if (option::is_some(&option_parent_name_record)) {
-                let parent_name_record = *option::borrow(&option_parent_name_record);
+                let parent_name_record = option::borrow(&option_parent_name_record);
 
                 // If the parent is the same and hasn't expired, we can't override the leaf record like this.
                 // We need to first remove + then call create (to protect accidental overrides).
-                if (name_record::nft_id(&parent_name_record) == name_record::nft_id(&record)) {
-                    assert!(name_record::has_expired(&parent_name_record, clock), ERecordNotExpired);
+                if (name_record::nft_id(parent_name_record) == name_record::nft_id(&record)) {
+                    assert!(name_record::has_expired(parent_name_record, clock), ERecordNotExpired);
                 };
             }
         }else if (with_grace_period) {
