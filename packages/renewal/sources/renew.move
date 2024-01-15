@@ -60,9 +60,9 @@ module renewal::renew {
         config::assert_valid_user_registerable_domain(&domain);
 
         // check that the payment is correct for the specified name.
-        validate_payment(suins, &payment, &domain, no_years,);
+        validate_payment(suins, &payment, &domain, no_years);
 
-        // Get registry + start validating.
+        // Get registry (also checks that app is authorized) + start validating.
         let registry = suins::app_registry_mut<Renew, Registry>(Renew {}, suins);
 
         // Calculate target expiration. Aborts if expiration or selected years are invalid.
