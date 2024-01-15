@@ -46,7 +46,7 @@ module subdomains::subdomains {
 
     use subdomains::config::{Self, SubDomainConfig};
 
-    /// Tries to create a subdomain that expires later than the parent.
+    /// Tries to create a subdomain that expires later than the parent or below the minimum.
     const EInvalidExpirationDate: u64 = 1;
     /// Tries to create a subdomain with a parent that is not allowed to do so.
     const ECreationDisabledForSubDomain: u64 = 2;
