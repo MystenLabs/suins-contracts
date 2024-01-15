@@ -162,8 +162,8 @@ module suins::registry {
     }
 
     /// Can be used to remove a leaf record.
-    /// Leaf records do not have any symmetrical `SuinsRegistration` object,
-    /// so we do not care about removing them from the registry.
+    /// Leaf records do not have any symmetrical `SuinsRegistration` object.
+    /// Authorization of who calls this is delegated to the authorized module that calls this.
     public fun remove_leaf_record(
         self: &mut Registry,
         domain: Domain,
