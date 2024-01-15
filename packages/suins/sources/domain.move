@@ -310,4 +310,12 @@ module suins::domain {
         let actual = split_by_dot(s);
         assert_eq(actual, expected);
     }
+
+    #[test]
+    fun derive_parent(){
+        let parent = new(utf8(b"parent.sui"));
+        let child = new(utf8(b"child.parent.sui"));
+
+        assert!(parent(&child) == parent, 0);
+    }
 }
