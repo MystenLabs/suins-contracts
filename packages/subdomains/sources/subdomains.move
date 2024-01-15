@@ -57,6 +57,9 @@ module subdomains::subdomains {
     /// Parent for a given subdomain has changed, hence time extension cannot be done.
     const EParentChanged: u64 = 5;
 
+    /// Enabled metadata value.
+    const ACTIVE_METADATA_VALUE: vector<u8> = b"1";
+
     /// The authentication scheme for SuiNS.
     struct SubDomains has drop {}
 
@@ -196,8 +199,8 @@ module subdomains::subdomains {
 
     /// Called by the parent domain to edit a subdomain's settings.
     /// - Allows the parent domain to toggle time extension.
-    /// - Allows the parent to toggle subdomain (grand-children) creation 
-    /// --> For the second (creation): Parent can't retract already created children, nor can limit the depth if allowed creations even once <--
+    /// - Allows the parent to toggle subdomain (grand-children) creation
+    /// --> For creations: A parent can't retract already created children, nor can limit the depth if creation capability is on.
     public fun edit_setup(
         suins: &mut SuiNS,
         parent: &SuinsRegistration,
@@ -247,14 +250,12 @@ module subdomains::subdomains {
         let config = record_metadata(self, subdomain);
         let is_enabled = vec_map::contains(&config, &key);
 
-        if (enable) {
-            if (!is_enabled){
-                vec_map::insert(&mut config, key,  utf8(b"1"));
-            }
-        }else {
-            if (is_enabled){
-                vec_map::remove(&mut config, &key);
-            }
+        if (enable && !is_enabled) {
+            vec_map::insert(&mut config, key,  utf8(ACTIVE_METADATA_VALUE));
+        };
+
+        if(!enable && is_enabled) {
+            vec_map::remove(&mut config, &key);
         };
 
         registry::set_data(registry_mut(self), subdomain, config);
@@ -291,12 +292,12 @@ module subdomains::subdomains {
         subdomain: Domain,
         // Set to `true` for `validate_creation` if you want to validate that the parent can create subdomains.
         // Set to false when editing the setup of a subdomain or removing leaf names.
-        validate_creation: bool
+        check_creation_auth: bool
     ) {
         // validate that parent is a valid, non expired object.
         registry::assert_nft_is_authorized(registry(suins), parent, clock);
 
-        if (validate_creation) {
+        if (check_creation_auth) {
             // validate that the parent can create subdomains.
             internal_assert_parent_can_create_subdomains(suins, suins_registration::domain(parent));
         };
