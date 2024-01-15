@@ -12,12 +12,15 @@
 /// 3. Registering `leaf` names (whose parent acts as the Capability holder)
 /// 4. Removing `leaf` names
 /// 5. Extending a subdomain expiration's time
+/// 6. Burning expired subdomain NFTs.
 /// 
 /// Comments:
 /// 
 /// 1. By attaching the creation/extension attributes as metadata to the subdomain's NameRecord, we can easily
 /// turn off this package completely, and retain the state on a different package's deployment. This is useful
 /// both for effort-less upgradeability and gas savings.
+/// 2. For any `registry_mut` call, we know that if this module is not authorized, we'll get an abort
+/// from the core suins package.
 /// 
 /// OPEN TODOS:
 /// 
@@ -171,7 +174,7 @@ module subdomains::subdomains {
         let parent_domain = domain::parent(&subdomain);
 
         // Check if time extension is allowed for this subdomain.
-        assert!(is_extension_allowed(&internal_get_domain_config(suins, subdomain)), EExtensionDisabledForSubDomain);
+        assert!(is_extension_allowed(&record_metadata(suins, subdomain)), EExtensionDisabledForSubDomain);
 
         let existing_name_record = registry::lookup(registry, subdomain);
         let parent_name_record = registry::lookup(registry, parent_domain);
@@ -225,7 +228,6 @@ module subdomains::subdomains {
         nft: SubDomainRegistration,
         clock: &Clock,
     ) {
-
         registry::burn_subdomain_object(registry_mut(suins), nft, clock);
     }
 
@@ -242,7 +244,7 @@ module subdomains::subdomains {
         key: String,
         enable: bool
     ) {
-        let config = internal_get_domain_config(self, subdomain);
+        let config = record_metadata(self, subdomain);
         let is_enabled = vec_map::contains(&config, &key);
 
         if (enable) {
@@ -259,22 +261,21 @@ module subdomains::subdomains {
     }
 
     /// Check if subdomain creation is allowed.
-    fun is_creation_allowed(config: &VecMap<String, String>): bool {
-        vec_map::contains(config, &subdomain_allow_creation_key())
+    fun is_creation_allowed(metadata: &VecMap<String, String>): bool {
+        vec_map::contains(metadata, &subdomain_allow_creation_key())
     }
 
     /// Check if time extension is allowed.
-    fun is_extension_allowed(config: &VecMap<String, String>): bool {
-        vec_map::contains(config, &subdomain_allow_extension_key())
+    fun is_extension_allowed(metadata: &VecMap<String, String>): bool {
+        vec_map::contains(metadata, &subdomain_allow_extension_key())
     }
 
     /// Get the name record's metadata for a subdomain.
-    fun internal_get_domain_config(
+    fun record_metadata(
         self: &SuiNS,
         subdomain: Domain
     ): VecMap<String, String> {
-        let registry = registry(self);
-        *registry::get_data(registry, subdomain)
+        *registry::get_data(registry(self), subdomain)
     }
 
     /// Does all the regular checks for validating that a parent `SuinsRegistration` object
@@ -319,7 +320,7 @@ module subdomains::subdomains {
         // if `parent` is a subdomain. We check the subdomain config to see if we are allowed to mint subdomains.
         // For regular names (e.g. example.sui), we can always mint subdomains.
         // if there's no config for this parent, and the parent is a subdomain, we can't create deeper names.
-         assert!(is_creation_allowed(&internal_get_domain_config(self, parent)), ECreationDisabledForSubDomain);
+         assert!(is_creation_allowed(&record_metadata(self, parent)), ECreationDisabledForSubDomain);
     }
 
 
