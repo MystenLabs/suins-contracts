@@ -64,6 +64,21 @@ module suins::suins_registration {
         self.image_url = image_url;
     }
 
+    /// Destroys the `SuinsRegistration` by deleting it from the store, returning
+    /// storage rebates to the caller.
+    /// Can only be called by the `registry` module.
+    public(friend) fun burn(self: SuinsRegistration) {
+        let SuinsRegistration {
+            id,
+            image_url: _,
+            domain: _,
+            domain_name: _,
+            expiration_timestamp_ms: _
+        } = self;
+
+        object::delete(id);
+    }
+
     // === Public methods ===
 
     /// Check whether the `SuinsRegistration` has expired by comparing the

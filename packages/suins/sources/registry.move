@@ -13,8 +13,9 @@ module suins::registry {
 
     use suins::suins_registration::{Self as nft, SuinsRegistration};
     use suins::name_record::{Self, NameRecord};
-    use suins::domain::Domain;
+    use suins::domain::{Self, Domain};
     use suins::suins::AdminCap;
+    use suins::subdomain_registration::{Self, SubDomainRegistration};
 
     /// The `SuinsRegistration` has expired.
     const ENftExpired: u64 = 0;
@@ -28,6 +29,12 @@ module suins::registry {
     const ERecordMismatch: u64 = 4;
     /// Trying to add a reverse lookup record while the target is empty.
     const ETargetNotSet: u64 = 5;
+    /// Trying to remove or operate on a non-leaf record as if it were a leaf record.
+    const ENotLeafRecord: u64 = 6;
+    /// Trying to add a leaf record for a TLD or SLD.
+    const EInvalidDepth: u64 = 7;
+    /// Trying to lookup a record that doesn't exist.
+    const ERecordNotFound: u64 = 8;
 
     /// The `Registry` object. Attached as a dynamic field to the `SuiNS` object,
     /// and the `suins` module controls the access to the `Registry`.
@@ -49,8 +56,23 @@ module suins::registry {
         }
     }
 
+    /// Attemps to add a new record to the registry without looking at the grace period. 
+    /// Currently used for subdomains where there's no grace period to respect.
+    /// Returns a `SuinsRegistration` upon success.
+    public fun add_record_ignoring_grace_period(
+        self: &mut Registry,
+        domain: Domain,
+        no_years: u8,
+        clock: &Clock,
+        ctx: &mut TxContext,
+    ): SuinsRegistration {
+        internal_add_record(self, domain, no_years, clock, false, ctx)
+    }
+
     /// Attempts to add a new record to the registry and returns a
     /// `SuinsRegistration` upon success.
+    /// Only use with second-level names. Enforces a `grace_period` by default. 
+    /// Not suitable for subdomains (unless a grace period is needed).
     public fun add_record(
         self: &mut Registry,
         domain: Domain,
@@ -58,22 +80,113 @@ module suins::registry {
         clock: &Clock,
         ctx: &mut TxContext,
     ): SuinsRegistration {
-        // First check to see if there is already an entry for this domain
+        internal_add_record(self, domain, no_years, clock, true, ctx)
+    }
+
+    /// Attempts to burn an NFT and get storage rebates.
+    /// Only works if the NFT has expired.
+    public fun burn_registration_object(
+        self: &mut Registry,
+        nft: SuinsRegistration,
+        clock: &Clock
+    ) {
+        // First we make sure that the SuinsRegistration object has expired.
+        assert!(nft::has_expired(&nft, clock), ERecordNotExpired);
+        
+        let domain = nft::domain(&nft);
+        // Then, if the registry still has a record for this domain and the NFT ID matches, we remove it.
         if (table::contains(&self.registry, domain)) {
-            // Remove the record and assert that it has expired past the grace period
-            let record = table::remove(&mut self.registry, domain);
-            assert!(name_record::has_expired_past_grace_period(&record, clock), ERecordNotExpired);
 
-            let old_target_address = name_record::target_address(&record);
-            handle_invalidate_reverse_record(self, &domain, old_target_address, none());
+            let record = table::borrow(&self.registry, domain);
+            
+            // We wanna remove the record only if the NFT ID matches.
+            if (name_record::nft_id(record) == object::id(&nft)) {
+                let record = table::remove(&mut self.registry, domain);
+                handle_invalidate_reverse_record(self, &domain, name_record::target_address(&record), none());
+            }
         };
+        // burn the NFT.
+        nft::burn(nft);
+    }
 
-        // If we've made it to this point then we know that we are able to
-        // register an entry for this domain.
-        let nft = nft::new(domain, no_years, clock, ctx);
-        let name_record = name_record::new(object::id(&nft), nft::expiration_timestamp_ms(&nft));
-        table::add(&mut self.registry, domain, name_record);
-        nft
+    /// Allow creation of subdomain wrappers only to authorized modules.
+    public fun wrap_subdomain(
+        _: &mut Registry,
+        nft: SuinsRegistration,
+        clock: &Clock,
+        ctx: &mut TxContext
+    ): SubDomainRegistration {
+        subdomain_registration::new(nft, clock, ctx)
+    }
+
+    /// Attempts to burn a subdomain registration object, 
+    /// and also invalidates any records in the registry / reverse registry.
+    public fun burn_subdomain_object(
+        self: &mut Registry,
+        nft: SubDomainRegistration,
+        clock: &Clock
+    ) {
+        let nft = subdomain_registration::burn(nft, clock);
+        burn_registration_object(self, nft, clock);
+    }
+
+    /// Adds a `leaf` record to the registry.
+    /// A `leaf` record is a record that is a subdomain and doesn't have
+    /// an equivalent `SuinsRegistration` object.
+    /// 
+    /// Instead, the parent's `SuinsRegistration` object is used to manage target_address & remove it / determine expiration.
+    /// 
+    /// 1. Leaf records can't have children. They only work as a resolving mechanism.
+    /// 2. Leaf records must always have a `target` address (can't point to `none`).
+    /// 3. Leaf records do not expire. Their expiration date is actually what defines their type.
+    /// 
+    /// Leaf record's expiration is defined by the parent's expiration. Since the parent can only be a `node`,
+    /// we need to check that the parent's NFT_ID is valid & hasn't expired.
+    public fun add_leaf_record(
+        self: &mut Registry,
+        domain: Domain,
+        clock: &Clock,
+        target: address,
+        _ctx: &mut TxContext
+    ) {
+        assert!(domain::is_subdomain(&domain), EInvalidDepth);
+
+        // get the parent of the domain
+        let parent = domain::parent(&domain);
+        let option_parent_name_record = lookup(self, parent);
+
+        assert!(option::is_some(&option_parent_name_record), ERecordNotFound);
+
+        // finds existing parent record
+        let parent_name_record = option::borrow(&option_parent_name_record);
+
+        // Make sure that the parent isn't expired (because leaf record is invalid in that case).
+        // Ignores grace period is it's only there so you don't accidently forget to renew your name.
+        assert!(!name_record::has_expired(parent_name_record, clock), ERecordExpired);
+
+        // Removes an existing record if it exists and is expired.
+        remove_existing_record_if_exists_and_expired(self, domain, clock, false);
+        
+        // adds the `leaf` record to the registry.
+        table::add(&mut self.registry, domain, name_record::new_leaf(name_record::nft_id(parent_name_record), some(target)));
+    }
+
+    /// Can be used to remove a leaf record.
+    /// Leaf records do not have any symmetrical `SuinsRegistration` object.
+    /// Authorization of who calls this is delegated to the authorized module that calls this.
+    public fun remove_leaf_record(
+        self: &mut Registry,
+        domain: Domain,
+    ) {
+        // We can only call remove on a leaf record.
+        assert!(is_leaf_record(self, domain), ENotLeafRecord);
+
+        // if it's a leaf record, there's no `SuinsRegistration` object.
+        // We can just go ahead and remove the name_record, and invalidate the reverse record (if any).
+        let record = table::remove(&mut self.registry, domain);
+        let old_target_address = name_record::target_address(&record);
+
+        handle_invalidate_reverse_record(self, &domain, old_target_address, none());
     }
 
     public fun set_target_address(
@@ -128,6 +241,8 @@ module suins::registry {
     }
 
     /// Update the `data` of the given `NameRecord` using a `SuinsRegistration`.
+    /// Use with caution and validate(!!) that any system fields are not removed (accidently),
+    /// when building authorized packages that can write the metadata field.
     public fun set_data(
         self: &mut Registry,
         domain: Domain,
@@ -183,6 +298,87 @@ module suins::registry {
     }
 
     // === Private Functions ===
+
+    /// Checks whether a subdomain record is `leaf`.
+    /// `leaf` record: a record whose target address can only be set by the parent,
+    /// hence the nft_id points to the parent's ID. Leaf records can't create subdomains
+    /// and don't have their own `SuinsRegistration` object Cap. The `SuinsRegistration` of the parent
+    /// is the one that manages them.
+    /// 
+    fun is_leaf_record(
+        self: &Registry,
+        domain: Domain
+    ): bool {
+        if (!domain::is_subdomain(&domain)) {
+            return false
+        };
+        
+        let option_name_record = lookup(self, domain);
+
+        if (option::is_none(&option_name_record)) {
+            return false
+        };
+
+        name_record::is_leaf_record(option::borrow(&option_name_record))
+    }
+
+    /// An internal helper to add a record
+    fun internal_add_record(
+        self: &mut Registry,
+        domain: Domain,
+        no_years: u8,
+        clock: &Clock,
+        with_grace_period: bool,
+        ctx: &mut TxContext,
+    ): SuinsRegistration {
+        remove_existing_record_if_exists_and_expired(self, domain, clock, with_grace_period);
+
+        // If we've made it to this point then we know that we are able to
+        // register an entry for this domain.
+        let nft = nft::new(domain, no_years, clock, ctx);
+        let name_record = name_record::new(object::id(&nft), nft::expiration_timestamp_ms(&nft));
+        table::add(&mut self.registry, domain, name_record);
+        nft
+    }
+
+    fun remove_existing_record_if_exists_and_expired(
+        self: &mut Registry,
+        domain: Domain,
+        clock: &Clock,
+        with_grace_period: bool,
+    ) {
+        // if the domain is not part of the registry, we can override.
+        if (!table::contains(&self.registry, domain)) return;
+
+        // Remove the record and assert that it has expired (past the grace period if applicable)
+        let record = table::remove(&mut self.registry, domain);
+
+        // Special case for leaf records, we can override them iff their parent has changed or has expired.
+        if (name_record::is_leaf_record(&record)) {
+            // find the parent of the leaf record.
+            let option_parent_name_record = lookup(self, domain::parent(&domain));
+
+            // if there's a parent (if not, we can just remove it), we need to check if the parent is valid.
+            // -> If the parent is valid, we need to check if the parent is expired.
+            // -> If the parent is not valid (nft_id has changed), or if the parent doesn't exist anymore (owner burned it), we can override the leaf record.
+            if (option::is_some(&option_parent_name_record)) {
+                let parent_name_record = option::borrow(&option_parent_name_record);
+
+                // If the parent is the same and hasn't expired, we can't override the leaf record like this.
+                // We need to first remove + then call create (to protect accidental overrides).
+                if (name_record::nft_id(parent_name_record) == name_record::nft_id(&record)) {
+                    assert!(name_record::has_expired(parent_name_record, clock), ERecordNotExpired);
+                };
+            }
+        }else if (with_grace_period) {
+            assert!(name_record::has_expired_past_grace_period(&record, clock), ERecordNotExpired);
+        } else {
+            assert!(name_record::has_expired(&record, clock), ERecordNotExpired);
+        };
+
+        let old_target_address = name_record::target_address(&record);
+        handle_invalidate_reverse_record(self, &domain, old_target_address, none());
+    }
 
     fun handle_invalidate_reverse_record(
         self: &mut Registry,
@@ -243,5 +439,16 @@ module suins::registry {
 
         table::destroy_empty(registry);
         table::destroy_empty(reverse_registry);
+    }
+
+    #[test_only]
+    public fun destroy_for_testing(self: Registry) {
+        let Registry {
+            registry,
+            reverse_registry,
+        } = self;
+
+        table::drop(registry);
+        table::drop(reverse_registry);
     }
 }

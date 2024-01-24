@@ -13,7 +13,7 @@ module suins::domain {
     const EInvalidDomain: u64 = 0;
 
     /// The maximum length of a full domain
-    const MAX_DOMAIN_LENGTH: u64 = 200;
+    const MAX_DOMAIN_LENGTH: u64 = 235;
     /// The minimum length of an individual label in a domain.
     const MIN_LABEL_LENGTH: u64 = 1;
     /// The maximum length of an individual label in a domain.
@@ -88,6 +88,28 @@ module suins::domain {
 
     public fun number_of_levels(self: &Domain): u64 {
         vector::length(&self.labels)
+    }
+
+    public fun is_subdomain(domain: &Domain): bool {
+        number_of_levels(domain) > 2
+    }
+
+    /// Derive the parent of a subdomain. 
+    /// e.g. `subdomain.example.sui` -> `example.sui` 
+    public fun parent(domain: &Domain): Domain {
+        let labels = domain.labels;
+        // we pop the last element and construct the parent from the remaining labels.
+        vector::pop_back(&mut labels);
+
+        Domain {
+            labels
+        }
+    }
+    
+    /// Checks if `parent` domain is a valid parent for `child`.
+    public fun is_parent_of(parent: &Domain, child: &Domain): bool {
+        number_of_levels(parent) < number_of_levels(child) && 
+        &parent(child).labels == &parent.labels
     }
 
     fun validate_labels(labels: &vector<String>) {
@@ -212,31 +234,10 @@ module suins::domain {
     }
 
     #[test_only]
-    fun is_subdomain(self: &Domain, other: &Domain): bool {
-        let len_self = number_of_levels(self);
-        let len_other = number_of_levels(other);
-        let index = 0;
-
-        if (len_self > len_other) {
-            return false
-        };
-
-        while (index < len_self && index < len_other) {
-            if (label(self, index) != label(other, index)) {
-                return false
-            };
-
-            index = index + 1;
-        };
-
-        true
-    }
-
-    #[test_only]
     fun expect_is_subdomain(domain: vector<u8>, subdomain: vector<u8>, expected: bool) {
         let domain = new(utf8(domain));
         let subdomain = new(utf8(subdomain));
-        assert_eq(is_subdomain(&domain, &subdomain), expected);
+        assert_eq(is_parent_of(&domain, &subdomain), expected);
     }
 
     #[test]
@@ -308,5 +309,13 @@ module suins::domain {
         let expected = vector[utf8(vector::empty()), utf8(vector::empty()), utf8(vector::empty())];
         let actual = split_by_dot(s);
         assert_eq(actual, expected);
+    }
+
+    #[test]
+    fun derive_parent(){
+        let parent = new(utf8(b"parent.sui"));
+        let child = new(utf8(b"child.parent.sui"));
+
+        assert!(parent(&child) == parent, 0);
     }
 }
