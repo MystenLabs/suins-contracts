@@ -59,9 +59,9 @@ module subdomains::config {
 
     /// Validates that the child name is a valid child for parent.
     public fun assert_is_valid_subdomain(parent: &Domain, child: &Domain, config: &SubDomainConfig) {
-        assert_is_valid_tld(child, config);
-        assert_is_valid_label(child, config);
-        assert!((domain::number_of_levels(child) as u8) <= config.max_depth, EDepthOutOfLimit);
+        assert!(is_valid_tld(child, config), ENotSupportedTLD);
+        assert!(is_valid_label(child, config), EInvalidLabelSize);
+        assert!(has_valid_depth(child, config), EDepthOutOfLimit);
         assert!(is_parent_of(parent, child), EInvalidParent);
     }
 
@@ -69,26 +69,33 @@ module subdomains::config {
         config.minimum_duration
     }
 
+    /// Validate that the depth of the subdomain is with the allowed range.
+    public fun has_valid_depth(domain: &Domain, config: &SubDomainConfig): bool {
+        domain::number_of_levels(domain) <= (config.max_depth as u64)
+    }
+
     /// Validates that the TLD of the domain is supported for subdomains.
     /// In the beggining, only .sui names will be supported but we might 
     /// want to add support for others (or not allow).
     /// (E.g., with `.move` service, we might want to restrict how subdomains are created)
-    fun assert_is_valid_tld(domain: &Domain, config: &SubDomainConfig) {
+    public fun is_valid_tld(domain: &Domain, config: &SubDomainConfig): bool {
         let i=0;
         while (i < vector::length(&config.allowed_tlds)) {
             if (domain::tld(domain) == vector::borrow(&config.allowed_tlds, i)) {
-                return
+                return true
             };
             i = i + 1;
         };
-        abort ENotSupportedTLD
+        return false
     }
 
     /// Validate that the subdomain label (e.g. `sub` in `sub.example.sui`) is valid.
-    fun assert_is_valid_label(domain: &Domain, config: &SubDomainConfig) {
+    /// We do not need to check for max length (64), as this is already checked 
+    /// in the `Domain` construction.
+    public fun is_valid_label(domain: &Domain, config: &SubDomainConfig): bool {
         // our label is the last vector element, as labels are stored in reverse order.
         let label = domain::label(domain, domain::number_of_levels(domain) - 1);
-        assert!(string::length(label) >= (config.min_label_size as u64), EInvalidLabelSize);
+        string::length(label) >= (config.min_label_size as u64)
     }
 
 }
