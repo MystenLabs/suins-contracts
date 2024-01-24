@@ -16,7 +16,6 @@ module suins::registry_tests {
     use suins::registry::{Self, Registry};
     use suins::domain::{Self, Domain};
     use suins::constants;
-    use suins::subdomain_registration;
 
     // === Registry + Record Addition ===
 
@@ -312,7 +311,7 @@ module suins::registry_tests {
         
         let nft = registry::add_record(&mut registry, domain::new(utf8(b"node.test.sui")), 1, &clock, &mut ctx);
 
-        let subdomain = subdomain_registration::new(nft, &clock, &mut ctx);
+        let subdomain = registry::wrap_subdomain(&mut registry, nft, &clock, &mut ctx);
 
         clock::increment_for_testing(&mut clock, constants::year_ms() + 1);
 

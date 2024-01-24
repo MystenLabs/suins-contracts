@@ -36,7 +36,7 @@ module suins::subdomain_registration {
 
     /// Creates a `SubName` wrapper for SuinsRegistration object 
     /// (as long as it's used for a subdomain).
-    public fun new(nft: SuinsRegistration, clock: &Clock, ctx: &mut TxContext): SubDomainRegistration {
+    public(friend) fun new(nft: SuinsRegistration, clock: &Clock, ctx: &mut TxContext): SubDomainRegistration {
         // Can't wrap a non-subdomain NFT.
         assert!(domain::is_subdomain(&suins_registration::domain(&nft)), ENotSubdomain);
         // Can't wrap an expired NFT.

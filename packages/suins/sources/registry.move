@@ -109,6 +109,16 @@ module suins::registry {
         nft::burn(nft);
     }
 
+    /// Allow creation of subdomain wrappers only to authorized modules.
+    public fun wrap_subdomain(
+        _: &mut Registry,
+        nft: SuinsRegistration,
+        clock: &Clock,
+        ctx: &mut TxContext
+    ): SubDomainRegistration {
+        subdomain_registration::new(nft, clock, ctx)
+    }
+
     /// Attempts to burn a subdomain registration object, 
     /// and also invalidates any records in the registry / reverse registry.
     public fun burn_subdomain_object(
