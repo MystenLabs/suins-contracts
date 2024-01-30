@@ -349,7 +349,7 @@ module subdomains::subdomains {
         // is the same as the one currently holding the parent domain.
         df::add(suins_registration::uid_mut(&mut nft), ParentKey {}, parent_nft_id);
 
-        subdomain_registration::new(nft, clock, ctx)
+        registry::wrap_subdomain(registry, nft, clock, ctx)
     }
 
     // == Internal helper to access registry & app setup ==
