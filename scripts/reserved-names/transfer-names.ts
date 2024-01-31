@@ -38,13 +38,12 @@ const parseOwnedObjects = () => {
 // Parses the combined CSV 
 const parseCsvFile = () => {
 
-    fs.readFileSync('./reserved-names/data/transfers.csv')
+    fs.readFileSync('./reserved-names/data/transfers-v2.csv')
         .toString()
         .split('\n')
         .map(x => x.split(','))
         .filter(x => !!x && !!x[0])
-        .map( ([name, address, domain]) => ({
-            name,
+        .map( ([domain, address]) => ({
             address,
             domain: domain.toLowerCase()
         } as TransferObject))
@@ -76,8 +75,15 @@ const prepareTx = () => {
     const txb = new TransactionBlock();
 
     for(let recipient of Object.keys(recipients)) {
-        txb.transferObjects([...recipients[recipient]].filter(x => !!x).map(x => txb.object(x)), txb.pure(recipient, 'address'));
+        // const objects = [...recipients[recipient]].filter(x => !!x).map(x => txb.object(x));
+
+        for(const object of [...recipients[recipient]].filter(x => !!x)) {
+            txb.transferObjects([txb.object(object)], txb.pure(recipient, 'address'));
+        }
+        
     }
+
+    console.dir(txb, {depth: null});
     return prepareMultisigTx(txb, 'mainnet');
 }
 
@@ -87,5 +93,6 @@ parseOwnedObjects();
 // Parses the `transfers.csv` file, and creates the list of object transfers
 parseCsvFile();
 
+// console.log(recipients);
 // Prepares the TXB for that and saves it in tx-data.
 prepareTx();

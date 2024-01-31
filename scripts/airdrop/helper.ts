@@ -186,7 +186,7 @@ export const prepareMultisigTx = async (
     if(!gasObjectId) throw new Error("No gas object supplied for a mainnet transaction");
 
     // set the gas budget.
-    tx.setGasBudget(9_000_000_000);
+    tx.setGasBudget(2_000_000_000);
 
     // set the sender to be the admin address from config.
     tx.setSenderIfNotSet(config.adminAddress as string);
