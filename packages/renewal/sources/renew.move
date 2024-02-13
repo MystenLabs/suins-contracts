@@ -57,6 +57,7 @@ module renewal::renew {
         // authorization occurs inside the call.
         let domain =  nft::domain(nft);
         // check if the name is valid, for public registration
+        // Also checks if the domain is not a subdomain, validates label lengths, TLD.
         config::assert_valid_user_registerable_domain(&domain);
 
         // check that the payment is correct for the specified name.
