@@ -3,7 +3,7 @@
 
 #[test_only]
 module registration::register_tests {
-
+    use std::option;
     use std::string::{utf8, String};
 
     use sui::test_scenario::{Self, Scenario, ctx};
@@ -14,6 +14,7 @@ module registration::register_tests {
     use registration::register::{Self, Register, register};
     use suins::constants::{mist_per_sui, grace_period_ms, year_ms};
     use suins::suins::{Self, SuiNS, total_balance, AdminCap};
+    use suins::reseller::{Self, ResellerApp};
     use suins::suins_registration::SuinsRegistration;
     use suins::suins_registration;
     use suins::domain;
@@ -33,8 +34,14 @@ module registration::register_tests {
             let suins = suins::init_for_testing(ctx(scenario));
             suins::authorize_app_for_testing<Register>(&mut suins);
             suins::authorize_app_for_testing<AuctionApp>(&mut suins);
+            suins::authorize_app_for_testing<ResellerApp>(&mut suins);
+
+            let admin_cap = suins::create_admin_cap_for_testing(ctx(scenario));
+            reseller::setup(&mut suins, &admin_cap, ctx(scenario));
             suins::share_for_testing(suins);
             let clock = clock::create_for_testing(ctx(scenario));
+
+            suins::burn_admin_cap_for_testing(admin_cap);
             clock::share_for_testing(clock);
         };
         {
@@ -63,7 +70,7 @@ module registration::register_tests {
         let clock = test_scenario::take_shared<Clock>(scenario);
 
         clock::increment_for_testing(&mut clock, clock_tick);
-        let nft = register(&mut suins, domain_name, no_years, payment, &clock, ctx(scenario));
+        let nft = register(&mut suins, domain_name, no_years, payment, &clock, option::none(), ctx(scenario));
 
         test_scenario::return_shared(clock);
         test_scenario::return_shared(suins);
