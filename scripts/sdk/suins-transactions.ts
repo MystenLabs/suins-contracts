@@ -5,7 +5,7 @@ import { PackageInfo } from '../config/constants';
 enum DomainLengthCategories {
 	ThreeLetter = '3',
 	FourLetter = '4',
-	FivePlusLetter = 'default',
+	FivePlusLetter = '5+',
 }
 
 export class SuinsTransaction {
