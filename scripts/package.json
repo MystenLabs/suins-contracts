@@ -16,7 +16,15 @@
     "authorize-discounts": "ts-node transactions/quest_3_setup.ts",
     "disable-free-claims": "ts-node transactions/quest3/disable_free_claims.ts",
     "disable-discounts": "ts-node transactions/quest3/disable_discounts.ts",
-    "create-deepbook-pools": "ts-node transactions/deepbook/create_pools.ts"
+    "create-deepbook-pools": "ts-node transactions/deepbook/create_pools.ts",
+
+    "prettier:check": "prettier -c --ignore-unknown .",
+		"prettier:fix": "prettier -w --ignore-unknown .",
+		"prettier:fix:watch": "onchange '**' -i -f add -f change -j 5 -- prettier -w --ignore-unknown {{file}}",
+		"eslint:check": "eslint --max-warnings=0 .",
+		"eslint:fix": "pnpm run eslint:check --fix",
+		"lint": "pnpm run eslint:check && pnpm run prettier:check",
+		"lint:fix": "pnpm run eslint:fix && pnpm run prettier:fix"
   },
   "keywords": [],
   "author": "",
@@ -29,6 +37,22 @@
     "blake2": "^5.0.0",
     "dotenv": "^16.3.1",
     "ts-node": "^10.9.1",
-    "typescript": "^5.1.6"
+  },
+  "devDependencies": {
+    "prettier": "^3.0.0",
+    "eslint": "^8.45.0",
+    "@ianvs/prettier-plugin-sort-imports": "^4.1.0",
+		"eslint-config-prettier": "^8.8.0",
+		"eslint-config-react-app": "^7.0.1",
+		"eslint-import-resolver-typescript": "^3.5.5",
+		"eslint-plugin-header": "^3.1.1",
+		"eslint-plugin-import": "^2.27.5",
+		"eslint-plugin-prettier": "^5.0.0",
+		"eslint-plugin-require-extensions": "^0.1.3",
+		"eslint-plugin-tsdoc": "^0.2.17",
+		"eslint-plugin-unused-imports": "^3.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.1.0",
+		"@typescript-eslint/parser": "^6.1.0",
+    "typescript": "^5.3.3",
   }
 }

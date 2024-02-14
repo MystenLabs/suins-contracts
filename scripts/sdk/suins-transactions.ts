@@ -1,47 +1,38 @@
 import { SUI_CLOCK_OBJECT_ID, TransactionBlock } from "@mysten/sui.js";
 import { PackageInfo } from "../config/constants";
 
+enum DomainLengthCategories {
+    ThreeLetter = '3',
+    FourLetter = '4',
+    FivePlusLetter = 'default'
+}
+
 export class SuinsTransaction {
     #config: PackageInfo;
     transactionBlock: TransactionBlock;
-
-    // TODO: Add a dynamic method for fetching the price list.
-    priceList: Record<string | number, string> = {
-        3: '10000000000',
-        4: '5000000000',
-        default: '1000000000'
-    }
 
     constructor(config: PackageInfo, transactionBlock: TransactionBlock) {
         this.#config = config;
         this.transactionBlock = transactionBlock;
     }
 
-    /**
-     * Register...
-     * TBD: We need to:
-     * - Support registration using a coupon
-     * - Support registration using a discount (by presenting an object)
-     * - Support resellers
-     */
-    register(name: String, years: number) {
-        this.#validateYears(years);
-
+    // TODO: Add a dynamic method for fetching the price list.
+    priceList: Record<DomainLengthCategories, string> = {
+        [DomainLengthCategories.ThreeLetter]: '10000000000',
+        [DomainLengthCategories.FourLetter]: '5000000000',
+        [DomainLengthCategories.FivePlusLetter]: '1000000000'
     }
 
     /**
      * Constructs the transaction to renew a name.
-     * Expects the nftId and the number of years to renew for.
-     *      suins: &mut SuiNS,
-        nft: &mut SuinsRegistration,
-        no_years: u8,
-        payment: Coin<SUI>,
-        clock: &Clock
+     * Expects the nftId, the number of years to renew
+     * as well as the length category of the domain.
+     * 
+     * This only applies for SLDs (Second Level Domains) (e.g. example.sui, test.sui).
+     * You can use `getSecondLevelDomainCategory` to get the category of a domain.
      */
-    renew(nftId: string, length: number,  years: number) {
+    renew(nftId: string, years: number, category: DomainLengthCategories) {
         this.#validateYears(years);
-
-        const price = 'length' in this.priceList ? this.priceList[length] : this.priceList.default;
 
         this.transactionBlock.moveCall({
             target: `${this.#config.renewalsPackageId}::renew::renew`,
@@ -50,11 +41,21 @@ export class SuinsTransaction {
                 this.transactionBlock.object(nftId),
                 this.transactionBlock.pure(years),
                 this.transactionBlock.splitCoins(this.transactionBlock.gas, [this.transactionBlock.pure(
-                    price
+                    this.priceList[category]
                 )]),
                 this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
             ],
         })
+    }
+
+    getSecondLevelDomainCategory(domain: string): DomainLengthCategories {
+        // get labels.
+        const labels = domain.split('.');
+        const sld = labels[1];
+
+        if (sld.length === 3) return DomainLengthCategories.ThreeLetter;
+        if (sld.length === 4) return DomainLengthCategories.FourLetter;
+        return DomainLengthCategories.FivePlusLetter;
     }
 
     #validateYears(years: number) {

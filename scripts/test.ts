@@ -5,8 +5,14 @@ import { executeTx, prepareSigner, prepareSignerFromPrivateKey } from "./airdrop
 
 
 (async () => {
+
     const suinsTransaction = new SuinsTransaction(mainPackage.testnet, new TransactionBlock());
-    suinsTransaction.renew('0xf387f7eb465da77163186dbb5fa2f69d56b842df4bd25a15a1c2acd2a33645f9', 5, 1);
+
+    suinsTransaction.renew(
+        '0x5135953cf5b95cf8149465adf1fb2b1f23ad6c0c57057021bade6ff654749ce0', 
+        1, 
+        suinsTransaction.getSecondLevelDomainCategory('dn1.sui')
+    );
 
     await executeTx(prepareSignerFromPrivateKey('testnet'), suinsTransaction.transactionBlock);
 })();
