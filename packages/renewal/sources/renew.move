@@ -74,6 +74,8 @@ module renewal::renew {
         suins::app_add_balance(Renew {}, suins, coin::into_balance(payment));
     }
 
+    /// Calculate the target expiration for a domain, 
+    /// or abort if the domain or the expiration setup is invalid.
     fun target_expiration_or_abort(
         registry: &Registry,
         nft: &SuinsRegistration,
@@ -87,7 +89,7 @@ module renewal::renew {
 
         let name_record = option::destroy_some(name_record_option);
 
-        // validate that the name has not expired.
+        // Validate that the name has not expired. If it has, we can only re-purchase (and that might involve different pricing).
         assert!(!name_record::has_expired_past_grace_period(&name_record, clock), ERecordExpired);
 
         // validate that the supplied NFT ID matches the NFT ID of the registry.
@@ -105,7 +107,8 @@ module renewal::renew {
         target_expiration
     }
 
-    fun validate_payment(suins: &SuiNS,payment: &Coin<SUI>, domain: &Domain, no_years: u8){
+    /// Validates that the payment Coin is correct for the domain + number of years
+    fun validate_payment(suins: &SuiNS, payment: &Coin<SUI>, domain: &Domain, no_years: u8){
         let config = suins::get_config<Config>(suins);
         let label = domain::sld(domain);
         let price = config::calculate_price(config, (string::length(label) as u8), no_years);
