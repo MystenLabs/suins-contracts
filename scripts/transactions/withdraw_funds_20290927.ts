@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TransactionBlock } from '@mysten/sui.js';
-import { mainPackage } from '../config/constants';
+
 import { prepareMultisigTx } from '../airdrop/helper';
+import { mainPackage } from '../config/constants';
 
 /// MystenLabs treasury address.
 const ADDRESS_TO_TRANSFER_FUNDS =
@@ -18,13 +19,16 @@ const craftTx = async () => {
 	// Auction house profits.
 	const auctionProfits = txb.moveCall({
 		target: `${config.packageId}::auction::admin_withdraw_funds`,
-		arguments: [adminCapObj, txb.object('0x2588e11685b460c725e1dc6739a57c483fcd23977369af53d432605225e387f9')],
+		arguments: [
+			adminCapObj,
+			txb.object('0x2588e11685b460c725e1dc6739a57c483fcd23977369af53d432605225e387f9'),
+		],
 	});
 
 	const generalProfits = txb.moveCall({
 		target: `${config.packageId}::suins::withdraw`,
 		arguments: [adminCapObj, txb.object(config.suins)],
-	})
+	});
 
 	txb.transferObjects(
 		[auctionProfits, generalProfits],

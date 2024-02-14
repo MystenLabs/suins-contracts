@@ -16,6 +16,7 @@ module.exports = {
 	},
 	env: {
 		es2020: true,
+		node: true,
 	},
 	root: true,
 	ignorePatterns: [
@@ -65,5 +66,10 @@ module.exports = {
 				ignoreRestSiblings: true,
 			},
 		],
+		'require-extensions/require-extensions': 'error',
+		'require-extensions/require-index': 'error',
+		'@typescript-eslint/consistent-type-imports': ['error'],
+		'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
+		'import/no-cycle': ['error'],
 	},
 };

@@ -18,5 +18,5 @@ module.exports = {
 		'',
 		'^[.]',
 	],
-    proseWrap: 'always',
+	proseWrap: 'always',
 };
