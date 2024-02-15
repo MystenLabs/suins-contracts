@@ -67,7 +67,7 @@ module renewal::renew {
         let registry = suins::app_registry_mut<Renew, Registry>(Renew {}, suins);
 
         // Calculate target expiration. Aborts if expiration or selected years are invalid.
-        let target_expiration = target_expiration_or_abort(registry, nft, domain, clock, no_years);
+        let target_expiration = target_expiration(registry, nft, domain, clock, no_years);
 
         // set the expiration of the NFT + the registry's name record. 
         registry::set_expiration_timestamp_ms(registry, nft, domain, target_expiration);
@@ -76,7 +76,7 @@ module renewal::renew {
 
     /// Calculate the target expiration for a domain, 
     /// or abort if the domain or the expiration setup is invalid.
-    fun target_expiration_or_abort(
+    fun target_expiration(
         registry: &Registry,
         nft: &SuinsRegistration,
         domain: Domain,
