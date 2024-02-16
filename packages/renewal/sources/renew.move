@@ -6,7 +6,7 @@
 /// 
 /// The renewal is capped at 5 years.
 module renewal::renew {
-    use std::string::{Self};
+    use std::string;
     use std::option;
 
     use sui::coin::{Self, Coin};
@@ -40,6 +40,12 @@ module renewal::renew {
     /// Authorization token for the app.
     struct Renew has drop {}
 
+    /// An event to help track financial transactions
+    struct NameRenewed has copy, drop {
+        domain: Domain,
+        amount: u64
+    }
+
     // Allows renewals of names.
     //
     // Makes sure that:
@@ -71,6 +77,8 @@ module renewal::renew {
 
         // set the expiration of the NFT + the registry's name record. 
         registry::set_expiration_timestamp_ms(registry, nft, domain, target_expiration);
+
+        sui::event::emit(NameRenewed { domain, amount: coin::value(&payment) });
         suins::app_add_balance(Renew {}, suins, coin::into_balance(payment));
     }
 
