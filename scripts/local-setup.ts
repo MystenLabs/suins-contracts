@@ -1,11 +1,12 @@
-import { ExportedKeypair, JsonRpcProvider, RawSigner, SUI_CLOCK_OBJECT_ID, TransactionArgument, TransactionBlock, fromB64, fromExportedKeypair, localnetConnection, normalizeSuiAddress, testnetConnection, toB64 } from "@mysten/sui.js";
+import { Connection, ExportedKeypair, JsonRpcProvider, RawSigner, SUI_CLOCK_OBJECT_ID, TransactionArgument, TransactionBlock, fromB64, fromExportedKeypair, localnetConnection, normalizeSuiAddress, testnetConnection, toB64 } from "@mysten/sui.js";
 import { execSync } from "child_process";
 import dotenv from "dotenv";
 import { readFileSync } from "fs";
 import { homedir } from "os";
 import path from "path";
 import { executeTx } from "./airdrop/helper";
-dotenv.config({ path: `.env.local`, override: true });
+import { mainPackage } from "./config/constants";
+dotenv.config({ path: `.env.testnet.local`, override: true });
 
 const config = {
   packageId: process.env.PACKAGE_ADDRESS as string,
@@ -16,8 +17,9 @@ const config = {
   subdomainsPackageId: process.env.SUBDOMAINS_PACKAGE_ADDRESS as string,
   denylistPackageId: process.env.DENYLIST_PACKAGE_ADDRESS as string,
   publisher: process.env.PUBLISHER_ID as string,
+  subdomainsTempProxyPackageId: process.env.SUBDOMAINS_TEMP_PROXY as string
 }
-const client = new JsonRpcProvider(localnetConnection);
+const client = mainPackage.testnet.provider;
 
 const getActiveAddress = () => {
   return execSync(`sui client active-address`, { encoding: 'utf8' }).trim();
@@ -195,6 +197,38 @@ const setupMainContract = async () => {
   console.log(config);
 }
 
+const spamNameRegistrations = async (name: string, initial: number = 0) => {
+  const signer = getSigner();
+  const txb = new TransactionBlock();
+
+  const objects = [];
+  for(let i=initial; i<initial+40;i++){
+
+    const nft = txb.moveCall({
+      target: `${config.registrationPackageId}::register::register`,
+      arguments: [
+        txb.object(config.suins),
+        txb.pure(i + '-' + name),
+        txb.pure(1),
+        txb.splitCoins(txb.gas, [txb.pure(0)]),
+        txb.object(SUI_CLOCK_OBJECT_ID),
+      ],
+    });
+    txb.moveCall({
+      target: `${config.utilsPackageId}::direct_setup::set_target_address`,
+      arguments: [
+        txb.object(config.suins),
+        nft,
+        txb.pure(normalizeSuiAddress('0x3')),
+        txb.object(SUI_CLOCK_OBJECT_ID)
+      ]
+    });
+    objects.push(nft);
+  }
+  txb.transferObjects(objects, txb.pure(await signer.getAddress()));
+
+  await executeTx(signer, txb);
+}
 
 // register a name and transfer to the sender.
 const registerNameAndSomeSubnames = async (name: string) => {
@@ -243,7 +277,7 @@ const registerNameAndSomeSubnames = async (name: string) => {
   });
 
   createLeafSubdomain(txb, nft, 'leaf.' + name);
-  removeLeafSubdomain(txb, nft, 'leaf.' + name);
+  // removeLeafSubdomain(txb, nft, 'leaf.' + name);
   // createLeafSubdomain(txb, nft, 'leaf.' + name);
   const sub = createNodeSubdomain(txb, nft, 'node.' + name);
 
@@ -324,10 +358,14 @@ const getNameRecords = async (registryId: string) => {
 //     };
 // }
 
-const createLeafSubdomain = async (txb: TransactionBlock, parentNameRecord: any, subdomain: string) => {
-
+const createLeafSubdomain = (
+  txb: TransactionBlock, 
+  parentNameRecord: any, 
+  subdomain: string,
+  isParentSubdomain?: boolean
+) => {
   txb.moveCall({
-    target: `${config.subdomainsPackageId}::subdomains::new_leaf`,
+    target: isParentSubdomain ? `${config.subdomainsTempProxyPackageId}::subdomain_proxy::new_leaf` : `${config.subdomainsPackageId}::subdomains::new_leaf`,
     arguments: [
       txb.object(config.suins),
       parentNameRecord,
@@ -338,10 +376,14 @@ const createLeafSubdomain = async (txb: TransactionBlock, parentNameRecord: any,
   });
 }
 
-const removeLeafSubdomain = async (txb: TransactionBlock, parentNameRecord: any, subdomain: string) => {
-
+const removeLeafSubdomain = (
+  txb: TransactionBlock, 
+  parentNameRecord: any, 
+  subdomain: string,
+  isParentSubdomain?: boolean
+) => {
   txb.moveCall({
-    target: `${config.subdomainsPackageId}::subdomains::remove_leaf`,
+    target: isParentSubdomain ? `${config.subdomainsTempProxyPackageId}::subdomain_proxy::remove_leaf` : `${config.subdomainsPackageId}::subdomains::remove_leaf`,
     arguments: [
       txb.object(config.suins),
       parentNameRecord,
@@ -351,43 +393,115 @@ const removeLeafSubdomain = async (txb: TransactionBlock, parentNameRecord: any,
   });
 }
 
-const createNodeSubdomain = (txb: TransactionBlock, parentNameRecord: any, subdomain: string): TransactionArgument => {
+const extendExpiration = (txb: TransactionBlock, nameRecord: any, expirationTimestampMs: string) => {
+  txb.moveCall({
+    target: `${config.subdomainsPackageId}::subdomains::extend_expiration`,
+    arguments: [
+      txb.object(config.suins),
+      nameRecord,
+      txb.pure(expirationTimestampMs)
+    ],
+  });
+}
+
+const editSetup = (
+  txb: TransactionBlock,
+  parentNameRecord: any,
+  subdomain: string,
+  allowExtension: boolean, 
+  allowCreation: boolean
+) => {
+  txb.moveCall({
+    target: `${config.subdomainsPackageId}::subdomains::edit_setup`,
+    arguments: [
+      txb.object(config.suins),
+      parentNameRecord,
+      txb.object(SUI_CLOCK_OBJECT_ID),
+      txb.pure(subdomain),
+      txb.pure(allowExtension),
+      txb.pure(allowCreation),
+    ],
+  });
+}
+
+const createNodeSubdomain = (
+  txb: TransactionBlock, 
+  parentNameRecord: any, 
+  subdomain: string,
+  isParentSubdomain?: boolean
+): TransactionArgument => {
 
   const subNft = txb.moveCall({
-    target: `${config.subdomainsPackageId}::subdomains::new`,
+    target: isParentSubdomain ? `${config.subdomainsTempProxyPackageId}::subdomain_proxy::new` : `${config.subdomainsPackageId}::subdomains::new`,
     arguments: [
       txb.object(config.suins),
       parentNameRecord,
       txb.object(SUI_CLOCK_OBJECT_ID),
       txb.pure(subdomain),
       txb.pure('1736275700' + '000'),
-      txb.pure(false),
-      txb.pure(false),
+      txb.pure(true),
+      txb.pure(true),
     ],
   });
 
   return subNft;
 }
+
+const generateRandomString = (length:number) => [...Array(length)].map(() => Math.random().toString(36).charAt(2)).join('');
+
+const stressTest = async () => {
+  const txb = new TransactionBlock();
+  for(let i=0;i<400;i++){
+    createLeafSubdomain(txb, txb.object('0x9b4ab014fea2ef29f8971cdc037763d8fb5ea1bb053083caca18da681eb31fd2'), 
+        `${generateRandomString(10)}.indexer.sui`);
+  }
+  await executeTx(getSigner(), txb);
+}
+
 const run = async () => {
   // await setupMainContract();
   // console.log(config);
   // await directSetupSubdomainContract();
-  // await registerNameAndSomeSubnames('example.sui');
+  // await registerNameAndSomeSubnames('another-indexer.sui');
+  // await spamNameRegistrations('starter.sui', 0);
   // console.log(SUI_CLOCK_OBJECT_ID);
   // await registerNameAndSomeSubnames('test.sui');
   // await registerNameAndSomeSubnames('manos.sui');
   const txb = new TransactionBlock();
 
-  // // removeLeafSubdomain(txb, txb.object('0xa4891f3754b203ef230a5e2a08822c835c808eab71e2bc6ca33a73cec9728376'), 'new.test.sui');
+  // mainPackage.mainnet.provider.getTransactionBlock({
+  //   digest: '4ZW9TDgYcEcJCmn1hfnqCkZGSijig2Q7LGjHog8sXFno',
+  //   options: {
+  //     showBalanceChanges: true,
+  //     showEffects: true,
+  //     showEvents: true,
+  //     showInput: true,
+  //     showObjectChanges: true
+  //   }
+  // }).then(res=>{
+  //   console.dir(res, { depth: null });
+  // })
 
-  // const node = createNodeSubdomain(txb, txb.object('0xa4891f3754b203ef230a5e2a08822c835c808eab71e2bc6ca33a73cec9728376'), 'bug.test.sui');
+  console.log(normalizeSuiAddress(SUI_CLOCK_OBJECT_ID));
+  // editSetup(txb, txb.object('0xfb33dc4ac98f718d24ade09596212cf4bf031ca9e5de28be9cb1caf6ea41fe9f'), 'node.24-starter.sui', true, true);
+
+  // extendExpiration(txb, txb.object('0x66aa066ed3102f5b9aae1857613eb2da15b5cc4bfc272dcf686617c4b6a6d100'), '1739721083152');
+
+  // createLeafSubdomain(txb, txb.object('0x66aa066ed3102f5b9aae1857613eb2da15b5cc4bfc272dcf686617c4b6a6d100'), 'leaf-1.node.24-starter.sui', true);
+  // removeLeafSubdomain(txb, txb.object('0x66aa066ed3102f5b9aae1857613eb2da15b5cc4bfc272dcf686617c4b6a6d100'), 'leaf-1.node.24-starter.sui', true);
+  // const node = createNodeSubdomain(txb, txb.object('0x66aa066ed3102f5b9aae1857613eb2da15b5cc4bfc272dcf686617c4b6a6d100'), 'nested.node.24-starter.sui', true);
+  // txb.transferObjects([node], txb.pure(getActiveAddress()));
+  // // removeLeafSubdomain(txb, txb.object('0xa4891f3754b203ef230a5e2a08822c835c808eab71e2bc6ca33a73cec9728376'), 'new.test.sui');
+.2
+  // const node = createNodeSubdomain(txb, txb.object('0xfb33dc4ac98f718d24ade09596212cf4bf031ca9e5de28be9cb1caf6ea41fe9f'), 'node.24-starter.sui');
 
   // txb.transferObjects([node], txb.pure(getActiveAddress()));
-  // // // createLeafSubdomain(txb, txb.object('0xa4891f3754b203ef230a5e2a08822c835c808eab71e2bc6ca33a73cec9728376'), 'new.test.sui');
 
-  // // // createNodeSubdomain(txb, txb.object('0xa4891f3754b203ef230a5e2a08822c835c808eab71e2bc6ca33a73cec9728376'), 'leaf.test.sui');
+  // for(let i=401;i<800;i++){
+  //   createLeafSubdomain(txb, txb.object('0xfb33dc4ac98f718d24ade095 96212cf4bf031ca9e5de28be9cb1caf6ea41fe9f'), `leaf-${i}.24-starter.sui`);
+  // }
 
-  await executeTx(getSigner(), txb);
+  // await executeTx(getSigner(), txb);
   // await registerNameAndSomeSubnames('manos.sui');
   // const sldNameRecord = await getNameRecordForDomain(MAIN_REGISTRY_TABLE_ID, 'test.sui');
 
