@@ -2,7 +2,7 @@ import { TransactionBlock } from '@mysten/sui.js';
 
 import { executeTx, prepareSigner, prepareSignerFromPrivateKey } from './airdrop/helper';
 import { mainPackage } from './config/constants';
-import { SuinsTransaction } from './sdk/suins-transactions';
+import { SuinsTransaction } from './sdk/suins-transaction';
 
 (async () => {
 	const suinsTransaction = new SuinsTransaction(mainPackage.testnet, new TransactionBlock());
