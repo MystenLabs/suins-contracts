@@ -1,5 +1,5 @@
 import { SuiClient } from "@mysten/sui.js/dist/cjs/client";
-import { Constants, Network, SuinsClientConfig } from "./types";
+import { Constants, Network, SuinsClientConfig, SuinsPriceList } from "./types";
 import { MAINNET_CONFIG, TESTNET_CONFIG } from "./constants";
 
 /// The SuinsClient is the main entry point for the Suins SDK.
@@ -7,7 +7,7 @@ import { MAINNET_CONFIG, TESTNET_CONFIG } from "./constants";
 export class SuinsClient {
     #client: SuiClient;
     #network?: Network;
-    constants: Constants;
+    constants: Constants = {};
 
     constructor(config: SuinsClientConfig) {
         this.#client = config.client;
@@ -26,8 +26,32 @@ export class SuinsClient {
         }
     }
 
-    async getPrices() {
-        // todo: get the price list from the blockchain
+    /**
+     * Returns the price list for SuiNS names.
+     */
+    async getPriceList(): Promise<SuinsPriceList> {
+        if (!this.constants.suinsObjectId) throw new Error('Suins object ID is not set');
+
+        const priceList = await this.#client.getDynamicFieldObject({
+            parentId: this.constants.suinsObjectId,
+            name: {
+                type: '',
+                value: { dummy_field: false }
+            }
+        });
+
+        if (!priceList || !priceList.data || !priceList.data.content
+            || priceList.data.content.dataType !== 'moveObject'
+            || !('value' in priceList.data.content.fields)
+            ) throw new Error("Price list not found");
+
+        const contents = priceList.data.content.fields.value as Record<string, any>;
+
+        return {
+            threeLetters: +(contents?.fields?.three_char_price),
+            fourLetters: +(contents?.fields?.four_char_price),
+            fivePlusLetters: +(contents?.fields?.five_plus_char_price)
+        }
     }
 
     async calculateRegistrationPrice() {

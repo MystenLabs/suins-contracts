@@ -12,6 +12,10 @@
     "mysten"
   ],
   "scripts": {
+    "clean": "rm -rf tsconfig.tsbuildinfo ./dist",
+    "build": "pnpm build:types && pnpm build:tsup",
+    "build:tsup": "tsup ./src/index.ts --format esm,cjs --sourcemap",
+    "build:types": "tsc --build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {
@@ -20,6 +24,7 @@
   "devDependencies": {
     "@types/node": "^20.11.19",
     "ts-node": "^10.9.2",
+    "tsup": "^8.0.2",
     "typescript": "^5.3.3"
   },
   "dependencies": {

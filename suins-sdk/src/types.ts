@@ -20,6 +20,7 @@ export type Constants = {
     renewalPackageId?: string;
     subdomainsPackageId?: string;
     tempSubdomainsProxyPackageId?: string;
+    priceListConfigType?: string;
 }
 
 // The config for the SuinsClient.
@@ -28,4 +29,14 @@ export type SuinsClientConfig = {
     // we can optionally pass in the network or the default packageIds
     network?: Network;
     packageIds?: Constants;
+}
+
+
+/**
+ * The price list for SuiNS names.
+ */
+export type SuinsPriceList = {
+    threeLetters: number;
+    fourLetters: number;
+    fivePlusLetters: number;
 }
