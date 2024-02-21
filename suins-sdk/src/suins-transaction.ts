@@ -45,8 +45,6 @@ export class SuinsTransaction {
 				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
 			],
 		});
-
-		return this;
 	}
 
 	/**
@@ -69,7 +67,7 @@ export class SuinsTransaction {
 		this.#isValidSuinsName(name);
 		this.#validateYears(years);
 
-		this.transactionBlock.moveCall({
+		const nft = this.transactionBlock.moveCall({
 			target: `${this.#suinsClient.constants.registrationPackageId}::register::register`,
 			arguments: [
 				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
@@ -82,7 +80,7 @@ export class SuinsTransaction {
 			],
 		});
 
-		return this;
+		return nft;
 	}
 
 	createSubdomain({
@@ -104,7 +102,7 @@ export class SuinsTransaction {
 		if (!this.#suinsClient.constants.subdomainsPackageId) throw new Error('Subdomains package ID not found');
 		if (parentIsSubdomain && !this.#suinsClient.constants.tempSubdomainsProxyPackageId) throw new Error('Subdomains proxy package ID not found');
 
-		const subdomain = this.transactionBlock.moveCall({
+		const subNft = this.transactionBlock.moveCall({
 			target: `${this.#suinsClient.constants.subdomainsPackageId}::subdomains::new`,
 			arguments: [
 				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
@@ -117,7 +115,7 @@ export class SuinsTransaction {
 			],
 		});
 
-		return subdomain;
+		return subNft;
 	}
 
 	/**
@@ -151,8 +149,6 @@ export class SuinsTransaction {
 			  this.transactionBlock.pure.address(targetAddress),
 			],
 		});
-
-		return this;
 	}
 
 	/**
@@ -161,10 +157,27 @@ export class SuinsTransaction {
 	removeLeafSubdomain({
 		parentNft,
 		name,
+		isParentSubdomain,
 	}: {
 		parentNft: ObjectArgument;
 		name: string;
-	}) { }
+		isParentSubdomain: boolean;
+	}) {
+		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('Suins Object ID not found');
+		if (!this.#suinsClient.constants.subdomainsPackageId) throw new Error('Subdomains package ID not found');
+		if (isParentSubdomain && !this.#suinsClient.constants.tempSubdomainsProxyPackageId) throw new Error('Subdomains proxy package ID not found');
+
+		this.transactionBlock.moveCall({
+			target: isParentSubdomain ? `${this.#suinsClient.constants.tempSubdomainsProxyPackageId}::subdomain_proxy::remove_leaf` 
+									: `${this.#suinsClient.constants.subdomainsPackageId}::subdomains::remove_leaf`,
+			arguments: [
+			  this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
+			  this.transactionBlock.object(parentNft),
+			  this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
+			  this.transactionBlock.pure(name),
+			],
+		});
+	 }
 
 
 	setTargetAddress({
@@ -191,8 +204,6 @@ export class SuinsTransaction {
 				this.transactionBlock.pure.address(address),
 			],
 		});
-		
-		return this;
 	 }
 
 	/** Marks a name as default */
@@ -208,8 +219,6 @@ export class SuinsTransaction {
 				this.transactionBlock.pure.string(name),
 			],
 		});
-
-		return this;
 	}
 
 	// TODO: Extend this class with more validation methods
