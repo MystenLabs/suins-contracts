@@ -11,3 +11,5 @@ sui.log.*
 node_modules
 tx-data.txt*
 .DS_STORE*
+
+dist
