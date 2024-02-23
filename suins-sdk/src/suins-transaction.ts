@@ -187,7 +187,7 @@ export class SuinsTransaction {
 	}: {
 		nft: ObjectArgument;
 		address: string;
-		isSubdomain: boolean;
+		isSubdomain?: boolean;
 	}) {
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('Suins Object ID not found');
 		if (!this.#suinsClient.constants.utilsPackageId) throw new Error('Utils package ID not found');
