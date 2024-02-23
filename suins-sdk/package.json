@@ -1,0 +1,33 @@
+{
+  "name": "@mysten/suins",
+  "version": "0.0.1",
+  "description": "An SDK to build apps with SDK",
+  "license": "Apache-2.0",
+  "private": true,
+  "main": "index.js",
+  "author": "Mysten Labs <build@mystenlabs.com>",
+  "keywords": [
+    "Sui",
+    "suins",
+    "mysten"
+  ],
+  "scripts": {
+    "clean": "rm -rf tsconfig.tsbuildinfo ./dist",
+    "build": "pnpm build:types && pnpm build:tsup",
+    "build:tsup": "tsup ./src/index.ts --format esm,cjs --sourcemap",
+    "build:types": "tsc --build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.19",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.0.2",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@mysten/sui.js": "^0.50.1"
+  }
+}
