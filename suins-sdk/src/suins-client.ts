@@ -6,19 +6,17 @@ import { MAINNET_CONFIG, TESTNET_CONFIG } from "./constants";
 /// It allows you to interact with SuiNS.
 export class SuinsClient {
     #client: SuiClient;
-    #network?: Network;
     constants: Constants = {};
 
     constructor(config: SuinsClientConfig) {
         this.#client = config.client;
         if (config.network) {
-            if (config.network === Network.Mainnet) {
+            if (config.network === 'mainnet') {
                 this.constants = MAINNET_CONFIG;
             }
-            if (config.network === Network.Testnet) {
+            if (config.network === 'testnet') {
                 this.constants = TESTNET_CONFIG;
             }
-            this.#network = config.network;
         }
 
         if (config.packageIds) {
@@ -31,11 +29,12 @@ export class SuinsClient {
      */
     async getPriceList(): Promise<SuinsPriceList> {
         if (!this.constants.suinsObjectId) throw new Error('Suins object ID is not set');
+        if (!this.constants.getConfig || !this.constants.priceListConfigType) throw new Error('Price list config not found');
 
         const priceList = await this.#client.getDynamicFieldObject({
             parentId: this.constants.suinsObjectId,
             name: {
-                type: '',
+                type: this.constants.getConfig(this.constants.priceListConfigType),
                 value: { dummy_field: false }
             }
         });
