@@ -27,12 +27,11 @@ const sampleNameRegistration = async () => {
 
     const txb = new TransactionBlock();
     const suinsTx = new SuinsTransaction(suinsClient, txb);
-    const name = 'sdk.sui';
 
+    const name = 'sdk.sui';
     const years = 1;
 
     const priceList = await suinsClient.getPriceList();
-    
 
     const nft = suinsTx.register({
         name,

@@ -1,5 +1,5 @@
-import { SuiClient } from "@mysten/sui.js/dist/cjs/client";
-import { Constants, Network, SuinsClientConfig, SuinsPriceList } from "./types";
+import { SuiClient } from "@mysten/sui.js/client";
+import { Constants, SuinsClientConfig, SuinsPriceList } from "./types";
 import { MAINNET_CONFIG, TESTNET_CONFIG } from "./constants";
 import { isSubName, validateName, validateYears } from "./helpers";
 
@@ -11,13 +11,14 @@ export class SuinsClient {
 
     constructor(config: SuinsClientConfig) {
         this.#client = config.client;
-        if (config.network) {
-            if (config.network === 'mainnet') {
-                this.constants = MAINNET_CONFIG;
-            }
-            if (config.network === 'testnet') {
-                this.constants = TESTNET_CONFIG;
-            }
+        const network = config.network || 'mainnet';
+
+        if (network === 'mainnet') {
+            this.constants = MAINNET_CONFIG;
+        }
+
+        if (network === 'testnet') {
+            this.constants = TESTNET_CONFIG;
         }
 
         if (config.packageIds) {
