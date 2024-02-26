@@ -1,7 +1,7 @@
 {
   "name": "@mysten/suins",
   "version": "0.0.1",
-  "description": "An SDK to build apps with SDK",
+  "description": "An SDK to simplify SuiNS integration.",
   "license": "Apache-2.0",
   "private": true,
   "main": "index.js",

@@ -22,8 +22,14 @@ export type Constants = {
 // The config for the SuinsClient.
 export type SuinsClientConfig = {
     client: SuiClient;
-    // we can optionally pass in the network or the default packageIds
+    /**
+     * The network to use. Defaults to mainnet.
+     */
     network?: Network;
+    /** 
+     * We can pass in custom PackageIds if we want this to 
+     * be functional on localnet, devnet, or any other deployment. 
+    */
     packageIds?: Constants;
 }
 
