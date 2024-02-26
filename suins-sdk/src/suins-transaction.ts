@@ -87,23 +87,22 @@ export class SuinsTransaction {
 		parentNft,
 		name,
 		expirationTimestampMs,
-		parentIsSubdomain,
 		allowChildCreation,
 		allowTimeExtension,
 	}: {
 		parentNft: ObjectArgument;
 		name: string;
 		expirationTimestampMs: number;
-		parentIsSubdomain: boolean;
 		allowChildCreation: boolean;
 		allowTimeExtension: boolean;
 	}) {
+		const isParentSubdomain = this.#isSubdomain(name);
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('Suins Object ID not found');
 		if (!this.#suinsClient.constants.subdomainsPackageId) throw new Error('Subdomains package ID not found');
-		if (parentIsSubdomain && !this.#suinsClient.constants.tempSubdomainsProxyPackageId) throw new Error('Subdomains proxy package ID not found');
+		if (isParentSubdomain && !this.#suinsClient.constants.tempSubdomainsProxyPackageId) throw new Error('Subdomains proxy package ID not found');
 
 		const subNft = this.transactionBlock.moveCall({
-			target: parentIsSubdomain ? 
+			target: isParentSubdomain ? 
 							`${this.#suinsClient.constants.tempSubdomainsProxyPackageId}::subdomain_proxy::new` 
 							: `${this.#suinsClient.constants.subdomainsPackageId}::subdomains::new`,
 			arguments: [
@@ -129,13 +128,12 @@ export class SuinsTransaction {
 		parentNft,
 		name,
 		targetAddress,
-		isParentSubdomain
 	}: {
 		parentNft: ObjectArgument;
 		name: string;
 		targetAddress: string;
-		isParentSubdomain: boolean;
-	}) { 
+	}) {
+		const isParentSubdomain = this.#isSubdomain(name);
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('Suins Object ID not found');
 		if (!this.#suinsClient.constants.subdomainsPackageId) throw new Error('Subdomains package ID not found');
 		if (isParentSubdomain && !this.#suinsClient.constants.tempSubdomainsProxyPackageId) throw new Error('Subdomains proxy package ID not found');
@@ -204,6 +202,7 @@ export class SuinsTransaction {
 				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
 				this.transactionBlock.object(nft),
 				this.transactionBlock.pure.address(address),
+				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
 			],
 		});
 	 }
@@ -223,10 +222,18 @@ export class SuinsTransaction {
 		});
 	}
 
+	#isSubdomain(name: string) {
+		return name.split('.').length > 2;
+	}
+
 	// TODO: Extend this class with more validation methods
 	#isValidSuinsName(name: string) {
+		const parts = name.split('.');
+		if (parts.some(x => !x.match(/^[a-z0-9-]+$/))) throw new Error('Invalid SuiNS name (only lowercase letters, numbers and hyphens are allowed)');
+		if (parts.some(x => x.length < 3 || x.length > 63)) throw new Error('Invalid SuiNS name (each part must be between 3 and 63 characters)');
 		if (!name.endsWith('.sui')) throw new Error('Invalid SuiNS name');
 	}
+	
 	#validateYears(years: number) {
 		if (!(years > 0 && years < 6)) throw new Error('Years must be between 1 and 5');
 	}

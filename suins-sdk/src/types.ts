@@ -5,22 +5,18 @@ import { SuiClient } from "@mysten/sui.js/dist/cjs/client";
 /** You can pass in a TransactionArgument OR an objectId by string. */
 export type ObjectArgument = string | TransactionObjectArgument;
 
-export enum Network {
-    Mainnet = 'mainnet',
-    Testnet = 'testnet',
-    Custom = 'custom'
-}
+export type Network = 'mainnet' | 'testnet' | 'custom';
 
 // A list of constants
 export type Constants = {
     suinsObjectId?: string;
-    suinsPackageId?: string;
     utilsPackageId?: string;
     registrationPackageId?: string;
     renewalPackageId?: string;
     subdomainsPackageId?: string;
     tempSubdomainsProxyPackageId?: string;
     priceListConfigType?: string;
+    getConfig?: (innerType: string) => string;
 }
 
 // The config for the SuinsClient.
