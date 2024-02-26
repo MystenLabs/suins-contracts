@@ -13,8 +13,8 @@ export type Constants = {
     utilsPackageId?: string;
     registrationPackageId?: string;
     renewalPackageId?: string;
-    subdomainsPackageId?: string;
-    tempSubdomainsProxyPackageId?: string;
+    subNamesPackageId?: string;
+    tempSubNamesProxyPackageId?: string;
     priceListConfigType?: string;
     getConfig?: (innerType: string) => string;
 }

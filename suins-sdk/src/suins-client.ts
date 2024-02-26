@@ -1,6 +1,7 @@
 import { SuiClient } from "@mysten/sui.js/dist/cjs/client";
 import { Constants, Network, SuinsClientConfig, SuinsPriceList } from "./types";
 import { MAINNET_CONFIG, TESTNET_CONFIG } from "./constants";
+import { isSubName, validateName, validateYears } from "./helpers";
 
 /// The SuinsClient is the main entry point for the Suins SDK.
 /// It allows you to interact with SuiNS.
@@ -53,11 +54,55 @@ export class SuinsClient {
         }
     }
 
-    async calculateRegistrationPrice() {
-        // todo: calculate the registration price
+    /**
+     * Calculates the registration price for an SLD (Second Level Domain).
+     * It expects a domain name, the number of years and a `SuinsPriceList` object,
+     * as returned from `suinsClient.getPriceList()` function.
+     * 
+     * It throws an error:
+     * 1. if the name is a subdomain
+     * 2. if the name is not a valid SuiNS name
+     * 3. if the years are not between 1 and 5
+     */
+    calculateRegistrationPrice({
+        name,
+        years,
+        priceList
+    }: {name: string, years: number, priceList: SuinsPriceList}) {
+        validateName(name);
+        validateYears(years);
+        if (isSubName(name)) throw new Error('Subdomains do not have a registration fee');
+
+        const length = name.split('.')[0].length;
+        if (length === 3) return years * priceList.threeLetters;
+        if (length === 4) return years * priceList.fourLetters;
+        return years * priceList.fivePlusLetters;
     }
 
-    async calculateRenewalPrice() {
-        // todo: calculate the renewal price
+    /**
+     * Calculate the renewal price for an SLD (Second Level Domain).
+     * It expects a domain name, the number of years and a `SuinsPriceList` object,
+     * as returned from `suinsClient.getPriceList()` function.
+     * 
+     * It throws an error:
+     * 1. if the name is a subdomain
+     * 2. if the name is not a valid SuiNS name
+     * 3. if the years are not between 1 and 5
+     * @param param0 
+     * @returns 
+     */
+    calculateRenewalPrice({
+        name,
+        years,
+        priceList
+    }: {name: string, years: number, priceList: SuinsPriceList}) {
+        validateName(name);
+        validateYears(years);
+        if (isSubName(name)) throw new Error('Subdomains do not have a registration fee');
+
+        const length = name.split('.')[0].length;
+        if (length === 3) return years * priceList.threeLetters;
+        if (length === 4) return years * priceList.fourLetters;
+        return years * priceList.fivePlusLetters;
     }
 }
