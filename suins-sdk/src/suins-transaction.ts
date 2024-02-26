@@ -2,6 +2,7 @@ import { TransactionBlock, TransactionObjectArgument } from '@mysten/sui.js/tran
 import {SUI_CLOCK_OBJECT_ID} from '@mysten/sui.js/utils'
 import { SuinsClient } from './suins-client';
 import { ObjectArgument } from './types';
+import { isNestedSubName, isSubName, validateName, validateYears } from './helpers';
 
 export class SuinsTransaction {
 	#suinsClient: SuinsClient;
@@ -31,7 +32,7 @@ export class SuinsTransaction {
 	}) {
 		if (!this.#suinsClient.constants.renewalPackageId) throw new Error('Renewal package id not found');
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('Suins Object ID not found');
-		this.#validateYears(years);
+		validateYears(years);
 
 		this.transactionBlock.moveCall({
 			target: `${this.#suinsClient.constants.renewalPackageId}::renew::renew`,
@@ -64,8 +65,8 @@ export class SuinsTransaction {
 	}) {
 		if (!this.#suinsClient.constants.registrationPackageId) throw new Error('Registration package id not found');
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('Suins Object ID not found');
-		this.#isValidSuinsName(name);
-		this.#validateYears(years);
+		validateName(name);
+		validateYears(years);
 
 		const nft = this.transactionBlock.moveCall({
 			target: `${this.#suinsClient.constants.registrationPackageId}::register::register`,
@@ -83,7 +84,7 @@ export class SuinsTransaction {
 		return nft;
 	}
 
-	createSubdomain({
+	createSubName({
 		parentNft,
 		name,
 		expirationTimestampMs,
@@ -96,15 +97,16 @@ export class SuinsTransaction {
 		allowChildCreation: boolean;
 		allowTimeExtension: boolean;
 	}) {
-		const isParentSubdomain = this.#isSubdomain(name);
+		validateName(name);
+		const isParentSubdomain = isNestedSubName(name);
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('Suins Object ID not found');
-		if (!this.#suinsClient.constants.subdomainsPackageId) throw new Error('Subdomains package ID not found');
-		if (isParentSubdomain && !this.#suinsClient.constants.tempSubdomainsProxyPackageId) throw new Error('Subdomains proxy package ID not found');
+		if (!this.#suinsClient.constants.subNamesPackageId) throw new Error('Subdomains package ID not found');
+		if (isParentSubdomain && !this.#suinsClient.constants.tempSubNamesProxyPackageId) throw new Error('Subdomains proxy package ID not found');
 
 		const subNft = this.transactionBlock.moveCall({
 			target: isParentSubdomain ? 
-							`${this.#suinsClient.constants.tempSubdomainsProxyPackageId}::subdomain_proxy::new` 
-							: `${this.#suinsClient.constants.subdomainsPackageId}::subdomains::new`,
+							`${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::new` 
+							: `${this.#suinsClient.constants.subNamesPackageId}::subdomains::new`,
 			arguments: [
 				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
 				this.transactionBlock.object(parentNft),
@@ -124,7 +126,7 @@ export class SuinsTransaction {
 	 * Parent can be a `SuinsRegistration` or a `SubDomainRegistration` object.
 	 * Can be passed in as an ID or a TransactionArgument.
 	 */
-	createLeafSubdomain({
+	createLeafSubName({
 		parentNft,
 		name,
 		targetAddress,
@@ -133,14 +135,15 @@ export class SuinsTransaction {
 		name: string;
 		targetAddress: string;
 	}) {
-		const isParentSubdomain = this.#isSubdomain(name);
+		validateName(name);
+		const isParentSubdomain = isNestedSubName(name);
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('Suins Object ID not found');
-		if (!this.#suinsClient.constants.subdomainsPackageId) throw new Error('Subdomains package ID not found');
-		if (isParentSubdomain && !this.#suinsClient.constants.tempSubdomainsProxyPackageId) throw new Error('Subdomains proxy package ID not found');
+		if (!this.#suinsClient.constants.subNamesPackageId) throw new Error('Subdomains package ID not found');
+		if (isParentSubdomain && !this.#suinsClient.constants.tempSubNamesProxyPackageId) throw new Error('Subdomains proxy package ID not found');
 
 		this.transactionBlock.moveCall({
-			target: isParentSubdomain ? `${this.#suinsClient.constants.tempSubdomainsProxyPackageId}::subdomain_proxy::new_leaf` 
-									: `${this.#suinsClient.constants.subdomainsPackageId}::subdomains::new_leaf`,
+			target: isParentSubdomain ? `${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::new_leaf` 
+									: `${this.#suinsClient.constants.subNamesPackageId}::subdomains::new_leaf`,
 			arguments: [
 			  this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
 			  this.transactionBlock.object(parentNft),
@@ -152,24 +155,25 @@ export class SuinsTransaction {
 	}
 
 	/**
-	 * Removes a leaf subdomain.
+	 * Removes a leaf subname.
 	 */
-	removeLeafSubdomain({
+	removeLeafSubName({
 		parentNft,
 		name,
-		isParentSubdomain,
 	}: {
 		parentNft: ObjectArgument;
 		name: string;
-		isParentSubdomain: boolean;
 	}) {
+		validateName(name);
+		const isParentSubdomain = isNestedSubName(name);
+		if (!isSubName(name)) throw new Error('This can only be invoked for subnames');
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('Suins Object ID not found');
-		if (!this.#suinsClient.constants.subdomainsPackageId) throw new Error('Subdomains package ID not found');
-		if (isParentSubdomain && !this.#suinsClient.constants.tempSubdomainsProxyPackageId) throw new Error('Subdomains proxy package ID not found');
+		if (!this.#suinsClient.constants.subNamesPackageId) throw new Error('Subdomains package ID not found');
+		if (isParentSubdomain && !this.#suinsClient.constants.tempSubNamesProxyPackageId) throw new Error('Subdomains proxy package ID not found');
 
 		this.transactionBlock.moveCall({
-			target: isParentSubdomain ? `${this.#suinsClient.constants.tempSubdomainsProxyPackageId}::subdomain_proxy::remove_leaf` 
-									: `${this.#suinsClient.constants.subdomainsPackageId}::subdomains::remove_leaf`,
+			target: isParentSubdomain ? `${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::remove_leaf` 
+									: `${this.#suinsClient.constants.subNamesPackageId}::subdomains::remove_leaf`,
 			arguments: [
 			  this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
 			  this.transactionBlock.object(parentNft),
@@ -192,11 +196,11 @@ export class SuinsTransaction {
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('Suins Object ID not found');
 		if (!this.#suinsClient.constants.utilsPackageId) throw new Error('Utils package ID not found');
 
-		if (isSubdomain && !this.#suinsClient.constants.tempSubdomainsProxyPackageId) throw new Error('Subdomains proxy package ID not found');
+		if (isSubdomain && !this.#suinsClient.constants.tempSubNamesProxyPackageId) throw new Error('Subdomains proxy package ID not found');
 
 		this.transactionBlock.moveCall({
 			target: isSubdomain ? 
-								`${this.#suinsClient.constants.tempSubdomainsProxyPackageId}::subdomain_proxy::set_target_address` 
+								`${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::set_target_address` 
 								: `${this.#suinsClient.constants.utilsPackageId}::direct_setup::set_target_address`,
 			arguments: [
 				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
@@ -209,7 +213,7 @@ export class SuinsTransaction {
 
 	/** Marks a name as default */
 	setDefault({ name }: { name: string }) {
-		this.#isValidSuinsName(name);
+		validateName(name);
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('Suins Object ID not found');
 		if (!this.#suinsClient.constants.utilsPackageId) throw new Error('Utils package ID not found');
 
@@ -220,21 +224,5 @@ export class SuinsTransaction {
 				this.transactionBlock.pure.string(name),
 			],
 		});
-	}
-
-	#isSubdomain(name: string) {
-		return name.split('.').length > 2;
-	}
-
-	// TODO: Extend this class with more validation methods
-	#isValidSuinsName(name: string) {
-		const parts = name.split('.');
-		if (parts.some(x => !x.match(/^[a-z0-9-]+$/))) throw new Error('Invalid SuiNS name (only lowercase letters, numbers and hyphens are allowed)');
-		if (parts.some(x => x.length < 3 || x.length > 63)) throw new Error('Invalid SuiNS name (each part must be between 3 and 63 characters)');
-		if (!name.endsWith('.sui')) throw new Error('Invalid SuiNS name');
-	}
-	
-	#validateYears(years: number) {
-		if (!(years > 0 && years < 6)) throw new Error('Years must be between 1 and 5');
 	}
 }

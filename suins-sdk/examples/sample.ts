@@ -22,16 +22,22 @@ const dryRun = async (txb: TransactionBlock) => {
     console.dir(res, { depth: null });
 }
 
+// Some samples on how to use the SDK for registration.
 const sampleNameRegistration = async () => {
 
     const txb = new TransactionBlock();
     const suinsTx = new SuinsTransaction(suinsClient, txb);
     const name = 'sdk.sui';
 
+    const years = 1;
+
+    const priceList = await suinsClient.getPriceList();
+    
+
     const nft = suinsTx.register({
         name,
-        price: 0,
-        years: 1
+        price: suinsClient.calculateRegistrationPrice({name, years, priceList}),
+        years
     });
 
     // set target address
@@ -50,13 +56,6 @@ const sampleNameRegistration = async () => {
     await dryRun(suinsTx.transactionBlock);
 }
 
-const getPricelist = async () => {
-
-    const prices = await suinsClient.getPriceList();
-    console.log(prices);
-}
-
-// getPricelist();
 sampleNameRegistration();
 
 
