@@ -55,7 +55,13 @@ const sampleNameRegistration = async () => {
     await dryRun(suinsTx.transactionBlock);
 }
 
-sampleNameRegistration();
+const getters = async () => {
+
+    const name = await suinsClient.getNameRecord('indexer.sui');
+    console.dir(name, { depth: null});
+}
+
+getters();
 
 
 
