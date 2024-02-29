@@ -1,6 +1,6 @@
 import { SuiClient } from "@mysten/sui.js/client";
-import { Constants, SuinsClientConfig, SuinsPriceList } from "./types";
-import { MAINNET_CONFIG, TESTNET_CONFIG } from "./constants";
+import { Constants, NameRecord, SuinsClientConfig, SuinsPriceList } from "./types";
+import { MAINNET_CONFIG, TESTNET_CONFIG, getConfigType, getDomainType, getPricelistConfigType } from "./constants";
 import { isSubName, validateName, validateYears } from "./helpers";
 
 /// The SuinsClient is the main entry point for the Suins SDK.
@@ -31,12 +31,12 @@ export class SuinsClient {
      */
     async getPriceList(): Promise<SuinsPriceList> {
         if (!this.constants.suinsObjectId) throw new Error('Suins object ID is not set');
-        if (!this.constants.getConfig || !this.constants.priceListConfigType) throw new Error('Price list config not found');
+        if (!this.constants.suinsPackageV1) throw new Error('Price list config not found');
 
         const priceList = await this.#client.getDynamicFieldObject({
             parentId: this.constants.suinsObjectId,
             name: {
-                type: this.constants.getConfig(this.constants.priceListConfigType),
+                type: getConfigType(this.constants.suinsPackageV1, getPricelistConfigType(this.constants.suinsPackageV1)),
                 value: { dummy_field: false }
             }
         });
@@ -52,6 +52,38 @@ export class SuinsClient {
             threeLetters: +(contents?.fields?.three_char_price),
             fourLetters: +(contents?.fields?.four_char_price),
             fivePlusLetters: +(contents?.fields?.five_plus_char_price)
+        }
+    }
+
+    async getNameRecord(name: string): Promise<NameRecord> {
+        validateName(name);
+        if (!this.constants.suinsPackageV1) throw new Error('Suins package ID is not set');
+        if (!this.constants.registryTableId) throw new Error('Registry table ID is not set');
+
+        const nameRecord = await this.#client.getDynamicFieldObject({
+            parentId: this.constants.registryTableId,
+            name: {
+                type: getDomainType(this.constants.suinsPackageV1),
+                value: name.split('.').reverse()
+            }
+        });
+        const fields = nameRecord.data?.content;
+
+        if (nameRecord.error || !fields || fields.dataType !== 'moveObject') throw new Error('Name record not found. This domain is not registered.');
+        const content = fields.fields as Record<string, any>;
+
+        const data: Record<string, string> = {};
+        content.value.fields.data.fields.contents.forEach((item: any) => {
+            // @ts-ignore-next-line 
+            data[item.fields.key as string] = item.fields.value;
+        });
+
+        return {
+            name,
+            nftId: content.value.fields?.nft_id,
+            targetAddress: content.value.fields?.target_address!,
+            data,
+            avatarObjectId: data.avatar
         }
     }
 

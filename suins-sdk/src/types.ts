@@ -1,6 +1,5 @@
-import { TransactionObjectArgument } from "@mysten/sui.js/dist/cjs/builder";
-import { SuiClient } from "@mysten/sui.js/dist/cjs/client";
-
+import { type TransactionObjectArgument } from "@mysten/sui.js/transactions";
+import { type SuiClient } from "@mysten/sui.js/client";
 
 /** You can pass in a TransactionArgument OR an objectId by string. */
 export type ObjectArgument = string | TransactionObjectArgument;
@@ -9,14 +8,14 @@ export type Network = 'mainnet' | 'testnet' | 'custom';
 
 // A list of constants
 export type Constants = {
+    suinsPackageV1?: string;
     suinsObjectId?: string;
+    registryTableId?: string;
     utilsPackageId?: string;
     registrationPackageId?: string;
     renewalPackageId?: string;
     subNamesPackageId?: string;
     tempSubNamesProxyPackageId?: string;
-    priceListConfigType?: string;
-    getConfig?: (innerType: string) => string;
 }
 
 // The config for the SuinsClient.
@@ -33,7 +32,6 @@ export type SuinsClientConfig = {
     packageIds?: Constants;
 }
 
-
 /**
  * The price list for SuiNS names.
  */
@@ -41,4 +39,15 @@ export type SuinsPriceList = {
     threeLetters: number;
     fourLetters: number;
     fivePlusLetters: number;
+}
+
+/**
+ * A NameRecord entry of SuiNS Names.
+ */
+export type NameRecord = {
+    name: string;
+    nftId: string;
+    targetAddress: string;
+    data: Record<string, string>;
+    avatarObjectId?: string;
 }
