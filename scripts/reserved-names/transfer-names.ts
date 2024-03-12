@@ -76,8 +76,6 @@ const prepareTx = () => {
 
     for (let recipient of Object.keys(recipients)) {
         const objects = [...recipients[recipient]].filter(x => !!x);
-
-        console.log({recipient, objects});
         txb.transferObjects([...objects.map(x => txb.object(x))], txb.pure(recipient));
     }
 
