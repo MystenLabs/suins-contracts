@@ -225,4 +225,60 @@ export class SuinsTransaction {
 			],
 		});
 	}
+
+	editSetup({
+		parentNft,
+		name,
+		allowChildCreation,
+		allowTimeExtension,
+	}: {
+		parentNft: ObjectArgument;
+		name: string;
+		allowChildCreation: boolean;
+		allowTimeExtension: boolean;
+	}) {
+		validateName(name);
+		const isParentSubdomain = isNestedSubName(name);
+		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('Suins Object ID not found');
+		if (!this.#suinsClient.constants.subNamesPackageId) throw new Error('Subdomains package ID not found');
+
+		this.transactionBlock.moveCall({
+			target: isParentSubdomain
+				? `${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::edit_setup`
+				: `${this.#suinsClient.constants.subNamesPackageId}::subdomains::edit_setup`,
+			arguments: [
+				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
+				this.transactionBlock.object(parentNft),
+				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
+				this.transactionBlock.pure.string(name),
+				this.transactionBlock.pure.bool(!!allowChildCreation),
+				this.transactionBlock.pure.bool(!!allowTimeExtension),
+			],
+		});
+	}
+
+	extendExpiration({
+		parentNft,
+		name,
+		expirationTimestampMs,
+	}: {
+		parentNft: ObjectArgument;
+		name: string;
+		expirationTimestampMs: number;
+	}) {
+		const isParentSubdomain = isNestedSubName(name);
+		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('Suins Object ID not found');
+		if (!this.#suinsClient.constants.subNamesPackageId) throw new Error('Subdomains package ID not found');
+
+		this.transactionBlock.moveCall({
+			target: isParentSubdomain
+				? `${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::extend_expiration`
+				: `${this.#suinsClient.constants.subNamesPackageId}::subdomains::extend_expiration`,
+			arguments: [
+				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
+				this.transactionBlock.object(parentNft),
+				this.transactionBlock.pure.u64(expirationTimestampMs),
+			],
+		});
+	}
 }
