@@ -105,12 +105,12 @@ module renewal::renew_tests {
         let (suins, nft) = prepare_registry(&mut ctx);
         let clock = clock::create_for_testing(&mut ctx);
         
-        renewal::renew(&mut suins, &mut nft, 2,coin::mint_for_testing<SUI>((1 as u64) * 50 * mist_per_sui(), &mut ctx), &clock);
+        renewal::renew(&mut suins, &mut nft, 2,coin::mint_for_testing<SUI>((1 as u64) * 35 * mist_per_sui(), &mut ctx), &clock);
         abort 1337
     }
     
     public fun renew_util(suins: &mut SuiNS, nft: &mut SuinsRegistration, no_years: u8, clock: &Clock, ctx: &mut TxContext) {
-        renewal::renew(suins, nft, no_years,coin::mint_for_testing<SUI>((no_years as u64) * 50 * mist_per_sui(), ctx), clock);
+        renewal::renew(suins, nft, no_years,coin::mint_for_testing<SUI>((no_years as u64) * 35 * mist_per_sui(), ctx), clock);
     }
 
     /// Local test to prepare a registry with a domain. 
@@ -131,7 +131,7 @@ module renewal::renew_tests {
             b"000000000000000000000000000000000",
             1200 * suins::constants::mist_per_sui(),
             200 * suins::constants::mist_per_sui(),
-            50 * suins::constants::mist_per_sui(),
+            35 * suins::constants::mist_per_sui(),
         );
 
         renewal::setup(&cap, &mut suins, config);
