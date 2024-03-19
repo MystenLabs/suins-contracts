@@ -15,6 +15,7 @@ module renewal::renew_tests {
     use suins::suins_registration::{Self as nft, SuinsRegistration};
     use suins::registry;
     use suins::domain;
+    use suins::config;
 
     use renewal::renew::{Self as renewal, Renew};
 
@@ -125,6 +126,15 @@ module renewal::renew_tests {
         let clock = clock::create_for_testing(ctx);
 
         let cap = suins::create_admin_cap_for_testing(ctx);
+
+        let config = config::new(
+            b"000000000000000000000000000000000",
+            1200 * suins::constants::mist_per_sui(),
+            200 * suins::constants::mist_per_sui(),
+            50 * suins::constants::mist_per_sui(),
+        );
+
+        renewal::setup(&cap, &mut suins, config);
 
         let nft = registry::add_record(&mut registry, domain, 1,&clock, ctx);
         suins::add_registry(&cap, &mut suins, registry);
