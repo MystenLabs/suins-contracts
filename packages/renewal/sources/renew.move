@@ -60,12 +60,6 @@ module renewal::renew {
         suins::add_config<RenewalConfig>(cap, suins, RenewalConfig { config });
     }
 
-    /// Allows destroying the renewal package if we wanna re-publish it
-    /// with different configuration.
-    public fun destroy(cap: &AdminCap, suins: &mut SuiNS) {
-        suins::remove_config<RenewalConfig>(cap, suins);
-    }
-
     // Allows renewals of names.
     //
     // Makes sure that:
