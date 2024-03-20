@@ -1,4 +1,4 @@
-import { Connection, ExportedKeypair, JsonRpcProvider, RawSigner, SUI_CLOCK_OBJECT_ID, TransactionArgument, TransactionBlock, fromB64, fromExportedKeypair, localnetConnection, normalizeSuiAddress, testnetConnection, toB64 } from "@mysten/sui.js";
+import { Connection, ExportedKeypair, JsonRpcProvider, MIST_PER_SUI, RawSigner, SUI_CLOCK_OBJECT_ID, TransactionArgument, TransactionBlock, fromB64, fromExportedKeypair, localnetConnection, normalizeSuiAddress, testnetConnection, toB64 } from "@mysten/sui.js";
 import { execSync } from "child_process";
 import dotenv from "dotenv";
 import { readFileSync } from "fs";
@@ -482,7 +482,38 @@ const run = async () => {
   //   console.dir(res, { depth: null });
   // })
 
-  console.log(normalizeSuiAddress(SUI_CLOCK_OBJECT_ID));
+  txb.moveCall({
+    target: `${config.packageId}::suins::authorize_app`,
+    arguments: [
+      txb.object(config.adminCap),
+      txb.object(config.suins),
+    ],
+    typeArguments: [`0x54800ebb4606fd0c03b4554976264373b3374eeb3fd63e7ff69f31cac786ba8c::renew::Renew`],
+  });
+
+  const configuration = txb.moveCall({
+    target: `${config.packageId}::config::new`,
+    arguments: [
+      txb.pure([...Array(33).keys()]),
+      txb.pure(50n * MIST_PER_SUI),
+      txb.pure(10n * MIST_PER_SUI),
+      txb.pure(2n * MIST_PER_SUI),
+    ],
+  });
+
+  txb.moveCall({
+    target: `0x54800ebb4606fd0c03b4554976264373b3374eeb3fd63e7ff69f31cac786ba8c::renew::setup`,
+    arguments: [
+      txb.object(config.adminCap),
+      txb.object(config.suins),
+      configuration,
+    ],
+    typeArguments: [],
+  });
+
+  await executeTx(getSigner(), txb);
+
+  // console.log(normalizeSuiAddress(SUI_CLOCK_OBJECT_ID));
   // editSetup(txb, txb.object('0xfb33dc4ac98f718d24ade09596212cf4bf031ca9e5de28be9cb1caf6ea41fe9f'), 'node.24-starter.sui', true, true);
 
   // extendExpiration(txb, txb.object('0x66aa066ed3102f5b9aae1857613eb2da15b5cc4bfc272dcf686617c4b6a6d100'), '1739721083152');
