@@ -40,3 +40,14 @@ export function validateName(name: string) {
 export function validateYears(years: number) {
     if (!(years > 0 && years < 6)) throw new Error('Years must be between 1 and 5');
 }
+
+/**
+ * A helper to parse the price list from the config object.
+ */
+export function parsePriceListFromConfig(contents: Record<string, any>) {
+    return {
+        threeLetters: +(contents?.fields?.three_char_price),
+        fourLetters: +(contents?.fields?.four_char_price),
+        fivePlusLetters: +(contents?.fields?.five_plus_char_price)
+    }
+}
