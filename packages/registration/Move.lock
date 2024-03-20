@@ -2,8 +2,11 @@
 
 [move]
 version = 0
+manifest_digest = "DF2D74504CBEBCC7EA362C169FB1A933D93EC1CE6FA96ACB465E13FE39349F72"
+deps_digest = "060AD7E57DFB13104F21BE5F5C3759D03F0553FC3229247D9A7A6B45F50D03A3"
 
 dependencies = [
+  { name = "Pyth" },
   { name = "Sui" },
   { name = "suins" },
 ]
@@ -11,6 +14,15 @@ dependencies = [
 [[move.package]]
 name = "MoveStdlib"
 source = { git = "https://github.com/MystenLabs/sui.git", rev = "mainnet", subdir = "crates/sui-framework/packages/move-stdlib" }
+
+[[move.package]]
+name = "Pyth"
+source = { git = "https://github.com/pyth-network/pyth-crosschain.git", rev = "sui-contract-v0.0.2-mainnet-sui-1.19.1", subdir = "target_chains/sui/contracts" }
+
+dependencies = [
+  { name = "Sui" },
+  { name = "Wormhole" },
+]
 
 [[move.package]]
 name = "Sui"
@@ -21,9 +33,22 @@ dependencies = [
 ]
 
 [[move.package]]
+name = "Wormhole"
+source = { git = "https://github.com/wormhole-foundation/wormhole.git", rev = "sui-upgrade-mainnet", subdir = "sui/wormhole" }
+
+dependencies = [
+  { name = "Sui" },
+]
+
+[[move.package]]
 name = "suins"
 source = { local = "../suins" }
 
 dependencies = [
   { name = "Sui" },
 ]
+
+[move.toolchain-version]
+compiler-version = "1.19.0"
+edition = "legacy"
+flavor = "sui"
