@@ -243,7 +243,9 @@ export class SuinsTransaction {
 		if (!this.#suinsClient.constants.subNamesPackageId) throw new Error('Subdomains package ID not found');
 
 		this.transactionBlock.moveCall({
-			target: `${this.#suinsClient.constants.subNamesPackageId}::subdomains::edit_setup`,
+			target: isParentSubdomain
+				? `${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::edit_setup`
+				: `${this.#suinsClient.constants.subNamesPackageId}::subdomains::edit_setup`,
 			arguments: [
 				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
 				this.transactionBlock.object(parentNft),
