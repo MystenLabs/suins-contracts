@@ -35,7 +35,7 @@ const sampleNameRegistration = async () => {
 
     const nft = suinsTx.register({
         name,
-        price: suinsClient.calculateRegistrationPrice({name, years, priceList}),
+        price: suinsClient.calculatePrice({name, years, priceList}),
         years
     });
 

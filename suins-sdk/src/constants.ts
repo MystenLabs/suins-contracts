@@ -13,6 +13,10 @@ export const getPricelistConfigType = (
     suinsPackageV1: string
 ) => `${suinsPackageV1}::config::Config`;
 
+export const getRenewalPricelistConfigType = (
+     renewalsPackageId: string
+) => `${renewalsPackageId}::renew::RenewalConfig`;
+
 export const MAINNET_CONFIG: Constants = {
     suinsPackageV1: '0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0',
     suinsObjectId: '0x6e0ddefc0ad98889c04bab9639e512c21766c5e6366f89e696956d9be6952871',
