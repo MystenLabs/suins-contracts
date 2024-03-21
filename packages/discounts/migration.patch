@@ -1,0 +1,172 @@
+--- sources/discounts.move
++++ sources/discounts.move
+@@ -13 +13 @@
+-    use std::type_name::{Self as type};
++    use std::type_name::{Self as `type`};
+@@ -42 +42 @@
+-    struct DiscountKey<phantom T> has copy, store, drop {}
++    public struct DiscountKey<phantom T> has copy, store, drop {}
+@@ -46 +46 @@
+-    struct DiscountConfig has copy, store, drop {
++    public struct DiscountConfig has copy, store, drop {
+@@ -65 +65 @@
+-        assert!(type::into_string(type::get<T>()) != type::into_string(type::get<DayOne>()), ENotValidForDayOne);
++        assert!(`type`::into_string(`type`::get<T>()) != `type`::into_string(`type`::get<DayOne>()), ENotValidForDayOne);
+--- sources/free_claims.move
++++ sources/free_claims.move
+@@ -16 +16 @@
+-    use std::type_name::{Self as type};
++    use std::type_name::{Self as `type`};
+@@ -47 +47 @@
+-    struct FreeClaimsApp has drop {}
++    public struct FreeClaimsApp has drop {}
+@@ -50 +50 @@
+-    struct FreeClaimsKey<phantom T> has copy, store, drop {}
++    public struct FreeClaimsKey<phantom T> has copy, store, drop {}
+@@ -55 +55 @@
+-    struct FreeClaimsConfig has store {
++    public struct FreeClaimsConfig has store {
+@@ -71 +71 @@
+-        assert!(type::into_string(type::get<T>()) != type::into_string(type::get<DayOne>()), ENotValidForDayOne);
++        assert!(`type`::into_string(`type`::get<T>()) != `type`::into_string(`type`::get<DayOne>()), ENotValidForDayOne);
+@@ -148 +148 @@
+-        let FreeClaimsConfig { used_objects, domain_length_range: _ } = df::remove<FreeClaimsKey<T>, FreeClaimsConfig>(house::uid_mut(self), FreeClaimsKey<T>{});
++        let FreeClaimsConfig { mut used_objects, domain_length_range: _ } = df::remove<FreeClaimsKey<T>, FreeClaimsConfig>(house::uid_mut(self), FreeClaimsKey<T>{});
+--- sources/house.move
++++ sources/house.move
+@@ -20 +20 @@
+-    friend discounts::free_claims;
++    /* friend discounts::free_claims; */
+@@ -22 +22 @@
+-    friend discounts::discounts;
++    /* friend discounts::discounts; */
+@@ -34 +34 @@
+-    struct DiscountHouseApp has drop {}
++    public struct DiscountHouseApp has drop {}
+@@ -37 +37 @@
+-    struct DiscountHouse has key, store {
++    public struct DiscountHouse has key, store {
+@@ -64 +64 @@
+-    public(friend) fun friend_add_registry_entry(
++    public(package) fun friend_add_registry_entry(
+@@ -82 +82 @@
+-    public(friend) fun uid_mut(self: &mut DiscountHouse): &mut UID {
++    public(package) fun uid_mut(self: &mut DiscountHouse): &mut UID {
+@@ -87 +87 @@
+-    public(friend) fun suins_app_auth(): DiscountHouseApp {
++    public(package) fun suins_app_auth(): DiscountHouseApp {
+--- tests/discount_tests.move
++++ tests/discount_tests.move
+@@ -24 +24 @@
+-    struct TestAuthorized has copy, store, drop {}
++    public struct TestAuthorized has copy, store, drop {}
+@@ -27 +27 @@
+-    struct AnotherAuthorized has copy, store, drop {}
++    public struct AnotherAuthorized has copy, store, drop {}
+@@ -30 +30 @@
+-    struct TestUnauthorized has copy, store, drop {}
++    public struct TestUnauthorized has copy, store, drop {}
+@@ -38 +38 @@
+-        let scenario_val = ts::begin(SUINS_ADDRESS);
++        let mut scenario_val = ts::begin(SUINS_ADDRESS);
+@@ -41 +41 @@
+-            let suins = suins::init_for_testing(ctx(scenario));
++            let mut suins = suins::init_for_testing(ctx(scenario));
+@@ -51,2 +51,2 @@
+-            let suins = ts::take_shared<SuiNS>(scenario);
+-            let discount_house = ts::take_shared<DiscountHouse>(scenario);
++            let mut suins = ts::take_shared<SuiNS>(scenario);
++            let mut discount_house = ts::take_shared<DiscountHouse>(scenario);
+@@ -77,2 +77,2 @@
+-        let suins = ts::take_shared<SuiNS>(scenario);
+-        let discount_house = ts::take_shared<DiscountHouse>(scenario);
++        let mut suins = ts::take_shared<SuiNS>(scenario);
++        let mut discount_house = ts::take_shared<DiscountHouse>(scenario);
+@@ -98,2 +98,2 @@
+-        let suins = ts::take_shared<SuiNS>(scenario);
+-        let discount_house = ts::take_shared<DiscountHouse>(scenario);
++        let mut suins = ts::take_shared<SuiNS>(scenario);
++        let mut discount_house = ts::take_shared<DiscountHouse>(scenario);
+@@ -113 +113 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -130 +130 @@
+-    #[test, expected_failure(abort_code = discounts::discounts::EConfigNotExists)]
++    #[test, expected_failure(abort_code = ::discounts::discounts::EConfigNotExists)]
+@@ -132 +132 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -150 +150 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -153 +153 @@
+-        let day_one = day_one::mint_for_testing(ctx(scenario));
++        let mut day_one = day_one::mint_for_testing(ctx(scenario));
+@@ -169 +169 @@
+-    #[test, expected_failure(abort_code = discounts::discounts::ENotValidForDayOne)]
++    #[test, expected_failure(abort_code = ::discounts::discounts::ENotValidForDayOne)]
+@@ -171 +171 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -174 +174 @@
+-        let day_one = day_one::mint_for_testing(ctx(scenario));
++        let mut day_one = day_one::mint_for_testing(ctx(scenario));
+@@ -190 +190 @@
+-    #[test, expected_failure(abort_code = discounts::discounts::ENotActiveDayOne)]
++    #[test, expected_failure(abort_code = ::discounts::discounts::ENotActiveDayOne)]
+@@ -192 +192 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+--- tests/free_claims_test.move
++++ tests/free_claims_test.move
+@@ -23 +23 @@
+-    struct TestAuthorized has key, store { id: UID }
++    public struct TestAuthorized has key, store { id: UID }
+@@ -26 +26 @@
+-    struct TestUnauthorized has key { id: UID }
++    public struct TestUnauthorized has key { id: UID }
+@@ -32 +32 @@
+-        let scenario_val = ts::begin(SUINS_ADDRESS);
++        let mut scenario_val = ts::begin(SUINS_ADDRESS);
+@@ -35 +35 @@
+-            let suins = suins::init_for_testing(ctx(scenario));
++            let mut suins = suins::init_for_testing(ctx(scenario));
+@@ -45,2 +45,2 @@
+-            let suins = ts::take_shared<SuiNS>(scenario);
+-            let discount_house = ts::take_shared<DiscountHouse>(scenario);
++            let mut suins = ts::take_shared<SuiNS>(scenario);
++            let mut discount_house = ts::take_shared<DiscountHouse>(scenario);
+@@ -60 +60 @@
+-    fun test_end(scenario_val: Scenario) {
++    fun test_end(mut scenario_val: Scenario) {
+@@ -65 +65 @@
+-            let discount_house = ts::take_shared<DiscountHouse>(scenario);
++            let mut discount_house = ts::take_shared<DiscountHouse>(scenario);
+@@ -87,2 +87,2 @@
+-        let suins = ts::take_shared<SuiNS>(scenario);
+-        let discount_house = ts::take_shared<DiscountHouse>(scenario);
++        let mut suins = ts::take_shared<SuiNS>(scenario);
++        let mut discount_house = ts::take_shared<DiscountHouse>(scenario);
+@@ -107,2 +107,2 @@
+-        let suins = ts::take_shared<SuiNS>(scenario);
+-        let discount_house = ts::take_shared<DiscountHouse>(scenario);
++        let mut suins = ts::take_shared<SuiNS>(scenario);
++        let mut discount_house = ts::take_shared<DiscountHouse>(scenario);
+@@ -122 +122 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -142 +142 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -145 +145 @@
+-        let day_one = day_one::mint_for_testing(ctx(scenario));
++        let mut day_one = day_one::mint_for_testing(ctx(scenario));
+@@ -161 +161 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -189 +189 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -209 +209 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();

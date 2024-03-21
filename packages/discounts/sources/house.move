@@ -17,9 +17,9 @@ module discounts::house {
     use suins::suins_registration::SuinsRegistration;
 
     // The `free_claims` module can use the shared object to attach configuration & claim names.
-    friend discounts::free_claims;
+    /* friend discounts::free_claims; */
     // The `discounts` module can use the shared object to attach configuration & claim names.
-    friend discounts::discounts;
+    /* friend discounts::discounts; */
 
     /// Tries to register with invalid version of the app
     const ENotValidVersion: u64 = 1;
@@ -31,10 +31,10 @@ module discounts::house {
     const REGISTRATION_YEARS: u8 = 1;
 
     /// A key to authorize DiscountHouse to register names on SuiNS.
-    struct DiscountHouseApp has drop {}
+    public struct DiscountHouseApp has drop {}
 
     // The Shared object responsible for the discounts.
-    struct DiscountHouse has key, store {
+    public struct DiscountHouse has key, store {
         id: UID,
         version: u8
     }
@@ -61,7 +61,7 @@ module discounts::house {
 
     /// A function to save a new SuiNS name in the registry.
     /// Helps re-use the same code for all discounts based on type T of the package.
-    public(friend) fun friend_add_registry_entry(
+    public(package) fun friend_add_registry_entry(
         suins: &mut SuiNS,
         domain: Domain,
         clock: &Clock,
@@ -79,12 +79,12 @@ module discounts::house {
 
     /// Returns the UID of the shared object so we can add custom configuration.
     /// from different modules we have. but keep using the same shared object.
-    public(friend) fun uid_mut(self: &mut DiscountHouse): &mut UID {
+    public(package) fun uid_mut(self: &mut DiscountHouse): &mut UID {
         &mut self.id
     }
 
     /// Allows the friend modules to call functions to the SuiNS registry.
-    public(friend) fun suins_app_auth(): DiscountHouseApp {
+    public(package) fun suins_app_auth(): DiscountHouseApp {
         DiscountHouseApp {}
     }
 

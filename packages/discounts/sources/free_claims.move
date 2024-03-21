@@ -13,7 +13,7 @@ module discounts::free_claims {
     use std::string;
 
     use std::string::{String};
-    use std::type_name::{Self as type};
+    use std::type_name::{Self as `type`};
 
     use sui::object::{Self, ID};
     use sui::tx_context::{TxContext};
@@ -44,15 +44,15 @@ module discounts::free_claims {
     const ENotActiveDayOne: u64 = 6;
 
     /// A key to authorize DiscountHouse to register names on SuiNS.
-    struct FreeClaimsApp has drop {}
+    public struct FreeClaimsApp has drop {}
 
     /// A key that opens up free claims for type T.
-    struct FreeClaimsKey<phantom T> has copy, store, drop {}
+    public struct FreeClaimsKey<phantom T> has copy, store, drop {}
 
     /// We hold the configuration for the promotion
     /// We only allow 1 claim / per configuration / per promotion.
     /// We keep the used ids as a LinkedTable so we can get our rebates when closing the promotion.
-    struct FreeClaimsConfig has store {
+    public struct FreeClaimsConfig has store {
         domain_length_range: vector<u8>,
         used_objects: LinkedTable<ID, bool>
     }
@@ -68,7 +68,7 @@ module discounts::free_claims {
     ): SuinsRegistration {
         // For normal flow, we do not allow DayOne to be used.
         // DayOne can only be used on `register_with_day_one` function.
-        assert!(type::into_string(type::get<T>()) != type::into_string(type::get<DayOne>()), ENotValidForDayOne);
+        assert!(`type`::into_string(`type`::get<T>()) != `type`::into_string(`type`::get<DayOne>()), ENotValidForDayOne);
 
         internal_claim_free_name<T>(self, suins, domain_name, clock, object, ctx)
     }
@@ -145,7 +145,7 @@ module discounts::free_claims {
     public fun deauthorize_type<T>(_: &AdminCap, self: &mut DiscountHouse) {
         house::assert_version_is_valid(self);
         assert_config_exists<T>(self);
-        let FreeClaimsConfig { used_objects, domain_length_range: _ } = df::remove<FreeClaimsKey<T>, FreeClaimsConfig>(house::uid_mut(self), FreeClaimsKey<T>{});
+        let FreeClaimsConfig { mut used_objects, domain_length_range: _ } = df::remove<FreeClaimsKey<T>, FreeClaimsConfig>(house::uid_mut(self), FreeClaimsKey<T>{});
 
         // parse each entry and remove it. Gives us storage rebates.
         while(linked_table::length(&used_objects) > 0) {
