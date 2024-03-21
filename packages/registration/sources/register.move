@@ -16,6 +16,7 @@ module registration::register {
     use suins::suins_registration::SuinsRegistration;
 
     use pyth::price_feed::{Self, PriceFeed};
+    use pyth::price_identifier;
     use pyth::price;
     use pyth::i64;
 
@@ -24,6 +25,12 @@ module registration::register {
     /// Trying to register a subdomain (only *.sui is currently allowed).
     /// The payment does not match the price for the domain.
     const EIncorrectAmount: u64 = 4;
+    /// Pyth oracle reports a precision that's too high.
+    const EIncorrectPrecision: u64 = 5;
+    /// Incorrect price feed ID
+    const EIncorrectPriceFeedID: u64 = 6;
+    /// Sui Price Feed ID
+    const SUI_PRICE_FEED_ID: vector<u8> = x"23d7315113f5b1d3ba7a83604c44b94d79f4fd69af77f804fc7f920a6dc65744";
 
     /// Authorization token for the app.
     struct Register has drop {}
@@ -54,6 +61,10 @@ module registration::register {
         assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
 
         let label = domain::sld(&domain);
+        
+        let price_identifier = &price_feed::get_price_identifier(price_feed);
+        let price_identifier_bytes = price_identifier::get_bytes(price_identifier);
+        assert!(price_identifier_bytes == SUI_PRICE_FEED_ID, EIncorrectPriceFeedID);
 
         let (sui_value_in_usd_lower_bound, sui_value_in_usd_upper_bound) = calculate_lower_upper_price(price_feed, coin::value(&payment));
         let price_in_usd = config::calculate_price(config, (string::length(label) as u8), no_years);
@@ -77,7 +88,9 @@ module registration::register {
         let sui_price_lower_bound = sui_price_u64 - price::get_conf(sui_price);
         let sui_price_upper_bound = sui_price_u64 + price::get_conf(sui_price);
         let exponent_i64 = &price::get_expo(sui_price);
-        let exponent_u8 = (i64::get_magnitude_if_negative(exponent_i64) as u8);
+        let exponent_u64 = i64::get_magnitude_if_negative(exponent_i64);
+        assert!(exponent_u64 < 256, EIncorrectPrecision);
+        let exponent_u8 = (exponent_u64 as u8);
 
         let sui_value_in_usd_lower_bound = sui_quantity * sui_price_lower_bound / (math::pow(10, exponent_u8));
         let sui_value_in_usd_upper_bound = sui_quantity * sui_price_upper_bound / (math::pow(10, exponent_u8));

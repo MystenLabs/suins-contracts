@@ -58,7 +58,7 @@ module registration::register_tests {
     public fun oracle_util(
         desired_price_6_decimals: u64
     ): PriceFeed {
-        let price_identifier = price_identifier::from_byte_vec(x"ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace");
+        let price_identifier = price_identifier::from_byte_vec(x"23d7315113f5b1d3ba7a83604c44b94d79f4fd69af77f804fc7f920a6dc65744");
         let price_i64 = i64::new(desired_price_6_decimals, false); // ie: 1.610000
         let expo_i64 = i64::new(6, true); // 10^-6
         let price = price::new(price_i64, 10000, expo_i64, 0); // confidence is 1 cent
@@ -248,6 +248,24 @@ module registration::register_tests {
         let price_feed = oracle_util(1000000);
 
         let nft = register_util(scenario, utf8(DOMAIN_NAME), 0, 1200 * mist_per_sui(), &price_feed,  10);
+        suins_registration::burn_for_testing(nft);
+
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = register::EIncorrectPriceFeedID)]
+    fun test_register_incorrect_feed_id() {
+        let scenario_val = test_init();
+        let scenario = &mut scenario_val;
+
+        let price_identifier = price_identifier::from_byte_vec(x"abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd");
+        let price_i64 = i64::new(1000000, false); // ie: 1.610000
+        let expo_i64 = i64::new(6, true); // 10^-6
+        let price = price::new(price_i64, 10000, expo_i64, 0); // confidence is 1 cent
+        let ema_price = copy(price);
+        let price_feed = price_feed::new(price_identifier, price, ema_price);
+
+        let nft = register_util(scenario, utf8(DOMAIN_NAME), 3, 1200 * mist_per_sui(), &price_feed,  10);
         suins_registration::burn_for_testing(nft);
 
         test_scenario::end(scenario_val);
