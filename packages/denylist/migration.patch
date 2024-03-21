@@ -1,0 +1,64 @@
+--- sources/denylist.move
++++ sources/denylist.move
+@@ -17 +17 @@
+-    struct Denylist has store {
++    public struct Denylist has store {
+@@ -27 +27 @@
+-    struct DenyListAuth has drop {}
++    public struct DenyListAuth has drop {}
+@@ -80 +80 @@
+-        let i = vector::length(&words);
++        let mut i = vector::length(&words);
+@@ -93 +93 @@
+-        let i = vector::length(&words);
++        let mut i = vector::length(&words);
+--- tests/denylist_tests.move
++++ tests/denylist_tests.move
+@@ -18 +18 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -22 +22 @@
+-        let suins = ts::take_shared<SuiNS>(scenario);
++        let mut suins = ts::take_shared<SuiNS>(scenario);
+@@ -44 +44 @@
+-    #[test, expected_failure(abort_code = denylist::denylist::ENoWordsInList)]
++    #[test, expected_failure(abort_code = ::denylist::denylist::ENoWordsInList)]
+@@ -46 +46 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -50 +50 @@
+-        let suins = ts::take_shared<SuiNS>(scenario);
++        let mut suins = ts::take_shared<SuiNS>(scenario);
+@@ -59 +59 @@
+-    #[test, expected_failure(abort_code = denylist::denylist::ENoWordsInList)]
++    #[test, expected_failure(abort_code = ::denylist::denylist::ENoWordsInList)]
+@@ -61 +61 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -65 +65 @@
+-        let suins = ts::take_shared<SuiNS>(scenario);
++        let mut suins = ts::take_shared<SuiNS>(scenario);
+@@ -75 +75 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -79 +79 @@
+-        let suins = ts::take_shared<SuiNS>(scenario);
++        let mut suins = ts::take_shared<SuiNS>(scenario);
+@@ -98 +98 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -102 +102 @@
+-        let suins = ts::take_shared<SuiNS>(scenario);
++        let mut suins = ts::take_shared<SuiNS>(scenario);
+@@ -124 +124 @@
+-        let scenario = ts::begin(ADDR);
++        let mut scenario = ts::begin(ADDR);
+@@ -128 +128 @@
+-            let (suins, cap) = suins::new_for_testing(ctx(&mut scenario));
++            let (mut suins, cap) = suins::new_for_testing(ctx(&mut scenario));
+@@ -143 +143 @@
+-        let vec: vector<String> = vector::empty();
++        let mut vec: vector<String> = vector::empty();
+@@ -152 +152 @@
+-        let vec: vector<String> = vector::empty();
++        let mut vec: vector<String> = vector::empty();

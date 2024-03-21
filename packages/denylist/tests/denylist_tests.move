@@ -15,11 +15,11 @@ module denylist::denylist_tests {
 
     #[test]
     fun test() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         ts::next_tx(scenario, ADDR);
-        let suins = ts::take_shared<SuiNS>(scenario);
+        let mut suins = ts::take_shared<SuiNS>(scenario);
         let cap = suins::create_admin_cap_for_testing(ctx(scenario));
 
         denylist::add_reserved_names(&mut suins, &cap, some_reserved_names());
@@ -41,13 +41,13 @@ module denylist::denylist_tests {
         ts::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = denylist::denylist::ENoWordsInList)]
+    #[test, expected_failure(abort_code = ::denylist::denylist::ENoWordsInList)]
     fun test_empty_addition_failure(){
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         ts::next_tx(scenario, ADDR);
-        let suins = ts::take_shared<SuiNS>(scenario);
+        let mut suins = ts::take_shared<SuiNS>(scenario);
         let cap = suins::create_admin_cap_for_testing(ctx(scenario));
 
         denylist::add_reserved_names(&mut suins, &cap, vector[]);
@@ -56,13 +56,13 @@ module denylist::denylist_tests {
     }
 
     // coverage.. :) 
-    #[test, expected_failure(abort_code = denylist::denylist::ENoWordsInList)]
+    #[test, expected_failure(abort_code = ::denylist::denylist::ENoWordsInList)]
     fun test_empty_addition_blocked_failure(){
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         ts::next_tx(scenario, ADDR);
-        let suins = ts::take_shared<SuiNS>(scenario);
+        let mut suins = ts::take_shared<SuiNS>(scenario);
         let cap = suins::create_admin_cap_for_testing(ctx(scenario));
 
         denylist::add_blocked_names(&mut suins, &cap, vector[]);
@@ -72,11 +72,11 @@ module denylist::denylist_tests {
 
     #[test]
     fun remove_blocked_word(){
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         ts::next_tx(scenario, ADDR);
-        let suins = ts::take_shared<SuiNS>(scenario);
+        let mut suins = ts::take_shared<SuiNS>(scenario);
         let cap = suins::create_admin_cap_for_testing(ctx(scenario));
 
         denylist::add_blocked_names(&mut suins, &cap, some_offensive_names());
@@ -95,11 +95,11 @@ module denylist::denylist_tests {
 
     #[test]
     fun remove_reserved_word(){
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         ts::next_tx(scenario, ADDR);
-        let suins = ts::take_shared<SuiNS>(scenario);
+        let mut suins = ts::take_shared<SuiNS>(scenario);
         let cap = suins::create_admin_cap_for_testing(ctx(scenario));
 
         denylist::add_reserved_names(&mut suins, &cap, some_reserved_names());
@@ -121,11 +121,11 @@ module denylist::denylist_tests {
     // data preparation
 
     public fun test_init(): (Scenario) {
-        let scenario = ts::begin(ADDR);
+        let mut scenario = ts::begin(ADDR);
         {
             ts::next_tx(&mut scenario, ADDR);
 
-            let (suins, cap) = suins::new_for_testing(ctx(&mut scenario));
+            let (mut suins, cap) = suins::new_for_testing(ctx(&mut scenario));
 
             suins::authorize_app_for_testing<DenyListAuth>(&mut suins);
 
@@ -140,7 +140,7 @@ module denylist::denylist_tests {
     }
 
     fun some_reserved_names(): vector<String> {
-        let vec: vector<String> = vector::empty();
+        let mut vec: vector<String> = vector::empty();
 
         vector::push_back(&mut vec, utf8(b"test"));
         vector::push_back(&mut vec, utf8(b"test2"));
@@ -149,7 +149,7 @@ module denylist::denylist_tests {
     }
 
     fun some_offensive_names(): vector<String> {
-        let vec: vector<String> = vector::empty();
+        let mut vec: vector<String> = vector::empty();
         vector::push_back(&mut vec, utf8(b"bad_test"));
         vector::push_back(&mut vec, utf8(b"bad_test2"));
         vector::push_back(&mut vec, utf8(b"bad_test3"));
