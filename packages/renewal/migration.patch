@@ -1,0 +1,90 @@
+--- sources/renew.move
++++ sources/renew.move
+@@ -41 +41 @@
+-    struct Renew has drop {}
++    public struct Renew has drop {}
+@@ -44 +44 @@
+-    struct NameRenewed has copy, drop {
++    public struct NameRenewed has copy, drop {
+@@ -50 +50 @@
+-    struct RenewalConfig has store, drop {
++    public struct RenewalConfig has store, drop {
+--- tests/renew_tests.move
++++ tests/renew_tests.move
+@@ -28,2 +28,2 @@
+-        let ctx = tx_context::dummy();
+-        let (suins, nft) = prepare_registry(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut suins, mut nft) = prepare_registry(&mut ctx);
+@@ -31 +31 @@
+-        let clock = clock::create_for_testing(&mut ctx);
++        let mut clock = clock::create_for_testing(&mut ctx);
+@@ -46 +46 @@
+-    #[test, expected_failure(abort_code= renewal::renew::EMoreThanSixYears)]
++    #[test, expected_failure(abort_code= ::renewal::renew::EMoreThanSixYears)]
+@@ -48,2 +48,2 @@
+-        let ctx = tx_context::dummy();
+-        let (suins, nft) = prepare_registry(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut suins, mut nft) = prepare_registry(&mut ctx);
+@@ -58 +58 @@
+-    #[test, expected_failure(abort_code= renewal::renew::EInvalidYearsArgument)]
++    #[test, expected_failure(abort_code= ::renewal::renew::EInvalidYearsArgument)]
+@@ -60,2 +60,2 @@
+-        let ctx = tx_context::dummy();
+-        let (suins, nft) = prepare_registry(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut suins, mut nft) = prepare_registry(&mut ctx);
+@@ -70 +70 @@
+-    #[test, expected_failure(abort_code= renewal::renew::ERecordNftIDMismatch)]
++    #[test, expected_failure(abort_code= ::renewal::renew::ERecordNftIDMismatch)]
+@@ -72,2 +72,2 @@
+-        let ctx = tx_context::dummy();
+-        let (suins, _nft) = prepare_registry(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut suins, _nft) = prepare_registry(&mut ctx);
+@@ -75 +75 @@
+-        let nft = nft::new_for_testing(domain::new(utf8(DOMAIN_NAME)), 1, &clock, &mut ctx);
++        let mut nft = nft::new_for_testing(domain::new(utf8(DOMAIN_NAME)), 1, &clock, &mut ctx);
+@@ -81 +81 @@
+-    #[test, expected_failure(abort_code= renewal::renew::ERecordNotFound)]
++    #[test, expected_failure(abort_code= ::renewal::renew::ERecordNotFound)]
+@@ -83,2 +83,2 @@
+-        let ctx = tx_context::dummy();
+-        let (suins, _nft) = prepare_registry(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut suins, _nft) = prepare_registry(&mut ctx);
+@@ -86 +86 @@
+-        let nft = nft::new_for_testing(domain::new(utf8(b"hehehe.sui")), 1, &clock, &mut ctx);
++        let mut nft = nft::new_for_testing(domain::new(utf8(b"hehehe.sui")), 1, &clock, &mut ctx);
+@@ -92 +92 @@
+-    #[test, expected_failure(abort_code= renewal::renew::ERecordExpired)]
++    #[test, expected_failure(abort_code= ::renewal::renew::ERecordExpired)]
+@@ -94,3 +94,3 @@
+-        let ctx = tx_context::dummy();
+-        let (suins, nft) = prepare_registry(&mut ctx);
+-        let clock = clock::create_for_testing(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut suins, mut nft) = prepare_registry(&mut ctx);
++        let mut clock = clock::create_for_testing(&mut ctx);
+@@ -104 +104 @@
+-    #[test, expected_failure(abort_code= renewal::renew::EIncorrectAmount)]
++    #[test, expected_failure(abort_code= ::renewal::renew::EIncorrectAmount)]
+@@ -106,2 +106,2 @@
+-        let ctx = tx_context::dummy();
+-        let (suins, nft) = prepare_registry(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut suins, mut nft) = prepare_registry(&mut ctx);
+@@ -122,2 +122,2 @@
+-        let suins = suins::init_for_testing(ctx);
+-        let registry = registry::new_for_testing(ctx);
++        let mut suins = suins::init_for_testing(ctx);
++        let mut registry = registry::new_for_testing(ctx);
+@@ -138 +138 @@
+-            1200 * suins::constants::mist_per_sui(),
++            1200 * ::suins::constants::mist_per_sui(),
+@@ -140,2 +140,2 @@
+-            200 * suins::constants::mist_per_sui(),
+-            REGULAR_PRICE * suins::constants::mist_per_sui(),
++            200 * ::suins::constants::mist_per_sui(),
++            REGULAR_PRICE * ::suins::constants::mist_per_sui(),

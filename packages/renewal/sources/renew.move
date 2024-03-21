@@ -38,16 +38,16 @@ module renewal::renew {
     const ERecordExpired: u64 = 5;
 
     /// Authorization token for the app.
-    struct Renew has drop {}
+    public struct Renew has drop {}
 
     /// An event to help track financial transactions
-    struct NameRenewed has copy, drop {
+    public struct NameRenewed has copy, drop {
         domain: Domain,
         amount: u64
     }
     
     /// The renewal's package configuration.
-    struct RenewalConfig has store, drop {
+    public struct RenewalConfig has store, drop {
         config: Config
     }
 
