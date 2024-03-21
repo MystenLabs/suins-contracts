@@ -116,8 +116,8 @@ const setup = async (network: Network) => {
     typeArguments: [SUI, USDY],
     target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
     arguments: [
-      txb.pure(100000), // tick
-      txb.pure(100000), // lot
+      txb.pure(100), // tick
+      txb.pure(100000000), // lot
       txb.pure(DEFAULT_TAKER_FEE), // taker fee
       txb.pure(DEFAULT_MAKER_FEE), // maker rebate
       coin2, // creation fee
