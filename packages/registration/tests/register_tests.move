@@ -27,10 +27,10 @@ module registration::register_tests {
     const DOMAIN_NAME: vector<u8> = b"abc.sui";
 
     public fun test_init(): Scenario {
-        let scenario_val = test_scenario::begin(SUINS_ADDRESS);
+        let mut scenario_val = test_scenario::begin(SUINS_ADDRESS);
         let scenario = &mut scenario_val;
         {
-            let suins = suins::init_for_testing(ctx(scenario));
+            let mut suins = suins::init_for_testing(ctx(scenario));
             suins::authorize_app_for_testing<Register>(&mut suins);
             suins::authorize_app_for_testing<AuctionApp>(&mut suins);
             suins::share_for_testing(suins);
@@ -40,7 +40,7 @@ module registration::register_tests {
         {
             test_scenario::next_tx(scenario, SUINS_ADDRESS);
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            let mut suins = test_scenario::take_shared<SuiNS>(scenario);
 
             registry::init_for_testing(&admin_cap, &mut suins, ctx(scenario));
 
@@ -58,9 +58,9 @@ module registration::register_tests {
         clock_tick: u64
     ): SuinsRegistration {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
-        let suins = test_scenario::take_shared<SuiNS>(scenario);
+        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
         let payment = coin::mint_for_testing<SUI>(amount, ctx(scenario));
-        let clock = test_scenario::take_shared<Clock>(scenario);
+        let mut clock = test_scenario::take_shared<Clock>(scenario);
 
         clock::increment_for_testing(&mut clock, clock_tick);
         let nft = register(&mut suins, domain_name, no_years, payment, &clock, ctx(scenario));
@@ -74,7 +74,7 @@ module registration::register_tests {
     fun deauthorize_app_util(scenario: &mut Scenario) {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-        let suins = test_scenario::take_shared<SuiNS>(scenario);
+        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
 
         suins::deauthorize_app<Register>(&admin_cap, &mut suins);
 
@@ -91,7 +91,7 @@ module registration::register_tests {
 
     #[test]
     fun test_register() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
@@ -117,7 +117,7 @@ module registration::register_tests {
 
     #[test, expected_failure(abort_code = config::EInvalidTld)]
     fun test_register_if_not_sui_tld() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let nft = register_util(scenario, utf8(b"abc.move"), 1, 1200 * mist_per_sui(), 10);
@@ -128,7 +128,7 @@ module registration::register_tests {
 
     #[test, expected_failure(abort_code = register::EIncorrectAmount)]
     fun test_register_if_incorrect_amount() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1210 * mist_per_sui(), 10);
@@ -139,7 +139,7 @@ module registration::register_tests {
 
     #[test, expected_failure(abort_code = register::EIncorrectAmount)]
     fun test_register_if_incorrect_amount_2() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 90 * mist_per_sui(), 10);
@@ -150,7 +150,7 @@ module registration::register_tests {
 
     #[test, expected_failure(abort_code = register::EInvalidYearsArgument)]
     fun test_register_if_no_years_more_than_5_years() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let nft = register_util(scenario, utf8(DOMAIN_NAME), 6, 6 * 1200 * mist_per_sui(), 10);
@@ -161,7 +161,7 @@ module registration::register_tests {
 
     #[test, expected_failure(abort_code = register::EInvalidYearsArgument)]
     fun test_register_if_no_years_is_zero() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let nft = register_util(scenario, utf8(DOMAIN_NAME), 0, 1200 * mist_per_sui(), 10);
@@ -172,7 +172,7 @@ module registration::register_tests {
 
     #[test]
     fun test_register_if_expired() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
@@ -201,7 +201,7 @@ module registration::register_tests {
 
     #[test, expected_failure(abort_code = registry::ERecordNotExpired)]
     fun test_register_if_not_expired() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
@@ -218,7 +218,7 @@ module registration::register_tests {
 
     #[test, expected_failure(abort_code = domain::EInvalidDomain)]
     fun test_register_if_domain_name_starts_with_dash() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let nft = register_util(scenario, utf8(b"-ab.sui"), 1, 1200 * mist_per_sui(), 10);
@@ -229,7 +229,7 @@ module registration::register_tests {
 
     #[test, expected_failure(abort_code = domain::EInvalidDomain)]
     fun test_register_if_domain_name_ends_with_dash() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let nft = register_util(scenario, utf8(b"ab-.sui"), 1, 1200 * mist_per_sui(), 10);
@@ -240,7 +240,7 @@ module registration::register_tests {
 
     #[test, expected_failure(abort_code = domain::EInvalidDomain)]
     fun test_register_if_domain_name_contains_uppercase_character() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let nft = register_util(scenario, utf8(b"Abc.com"), 1, 1200 * mist_per_sui(), 10);
@@ -251,7 +251,7 @@ module registration::register_tests {
 
     #[test, expected_failure(abort_code = config::ELabelTooShort)]
     fun test_register_if_domain_name_too_short() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let nft = register_util(scenario, utf8(b"ab.sui"), 1, 1200 * mist_per_sui(), 10);
@@ -262,7 +262,7 @@ module registration::register_tests {
 
     #[test, expected_failure(abort_code = config::EInvalidDomain)]
     fun test_register_if_domain_name_contains_subdomain() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let nft = register_util(scenario, utf8(b"abc.xyz.sui"), 1, 1200 * mist_per_sui(), 10);
@@ -273,7 +273,7 @@ module registration::register_tests {
 
     #[test, expected_failure(abort_code = registry::ERecordNotExpired)]
     fun test_register_aborts_if_domain_name_went_through_auction() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         auction::init_for_testing(ctx(scenario));
 
@@ -286,7 +286,7 @@ module registration::register_tests {
 
     #[test]
     fun test_register_works_if_auctioned_domain_name_expired() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         auction::init_for_testing(ctx(scenario));
 
@@ -305,9 +305,9 @@ module registration::register_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
+    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
     fun test_register_aborts_if_register_is_deauthorized() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         deauthorize_app_util(scenario);

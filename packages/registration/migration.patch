@@ -1,0 +1,76 @@
+--- sources/register.move
++++ sources/register.move
+@@ -24 +24 @@
+-    struct Register has drop {}
++    public struct Register has drop {}
+--- tests/register_tests.move
++++ tests/register_tests.move
+@@ -30 +30 @@
+-        let scenario_val = test_scenario::begin(SUINS_ADDRESS);
++        let mut scenario_val = test_scenario::begin(SUINS_ADDRESS);
+@@ -33 +33 @@
+-            let suins = suins::init_for_testing(ctx(scenario));
++            let mut suins = suins::init_for_testing(ctx(scenario));
+@@ -43 +43 @@
+-            let suins = test_scenario::take_shared<SuiNS>(scenario);
++            let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+@@ -61 +61 @@
+-        let suins = test_scenario::take_shared<SuiNS>(scenario);
++        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+@@ -63 +63 @@
+-        let clock = test_scenario::take_shared<Clock>(scenario);
++        let mut clock = test_scenario::take_shared<Clock>(scenario);
+@@ -77 +77 @@
+-        let suins = test_scenario::take_shared<SuiNS>(scenario);
++        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+@@ -94 +94 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -120 +120 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -131 +131 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -142 +142 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -153 +153 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -164 +164 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -175 +175 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -204 +204 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -221 +221 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -232 +232 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -243 +243 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -254 +254 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -265 +265 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -276 +276 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -289 +289 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -308 +308 @@
+-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
++    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
+@@ -310 +310 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
