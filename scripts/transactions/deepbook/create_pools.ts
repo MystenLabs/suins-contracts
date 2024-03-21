@@ -155,9 +155,7 @@ const setup = async (network: Network) => {
   // });
 
   // for mainnet, we prepare the multi-sig tx.
-  if (network === "mainnet") {
-    return prepareMultisigTx(txb, "mainnet");
-  }
+  if (network === "mainnet") return prepareMultisigTx(txb, "mainnet");
 
   // For testnet, we execute the TX directly.
   return executeTx(prepareSigner(setup.provider), txb);
