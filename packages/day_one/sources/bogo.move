@@ -22,11 +22,11 @@ module day_one::bogo {
 
     /// Authorization token for the BOGO app.
     /// Used to authorize the app to claim free names by using a DayOne object.
-    struct BogoApp has drop {}
+    public struct BogoApp has drop {}
 
     /// Dynamic field key which shows that the `SuinsRegistration` object was
     /// minted from a Day1 promotion.
-    struct UsedInDayOnePromo has copy, store, drop { }
+    public struct UsedInDayOnePromo has copy, store, drop { }
 
     // This will define if a domain name was bought in an auction.
     // The only way to understand that, is to check that the expiration day is 
@@ -81,7 +81,7 @@ module day_one::bogo {
         if(!day_one::is_active(day_one_nft)) day_one::activate(day_one_nft);
 
         let registry = suins::app_registry_mut<BogoApp, Registry>(BogoApp {}, suins);
-        let nft = registry::add_record(registry, new_domain, DEFAULT_DURATION, clock, ctx);
+        let mut nft = registry::add_record(registry, new_domain, DEFAULT_DURATION, clock, ctx);
 
         // mark both the new and the current domain presented as used, so that they can't 
         // be redeemed twice in this deal.
