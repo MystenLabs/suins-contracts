@@ -39,7 +39,7 @@ module coupons::rules {
     /// The Struct that holds the coupon's rules.
     /// All rules are combined in `AND` fashion. 
     /// All of the checks have to pass for a coupon to be used.
-    struct CouponRules has copy, store, drop {
+    public struct CouponRules has copy, store, drop {
         length: Option<Range>,
         available_claims: Option<u64>,
         user: Option<address>,
@@ -118,15 +118,15 @@ module coupons::rules {
         range::is_in_range(option::borrow(&rules.years), target)
     }
 
-    public fun assert_is_valid_discount_type(type: u8) {
-        assert!(vector::contains(&constants::discount_rule_types(), &type), EInvalidType);
+    public fun assert_is_valid_discount_type(`type`: u8) {
+        assert!(vector::contains(&constants::discount_rule_types(), &`type`), EInvalidType);
     }
     
     // verify that we are creating the coupons correctly (based on amount & type).
     // for amounts, if we have a percentage discount, our max num is 100.
-    public fun assert_is_valid_amount(type: u8, amount: u64) {
+    public fun assert_is_valid_amount(`type`: u8, amount: u64) {
         assert!(amount > 0, EInvalidAmount); // protect from division by 0. 0 doesn't make sense in any scenario.
-        if(type == constants::percentage_discount_type()){
+        if(`type` == constants::percentage_discount_type()){
             assert!(amount<=100, EInvalidAmount)
         }
     }

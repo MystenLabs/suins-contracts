@@ -1,0 +1,239 @@
+--- sources/coupons.move
++++ sources/coupons.move
+@@ -52 +52 @@
+-    struct CouponsApp has drop {}
++    public struct CouponsApp has drop {}
+@@ -54 +54 @@
+-    struct AppKey<phantom App: drop> has copy, store, drop {}
++    public struct AppKey<phantom App: drop> has copy, store, drop {}
+@@ -59 +59 @@
+-    struct Data has store {
++    public struct Data has store {
+@@ -65 +65 @@
+-    struct CouponHouse has key, store {
++    public struct CouponHouse has key, store {
+@@ -75,2 +75,2 @@
+-    struct Coupon has copy, store, drop {
+-        type: u8, // 0 -> Percentage Discount | 1 -> Fixed Discount
++    public struct Coupon has copy, store, drop {
++        `type`: u8, // 0 -> Percentage Discount | 1 -> Fixed Discount
+@@ -212 +212 @@
+-        type: u8,
++        `type`: u8,
+@@ -218 +218 @@
+-        internal_save_coupon(&mut self.data, code, internal_create_coupon(type, amount, rules, ctx));
++        internal_save_coupon(&mut self.data, code, internal_create_coupon(`type`, amount, rules, ctx));
+@@ -230 +230 @@
+-        type: u8,
++        `type`: u8,
+@@ -235 +235 @@
+-        internal_save_coupon(self, code, internal_create_coupon(type, amount, rules, ctx));
++        internal_save_coupon(self, code, internal_create_coupon(`type`, amount, rules, ctx));
+@@ -247 +247 @@
+-        if(coupon.type == constants::fixed_price_discount_type()){
++        if(coupon.`type` == constants::fixed_price_discount_type()){
+@@ -271 +271 @@
+-        type: u8,
++        `type`: u8,
+@@ -276,2 +276,2 @@
+-        rules::assert_is_valid_amount(type, amount);
+-        rules::assert_is_valid_discount_type(type);
++        rules::assert_is_valid_amount(`type`, amount);
++        rules::assert_is_valid_discount_type(`type`);
+@@ -279 +279 @@
+-            type, amount, rules
++            `type`, amount, rules
+--- sources/range.move
++++ sources/range.move
+@@ -14 +14 @@
+-    struct Range has copy, store, drop {
++    public struct Range has copy, store, drop {
+--- sources/rules.move
++++ sources/rules.move
+@@ -42 +42 @@
+-    struct CouponRules has copy, store, drop {
++    public struct CouponRules has copy, store, drop {
+@@ -121,2 +121,2 @@
+-    public fun assert_is_valid_discount_type(type: u8) {
+-        assert!(vector::contains(&constants::discount_rule_types(), &type), EInvalidType);
++    public fun assert_is_valid_discount_type(`type`: u8) {
++        assert!(vector::contains(&constants::discount_rule_types(), &`type`), EInvalidType);
+@@ -127 +127 @@
+-    public fun assert_is_valid_amount(type: u8, amount: u64) {
++    public fun assert_is_valid_amount(`type`: u8, amount: u64) {
+@@ -129 +129 @@
+-        if(type == constants::percentage_discount_type()){
++        if(`type` == constants::percentage_discount_type()){
+--- tests/authorization_tests.move
++++ tests/authorization_tests.move
+@@ -17 +17 @@
+-        let scenario_val = setup::test_init();
++        let mut scenario_val = setup::test_init();
+@@ -22 +22 @@
+-            let coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
++            let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
+@@ -32 +32 @@
+-        let scenario_val = setup::test_init();
++        let mut scenario_val = setup::test_init();
+@@ -37 +37 @@
+-            let coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
++            let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
+@@ -52 +52 @@
+-    #[test, expected_failure(abort_code=coupons::coupons::EAppNotAuthorized)]
++    #[test, expected_failure(abort_code=::coupons::coupons::EAppNotAuthorized)]
+@@ -54 +54 @@
+-        let scenario_val = setup::test_init();
++        let mut scenario_val = setup::test_init();
+@@ -58 +58 @@
+-            let coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
++            let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
+--- tests/coupons_tests.move
++++ tests/coupons_tests.move
+@@ -22 +22 @@
+-        let coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
++        let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
+@@ -33 +33 @@
+-        let scenario_val = setup::test_init();
++        let mut scenario_val = setup::test_init();
+@@ -60 +60 @@
+-        let scenario_val = setup::test_init();
++        let mut scenario_val = setup::test_init();
+@@ -80 +80 @@
+-    #[test, expected_failure(abort_code=coupons::rules::EInvalidYears)]
++    #[test, expected_failure(abort_code=::coupons::rules::EInvalidYears)]
+@@ -90 +90 @@
+-    #[test, expected_failure(abort_code=coupons::range::EInvalidRange)]
++    #[test, expected_failure(abort_code=::coupons::range::EInvalidRange)]
+@@ -103 +103 @@
+-        let scenario_val = setup::test_init();
++        let mut scenario_val = setup::test_init();
+@@ -108 +108 @@
+-            let coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
++            let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
+@@ -117 +117 @@
+-    #[test, expected_failure(abort_code=coupons::coupons::EIncorrectAmount)]
++    #[test, expected_failure(abort_code=::coupons::coupons::EIncorrectAmount)]
+@@ -119 +119 @@
+-        let scenario_val = setup::test_init();
++        let mut scenario_val = setup::test_init();
+@@ -127 +127 @@
+-     #[test, expected_failure(abort_code=coupons::coupons::ECouponNotExists)]
++     #[test, expected_failure(abort_code=::coupons::coupons::ECouponNotExists)]
+@@ -129 +129 @@
+-        let scenario_val = setup::test_init();
++        let mut scenario_val = setup::test_init();
+@@ -136 +136 @@
+-    #[test, expected_failure(abort_code=coupons::coupons::EInvalidYearsArgument)]
++    #[test, expected_failure(abort_code=::coupons::coupons::EInvalidYearsArgument)]
+@@ -138 +138 @@
+-        let scenario_val = setup::test_init();
++        let mut scenario_val = setup::test_init();
+@@ -144 +144 @@
+-    #[test, expected_failure(abort_code=coupons::coupons::EInvalidYearsArgument)]
++    #[test, expected_failure(abort_code=::coupons::coupons::EInvalidYearsArgument)]
+@@ -146 +146 @@
+-        let scenario_val = setup::test_init();
++        let mut scenario_val = setup::test_init();
+@@ -153 +153 @@
+-    #[test, expected_failure(abort_code=coupons::rules::EInvalidUser)]
++    #[test, expected_failure(abort_code=::coupons::rules::EInvalidUser)]
+@@ -155 +155 @@
+-        let scenario_val = setup::test_init();
++        let mut scenario_val = setup::test_init();
+@@ -162 +162 @@
+-    #[test, expected_failure(abort_code=coupons::rules::ECouponExpired)]
++    #[test, expected_failure(abort_code=::coupons::rules::ECouponExpired)]
+@@ -164 +164 @@
+-        let scenario_val = setup::test_init();
++        let mut scenario_val = setup::test_init();
+@@ -171 +171 @@
+-    #[test, expected_failure(abort_code=coupons::rules::ENotValidYears)]
++    #[test, expected_failure(abort_code=::coupons::rules::ENotValidYears)]
+@@ -173 +173 @@
+-        let scenario_val = setup::test_init();
++        let mut scenario_val = setup::test_init();
+@@ -180 +180 @@
+-    #[test, expected_failure(abort_code=coupons::rules::EInvalidForDomainLength)]
++    #[test, expected_failure(abort_code=::coupons::rules::EInvalidForDomainLength)]
+@@ -182 +182 @@
+-        let scenario_val = setup::test_init();
++        let mut scenario_val = setup::test_init();
+@@ -189 +189 @@
+-    #[test, expected_failure(abort_code=coupons::rules::EInvalidForDomainLength)]
++    #[test, expected_failure(abort_code=::coupons::rules::EInvalidForDomainLength)]
+@@ -191 +191 @@
+-        let scenario_val = setup::test_init();
++        let mut scenario_val = setup::test_init();
+@@ -199 +199 @@
+-    #[test, expected_failure(abort_code=coupons::rules::EInvalidForDomainLength)]
++    #[test, expected_failure(abort_code=::coupons::rules::EInvalidForDomainLength)]
+@@ -201 +201 @@
+-        let scenario_val = setup::test_init();
++        let mut scenario_val = setup::test_init();
+@@ -211 +211 @@
+-        let scenario_val = setup::test_init();
++        let mut scenario_val = setup::test_init();
+@@ -221 +221 @@
+-    #[test, expected_failure(abort_code=coupons::rules::EInvalidType)]
++    #[test, expected_failure(abort_code=::coupons::rules::EInvalidType)]
+@@ -223 +223 @@
+-        let scenario_val = setup::test_init();
++        let mut scenario_val = setup::test_init();
+@@ -230 +230 @@
+-    #[test, expected_failure(abort_code=coupons::rules::EInvalidAmount)]
++    #[test, expected_failure(abort_code=::coupons::rules::EInvalidAmount)]
+@@ -232 +232 @@
+-        let scenario_val = setup::test_init();
++        let mut scenario_val = setup::test_init();
+@@ -238 +238 @@
+-    #[test, expected_failure(abort_code=coupons::rules::EInvalidAmount)]
++    #[test, expected_failure(abort_code=::coupons::rules::EInvalidAmount)]
+@@ -240 +240 @@
+-        let scenario_val = setup::test_init();
++        let mut scenario_val = setup::test_init();
+@@ -247 +247 @@
+-    #[test, expected_failure(abort_code=coupons::coupons::ECouponAlreadyExists)]
++    #[test, expected_failure(abort_code=::coupons::coupons::ECouponAlreadyExists)]
+@@ -249 +249 @@
+-        let scenario_val = setup::test_init();
++        let mut scenario_val = setup::test_init();
+--- tests/setup.move
++++ tests/setup.move
+@@ -21 +21 @@
+-    struct TestApp has drop {}
++    public struct TestApp has drop {}
+@@ -23 +23 @@
+-    struct UnauthorizedTestApp has drop {}
++    public struct UnauthorizedTestApp has drop {}
+@@ -35 +35 @@
+-        let scenario_val = test_scenario::begin(ADMIN_ADDRESS);
++        let mut scenario_val = test_scenario::begin(ADMIN_ADDRESS);
+@@ -38 +38 @@
+-            let suins = suins::init_for_testing(ctx(scenario));
++            let mut suins = suins::init_for_testing(ctx(scenario));
+@@ -48 +48 @@
+-            let coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
++            let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
+@@ -52 +52 @@
+-            let suins = test_scenario::take_shared<SuiNS>(scenario);
++            let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+@@ -196 +196 @@
+-    public fun admin_add_coupon(code_name: String, type: u8, value: u64, scenario: &mut Scenario) {
++    public fun admin_add_coupon(code_name: String, `type`: u8, value: u64, scenario: &mut Scenario) {
+@@ -198 +198 @@
+-        let coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
++        let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
+@@ -204 +204 @@
+-            type,
++            `type`,
+@@ -215 +215 @@
+-        let coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
++        let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
+@@ -234 +234 @@
+-        let clock = test_scenario::take_shared<Clock>(scenario);
++        let mut clock = test_scenario::take_shared<Clock>(scenario);
+@@ -236,2 +236,2 @@
+-        let coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
+-        let suins = test_scenario::take_shared<SuiNS>(scenario);
++        let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
++        let mut suins = test_scenario::take_shared<SuiNS>(scenario);

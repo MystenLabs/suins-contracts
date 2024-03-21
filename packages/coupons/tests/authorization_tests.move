@@ -14,12 +14,12 @@ module coupons::app_authorization_tests {
 
     #[test]
     fun admin_get_app_success() {
-        let scenario_val = setup::test_init();
+        let mut scenario_val = setup::test_init();
         let scenario = &mut scenario_val;
         // auth style as authorized app
         {
             test_scenario::next_tx(scenario, user());
-            let coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
+            let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
             coupons::app_data_mut<TestApp>(setup::test_app(), &mut coupon_house);
             test_scenario::return_shared(coupon_house);
         };
@@ -29,12 +29,12 @@ module coupons::app_authorization_tests {
 
     #[test]
     fun authorized_app_get_app_success(){
-        let scenario_val = setup::test_init();
+        let mut scenario_val = setup::test_init();
         let scenario = &mut scenario_val;
         {
             test_scenario::next_tx(scenario, admin());
 
-            let coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
+            let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             
             // test app deauthorization.
@@ -49,13 +49,13 @@ module coupons::app_authorization_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code=coupons::coupons::EAppNotAuthorized)]
+    #[test, expected_failure(abort_code=::coupons::coupons::EAppNotAuthorized)]
     fun unauthorized_app_failure() {
-        let scenario_val = setup::test_init();
+        let mut scenario_val = setup::test_init();
         let scenario = &mut scenario_val;
         {
             test_scenario::next_tx(scenario, user());
-            let coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
+            let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
             coupons::app_data_mut<UnauthorizedTestApp>(setup::unauthorized_test_app(), &mut coupon_house);
             test_scenario::return_shared(coupon_house);
         };
