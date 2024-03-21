@@ -16,7 +16,7 @@ module suins::admin {
     use suins::registry::{Self, Registry};
 
     /// The authorization witness.
-    struct Admin has drop {}
+    public struct Admin has drop {}
 
     /// Authorize the admin application in the SuiNS to get access
     /// to protected functions. Must be called in order to use the rest
@@ -44,7 +44,7 @@ module suins::admin {
     entry fun reserve_domains(
         _: &AdminCap,
         suins: &mut SuiNS,
-        domains: vector<String>,
+        mut domains: vector<String>,
         no_years: u8,
         clock: &Clock,
         ctx: &mut TxContext

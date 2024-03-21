@@ -16,7 +16,7 @@ module suins::name_record {
     use suins::constants;
 
     /// A single record in the registry.
-    struct NameRecord has copy, store, drop {
+    public struct NameRecord has copy, store, drop {
         /// The ID of the `SuinsRegistration` assigned to this record.
         ///
         /// The owner of the corrisponding `SuinsRegistration` has the rights to

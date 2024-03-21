@@ -16,8 +16,8 @@ module suins::subdomain_registration {
     use suins::suins_registration::{Self, SuinsRegistration};
     use suins::domain;
 
-    friend suins::registry;
-    #[test_only] friend suins::sub_name_tests;
+    /* friend suins::registry; */
+    /* #[test_only] */ /* friend suins::sub_name_tests; */
 
     /// === Error codes ===
     /// 
@@ -29,14 +29,14 @@ module suins::subdomain_registration {
     const ENameNotExpired: u64 = 3;
 
     /// A wrapper for SuinsRegistration object specifically for SubNames.
-    struct SubDomainRegistration has key, store {
+    public struct SubDomainRegistration has key, store {
         id: UID,
         nft: SuinsRegistration
     }
 
     /// Creates a `SubName` wrapper for SuinsRegistration object 
     /// (as long as it's used for a subdomain).
-    public(friend) fun new(nft: SuinsRegistration, clock: &Clock, ctx: &mut TxContext): SubDomainRegistration {
+    public(package) fun new(nft: SuinsRegistration, clock: &Clock, ctx: &mut TxContext): SubDomainRegistration {
         // Can't wrap a non-subdomain NFT.
         assert!(domain::is_subdomain(&suins_registration::domain(&nft)), ENotSubdomain);
         // Can't wrap an expired NFT.
@@ -50,7 +50,7 @@ module suins::subdomain_registration {
 
     /// Destroys the wrapper and returns the SuinsRegistration object.
     /// Fails if the subname is not expired.
-    public(friend) fun burn(name: SubDomainRegistration, clock: &Clock): SuinsRegistration {
+    public(package) fun burn(name: SubDomainRegistration, clock: &Clock): SuinsRegistration {
         // tries to unwrap a non-expired subname.
         assert!(suins_registration::has_expired(&name.nft, clock), ENameNotExpired);
         

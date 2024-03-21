@@ -3,6 +3,7 @@ name = "suins"
 version = "0.0.2"
 #mainnet
 published-at="0xb7004c7914308557f7afbaf0dca8dd258e18e306cb7a45b28019f3d0a693f162"
+edition = "2024.beta"
 
 #testnet
 #published-at="0x8ea50d1974a257d3ed8e94fbe4f280d8df1a0a9b1eb511773e74d613d2c2afe3"

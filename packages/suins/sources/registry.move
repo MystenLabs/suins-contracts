@@ -40,7 +40,7 @@ module suins::registry {
     /// and the `suins` module controls the access to the `Registry`.
     ///
     /// Contains two tables necessary for the lookup.
-    struct Registry has store {
+    public struct Registry has store {
         /// The `registry` table maps `Domain` to `NameRecord`.
         /// Added / replaced in the `add_record` function.
         registry: Table<Domain, NameRecord>,

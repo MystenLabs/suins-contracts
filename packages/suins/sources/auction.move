@@ -46,17 +46,17 @@ module suins::auction {
     const ENoProfits: u64 = 13;
 
     /// Authorization witness to call protected functions of suins.
-    struct App has drop {}
+    public struct App has drop {}
 
     /// The AuctionHouse application.
-    struct AuctionHouse has key, store {
+    public struct AuctionHouse has key, store {
         id: UID,
         balance: Balance<SUI>,
         auctions: LinkedTable<Domain, Auction>,
     }
 
     /// The Auction application.
-    struct Auction has store {
+    public struct Auction has store {
         domain: Domain,
         start_timestamp_ms: u64,
         end_timestamp_ms: u64,
@@ -143,7 +143,7 @@ module suins::auction {
         let Auction {
             domain,
             start_timestamp_ms,
-            end_timestamp_ms,
+            mut end_timestamp_ms,
             winner,
             current_bid,
             nft,
@@ -361,10 +361,10 @@ module suins::auction {
     public fun admin_try_finalize_auctions(
         admin: &AdminCap,
         self: &mut AuctionHouse,
-        operation_limit: u64,
+        mut operation_limit: u64,
         clock: &Clock,
     ) {
-        let next_domain = *linked_table::back(&self.auctions);
+        let mut next_domain = *linked_table::back(&self.auctions);
 
         while (is_some(&next_domain)) {
             if (operation_limit == 0) {
@@ -391,7 +391,7 @@ module suins::auction {
 
     // === Events ===
 
-    struct AuctionStartedEvent has copy, drop {
+    public struct AuctionStartedEvent has copy, drop {
         domain: Domain,
         start_timestamp_ms: u64,
         end_timestamp_ms: u64,
@@ -399,7 +399,7 @@ module suins::auction {
         bidder: address,
     }
 
-    struct AuctionFinalizedEvent has copy, drop {
+    public struct AuctionFinalizedEvent has copy, drop {
         domain: Domain,
         start_timestamp_ms: u64,
         end_timestamp_ms: u64,
@@ -407,13 +407,13 @@ module suins::auction {
         winner: address,
     }
 
-    struct BidEvent has copy, drop {
+    public struct BidEvent has copy, drop {
         domain: Domain,
         bid: u64,
         bidder: address,
     }
 
-    struct AuctionExtendedEvent has copy, drop {
+    public struct AuctionExtendedEvent has copy, drop {
         domain: Domain,
         end_timestamp_ms: u64,
     }

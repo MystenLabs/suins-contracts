@@ -41,7 +41,7 @@ module suins::config {
     /// application. Does not carry any business logic and can easily
     /// be replaced with any other module providing similar interface
     /// and fitting the needs of the application.
-    struct Config has store, drop {
+    public struct Config has store, drop {
         public_key: vector<u8>,
         three_char_price: u64,
         four_char_price: u64,

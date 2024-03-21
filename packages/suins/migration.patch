@@ -1,0 +1,827 @@
+--- sources/actions/update_image.move
++++ sources/actions/update_image.move
+@@ -25 +25 @@
+-    struct UpdateImage has drop {}
++    public struct UpdateImage has drop {}
+@@ -72 +72 @@
+-        let bcs = bcs::new(msg_bytes);
++        let mut bcs = bcs::new(msg_bytes);
+--- sources/admin.move
++++ sources/admin.move
+@@ -19 +19 @@
+-    struct Admin has drop {}
++    public struct Admin has drop {}
+@@ -47 +47 @@
+-        domains: vector<String>,
++        mut domains: vector<String>,
+--- sources/auction.move
++++ sources/auction.move
+@@ -49 +49 @@
+-    struct App has drop {}
++    public struct App has drop {}
+@@ -52 +52 @@
+-    struct AuctionHouse has key, store {
++    public struct AuctionHouse has key, store {
+@@ -59 +59 @@
+-    struct Auction has store {
++    public struct Auction has store {
+@@ -146 +146 @@
+-            end_timestamp_ms,
++            mut end_timestamp_ms,
+@@ -364 +364 @@
+-        operation_limit: u64,
++        mut operation_limit: u64,
+@@ -367 +367 @@
+-        let next_domain = *linked_table::back(&self.auctions);
++        let mut next_domain = *linked_table::back(&self.auctions);
+@@ -394 +394 @@
+-    struct AuctionStartedEvent has copy, drop {
++    public struct AuctionStartedEvent has copy, drop {
+@@ -402 +402 @@
+-    struct AuctionFinalizedEvent has copy, drop {
++    public struct AuctionFinalizedEvent has copy, drop {
+@@ -410 +410 @@
+-    struct BidEvent has copy, drop {
++    public struct BidEvent has copy, drop {
+@@ -416 +416 @@
+-    struct AuctionExtendedEvent has copy, drop {
++    public struct AuctionExtendedEvent has copy, drop {
+--- sources/config.move
++++ sources/config.move
+@@ -44 +44 @@
+-    struct Config has store, drop {
++    public struct Config has store, drop {
+--- sources/controller.move
++++ sources/controller.move
+@@ -23 +23 @@
+-    struct Controller has drop {}
++    public struct Controller has drop {}
+@@ -60 +60 @@
+-        let data = *registry::get_data(registry, nft::domain(nft));
++        let mut data = *registry::get_data(registry, nft::domain(nft));
+@@ -80 +80 @@
+-        let data = *registry::get_data(registry, nft::domain(nft));
++        let mut data = *registry::get_data(registry, nft::domain(nft));
+--- sources/domain.move
++++ sources/domain.move
+@@ -23 +23 @@
+-    struct Domain has copy, drop, store {
++    public struct Domain has copy, drop, store {
+@@ -35 +35 @@
+-        let labels = split_by_dot(domain);
++        let mut labels = split_by_dot(domain);
+@@ -47,2 +47,2 @@
+-        let i = 0;
+-        let out = string::utf8(vector::empty());
++        let mut i = 0;
++        let mut out = string::utf8(vector::empty());
+@@ -100 +100 @@
+-        let labels = domain.labels;
++        let mut labels = domain.labels;
+@@ -119 +119 @@
+-        let index = 0;
++        let mut index = 0;
+@@ -131 +131 @@
+-        let index = 0;
++        let mut index = 0;
+@@ -155 +155 @@
+-    fun split_by_dot(s: String): vector<String> {
++    fun split_by_dot(mut s: String): vector<String> {
+@@ -157 +157 @@
+-        let parts: vector<String> = vector[];
++        let mut parts: vector<String> = vector[];
+@@ -191 +191 @@
+-        let index = 0;
++        let mut index = 0;
+@@ -201,2 +201,2 @@
+-    fun prep_expected_labels(labels: vector<vector<u8>>): vector<String> {
+-        let out = vector[];
++    fun prep_expected_labels(mut labels: vector<vector<u8>>): vector<String> {
++        let mut out = vector[];
+--- sources/name_record.move
++++ sources/name_record.move
+@@ -19 +19 @@
+-    struct NameRecord has copy, store, drop {
++    public struct NameRecord has copy, store, drop {
+--- sources/registry.move
++++ sources/registry.move
+@@ -43 +43 @@
+-    struct Registry has store {
++    public struct Registry has store {
+--- sources/subdomain_registration.move
++++ sources/subdomain_registration.move
+@@ -19,2 +19,2 @@
+-    friend suins::registry;
+-    #[test_only] friend suins::sub_name_tests;
++    /* friend suins::registry; */
++    /* #[test_only] */ /* friend suins::sub_name_tests; */
+@@ -32 +32 @@
+-    struct SubDomainRegistration has key, store {
++    public struct SubDomainRegistration has key, store {
+@@ -39 +39 @@
+-    public(friend) fun new(nft: SuinsRegistration, clock: &Clock, ctx: &mut TxContext): SubDomainRegistration {
++    public(package) fun new(nft: SuinsRegistration, clock: &Clock, ctx: &mut TxContext): SubDomainRegistration {
+@@ -53 +53 @@
+-    public(friend) fun burn(name: SubDomainRegistration, clock: &Clock): SuinsRegistration {
++    public(package) fun burn(name: SubDomainRegistration, clock: &Clock): SuinsRegistration {
+--- sources/suins.move
++++ sources/suins.move
+@@ -39 +39 @@
+-    struct AdminCap has key, store { id: UID }
++    public struct AdminCap has key, store { id: UID }
+@@ -47 +47 @@
+-    struct SuiNS has key {
++    public struct SuiNS has key {
+@@ -55 +55 @@
+-    struct SUINS has drop {}
++    public struct SUINS has drop {}
+@@ -62 +62 @@
+-    struct ConfigKey<phantom Config> has copy, store, drop {}
++    public struct ConfigKey<phantom Config> has copy, store, drop {}
+@@ -69 +69 @@
+-    struct RegistryKey<phantom Config> has copy, store, drop {}
++    public struct RegistryKey<phantom Config> has copy, store, drop {}
+@@ -108 +108 @@
+-    struct AppKey<phantom App: drop> has copy, store, drop {}
++    public struct AppKey<phantom App: drop> has copy, store, drop {}
+@@ -184 +184 @@
+-    #[test_only] struct Test has drop {}
++    #[test_only] public struct Test has drop {}
+@@ -198 +198 @@
+-        let suins = SuiNS {
++        let mut suins = SuiNS {
+--- sources/suins_registration.move
++++ sources/suins_registration.move
+@@ -22,2 +22,2 @@
+-    friend suins::registry;
+-    friend suins::update_image;
++    /* friend suins::registry; */
++    /* friend suins::update_image; */
+@@ -26 +26 @@
+-    struct SuinsRegistration has key, store {
++    public struct SuinsRegistration has key, store {
+@@ -42 +42 @@
+-    public(friend) fun new(
++    public(package) fun new(
+@@ -58 +58 @@
+-    public(friend) fun set_expiration_timestamp_ms(self: &mut SuinsRegistration, expiration_timestamp_ms: u64) {
++    public(package) fun set_expiration_timestamp_ms(self: &mut SuinsRegistration, expiration_timestamp_ms: u64) {
+@@ -63 +63 @@
+-    public(friend) fun update_image_url(self: &mut SuinsRegistration, image_url: String) {
++    public(package) fun update_image_url(self: &mut SuinsRegistration, image_url: String) {
+@@ -70 +70 @@
+-    public(friend) fun burn(self: SuinsRegistration) {
++    public(package) fun burn(self: SuinsRegistration) {
+--- tests/auction_tests.move
++++ tests/auction_tests.move
+@@ -35 +35 @@
+-        let scenario_val = test_scenario::begin(SUINS_ADDRESS);
++        let mut scenario_val = test_scenario::begin(SUINS_ADDRESS);
+@@ -38 +38 @@
+-            let suins = suins::init_for_testing(ctx(scenario));
++            let mut suins = suins::init_for_testing(ctx(scenario));
+@@ -48 +48 @@
+-            let suins = test_scenario::take_shared<SuiNS>(scenario);
++            let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+@@ -65,2 +65,2 @@
+-        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+-        let suins = test_scenario::take_shared<SuiNS>(scenario);
++        let mut auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
++        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+@@ -86 +86 @@
+-        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
++        let mut auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+@@ -88 +88 @@
+-        let clock = test_scenario::take_shared<Clock>(scenario);
++        let mut clock = test_scenario::take_shared<Clock>(scenario);
+@@ -104,2 +104,2 @@
+-        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+-        let clock = test_scenario::take_shared<Clock>(scenario);
++        let mut auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
++        let mut clock = test_scenario::take_shared<Clock>(scenario);
+@@ -123,2 +123,2 @@
+-        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+-        let clock = test_scenario::take_shared<Clock>(scenario);
++        let mut auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
++        let mut clock = test_scenario::take_shared<Clock>(scenario);
+@@ -140,2 +140,2 @@
+-        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+-        let clock = test_scenario::take_shared<Clock>(scenario);
++        let mut auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
++        let mut clock = test_scenario::take_shared<Clock>(scenario);
+@@ -154,2 +154,2 @@
+-        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+-        let clock = test_scenario::take_shared<Clock>(scenario);
++        let mut auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
++        let mut clock = test_scenario::take_shared<Clock>(scenario);
+@@ -168 +168 @@
+-        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
++        let mut auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+@@ -180 +180 @@
+-        let suins = test_scenario::take_shared<SuiNS>(scenario);
++        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+@@ -205 +205 @@
+-        let (start_ms, end_ms, winner, highest_amount) = auction::get_auction_metadata(&auction_house, domain_name);
++        let (mut start_ms, mut end_ms, mut winner, mut highest_amount) = auction::get_auction_metadata(&auction_house, domain_name);
+@@ -256 +256 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -264 +264 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -283 +283 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -299 +299 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -314 +314 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -331 +331 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -364 +364 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -397 +397 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -412 +412 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -428 +428 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -448 +448 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -457 +457 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -470 +470 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -483 +483 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -496 +496 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -509 +509 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -522 +522 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -535 +535 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -543 +543 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -556 +556 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -595 +595 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -607 +607 @@
+-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
++    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
+@@ -609 +609 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -623 +623 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -662 +662 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -696 +696 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+--- tests/controller_tests.move
++++ tests/controller_tests.move
+@@ -35 +35 @@
+-        let scenario_val = test_scenario::begin(SUINS_ADDRESS);
++        let mut scenario_val = test_scenario::begin(SUINS_ADDRESS);
+@@ -38 +38 @@
+-            let suins = suins::init_for_testing(ctx(scenario));
++            let mut suins = suins::init_for_testing(ctx(scenario));
+@@ -48 +48 @@
+-            let suins = test_scenario::take_shared<SuiNS>(scenario);
++            let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+@@ -65 +65 @@
+-        let suins = test_scenario::take_shared<SuiNS>(scenario);
++        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+@@ -67 +67 @@
+-        let clock = test_scenario::take_shared<Clock>(scenario);
++        let mut clock = test_scenario::take_shared<Clock>(scenario);
+@@ -79 +79 @@
+-        let suins = test_scenario::take_shared<SuiNS>(scenario);
++        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+@@ -88 +88 @@
+-        let suins = test_scenario::take_shared<SuiNS>(scenario);
++        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+@@ -97 +97 @@
+-        let suins = test_scenario::take_shared<SuiNS>(scenario);
++        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+@@ -99 +99 @@
+-        let clock = test_scenario::take_shared<Clock>(scenario);
++        let mut clock = test_scenario::take_shared<Clock>(scenario);
+@@ -111 +111 @@
+-        let suins = test_scenario::take_shared<SuiNS>(scenario);
++        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+@@ -113 +113 @@
+-        let clock = test_scenario::take_shared<Clock>(scenario);
++        let mut clock = test_scenario::take_shared<Clock>(scenario);
+@@ -160 +160 @@
+-        let suins = test_scenario::take_shared<SuiNS>(scenario);
++        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+@@ -170 +170 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -186 +186 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -197 +197 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -209 +209 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -220 +220 @@
+-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
++    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
+@@ -222 +222 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -234 +234 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -255 +255 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -267 +267 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -278 +278 @@
+-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
++    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
+@@ -280 +280 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -293 +293 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -306 +306 @@
+-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
++    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
+@@ -308 +308 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -322 +322 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -333 +333 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -355 +355 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -366 +366 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -377 +377 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -389 +389 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -402 +402 @@
+-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
++    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
+@@ -404 +404 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -416 +416 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -437 +437 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -448 +448 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -457 +457 @@
+-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
++    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
+@@ -459 +459 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+--- tests/register_tests.move
++++ tests/register_tests.move
+@@ -30 +30 @@
+-        let scenario_val = test_scenario::begin(SUINS_ADDRESS);
++        let mut scenario_val = test_scenario::begin(SUINS_ADDRESS);
+@@ -33 +33 @@
+-            let suins = suins::init_for_testing(ctx(scenario));
++            let mut suins = suins::init_for_testing(ctx(scenario));
+@@ -43 +43 @@
+-            let suins = test_scenario::take_shared<SuiNS>(scenario);
++            let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+@@ -61 +61 @@
+-        let suins = test_scenario::take_shared<SuiNS>(scenario);
++        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+@@ -63 +63 @@
+-        let clock = test_scenario::take_shared<Clock>(scenario);
++        let mut clock = test_scenario::take_shared<Clock>(scenario);
+@@ -77 +77 @@
+-        let suins = test_scenario::take_shared<SuiNS>(scenario);
++        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+@@ -94 +94 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -120 +120 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -131 +131 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -142 +142 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -153 +153 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -164 +164 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -175 +175 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -204 +204 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -221 +221 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -232 +232 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -243 +243 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -254 +254 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -265 +265 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -276 +276 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -289 +289 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -308 +308 @@
+-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
++    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
+@@ -310 +310 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+--- tests/renew_tests.move
++++ tests/renew_tests.move
+@@ -25 +25 @@
+-        let scenario_val = test_scenario::begin(SUINS_ADDRESS);
++        let mut scenario_val = test_scenario::begin(SUINS_ADDRESS);
+@@ -28 +28 @@
+-            let suins = suins::init_for_testing(ctx(scenario));
++            let mut suins = suins::init_for_testing(ctx(scenario));
+@@ -38 +38 @@
+-            let suins = test_scenario::take_shared<SuiNS>(scenario);
++            let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+@@ -50 +50 @@
+-        let suins = test_scenario::take_shared<SuiNS>(scenario);
++        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+@@ -52 +52 @@
+-        let clock = test_scenario::take_shared<Clock>(scenario);
++        let mut clock = test_scenario::take_shared<Clock>(scenario);
+@@ -64 +64 @@
+-        let suins = test_scenario::take_shared<SuiNS>(scenario);
++        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+@@ -74 +74 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -77 +77 @@
+-        let nft = register_util(scenario, utf8(b"abcd.sui"), 1, 200 * mist_per_sui(), 0);
++        let mut nft = register_util(scenario, utf8(b"abcd.sui"), 1, 200 * mist_per_sui(), 0);
+@@ -83 +83 @@
+-        let nft = register_util(scenario, utf8(b"abcde.sui"), 1, 50 * mist_per_sui(), 0);
++        let mut nft = register_util(scenario, utf8(b"abcde.sui"), 1, 50 * mist_per_sui(), 0);
+@@ -89 +89 @@
+-        let nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
++        let mut nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
+@@ -105 +105 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -108 +108 @@
+-        let nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
++        let mut nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
+@@ -117 +117 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -120 +120 @@
+-        let nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
++        let mut nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
+@@ -129 +129 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -132 +132 @@
+-        let nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
++        let mut nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
+@@ -141 +141 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -144 +144 @@
+-        let nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 0);
++        let mut nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 0);
+@@ -153 +153 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -156 +156 @@
+-        let nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 0);
++        let mut nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 0);
+@@ -164 +164 @@
+-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
++    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
+@@ -166 +166 @@
+-        let scenario_val = test_init();
++        let mut scenario_val = test_init();
+@@ -169 +169 @@
+-        let nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 0);
++        let mut nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 0);
+--- tests/unit/admin_tests.move
++++ tests/unit/admin_tests.move
+@@ -27 +27 @@
+-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
++    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
+@@ -29,2 +29,2 @@
+-        let ctx = tx_context::dummy();
+-        let suins = suins::init_for_testing(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let mut suins = suins::init_for_testing(&mut ctx);
+@@ -48,2 +48,2 @@
+-        let ctx = tx_context::dummy();
+-        let suins = suins::init_for_testing(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let mut suins = suins::init_for_testing(&mut ctx);
+--- tests/unit/config_tests.move
++++ tests/unit/config_tests.move
+@@ -23 +23 @@
+-        let config = default();
++        let mut config = default();
+@@ -91 +91 @@
+-        let config = default();
++        let mut config = default();
+--- tests/unit/name_record_tests.move
++++ tests/unit/name_record_tests.move
+@@ -27 +27 @@
+-        let ctx = tx_context::dummy();
++        let mut ctx = tx_context::dummy();
+@@ -29 +29 @@
+-        let record = record::new(nft_id, 0);
++        let mut record = record::new(nft_id, 0);
+@@ -37 +37 @@
+-        let data = vec_map::empty();
++        let mut data = vec_map::empty();
+@@ -55 +55 @@
+-        let ctx = tx_context::dummy();
++        let mut ctx = tx_context::dummy();
+@@ -58 +58 @@
+-        let clock = clock::create_for_testing(&mut ctx);
++        let mut clock = clock::create_for_testing(&mut ctx);
+--- tests/unit/registration_nft_tests.move
++++ tests/unit/registration_nft_tests.move
+@@ -23,2 +23,2 @@
+-        let ctx = tx_context::dummy();
+-        let clock = clock::create_for_testing(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let mut clock = clock::create_for_testing(&mut ctx);
+@@ -53 +53 @@
+-        let ctx = tx_context::dummy();
++        let mut ctx = tx_context::dummy();
+@@ -55 +55 @@
+-        let nft = new(utf8(b"test.sui"), 5, &clock, &mut ctx);
++        let mut nft = new(utf8(b"test.sui"), 5, &clock, &mut ctx);
+--- tests/unit/registry_tests.move
++++ tests/unit/registry_tests.move
+@@ -24,2 +24,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, clock, domain) = setup(&mut ctx);
+@@ -48,2 +48,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, clock, domain) = setup(&mut ctx);
+@@ -86,2 +86,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, _domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, mut clock, _domain) = setup(&mut ctx);
+@@ -114,2 +114,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, mut clock, domain) = setup(&mut ctx);
+@@ -142,2 +142,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, mut clock, domain) = setup(&mut ctx);
+@@ -170,2 +170,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, clock, domain) = setup(&mut ctx);
+@@ -185,2 +185,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, mut clock, domain) = setup(&mut ctx);
+@@ -204,2 +204,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, mut clock, domain) = setup(&mut ctx);
+@@ -233,2 +233,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, mut clock, domain) = setup(&mut ctx);
+@@ -258,2 +258,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, clock, domain) = setup(&mut ctx);
+@@ -266 +266 @@
+-        let search = registry::lookup(&registry, domain);
++        let mut search = registry::lookup(&registry, domain);
+@@ -285,2 +285,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, clock, domain) = setup(&mut ctx);
+@@ -294 +294 @@
+-        let search = registry::reverse_lookup(&registry, @0xB0B);
++        let mut search = registry::reverse_lookup(&registry, @0xB0B);
+@@ -309,2 +309,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, _domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, mut clock, _domain) = setup(&mut ctx);
+@@ -325,2 +325,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, mut clock, domain) = setup(&mut ctx);
+@@ -342,2 +342,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, mut clock, domain) = setup(&mut ctx);
+@@ -367,2 +367,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, clock, domain) = setup(&mut ctx);
+@@ -382,2 +382,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, clock, domain) = setup(&mut ctx);
+@@ -396,2 +396,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, _domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, clock, _domain) = setup(&mut ctx);
+@@ -407,2 +407,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, _domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, clock, _domain) = setup(&mut ctx);
+@@ -418,2 +418,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, _domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, clock, _domain) = setup(&mut ctx);
+@@ -431,2 +431,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, _domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, clock, _domain) = setup(&mut ctx);
+@@ -445,2 +445,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, _domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, clock, _domain) = setup(&mut ctx);
+@@ -460,2 +460,2 @@
+-        let ctx = tx_context::dummy();
+-        let (registry, clock, domain) = setup(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut registry, clock, domain) = setup(&mut ctx);
+@@ -494 +494 @@
+-    public fun burn_nfts(nfts: vector<SuinsRegistration>) {
++    public fun burn_nfts(mut nfts: vector<SuinsRegistration>) {
+--- tests/unit/sub_name_tests.move
++++ tests/unit/sub_name_tests.move
+@@ -17,2 +17,2 @@
+-        let ctx = tx_context::dummy();
+-        let clock = clock::create_for_testing(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let mut clock = clock::create_for_testing(&mut ctx);
+@@ -22 +22 @@
+-        let nft = suins_registration::new_for_testing(domain, 1, &clock, &mut ctx);
++        let mut nft = suins_registration::new_for_testing(domain, 1, &clock, &mut ctx);
+@@ -25 +25 @@
+-        let sub_nft = subdomain::new(nft, &clock, &mut ctx);
++        let mut sub_nft = subdomain::new(nft, &clock, &mut ctx);
+@@ -41 +41 @@
+-        let ctx = tx_context::dummy();
++        let mut ctx = tx_context::dummy();
+@@ -54,2 +54,2 @@
+-        let ctx = tx_context::dummy();
+-        let clock = clock::create_for_testing(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let mut clock = clock::create_for_testing(&mut ctx);
+@@ -68 +68 @@
+-        let ctx = tx_context::dummy();
++        let mut ctx = tx_context::dummy();
+--- tests/unit/suins_tests.move
++++ tests/unit/suins_tests.move
+@@ -16 +16 @@
+-    struct TestConfig has store, drop { a: u8 }
++    public struct TestConfig has store, drop { a: u8 }
+@@ -21,2 +21,2 @@
+-        let ctx = tx_context::dummy();
+-        let (suins, cap) = suins::new_for_testing(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut suins, cap) = suins::new_for_testing(&mut ctx);
+@@ -34 +34 @@
+-    struct TestRegistry has store { counter: u8 }
++    public struct TestRegistry has store { counter: u8 }
+@@ -39,2 +39,2 @@
+-        let ctx = tx_context::dummy();
+-        let (suins, cap) = suins::new_for_testing(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut suins, cap) = suins::new_for_testing(&mut ctx);
+@@ -51 +51 @@
+-    struct TestApp has drop {}
++    public struct TestApp has drop {}
+@@ -53 +53 @@
+-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
++    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
+@@ -56,2 +56,2 @@
+-        let ctx = tx_context::dummy();
+-        let (suins, _cap) = suins::new_for_testing(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut suins, _cap) = suins::new_for_testing(&mut ctx);
+@@ -62 +62 @@
+-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
++    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
+@@ -65,2 +65,2 @@
+-        let ctx = tx_context::dummy();
+-        let (suins, _cap) = suins::new_for_testing(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut suins, _cap) = suins::new_for_testing(&mut ctx);
+@@ -75,2 +75,2 @@
+-        let ctx = tx_context::dummy();
+-        let (suins, cap) = suins::new_for_testing(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut suins, cap) = suins::new_for_testing(&mut ctx);
+@@ -103,2 +103,2 @@
+-        let ctx = tx_context::dummy();
+-        let (suins, cap) = suins::new_for_testing(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut suins, cap) = suins::new_for_testing(&mut ctx);
+@@ -116 +116 @@
+-    #[test, expected_failure(abort_code = suins::suins::ENoProfits)]
++    #[test, expected_failure(abort_code = ::suins::suins::ENoProfits)]
+@@ -120,2 +120,2 @@
+-        let ctx = tx_context::dummy();
+-        let (suins, cap) = suins::new_for_testing(&mut ctx);
++        let mut ctx = tx_context::dummy();
++        let (mut suins, cap) = suins::new_for_testing(&mut ctx);
+--- tests/v2/register.move
++++ tests/v2/register.move
+@@ -25 +25 @@
+-    struct Register has drop {}
++    public struct Register has drop {}
+--- tests/v2/renew.move
++++ tests/v2/renew.move
+@@ -31 +31 @@
+-    struct Renew has drop {}
++    public struct Renew has drop {}

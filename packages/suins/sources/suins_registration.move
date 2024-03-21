@@ -19,11 +19,11 @@ module suins::suins_registration {
     use suins::constants;
     use suins::domain::{Self, Domain};
 
-    friend suins::registry;
-    friend suins::update_image;
+    /* friend suins::registry; */
+    /* friend suins::update_image; */
 
     /// The main access point for the user.
-    struct SuinsRegistration has key, store {
+    public struct SuinsRegistration has key, store {
         id: UID,
         /// The parsed domain.
         domain: Domain,
@@ -39,7 +39,7 @@ module suins::suins_registration {
 
     /// Creates a new `SuinsRegistration`.
     /// Can only be called by the `registry` module.
-    public(friend) fun new(
+    public(package) fun new(
         domain: Domain,
         no_years: u8,
         clock: &Clock,
@@ -55,19 +55,19 @@ module suins::suins_registration {
     }
 
     /// Sets the `expiration_timestamp_ms` for this NFT.
-    public(friend) fun set_expiration_timestamp_ms(self: &mut SuinsRegistration, expiration_timestamp_ms: u64) {
+    public(package) fun set_expiration_timestamp_ms(self: &mut SuinsRegistration, expiration_timestamp_ms: u64) {
         self.expiration_timestamp_ms = expiration_timestamp_ms;
     }
 
     /// Updates the `image_url` field for this NFT. Is only called in the `update_image` for now.
-    public(friend) fun update_image_url(self: &mut SuinsRegistration, image_url: String) {
+    public(package) fun update_image_url(self: &mut SuinsRegistration, image_url: String) {
         self.image_url = image_url;
     }
 
     /// Destroys the `SuinsRegistration` by deleting it from the store, returning
     /// storage rebates to the caller.
     /// Can only be called by the `registry` module.
-    public(friend) fun burn(self: SuinsRegistration) {
+    public(package) fun burn(self: SuinsRegistration) {
         let SuinsRegistration {
             id,
             image_url: _,

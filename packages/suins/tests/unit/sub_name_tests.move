@@ -14,15 +14,15 @@ module suins::sub_name_tests {
 
     #[test]
     fun test_wrap_and_destroy(){
-        let ctx = tx_context::dummy();
-        let clock = clock::create_for_testing(&mut ctx);
+        let mut ctx = tx_context::dummy();
+        let mut clock = clock::create_for_testing(&mut ctx);
 
         let domain = domain::new(utf8(b"sub.example.sui"));
 
-        let nft = suins_registration::new_for_testing(domain, 1, &clock, &mut ctx);
+        let mut nft = suins_registration::new_for_testing(domain, 1, &clock, &mut ctx);
 
         // create subdomain from name
-        let sub_nft = subdomain::new(nft, &clock, &mut ctx);
+        let mut sub_nft = subdomain::new(nft, &clock, &mut ctx);
 
         assert!(suins_registration::domain(subdomain::nft(&sub_nft)) == domain, 1);
 
@@ -38,7 +38,7 @@ module suins::sub_name_tests {
 
     #[test, expected_failure(abort_code=suins::subdomain_registration::ENotSubdomain)]
     fun try_wrap_non_subdomain() {
-        let ctx = tx_context::dummy();
+        let mut ctx = tx_context::dummy();
         let clock = clock::create_for_testing(&mut ctx);
 
         let nft = suins_registration::new_for_testing(domain::new(utf8(b"example.sui")), 1, &clock, &mut ctx);
@@ -51,8 +51,8 @@ module suins::sub_name_tests {
 
     #[test, expected_failure(abort_code=suins::subdomain_registration::EExpired)]
     fun try_wrap_expired_subname() {
-        let ctx = tx_context::dummy();
-        let clock = clock::create_for_testing(&mut ctx);
+        let mut ctx = tx_context::dummy();
+        let mut clock = clock::create_for_testing(&mut ctx);
 
         let nft = suins_registration::new_for_testing(domain::new(utf8(b"sub.example.sui")), 1, &clock, &mut ctx);
         clock::set_for_testing(&mut clock, suins_registration::expiration_timestamp_ms(&nft) + 1);
@@ -65,7 +65,7 @@ module suins::sub_name_tests {
 
     #[test, expected_failure(abort_code=suins::subdomain_registration::ENameNotExpired)]
     fun try_unwrap_non_expired_subdomain() {
-        let ctx = tx_context::dummy();
+        let mut ctx = tx_context::dummy();
         let clock = clock::create_for_testing(&mut ctx);
 
         let nft = suins_registration::new_for_testing(domain::new(utf8(b"sub.example.sui")), 1, &clock, &mut ctx);
