@@ -1,4 +1,4 @@
-name: Move CI
+name: Move Test CI
 
 on:
   push:
@@ -23,6 +23,38 @@ jobs:
     - name: Install Sui using Homebrew
       run: brew install sui
 
-    - name: Run Sui Move tests
+    - name: Run Sui Move tests in coupons
       run: sui move test
       working-directory: packages/coupons
+
+    - name: Run Sui Move tests in day_one
+      run: sui move test
+      working-directory: packages/day_one
+
+    - name: Run Sui Move tests in denylist
+      run: sui move test
+      working-directory: packages/denylist
+
+    - name: Run Sui Move tests in discounts
+      run: sui move test
+      working-directory: packages/discounts
+
+    - name: Run Sui Move tests in managed_names
+      run: sui move test
+      working-directory: packages/managed_names
+
+    - name: Run Sui Move tests in registration
+      run: sui move test
+      working-directory: packages/registration
+
+    - name: Run Sui Move tests in renewal
+      run: sui move test
+      working-directory: packages/renewal
+
+    - name: Run Sui Move tests in subdomains
+      run: sui move test
+      working-directory: packages/subdomains
+
+    - name: Run Sui Move tests in suins
+      run: sui move test
+      working-directory: packages/suins
