@@ -1,0 +1,32 @@
+name: Move CI
+
+on:
+  push:
+    branches: [ suins-ci ]
+    paths:
+      - 'packages/coupons/**'
+  pull_request:
+    branches: [ suins-ci ]
+    paths:
+      - 'packages/coupons/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Install Homebrew
+      run: |
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> $GITHUB_ENV
+
+    - name: Install Sui using Homebrew
+      run: brew install sui
+
+    - name: Run Sui Move tests
+      run: sui move test
+      working-directory: packages/coupons
