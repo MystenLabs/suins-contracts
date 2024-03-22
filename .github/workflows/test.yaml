@@ -2,11 +2,11 @@ name: Move CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ suins-ci ]
     paths:
       - 'packages/coupons/**'
   pull_request:
-    branches: [ main ]
+    branches: [ suins-ci ]
     paths:
       - 'packages/coupons/**'
 
