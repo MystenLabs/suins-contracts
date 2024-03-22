@@ -3,12 +3,8 @@ name: Move CI
 on:
   push:
     branches: [ suins-ci ]
-    paths:
-      - 'packages/coupons/**'
   pull_request:
     branches: [ suins-ci ]
-    paths:
-      - 'packages/coupons/**'
 
 jobs:
   test:
