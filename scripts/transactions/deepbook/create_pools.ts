@@ -13,6 +13,10 @@ import { TransactionBlock } from "@mysten/sui.js";
 
 const SUI =
   "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI";
+const USDY =
+  "0x960b531667636f39e85867775f52f6b1f220a058c4de786905bdf761e06a56bb::usdy::USDY";
+const USDC =
+  "0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN"
 const WUSDCETH =
   "0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN";
 const WBTC =
@@ -23,6 +27,11 @@ const USDT =
   "0xc060006111016b8a020ad5b33834984a437aaa7d3c74c18e09a95d48aceab08c::coin::COIN";
 const TESTNET_COIN =
   "0x0c5f16ebb22a354ccb8f4dc163df0e729d0d37b565b4178046ea342ea0a93391::gold::GOLD";
+const TESTNET_SUI = 
+  "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI";
+const TESTNET_DAI = 
+  "0x700de8dea1aac1de7531e9d20fc2568b12d74369f91b7fad3abc1c4f40396e52::dai::DAI";
+
 export const CREATION_FEE = 100 * 1e9;
 export const PACKAGE_ID = "0xdee9";
 export const MODULE_CLOB = "clob_v2";
@@ -80,67 +89,33 @@ const setup = async (network: Network) => {
   const setup = mainPackage[network];
 
   const txb = new TransactionBlock();
-  //   txb.mergeCoins(txb.gas, [
-  //     txb.object(
-  //       "0xbb210191c48a3acbe8c306ef836037c7dc0e5920c7337d569755b52e38120554"
-  //     ),
-  //   ]);
-  //   const [coin] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
+  const [coin] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
 
-  //   // Create SUI/ USDC
-  //   txb.moveCall({
-  //     typeArguments: [SUI, WUSDCETH],
-  //     target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
-  //     arguments: [
-  //       txb.pure(100),
-  //       txb.pure(100000000),
-  //       txb.pure(DEFAULT_TAKER_FEE),
-  //       txb.pure(DEFAULT_MAKER_FEE),
-  //       coin,
-  //     ],
-  //   });
-
-  //   const [coin2] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
-
-  //   // Create USDT / USDC
-  //   txb.moveCall({
-  //     typeArguments: [USDT, WUSDCETH],
-  //     target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
-  //     arguments: [
-  //       txb.pure(100000),
-  //       txb.pure(100000),
-  //       txb.pure(DEFAULT_STABLE_TAKER_FEE),
-  //       txb.pure(DEFAULT_STABLE_MAKER_FEE),
-  //       coin2,
-  //     ],
-  //   });
-
-  const [coin3] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
-
-  // Create WETH / USDC
+  // Create USDY / USDC
   txb.moveCall({
-    typeArguments: [WETH, WUSDCETH],
+    typeArguments: [USDY, USDC],
     target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
     arguments: [
-      txb.pure(1000000),
-      txb.pure(10000),
-      txb.pure(DEFAULT_TAKER_FEE),
-      txb.pure(DEFAULT_MAKER_FEE),
-      coin3,
+      txb.pure(100000), // tick
+      txb.pure(100000), // lot
+      txb.pure(DEFAULT_STABLE_TAKER_FEE), // taker fee
+      txb.pure(DEFAULT_STABLE_MAKER_FEE), // maker rebate
+      coin, // creation fee
     ],
   });
-  const [coin4] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
 
-  // Create WBTC / USDC
+  const [coin2] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
+
+  // Create SUI / USDY
   txb.moveCall({
-    typeArguments: [WBTC, WUSDCETH],
+    typeArguments: [SUI, USDY],
     target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
     arguments: [
-      txb.pure(1000000),
-      txb.pure(1000),
-      txb.pure(DEFAULT_TAKER_FEE),
-      txb.pure(DEFAULT_MAKER_FEE),
-      coin4,
+      txb.pure(100), // tick
+      txb.pure(100000000), // lot
+      txb.pure(DEFAULT_TAKER_FEE), // taker fee
+      txb.pure(DEFAULT_MAKER_FEE), // maker rebate
+      coin2, // creation fee
     ],
   });
 
