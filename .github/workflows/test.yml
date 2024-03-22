@@ -2,9 +2,9 @@ name: Move CI
 
 on:
   push:
-    branches: [ suins-ci ]
+    branches: [ tlee/suins-ci ]
   pull_request:
-    branches: [ suins-ci ]
+    branches: [ tlee/suins-ci ]
 
 jobs:
   test:
