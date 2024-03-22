@@ -89,25 +89,20 @@ const setup = async (network: Network) => {
   const setup = mainPackage[network];
 
   const txb = new TransactionBlock();
-  //   txb.mergeCoins(txb.gas, [
-  //     txb.object(
-  //       "0xbb210191c48a3acbe8c306ef836037c7dc0e5920c7337d569755b52e38120554"
-  //     ),
-  //   ]);
-    const [coin] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
+  const [coin] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
 
-    // Create USDY / USDC
-    txb.moveCall({
-      typeArguments: [USDY, USDC],
-      target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
-      arguments: [
-        txb.pure(100000), // tick
-        txb.pure(100000), // lot
-        txb.pure(DEFAULT_STABLE_TAKER_FEE), // taker fee
-        txb.pure(DEFAULT_STABLE_MAKER_FEE), // maker rebate
-        coin, // creation fee
-      ],
-    });
+  // Create USDY / USDC
+  txb.moveCall({
+    typeArguments: [USDY, USDC],
+    target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
+    arguments: [
+      txb.pure(100000), // tick
+      txb.pure(100000), // lot
+      txb.pure(DEFAULT_STABLE_TAKER_FEE), // taker fee
+      txb.pure(DEFAULT_STABLE_MAKER_FEE), // maker rebate
+      coin, // creation fee
+    ],
+  });
 
   const [coin2] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
 
@@ -123,36 +118,6 @@ const setup = async (network: Network) => {
       coin2, // creation fee
     ],
   });
-
-  // const [coin3] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
-
-  // // Create WBTC / USDC
-  // txb.moveCall({
-  //   typeArguments: [WBTC, WUSDCETH],
-  //   target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
-  //   arguments: [
-  //     txb.pure(100000),
-  //     txb.pure(100000),
-  //     txb.pure(DEFAULT_TAKER_FEE),
-  //     txb.pure(DEFAULT_MAKER_FEE),
-  //     coin3,
-  //   ],
-  // });
-
-  // const [coin4] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
-
-  // // Create WBTC / USDC
-  // txb.moveCall({
-  //   typeArguments: [WBTC, WUSDCETH],
-  //   target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
-  //   arguments: [
-  //     txb.pure(1000000),
-  //     txb.pure(1000),
-  //     txb.pure(DEFAULT_TAKER_FEE),
-  //     txb.pure(DEFAULT_MAKER_FEE),
-  //     coin4,
-  //   ],
-  // });
 
   // for mainnet, we prepare the multi-sig tx.
   if (network === "mainnet") return prepareMultisigTx(txb, "mainnet");
