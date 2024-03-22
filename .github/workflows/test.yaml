@@ -27,9 +27,6 @@ jobs:
     - name: Install Sui using Homebrew
       run: brew install sui
 
-    - name: Change to package directory
-      run: cd packages/coupons
-
     - name: Run Sui Move tests
       run: sui move test
       working-directory: packages/coupons
