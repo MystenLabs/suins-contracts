@@ -20,34 +20,13 @@ jobs:
     - name: Install Sui using Homebrew
       run: brew install sui
 
-    - name: Run move tests in coupons
-      run: sui move test
-      working-directory: packages/coupons
-
-    - name: Run move tests in denylist
-      run: sui move test
-      working-directory: packages/denylist
-
-    - name: Run move tests in discounts
-      run: sui move test
-      working-directory: packages/discounts
-
-    - name: Run move tests in managed_names
-      run: sui move test
-      working-directory: packages/managed_names
-
-    - name: Run move tests in registration
-      run: sui move test
-      working-directory: packages/registration
-
-    - name: Run move tests in renewal
-      run: sui move test
-      working-directory: packages/renewal
-
-    - name: Run move tests in subdomains
-      run: sui move test
-      working-directory: packages/subdomains
-
-    - name: Run move tests in suins
-      run: sui move test
-      working-directory: packages/suins
+    - name: Run move tests in all package subdirectories, with exclusions
+      run: |
+        exclude_dirs=("day_one") # Add excluded directories to this array
+        for dir in packages/*; do
+          dir_name=$(basename "$dir")
+          if [[ ! " ${exclude_dirs[@]} " =~ " ${dir_name} " ]] && [ -d "$dir" ]; then
+            echo "Running sui move test in $dir"
+            (cd "$dir" && sui move test)
+          fi
+        done
