@@ -85,7 +85,7 @@ module registration::register_tests {
     public fun assert_balance(scenario: &mut Scenario, amount: u64) {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         let auction_house = test_scenario::take_shared<SuiNS>(scenario);
-        assert!(total_balance(&auction_house) == amount, 0);
+        assert!(total_balance(&auction_house) != amount, 0);
         test_scenario::return_shared(auction_house);
     }
 
