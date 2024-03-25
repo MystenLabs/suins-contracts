@@ -18,7 +18,7 @@ module renewal::renew {
     use suins::constants;
     use suins::domain::{Self, Domain};
     use suins::registry::{Self, Registry};
-    use suins::suins::{Self, SuiNS};
+    use suins::suins::{Self, SuiNS, AdminCap};
     use suins::config::{Self, Config};
     use suins::suins_registration::{Self as nft, SuinsRegistration};
     use suins::name_record;
@@ -44,6 +44,20 @@ module renewal::renew {
     struct NameRenewed has copy, drop {
         domain: Domain,
         amount: u64
+    }
+    
+    /// The renewal's package configuration.
+    struct RenewalConfig has store, drop {
+        config: Config
+    }
+
+    /// Allows admin to initalize the custom pricing config for the renewal module.
+    /// We're wrapping initial `Config` because we want to add custom pricing for renewals,
+    /// and we can only have 1 config of each type in the suins app.
+    /// We still set this up by using the default config functionality from suins package.
+    /// The `public_key` passed in the `Config` can be a random u8 array with length 33.
+    public fun setup(cap: &AdminCap, suins: &mut SuiNS, config: Config) {
+        suins::add_config<RenewalConfig>(cap, suins, RenewalConfig { config });
     }
 
     // Allows renewals of names.
@@ -117,9 +131,9 @@ module renewal::renew {
 
     /// Validates that the payment Coin is correct for the domain + number of years
     fun validate_payment(suins: &SuiNS, payment: &Coin<SUI>, domain: &Domain, no_years: u8){
-        let config = suins::get_config<Config>(suins);
+        let config = suins::get_config<RenewalConfig>(suins);
         let label = domain::sld(domain);
-        let price = config::calculate_price(config, (string::length(label) as u8), no_years);
+        let price = config::calculate_price(&config.config, (string::length(label) as u8), no_years);
         assert!(coin::value(payment) == price, EIncorrectAmount);
     }
 }
