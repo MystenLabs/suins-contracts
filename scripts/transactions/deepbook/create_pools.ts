@@ -9,7 +9,7 @@ import {
   prepareSigner,
 } from "../../airdrop/helper";
 import { Network, mainPackage } from "../../config/constants";
-import { TransactionBlock } from "@mysten/sui.js";
+import { TransactionBlock } from "@mysten/sui.js/transactions";
 
 const SUI =
   "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI";
@@ -148,7 +148,7 @@ const setup = async (network: Network) => {
   if (network === "mainnet") return prepareMultisigTx(txb, "mainnet");
 
   // For testnet, we execute the TX directly.
-  return executeTx(prepareSigner(setup.provider), txb);
+  return executeTx(prepareSigner(setup.client), txb);
 };
 
 if (process.env.NETWORK === "mainnet") setup("mainnet");

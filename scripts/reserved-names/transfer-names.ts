@@ -1,4 +1,7 @@
-import { SuiObjectResponse, TransactionBlock, isValidSuiAddress } from "@mysten/sui.js";
+import { SuiObjectResponse } from "@mysten/sui.js/client";
+import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { isValidSuiAddress } from "@mysten/sui.js/utils";
+
 import fs from "fs";
 import { prepareMultisigTx } from "../airdrop/helper";
 

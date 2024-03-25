@@ -1,4 +1,4 @@
-import { TransactionBlock } from "@mysten/sui.js";
+import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { batchToHash, executeTx, prepareSigner } from "./helper";
 import { addressConfig, mainnetConfig } from "../config/day_one";
 import { createDayOneDisplay, createDayOneTransferPolicy } from "../day_one/setup";
@@ -35,12 +35,12 @@ export const setupAirdrop = async (batches: string[][], network: Network): Promi
     // add the DayOne Display.
     createDayOneDisplay(tx, network);
     // attach TransferPolicy to make it tradeable.
-    await createDayOneTransferPolicy(tx, suinsPackageConfig.provider, network);
+    await createDayOneTransferPolicy(tx, suinsPackageConfig, network);
     
     // return if we're on multisig execution.
     if(airdropConfig.isMainnet) return tx;
 
-    const signer = prepareSigner(mainPackage[network].provider);
+    const signer = prepareSigner(mainPackage[network].client);
     await executeTx(signer, tx);
 }
 

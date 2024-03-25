@@ -22,11 +22,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@mysten/bcs": "^0.7.3",
-    "@mysten/kiosk": "^0.3.3",
-    "@mysten/sui.js": "^0.37.1",
+    "@mysten/bcs": "0.11.1",
+    "@mysten/kiosk": "0.8.4",
+    "@mysten/sui.js": "0.51.0",
     "@types/blake2": "^4.0.1",
-    "blake2": "^5.0.0",
+    "@pythnetwork/pyth-sui-js": "2.0.0",
     "dotenv": "^16.3.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6"

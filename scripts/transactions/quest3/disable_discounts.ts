@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import { executeTx, prepareMultisigTx, prepareSigner } from "../../airdrop/helper";
 import { Network, mainPackage } from "../../config/constants";
-import { TransactionBlock } from "@mysten/sui.js";
+import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { DAY_ONE_TYPE, SUIFREN_BULLSHARK_TYPE, SUIFREN_CAPY_TYPE, removeDiscountForType } from "../../config/discounts";
 
 const execute = async (network: Network) => {
@@ -21,7 +21,7 @@ const execute = async (network: Network) => {
     if(network === 'mainnet') return prepareMultisigTx(txb, 'mainnet');
 
     // For testnet, we execute the TX directly.
-    return executeTx(prepareSigner(setup.provider), txb);
+    return executeTx(prepareSigner(setup.client), txb);
 }
 
 if(process.env.NETWORK === 'mainnet') execute('mainnet')

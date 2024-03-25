@@ -1,4 +1,5 @@
-import { RawSigner, TransactionBlock } from "@mysten/sui.js";
+import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { RawSigner } from "@mysten/sui.js/src/signers/raw-signer";
 import {executeTx } from "./helper";
 import { AirdropConfig } from "../config/day_one";
 
@@ -9,7 +10,7 @@ export const cleanUpCoins = async (signer: RawSigner, config: AirdropConfig) => 
     let coins = [];
 
     while (hasNextPage) {
-        const data = await signer.provider.getAllCoins({
+        const data = await signer.client.getAllCoins({
             owner: config.massMintingAddress,
             cursor,
             limit: 50
@@ -32,7 +33,7 @@ export const cleanUpCoins = async (signer: RawSigner, config: AirdropConfig) => 
 
     while (count > 1) {
         // get the base gas coin from the provider
-        const { data } = await signer.provider.getObject({
+        const { data } = await signer.client.getObject({
             id: config.baseCoinObjectId
         });
 

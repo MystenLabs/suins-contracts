@@ -1,5 +1,7 @@
 // TESTNET VERSION HERE. WILL CLEAN UP.
-import { SuiObjectData, SuiObjectRef, SuiTransactionBlockResponse, TransactionBlock, getExecutionStatusType } from "@mysten/sui.js";
+import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { SuiObjectData, SuiObjectRef } from "@mysten/sui.js/client";
+import { SuiTransactionBlockResponse } from "@mysten/sui.js/client";
 
 import { MAX_MINTS_PER_TRANSACTION, addressesToBuffer, csvToBatches, executeTx, readAddressesFromFile }
     from './helper';
@@ -11,7 +13,7 @@ const SUI_COIN_TYPE = '0x2::coin::Coin<0x2::sui::SUI>';
 
 const network = 'testnet' // change to mainnet when running it.
 
-const signer = prepareSigner(mainPackage[network].provider);
+const signer = prepareSigner(mainPackage[network].client);
 
 const config = addressConfig;
 const usedCoinObjects = new Set();
@@ -27,7 +29,7 @@ const prepareCoinObjects = async (chunks: number) => {
     const tx = new TransactionBlock();
 
     // get the base gas coin from the provider
-    const { data } = await signer.provider.getObject({
+    const { data } = await signer.client.getObject({
         id: config.baseCoinObjectId
     });
 

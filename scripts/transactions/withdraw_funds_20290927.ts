@@ -1,7 +1,7 @@
 // Copyright (c) 2023, Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-import { TransactionBlock } from '@mysten/sui.js';
+import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { mainPackage } from '../config/constants';
 import { prepareMultisigTx } from '../airdrop/helper';
 

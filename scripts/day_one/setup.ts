@@ -1,4 +1,5 @@
-import { JsonRpcProvider, TransactionBlock } from "@mysten/sui.js";
+import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { SuiClient } from "@mysten/sui.js/client"
 import { Network, mainPackage } from "../config/constants";
 import { AirdropConfig, addressConfig, mainnetConfig } from "../config/day_one";
 import { createTransferPolicy, queryTransferPolicy } from "@mysten/kiosk";
@@ -44,14 +45,14 @@ export const createDayOneDisplay = async (tx: TransactionBlock, network: Network
 
 export const createDayOneTransferPolicy = async (
     tx: TransactionBlock,
-    provider: JsonRpcProvider,
+    client: SuiClient,
     network: Network,
   ) => {
 
     const config = network === 'mainnet' ? mainnetConfig : addressConfig;
     
     const mainPackageConfig = mainPackage[network];
-    const existingPolicy = await queryTransferPolicy(provider, dayOneType(config));
+    const existingPolicy = await queryTransferPolicy(client, dayOneType(config));
   
     if (existingPolicy.length > 0) {
       console.warn(`Type ${dayOneType} already had a tranfer policy so the transaction was skipped.`);
@@ -64,5 +65,4 @@ export const createDayOneTransferPolicy = async (
     tx.transferObjects([transferPolicyCap], tx.pure(mainPackageConfig.adminAddress, 'address'));
   
     return true;
-  
   }

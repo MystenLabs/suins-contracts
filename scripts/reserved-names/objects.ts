@@ -11,7 +11,7 @@ const getAllOwnedDomains = async () => {
     let names = [];
 
     while(hasNextPage){
-        const res = await config.provider.getOwnedObjects({
+        const res = await config.client.getOwnedObjects({
             owner: config.adminAddress,
             filter: {
                 MatchAll: [
