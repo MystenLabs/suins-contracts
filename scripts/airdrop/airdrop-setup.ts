@@ -35,7 +35,7 @@ export const setupAirdrop = async (batches: string[][], network: Network): Promi
     // add the DayOne Display.
     createDayOneDisplay(tx, network);
     // attach TransferPolicy to make it tradeable.
-    await createDayOneTransferPolicy(tx, suinsPackageConfig, network);
+    await createDayOneTransferPolicy(tx, network);
     
     // return if we're on multisig execution.
     if(airdropConfig.isMainnet) return tx;

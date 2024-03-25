@@ -45,14 +45,12 @@ export const createDayOneDisplay = async (tx: TransactionBlock, network: Network
 
 export const createDayOneTransferPolicy = async (
     tx: TransactionBlock,
-    client: SuiClient,
     network: Network,
   ) => {
-
     const config = network === 'mainnet' ? mainnetConfig : addressConfig;
     
     const mainPackageConfig = mainPackage[network];
-    const existingPolicy = await queryTransferPolicy(client, dayOneType(config));
+    const existingPolicy = await queryTransferPolicy(mainPackageConfig.client, dayOneType(config));
   
     if (existingPolicy.length > 0) {
       console.warn(`Type ${dayOneType} already had a tranfer policy so the transaction was skipped.`);
