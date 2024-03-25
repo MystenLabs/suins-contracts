@@ -1,4 +1,4 @@
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { TransactionBlock } from "@mysten/sui.js/src/transactions";
 import { batchToHash, executeTx, prepareSigner } from "./helper";
 import { addressConfig, mainnetConfig } from "../config/day_one";
 import { createDayOneDisplay, createDayOneTransferPolicy } from "../day_one/setup";

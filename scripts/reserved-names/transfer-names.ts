@@ -1,6 +1,6 @@
-import { SuiObjectResponse } from "@mysten/sui.js/client";
-import { TransactionBlock } from "@mysten/sui.js/transactions";
-import { isValidSuiAddress } from "@mysten/sui.js/utils";
+import { SuiClient, SuiObjectResponse } from "@mysten/sui.js/src/client";
+import { TransactionBlock } from "@mysten/sui.js/src/transactions";
+import { isValidSuiAddress } from "@mysten/sui.js/src/utils";
 
 import fs from "fs";
 import { prepareMultisigTx } from "../airdrop/helper";
@@ -81,6 +81,10 @@ const prepareTx = () => {
         const objects = [...recipients[recipient]].filter(x => !!x);
         txb.transferObjects([...objects.map(x => txb.object(x))], txb.pure(recipient));
     }
+
+    txb.build({
+        client: new SuiClient({url: ''})
+    });
 
     return prepareMultisigTx(txb, 'mainnet');
 }

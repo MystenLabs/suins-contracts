@@ -1,4 +1,4 @@
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { TransactionBlock } from "@mysten/sui.js/src/transactions";
 import { RawSigner } from "@mysten/sui.js/src/signers/raw-signer";
 import {executeTx } from "./helper";
 import { AirdropConfig } from "../config/day_one";

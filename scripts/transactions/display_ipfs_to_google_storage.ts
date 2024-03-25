@@ -4,8 +4,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 import { prepareMultisigTx } from "../airdrop/helper";
-import { authorizeBogoApp } from "../airdrop/authorize-app";
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { TransactionBlock } from "@mysten/sui.js/src/transactions";
 import { mainPackage } from "../config/constants";
 
 const run = async () => {

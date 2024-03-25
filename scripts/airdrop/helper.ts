@@ -1,5 +1,5 @@
-import { TransactionArgument, TransactionBlock } from "@mysten/sui.js/transactions";
-import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
+import { TransactionArgument, TransactionBlock } from "@mysten/sui.js/src/transactions";
+import { Ed25519Keypair } from '@mysten/sui.js/src/keypairs/ed25519';
 import * as blake2 from 'blake2';
 import fs from "fs";
 import { AirdropConfig, addressConfig, mainnetConfig } from "../config/day_one";
@@ -8,7 +8,7 @@ import { execSync } from 'child_process';
 import { RawSigner } from "@mysten/sui.js/src/signers/raw-signer";
 import { isValidSuiAddress, normalizeSuiAddress, toB64 } from "@mysten/sui.js/src/utils";
 import { ExecutionStatus, GasCostSummary, SuiClient, SuiTransactionBlockResponse } from "@mysten/sui.js/src/client";
-import { bcs } from "@mysten/sui.js/bcs";
+import { bcs } from "@mysten/sui.js/src/bcs";
 import { SignerWithProvider } from "@mysten/sui.js/src/signers/signer-with-provider";
 
 export const MAX_MINTS_PER_TRANSACTION = 2_000;
@@ -170,7 +170,6 @@ export const prepareMultisigTx = async (
     tx: TransactionBlock,
     network: Network
 ) => {
-
     const config = mainPackage[network];
     const gasObjectId = process.env.GAS_OBJECT;
 

@@ -1,7 +1,6 @@
 // TESTNET VERSION HERE. WILL CLEAN UP.
-import { TransactionBlock } from "@mysten/sui.js/transactions";
-import { SuiObjectData, SuiObjectRef } from "@mysten/sui.js/client";
-import { SuiTransactionBlockResponse } from "@mysten/sui.js/client";
+import { TransactionBlock } from "@mysten/sui.js/src/transactions";
+import { SuiObjectData, SuiObjectRef, SuiTransactionBlockResponse } from "@mysten/sui.js/src/client";
 
 import { MAX_MINTS_PER_TRANSACTION, addressesToBuffer, csvToBatches, executeTx, readAddressesFromFile }
     from './helper';

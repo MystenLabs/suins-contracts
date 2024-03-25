@@ -1,4 +1,4 @@
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { TransactionBlock } from "@mysten/sui.js/src/transactions";
 import { Network, PackageInfo } from "./constants";
 
 export const SUIFREN_BULLSHARK_TYPE: Record<Network, string> = {

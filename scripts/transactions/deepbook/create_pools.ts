@@ -9,7 +9,7 @@ import {
   prepareSigner,
 } from "../../airdrop/helper";
 import { Network, mainPackage } from "../../config/constants";
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { TransactionBlock } from "@mysten/sui.js/src/transactions";
 
 const SUI =
   "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI";

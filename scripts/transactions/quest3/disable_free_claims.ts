@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import { executeTx, prepareMultisigTx, prepareSigner } from "../../airdrop/helper";
 import { Network, mainPackage } from "../../config/constants";
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { TransactionBlock } from "@mysten/sui.js/src/transactions";
 import { DAY_ONE_TYPE, SUIFREN_BULLSHARK_TYPE, SUIFREN_CAPY_TYPE, removeFreeClaimsForType, setupDiscountForType } from "../../config/discounts";
 
 // Setup Quests 3.

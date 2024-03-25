@@ -2,8 +2,8 @@ import { mainPackage } from "../config/constants";
 import { SuiPriceServiceConnection, SuiPythClient } from "@pythnetwork/pyth-sui-js";
 import dotenv from "dotenv";
 import { executeTx, prepareSigner } from "../airdrop/helper";
-import { TransactionBlock } from "@mysten/sui.js/transactions";
-import { SuiClient } from "@mysten/sui.js/client";
+import { TransactionBlock } from "@mysten/sui.js/src/transactions";
+import { SuiClient } from "@mysten/sui.js/src/client";
 dotenv.config();
 
 const setup = async () => {

@@ -1,5 +1,4 @@
-import { TransactionBlock } from "@mysten/sui.js/transactions";
-import { SuiClient } from "@mysten/sui.js/client"
+import { TransactionBlock } from "@mysten/sui.js/src/transactions";
 import { Network, mainPackage } from "../config/constants";
 import { AirdropConfig, addressConfig, mainnetConfig } from "../config/day_one";
 import { createTransferPolicy, queryTransferPolicy } from "@mysten/kiosk";

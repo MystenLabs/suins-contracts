@@ -1,4 +1,4 @@
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { TransactionBlock } from "@mysten/sui.js/src/transactions";
 import { executeTx, prepareSigner } from "./helper";
 import { addressConfig, mainnetConfig } from "../config/day_one";
 import { Network, mainPackage } from "../config/constants";
