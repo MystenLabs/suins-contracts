@@ -2,8 +2,8 @@ import { mainPackage } from "../config/constants";
 import { SuiPriceServiceConnection, SuiPythClient } from "@pythnetwork/pyth-sui-js";
 import dotenv from "dotenv";
 import { executeTx, prepareSigner } from "../airdrop/helper";
-import { TransactionBlock } from "@mysten/sui.js/src/transactions";
-import { SuiClient } from "@mysten/sui.js/src/client";
+import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { SuiClient } from "@mysten/sui.js/client";
 dotenv.config();
 
 const setup = async () => {
@@ -44,7 +44,7 @@ const setup = async () => {
     });
     txb.transferObjects([nft], txb.pure.address('insert_address')) // send to tx sender
 
-    return executeTx(prepareSigner(setup.client), txb);
+    return executeTx(prepareSigner(), txb, setup.client);
 };
 
 setup();

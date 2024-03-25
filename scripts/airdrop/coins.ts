@@ -1,16 +1,17 @@
-import { TransactionBlock } from "@mysten/sui.js/src/transactions";
-import { RawSigner } from "@mysten/sui.js/src/signers/raw-signer";
+import { TransactionBlock } from "@mysten/sui.js/transactions";
 import {executeTx } from "./helper";
 import { AirdropConfig } from "../config/day_one";
+import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
+import { SuiClient } from "@mysten/sui.js/client";
 
 // Merges all other coins to the coin defined in the config.
-export const cleanUpCoins = async (signer: RawSigner, config: AirdropConfig) => {
+export const cleanUpCoins = async (signer: Ed25519Keypair, config: AirdropConfig, client: SuiClient) => {
     let hasNextPage = true;
     let cursor = undefined;
     let coins = [];
 
     while (hasNextPage) {
-        const data = await signer.client.getAllCoins({
+        const data = await client.getAllCoins({
             owner: config.massMintingAddress,
             cursor,
             limit: 50
@@ -33,7 +34,7 @@ export const cleanUpCoins = async (signer: RawSigner, config: AirdropConfig) => 
 
     while (count > 1) {
         // get the base gas coin from the provider
-        const { data } = await signer.client.getObject({
+        const { data } = await client.getObject({
             id: config.baseCoinObjectId
         });
 
@@ -64,7 +65,7 @@ export const cleanUpCoins = async (signer: RawSigner, config: AirdropConfig) => 
                 }))
         ]);
 
-        const res = await executeTx(signer, tx);
+        const res = await executeTx(signer, tx, client);
         if(res) count = count - mergeAbleCoins.length -1;
     }
 }

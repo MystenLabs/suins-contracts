@@ -4,9 +4,9 @@
 import dotenv from "dotenv";
 dotenv.config();
 import { executeTx, prepareMultisigTx, prepareSigner } from "../airdrop/helper";
-import { TransactionBlock } from "@mysten/sui.js/src/transactions";
+import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { Network, mainPackage } from "../config/constants";
-import { SuiClient } from "@mysten/sui.js/src/client";
+import { SuiClient } from "@mysten/sui.js/client";
 
 export const authorizeDirectSetupApp = async (network: Network) => {
     const tx = new TransactionBlock();
@@ -32,7 +32,7 @@ export const authorizeDirectSetupApp = async (network: Network) => {
     // for mainnet, we just prepare multisig TX
     if(network === 'mainnet') return prepareMultisigTx(tx, 'mainnet');
 
-    return executeTx(prepareSigner(config.client), tx);
+    return executeTx(prepareSigner(), tx, config.client);
     // prepare tx data.
     
 }

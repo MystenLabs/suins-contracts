@@ -1,5 +1,5 @@
-import { SuiClient } from "@mysten/sui.js/src/client";
-import { normalizeSuiAddress } from "@mysten/sui.js/src/utils";
+import { SuiClient } from "@mysten/sui.js/client";
+import { normalizeSuiAddress } from "@mysten/sui.js/utils";
 
 export type Network = 'mainnet' | 'testnet'
 

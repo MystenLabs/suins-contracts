@@ -1,14 +1,14 @@
-import { TransactionArgument, TransactionBlock } from "@mysten/sui.js/src/transactions";
-import { Ed25519Keypair } from '@mysten/sui.js/src/keypairs/ed25519';
+import { TransactionArgument, TransactionBlock } from "@mysten/sui.js/transactions";
+import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
 import * as blake2 from 'blake2';
 import fs from "fs";
 import { AirdropConfig, addressConfig, mainnetConfig } from "../config/day_one";
 import { Network, mainPackage } from "../config/constants";
 import { execSync } from 'child_process';
 import { RawSigner } from "@mysten/sui.js/src/signers/raw-signer";
-import { isValidSuiAddress, normalizeSuiAddress, toB64 } from "@mysten/sui.js/src/utils";
-import { ExecutionStatus, GasCostSummary, SuiClient, SuiTransactionBlockResponse } from "@mysten/sui.js/src/client";
-import { bcs } from "@mysten/sui.js/src/bcs";
+import { isValidSuiAddress, normalizeSuiAddress, toB64 } from "@mysten/sui.js/utils";
+import { ExecutionStatus, GasCostSummary, SuiClient, SuiTransactionBlockResponse } from "@mysten/sui.js/client";
+import { bcs } from "@mysten/sui.js/bcs";
 import { SignerWithProvider } from "@mysten/sui.js/src/signers/signer-with-provider";
 
 export const MAX_MINTS_PER_TRANSACTION = 2_000;
@@ -16,7 +16,7 @@ export const TOTAL_RANDOM_ADDRESSES = 48 * MAX_MINTS_PER_TRANSACTION; // attempt
 
 
 /* executes the transaction */
-export const executeTx = async (signer: SignerWithProvider, tx: TransactionBlock, options?: {
+export const executeTx = async (keypair: Ed25519Keypair, tx: TransactionBlock, client: SuiClient, options?: {
     isAirdropExecution: boolean,
     chunkNum: number,
     failedChunks: number[]
@@ -28,39 +28,34 @@ export const executeTx = async (signer: SignerWithProvider, tx: TransactionBlock
         showObjectChanges: true,
         showEffects: true
     }
-    const tx_bytes = await tx.build();
-    return signer
-        .signAndExecuteTransactionBlock({
-            transactionBlock: tx_bytes,
-            options: requestOptions,
-        })
-        .then(function (res) {
-            if (!(options?.isAirdropExecution)) {
-                console.dir(res)
-                console.log(getExecutionStatus(res));
-                console.log(getExecutionStatusGasSummary(res));
-            }
 
-            if (options?.isAirdropExecution) {
-                if (getExecutionStatus(res)?.status === 'success') console.log(`Success of chunk: ${options?.chunkNum}`);
-                else {
-                    options.failedChunks.push(options?.chunkNum);
-                    console.log(`Failure of chunk: ${options?.chunkNum}`);
-                }
+    return client.signAndExecuteTransactionBlock({
+        transactionBlock: tx,
+        signer: keypair,
+        options: requestOptions
+    }).then(function(res) {
+        if (options?.isAirdropExecution) {
+            if (getExecutionStatus(res)?.status === 'success') console.log(`Success of chunk: ${options?.chunkNum}`);
+            else {
+                options.failedChunks.push(options?.chunkNum);
+                console.log(`Failure of chunk: ${options?.chunkNum}`);
             }
-
-            return res;
-        }).catch(e => {
-            console.dir(e, { depth: null });
-            if (!options) {
-                console.log(e);
-                return false;
-            }
-            options.failedChunks.push(options.chunkNum);
+        } else {
+            console.dir(res)
+            console.log(getExecutionStatus(res));
+            console.log(getExecutionStatusGasSummary(res));
+        }
+    }).catch (e => {
+        console.dir(e, { depth: null });
+        if (!options) {
             console.log(e);
-            console.log(`Failure of chunk: ${options?.chunkNum}`);
             return false;
-        });
+        }
+        options.failedChunks.push(options.chunkNum);
+        console.log(e);
+        console.log(`Failure of chunk: ${options?.chunkNum}`);
+        return false;
+    })
 }
 
 
@@ -125,12 +120,10 @@ export const batchToHash = (batch: string[]) => {
 }
 
 
-export const prepareSigner = (client: SuiClient): RawSigner => {
+export const prepareSigner = (): Ed25519Keypair => {
     const phrase = process.env.ADMIN_PHRASE || '';
     if (!phrase) throw new Error(`ERROR: Admin mnemonic is not exported! Please run 'export ADMIN_PHRASE="<mnemonic>"'`);
-    const keypair = Ed25519Keypair.deriveKeypair(phrase!);
-
-    return new RawSigner(keypair, client);
+    return Ed25519Keypair.deriveKeypair(phrase!);
 }
 
 // converts an array of addresses to a buffer using the `buffer` module.

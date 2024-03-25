@@ -1,18 +1,18 @@
 // TESTNET VERSION HERE. WILL CLEAN UP.
-import { TransactionBlock } from "@mysten/sui.js/src/transactions";
-import { SuiObjectData, SuiObjectRef, SuiTransactionBlockResponse } from "@mysten/sui.js/src/client";
+import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { SuiClient, SuiObjectData, SuiObjectRef, SuiTransactionBlockResponse } from "@mysten/sui.js/client";
 
 import { MAX_MINTS_PER_TRANSACTION, addressesToBuffer, csvToBatches, executeTx, readAddressesFromFile }
     from './helper';
 import { prepareSigner } from "./helper";
 import { addressConfig } from "../config/day_one";
-import { mainPackage } from "../config/constants";
+import { Network, PackageInfo, mainPackage } from "../config/constants";
 
 const SUI_COIN_TYPE = '0x2::coin::Coin<0x2::sui::SUI>';
 
 const network = 'testnet' // change to mainnet when running it.
 
-const signer = prepareSigner(mainPackage[network].client);
+const signer = prepareSigner();
 
 const config = addressConfig;
 const usedCoinObjects = new Set();
@@ -24,11 +24,11 @@ const millisToMinutesAndSeconds = (millis: number) => {
 }
 
 /* get X amount of chunks of Coins based on amount per tx. */
-const prepareCoinObjects = async (chunks: number) => {
+const prepareCoinObjects = async (chunks: number, client: SuiClient) => {
     const tx = new TransactionBlock();
 
     // get the base gas coin from the provider
-    const { data } = await signer.client.getObject({
+    const { data } = await client.getObject({
         id: config.baseCoinObjectId
     });
 
@@ -50,7 +50,7 @@ const prepareCoinObjects = async (chunks: number) => {
     }
 
     tx.transferObjects(coinsSplitted, tx.pure(config.massMintingAddress, 'address'));
-    const res = await executeTx(signer, tx);
+    const res = await executeTx(signer, tx, mainPackage[network].client);
 
     //@ts-ignore
     return res?.objectChanges?.filter(x => x.type === 'created' && x.objectType === SUI_COIN_TYPE).map((x: SuiObjectData) => (
@@ -65,7 +65,8 @@ const prepareCoinObjects = async (chunks: number) => {
 /** 
  * Mints a batch of bullsharks. 
  * */
-const mintDayOne = async ({
+const mintDayOne = async (client: SuiClient,
+    {
     id,
     batch,
     coinObject,
@@ -98,7 +99,7 @@ const mintDayOne = async ({
     tx.setGasBudget(2_900_000_000);
 
 
-    let res = await executeTx(signer, tx, {
+    let res = await executeTx(signer, tx, client, {
         isAirdropExecution: true,
         chunkNum: id,
         failedChunks
@@ -107,7 +108,7 @@ const mintDayOne = async ({
     return getExecutionStatusType(res as SuiTransactionBlockResponse) === 'success';
 }
 
-const executeMintsForBatches = async (batches: string[][], initialBatch = 0) => {
+const executeMintsForBatches = async (batches: string[][], initialBatch = 0, network: Network) => {
 
     const MAX_BATCH_SIZE = 50; //  The current airdrop is doable in 48 hashes. 50 batches will be running concurrently.
     let start = Date.now(); // time we started the mint process.
@@ -116,11 +117,13 @@ const executeMintsForBatches = async (batches: string[][], initialBatch = 0) => 
     let success = 0;
     let fail = 0;
     const failedChunks: number[] = [];
+    let config = mainPackage[network];
 
     while (currentSliceStart < batches.length) {
         const batchToExecute = batches.slice(currentSliceStart, currentSliceStart + MAX_BATCH_SIZE);
 
         const results = await executeConcurrently(
+            config,
             batchToExecute,
             {
                 sliceStart: currentSliceStart,
@@ -152,12 +155,12 @@ const executeMintsForBatches = async (batches: string[][], initialBatch = 0) => 
 }
 
 
-const executeConcurrently = async (slicedBatches: string[][], options: {
+const executeConcurrently = async (config: PackageInfo, slicedBatches: string[][], options: {
     sliceStart: number;
     failedChunks: number[];
 }) => {
 
-    const coins = await prepareCoinObjects(slicedBatches.length + 1); // does the splitting of coins with some extra space.
+    const coins = await prepareCoinObjects(slicedBatches.length + 1, config.client); // does the splitting of coins with some extra space.
 
     if (!coins) {
         console.error("Failed to prepare coins on slice: " + options.sliceStart);
@@ -166,7 +169,8 @@ const executeConcurrently = async (slicedBatches: string[][], options: {
 
     return await Promise.all(
         slicedBatches.map((slice, index) =>
-            mintDayOne({
+            mintDayOne(config.client,
+                {
                 id: options.sliceStart + index,
                 batch: slice,
                 coinObject: coins[index],
