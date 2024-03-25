@@ -2,11 +2,10 @@
 
 [move]
 version = 0
-manifest_digest = "714124D2EC7F60B1BD3D39D85C3FDC9F6B1043B5ADFFAC92D5C7AE3C42F6BB18"
-deps_digest = "060AD7E57DFB13104F21BE5F5C3759D03F0553FC3229247D9A7A6B45F50D03A3"
+manifest_digest = "75434D5374AE0B76DFC7B2C8B1D93D92E43B7C10C03782CF67925E35F379A78A"
+deps_digest = "3C4103934B1E040BB6B23F1D610B4EF9F2F1166A50A104EADCF77467C004C600"
 
 dependencies = [
-  { name = "Pyth" },
   { name = "Sui" },
   { name = "suins" },
 ]
@@ -16,28 +15,11 @@ name = "MoveStdlib"
 source = { git = "https://github.com/MystenLabs/sui.git", rev = "mainnet", subdir = "crates/sui-framework/packages/move-stdlib" }
 
 [[move.package]]
-name = "Pyth"
-source = { git = "https://github.com/0xaslan/pyth-crosschain.git", rev = "sui/price-info-test", subdir = "target_chains/sui/contracts" }
-
-dependencies = [
-  { name = "Sui" },
-  { name = "Wormhole" },
-]
-
-[[move.package]]
 name = "Sui"
 source = { git = "https://github.com/MystenLabs/sui.git", rev = "mainnet", subdir = "crates/sui-framework/packages/sui-framework" }
 
 dependencies = [
   { name = "MoveStdlib" },
-]
-
-[[move.package]]
-name = "Wormhole"
-source = { git = "https://github.com/wormhole-foundation/wormhole.git", rev = "82d82bffd5a8566e4b5d94be4e4678ad55ab1f4f", subdir = "sui/wormhole" }
-
-dependencies = [
-  { name = "Sui" },
 ]
 
 [[move.package]]
