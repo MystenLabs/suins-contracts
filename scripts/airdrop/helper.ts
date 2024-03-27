@@ -204,8 +204,10 @@ export const prepareMultisigTx = async (
     }).then((bytes) => {
         let serializedBase64 = toB64(bytes);
 
-        const output_location = process.env.NODE_ENV === 'development' ? './tx-data-local.txt' : '$PWD/tx/tx-data.txt';
-        execSync(`echo ${serializedBase64} > ${output_location}`);
+        const output_location = process.env.NODE_ENV === 'development' ? './tx/tx-data-local.txt' : './tx/tx-data.txt';
+
+        fs.writeFileSync(output_location, serializedBase64);
+        // execSync(`echo ${serializedBase64} > ${output_location}`);
     });
 }
 
