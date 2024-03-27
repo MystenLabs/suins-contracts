@@ -16,7 +16,7 @@ module utils::direct_setup {
     use suins::suins_registration::{Self as nft, SuinsRegistration};
 
     /// Authorization token for the controller.
-    struct DirectSetup has drop {}
+    public struct DirectSetup has drop {}
 
     /// Set the target address of a domain.
     public fun set_target_address(
