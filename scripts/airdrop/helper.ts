@@ -10,6 +10,8 @@ import { isValidSuiAddress, normalizeSuiAddress, toB64 } from "@mysten/sui.js/ut
 import { ExecutionStatus, GasCostSummary, SuiClient, SuiTransactionBlockResponse } from "@mysten/sui.js/client";
 import { bcs } from "@mysten/sui.js/bcs";
 import { SignerWithProvider } from "@mysten/sui.js/src/signers/signer-with-provider";
+import dotenv from "dotenv";
+dotenv.config();
 
 export const MAX_MINTS_PER_TRANSACTION = 2_000;
 export const TOTAL_RANDOM_ADDRESSES = 48 * MAX_MINTS_PER_TRANSACTION; // attempt with 95K.
@@ -119,7 +121,6 @@ export const batchToHash = (batch: string[]) => {
         .digest('hex')
 }
 
-
 export const prepareSigner = (): Ed25519Keypair => {
     const phrase = process.env.ADMIN_PHRASE || '';
     if (!phrase) throw new Error(`ERROR: Admin mnemonic is not exported! Please run 'export ADMIN_PHRASE="<mnemonic>"'`);
@@ -179,7 +180,7 @@ export const prepareMultisigTx = async (
     if(gasObjectId) await setupGasPayment(tx, gasObjectId, config.client);
 
     // first do a dryRun, to make sure we are getting a success.
-    const dryRun = await inspectTransaction(tx, config.client, network);    
+    const dryRun = await inspectTransaction(tx, config.client, network);
 
     if(!dryRun) throw new Error("This transaction failed.");
 
@@ -217,10 +218,9 @@ const setupGasPayment = async (tx: TransactionBlock, gasObjectId: string, client
 export const inspectTransaction = async (tx: TransactionBlock, client: SuiClient, network: Network) => {
 
     const config = mainPackage[network];
-
     const result = await client.dryRunTransactionBlock(
         {
-            transactionBlock: tx.serialize()
+            transactionBlock: await tx.build({client: config.client})
         }
     );
     // log the result.

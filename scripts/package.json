@@ -9,7 +9,7 @@
     "migrations::day_one::deauthorize": "ts-node transactions/deauthorize_bogo_app.ts",
     "transactions::registration::publish": "ts-node transactions/publish_registration.ts",
     "transfer::names": "ts-node reserved-names/transfer-names.ts",
-    "withdraw:auction:profits":"ts-node transactions/withdraw_funds_20290927.ts",
+    "withdraw:auction:profits": "ts-node transactions/withdraw_funds_20290927.ts",
     "publish-utils": "ts-node transactions/publish_utils.ts",
     "authorize-utils": "ts-node transactions/authorize_utils.ts",
     "publish-discounts": "ts-node transactions/publish_discounts.ts",
@@ -25,10 +25,13 @@
     "@mysten/bcs": "0.11.1",
     "@mysten/kiosk": "0.8.4",
     "@mysten/sui.js": "0.51.0",
-    "@types/blake2": "^4.0.1",
     "@pythnetwork/pyth-sui-js": "2.0.0",
+    "@types/blake2": "^4.0.1",
     "dotenv": "^16.3.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30"
   }
 }
