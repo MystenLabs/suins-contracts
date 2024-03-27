@@ -14,7 +14,7 @@ const publish = async () => {
 
     // on GH Action, the sui binary is located on root. Referencing that as `/` doesn't work.
     const suiFolder = process.env.ORIGIN === 'gh_action' ? '../../sui' : 'sui';
-    const publishCall = `${suiFolder} client publish --gas-budget 3000000000 --gas ${gasObject} --serialize-unsigned-transaction`
+    const publishCall = `${suiFolder} client publish --gas-budget 3000000000 --gas ${gasObject} --serialize-unsigned-transaction --skip-dependency-verification`
 
     // to suins/..(packages)/..(base)/scripts/tx/tx-data.txt
     execSync(`cd $PWD/../packages/renewal && ${publishCall} > $PWD/../../scripts/tx/tx-data.txt`);
