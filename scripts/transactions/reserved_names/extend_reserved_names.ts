@@ -15,14 +15,15 @@ const names: Record<string, any[]> = {
     fivePlus: []
 }
 const PRICE_LIST: Record<string, bigint> = {
-    three: 50n,
-    four: 10n,
-    fivePlus: 2n
+    three: 50n * MIST_PER_SUI,
+    four: 10n * MIST_PER_SUI,
+    fivePlus: 2n * MIST_PER_SUI
 }
 
+const MAX_NAMES_PER_BATCH = 841;
 const YEARS_TO_RENEW = 5n;
 
-function chunkArray(array: any[], batchSize: number = 1000) {
+function chunkArray(array: any[], batchSize: number = MAX_NAMES_PER_BATCH) {
     const chunkedArray = [];
     let index = 0;
 
@@ -75,13 +76,10 @@ const renewTx = (txb: TransactionBlock, config: PackageInfo, name: SuiObjectRef,
                 digest: name.digest,
             }),
             txb.pure(5),
-            txb.splitCoins(splitFrom, [
-                txb.pure(YEARS_TO_RENEW * price),
-            ]),
+            splitFrom,
             txb.object(SUI_CLOCK_OBJECT_ID),
         ],
     });
-
 }
 
 /// First transaction will process 1K 5+ letter names.
@@ -91,11 +89,19 @@ export const prepareFirstTransaction = async () => {
 
     // let's work with the first batch of 5Plus names (so we need 10 SUI / name (2*5))
     const batchToWork = chunkArray(names.fivePlus)[0];
-
     const coin = withdrawTx(txb, config);
 
-    for(const name of batchToWork){
-        renewTx(txb, config, name, PRICE_LIST.fivePlus, coin);
+    // split 500 + 341 coins 
+    txb.splitCoins(coin, [...Array(500).keys()].map(x => txb.pure(YEARS_TO_RENEW * PRICE_LIST.fivePlus)));
+    txb.splitCoins(coin, [...Array(batchToWork.length - 500).keys()].map(x => txb.pure(YEARS_TO_RENEW * PRICE_LIST.fivePlus)));
+
+    for(const [index, name] of batchToWork.entries()){
+        const splitFrom = index < 500 ? 
+                { kind: 'NestedResult', index: 1, resultIndex: index } : 
+                { kind: 'NestedResult', index: 2, resultIndex: index - 500 };
+
+        // @ts-ignore-next-line
+        renewTx(txb, config, name, PRICE_LIST.fivePlus, splitFrom);
     }
 
     // now, we've spent plenty of sui renewing, but we re-withdraw it
@@ -116,15 +122,33 @@ export const prepareFirstTransaction = async () => {
 /// Second and third transactions do the same. They are based off the input 
 /// gas coin object ID.
 /// Both the second and the third are again operating on 1K 5+ letter names.
-export const prepareSecondAndThirdTransaction = async (isSecond = true) => {
+export const prepareInbetweenTransactions = async (run: string) => {
     const txb = new TransactionBlock();
     const config = mainPackage.mainnet;
 
-    // let's work with the first batch of 5Plus names (so we need 10 SUI / name (2*5))
-    const batchToWork = chunkArray(names.fivePlus)[isSecond ? 1 : 2];
 
-    for(const name of batchToWork) {
-        renewTx(txb, config, name, PRICE_LIST.fivePlus, txb.gas);
+    const index = run === '2' ? 1 : run === '3' ? 2 : 3;
+    if (!index) throw new Error("Invalid run ID");
+
+    const batchToWork = chunkArray(names.fivePlus)[index];
+
+    const batchSize = batchToWork.length;
+
+    if (batchToWork.length > 500) {
+        // split 500 
+        txb.splitCoins(txb.gas, [...Array(500).keys()].map(x => txb.pure(YEARS_TO_RENEW * PRICE_LIST.fivePlus)));
+        txb.splitCoins(txb.gas, [...Array(batchSize - 500).keys()].map(x => txb.pure(YEARS_TO_RENEW * PRICE_LIST.fivePlus)));
+    } else {
+        txb.splitCoins(txb.gas, [...Array(batchSize).keys()].map(x => txb.pure(YEARS_TO_RENEW * PRICE_LIST.fivePlus)));
+    }
+ 
+    for(const [idx, name] of batchToWork.entries()) {
+        const splitFrom = idx < 500 ? 
+            { kind: 'NestedResult', index: 1, resultIndex: idx } : 
+            { kind: 'NestedResult', index: 2, resultIndex: idx - 500 };
+
+        // @ts-ignore-next-line
+        renewTx(txb, config, name, PRICE_LIST.fivePlus, splitFrom);
     }
 
     // now, we've spent plenty of sui renewing, but we re-withdraw it
@@ -141,15 +165,10 @@ export const prepareLastTransaction = async () => {
     const txb = new TransactionBlock();
     const config = mainPackage.mainnet;
 
-    // last batch for 5+ letter names.
-    const batchToWork = chunkArray(names.fivePlus)[3];
-    for(const name of batchToWork) {
-        renewTx(txb, config, name, PRICE_LIST.fivePlus, txb.gas);
-    }
-
+    txb.splitCoins(txb.gas, [...Array(names.four.length).keys()].map(x => txb.pure(YEARS_TO_RENEW * PRICE_LIST.four)));
     // now we shall handle 4 letter names (that's 50 sui / name)
-    for(const name of names.four) {
-        renewTx(txb, config, name, PRICE_LIST.four, txb.gas);
+    for(const [idx, name] of names.four.entries()) {
+        renewTx(txb, config, name, PRICE_LIST.four, { kind: 'NestedResult', index: 1, resultIndex: idx });
     }
 
     const firstWithdrawal = withdrawTx(txb, config);
@@ -160,8 +179,9 @@ export const prepareLastTransaction = async () => {
 
     for(const batch of threeLetterBatches) {
         for(const name of batch) {
-            renewTx(txb, config, name, PRICE_LIST.three, txb.gas);
+            renewTx(txb, config, name, PRICE_LIST.three, txb.splitCoins(txb.gas, [txb.pure(YEARS_TO_RENEW * PRICE_LIST.three)]));
         }
+        // we re-get some money to have enough balance for the last batch.
         const withdraw = withdrawTx(txb, config);
         txb.mergeCoins(txb.gas, [withdraw]);
     }
@@ -179,6 +199,5 @@ export const prepareLastTransaction = async () => {
 }
 
 if (RUN === '1') prepareFirstTransaction();
-else if (RUN === '2') prepareSecondAndThirdTransaction(true);
-else if (RUN === '3') prepareSecondAndThirdTransaction(false);
+else if (RUN === '2' || RUN === '3' || RUN === '4') prepareInbetweenTransactions(RUN);
 else prepareLastTransaction();
