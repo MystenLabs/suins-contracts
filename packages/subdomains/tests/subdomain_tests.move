@@ -15,6 +15,8 @@ module subdomains::subdomain_tests {
     use suins::suins_registration::{Self, SuinsRegistration};
     use suins::subdomain_registration::{Self, SubDomainRegistration};
     use suins::registry_tests::{burn_nfts};
+    
+    use denylist::denylist;
 
     use subdomains::subdomains::{Self, SubDomains};
 
@@ -185,6 +187,7 @@ module subdomains::subdomain_tests {
 
             subdomains::setup(&mut suins, &admin_cap, ctx(scenario));
             registry::init_for_testing(&admin_cap, &mut suins, ctx(scenario));
+            denylist::setup(&mut suins, &admin_cap, ctx(scenario));
 
             ts::return_shared(suins);
             ts::return_to_sender(scenario, admin_cap);
