@@ -41,12 +41,7 @@ module coupons::coupons {
     /// Our versioning of the coupons package.
     const VERSION: u8 = 1;
 
-    // use suins::config;
-    use suins::domain;
-    use suins::suins::{Self, AdminCap, SuiNS}; // re-use AdminCap for creating new coupons.
-    use suins::suins_registration::SuinsRegistration;
-    use suins::config::{Self, Config};
-    use suins::registry::{Self, Registry};
+    use suins::{domain, suins::{Self, AdminCap, SuiNS}, suins_registration::SuinsRegistration, config::{Self, Config}, registry::{Self, Registry}};
 
     // Authorization for the Coupons on SuiNS, to be able to register names on the app.
     public struct CouponsApp has drop {}
@@ -99,7 +94,7 @@ module coupons::coupons {
         clock: &Clock,
         ctx: &mut TxContext
     ): SuinsRegistration {
-        assert_version_is_valid(self);
+        self.assert_version_is_valid();
         // Validate that specified coupon is valid.
         assert!(table::contains(&self.data.coupons, coupon_code), ECouponNotExists);
 
@@ -111,12 +106,12 @@ module coupons::coupons {
 
         let config = suins::get_config<Config>(suins);
         let domain = domain::new(domain_name);
-        let label = domain::sld(&domain);
+        let label = domain.sld();
         
-        let domain_length = (string::length(label) as u8);
+        let domain_length = (label.length() as u8);
 
         // Borrow coupon from the table.
-        let coupon = table::borrow_mut(&mut self.data.coupons, coupon_code);
+        let coupon = self.data.coupons.borrow_mut(coupon_code);
 
         // We need to do a total of 5 checks, based on `CouponRules`
         // Our checks work with `AND`, all of the conditions must pass for a coupon to be used.
