@@ -170,7 +170,7 @@ export const prepareLastTransaction = async () => {
     txb.splitCoins(txb.gas, [...Array(names.four.length).keys()].map(x => txb.pure(YEARS_TO_RENEW * PRICE_LIST.four)));
     // now we shall handle 4 letter names (that's 50 sui / name)
     for(const [idx, name] of names.four.entries()) {
-        renewTx(txb, config, name, PRICE_LIST.four, { kind: 'NestedResult', index: 1, resultIndex: idx });
+        renewTx(txb, config, name, PRICE_LIST.four, { kind: 'NestedResult', index: 0, resultIndex: idx });
     }
 
     const firstWithdrawal = withdrawTx(txb, config);
@@ -188,16 +188,14 @@ export const prepareLastTransaction = async () => {
         txb.mergeCoins(txb.gas, [withdraw]);
     }
 
-    // last withdraw.
-    const withdraw = withdrawTx(txb, config);
-    txb.mergeCoins(txb.gas, [withdraw]);
-
     // transfer profits to treasury in the same PTB :)
     // We transfer 47K from the SuiNS app profits.
     txb.transferObjects(
         [txb.splitCoins(txb.gas, [txb.pure(47_350n * MIST_PER_SUI)])],
         txb.pure(ADDRESS_TO_TRANSFER_FUNDS, 'address'),
     );
+
+    return prepareMultisigTx(txb, 'mainnet');
 }
 
 if (RUN === '1') prepareFirstTransaction();
