@@ -105,7 +105,7 @@ module coupons::coupons {
         assert!(no_years > 0 && no_years <= 5, EInvalidYearsArgument);
 
         let config = suins.get_config();
-        let domain = domain::new(domain_name); //update?
+        let domain = domain::new(domain_name);
         let label = domain.sld();
         
         let domain_length = (label.length() as u8);
