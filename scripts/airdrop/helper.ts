@@ -1,15 +1,12 @@
 import { TransactionArgument, TransactionBlock } from "@mysten/sui.js/transactions";
 import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
-import * as blake2 from 'blake2';
+import { blake2b } from '@noble/hashes/blake2b';
 import fs from "fs";
 import { AirdropConfig, addressConfig, mainnetConfig } from "../config/day_one";
 import { Network, mainPackage } from "../config/constants";
-import { execSync } from 'child_process';
-import { RawSigner } from "@mysten/sui.js/src/signers/raw-signer";
 import { isValidSuiAddress, normalizeSuiAddress, toB64 } from "@mysten/sui.js/utils";
 import { ExecutionStatus, GasCostSummary, SuiClient, SuiTransactionBlockResponse } from "@mysten/sui.js/client";
 import { bcs } from "@mysten/sui.js/bcs";
-import { SignerWithProvider } from "@mysten/sui.js/src/signers/signer-with-provider";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -114,11 +111,9 @@ export const serializeBatchToBytes = (batch: string[]) => {
 
 export const batchToHash = (batch: string[]) => {
     const bytes = Buffer.from(serializeBatchToBytes(batch));
+    const digest = blake2b(bytes, { dkLen: 32});
 
-    return blake2
-        .createHash('blake2b', { digestLength: 32 })
-        .update(bytes)
-        .digest('hex')
+    return Buffer.from(digest).toString('hex');
 }
 
 export const prepareSigner = (): Ed25519Keypair => {

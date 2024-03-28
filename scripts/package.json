@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "transactions::main_package::upgrade": "ts-node transactions/main_package_upgrade.ts",
     "transfer::names": "ts-node reserved-names/transfer-names.ts",
-    "withdraw:auction:profits":"ts-node transactions/withdraw_funds_20290927.ts",
+    "withdraw:auction:profits": "ts-node transactions/withdraw_funds_20290927.ts",
     "authorize-utils": "ts-node transactions/authorize_utils.ts",
     "authorize-discounts": "ts-node transactions/quest_3_setup.ts",
     "disable-free-claims": "ts-node transactions/quest3/disable_free_claims.ts",
@@ -23,13 +23,13 @@
     "@mysten/bcs": "0.11.1",
     "@mysten/kiosk": "0.8.4",
     "@mysten/sui.js": "0.51.0",
+    "@noble/hashes": "^1.4.0",
     "@pythnetwork/pyth-sui-js": "2.0.0",
-    "@types/blake2": "^4.0.1",
     "dotenv": "^16.3.1",
-    "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
   },
   "devDependencies": {
+    "ts-node": "^10.9.1",
     "@types/node": "^20.11.30"
   }
 }
