@@ -101,7 +101,7 @@ module coupons::coupons {
     ): SuinsRegistration {
         assert_version_is_valid(self);
         // Validate that specified coupon is valid.
-        assert!(table::contains(&mut self.data.coupons, coupon_code), ECouponNotExists);
+        assert!(table::contains(&self.data.coupons, coupon_code), ECouponNotExists);
 
         // Verify coupon house is authorized to buy names.
         suins::assert_app_is_authorized<CouponsApp>(suins);
@@ -155,7 +155,7 @@ module coupons::coupons {
     // Nor does it calculate the original price. This is part of the Frontend anyways.
     public fun calculate_sale_price(self: &mut CouponHouse, price: u64, coupon_code: String): u64 {
         // Validate that specified coupon is valid.
-        assert!(table::contains(&mut self.data.coupons, coupon_code), ECouponNotExists);
+        assert!(table::contains(&self.data.coupons, coupon_code), ECouponNotExists);
         // Borrow coupon from the table.
         let coupon = table::borrow_mut(&mut self.data.coupons, coupon_code);
         internal_calculate_sale_price(price, coupon)
@@ -262,7 +262,7 @@ module coupons::coupons {
         code: String,
         coupon: Coupon
     ) {
-        assert!(!table::contains(&mut self.coupons, code), ECouponAlreadyExists);
+        assert!(!table::contains(&self.coupons, code), ECouponAlreadyExists);
         table::add(&mut self.coupons, code, coupon);
     }
 
