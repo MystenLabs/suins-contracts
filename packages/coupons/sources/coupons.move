@@ -152,7 +152,7 @@ module coupons::coupons {
         // Validate that specified coupon is valid.
         assert!(table::contains(&self.data.coupons, coupon_code), ECouponNotExists);
         // Borrow coupon from the table.
-        let coupon = table::borrow_mut(&mut self.data.coupons, coupon_code);
+        let coupon = self.data.coupons.borrow_mut(coupon_code);
         internal_calculate_sale_price(price, coupon)
     }
 
@@ -258,7 +258,7 @@ module coupons::coupons {
         coupon: Coupon
     ) {
         assert!(!table::contains(&self.coupons, code), ECouponAlreadyExists);
-        table::add(&mut self.coupons, code, coupon);
+        self.coupons.add(code, coupon);
     }
 
     /// An internal function to create a coupon object.
@@ -277,7 +277,7 @@ module coupons::coupons {
 
     // A function to remove a coupon from the system.
     fun internal_remove_coupon(self: &mut Data, code: String) {
-        table::remove(&mut self.coupons, code);
+        self.coupons.remove(code);
     }
 
     // test only functions.
