@@ -20,7 +20,7 @@ const PRICE_LIST: Record<string, bigint> = {
     fivePlus: 2n * MIST_PER_SUI
 }
 
-const MAX_NAMES_PER_BATCH = 841;
+const MAX_NAMES_PER_BATCH = 830;
 const YEARS_TO_RENEW = 5n;
 
 function chunkArray(array: any[], batchSize: number = MAX_NAMES_PER_BATCH) {
