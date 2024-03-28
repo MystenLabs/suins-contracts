@@ -257,7 +257,7 @@ module coupons::coupons {
         code: String,
         coupon: Coupon
     ) {
-        assert!(!table::contains(&self.coupons, code), ECouponAlreadyExists);
+        assert!(!self.coupons.contains(code), ECouponAlreadyExists);
         self.coupons.add(code, coupon);
     }
 
