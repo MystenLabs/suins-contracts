@@ -150,7 +150,7 @@ module coupons::coupons {
     // Nor does it calculate the original price. This is part of the Frontend anyways.
     public fun calculate_sale_price(self: &mut CouponHouse, price: u64, coupon_code: String): u64 {
         // Validate that specified coupon is valid.
-        assert!(table::contains(&self.data.coupons, coupon_code), ECouponNotExists);
+        assert!(self.data.coupons.contains(coupon_code), ECouponNotExists);
         // Borrow coupon from the table.
         let coupon = self.data.coupons.borrow_mut(coupon_code);
         internal_calculate_sale_price(price, coupon)
