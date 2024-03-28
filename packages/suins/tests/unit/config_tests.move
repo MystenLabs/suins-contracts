@@ -20,7 +20,7 @@ module suins::config_tests {
 
     #[test]
     fun create_and_update_config() {
-        let config = default();
+        let mut config = default();
 
         // check that the values are set correctly in the `new` function
         assert!(config::public_key(&config) == &b"000000000000000000000000000000000", 0);
@@ -88,7 +88,7 @@ module suins::config_tests {
     #[test]
     #[expected_failure(abort_code = suins::config::EInvalidPublicKey)]
     fun set_public_key_invalid_fail() {
-        let config = default();
+        let mut config = default();
         config::set_public_key(&mut config, vector[]);
     }
 

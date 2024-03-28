@@ -17,17 +17,17 @@ module day_one::day_one {
     // We mark as friend just the BOGO module.
     // This is the only one that can activate a DayOne object.
     // This is a one-time operation that won't happen from any other modules.
-    friend day_one::bogo;
+    /* friend day_one::bogo; */
 
     /// The shared object that stores the receivers destination.
-    struct DropList has key { 
+    public struct DropList has key { 
         id: UID,
         total_minted: u32
     }
 
     /// The Setup Capability for the airdrop module. Sent to the publisher on
     /// publish. Consumed in the setup call.
-    struct SetupCap has key { id: UID }
+    public struct SetupCap has key { id: UID }
 
     /// == ERRORS == 
     // Error emitted when trying to mint with invalid addresses (non existent DF).
@@ -37,7 +37,7 @@ module day_one::day_one {
     const ETooManyHashes: u64 = 1;
 
     /// OTW for the Publisher object
-    struct DAY_ONE has drop {}
+    public struct DAY_ONE has drop {}
 
     /// Share the `DropList` object, send the `SetupCap` to the publisher.
     fun init(otw: DAY_ONE, ctx: &mut TxContext) {
@@ -52,7 +52,7 @@ module day_one::day_one {
 
     /// The DayOne object, granting participants special offers in
     /// different future promotions.
-    struct DayOne has key, store { 
+    public struct DayOne has key, store { 
         id: UID,
         active: bool,
         serial: u32
@@ -63,7 +63,7 @@ module day_one::day_one {
     /// that is part of the list.
     public fun mint(
         self: &mut DropList,
-        recipients: vector<address>,
+        mut recipients: vector<address>,
         ctx: &mut TxContext
     ) {
 
@@ -74,7 +74,7 @@ module day_one::day_one {
         let lookup = df::remove_if_exists(&mut self.id, sui::address::from_bytes(hash));
         assert!(option::is_some<bool>(&lookup), ENotFound);
 
-        let i: u32 = self.total_minted;
+        let mut i: u32 = self.total_minted;
 
         while (vector::length(&recipients) > 0) {
             let recipient = vector::pop_back(&mut recipients);
@@ -96,7 +96,7 @@ module day_one::day_one {
     public fun setup(
         self: &mut DropList,
         cap: SetupCap,
-        hashes: vector<address>,
+        mut hashes: vector<address>,
     ) {
         // verify we only pass less than 1000 hashes at the setup. 
         // That's the max amount of DFs we can create in a single run.
@@ -114,7 +114,7 @@ module day_one::day_one {
     // Private helper to activate the DayOne object
     // Will only be called by the `bogo` module (friend), which marks the 
     // beggining of the DayOne promotions.
-    public(friend) fun activate(self: &mut DayOne) {
+    public(package) fun activate(self: &mut DayOne) {
         self.active = true
     }
 

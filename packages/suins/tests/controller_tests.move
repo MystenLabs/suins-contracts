@@ -32,10 +32,10 @@ module suins::controller_tests {
     const CONTENT_HASH: vector<u8> = b"content_hash";
 
     fun test_init(): Scenario {
-        let scenario_val = test_scenario::begin(SUINS_ADDRESS);
+        let mut scenario_val = test_scenario::begin(SUINS_ADDRESS);
         let scenario = &mut scenario_val;
         {
-            let suins = suins::init_for_testing(ctx(scenario));
+            let mut suins = suins::init_for_testing(ctx(scenario));
             suins::authorize_app_for_testing<Register>(&mut suins);
             suins::authorize_app_for_testing<Controller>(&mut suins);
             suins::share_for_testing(suins);
@@ -45,7 +45,7 @@ module suins::controller_tests {
         {
             test_scenario::next_tx(scenario, SUINS_ADDRESS);
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            let mut suins = test_scenario::take_shared<SuiNS>(scenario);
 
             registry::init_for_testing(&admin_cap, &mut suins, ctx(scenario));
 
@@ -62,9 +62,9 @@ module suins::controller_tests {
 
     public fun set_target_address_util(scenario: &mut Scenario, sender: address, target: Option<address>, clock_tick: u64) {
         test_scenario::next_tx(scenario, sender);
-        let suins = test_scenario::take_shared<SuiNS>(scenario);
+        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
         let nft = test_scenario::take_from_sender<SuinsRegistration>(scenario);
-        let clock = test_scenario::take_shared<Clock>(scenario);
+        let mut clock = test_scenario::take_shared<Clock>(scenario);
 
         clock::increment_for_testing(&mut clock, clock_tick);
         set_target_address_for_testing(&mut suins, &nft, target, &clock);
@@ -76,7 +76,7 @@ module suins::controller_tests {
 
     public fun set_reverse_lookup_util(scenario: &mut Scenario, sender: address, domain_name: String) {
         test_scenario::next_tx(scenario, sender);
-        let suins = test_scenario::take_shared<SuiNS>(scenario);
+        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
 
         set_reverse_lookup_for_testing(&mut suins, domain_name, ctx(scenario));
 
@@ -85,7 +85,7 @@ module suins::controller_tests {
 
     public fun unset_reverse_lookup_util(scenario: &mut Scenario, sender: address) {
         test_scenario::next_tx(scenario, sender);
-        let suins = test_scenario::take_shared<SuiNS>(scenario);
+        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
 
         unset_reverse_lookup_for_testing(&mut suins, ctx(scenario));
 
@@ -94,9 +94,9 @@ module suins::controller_tests {
 
     public fun set_user_data_util(scenario: &mut Scenario, sender: address, key: String, value: String, clock_tick: u64) {
         test_scenario::next_tx(scenario, sender);
-        let suins = test_scenario::take_shared<SuiNS>(scenario);
+        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
         let nft = test_scenario::take_from_sender<SuinsRegistration>(scenario);
-        let clock = test_scenario::take_shared<Clock>(scenario);
+        let mut clock = test_scenario::take_shared<Clock>(scenario);
 
         clock::increment_for_testing(&mut clock, clock_tick);
         set_user_data_for_testing(&mut suins, &nft, key, value, &clock);
@@ -108,9 +108,9 @@ module suins::controller_tests {
 
     public fun unset_user_data_util(scenario: &mut Scenario, sender: address, key: String, clock_tick: u64) {
         test_scenario::next_tx(scenario, sender);
-        let suins = test_scenario::take_shared<SuiNS>(scenario);
+        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
         let nft = test_scenario::take_from_sender<SuinsRegistration>(scenario);
-        let clock = test_scenario::take_shared<Clock>(scenario);
+        let mut clock = test_scenario::take_shared<Clock>(scenario);
 
         clock::increment_for_testing(&mut clock, clock_tick);
         unset_user_data_for_testing(&mut suins, &nft, key, &clock);
@@ -157,7 +157,7 @@ module suins::controller_tests {
     fun deauthorize_app_util(scenario: &mut Scenario) {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-        let suins = test_scenario::take_shared<SuiNS>(scenario);
+        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
 
         suins::deauthorize_app<Controller>(&admin_cap, &mut suins);
 
@@ -167,7 +167,7 @@ module suins::controller_tests {
 
     #[test]
     fun test_set_target_address() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
 
@@ -183,7 +183,7 @@ module suins::controller_tests {
 
     #[test, expected_failure(abort_code = registry::ERecordExpired)]
     fun test_set_target_address_aborts_if_nft_expired() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
 
@@ -194,7 +194,7 @@ module suins::controller_tests {
 
     #[test, expected_failure(abort_code = registry::EIdMismatch)]
     fun test_set_target_address_aborts_if_nft_expired_2() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
         setup(scenario, SECOND_ADDRESS, 2 * year_ms());
@@ -206,7 +206,7 @@ module suins::controller_tests {
 
     #[test]
     fun test_set_target_address_works_if_domain_is_registered_again() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
         setup(scenario, SECOND_ADDRESS, 2 * year_ms());
@@ -217,9 +217,9 @@ module suins::controller_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
+    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
     fun test_set_target_address_aborts_if_controller_is_deauthorized() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
 
@@ -231,7 +231,7 @@ module suins::controller_tests {
 
     #[test]
     fun test_set_reverse_lookup() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
 
@@ -252,7 +252,7 @@ module suins::controller_tests {
 
     #[test, expected_failure(abort_code = registry::ETargetNotSet)]
     fun test_set_reverse_lookup_aborts_if_target_address_not_set() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
 
@@ -264,7 +264,7 @@ module suins::controller_tests {
 
     #[test, expected_failure(abort_code = registry::ERecordMismatch)]
     fun test_set_reverse_lookup_aborts_if_target_address_not_match() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
 
@@ -275,9 +275,9 @@ module suins::controller_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
+    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
     fun test_set_reverse_lookup_aborts_if_controller_is_deauthorized() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
 
@@ -290,7 +290,7 @@ module suins::controller_tests {
 
     #[test]
     fun test_unset_reverse_lookup() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
 
@@ -303,9 +303,9 @@ module suins::controller_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
+    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
     fun test_unset_reverse_lookup_if_controller_is_deauthorized() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
 
@@ -319,7 +319,7 @@ module suins::controller_tests {
 
     #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
     fun test_unset_reverse_lookup_aborts_if_not_set() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
 
@@ -330,7 +330,7 @@ module suins::controller_tests {
 
     #[test]
     fun test_set_user_data() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
 
@@ -352,7 +352,7 @@ module suins::controller_tests {
 
     #[test, expected_failure(abort_code = controller::EUnsupportedKey)]
     fun test_set_user_data_aborts_if_key_is_unsupported() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
 
@@ -363,7 +363,7 @@ module suins::controller_tests {
 
     #[test, expected_failure(abort_code = registry::ERecordExpired)]
     fun test_set_user_data_aborts_if_nft_expired() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
 
@@ -374,7 +374,7 @@ module suins::controller_tests {
 
     #[test, expected_failure(abort_code = registry::EIdMismatch)]
     fun test_set_user_data_aborts_if_nft_expired_2() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
         setup(scenario, SECOND_ADDRESS, 2 * year_ms());
@@ -386,7 +386,7 @@ module suins::controller_tests {
 
     #[test]
     fun test_set_user_data_works_if_domain_is_registered_again() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
         setup(scenario, SECOND_ADDRESS, 2 * year_ms());
@@ -399,9 +399,9 @@ module suins::controller_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
+    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
     fun test_set_user_data_aborts_if_controller_is_deauthorized() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
 
@@ -413,7 +413,7 @@ module suins::controller_tests {
 
     #[test]
     fun test_unset_user_data() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
 
@@ -434,7 +434,7 @@ module suins::controller_tests {
 
     #[test]
     fun test_unset_user_data_works_if_key_not_exists() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
 
@@ -445,7 +445,7 @@ module suins::controller_tests {
 
     #[test, expected_failure(abort_code = registry::ERecordExpired)]
     fun test_unset_user_data_aborts_if_nft_expired() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
 
@@ -454,9 +454,9 @@ module suins::controller_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
+    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
     fun test_unset_user_data_works_if_controller_is_deauthorized() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         setup(scenario, FIRST_ADDRESS, 0);
 

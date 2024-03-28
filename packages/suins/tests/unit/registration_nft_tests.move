@@ -20,8 +20,8 @@ module suins::registation_nft_tests {
 
     #[test]
     fun test_new() {
-        let ctx = tx_context::dummy();
-        let clock = clock::create_for_testing(&mut ctx);
+        let mut ctx = tx_context::dummy();
+        let mut clock = clock::create_for_testing(&mut ctx);
         let nft = new(utf8(b"test.sui"), 1, &clock, &mut ctx);
 
         // expiration date for 1 year should be 365 days from now
@@ -50,9 +50,9 @@ module suins::registation_nft_tests {
 
     #[test]
     fun test_update_values() {
-        let ctx = tx_context::dummy();
+        let mut ctx = tx_context::dummy();
         let clock = clock::create_for_testing(&mut ctx);
-        let nft = new(utf8(b"test.sui"), 5, &clock, &mut ctx);
+        let mut nft = new(utf8(b"test.sui"), 5, &clock, &mut ctx);
 
         nft::set_expiration_timestamp_ms_for_testing(&mut nft, 0);
         assert_eq(nft::expiration_timestamp_ms(&nft), 0);

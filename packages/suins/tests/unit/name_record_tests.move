@@ -24,9 +24,9 @@ module suins::name_record_tests {
     /// Make sure that the fields are empty by default. That they are updated
     /// correctly and the values match.
     fun create_and_update() {
-        let ctx = tx_context::dummy();
+        let mut ctx = tx_context::dummy();
         let nft_id = fresh_id(&mut ctx);
-        let record = record::new(nft_id, 0);
+        let mut record = record::new(nft_id, 0);
 
         // check default values
         assert_eq(record::nft_id(&record), nft_id);
@@ -34,7 +34,7 @@ module suins::name_record_tests {
         assert_eq(record::target_address(&record), none());
         assert_eq(record::expiration_timestamp_ms(&record), 0);
 
-        let data = vec_map::empty();
+        let mut data = vec_map::empty();
         vec_map::insert(&mut data, utf8(b"user_name"), utf8(b"Brandon"));
         vec_map::insert(&mut data, utf8(b"age"), utf8(b"forever young"));
 
@@ -52,10 +52,10 @@ module suins::name_record_tests {
 
     #[test]
     fun has_expired() {
-        let ctx = tx_context::dummy();
+        let mut ctx = tx_context::dummy();
         let nft_id = fresh_id(&mut ctx);
         let record = record::new(nft_id, 1000); // expires in 1 second
-        let clock = clock::create_for_testing(&mut ctx);
+        let mut clock = clock::create_for_testing(&mut ctx);
 
         // clock is 0, record expires in 1 second with a 30 days (grace period)
         assert_eq(record::has_expired(&record, &clock), false);

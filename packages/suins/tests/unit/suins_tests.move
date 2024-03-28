@@ -13,13 +13,13 @@ module suins::suins_tests {
 
     // === Config management ===
 
-    struct TestConfig has store, drop { a: u8 }
+    public struct TestConfig has store, drop { a: u8 }
 
     #[test]
     /// Add a configuration; get it back; remove it.
     fun config_management() {
-        let ctx = tx_context::dummy();
-        let (suins, cap) = suins::new_for_testing(&mut ctx);
+        let mut ctx = tx_context::dummy();
+        let (mut suins, cap) = suins::new_for_testing(&mut ctx);
 
         suins::add_config(&cap, &mut suins, TestConfig { a: 1 });
         let _cfg = suins::get_config<TestConfig>(&suins);
@@ -31,13 +31,13 @@ module suins::suins_tests {
 
     // === Registry ===
 
-    struct TestRegistry has store { counter: u8 }
+    public struct TestRegistry has store { counter: u8 }
 
     #[test]
     /// Add a registry; read it.
     fun registry_management() {
-        let ctx = tx_context::dummy();
-        let (suins, cap) = suins::new_for_testing(&mut ctx);
+        let mut ctx = tx_context::dummy();
+        let (mut suins, cap) = suins::new_for_testing(&mut ctx);
 
         suins::add_registry(&cap, &mut suins, TestRegistry { counter: 1 });
         let reg = suins::registry<TestRegistry>(&suins);
@@ -48,22 +48,22 @@ module suins::suins_tests {
 
     // === Application Auth ===
 
-    struct TestApp has drop {}
+    public struct TestApp has drop {}
 
-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
+    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
     /// Only authorized applications can add balance to SuiNS.
     fun app_add_to_balance_fail() {
-        let ctx = tx_context::dummy();
-        let (suins, _cap) = suins::new_for_testing(&mut ctx);
+        let mut ctx = tx_context::dummy();
+        let (mut suins, _cap) = suins::new_for_testing(&mut ctx);
         suins::app_add_balance(TestApp {}, &mut suins, balance::zero());
         abort 1337
     }
 
-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
+    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
     /// Only authorized applications can access the registry mut.
     fun app_registry_mut_fail() {
-        let ctx = tx_context::dummy();
-        let (suins, _cap) = suins::new_for_testing(&mut ctx);
+        let mut ctx = tx_context::dummy();
+        let (mut suins, _cap) = suins::new_for_testing(&mut ctx);
         suins::app_registry_mut<TestApp, TestRegistry>(TestApp {}, &mut suins);
         abort 1337
     }
@@ -72,8 +72,8 @@ module suins::suins_tests {
     /// 1. Authorize TestApp;
     /// 2. Adds balance to SuiNS, access registry mut.
     fun authorize_and_access() {
-        let ctx = tx_context::dummy();
-        let (suins, cap) = suins::new_for_testing(&mut ctx);
+        let mut ctx = tx_context::dummy();
+        let (mut suins, cap) = suins::new_for_testing(&mut ctx);
         suins::add_registry(&cap, &mut suins, TestRegistry { counter: 1 });
 
         // authorize and check right away
@@ -100,8 +100,8 @@ module suins::suins_tests {
     /// 1. Authorize TestApp and add to balance;
     /// 2. Admin withdraws the balance.
     fun balance_and_withdraw() {
-        let ctx = tx_context::dummy();
-        let (suins, cap) = suins::new_for_testing(&mut ctx);
+        let mut ctx = tx_context::dummy();
+        let (mut suins, cap) = suins::new_for_testing(&mut ctx);
         suins::authorize_app<TestApp>(&cap, &mut suins);
 
         let paid = balance::create_for_testing<SUI>(1000);
@@ -113,12 +113,12 @@ module suins::suins_tests {
         wrapup(suins, cap);
     }
 
-    #[test, expected_failure(abort_code = suins::suins::ENoProfits)]
+    #[test, expected_failure(abort_code = ::suins::suins::ENoProfits)]
     /// 1. Authorize TestApp and add to balance;
     /// 2. Admin tries to withdraw an empty balance.
     fun balance_and_withdraw_fail_no_profits() {
-        let ctx = tx_context::dummy();
-        let (suins, cap) = suins::new_for_testing(&mut ctx);
+        let mut ctx = tx_context::dummy();
+        let (mut suins, cap) = suins::new_for_testing(&mut ctx);
         let _withdrawn = suins::withdraw(&cap, &mut suins, &mut ctx);
 
         abort 1337

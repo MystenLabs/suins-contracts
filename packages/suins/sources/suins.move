@@ -36,7 +36,7 @@ module suins::suins {
 
     /// An admin capability. The admin has full control over the application.
     /// This object must be issued only once during module initialization.
-    struct AdminCap has key, store { id: UID }
+    public struct AdminCap has key, store { id: UID }
 
     /// The main application object. Stores the state of the application,
     /// used for adding / removing and reading name records.
@@ -44,7 +44,7 @@ module suins::suins {
     /// Dynamic fields:
     /// - `registry: RegistryKey<R> -> R`
     /// - `config: ConfigKey<C> -> C`
-    struct SuiNS has key {
+    public struct SuiNS has key {
         id: UID,
         /// The total balance of the SuiNS. Can be added to by authorized apps.
         /// Can be withdrawn only by the application Admin.
@@ -52,21 +52,21 @@ module suins::suins {
     }
 
     /// The one-time-witness used to claim Publisher object.
-    struct SUINS has drop {}
+    public struct SUINS has drop {}
 
     // === Keys ===
 
     /// Key under which a configuration is stored. It is type dependent, so
     /// that different configurations can be stored at the same time. Eg
     /// currently we store application `Config` (and `Promotion` configuration).
-    struct ConfigKey<phantom Config> has copy, store, drop {}
+    public struct ConfigKey<phantom Config> has copy, store, drop {}
 
     /// Key under which the Registry object is stored.
     ///
     /// In the V1, the object stored under this key is `Registry`, however, for
     /// future migration purposes (if we ever need to change the Registry), we
     /// keep the phantom parameter so two different Registries can co-exist.
-    struct RegistryKey<phantom Config> has copy, store, drop {}
+    public struct RegistryKey<phantom Config> has copy, store, drop {}
 
     /// Module initializer:
     /// - create SuiNS object
@@ -105,7 +105,7 @@ module suins::suins {
     /// protected features of the SuiNS (such as app_add_balance, etc.)
     /// The `App` type parameter is a witness which should be defined in the
     /// original module (Controller, Registry, Registrar - whatever).
-    struct AppKey<phantom App: drop> has copy, store, drop {}
+    public struct AppKey<phantom App: drop> has copy, store, drop {}
 
     /// Authorize an application to access protected features of the SuiNS.
     public fun authorize_app<App: drop>(_: &AdminCap, self: &mut SuiNS) {
@@ -181,7 +181,7 @@ module suins::suins {
     // === Testing ===
 
     #[test_only] use suins::config;
-    #[test_only] struct Test has drop {}
+    #[test_only] public struct Test has drop {}
 
     #[test_only]
     public fun new_for_testing(ctx: &mut TxContext): (SuiNS, AdminCap) {
@@ -195,7 +195,7 @@ module suins::suins {
     /// Wrapper of module initializer for testing
     public fun init_for_testing(ctx: &mut TxContext): SuiNS {
         let admin_cap = AdminCap { id: object::new(ctx) };
-        let suins = SuiNS {
+        let mut suins = SuiNS {
             id: object::new(ctx),
             balance: balance::zero(),
         };

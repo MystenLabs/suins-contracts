@@ -42,13 +42,13 @@ module managed_names::managed {
     const EInvalidReturnedNFT: u64 = 5;
 
     /// Authorizes the `ManagedNames` to add a `registry` under the main SuiNS object.
-    struct ManagedNamesApp has drop {}
+    public struct ManagedNamesApp has drop {}
 
 
     /// The `registry` that holds the managed names per domain.
     /// To simplify, we can only hold a single managed name per domain.
     /// If a valid NFT is passed, the previous name is returned to the owner (who can burn it, as it's an expired one).
-    struct ManagedNames has store {
+    public struct ManagedNames has store {
         names: Table<Domain, ManagedName>
     }
 
@@ -56,14 +56,14 @@ module managed_names::managed {
     /// `owner`: the only address that can get the `NFT` back
     /// `allowlist`: A list of allowed addresses (that can borrow + return the `NFT`)
     /// `nft`: The `SuinsRegistration` object that can be borrowed.
-    struct ManagedName has store {
+    public struct ManagedName has store {
         owner: address,
         allowed_addresses: vector<address>,
         nft: Option<SuinsRegistration>
     }
 
     /// A hot-potato promise that the NFT will be returned upon borrowing.
-    struct ReturnPromise {
+    public struct ReturnPromise {
         id: ID
     }
 
@@ -134,7 +134,7 @@ module managed_names::managed {
     public fun allow_addresses(
         suins: &mut SuiNS,
         name: String,
-        addresses: vector<address>,
+        mut addresses: vector<address>,
         ctx: &mut TxContext
     ) {
         let existing = internal_get_managed_name(managed_names_mut(suins), domain::new(name));
@@ -153,7 +153,7 @@ module managed_names::managed {
     public fun revoke_addresses(
         suins: &mut SuiNS,
         name: String,
-        addresses: vector<address>,
+        mut addresses: vector<address>,
         ctx: &mut TxContext
     ) {
         let existing = internal_get_managed_name(managed_names_mut(suins), domain::new(name));

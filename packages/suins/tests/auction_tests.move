@@ -32,10 +32,10 @@ module suins::auction_tests {
     const AUCTION_MIN_QUIET_PERIOD_MS: u64 = 10 * 60 * 1000; // 10 minutes of quiet time
 
     public fun test_init(): Scenario {
-        let scenario_val = test_scenario::begin(SUINS_ADDRESS);
+        let mut scenario_val = test_scenario::begin(SUINS_ADDRESS);
         let scenario = &mut scenario_val;
         {
-            let suins = suins::init_for_testing(ctx(scenario));
+            let mut suins = suins::init_for_testing(ctx(scenario));
             suins::authorize_app_for_testing<AuctionApp>(&mut suins);
             suins::share_for_testing(suins);
             auction::init_for_testing(ctx(scenario));
@@ -45,7 +45,7 @@ module suins::auction_tests {
         {
             test_scenario::next_tx(scenario, SUINS_ADDRESS);
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            let mut suins = test_scenario::take_shared<SuiNS>(scenario);
 
             registry::init_for_testing(&admin_cap, &mut suins, ctx(scenario));
 
@@ -62,8 +62,8 @@ module suins::auction_tests {
         amount: u64
     ) {
         test_scenario::next_tx(scenario, sender);
-        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
-        let suins = test_scenario::take_shared<SuiNS>(scenario);
+        let mut auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
         let payment = coin::mint_for_testing<SUI>(amount, ctx(scenario));
         let clock = test_scenario::take_shared<Clock>(scenario);
 
@@ -83,9 +83,9 @@ module suins::auction_tests {
 
     fun place_bid_util(scenario: &mut Scenario, sender: address, domain_name: String, value: u64, clock_tick: u64) {
         test_scenario::next_tx(scenario, sender);
-        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+        let mut auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
         let payment = coin::mint_for_testing<SUI>(value, ctx(scenario));
-        let clock = test_scenario::take_shared<Clock>(scenario);
+        let mut clock = test_scenario::take_shared<Clock>(scenario);
 
         clock::increment_for_testing(&mut clock, clock_tick);
         place_bid(&mut auction_house, domain_name, payment, &clock, ctx(scenario));
@@ -101,8 +101,8 @@ module suins::auction_tests {
         clock_tick: u64
     ): SuinsRegistration {
         test_scenario::next_tx(scenario, sender);
-        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
-        let clock = test_scenario::take_shared<Clock>(scenario);
+        let mut auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+        let mut clock = test_scenario::take_shared<Clock>(scenario);
 
         clock::increment_for_testing(&mut clock, clock_tick);
         let nft = claim(&mut auction_house, domain_name, &clock, ctx(scenario));
@@ -120,8 +120,8 @@ module suins::auction_tests {
 
     fun admin_collect_fund_util(scenario: &mut Scenario, domain_name: String, clock_tick: u64) {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
-        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
-        let clock = test_scenario::take_shared<Clock>(scenario);
+        let mut auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+        let mut clock = test_scenario::take_shared<Clock>(scenario);
 
         clock::increment_for_testing(&mut clock, clock_tick);
         collect_winning_auction_fund(&mut auction_house, domain_name, &clock, ctx(scenario));
@@ -137,8 +137,8 @@ module suins::auction_tests {
     ) {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
-        let clock = test_scenario::take_shared<Clock>(scenario);
+        let mut auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+        let mut clock = test_scenario::take_shared<Clock>(scenario);
 
         clock::increment_for_testing(&mut clock, clock_tick);
         admin_finalize_auction(&admin_cap, &mut auction_house, domain, &clock);
@@ -151,8 +151,8 @@ module suins::auction_tests {
     fun admin_try_finalize_auctions_util(scenario: &mut Scenario, operation_limit: u64, clock_tick: u64) {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
-        let clock = test_scenario::take_shared<Clock>(scenario);
+        let mut auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+        let mut clock = test_scenario::take_shared<Clock>(scenario);
 
         clock::increment_for_testing(&mut clock, clock_tick);
         admin_try_finalize_auctions(&admin_cap, &mut auction_house, operation_limit, &clock);
@@ -165,7 +165,7 @@ module suins::auction_tests {
     fun admin_withdraw_funds_util(scenario: &mut Scenario): Coin<SUI> {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+        let mut auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
 
         let funds = admin_withdraw_funds(&admin_cap, &mut auction_house, ctx(scenario));
 
@@ -177,7 +177,7 @@ module suins::auction_tests {
     fun deauthorize_app_util(scenario: &mut Scenario) {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-        let suins = test_scenario::take_shared<SuiNS>(scenario);
+        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
 
         suins::deauthorize_app<AuctionApp>(&admin_cap, &mut suins);
 
@@ -202,7 +202,7 @@ module suins::auction_tests {
     ) {
         test_scenario::next_tx(scenario, SUINS_ADDRESS);
         let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
-        let (start_ms, end_ms, winner, highest_amount) = auction::get_auction_metadata(&auction_house, domain_name);
+        let (mut start_ms, mut end_ms, mut winner, mut highest_amount) = auction::get_auction_metadata(&auction_house, domain_name);
         assert!(option::extract(&mut start_ms) == expected_start_ms, 0);
         assert!(option::extract(&mut end_ms) == expected_end_ms, 0);
         assert!(option::extract(&mut winner) == expected_winner, 0);
@@ -253,7 +253,7 @@ module suins::auction_tests {
 
     #[test]
     fun test_normal_auction_flow() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         normal_auction_flow(scenario);
         test_scenario::end(scenario_val);
@@ -261,7 +261,7 @@ module suins::auction_tests {
 
     #[test, expected_failure(abort_code = sui::dynamic_field::EFieldDoesNotExist)]
     fun test_claim_aborts_if_winner_claims_twice() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_and_place_bid_util(
             scenario,
@@ -280,7 +280,7 @@ module suins::auction_tests {
 
     #[test, expected_failure(abort_code = auction::EWinnerCannotPlaceBid)]
     fun test_winner_cannot_place_bid() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_and_place_bid_util(
             scenario,
@@ -296,7 +296,7 @@ module suins::auction_tests {
 
     #[test, expected_failure(abort_code = auction::EBidAmountTooLow)]
     fun test_place_bid_aborts_if_value_is_too_low() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_and_place_bid_util(
             scenario,
@@ -311,7 +311,7 @@ module suins::auction_tests {
 
     #[test, expected_failure(abort_code = auction::ENotWinner)]
     fun test_non_winner_cannot_claim() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_and_place_bid_util(
             scenario,
@@ -328,7 +328,7 @@ module suins::auction_tests {
 
     #[test]
     fun test_admin_try_finalize_auction() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_and_place_bid_util(
             scenario,
@@ -361,7 +361,7 @@ module suins::auction_tests {
 
     #[test]
     fun test_admin_try_finalize_auction_2_auctions() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_and_place_bid_util(
             scenario,
@@ -394,7 +394,7 @@ module suins::auction_tests {
 
     #[test, expected_failure(abort_code = auction::EAuctionNotEndedYet)]
     fun test_admin_try_finalize_auction_too_early() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_and_place_bid_util(
             scenario,
@@ -409,7 +409,7 @@ module suins::auction_tests {
 
     #[test]
     fun test_admin_try_finalize_auctions_too_early() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_and_place_bid_util(
             scenario,
@@ -425,7 +425,7 @@ module suins::auction_tests {
 
     #[test, expected_failure(abort_code = auction::EAuctionEnded)]
     fun test_place_bid_aborts_if_too_late() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_and_place_bid_util(
             scenario,
@@ -445,7 +445,7 @@ module suins::auction_tests {
 
     #[test, expected_failure(abort_code = auction::ENoProfits)]
     fun test_admin_withdraw_funds_aborts_if_no_profits() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         let funds = admin_withdraw_funds_util(scenario);
         coin::burn_for_testing(funds);
@@ -454,7 +454,7 @@ module suins::auction_tests {
 
     #[test, expected_failure(abort_code = config::EInvalidTld)]
     fun test_start_auction_aborts_with_wrong_tld() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_and_place_bid_util(
             scenario,
@@ -467,7 +467,7 @@ module suins::auction_tests {
 
     #[test, expected_failure(abort_code = config::ELabelTooShort)]
     fun test_start_auction_aborts_if_domain_name_too_short() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_and_place_bid_util(
             scenario,
@@ -480,7 +480,7 @@ module suins::auction_tests {
 
     #[test, expected_failure(abort_code = domain::EInvalidDomain)]
     fun test_start_auction_aborts_if_domain_name_too_long() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_and_place_bid_util(
             scenario,
@@ -493,7 +493,7 @@ module suins::auction_tests {
 
     #[test, expected_failure(abort_code = domain::EInvalidDomain)]
     fun test_start_auction_aborts_if_domain_name_starts_with_dash() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_and_place_bid_util(
             scenario,
@@ -506,7 +506,7 @@ module suins::auction_tests {
 
     #[test, expected_failure(abort_code = domain::EInvalidDomain)]
     fun test_start_auction_aborts_if_domain_name_ends_with_dash() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_and_place_bid_util(
             scenario,
@@ -519,7 +519,7 @@ module suins::auction_tests {
 
     #[test, expected_failure(abort_code = domain::EInvalidDomain)]
     fun test_start_auction_aborts_if_domain_name_contains_uppercase_characters() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_and_place_bid_util(
             scenario,
@@ -532,7 +532,7 @@ module suins::auction_tests {
 
     #[test, expected_failure(abort_code = auction::EAuctionNotStarted)]
     fun test_place_bid_aborts_if_auction_not_started() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         place_bid_util(scenario, SECOND_ADDRESS, utf8(FIRST_DOMAIN_NAME), 1210 * mist_per_sui(), 0);
         test_scenario::end(scenario_val);
@@ -540,7 +540,7 @@ module suins::auction_tests {
 
     #[test, expected_failure(abort_code = auction::EInvalidBidValue)]
     fun test_start_auction_aborts_if_not_enough_fee() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_and_place_bid_util(
             scenario,
@@ -553,7 +553,7 @@ module suins::auction_tests {
 
     #[test]
     fun test_admin_collect_fund() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_and_place_bid_util(
             scenario,
@@ -592,7 +592,7 @@ module suins::auction_tests {
 
     #[test, expected_failure(abort_code = auction::EAuctionNotEndedYet)]
     fun test_admin_collect_fund_aborts_if_too_early() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_and_place_bid_util(
             scenario,
@@ -604,9 +604,9 @@ module suins::auction_tests {
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
+    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
     fun test_start_auction_and_place_bid_aborts_if_auction_is_deauthorized() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         deauthorize_app_util(scenario);
         start_auction_and_place_bid_util(
@@ -620,7 +620,7 @@ module suins::auction_tests {
 
     #[test]
     fun test_place_bid_and_claim_and_withdraw_works_even_if_auction_is_deauthorized() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_and_place_bid_util(
             scenario,
@@ -659,7 +659,7 @@ module suins::auction_tests {
 
     #[test]
     fun test_admin_try_finalize_auction_works_even_if_auction_is_deauthorized() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_and_place_bid_util(
             scenario,
@@ -693,7 +693,7 @@ module suins::auction_tests {
 
     #[test]
     fun test_admin_collect_fund_even_if_auction_is_deauthorized() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         start_auction_and_place_bid_util(
             scenario,

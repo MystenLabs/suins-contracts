@@ -21,7 +21,7 @@ module registration::register {
     const EIncorrectAmount: u64 = 4;
 
     /// Authorization token for the app.
-    struct Register has drop {}
+    public struct Register has drop {}
 
     // Allows direct purchases of domains
     //
