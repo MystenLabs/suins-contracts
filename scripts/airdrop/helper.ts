@@ -1,19 +1,21 @@
-import { Connection, Ed25519Keypair, ExportedKeypair, JsonRpcProvider, ObjectId, RawSigner, SuiAddress, SuiTransactionBlockResponse, TransactionArgument, TransactionBlock, bcs, fromExportedKeypair, getExecutionStatus, getExecutionStatusGasSummary, getExecutionStatusType, isValidSuiAddress, normalizeSuiAddress, testnetConnection, toB64 }
-    from "@mysten/sui.js";
-
-import * as blake2 from 'blake2';
+import { TransactionArgument, TransactionBlock } from "@mysten/sui.js/transactions";
+import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
+import { blake2b } from '@noble/hashes/blake2b';
 import fs from "fs";
 import { AirdropConfig, addressConfig, mainnetConfig } from "../config/day_one";
 import { Network, mainPackage } from "../config/constants";
-import { execSync } from 'child_process';
-import { fromHEX } from "@mysten/bcs";
+import { isValidSuiAddress, normalizeSuiAddress, toB64 } from "@mysten/sui.js/utils";
+import { ExecutionStatus, GasCostSummary, SuiClient, SuiTransactionBlockResponse } from "@mysten/sui.js/client";
+import { bcs } from "@mysten/sui.js/bcs";
+import dotenv from "dotenv";
+dotenv.config();
 
 export const MAX_MINTS_PER_TRANSACTION = 2_000;
 export const TOTAL_RANDOM_ADDRESSES = 48 * MAX_MINTS_PER_TRANSACTION; // attempt with 95K.
 
 
 /* executes the transaction */
-export const executeTx = async (signer: RawSigner, tx: TransactionBlock, options?: {
+export const executeTx = async (keypair: Ed25519Keypair, tx: TransactionBlock, client: SuiClient, options?: {
     isAirdropExecution: boolean,
     chunkNum: number,
     failedChunks: number[]
@@ -25,38 +27,34 @@ export const executeTx = async (signer: RawSigner, tx: TransactionBlock, options
         showObjectChanges: true,
         showEffects: true
     }
-    return signer
-        .signAndExecuteTransactionBlock({
-            transactionBlock: tx,
-            options: requestOptions,
-        })
-        .then(function (res) {
-            if (!(options?.isAirdropExecution)) {
-                console.dir(res)
-                console.log(getExecutionStatus(res));
-                console.log(getExecutionStatusGasSummary(res));
-            }
 
-            if (options?.isAirdropExecution) {
-                if (getExecutionStatus(res)?.status === 'success') console.log(`Success of chunk: ${options?.chunkNum}`);
-                else {
-                    options.failedChunks.push(options?.chunkNum);
-                    console.log(`Failure of chunk: ${options?.chunkNum}`);
-                }
+    return client.signAndExecuteTransactionBlock({
+        transactionBlock: tx,
+        signer: keypair,
+        options: requestOptions
+    }).then(function(res) {
+        if (options?.isAirdropExecution) {
+            if (getExecutionStatus(res)?.status === 'success') console.log(`Success of chunk: ${options?.chunkNum}`);
+            else {
+                options.failedChunks.push(options?.chunkNum);
+                console.log(`Failure of chunk: ${options?.chunkNum}`);
             }
-
-            return res;
-        }).catch(e => {
-            console.dir(e, { depth: null });
-            if (!options) {
-                console.log(e);
-                return false;
-            }
-            options.failedChunks.push(options.chunkNum);
+        } else {
+            console.dir(res)
+            console.log(getExecutionStatus(res));
+            console.log(getExecutionStatusGasSummary(res));
+        }
+    }).catch (e => {
+        console.dir(e, { depth: null });
+        if (!options) {
             console.log(e);
-            console.log(`Failure of chunk: ${options?.chunkNum}`);
             return false;
-        });
+        }
+        options.failedChunks.push(options.chunkNum);
+        console.log(e);
+        console.log(`Failure of chunk: ${options?.chunkNum}`);
+        return false;
+    })
 }
 
 
@@ -113,32 +111,15 @@ export const serializeBatchToBytes = (batch: string[]) => {
 
 export const batchToHash = (batch: string[]) => {
     const bytes = Buffer.from(serializeBatchToBytes(batch));
+    const digest = blake2b(bytes, { dkLen: 32});
 
-    return blake2
-        .createHash('blake2b', { digestLength: 32 })
-        .update(bytes)
-        .digest('hex')
+    return Buffer.from(digest).toString('hex');
 }
 
-
-export const prepareSigner = (provider: JsonRpcProvider): RawSigner => {
+export const prepareSigner = (): Ed25519Keypair => {
     const phrase = process.env.ADMIN_PHRASE || '';
     if (!phrase) throw new Error(`ERROR: Admin mnemonic is not exported! Please run 'export ADMIN_PHRASE="<mnemonic>"'`);
-    const keypair = Ed25519Keypair.deriveKeypair(phrase!);
-
-    return new RawSigner(keypair, provider);
-}
-
-export const prepareSignerFromPrivateKey = (network: Network) => {
-    const privateKey = process.env.PRIVATE_KEY || '';
-    if (!privateKey) throw new Error(`ERROR: Private key not exported or exported wrong! Please run 'export PRIVATE_KEY="<mnemonic>"'`);
-    const keyPair: ExportedKeypair = {
-        schema: 'ED25519',
-        privateKey: toB64(fromHEX(privateKey)),
-    };
-
-    const config = mainPackage[network];
-    return new RawSigner(fromExportedKeypair(keyPair), config.provider);
+    return Ed25519Keypair.deriveKeypair(phrase!);
 }
 
 // converts an array of addresses to a buffer using the `buffer` module.
@@ -178,7 +159,6 @@ export const prepareMultisigTx = async (
     tx: TransactionBlock,
     network: Network
 ) => {
-
     const config = mainPackage[network];
     const gasObjectId = process.env.GAS_OBJECT;
 
@@ -192,15 +172,15 @@ export const prepareMultisigTx = async (
     tx.setSenderIfNotSet(config.adminAddress as string);
 
     // setting up gas object for the multi-sig transaction
-    if(gasObjectId) await setupGasPayment(tx, gasObjectId, config.provider);
+    if(gasObjectId) await setupGasPayment(tx, gasObjectId, config.client);
 
     // first do a dryRun, to make sure we are getting a success.
-    const dryRun = await inspectTransaction(tx, config.provider, network);    
+    const dryRun = await inspectTransaction(tx, config.client, network);
 
     if(!dryRun) throw new Error("This transaction failed.");
 
     tx.build({
-        provider: config.provider
+        client: config.client
     }).then((bytes) => {
         let serializedBase64 = toB64(bytes);
 
@@ -213,8 +193,8 @@ export const prepareMultisigTx = async (
 /*
     Fetch the gas Object and setup the payment for the tx.
 */
-const setupGasPayment = async (tx: TransactionBlock, gasObjectId: string, provider: JsonRpcProvider) => {
-    const gasObject = await provider.getObject({
+const setupGasPayment = async (tx: TransactionBlock, gasObjectId: string, client: SuiClient) => {
+    const gasObject = await client.getObject({
         id: gasObjectId
     });
 
@@ -231,17 +211,24 @@ const setupGasPayment = async (tx: TransactionBlock, gasObjectId: string, provid
 /*
     A helper to dev inspect a transaction.
 */
-export const inspectTransaction = async (tx: TransactionBlock, provider: JsonRpcProvider, network: Network) => {
+export const inspectTransaction = async (tx: TransactionBlock, client: SuiClient, network: Network) => {
 
     const config = mainPackage[network];
-
-    const result = await provider.dryRunTransactionBlock({
-        transactionBlock: await tx.build({
-            provider
-        })
-    });
+    const result = await client.dryRunTransactionBlock(
+        {
+            transactionBlock: await tx.build({client: config.client})
+        }
+    );
     // log the result.
     console.dir(result, { depth: null }); 
 
-    return getExecutionStatusType(result as SuiTransactionBlockResponse) === "success";
+    return result.effects.status.status === 'success'
 }
+function getExecutionStatus(res: SuiTransactionBlockResponse): ExecutionStatus | undefined {
+    return res.effects?.status;
+}
+
+function getExecutionStatusGasSummary(res: SuiTransactionBlockResponse): GasCostSummary | undefined {
+    return res.effects?.gasUsed;
+}
+
