@@ -1,4 +1,4 @@
-import { TransactionBlock } from "@mysten/sui.js";
+import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { executeTx, prepareSigner } from "./helper";
 import { addressConfig, mainnetConfig } from "../config/day_one";
 import { Network, mainPackage } from "../config/constants";
@@ -21,8 +21,7 @@ export const deauthorizeBogoApp = async (network: Network): Promise<TransactionB
     // return if we're on multisig execution.
     if(airdropConfig.isMainnet) return tx;
 
-    const signer = prepareSigner(mainPackage[network].provider);
-    await executeTx(signer, tx);
+    await executeTx(prepareSigner(), tx, mainPackage[network].client);
 }
 
 

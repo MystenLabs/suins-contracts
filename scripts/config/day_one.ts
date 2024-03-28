@@ -1,18 +1,16 @@
-import { ObjectId, SuiAddress } from "@mysten/sui.js";
-
 export type AirdropConfig = {
     isMainnet?: boolean;
     packageId: string;
     dropListObj: {
-        objectId: ObjectId,
+        objectId: string,
         initialSharedVersion: string;
         mutable: boolean;
     },
-    setupCap: ObjectId;
-    massMintingAddress: SuiAddress;
-    baseCoinObjectId: ObjectId;
-    publisher: ObjectId;
-    bufferPackageId: ObjectId;
+    setupCap: string;
+    massMintingAddress: string;
+    baseCoinObjectId: string;
+    publisher: string;
+    bufferPackageId: string;
 }
 
 export const mainnetConfig: AirdropConfig = {
