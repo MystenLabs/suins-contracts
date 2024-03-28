@@ -5,13 +5,11 @@
 // validation of names etc.
 module coupons::rules {
 
-    use std::vector;
     use std::option::{Self, Option};
 
-    use sui::clock::{Self, Clock};
+    use sui::clock::Clock;
 
-    use coupons::constants;
-    use coupons::range::{Self, Range};
+    use coupons::{constants, range::Range};
 
     use suins::constants::{Self as suins_constants};
     // Errors
@@ -64,7 +62,7 @@ module coupons::rules {
     ): CouponRules {
         assert!(is_valid_years_range(&years), EInvalidYears);
         assert!(is_valid_length_range(&length), EInvalidLengthRule);
-        assert!(option::is_none(&available_claims) || (*option::borrow(&available_claims) > 0), EInvalidAvailableClaims);
+        assert!(available_claims.is_none() || (*available_claims.borrow() > 0), EInvalidAvailableClaims);
         CouponRules {
             length, available_claims, user, expiration, years
         }
@@ -90,8 +88,8 @@ module coupons::rules {
         if(option::is_some(&rules.available_claims)){
             assert!(has_available_claims(rules), ENoMoreAvailableClaims);
                // Decrease available claims by 1.
-            let available_claims = *option::borrow(&rules.available_claims);
-            option::swap(&mut rules.available_claims, available_claims - 1);
+            let available_claims = *rules.available_claims.borrow();
+            rules.available_claims.swap(available_claims - 1);
         }
     }
 
@@ -99,7 +97,7 @@ module coupons::rules {
     // Returns true if the rule is not set OR it has used all the available claims.
     public fun has_available_claims(rules: &CouponRules): bool {
         if(option::is_none(&rules.available_claims)) return true;
-        *option::borrow(&rules.available_claims) > 0
+        *rules.available_claims.borrow() > 0
     }
 
     // Assertion helper for the validity of years.
@@ -113,13 +111,13 @@ module coupons::rules {
     // 1. Exact years (e.g. 2 years, by passing [2,2])
     // 2. Range of years (e.g. [1,3])
     public fun is_coupon_valid_for_domain_years(rules: &CouponRules, target: u8): bool {
-        if(option::is_none(&rules.years)) return true;
+        if(rules.years.is_none()) return true;
 
-        range::is_in_range(option::borrow(&rules.years), target)
+        rules.years.borrow().is_in_range(target)
     }
 
     public fun assert_is_valid_discount_type(`type`: u8) {
-        assert!(vector::contains(&constants::discount_rule_types(), &`type`), EInvalidType);
+        assert!(constants::discount_rule_types().contains(&`type`), EInvalidType);
     }
     
     // verify that we are creating the coupons correctly (based on amount & type).
@@ -139,9 +137,9 @@ module coupons::rules {
     /// We check the length of the name based on the domain length rule
     public fun is_coupon_valid_for_domain_size(rules: &CouponRules, length: u8): bool {
         // If the vec is not set, we pass this rule test.
-        if(option::is_none(&rules.length)) return true;
+        if(rules.length.is_none()) return true;
 
-        range::is_in_range(option::borrow(&rules.length), length)
+        rules.length.borrow().is_in_range(length)
     }
 
 
@@ -152,8 +150,8 @@ module coupons::rules {
     }
     /// Check that the domain is valid for the specified address
     public fun is_coupon_valid_for_address(rules: &CouponRules, user: address): bool {
-        if(option::is_none(&rules.user)) return true;
-        *option::borrow(&rules.user) == user
+        if(rules.user.is_none()) return true;
+        rules.user.borrow() == user
     }
 
     /// Simple assertion for the coupon expiration. 
@@ -164,23 +162,23 @@ module coupons::rules {
 
     /// Check whether a coupon has expired 
     public fun is_coupon_expired(rules: &CouponRules, clock: &Clock): bool {
-        if(option::is_none(&rules.expiration)){
+        if(rules.expiration.is_none()){
             return false
         };
 
-        clock::timestamp_ms(clock) > *option::borrow(&rules.expiration)
+        clock.timestamp_ms() > *rules.expiration.borrow()
     }
 
 
     fun is_valid_years_range(range: &Option<Range>): bool {
-        if(option::is_none(range)) return true;
-        let range = option::borrow(range);
-        range::from(range) >= 1 && range::to(range) <= 5
+        if(range.is_none()) return true;
+        let range = range.borrow();
+        range.from() >= 1 && range.to() <= 5
     }
 
     fun is_valid_length_range(range: &Option<Range>): bool {
-        if(option::is_none(range)) return true;
-        let range = option::borrow(range);
-        range::from(range) >= suins_constants::min_domain_length() && range::to(range) <= suins_constants::max_domain_length()
+        if(range.is_none()) return true;
+        let range = range.borrow();
+        range.from() >= suins_constants::min_domain_length() && range.to() <= suins_constants::max_domain_length()
     }
 }

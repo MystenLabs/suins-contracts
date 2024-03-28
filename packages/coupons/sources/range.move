@@ -4,8 +4,6 @@
 /// A module to introduce `range` checks for the rules.
 module coupons::range {
 
-    use std::vector;
-
     /// Invalid [from, to] setup in the range!
     /// `to` parameter has to be >= `from`
     const EInvalidRange: u64 = 0;
@@ -31,12 +29,12 @@ module coupons::range {
 
     /// Get floor limit for the range.
     public fun from(range: &Range): u8 {
-        *vector::borrow(&range.vec, 0)
+        *range.vec.borrow(0)
     }
     
     /// Get upper limit for the range.
     public fun to(range: &Range): u8 {
-        *vector::borrow(&range.vec, 1)
+        *range.vec.borrow(1)
     }
 
 }
