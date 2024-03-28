@@ -1,7 +1,9 @@
-import { MIST_PER_SUI, SUI_CLOCK_OBJECT_ID, SuiObjectRef, TransactionArgument, TransactionBlock } from "@mysten/sui.js";
 import { PackageInfo, mainPackage } from "../../config/constants"
 import reservedObjects from "../../reserved-names/owned-objects.json";
 import { prepareMultisigTx } from "../../airdrop/helper";
+import { MIST_PER_SUI, SUI_CLOCK_OBJECT_ID } from "@mysten/sui.js/utils";
+import { TransactionArgument, TransactionBlock } from "@mysten/sui.js/transactions";
+import { SuiObjectRef } from "@mysten/sui.js/client";
 
 const RUN = process.env.RUN_ID || '';
 
