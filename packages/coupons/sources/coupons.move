@@ -9,7 +9,7 @@
 /// Each coupon is validated towards a list of rules. View `rules` module for explanation.
 /// The app is authorized on `SuiNS` to be able to claim names and add earnings to the registry.
 module coupons::coupons {
-    use std::string::{Self, String};
+    use std::string::String;
 
     use sui::table::{Self, Table};
     use sui::tx_context::{TxContext, sender};
@@ -22,6 +22,7 @@ module coupons::coupons {
 
     use coupons::rules::{Self, CouponRules};
     use coupons::constants;
+    use suins::{domain, suins::{Self, AdminCap, SuiNS}, suins_registration::SuinsRegistration, config::Self, registry::{Self, Registry}};
 
     /// Coupon already exists
     const ECouponAlreadyExists: u64 = 0;
@@ -41,7 +42,6 @@ module coupons::coupons {
     /// Our versioning of the coupons package.
     const VERSION: u8 = 1;
 
-    use suins::{domain, suins::{Self, AdminCap, SuiNS}, suins_registration::SuinsRegistration, config::{Self, Config}, registry::{Self, Registry}};
 
     // Authorization for the Coupons on SuiNS, to be able to register names on the app.
     public struct CouponsApp has drop {}
@@ -96,7 +96,7 @@ module coupons::coupons {
     ): SuinsRegistration {
         self.assert_version_is_valid();
         // Validate that specified coupon is valid.
-        assert!(table::contains(&self.data.coupons, coupon_code), ECouponNotExists);
+        assert!(self.data.coupons.contains(coupon_code), ECouponNotExists);
 
         // Verify coupon house is authorized to buy names.
         suins::assert_app_is_authorized<CouponsApp>(suins);
@@ -104,8 +104,8 @@ module coupons::coupons {
         // Validate registration years are in [0,5] range.
         assert!(no_years > 0 && no_years <= 5, EInvalidYearsArgument);
 
-        let config = suins::get_config<Config>(suins);
-        let domain = domain::new(domain_name);
+        let config = suins.get_config();
+        let domain = domain::new(domain_name); //update?
         let label = domain.sld();
         
         let domain_length = (label.length() as u8);
@@ -136,7 +136,7 @@ module coupons::coupons {
         suins::app_add_balance(CouponsApp {}, suins, coin::into_balance(payment));
 
         // Clean up our registry by removing the coupon if no more available claims!
-        if(!rules::has_available_claims(&coupon.rules)){
+        if(!coupon.rules.has_available_claims()){
             // remove the coupon, since it's no longer usable.
             internal_remove_coupon(&mut self.data, coupon_code);
         };
