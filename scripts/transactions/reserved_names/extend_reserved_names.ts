@@ -146,8 +146,8 @@ export const prepareInbetweenTransactions = async (run: string) => {
  
     for(const [idx, name] of batchToWork.entries()) {
         const splitFrom = idx < 500 ? 
-            { kind: 'NestedResult', index: 1, resultIndex: idx } : 
-            { kind: 'NestedResult', index: 2, resultIndex: idx - 500 };
+            { kind: 'NestedResult', index: 0, resultIndex: idx } : 
+            { kind: 'NestedResult', index: 1, resultIndex: idx - 500 };
 
         // @ts-ignore-next-line
         renewTx(txb, config, name, PRICE_LIST.fivePlus, splitFrom);
