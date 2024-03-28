@@ -6,17 +6,15 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "transactions::main_package::upgrade": "ts-node transactions/main_package_upgrade.ts",
-    "migrations::day_one::deauthorize": "ts-node transactions/deauthorize_bogo_app.ts",
-    "transactions::registration::publish": "ts-node transactions/publish_registration.ts",
     "transfer::names": "ts-node reserved-names/transfer-names.ts",
-    "withdraw:auction:profits":"ts-node transactions/withdraw_funds_20290927.ts",
-    "publish-utils": "ts-node transactions/publish_utils.ts",
+    "withdraw:auction:profits": "ts-node transactions/withdraw_funds_20290927.ts",
     "authorize-utils": "ts-node transactions/authorize_utils.ts",
-    "publish-discounts": "ts-node transactions/publish_discounts.ts",
     "authorize-discounts": "ts-node transactions/quest_3_setup.ts",
     "disable-free-claims": "ts-node transactions/quest3/disable_free_claims.ts",
     "disable-discounts": "ts-node transactions/quest3/disable_discounts.ts",
-    "create-deepbook-pools": "ts-node transactions/deepbook/create_pools.ts"
+    "create-deepbook-pools": "ts-node transactions/deepbook/create_pools.ts",
+    "authorize-renewals": "ts-node transactions/renewals/authorize_renewals.ts",
+    "renew-reserved-names": "ts-node transactions/reserved_names/extend_reserved_names.ts"
   },
   "keywords": [],
   "author": "",
@@ -25,10 +23,13 @@
     "@mysten/bcs": "0.11.1",
     "@mysten/kiosk": "0.8.4",
     "@mysten/sui.js": "0.51.0",
-    "@types/blake2": "^4.0.1",
+    "@noble/hashes": "^1.4.0",
     "@pythnetwork/pyth-sui-js": "2.0.0",
     "dotenv": "^16.3.1",
-    "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.1",
+    "@types/node": "^20.11.30"
   }
 }

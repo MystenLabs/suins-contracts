@@ -1,15 +1,14 @@
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { TransactionArgument, TransactionBlock } from "@mysten/sui.js/transactions";
 import { Network, mainPackage } from "../config/constants";
 import { AirdropConfig, addressConfig, mainnetConfig } from "../config/day_one";
-import { createTransferPolicy, queryTransferPolicy } from "@mysten/kiosk";
+import { Network as KioskNetwork, ObjectArgument, TransferPolicyTransaction } from "@mysten/kiosk";
+import { KioskClient } from '@mysten/kiosk';
 
 export const dayOneType = (config: AirdropConfig) =>  `${config.packageId}::day_one::DayOne`;
 
 
 export const createDayOneDisplay = async (tx: TransactionBlock, network: Network) => {
-
   const config = network === 'mainnet' ? mainnetConfig : addressConfig;
-
     const displayObject = {
         keys: ["name", "description", "link", "image_url"],
         values: [
@@ -39,7 +38,6 @@ export const createDayOneDisplay = async (tx: TransactionBlock, network: Network
       });
   
       tx.transferObjects([display], tx.pure(mainPackageConfig.adminAddress));
-
 };
 
 export const createDayOneTransferPolicy = async (
@@ -47,19 +45,29 @@ export const createDayOneTransferPolicy = async (
     network: Network,
   ) => {
     const config = network === 'mainnet' ? mainnetConfig : addressConfig;
-    
     const mainPackageConfig = mainPackage[network];
-    const existingPolicy = await queryTransferPolicy(mainPackageConfig.client, dayOneType(config));
+
+    const kioskClient = new KioskClient({
+      client: mainPackageConfig.client,
+      network: network === 'mainnet' ? KioskNetwork.MAINNET : KioskNetwork.TESTNET
+    })
+
+    const existingPolicy = await kioskClient.getTransferPolicies({ type: dayOneType(config) });
   
     if (existingPolicy.length > 0) {
       console.warn(`Type ${dayOneType} already had a tranfer policy so the transaction was skipped.`);
       return false;
     }
+
     // create transfer policy
-    let transferPolicyCap = createTransferPolicy(tx, dayOneType(config), config.publisher);
-  
+    let tpTx = new TransferPolicyTransaction({ kioskClient, transactionBlock: tx });
+    await tpTx.create({
+      type: `${dayOneType(config)}`,
+      publisher: config.publisher
+    });
+
     // transfer cap to owner
-    tx.transferObjects([transferPolicyCap], tx.pure(mainPackageConfig.adminAddress, 'address'));
+    tpTx.shareAndTransferCap(mainPackageConfig.adminAddress);
   
     return true;
   }

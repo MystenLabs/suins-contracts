@@ -10,12 +10,12 @@ on:
         options:
           - Disable Discounts
           - Disable Free Claims
-          - Publish Discounts
           - Authorize Discounts
           - Withdraw Auction Profits
           - Transfer Reserved Names
           - Main package upgrade
           - Create Deepbook Pools
+          - Renew reserved names
       sui_tools_image:
         description: 'image reference of sui_tools'
         default: 'mysten/sui-tools:mainnet'
@@ -29,6 +29,15 @@ on:
         required: true
         type: string
         default: '0x5cc6e842a17918ad7ce5e4e333309b387f1d5151bc3c89682abda460a700c2f5'
+      reserved_renewals_tx_id:
+        description: 'Which reserved extension operation are you trying to run?'
+        type: 'choice'
+        options: 
+          - '1'
+          - '2'
+          - '3'
+          - '4'
+          - '5'
 
 jobs:
   suins:
@@ -118,16 +127,6 @@ jobs:
         run: |
           cd scripts && pnpm withdraw:auction:profits
 
-      - name: Publish Discounts
-        if: ${{ inputs.transaction_type == 'Publish Discounts' }}
-        env:
-          NODE_ENV: production
-          GAS_OBJECT: ${{ inputs.gas_object_id }}
-          NETWORK: mainnet
-          ORIGIN: gh_action
-        run: |
-          cd scripts && pnpm publish-discounts
-
       - name: Authorize Discounts
         if: ${{ inputs.transaction_type == 'Authorize Discounts' }}
         env:
@@ -167,6 +166,27 @@ jobs:
           ORIGIN: gh_action
         run: |
           cd scripts && pnpm create-deepbook-pools
+
+      - name: Authorize Renewals
+        if: ${{ inputs.transaction_type == 'Authorize Renewals' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+        run: |
+          cd scripts && pnpm authorize-renewals
+
+      - name: Renew Reserved Names
+        if: ${{ inputs.transaction_type == 'Renew reserved names' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+          RUN_ID: ${{ inputs.reserved_renewals_tx_id }}
+        run: |
+          cd scripts && pnpm renew-reserved-names
 
       - name: Show Transaction Data (To sign)
         run: |

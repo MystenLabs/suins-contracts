@@ -1,15 +1,14 @@
 import { TransactionArgument, TransactionBlock } from "@mysten/sui.js/transactions";
 import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
-import * as blake2 from 'blake2';
+import { blake2b } from '@noble/hashes/blake2b';
 import fs from "fs";
 import { AirdropConfig, addressConfig, mainnetConfig } from "../config/day_one";
 import { Network, mainPackage } from "../config/constants";
-import { execSync } from 'child_process';
-import { RawSigner } from "@mysten/sui.js/src/signers/raw-signer";
 import { isValidSuiAddress, normalizeSuiAddress, toB64 } from "@mysten/sui.js/utils";
 import { ExecutionStatus, GasCostSummary, SuiClient, SuiTransactionBlockResponse } from "@mysten/sui.js/client";
 import { bcs } from "@mysten/sui.js/bcs";
-import { SignerWithProvider } from "@mysten/sui.js/src/signers/signer-with-provider";
+import dotenv from "dotenv";
+dotenv.config();
 
 export const MAX_MINTS_PER_TRANSACTION = 2_000;
 export const TOTAL_RANDOM_ADDRESSES = 48 * MAX_MINTS_PER_TRANSACTION; // attempt with 95K.
@@ -112,14 +111,15 @@ export const serializeBatchToBytes = (batch: string[]) => {
 
 export const batchToHash = (batch: string[]) => {
     const bytes = Buffer.from(serializeBatchToBytes(batch));
+    const digest = blake2b(bytes, { dkLen: 32});
 
-    return blake2
-        .createHash('blake2b', { digestLength: 32 })
-        .update(bytes)
-        .digest('hex')
+    return Buffer.from(digest).toString('hex');
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4c4ce8a28b21136c4192767da28e8fa8e104cf8a
 export const prepareSigner = (): Ed25519Keypair => {
     const phrase = process.env.ADMIN_PHRASE || '';
     if (!phrase) throw new Error(`ERROR: Admin mnemonic is not exported! Please run 'export ADMIN_PHRASE="<mnemonic>"'`);
@@ -179,7 +179,11 @@ export const prepareMultisigTx = async (
     if(gasObjectId) await setupGasPayment(tx, gasObjectId, config.client);
 
     // first do a dryRun, to make sure we are getting a success.
+<<<<<<< HEAD
     const dryRun = await inspectTransaction(tx, config.client, network);    
+=======
+    const dryRun = await inspectTransaction(tx, config.client, network);
+>>>>>>> 4c4ce8a28b21136c4192767da28e8fa8e104cf8a
 
     if(!dryRun) throw new Error("This transaction failed.");
 
@@ -188,8 +192,9 @@ export const prepareMultisigTx = async (
     }).then((bytes) => {
         let serializedBase64 = toB64(bytes);
 
-        const output_location = process.env.NODE_ENV === 'development' ? './tx-data-local.txt' : '$PWD/tx/tx-data.txt';
-        execSync(`echo ${serializedBase64} > ${output_location}`);
+        const output_location = process.env.NODE_ENV === 'development' ? './tx/tx-data-local.txt' : './tx/tx-data.txt';
+
+        fs.writeFileSync(output_location, serializedBase64);
     });
 }
 
@@ -217,10 +222,16 @@ const setupGasPayment = async (tx: TransactionBlock, gasObjectId: string, client
 export const inspectTransaction = async (tx: TransactionBlock, client: SuiClient, network: Network) => {
 
     const config = mainPackage[network];
+<<<<<<< HEAD
 
     const result = await client.dryRunTransactionBlock(
         {
             transactionBlock: tx.serialize()
+=======
+    const result = await client.dryRunTransactionBlock(
+        {
+            transactionBlock: await tx.build({client: config.client})
+>>>>>>> 4c4ce8a28b21136c4192767da28e8fa8e104cf8a
         }
     );
     // log the result.
