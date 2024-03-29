@@ -11,9 +11,9 @@ module utils::direct_setup {
     use sui::clock::Clock;
 
     use suins::domain;
-    use suins::registry::{Self, Registry};
+    use suins::registry::Registry;
     use suins::suins::{Self, SuiNS};
-    use suins::suins_registration::{Self as nft, SuinsRegistration};
+    use suins::suins_registration::SuinsRegistration;
 
     /// Authorization token for the controller.
     public struct DirectSetup has drop {}
@@ -26,16 +26,16 @@ module utils::direct_setup {
         clock: &Clock,
     ) {
         let registry = suins::app_registry_mut<DirectSetup, Registry>(DirectSetup {}, suins);
-        registry::assert_nft_is_authorized(registry, nft, clock);
+        registry.assert_nft_is_authorized(nft, clock);
 
-        let domain = nft::domain(nft);
-        registry::set_target_address(registry, domain, option::some(new_target));
+        let domain = nft.domain();
+        registry.set_target_address(domain, option::some(new_target));
     }
 
     /// Set the reverse lookup address for the domain
     public fun set_reverse_lookup(suins: &mut SuiNS, domain_name: String, ctx: &TxContext) {
         let domain = domain::new(domain_name);
         let registry = suins::app_registry_mut<DirectSetup, Registry>(DirectSetup {}, suins);
-        registry::set_reverse_lookup(registry, sender(ctx), domain);
+        registry.set_reverse_lookup(sender(ctx), domain);
     }
 }
