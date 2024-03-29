@@ -2,11 +2,13 @@
 
 [move]
 version = 0
-manifest_digest = "C7D820391479C80239B28393051DDAC5777689FD9E5271A95F35894833616014"
-deps_digest = "F8BBB0CCB2491CA29A3DF03D6F92277A4F3574266507ACD77214D37ECA3F3082"
+manifest_digest = "588979F21B80B4299F56C77F8DFF3A0D232C95BE2C83373ACE5B39E128300087"
+deps_digest = "060AD7E57DFB13104F21BE5F5C3759D03F0553FC3229247D9A7A6B45F50D03A3"
 
 dependencies = [
   { name = "Sui" },
+  { name = "denylist" },
+  { name = "suins" },
 ]
 
 [[move.package]]
@@ -19,4 +21,21 @@ source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testn
 
 dependencies = [
   { name = "MoveStdlib" },
+]
+
+[[move.package]]
+name = "denylist"
+source = { local = "../denylist" }
+
+dependencies = [
+  { name = "Sui" },
+  { name = "suins" },
+]
+
+[[move.package]]
+name = "suins"
+source = { local = "../suins" }
+
+dependencies = [
+  { name = "Sui" },
 ]

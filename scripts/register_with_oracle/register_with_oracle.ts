@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { executeTx, prepareSigner } from "../airdrop/helper";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { SuiClient } from "@mysten/sui.js/client";
+import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui.js/dist/cjs/utils";
 dotenv.config();
 
 const setup = async () => {
@@ -38,8 +39,7 @@ const setup = async () => {
             txb.pure(1), // no_years: u8
             sui_coin, // payment: Coin<SUI>
             txb.object(priceInfoObjectIds[0]), // price_info_object: &PriceInfoObject
-            // clock: &Clock
-            // ctx: &mut TxContext
+            txb.object(SUI_CLOCK_OBJECT_ID),// clock: &Clock
         ],
     });
     txb.transferObjects([nft], txb.pure.address('insert_address')) // send to tx sender

@@ -2,7 +2,7 @@ import { TransactionArgument, TransactionBlock } from "@mysten/sui.js/transactio
 import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
 import { blake2b } from '@noble/hashes/blake2b';
 import fs from "fs";
-import { AirdropConfig, addressConfig, mainnetConfig } from "../config/day_one";
+import { AirdropConfig} from "../config/day_one";
 import { Network, mainPackage } from "../config/constants";
 import { isValidSuiAddress, normalizeSuiAddress, toB64 } from "@mysten/sui.js/utils";
 import { ExecutionStatus, GasCostSummary, SuiClient, SuiTransactionBlockResponse } from "@mysten/sui.js/client";
@@ -116,10 +116,6 @@ export const batchToHash = (batch: string[]) => {
     return Buffer.from(digest).toString('hex');
 }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 4c4ce8a28b21136c4192767da28e8fa8e104cf8a
 export const prepareSigner = (): Ed25519Keypair => {
     const phrase = process.env.ADMIN_PHRASE || '';
     if (!phrase) throw new Error(`ERROR: Admin mnemonic is not exported! Please run 'export ADMIN_PHRASE="<mnemonic>"'`);
@@ -179,11 +175,7 @@ export const prepareMultisigTx = async (
     if(gasObjectId) await setupGasPayment(tx, gasObjectId, config.client);
 
     // first do a dryRun, to make sure we are getting a success.
-<<<<<<< HEAD
-    const dryRun = await inspectTransaction(tx, config.client, network);    
-=======
     const dryRun = await inspectTransaction(tx, config.client, network);
->>>>>>> 4c4ce8a28b21136c4192767da28e8fa8e104cf8a
 
     if(!dryRun) throw new Error("This transaction failed.");
 
@@ -222,16 +214,9 @@ const setupGasPayment = async (tx: TransactionBlock, gasObjectId: string, client
 export const inspectTransaction = async (tx: TransactionBlock, client: SuiClient, network: Network) => {
 
     const config = mainPackage[network];
-<<<<<<< HEAD
-
-    const result = await client.dryRunTransactionBlock(
-        {
-            transactionBlock: tx.serialize()
-=======
     const result = await client.dryRunTransactionBlock(
         {
             transactionBlock: await tx.build({client: config.client})
->>>>>>> 4c4ce8a28b21136c4192767da28e8fa8e104cf8a
         }
     );
     // log the result.
@@ -246,4 +231,3 @@ function getExecutionStatus(res: SuiTransactionBlockResponse): ExecutionStatus |
 function getExecutionStatusGasSummary(res: SuiTransactionBlockResponse): GasCostSummary | undefined {
     return res.effects?.gasUsed;
 }
-

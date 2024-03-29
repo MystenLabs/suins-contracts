@@ -14,7 +14,8 @@
     "disable-discounts": "ts-node transactions/quest3/disable_discounts.ts",
     "create-deepbook-pools": "ts-node transactions/deepbook/create_pools.ts",
     "authorize-renewals": "ts-node transactions/renewals/authorize_renewals.ts",
-    "renew-reserved-names": "ts-node transactions/reserved_names/extend_reserved_names.ts"
+    "renew-reserved-names": "ts-node transactions/reserved_names/extend_reserved_names.ts",
+    "publish_suins": "ts-node register_with_oracle/deploy_suins_from_scratch.ts"
   },
   "keywords": [],
   "author": "",
