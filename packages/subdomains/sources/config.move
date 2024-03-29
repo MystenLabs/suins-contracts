@@ -2,10 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 module subdomains::config {
-    use std::string::{Self, String};
-    use std::vector;
+    use std::string::String;
 
-    use suins::domain::{Self, Domain, is_parent_of};
+    use suins::domain::{Domain, is_parent_of};
     use suins::constants::sui_tld;
 
     /// the minimum size a subdomain label can have.
@@ -71,7 +70,7 @@ module subdomains::config {
 
     /// Validate that the depth of the subdomain is with the allowed range.
     public fun has_valid_depth(domain: &Domain, config: &SubDomainConfig): bool {
-        domain::number_of_levels(domain) <= (config.max_depth as u64)
+        domain.number_of_levels() <= (config.max_depth as u64)
     }
 
     /// Validates that the TLD of the domain is supported for subdomains.
@@ -80,8 +79,8 @@ module subdomains::config {
     /// (E.g., with `.move` service, we might want to restrict how subdomains are created)
     public fun is_valid_tld(domain: &Domain, config: &SubDomainConfig): bool {
         let mut i=0;
-        while (i < vector::length(&config.allowed_tlds)) {
-            if (domain::tld(domain) == vector::borrow(&config.allowed_tlds, i)) {
+        while (i < config.allowed_tlds.length()) {
+            if (domain.tld() == config.allowed_tlds.borrow(i)) {
                 return true
             };
             i = i + 1;
@@ -94,8 +93,8 @@ module subdomains::config {
     /// in the `Domain` construction.
     public fun is_valid_label(domain: &Domain, config: &SubDomainConfig): bool {
         // our label is the last vector element, as labels are stored in reverse order.
-        let label = domain::label(domain, domain::number_of_levels(domain) - 1);
-        string::length(label) >= (config.min_label_size as u64)
+        let label = domain.label(domain.number_of_levels() - 1);
+        label.length() >= (config.min_label_size as u64)
     }
 
 }
