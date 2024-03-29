@@ -15,7 +15,7 @@ module temp_subdomain_proxy::subdomain_proxy {
     use sui::clock::Clock;
 
     use suins::suins::SuiNS;
-    use suins::subdomain_registration::{Self, SubDomainRegistration};
+    use suins::subdomain_registration::SubDomainRegistration;
     
     use subdomains::subdomains;
     use utils::direct_setup;
@@ -32,7 +32,7 @@ module temp_subdomain_proxy::subdomain_proxy {
     ): SubDomainRegistration {
         subdomains::new(
             suins,
-            subdomain_registration::nft(subdomain),
+            subdomain.nft(),
             clock,
             subdomain_name,
             expiration_timestamp_ms,
@@ -52,7 +52,7 @@ module temp_subdomain_proxy::subdomain_proxy {
     ){
         subdomains::new_leaf(
             suins,
-            subdomain_registration::nft(subdomain),
+            subdomain.nft(),
             clock,
             subdomain_name,
             target,
@@ -68,7 +68,7 @@ module temp_subdomain_proxy::subdomain_proxy {
     ) {
         subdomains::remove_leaf(
             suins,
-            subdomain_registration::nft(subdomain),
+            subdomain.nft(),
             clock,
             subdomain_name,
         );
@@ -82,7 +82,7 @@ module temp_subdomain_proxy::subdomain_proxy {
     ) {
         direct_setup::set_target_address(
             suins,
-            subdomain_registration::nft(subdomain),
+            subdomain.nft(),
             new_target,
             clock,
         );
