@@ -9,9 +9,6 @@
 /// Activation / deactivation happens through PTBs.
 module discounts::free_claims {
 
-    use std::vector;
-    use std::string;
-
     use std::string::{String};
     use std::type_name::{Self as `type`};
 
@@ -97,7 +94,7 @@ module discounts::free_claims {
         object: &T,
         ctx: &mut TxContext
     ): SuinsRegistration {
-        house::assert_version_is_valid(self);
+        self.assert_version_is_valid();
         // validate that there's a configuration for type T.
         assert_config_exists<T>(self);
 
@@ -106,11 +103,11 @@ module discounts::free_claims {
         let id = object::id<T>(object);
 
         // validate that the supplied object hasn't been used to claim a free name.
-        let config = df::borrow_mut<FreeClaimsKey<T>, FreeClaimsConfig>(house::uid_mut(self), FreeClaimsKey<T>{});
-        assert!(!linked_table::contains(&config.used_objects, id), EAlreadyClaimed);
+        let config = df::borrow_mut<FreeClaimsKey<T>, FreeClaimsConfig>(self.uid_mut(), FreeClaimsKey<T>{});
+        assert!(!config.used_objects.contains(id), EAlreadyClaimed);
 
         // add the supplied object's id to the used objects list.
-        linked_table::push_back(&mut config.used_objects, id, true);
+        config.used_objects.push_back(id, true);
 
         // Now validate the domain, and that the rule applies here.
         let domain = domain::new(domain_name);
@@ -127,13 +124,13 @@ module discounts::free_claims {
         domain_length_range: vector<u8>,
         ctx: &mut TxContext
     ) {
-        house::assert_version_is_valid(self);
-        assert!(!df::exists_(house::uid_mut(self), FreeClaimsKey<T> {}), EConfigExists);
+        self.assert_version_is_valid();
+        assert!(!df::exists_(self.uid_mut(), FreeClaimsKey<T> {}), EConfigExists);
 
         // validate the range is valid.
         assert_valid_length_setup(&domain_length_range);
 
-        df::add(house::uid_mut(self), FreeClaimsKey<T>{}, FreeClaimsConfig {
+        df::add(self.uid_mut(), FreeClaimsKey<T>{}, FreeClaimsConfig {
             domain_length_range,
             used_objects: linked_table::new(ctx)
         });
@@ -143,37 +140,37 @@ module discounts::free_claims {
     /// Deauthorization also brings storage rebates by destroying the table of used objects.
     /// If we re-authorize a type, objects can be re-used, but that's considered a separate promotion.
     public fun deauthorize_type<T>(_: &AdminCap, self: &mut DiscountHouse) {
-        house::assert_version_is_valid(self);
+        self.assert_version_is_valid();
         assert_config_exists<T>(self);
-        let FreeClaimsConfig { mut used_objects, domain_length_range: _ } = df::remove<FreeClaimsKey<T>, FreeClaimsConfig>(house::uid_mut(self), FreeClaimsKey<T>{});
+        let FreeClaimsConfig { mut used_objects, domain_length_range: _ } = df::remove<FreeClaimsKey<T>, FreeClaimsConfig>(self.uid_mut(), FreeClaimsKey<T>{});
 
         // parse each entry and remove it. Gives us storage rebates.
-        while(linked_table::length(&used_objects) > 0) {
-            linked_table::pop_front(&mut used_objects);
+        while(used_objects.length() > 0) {
+            used_objects.pop_front();
         };
 
-        linked_table::destroy_empty(used_objects);
+        used_objects.destroy_empty();
     }
 
     /// Worried by the 1000 DFs load limit, I introduce a `drop_type` function now
     /// to make sure we can force-finish a promotion for type `T`.
     public fun force_deauthorize_type<T>(_: &AdminCap, self: &mut DiscountHouse) {
-        house::assert_version_is_valid(self);
+        self.assert_version_is_valid();
         assert_config_exists<T>(self);
-        let FreeClaimsConfig { used_objects, domain_length_range: _ } = df::remove<FreeClaimsKey<T>, FreeClaimsConfig>(house::uid_mut(self), FreeClaimsKey<T>{});
-        linked_table::drop(used_objects);
+        let FreeClaimsConfig { used_objects, domain_length_range: _ } = df::remove<FreeClaimsKey<T>, FreeClaimsConfig>(self.uid_mut(), FreeClaimsKey<T>{});
+        used_objects.drop();
     }
 
     // Validate that there is a config for `T`
     fun assert_config_exists<T>(self: &mut DiscountHouse) {
-        assert!(df::exists_with_type<FreeClaimsKey<T>, FreeClaimsConfig>(house::uid_mut(self), FreeClaimsKey<T> {}), EConfigNotExists);
+        assert!(df::exists_with_type<FreeClaimsKey<T>, FreeClaimsConfig>(self.uid_mut(), FreeClaimsKey<T> {}), EConfigNotExists);
     }
 
     /// Validate that the domain length is valid for the passed configuration.
     fun assert_domain_length_eligible(domain: &Domain, config: &FreeClaimsConfig) {
-        let domain_length = (string::length(domain::sld(domain)) as u8);
-        let from = *vector::borrow(&config.domain_length_range, 0);
-        let to = *vector::borrow(&config.domain_length_range, 1);
+        let domain_length = (domain.sld().length() as u8);
+        let from = *config.domain_length_range.borrow(0);
+        let to = *config.domain_length_range.borrow(1);
 
         assert!(domain_length >= from && domain_length <= to, EInvalidCharacterRange);
     }
@@ -181,10 +178,10 @@ module discounts::free_claims {
 
     // Validate that our range setup is right.
     fun assert_valid_length_setup(domain_length_range: &vector<u8>) {
-        assert!(vector::length(domain_length_range) == 2, EInvalidCharacterRange);
+        assert!(domain_length_range.length() == 2, EInvalidCharacterRange);
 
-        let from = *vector::borrow(domain_length_range, 0);
-        let to = *vector::borrow(domain_length_range, 1);
+        let from = *domain_length_range.borrow(0);
+        let to = *domain_length_range.borrow(1);
 
         assert!(to >= from, EInvalidCharacterRange);
     }

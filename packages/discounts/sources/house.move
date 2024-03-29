@@ -10,8 +10,8 @@ module discounts::house {
     use sui::transfer;
     use sui::clock::{Clock};
 
-    use suins::domain::{Domain};
-    use suins::registry::{Self, Registry};
+    use suins::domain::Domain;
+    use suins::registry::Registry;
     use suins::suins::{Self, AdminCap, SuiNS};
     use suins::config;
     use suins::suins_registration::SuinsRegistration;
@@ -68,13 +68,13 @@ module discounts::house {
         ctx: &mut TxContext
     ): SuinsRegistration {
         // Verify that app is authorized to register names.
-        suins::assert_app_is_authorized<DiscountHouseApp>(suins);
+        suins.assert_app_is_authorized<DiscountHouseApp>();
 
         // Validate that the name can be registered.
         config::assert_valid_user_registerable_domain(&domain);
 
         let registry = suins::app_registry_mut<DiscountHouseApp, Registry>(DiscountHouseApp {}, suins);
-        registry::add_record(registry, domain, REGISTRATION_YEARS, clock, ctx)
+        registry.add_record(domain, REGISTRATION_YEARS, clock, ctx)
     }
 
     /// Returns the UID of the shared object so we can add custom configuration.
