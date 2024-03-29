@@ -37,8 +37,7 @@ module managed_names::managed_tests {
         let nft = remove_attached_name(domain_name, USER, scenario);
         transfer::public_transfer(nft, USER);
         
-        
-        ts::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -65,7 +64,7 @@ module managed_names::managed_tests {
         // Since we attached the re-registered version for the name,
         // the original `owner` should have received back the expired NFT.
         {
-            ts::next_tx(scenario, USER);
+            scenario.next_tx(USER);
             let mut nft_transferred_back = ts::most_recent_id_for_address<SuinsRegistration>(USER);
 
             assert!(option::is_some(&nft_transferred_back), 0);
@@ -75,7 +74,7 @@ module managed_names::managed_tests {
 
         suins_registration::burn_for_testing(random_nft);
         
-        ts::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code=managed_names::managed::EExpiredNFT)]
@@ -227,19 +226,18 @@ module managed_names::managed_tests {
     ///
     public fun test_init(): (Scenario) {
         let mut scenario = ts::begin(USER);
-
         {
-            ts::next_tx(&mut scenario, USER);
+            scenario.next_tx(USER);
 
-            let clock = clock::create_for_testing(ctx(&mut scenario));
+            let clock = clock::create_for_testing(scenario.ctx());
             clock::share_for_testing(clock);
 
-            let (mut suins, cap) = suins::new_for_testing(ctx(&mut scenario));
+            let (mut suins, cap) = suins::new_for_testing(scenario.ctx());
 
-            suins::authorize_app_for_testing<ManagedNamesApp>(&mut suins);
+            suins.authorize_app_for_testing<ManagedNamesApp>();
 
             managed::setup(&mut suins, &cap, ctx(&mut scenario));
-            suins::share_for_testing(suins);
+            suins.share_for_testing();
         
             suins::burn_admin_cap_for_testing(cap);
         };
@@ -248,35 +246,35 @@ module managed_names::managed_tests {
     }
 
     public fun attach_name(nft: SuinsRegistration, addresses: vector<address>, addr: address, scenario: &mut Scenario) {
-        ts::next_tx(scenario, addr);
-        let mut suins = ts::take_shared<SuiNS>(scenario);
-        let clock = ts::take_shared<Clock>(scenario);
+        scenario.next_tx(addr);
+        let mut suins = scenario.take_shared<SuiNS>();
+        let clock = scenario.take_shared<Clock>();
 
-        managed::attach_managed_name(&mut suins, nft, &clock, addresses, ctx(scenario));
+        managed::attach_managed_name(&mut suins, nft, &clock, addresses, scenario.ctx());
 
         ts::return_shared(clock);
         ts::return_shared(suins);
     }
 
     public fun remove_attached_name(domain_name: String, addr: address, scenario: &mut Scenario): SuinsRegistration {
-        ts::next_tx(scenario, addr);
-        let mut suins = ts::take_shared<SuiNS>(scenario);
+        scenario.next_tx(addr);
+        let mut suins = scenario.take_shared<SuiNS>();
 
-        let nft = managed::remove_attached_name(&mut suins, domain_name, ctx(scenario));
+        let nft = managed::remove_attached_name(&mut suins, domain_name, scenario.ctx());
 
         ts::return_shared(suins);
         nft
     }
 
     public fun add_or_remove_addresses(name: String, addresses: vector<address>, add: bool, addr: address, scenario: &mut Scenario) {
-        ts::next_tx(scenario, addr);
-        let mut suins = ts::take_shared<SuiNS>(scenario);
-        let clock = ts::take_shared<Clock>(scenario);
+        scenario.next_tx(addr);
+        let mut suins = scenario.take_shared<SuiNS>();
+        let clock = scenario.take_shared<Clock>();
 
         if(add){
-            managed::allow_addresses(&mut suins, name, addresses, ctx(scenario));
+            managed::allow_addresses(&mut suins, name, addresses, scenario.ctx());
         }else {
-            managed::revoke_addresses(&mut suins, name, addresses, ctx(scenario));
+            managed::revoke_addresses(&mut suins, name, addresses, scenario.ctx());
         };
 
         ts::return_shared(clock);
@@ -284,12 +282,12 @@ module managed_names::managed_tests {
     }
 
     public fun simulate_borrow(domain_name: String, addr: address, scenario: &mut Scenario): (SuinsRegistration, ReturnPromise) {
-        ts::next_tx(scenario, addr);
-        let mut suins = ts::take_shared<SuiNS>(scenario);
+        scenario.next_tx(addr);
+        let mut suins = scenario.take_shared<SuiNS>();
 
-        let (name, promise) = managed::borrow_val(&mut suins, domain_name, ctx(scenario));
+        let (name, promise) = managed::borrow_val(&mut suins, domain_name, scenario.ctx());
         
-        assert!(suins_registration::domain(&name) == domain::new(domain_name), 0);
+        assert!(name.domain() == domain::new(domain_name), 0);
 
         ts::return_shared(suins);
 
@@ -297,8 +295,8 @@ module managed_names::managed_tests {
     }
 
     public fun simulate_return(nft: SuinsRegistration, promise: ReturnPromise, scenario: &mut Scenario) {
-        ts::next_tx(scenario, USER);
-        let mut suins = ts::take_shared<SuiNS>(scenario);
+        scenario.next_tx(USER);
+        let mut suins = scenario.take_shared<SuiNS>();
 
         managed::return_val(&mut suins, nft, promise);
 
@@ -313,18 +311,18 @@ module managed_names::managed_tests {
     }
 
     public fun advance_clock_post_expiration_of_nft(nft: &SuinsRegistration, scenario: &mut Scenario) {
-        ts::next_tx(scenario, USER);
-        let mut clock = ts::take_shared<Clock>(scenario);
+        scenario.next_tx(USER);
+        let mut clock = scenario.take_shared<Clock>();
         // expire name
-        clock::increment_for_testing(&mut clock, suins_registration::expiration_timestamp_ms(nft) + 1);
+        clock.increment_for_testing(nft.expiration_timestamp_ms() + 1);
         ts::return_shared(clock);
     }
 
     // generates a SuinsRegistration NFT for testing
     public fun get_nft(name: String, addr: address, scenario: &mut Scenario): SuinsRegistration {
-        ts::next_tx(scenario, addr);
-        let suins = ts::take_shared<SuiNS>(scenario);
-        let clock = ts::take_shared<Clock>(scenario);
+        scenario.next_tx(addr);
+        let suins = scenario.take_shared<SuiNS>();
+        let clock = scenario.take_shared<Clock>();
         let nft = new_for_testing(
             domain::new(name),
             1, 
@@ -335,8 +333,4 @@ module managed_names::managed_tests {
         ts::return_shared(suins);
         nft
     }
-
-
-
-
 }

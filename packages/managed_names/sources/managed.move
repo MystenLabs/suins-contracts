@@ -16,7 +16,6 @@
 /// we're also using it to store the managed names (to avoid using separate shared objects).
 /// 
 module managed_names::managed {
-    use std::vector;
     use std::string::{String};
     use std::option::{Self, Option};
 
@@ -27,7 +26,7 @@ module managed_names::managed {
     use sui::transfer;
 
     use suins::domain::{Self, Domain};
-    use suins::suins_registration::{Self, SuinsRegistration};
+    use suins::suins_registration::SuinsRegistration;
     use suins::suins::{Self, SuiNS, AdminCap};
 
     /// Tries to add an NFT that has expired.
@@ -83,11 +82,11 @@ module managed_names::managed {
         allowed_addresses: vector<address>,
         ctx: &mut TxContext
     ) {
-        assert!(!suins_registration::has_expired(&nft, clock), EExpiredNFT);
+        assert!(!nft.has_expired(clock), EExpiredNFT);
 
         let managed_names = managed_names_mut(suins);
 
-        let domain = suins_registration::domain(&nft);
+        let domain = nft.domain();
 
         // if the name exists. We check if it's expired, and return it to the owner.
         if(table::contains(&managed_names.names, domain)) {
@@ -97,13 +96,13 @@ module managed_names::managed {
 
             let existing_nft = option::destroy_some(nft);
 
-            assert!(suins_registration::has_expired(&existing_nft, clock), EAlreadyExists);
+            assert!(existing_nft.has_expired(clock), EAlreadyExists);
             // transfer it back to the owner.
             transfer::public_transfer(existing_nft, owner);
         };
 
         // add the name to the managed names list.
-        table::add(&mut managed_names.names, domain, ManagedName {
+        managed_names.names.add(domain, ManagedName {
             owner: sender(ctx),
             allowed_addresses,
             nft: option::some(nft)
@@ -120,7 +119,7 @@ module managed_names::managed {
         let domain = domain::new(name);
 
         assert!(table::contains(&managed_names.names, domain), ENameNotExists);
-        let existing = table::remove(&mut managed_names.names, domain);
+        let existing = managed_names.names.remove(domain);
 
         assert!(is_owner(&existing, sender(ctx)), ENotAuthorized);
 
@@ -140,11 +139,11 @@ module managed_names::managed {
         let existing = internal_get_managed_name(managed_names_mut(suins), domain::new(name));
         assert!(is_owner(existing, sender(ctx)), ENotAuthorized);
 
-        while(vector::length(&addresses) > 0) {
-            let addr = vector::pop_back(&mut addresses);
+        while(addresses.length() > 0) {
+            let addr = addresses.pop_back();
 
-            if(!vector::contains(&existing.allowed_addresses, &addr)) {
-                vector::push_back(&mut existing.allowed_addresses, addr);
+            if(!existing.allowed_addresses.contains(&addr)) {
+                existing.allowed_addresses.push_back(addr);
             }
         }
     }
@@ -159,13 +158,13 @@ module managed_names::managed {
         let existing = internal_get_managed_name(managed_names_mut(suins), domain::new(name));
         assert!(is_owner(existing, sender(ctx)), ENotAuthorized);
 
-        while(vector::length(&addresses) > 0) {
-            let addr = vector::pop_back(&mut addresses);
+        while(addresses.length() > 0) {
+            let addr = addresses.pop_back();
 
-            let (has_address, index) = vector::index_of(&existing.allowed_addresses, &addr);
+            let (has_address, index) = existing.allowed_addresses.index_of(&addr);
 
             if (has_address) {
-                vector::remove(&mut existing.allowed_addresses, index);
+                existing.allowed_addresses.remove(index);
             }
         }
     }
@@ -197,7 +196,7 @@ module managed_names::managed {
         let ReturnPromise { id } = promise;
         assert!(object::id(&nft) == id, EInvalidReturnedNFT);
 
-        let existing = internal_get_managed_name(managed_names_mut(suins), suins_registration::domain(&nft));
+        let existing = internal_get_managed_name(managed_names_mut(suins), nft.domain());
 
         // return the NFT back.
         option::fill(&mut existing.nft, nft)
@@ -205,9 +204,9 @@ module managed_names::managed {
 
 
     fun internal_get_managed_name(managed_names: &mut ManagedNames, domain: Domain): &mut ManagedName {
-        assert!(table::contains(&managed_names.names, domain), ENameNotExists);
+        assert!(managed_names.names.contains(domain), ENameNotExists);
         
-        table::borrow_mut(&mut managed_names.names, domain)
+        managed_names.names.borrow_mut(domain)
     }
 
 
@@ -216,13 +215,7 @@ module managed_names::managed {
     }
     /// Check if an address is authorized for borrowing.
     fun is_authorized_address(self: &ManagedName, addr: address): bool {
-        self.owner == addr || vector::contains(&self.allowed_addresses, &addr)
-    }
-
-
-    /// an immutable reference to the registry.
-    fun managed_names(self: &SuiNS): &ManagedNames {
-        suins::registry<ManagedNames>(self)
+        self.owner == addr || self.allowed_addresses.contains(&addr)
     }
 
     /// a mutable reference to the registry
