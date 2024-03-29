@@ -44,12 +44,12 @@ module coupons::setup {
             clock::share_for_testing(clock);
         };
         {
-            test_scenario::next_tx(scenario, ADMIN_ADDRESS);
-            let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
+            scenario.next_tx(ADMIN_ADDRESS);
+            let mut coupon_house = scenario.take_shared<CouponHouse>();
         
             // get admin cap
-            let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-            let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+            let admin_cap = scenario.take_from_sender<AdminCap>();
+            let mut suins = scenario.take_shared<SuiNS>();
             registry::init_for_testing(&admin_cap, &mut suins, ctx(scenario));
             // authorize TestApp to CouponHouse.
             coupons::authorize_app<TestApp>(&admin_cap, &mut coupon_house);
@@ -194,9 +194,9 @@ module coupons::setup {
 
     // Adds a 0 rule coupon that gives 15% discount to test admin additions.
     public fun admin_add_coupon(code_name: String, `type`: u8, value: u64, scenario: &mut Scenario) {
-        test_scenario::next_tx(scenario, admin());
-        let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
-        let cap = test_scenario::take_from_sender<AdminCap>(scenario);
+        scenario.next_tx(admin());
+        let mut coupon_house = scenario.take_shared<CouponHouse>();
+        let cap = scenario.take_from_sender<AdminCap>();
         coupons::admin_add_coupon(
             &cap,
             &mut coupon_house,
@@ -211,9 +211,9 @@ module coupons::setup {
     }
     // Adds a 0 rule coupon that gives 15% discount to test admin additions.
     public fun admin_remove_coupon(code_name: String, scenario: &mut Scenario) {
-        test_scenario::next_tx(scenario, admin());
-        let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
-        let cap = test_scenario::take_from_sender<AdminCap>(scenario);
+        scenario.next_tx(admin());
+        let mut coupon_house = scenario.take_shared<CouponHouse>();
+        let cap = scenario.take_from_sender<AdminCap>();
         coupons::admin_remove_coupon(
             &cap,
             &mut coupon_house,
@@ -230,16 +230,15 @@ module coupons::setup {
     // 5 digit -> 50
     // A helper to easily register a name with a coupon code.
     public fun register_with_coupon(coupon_code: String, domain_name: String, no_years: u8, amount: u64, clock_value: u64, user: address, scenario: &mut Scenario) {
-        test_scenario::next_tx(scenario, user);
-        let mut clock = test_scenario::take_shared<Clock>(scenario);
-        clock::increment_for_testing(&mut clock, clock_value);
-        let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
-        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+        scenario.next_tx(user);
+        let mut clock = scenario.take_shared<Clock>();
+        clock.increment_for_testing(clock_value);
+        let mut coupon_house = scenario.take_shared<CouponHouse>();
+        let mut suins = scenario.take_shared<SuiNS>();
 
         let payment = coin::mint_for_testing<SUI>(amount, ctx(scenario));
 
-        let nft = coupons::register_with_coupon(
-            &mut coupon_house, 
+        let nft = coupon_house.register_with_coupon(
             &mut suins, 
             coupon_code, 
             domain_name, 
