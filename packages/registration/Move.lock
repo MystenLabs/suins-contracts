@@ -2,8 +2,8 @@
 
 [move]
 version = 0
-manifest_digest = "75434D5374AE0B76DFC7B2C8B1D93D92E43B7C10C03782CF67925E35F379A78A"
-deps_digest = "3C4103934B1E040BB6B23F1D610B4EF9F2F1166A50A104EADCF77467C004C600"
+manifest_digest = "CF552C9B8C306D6D57A12CE2BCDE666ED14713B7B6744DA2A498663D79516405"
+deps_digest = "060AD7E57DFB13104F21BE5F5C3759D03F0553FC3229247D9A7A6B45F50D03A3"
 
 dependencies = [
   { name = "Pyth" },
@@ -17,7 +17,7 @@ source = { git = "https://github.com/MystenLabs/sui.git", rev = "mainnet", subdi
 
 [[move.package]]
 name = "Pyth"
-source = { git = "https://github.com/0xaslan/pyth-crosschain.git", rev = "sui/price-info-test", subdir = "target_chains/sui/contracts" }
+source = { git = "https://github.com/pyth-network/pyth-crosschain.git", rev = "sui-contract-testnet", subdir = "target_chains/sui/contracts" }
 
 dependencies = [
   { name = "Sui" },
@@ -34,7 +34,7 @@ dependencies = [
 
 [[move.package]]
 name = "Wormhole"
-source = { git = "https://github.com/wormhole-foundation/wormhole.git", rev = "82d82bffd5a8566e4b5d94be4e4678ad55ab1f4f", subdir = "sui/wormhole" }
+source = { git = "https://github.com/wormhole-foundation/wormhole.git", rev = "sui-upgrade-testnet", subdir = "sui/wormhole" }
 
 dependencies = [
   { name = "Sui" },
@@ -47,8 +47,3 @@ source = { local = "../suins" }
 dependencies = [
   { name = "Sui" },
 ]
-
-[move.toolchain-version]
-compiler-version = "1.19.0"
-edition = "legacy"
-flavor = "sui"
