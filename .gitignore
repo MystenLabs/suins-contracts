@@ -12,4 +12,4 @@ node_modules
 tx-data.txt*
 .DS_STORE*
 
-register_with_oracle/local
+./register_with_oracle
