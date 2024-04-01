@@ -62,11 +62,11 @@ module suins::admin_tests {
             &mut ctx,
         );
 
-        assert_eq(nft::domain(&nft), domain::new(utf8(b"test.sui")));
-        assert_eq(nft::expiration_timestamp_ms(&nft), constants::year_ms());
+        assert_eq(nft.domain(), domain::new(utf8(b"test.sui")));
+        assert_eq(nft.expiration_timestamp_ms(), constants::year_ms());
 
-        nft::burn_for_testing(nft);
-        clock::destroy_for_testing(clock);
+        nft.burn_for_testing();
+        clock.destroy_for_testing();
         suins::burn_admin_cap_for_testing(cap);
         suins::share_for_testing(suins);
     }

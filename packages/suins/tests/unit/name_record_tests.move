@@ -29,25 +29,25 @@ module suins::name_record_tests {
         let mut record = record::new(nft_id, 0);
 
         // check default values
-        assert_eq(record::nft_id(&record), nft_id);
-        assert_eq(*record::data(&record), vec_map::empty());
-        assert_eq(record::target_address(&record), none());
-        assert_eq(record::expiration_timestamp_ms(&record), 0);
+        assert_eq(record.nft_id(), nft_id);
+        assert_eq(*record.data(), vec_map::empty());
+        assert_eq(record.target_address(), none());
+        assert_eq(record.expiration_timestamp_ms(), 0);
 
         let mut data = vec_map::empty();
-        vec_map::insert(&mut data, utf8(b"user_name"), utf8(b"Brandon"));
-        vec_map::insert(&mut data, utf8(b"age"), utf8(b"forever young"));
+        data.insert(utf8(b"user_name"), utf8(b"Brandon"));
+        data.insert(utf8(b"age"), utf8(b"forever young"));
 
         // update values
-        record::set_data(&mut record, *&data);
-        record::set_target_address(&mut record, some(@suins));
-        record::set_expiration_timestamp_ms(&mut record, 123456789); // 123456789 ms = 3.9 years
+        record.set_data(*&data);
+        record.set_target_address(some(@suins));
+        record.set_expiration_timestamp_ms(123456789); // 123456789 ms = 3.9 years
 
         // check updated values
-        assert_eq(record::nft_id(&record), nft_id);
-        assert_eq(*record::data(&record), data);
-        assert_eq(record::target_address(&record), some(@suins));
-        assert_eq(record::expiration_timestamp_ms(&record), 123456789);
+        assert_eq(record.nft_id(), nft_id);
+        assert_eq(*record.data(), data);
+        assert_eq(record.target_address(), some(@suins));
+        assert_eq(record.expiration_timestamp_ms(), 123456789);
     }
 
     #[test]
@@ -58,21 +58,21 @@ module suins::name_record_tests {
         let mut clock = clock::create_for_testing(&mut ctx);
 
         // clock is 0, record expires in 1 second with a 30 days (grace period)
-        assert_eq(record::has_expired(&record, &clock), false);
-        assert_eq(record::has_expired_past_grace_period(&record, &clock), false);
+        assert_eq(record.has_expired(&clock), false);
+        assert_eq(record.has_expired_past_grace_period(&clock), false);
 
         // increment time by 30 days to check if the grace period is working;
         // in just 1 second from that the record will expire
-        clock::increment_for_testing(&mut clock, constants::grace_period_ms());
-        assert_eq(record::has_expired(&record, &clock), true);
-        assert_eq(record::has_expired_past_grace_period(&record, &clock), false);
+        clock.increment_for_testing(constants::grace_period_ms());
+        assert_eq(record.has_expired(&clock), true);
+        assert_eq(record.has_expired_past_grace_period(&clock), false);
 
         // increment time by 1 second to check if record has expired
-        clock::increment_for_testing(&mut clock, constants::grace_period_ms() + 1000);
-        assert_eq(record::has_expired(&record, &clock), true);
-        assert_eq(record::has_expired_past_grace_period(&record, &clock), true);
+        clock.increment_for_testing(constants::grace_period_ms() + 1000);
+        assert_eq(record.has_expired(&clock), true);
+        assert_eq(record.has_expired_past_grace_period(&clock), true);
 
-        clock::destroy_for_testing(clock);
+        clock.destroy_for_testing();
     }
 
     fun fresh_id(ctx: &mut TxContext): ID {
