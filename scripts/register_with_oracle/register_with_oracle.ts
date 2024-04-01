@@ -43,16 +43,15 @@ const setup = async () => {
             txb.pure(20000000000), // $20
         ]
     });
-    console.log(quantity);
 
-    const [sui_coin] = txb.splitCoins(txb.gas, [quantity]);
+    const coin = txb.splitCoins(txb.gas, [quantity]);
     const nft = txb.moveCall({
         target: `${registration}::register::register`,
         arguments: [
             txb.object(suiNS),
             txb.pure("testdomain3.sui"),
             txb.pure(1),
-            sui_coin,
+            coin,
             txb.object(priceInfoObjectIds[0]),
             txb.object(SUI_CLOCK_OBJECT_ID),
         ],

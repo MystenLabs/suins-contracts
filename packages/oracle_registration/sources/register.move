@@ -64,7 +64,7 @@ module oracle_registration::register {
 
         let label = domain::sld(&domain);
         let config_cost = config::calculate_price(config, (string::length(label) as u8), no_years);
-        let sui_quantity_required = get_sui_required(price_info_object, config_cost);
+        let sui_quantity_required = calculate_price_in_sui(price_info_object, config_cost);
         let sui_quantity_required_min = sui_quantity_required * 995 / 1000;
         let sui_quantity_required_max = sui_quantity_required * 1005 / 1000;
 
@@ -76,7 +76,7 @@ module oracle_registration::register {
         registry::add_record(registry, domain, no_years, clock, ctx)
     }
 
-    public fun get_sui_required(
+    public fun calculate_price_in_sui(
         price_info_object: &PriceInfoObject,
         config_cost: u64
     ): u64 {

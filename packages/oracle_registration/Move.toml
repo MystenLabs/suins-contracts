@@ -4,7 +4,9 @@ version = "0.0.1"
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "mainnet", override=true }
-suins = { local = "../../suins" }
+suins = { local = "../suins" }
+# This is needed to pass unit tests. change to the following for deployment
+# Pyth = {git = "https://github.com/pyth-network/pyth-crosschain.git", subdir = "target_chains/sui/contracts", rev = "sui-contract-v0.0.2-mainnet-sui-1.19.1" }
 Pyth = {git = "https://github.com/0xaslan/pyth-crosschain.git", subdir = "target_chains/sui/contracts", rev = "sui/price-info-test" }
 
 [addresses]
