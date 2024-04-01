@@ -36,16 +36,16 @@ module suins::controller_tests {
         let scenario = &mut scenario_val;
         {
             let mut suins = suins::init_for_testing(ctx(scenario));
-            suins::authorize_app_for_testing<Register>(&mut suins);
+            suins.authorize_app_for_testing<Register>();
             suins::authorize_app_for_testing<Controller>(&mut suins);
             suins::share_for_testing(suins);
             let clock = clock::create_for_testing(ctx(scenario));
-            clock::share_for_testing(clock);
+            clock.share_for_testing();
         };
         {
-            test_scenario::next_tx(scenario, SUINS_ADDRESS);
-            let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-            let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+            scenario.next_tx(SUINS_ADDRESS);
+            let admin_cap = scenario.take_from_sender<AdminCap>();
+            let mut suins = scenario.take_shared<SuiNS>();
 
             registry::init_for_testing(&admin_cap, &mut suins, ctx(scenario));
 
@@ -61,12 +61,12 @@ module suins::controller_tests {
     }
 
     public fun set_target_address_util(scenario: &mut Scenario, sender: address, target: Option<address>, clock_tick: u64) {
-        test_scenario::next_tx(scenario, sender);
-        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
-        let nft = test_scenario::take_from_sender<SuinsRegistration>(scenario);
-        let mut clock = test_scenario::take_shared<Clock>(scenario);
+        scenario.next_tx(sender);
+        let mut suins = scenario.take_shared<SuiNS>();
+        let nft = scenario.take_from_sender<SuinsRegistration>();
+        let mut clock = scenario.take_shared<Clock>();
 
-        clock::increment_for_testing(&mut clock, clock_tick);
+        clock.increment_for_testing(clock_tick);
         set_target_address_for_testing(&mut suins, &nft, target, &clock);
 
         test_scenario::return_shared(clock);
@@ -75,8 +75,8 @@ module suins::controller_tests {
     }
 
     public fun set_reverse_lookup_util(scenario: &mut Scenario, sender: address, domain_name: String) {
-        test_scenario::next_tx(scenario, sender);
-        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+        scenario.next_tx(sender);
+        let mut suins = scenario.take_shared<SuiNS>();
 
         set_reverse_lookup_for_testing(&mut suins, domain_name, ctx(scenario));
 
@@ -84,8 +84,8 @@ module suins::controller_tests {
     }
 
     public fun unset_reverse_lookup_util(scenario: &mut Scenario, sender: address) {
-        test_scenario::next_tx(scenario, sender);
-        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+        scenario.next_tx(sender);
+        let mut suins = scenario.take_shared<SuiNS>();
 
         unset_reverse_lookup_for_testing(&mut suins, ctx(scenario));
 
@@ -93,12 +93,12 @@ module suins::controller_tests {
     }
 
     public fun set_user_data_util(scenario: &mut Scenario, sender: address, key: String, value: String, clock_tick: u64) {
-        test_scenario::next_tx(scenario, sender);
-        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
-        let nft = test_scenario::take_from_sender<SuinsRegistration>(scenario);
-        let mut clock = test_scenario::take_shared<Clock>(scenario);
+        scenario.next_tx(sender);
+        let mut suins = scenario.take_shared<SuiNS>();
+        let nft = scenario.take_from_sender<SuinsRegistration>();
+        let mut clock = scenario.take_shared<Clock>();
 
-        clock::increment_for_testing(&mut clock, clock_tick);
+        clock.increment_for_testing(clock_tick);
         set_user_data_for_testing(&mut suins, &nft, key, value, &clock);
 
         test_scenario::return_shared(clock);
@@ -107,12 +107,12 @@ module suins::controller_tests {
     }
 
     public fun unset_user_data_util(scenario: &mut Scenario, sender: address, key: String, clock_tick: u64) {
-        test_scenario::next_tx(scenario, sender);
-        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
-        let nft = test_scenario::take_from_sender<SuinsRegistration>(scenario);
-        let mut clock = test_scenario::take_shared<Clock>(scenario);
+        scenario.next_tx(sender);
+        let mut suins = scenario.take_shared<SuiNS>();
+        let nft = scenario.take_from_sender<SuinsRegistration>();
+        let mut clock = scenario.take_shared<Clock>();
 
-        clock::increment_for_testing(&mut clock, clock_tick);
+        clock.increment_for_testing(clock_tick);
         unset_user_data_for_testing(&mut suins, &nft, key, &clock);
 
         test_scenario::return_shared(clock);
@@ -121,33 +121,33 @@ module suins::controller_tests {
     }
 
     fun lookup_util(scenario: &mut Scenario, domain_name: String, expected_target_addr: Option<address>) {
-        test_scenario::next_tx(scenario, SUINS_ADDRESS);
-        let suins = test_scenario::take_shared<SuiNS>(scenario);
+        scenario.next_tx(SUINS_ADDRESS);
+        let suins = scenario.take_shared<SuiNS>();
 
-        let registry = suins::registry<Registry>(&suins);
+        let registry = suins.registry<Registry>();
         let record = extract(&mut lookup(registry, domain::new(domain_name)));
-        assert_eq(name_record::target_address(&record), expected_target_addr);
+        assert_eq(record.target_address(), expected_target_addr);
 
         test_scenario::return_shared(suins);
     }
 
     fun get_user_data(scenario: &mut Scenario, domain_name: String): VecMap<String, String> {
-        test_scenario::next_tx(scenario, SUINS_ADDRESS);
-        let suins = test_scenario::take_shared<SuiNS>(scenario);
+        scenario.next_tx(SUINS_ADDRESS);
+        let suins = scenario.take_shared<SuiNS>();
 
-        let registry = suins::registry<Registry>(&suins);
+        let registry = suins.registry<Registry>();
         let record = extract(&mut lookup(registry, domain::new(domain_name)));
-        let data = *name_record::data(&record);
+        let data = *record.data();
         test_scenario::return_shared(suins);
 
         data
     }
 
     fun reverse_lookup_util(scenario: &mut Scenario, addr: address, expected_domain_name: Option<Domain>) {
-        test_scenario::next_tx(scenario, SUINS_ADDRESS);
-        let suins = test_scenario::take_shared<SuiNS>(scenario);
+        scenario.next_tx(SUINS_ADDRESS);
+        let suins = scenario.take_shared<SuiNS>();
 
-        let registry = suins::registry<Registry>(&suins);
+        let registry = suins.registry<Registry>();
         let domain_name = reverse_lookup(registry, addr);
         assert_eq(domain_name, expected_domain_name);
 
@@ -155,9 +155,9 @@ module suins::controller_tests {
     }
 
     fun deauthorize_app_util(scenario: &mut Scenario) {
-        test_scenario::next_tx(scenario, SUINS_ADDRESS);
-        let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+        scenario.next_tx(SUINS_ADDRESS);
+        let admin_cap = scenario.take_from_sender<AdminCap>();
+        let mut suins = scenario.take_shared<SuiNS>();
 
         suins::deauthorize_app<Controller>(&admin_cap, &mut suins);
 
@@ -178,7 +178,7 @@ module suins::controller_tests {
         set_target_address_util(scenario, FIRST_ADDRESS, none(), 0);
         lookup_util(scenario, utf8(DOMAIN_NAME), none());
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = registry::ERecordExpired)]
@@ -189,7 +189,7 @@ module suins::controller_tests {
 
         set_target_address_util(scenario, FIRST_ADDRESS, some(SECOND_ADDRESS), 2 * year_ms());
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = registry::EIdMismatch)]
@@ -201,7 +201,7 @@ module suins::controller_tests {
 
         set_target_address_util(scenario, FIRST_ADDRESS, some(SECOND_ADDRESS), 0);
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -214,7 +214,7 @@ module suins::controller_tests {
         set_target_address_util(scenario, SECOND_ADDRESS, some(SECOND_ADDRESS), 0);
         lookup_util(scenario, utf8(DOMAIN_NAME), some(SECOND_ADDRESS));
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
@@ -226,7 +226,7 @@ module suins::controller_tests {
         deauthorize_app_util(scenario);
         set_target_address_util(scenario, FIRST_ADDRESS, some(SECOND_ADDRESS), 0);
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -247,7 +247,7 @@ module suins::controller_tests {
         reverse_lookup_util(scenario, FIRST_ADDRESS, some(domain::new(utf8(DOMAIN_NAME))));
         reverse_lookup_util(scenario, SECOND_ADDRESS, none());
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = registry::ETargetNotSet)]
@@ -259,7 +259,7 @@ module suins::controller_tests {
         reverse_lookup_util(scenario, SECOND_ADDRESS, none());
         set_reverse_lookup_util(scenario, SECOND_ADDRESS, utf8(DOMAIN_NAME));
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = registry::ERecordMismatch)]
@@ -272,7 +272,7 @@ module suins::controller_tests {
         reverse_lookup_util(scenario, SECOND_ADDRESS, none());
         set_reverse_lookup_util(scenario, SECOND_ADDRESS, utf8(DOMAIN_NAME));
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
@@ -285,7 +285,7 @@ module suins::controller_tests {
         deauthorize_app_util(scenario);
         set_reverse_lookup_util(scenario, SECOND_ADDRESS, utf8(DOMAIN_NAME));
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -300,7 +300,7 @@ module suins::controller_tests {
         unset_reverse_lookup_util(scenario, SECOND_ADDRESS);
         reverse_lookup_util(scenario, SECOND_ADDRESS, none());
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
@@ -314,7 +314,7 @@ module suins::controller_tests {
         deauthorize_app_util(scenario);
         unset_reverse_lookup_util(scenario, SECOND_ADDRESS);
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = dynamic_field::EFieldDoesNotExist)]
@@ -325,7 +325,7 @@ module suins::controller_tests {
 
         unset_reverse_lookup_util(scenario, SECOND_ADDRESS);
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -335,19 +335,19 @@ module suins::controller_tests {
         setup(scenario, FIRST_ADDRESS, 0);
 
         let data = &get_user_data(scenario, utf8(DOMAIN_NAME));
-        assert_eq(vec_map::size(data), 0);
+        assert_eq(data.size(), 0);
         set_user_data_util(scenario, FIRST_ADDRESS, utf8(AVATAR), utf8(b"value_avatar"), 0);
         let data = &get_user_data(scenario, utf8(DOMAIN_NAME));
-        assert_eq(vec_map::size(data), 1);
-        assert_eq(*vec_map::get(data, &utf8(AVATAR)), utf8(b"value_avatar"));
+        assert_eq(data.size(), 1);
+        assert_eq(*data.get(&utf8(AVATAR)), utf8(b"value_avatar"));
 
         set_user_data_util(scenario, FIRST_ADDRESS, utf8(CONTENT_HASH), utf8(b"value_content_hash"), 0);
         let data = &get_user_data(scenario, utf8(DOMAIN_NAME));
-        assert_eq(vec_map::size(data), 2);
-        assert_eq(*vec_map::get(data, &utf8(AVATAR)), utf8(b"value_avatar"));
-        assert_eq(*vec_map::get(data, &utf8(CONTENT_HASH)), utf8(b"value_content_hash"));
+        assert_eq(data.size(), 2);
+        assert_eq(*data.get(&utf8(AVATAR)), utf8(b"value_avatar"));
+        assert_eq(*data.get(&utf8(CONTENT_HASH)), utf8(b"value_content_hash"));
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = controller::EUnsupportedKey)]
@@ -358,7 +358,7 @@ module suins::controller_tests {
 
         set_user_data_util(scenario, FIRST_ADDRESS, utf8(b"key"), utf8(b"value"), 0);
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = registry::ERecordExpired)]
@@ -369,7 +369,7 @@ module suins::controller_tests {
 
         set_user_data_util(scenario, FIRST_ADDRESS, utf8(AVATAR), utf8(b"value"), 2 * year_ms());
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = registry::EIdMismatch)]
@@ -381,7 +381,7 @@ module suins::controller_tests {
 
         set_user_data_util(scenario, FIRST_ADDRESS, utf8(AVATAR), utf8(b"value"), 0);
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -393,10 +393,10 @@ module suins::controller_tests {
 
         set_user_data_util(scenario, SECOND_ADDRESS, utf8(AVATAR), utf8(b"value"), 0);
         let data = &get_user_data(scenario, utf8(DOMAIN_NAME));
-        assert_eq(vec_map::size(data), 1);
-        assert_eq(*vec_map::get(data, &utf8(AVATAR)), utf8(b"value"));
+        assert_eq(data.size(), 1);
+        assert_eq(*data.get(&utf8(AVATAR)), utf8(b"value"));
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
@@ -408,7 +408,7 @@ module suins::controller_tests {
         deauthorize_app_util(scenario);
         set_user_data_util(scenario, FIRST_ADDRESS, utf8(AVATAR), utf8(b"value_avatar"), 0);
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -420,16 +420,16 @@ module suins::controller_tests {
         set_user_data_util(scenario, FIRST_ADDRESS, utf8(AVATAR), utf8(b"value_avatar"), 0);
         unset_user_data_util(scenario, FIRST_ADDRESS, utf8(AVATAR), 0);
         let data = &get_user_data(scenario, utf8(DOMAIN_NAME));
-        assert_eq(vec_map::size(data), 0);
+        assert_eq(data.size(), 0);
 
         set_user_data_util(scenario, FIRST_ADDRESS, utf8(CONTENT_HASH), utf8(b"value_content_hash"), 0);
         set_user_data_util(scenario, FIRST_ADDRESS, utf8(AVATAR), utf8(b"value_avatar"), 0);
         unset_user_data_util(scenario, FIRST_ADDRESS, utf8(CONTENT_HASH), 0);
         let data = &get_user_data(scenario, utf8(DOMAIN_NAME));
-        assert_eq(vec_map::size(data), 1);
-        assert_eq(*vec_map::get(data, &utf8(AVATAR)), utf8(b"value_avatar"));
+        assert_eq(data.size(), 1);
+        assert_eq(*data.get(&utf8(AVATAR)), utf8(b"value_avatar"));
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -440,7 +440,7 @@ module suins::controller_tests {
 
         unset_user_data_util(scenario, FIRST_ADDRESS, utf8(AVATAR), 0);
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = registry::ERecordExpired)]
@@ -451,7 +451,7 @@ module suins::controller_tests {
 
         unset_user_data_util(scenario, FIRST_ADDRESS, utf8(AVATAR), 2 * year_ms());
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
@@ -463,6 +463,6 @@ module suins::controller_tests {
         deauthorize_app_util(scenario);
         unset_user_data_util(scenario, FIRST_ADDRESS, utf8(AVATAR), 0);
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 }

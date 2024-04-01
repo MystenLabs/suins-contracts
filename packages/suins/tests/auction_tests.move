@@ -35,16 +35,16 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         {
             let mut suins = suins::init_for_testing(ctx(scenario));
-            suins::authorize_app_for_testing<AuctionApp>(&mut suins);
-            suins::share_for_testing(suins);
+            suins.authorize_app_for_testing<AuctionApp>();
+            suins.share_for_testing();
             auction::init_for_testing(ctx(scenario));
             let clock = clock::create_for_testing(ctx(scenario));
-            clock::share_for_testing(clock);
+            clock.share_for_testing();
         };
         {
-            test_scenario::next_tx(scenario, SUINS_ADDRESS);
-            let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-            let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+            scenario.next_tx(SUINS_ADDRESS);
+            let admin_cap = scenario.take_from_sender<AdminCap>();
+            let mut suins = scenario.take_shared<SuiNS>();
 
             registry::init_for_testing(&admin_cap, &mut suins, ctx(scenario));
 
@@ -60,11 +60,11 @@ module suins::auction_tests {
         domain_name: String,
         amount: u64
     ) {
-        test_scenario::next_tx(scenario, sender);
-        let mut auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
-        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+        scenario.next_tx(sender);
+        let mut auction_house = scenario.take_shared<AuctionHouse>();
+        let mut suins = scenario.take_shared<SuiNS>();
         let payment = coin::mint_for_testing<SUI>(amount, ctx(scenario));
-        let clock = test_scenario::take_shared<Clock>(scenario);
+        let clock = scenario.take_shared<Clock>();
 
         start_auction_and_place_bid(
             &mut auction_house,
@@ -81,12 +81,12 @@ module suins::auction_tests {
     }
 
     fun place_bid_util(scenario: &mut Scenario, sender: address, domain_name: String, value: u64, clock_tick: u64) {
-        test_scenario::next_tx(scenario, sender);
-        let mut auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+        scenario.next_tx(sender);
+        let mut auction_house = scenario.take_shared<AuctionHouse>();
         let payment = coin::mint_for_testing<SUI>(value, ctx(scenario));
-        let mut clock = test_scenario::take_shared<Clock>(scenario);
+        let mut clock = scenario.take_shared<Clock>();
 
-        clock::increment_for_testing(&mut clock, clock_tick);
+        clock.increment_for_testing(clock_tick);
         place_bid(&mut auction_house, domain_name, payment, &clock, ctx(scenario));
 
         test_scenario::return_shared(clock);
@@ -99,11 +99,11 @@ module suins::auction_tests {
         domain_name: String,
         clock_tick: u64
     ): SuinsRegistration {
-        test_scenario::next_tx(scenario, sender);
-        let mut auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
-        let mut clock = test_scenario::take_shared<Clock>(scenario);
+        scenario.next_tx(sender);
+        let mut auction_house = scenario.take_shared<AuctionHouse>();
+        let mut clock = scenario.take_shared<Clock>();
 
-        clock::increment_for_testing(&mut clock, clock_tick);
+        clock.increment_for_testing(clock_tick);
         let nft = claim(&mut auction_house, domain_name, &clock, ctx(scenario));
 
         test_scenario::return_shared(clock);
@@ -112,17 +112,17 @@ module suins::auction_tests {
     }
 
     fun withdraw_util(scenario: &mut Scenario, sender: address): Coin<SUI> {
-        test_scenario::next_tx(scenario, sender);
+        scenario.next_tx(sender);
         let returned_payment = test_scenario::take_from_sender<Coin<SUI>>(scenario);
         returned_payment
     }
 
     fun admin_collect_fund_util(scenario: &mut Scenario, domain_name: String, clock_tick: u64) {
-        test_scenario::next_tx(scenario, SUINS_ADDRESS);
-        let mut auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
-        let mut clock = test_scenario::take_shared<Clock>(scenario);
+        scenario.next_tx(SUINS_ADDRESS);
+        let mut auction_house = scenario.take_shared<AuctionHouse>();
+        let mut clock = scenario.take_shared<Clock>();
 
-        clock::increment_for_testing(&mut clock, clock_tick);
+        clock.increment_for_testing(clock_tick);
         collect_winning_auction_fund(&mut auction_house, domain_name, &clock, ctx(scenario));
 
         test_scenario::return_shared(clock);
@@ -134,12 +134,12 @@ module suins::auction_tests {
         domain: String,
         clock_tick: u64
     ) {
-        test_scenario::next_tx(scenario, SUINS_ADDRESS);
-        let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-        let mut auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
-        let mut clock = test_scenario::take_shared<Clock>(scenario);
+        scenario.next_tx(SUINS_ADDRESS);
+        let admin_cap = scenario.take_from_sender<AdminCap>();
+        let mut auction_house = scenario.take_shared<AuctionHouse>();
+        let mut clock = scenario.take_shared<Clock>();
 
-        clock::increment_for_testing(&mut clock, clock_tick);
+        clock.increment_for_testing(clock_tick);
         admin_finalize_auction(&admin_cap, &mut auction_house, domain, &clock);
 
         test_scenario::return_shared(clock);
@@ -148,12 +148,12 @@ module suins::auction_tests {
     }
 
     fun admin_try_finalize_auctions_util(scenario: &mut Scenario, operation_limit: u64, clock_tick: u64) {
-        test_scenario::next_tx(scenario, SUINS_ADDRESS);
-        let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-        let mut auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
-        let mut clock = test_scenario::take_shared<Clock>(scenario);
+        scenario.next_tx(SUINS_ADDRESS);
+        let admin_cap = scenario.take_from_sender<AdminCap>();
+        let mut auction_house = scenario.take_shared<AuctionHouse>();
+        let mut clock = scenario.take_shared<Clock>();
 
-        clock::increment_for_testing(&mut clock, clock_tick);
+        clock.increment_for_testing(clock_tick);
         admin_try_finalize_auctions(&admin_cap, &mut auction_house, operation_limit, &clock);
 
         test_scenario::return_shared(clock);
@@ -162,9 +162,9 @@ module suins::auction_tests {
     }
 
     fun admin_withdraw_funds_util(scenario: &mut Scenario): Coin<SUI> {
-        test_scenario::next_tx(scenario, SUINS_ADDRESS);
-        let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-        let mut auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+        scenario.next_tx(SUINS_ADDRESS);
+        let admin_cap = scenario.take_from_sender<AdminCap>();
+        let mut auction_house = scenario.take_shared<AuctionHouse>();
 
         let funds = admin_withdraw_funds(&admin_cap, &mut auction_house, ctx(scenario));
 
@@ -174,9 +174,9 @@ module suins::auction_tests {
     }
 
     fun deauthorize_app_util(scenario: &mut Scenario) {
-        test_scenario::next_tx(scenario, SUINS_ADDRESS);
-        let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+        scenario.next_tx(SUINS_ADDRESS);
+        let admin_cap = scenario.take_from_sender<AdminCap>();
+        let mut suins = scenario.take_shared<SuiNS>();
 
         suins::deauthorize_app<AuctionApp>(&admin_cap, &mut suins);
 
@@ -185,8 +185,8 @@ module suins::auction_tests {
     }
 
     fun assert_balance(scenario: &mut Scenario, amount: u64) {
-        test_scenario::next_tx(scenario, SUINS_ADDRESS);
-        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
+        scenario.next_tx(SUINS_ADDRESS);
+        let auction_house = scenario.take_shared<AuctionHouse>();
         assert!(total_balance(&auction_house) == amount, 0);
         test_scenario::return_shared(auction_house);
     }
@@ -199,9 +199,9 @@ module suins::auction_tests {
         expected_winner: address,
         expected_highest_amount: u64
     ) {
-        test_scenario::next_tx(scenario, SUINS_ADDRESS);
-        let auction_house = test_scenario::take_shared<AuctionHouse>(scenario);
-        let (mut start_ms, mut end_ms, mut winner, mut highest_amount) = auction::get_auction_metadata(&auction_house, domain_name);
+        scenario.next_tx(SUINS_ADDRESS);
+        let auction_house = scenario.take_shared<AuctionHouse>();
+        let (mut start_ms, mut end_ms, mut winner, mut highest_amount) = auction_house.get_auction_metadata(domain_name);
         assert!(option::extract(&mut start_ms) == expected_start_ms, 0);
         assert!(option::extract(&mut end_ms) == expected_end_ms, 0);
         assert!(option::extract(&mut winner) == expected_winner, 0);
@@ -235,9 +235,9 @@ module suins::auction_tests {
         );
 
         let nft = claim_util(scenario, SECOND_ADDRESS, utf8(FIRST_DOMAIN_NAME), AUCTION_BIDDING_PERIOD_MS + 1);
-        assert!(suins_registration::domain(&nft) == domain::new(utf8(FIRST_DOMAIN_NAME)), 0);
-        assert!(suins_registration::expiration_timestamp_ms(&nft) == constants::year_ms(), 0);
-        suins_registration::burn_for_testing(nft);
+        assert!(nft.domain() == domain::new(utf8(FIRST_DOMAIN_NAME)), 0);
+        assert!(nft.expiration_timestamp_ms() == constants::year_ms(), 0);
+        nft.burn_for_testing();
 
         let payment = withdraw_util(scenario, FIRST_ADDRESS);
         assert!(coin::value(&payment) == 1200 * mist_per_sui(), 0);
@@ -255,7 +255,7 @@ module suins::auction_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         normal_auction_flow(scenario);
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = sui::dynamic_field::EFieldDoesNotExist)]
@@ -271,10 +271,10 @@ module suins::auction_tests {
         place_bid_util(scenario, SECOND_ADDRESS, utf8(FIRST_DOMAIN_NAME), 1210 * mist_per_sui(), 0);
 
         let nft = claim_util(scenario, SECOND_ADDRESS, utf8(FIRST_DOMAIN_NAME), AUCTION_BIDDING_PERIOD_MS + 1);
-        suins_registration::burn_for_testing(nft);
+        nft.burn_for_testing();
         let nft = claim_util(scenario, SECOND_ADDRESS, utf8(FIRST_DOMAIN_NAME), AUCTION_BIDDING_PERIOD_MS + 1);
-        suins_registration::burn_for_testing(nft);
-        test_scenario::end(scenario_val);
+        nft.burn_for_testing();
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = auction::EWinnerCannotPlaceBid)]
@@ -290,7 +290,7 @@ module suins::auction_tests {
         place_bid_util(scenario, SECOND_ADDRESS, utf8(FIRST_DOMAIN_NAME), 1210 * mist_per_sui(), 0);
         place_bid_util(scenario, SECOND_ADDRESS, utf8(FIRST_DOMAIN_NAME), 1210 * mist_per_sui(), 0);
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = auction::EBidAmountTooLow)]
@@ -305,7 +305,7 @@ module suins::auction_tests {
         );
         place_bid_util(scenario, SECOND_ADDRESS, utf8(FIRST_DOMAIN_NAME), 1200 * mist_per_sui(), 0);
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = auction::ENotWinner)]
@@ -321,8 +321,8 @@ module suins::auction_tests {
         place_bid_util(scenario, SECOND_ADDRESS, utf8(FIRST_DOMAIN_NAME), 1210 * mist_per_sui(), 0);
 
         let nft = claim_util(scenario, FIRST_ADDRESS, utf8(FIRST_DOMAIN_NAME), AUCTION_BIDDING_PERIOD_MS + 1);
-        suins_registration::burn_for_testing(nft);
-        test_scenario::end(scenario_val);
+        nft.burn_for_testing();
+        scenario_val.end();
     }
 
     #[test]
@@ -342,9 +342,9 @@ module suins::auction_tests {
         assert_balance(scenario, 1220 * mist_per_sui());
 
         let nft = test_scenario::take_from_address<SuinsRegistration>(scenario, THIRD_ADDRESS);
-        assert!(suins_registration::domain(&nft) == domain::new(utf8(FIRST_DOMAIN_NAME)), 0);
-        assert!(suins_registration::expiration_timestamp_ms(&nft) == constants::year_ms(), 0);
-        suins_registration::burn_for_testing(nft);
+        assert!(nft.domain() == domain::new(utf8(FIRST_DOMAIN_NAME)), 0);
+        assert!(nft.expiration_timestamp_ms() == constants::year_ms(), 0);
+        nft.burn_for_testing();
 
         let payment = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_ADDRESS);
         assert!(coin::value(&payment) == 1210 * mist_per_sui(), 0);
@@ -355,7 +355,7 @@ module suins::auction_tests {
         coin::burn_for_testing(payment);
         assert_balance(scenario, 1220 * mist_per_sui());
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -379,16 +379,16 @@ module suins::auction_tests {
         assert_balance(scenario, 2410 * mist_per_sui());
 
         let nft = test_scenario::take_from_address<SuinsRegistration>(scenario, SECOND_ADDRESS);
-        assert!(suins_registration::domain(&nft) == domain::new(utf8(SECOND_DOMAIN_NAME)), 0);
-        assert!(suins_registration::expiration_timestamp_ms(&nft) == constants::year_ms(), 0);
-        suins_registration::burn_for_testing(nft);
+        assert!(nft.domain() == domain::new(utf8(SECOND_DOMAIN_NAME)), 0);
+        assert!(nft.expiration_timestamp_ms() == constants::year_ms(), 0);
+        nft.burn_for_testing();
 
         let nft = test_scenario::take_from_address<SuinsRegistration>(scenario, FIRST_ADDRESS);
-        assert!(suins_registration::domain(&nft) == domain::new(utf8(FIRST_DOMAIN_NAME)), 0);
-        assert!(suins_registration::expiration_timestamp_ms(&nft) == constants::year_ms(), 0);
-        suins_registration::burn_for_testing(nft);
+        assert!(nft.domain() == domain::new(utf8(FIRST_DOMAIN_NAME)), 0);
+        assert!(nft.expiration_timestamp_ms() == constants::year_ms(), 0);
+        nft.burn_for_testing();
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = auction::EAuctionNotEndedYet)]
@@ -403,7 +403,7 @@ module suins::auction_tests {
         );
 
         admin_try_finalize_auction_util(scenario, utf8(FIRST_DOMAIN_NAME), 0);
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -419,7 +419,7 @@ module suins::auction_tests {
         admin_try_finalize_auctions_util(scenario, 3, 0);
         assert_balance(scenario, 0);
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = auction::EAuctionEnded)]
@@ -439,7 +439,7 @@ module suins::auction_tests {
             1210 * mist_per_sui(),
             AUCTION_BIDDING_PERIOD_MS + 1
         );
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = auction::ENoProfits)]
@@ -448,7 +448,7 @@ module suins::auction_tests {
         let scenario = &mut scenario_val;
         let funds = admin_withdraw_funds_util(scenario);
         coin::burn_for_testing(funds);
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = config::EInvalidTld)]
@@ -461,7 +461,7 @@ module suins::auction_tests {
             utf8(b"test.move"),
             1200 * mist_per_sui()
         );
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = config::ELabelTooShort)]
@@ -474,7 +474,7 @@ module suins::auction_tests {
             utf8(b"tt.sui"),
             1200 * mist_per_sui()
         );
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = domain::EInvalidDomain)]
@@ -487,7 +487,7 @@ module suins::auction_tests {
             utf8(b"g2bst97onsyl8gwo5brfglcb-obh8i7p01lz5ccscd6zxx4qn7wnv8b1in5sectj8s.sui"),
             1200 * mist_per_sui()
         );
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = domain::EInvalidDomain)]
@@ -500,7 +500,7 @@ module suins::auction_tests {
             utf8(b"-test.sui"),
             1200 * mist_per_sui()
         );
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = domain::EInvalidDomain)]
@@ -513,7 +513,7 @@ module suins::auction_tests {
             utf8(b"test-.sui"),
             1200 * mist_per_sui()
         );
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = domain::EInvalidDomain)]
@@ -526,7 +526,7 @@ module suins::auction_tests {
             utf8(b"ttABC.sui"),
             1200 * mist_per_sui()
         );
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = auction::EAuctionNotStarted)]
@@ -534,7 +534,7 @@ module suins::auction_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         place_bid_util(scenario, SECOND_ADDRESS, utf8(FIRST_DOMAIN_NAME), 1210 * mist_per_sui(), 0);
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = auction::EInvalidBidValue)]
@@ -547,7 +547,7 @@ module suins::auction_tests {
             utf8(b"test.sui"),
             10 * mist_per_sui()
         );
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -572,9 +572,9 @@ module suins::auction_tests {
         assert_balance(scenario, 1210 * mist_per_sui());
 
         let nft = claim_util(scenario, SECOND_ADDRESS, utf8(FIRST_DOMAIN_NAME), AUCTION_BIDDING_PERIOD_MS + 1);
-        assert!(suins_registration::domain(&nft) == domain::new(utf8(FIRST_DOMAIN_NAME)), 0);
-        assert!(suins_registration::expiration_timestamp_ms(&nft) == constants::year_ms(), 0);
-        suins_registration::burn_for_testing(nft);
+        assert!(nft.domain() == domain::new(utf8(FIRST_DOMAIN_NAME)), 0);
+        assert!(nft.expiration_timestamp_ms() == constants::year_ms(), 0);
+        nft.burn_for_testing();
 
         let payment = withdraw_util(scenario, FIRST_ADDRESS);
         assert!(coin::value(&payment) == 1200 * mist_per_sui(), 0);
@@ -586,7 +586,7 @@ module suins::auction_tests {
         assert_balance(scenario, 0);
         coin::burn_for_testing(funds);
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = auction::EAuctionNotEndedYet)]
@@ -600,7 +600,7 @@ module suins::auction_tests {
             1200 * mist_per_sui()
         );
         admin_collect_fund_util(scenario, utf8(FIRST_DOMAIN_NAME), 0);
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
@@ -614,7 +614,7 @@ module suins::auction_tests {
             utf8(FIRST_DOMAIN_NAME),
             1200 * mist_per_sui()
         );
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -639,9 +639,9 @@ module suins::auction_tests {
         );
 
         let nft = claim_util(scenario, SECOND_ADDRESS, utf8(FIRST_DOMAIN_NAME), AUCTION_BIDDING_PERIOD_MS + 1);
-        assert!(suins_registration::domain(&nft) == domain::new(utf8(FIRST_DOMAIN_NAME)), 0);
-        assert!(suins_registration::expiration_timestamp_ms(&nft) == constants::year_ms(), 0);
-        suins_registration::burn_for_testing(nft);
+        assert!(nft.domain() == domain::new(utf8(FIRST_DOMAIN_NAME)), 0);
+        assert!(nft.expiration_timestamp_ms() == constants::year_ms(), 0);
+        nft.burn_for_testing();
 
         let payment = withdraw_util(scenario, FIRST_ADDRESS);
         assert!(coin::value(&payment) == 1200 * mist_per_sui(), 0);
@@ -653,7 +653,7 @@ module suins::auction_tests {
         assert_balance(scenario, 0);
         coin::burn_for_testing(funds);
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -674,9 +674,9 @@ module suins::auction_tests {
         assert_balance(scenario, 1220 * mist_per_sui());
 
         let nft = test_scenario::take_from_address<SuinsRegistration>(scenario, THIRD_ADDRESS);
-        assert!(suins_registration::domain(&nft) == domain::new(utf8(FIRST_DOMAIN_NAME)), 0);
-        assert!(suins_registration::expiration_timestamp_ms(&nft) == constants::year_ms(), 0);
-        suins_registration::burn_for_testing(nft);
+        assert!(nft.domain() == domain::new(utf8(FIRST_DOMAIN_NAME)), 0);
+        assert!(nft.expiration_timestamp_ms() == constants::year_ms(), 0);
+        nft.burn_for_testing();
 
         let payment = test_scenario::take_from_address<Coin<SUI>>(scenario, SECOND_ADDRESS);
         assert!(coin::value(&payment) == 1210 * mist_per_sui(), 0);
@@ -687,7 +687,7 @@ module suins::auction_tests {
         coin::burn_for_testing(payment);
         assert_balance(scenario, 1220 * mist_per_sui());
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -713,20 +713,20 @@ module suins::auction_tests {
         assert_balance(scenario, 1210 * mist_per_sui());
 
         let nft = claim_util(scenario, SECOND_ADDRESS, utf8(FIRST_DOMAIN_NAME), AUCTION_BIDDING_PERIOD_MS + 1);
-        assert!(suins_registration::domain(&nft) == domain::new(utf8(FIRST_DOMAIN_NAME)), 0);
-        assert!(suins_registration::expiration_timestamp_ms(&nft) == constants::year_ms(), 0);
-        suins_registration::burn_for_testing(nft);
+        assert!(nft.domain() == domain::new(utf8(FIRST_DOMAIN_NAME)), 0);
+        assert!(nft.expiration_timestamp_ms() == constants::year_ms(), 0);
+        nft.burn_for_testing();
 
         let payment = withdraw_util(scenario, FIRST_ADDRESS);
-        assert!(coin::value(&payment) == 1200 * mist_per_sui(), 0);
-        coin::burn_for_testing(payment);
+        assert!(payment.value() == 1200 * mist_per_sui(), 0);
+        payment.burn_for_testing();
         assert_balance(scenario, 1210 * mist_per_sui());
 
         let funds = admin_withdraw_funds_util(scenario);
-        assert!(coin::value(&funds) == 1210 * mist_per_sui(), 0);
+        assert!(funds.value() == 1210 * mist_per_sui(), 0);
         assert_balance(scenario, 0);
-        coin::burn_for_testing(funds);
+        funds.burn_for_testing();
 
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 }
