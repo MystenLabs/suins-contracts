@@ -63,13 +63,13 @@ module subdomains::subdomains {
     const ACTIVE_METADATA_VALUE: vector<u8> = b"1";
 
     /// The authentication scheme for SuiNS.
-    struct SubDomains has drop {}
+    public struct SubDomains has drop {}
 
     /// The key to store the parent's ID in the subdomain object.
-    struct ParentKey has copy, store, drop {}
+    public struct ParentKey has copy, store, drop {}
 
     /// The subdomain's config (specifies allowed TLDs, depth, sizes).
-    struct App has store {
+    public struct App has store {
         config: SubDomainConfig
     }
 
@@ -253,7 +253,7 @@ module subdomains::subdomains {
         key: String,
         enable: bool
     ) {
-        let config = record_metadata(self, subdomain);
+        let mut config = record_metadata(self, subdomain);
         let is_enabled = vec_map::contains(&config, &key);
 
         if (enable && !is_enabled) {
@@ -341,7 +341,7 @@ module subdomains::subdomains {
         clock: &Clock,
         ctx: &mut TxContext,
     ): SubDomainRegistration {
-        let nft = registry::add_record_ignoring_grace_period(registry, subdomain, 1, clock, ctx);
+        let mut nft = registry::add_record_ignoring_grace_period(registry, subdomain, 1, clock, ctx);
         // set the timestamp to the correct one. `add_record` only works with years but we can correct it easily here.
         registry::set_expiration_timestamp_ms(registry, &mut nft, subdomain, expiration_timestamp_ms);
 

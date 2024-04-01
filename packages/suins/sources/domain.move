@@ -20,7 +20,7 @@ module suins::domain {
     const MAX_LABEL_LENGTH: u64 = 63;
 
     /// Representation of a valid SuiNS `Domain`.
-    struct Domain has copy, drop, store {
+    public struct Domain has copy, drop, store {
         /// Vector of labels that make up a domain.
         ///
         /// Labels are stored in reverse order such that the TLD is always in position `0`.
@@ -32,7 +32,7 @@ module suins::domain {
     public fun new(domain: String): Domain {
         assert!(string::length(&domain) <= MAX_DOMAIN_LENGTH, EInvalidDomain);
 
-        let labels = split_by_dot(domain);
+        let mut labels = split_by_dot(domain);
         validate_labels(&labels);
         vector::reverse(&mut labels);
         Domain {
@@ -44,8 +44,8 @@ module suins::domain {
     public fun to_string(self: &Domain): String {
         let dot = utf8(b".");
         let len = vector::length(&self.labels);
-        let i = 0;
-        let out = string::utf8(vector::empty());
+        let mut i = 0;
+        let mut out = string::utf8(vector::empty());
 
         while (i < len) {
             let part = vector::borrow(&self.labels, (len - i) - 1);
@@ -97,7 +97,7 @@ module suins::domain {
     /// Derive the parent of a subdomain. 
     /// e.g. `subdomain.example.sui` -> `example.sui` 
     public fun parent(domain: &Domain): Domain {
-        let labels = domain.labels;
+        let mut labels = domain.labels;
         // we pop the last element and construct the parent from the remaining labels.
         vector::pop_back(&mut labels);
 
@@ -116,7 +116,7 @@ module suins::domain {
         assert!(!vector::is_empty(labels), EInvalidDomain);
 
         let len = vector::length(labels);
-        let index = 0;
+        let mut index = 0;
 
         while (index < len) {
             let label = vector::borrow(labels, index);
@@ -128,7 +128,7 @@ module suins::domain {
     fun is_valid_label(label: &String): bool {
         let len = string::length(label);
         let label_bytes = string::bytes(label);
-        let index = 0;
+        let mut index = 0;
 
         if (!(len >= MIN_LABEL_LENGTH && len <= MAX_LABEL_LENGTH)) {
             return false
@@ -152,9 +152,9 @@ module suins::domain {
     }
 
     /// Splits a string `s` by the character `.` into a vector of subslices, excluding the `.`
-    fun split_by_dot(s: String): vector<String> {
+    fun split_by_dot(mut s: String): vector<String> {
         let dot = utf8(b".");
-        let parts: vector<String> = vector[];
+        let mut parts: vector<String> = vector[];
         while (!string::is_empty(&s)) {
             let index_of_next_dot = string::index_of(&s, &dot);
             let part = string::sub_string(&s, 0, index_of_next_dot);
@@ -188,7 +188,7 @@ module suins::domain {
 
         // Validate `domain::label` function
         let len = vector::length(&expected_labels);
-        let index = 0;
+        let mut index = 0;
 
         while (index < len) {
             let label = vector::borrow(&expected_labels, index);
@@ -198,8 +198,8 @@ module suins::domain {
     }
 
     #[test_only]
-    fun prep_expected_labels(labels: vector<vector<u8>>): vector<String> {
-        let out = vector[];
+    fun prep_expected_labels(mut labels: vector<vector<u8>>): vector<String> {
+        let mut out = vector[];
         while (!vector::is_empty(&labels)) {
             let label = vector::pop_back(&mut labels);
             vector::push_back(&mut out, utf8(label));

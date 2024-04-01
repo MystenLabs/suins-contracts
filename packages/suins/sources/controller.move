@@ -20,7 +20,7 @@ module suins::controller {
     const EUnsupportedKey: u64 = 0;
 
     /// Authorization token for the controller.
-    struct Controller has drop {}
+    public struct Controller has drop {}
 
     // === Update Records Functionality ===
 
@@ -57,7 +57,7 @@ module suins::controller {
     ) {
 
         let registry = suins::app_registry_mut<Controller, Registry>(Controller {}, suins);
-        let data = *registry::get_data(registry, nft::domain(nft));
+        let mut data = *registry::get_data(registry, nft::domain(nft));
         let domain = nft::domain(nft);
 
         registry::assert_nft_is_authorized(registry, nft, clock);
@@ -77,7 +77,7 @@ module suins::controller {
         suins: &mut SuiNS, nft: &SuinsRegistration, key: String, clock: &Clock
     ) {
         let registry = suins::app_registry_mut<Controller, Registry>(Controller {}, suins);
-        let data = *registry::get_data(registry, nft::domain(nft));
+        let mut data = *registry::get_data(registry, nft::domain(nft));
         let domain = nft::domain(nft);
 
         registry::assert_nft_is_authorized(registry, nft, clock);

@@ -22,7 +22,7 @@ module managed_names::managed_tests {
 
     #[test]
     fun e2e() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let domain_name = utf8(b"example.sui");
@@ -43,7 +43,7 @@ module managed_names::managed_tests {
 
     #[test]
     fun deattach_expired_to_attach_non_expired() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let domain_name = utf8(b"example.sui");
@@ -66,7 +66,7 @@ module managed_names::managed_tests {
         // the original `owner` should have received back the expired NFT.
         {
             ts::next_tx(scenario, USER);
-            let nft_transferred_back = ts::most_recent_id_for_address<SuinsRegistration>(USER);
+            let mut nft_transferred_back = ts::most_recent_id_for_address<SuinsRegistration>(USER);
 
             assert!(option::is_some(&nft_transferred_back), 0);
             assert!(option::extract(&mut nft_transferred_back) == id, 0);
@@ -80,7 +80,7 @@ module managed_names::managed_tests {
 
     #[test, expected_failure(abort_code=managed_names::managed::EExpiredNFT)]
     fun attach_expired_failure() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let domain_name = utf8(b"example.sui");
@@ -95,7 +95,7 @@ module managed_names::managed_tests {
 
     #[test, expected_failure(abort_code=managed_names::managed::ENameNotExists)]
     fun borrow_non_existing_name_failure() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         let domain_name = utf8(b"example.sui");
 
@@ -105,7 +105,7 @@ module managed_names::managed_tests {
 
     #[test, expected_failure(abort_code=managed_names::managed::EInvalidReturnedNFT)]
     fun borrow_and_return_different_nft() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
     
         let domain_name = utf8(b"example.sui");
@@ -123,7 +123,7 @@ module managed_names::managed_tests {
 
     #[test, expected_failure(abort_code=managed_names::managed::ENotAuthorized)]
     fun try_to_borrow_as_unauthorized_user() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
     
         let domain_name = utf8(b"example.sui");
@@ -137,7 +137,7 @@ module managed_names::managed_tests {
 
     #[test, expected_failure(abort_code=managed_names::managed::ENotAuthorized)]
     fun try_to_remove_not_being_owner_but_being_authorized() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
     
         let domain_name = utf8(b"example.sui");
@@ -152,7 +152,7 @@ module managed_names::managed_tests {
 
     #[test, expected_failure(abort_code=managed_names::managed::ENotAuthorized)]
     fun try_to_remove_not_being_owner_not_authorized() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
     
         let domain_name = utf8(b"example.sui");
@@ -167,7 +167,7 @@ module managed_names::managed_tests {
 
     #[test, expected_failure(abort_code=managed_names::managed::ENotAuthorized)]
     fun remove_from_authorized_and_fail_to_borrow() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let domain_name = utf8(b"example.sui");
@@ -186,7 +186,7 @@ module managed_names::managed_tests {
 
     #[test, expected_failure(abort_code=managed_names::managed::ENotAuthorized)]
     fun revoke_addresses_as_non_owner() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let domain_name = utf8(b"example.sui");
@@ -200,7 +200,7 @@ module managed_names::managed_tests {
 
     #[test, expected_failure(abort_code=managed_names::managed::ENotAuthorized)]
     fun add_addresses_as_non_owner() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let domain_name = utf8(b"example.sui");
@@ -214,7 +214,7 @@ module managed_names::managed_tests {
 
     #[test, expected_failure(abort_code=managed_names::managed::ENameNotExists)]
     fun remove_name_that_does_not_exist() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let domain_name = utf8(b"example.sui");
@@ -226,7 +226,7 @@ module managed_names::managed_tests {
     /// == Helpers == 
     ///
     public fun test_init(): (Scenario) {
-        let scenario = ts::begin(USER);
+        let mut scenario = ts::begin(USER);
 
         {
             ts::next_tx(&mut scenario, USER);
@@ -234,7 +234,7 @@ module managed_names::managed_tests {
             let clock = clock::create_for_testing(ctx(&mut scenario));
             clock::share_for_testing(clock);
 
-            let (suins, cap) = suins::new_for_testing(ctx(&mut scenario));
+            let (mut suins, cap) = suins::new_for_testing(ctx(&mut scenario));
 
             suins::authorize_app_for_testing<ManagedNamesApp>(&mut suins);
 
@@ -249,7 +249,7 @@ module managed_names::managed_tests {
 
     public fun attach_name(nft: SuinsRegistration, addresses: vector<address>, addr: address, scenario: &mut Scenario) {
         ts::next_tx(scenario, addr);
-        let suins = ts::take_shared<SuiNS>(scenario);
+        let mut suins = ts::take_shared<SuiNS>(scenario);
         let clock = ts::take_shared<Clock>(scenario);
 
         managed::attach_managed_name(&mut suins, nft, &clock, addresses, ctx(scenario));
@@ -260,7 +260,7 @@ module managed_names::managed_tests {
 
     public fun remove_attached_name(domain_name: String, addr: address, scenario: &mut Scenario): SuinsRegistration {
         ts::next_tx(scenario, addr);
-        let suins = ts::take_shared<SuiNS>(scenario);
+        let mut suins = ts::take_shared<SuiNS>(scenario);
 
         let nft = managed::remove_attached_name(&mut suins, domain_name, ctx(scenario));
 
@@ -270,7 +270,7 @@ module managed_names::managed_tests {
 
     public fun add_or_remove_addresses(name: String, addresses: vector<address>, add: bool, addr: address, scenario: &mut Scenario) {
         ts::next_tx(scenario, addr);
-        let suins = ts::take_shared<SuiNS>(scenario);
+        let mut suins = ts::take_shared<SuiNS>(scenario);
         let clock = ts::take_shared<Clock>(scenario);
 
         if(add){
@@ -285,7 +285,7 @@ module managed_names::managed_tests {
 
     public fun simulate_borrow(domain_name: String, addr: address, scenario: &mut Scenario): (SuinsRegistration, ReturnPromise) {
         ts::next_tx(scenario, addr);
-        let suins = ts::take_shared<SuiNS>(scenario);
+        let mut suins = ts::take_shared<SuiNS>(scenario);
 
         let (name, promise) = managed::borrow_val(&mut suins, domain_name, ctx(scenario));
         
@@ -298,7 +298,7 @@ module managed_names::managed_tests {
 
     public fun simulate_return(nft: SuinsRegistration, promise: ReturnPromise, scenario: &mut Scenario) {
         ts::next_tx(scenario, USER);
-        let suins = ts::take_shared<SuiNS>(scenario);
+        let mut suins = ts::take_shared<SuiNS>(scenario);
 
         managed::return_val(&mut suins, nft, promise);
 
@@ -314,7 +314,7 @@ module managed_names::managed_tests {
 
     public fun advance_clock_post_expiration_of_nft(nft: &SuinsRegistration, scenario: &mut Scenario) {
         ts::next_tx(scenario, USER);
-        let clock = ts::take_shared<Clock>(scenario);
+        let mut clock = ts::take_shared<Clock>(scenario);
         // expire name
         clock::increment_for_testing(&mut clock, suins_registration::expiration_timestamp_ms(nft) + 1);
         ts::return_shared(clock);

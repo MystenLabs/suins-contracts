@@ -26,7 +26,7 @@ module subdomains::config {
 
     /// A Subdomain configuration object.
     /// Holds the allow-listed tlds, the max depth and the minimum label size.
-    struct SubDomainConfig has copy, store, drop {
+    public struct SubDomainConfig has copy, store, drop {
         allowed_tlds: vector<String>,
         max_depth: u8,
         min_label_size: u8,
@@ -79,7 +79,7 @@ module subdomains::config {
     /// want to add support for others (or not allow).
     /// (E.g., with `.move` service, we might want to restrict how subdomains are created)
     public fun is_valid_tld(domain: &Domain, config: &SubDomainConfig): bool {
-        let i=0;
+        let mut i=0;
         while (i < vector::length(&config.allowed_tlds)) {
             if (domain::tld(domain) == vector::borrow(&config.allowed_tlds, i)) {
                 return true

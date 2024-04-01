@@ -24,10 +24,10 @@ module suins::admin_tests {
     /// The admin account.
     const ADMIN: address = @suins;
 
-    #[test, expected_failure(abort_code = suins::suins::EAppNotAuthorized)]
+    #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
     fun try_unathorized_fail() {
-        let ctx = tx_context::dummy();
-        let suins = suins::init_for_testing(&mut ctx);
+        let mut ctx = tx_context::dummy();
+        let mut suins = suins::init_for_testing(&mut ctx);
         let cap = suins::create_admin_cap_for_testing(&mut ctx);
         let clock = clock::create_for_testing(&mut ctx);
 
@@ -45,8 +45,8 @@ module suins::admin_tests {
 
     #[test]
     fun authorized() {
-        let ctx = tx_context::dummy();
-        let suins = suins::init_for_testing(&mut ctx);
+        let mut ctx = tx_context::dummy();
+        let mut suins = suins::init_for_testing(&mut ctx);
         let cap = suins::create_admin_cap_for_testing(&mut ctx);
         let clock = clock::create_for_testing(&mut ctx);
         registry::init_for_testing(&cap, &mut suins, &mut ctx);

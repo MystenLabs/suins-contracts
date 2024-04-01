@@ -18,9 +18,9 @@ module coupons::setup {
     use coupons::constants;
     use coupons::range;
 
-    struct TestApp has drop {}
+    public struct TestApp has drop {}
     
-    struct UnauthorizedTestApp has drop {}
+    public struct UnauthorizedTestApp has drop {}
 
     const MIST_PER_SUI: u64 = 1_000_000_000;
 
@@ -32,10 +32,10 @@ module coupons::setup {
     use suins::registry;
     
     public fun test_init(): Scenario {
-        let scenario_val = test_scenario::begin(ADMIN_ADDRESS);
+        let mut scenario_val = test_scenario::begin(ADMIN_ADDRESS);
         let scenario = &mut scenario_val;
         {
-            let suins = suins::init_for_testing(ctx(scenario));
+            let mut suins = suins::init_for_testing(ctx(scenario));
             // initialize coupon data.
             coupons::init_for_testing(ctx(scenario));
             suins::authorize_app_for_testing<CouponsApp>(&mut suins);
@@ -45,11 +45,11 @@ module coupons::setup {
         };
         {
             test_scenario::next_tx(scenario, ADMIN_ADDRESS);
-            let coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
+            let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
         
             // get admin cap
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-            let suins = test_scenario::take_shared<SuiNS>(scenario);
+            let mut suins = test_scenario::take_shared<SuiNS>(scenario);
             registry::init_for_testing(&admin_cap, &mut suins, ctx(scenario));
             // authorize TestApp to CouponHouse.
             coupons::authorize_app<TestApp>(&admin_cap, &mut coupon_house);
@@ -193,15 +193,15 @@ module coupons::setup {
     }
 
     // Adds a 0 rule coupon that gives 15% discount to test admin additions.
-    public fun admin_add_coupon(code_name: String, type: u8, value: u64, scenario: &mut Scenario) {
+    public fun admin_add_coupon(code_name: String, `type`: u8, value: u64, scenario: &mut Scenario) {
         test_scenario::next_tx(scenario, admin());
-        let coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
+        let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
         let cap = test_scenario::take_from_sender<AdminCap>(scenario);
         coupons::admin_add_coupon(
             &cap,
             &mut coupon_house,
             code_name,
-            type,
+            `type`,
             value,
             rules::new_empty_rules(),
             ctx(scenario)
@@ -212,7 +212,7 @@ module coupons::setup {
     // Adds a 0 rule coupon that gives 15% discount to test admin additions.
     public fun admin_remove_coupon(code_name: String, scenario: &mut Scenario) {
         test_scenario::next_tx(scenario, admin());
-        let coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
+        let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
         let cap = test_scenario::take_from_sender<AdminCap>(scenario);
         coupons::admin_remove_coupon(
             &cap,
@@ -231,10 +231,10 @@ module coupons::setup {
     // A helper to easily register a name with a coupon code.
     public fun register_with_coupon(coupon_code: String, domain_name: String, no_years: u8, amount: u64, clock_value: u64, user: address, scenario: &mut Scenario) {
         test_scenario::next_tx(scenario, user);
-        let clock = test_scenario::take_shared<Clock>(scenario);
+        let mut clock = test_scenario::take_shared<Clock>(scenario);
         clock::increment_for_testing(&mut clock, clock_value);
-        let coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
-        let suins = test_scenario::take_shared<SuiNS>(scenario);
+        let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
+        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
 
         let payment = coin::mint_for_testing<SUI>(amount, ctx(scenario));
 

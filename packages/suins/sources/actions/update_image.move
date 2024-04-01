@@ -22,7 +22,7 @@ module suins::update_image {
     const ESignatureNotMatch: u64 = 2;
 
     /// Authorization token for the app.
-    struct UpdateImage has drop {}
+    public struct UpdateImage has drop {}
 
     /// Updates the image attached to a `SuinsRegistration`.
     entry fun update_image_url(
@@ -69,7 +69,7 @@ module suins::update_image {
     /// }
     /// ```
     fun image_data_from_bcs(msg_bytes: vector<u8>): (String, String, u64, String) {
-        let bcs = bcs::new(msg_bytes);
+        let mut bcs = bcs::new(msg_bytes);
 
         let ipfs_hash = utf8(bcs::peel_vec_u8(&mut bcs));
         let domain_name = utf8(bcs::peel_vec_u8(&mut bcs));

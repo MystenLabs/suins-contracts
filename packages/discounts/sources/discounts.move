@@ -10,7 +10,7 @@
 module discounts::discounts {
     use std::option::{Option};
     use std::string::{Self, String};
-    use std::type_name::{Self as type};
+    use std::type_name::{Self as `type`};
 
     use sui::tx_context::{TxContext};
     use sui::dynamic_field::{Self as df};
@@ -39,11 +39,11 @@ module discounts::discounts {
     const ENotActiveDayOne: u64 = 5;
 
     /// A key that opens up discounts for type T.
-    struct DiscountKey<phantom T> has copy, store, drop {}
+    public struct DiscountKey<phantom T> has copy, store, drop {}
 
     /// The Discount config for type T. 
     /// We save the sale price for each letter configuration (3 chars, 4 chars, 5+ chars)
-    struct DiscountConfig has copy, store, drop {
+    public struct DiscountConfig has copy, store, drop {
         three_char_price: u64,
         four_char_price: u64,
         five_plus_char_price: u64,
@@ -62,7 +62,7 @@ module discounts::discounts {
     ): SuinsRegistration {
         // For normal flow, we do not allow DayOne to be used.
         // DayOne can only be used on `register_with_day_one` function.
-        assert!(type::into_string(type::get<T>()) != type::into_string(type::get<DayOne>()), ENotValidForDayOne);
+        assert!(`type`::into_string(`type`::get<T>()) != `type`::into_string(`type`::get<DayOne>()), ENotValidForDayOne);
         internal_register_name<T>(self, suins, domain_name, payment, clock, ctx)
     }
     

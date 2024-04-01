@@ -49,20 +49,20 @@ module coupons::coupons {
     use suins::registry::{Self, Registry};
 
     // Authorization for the Coupons on SuiNS, to be able to register names on the app.
-    struct CouponsApp has drop {}
+    public struct CouponsApp has drop {}
     /// Authorization Key for secondary apps (e.g. Discord) connected to this module.
-    struct AppKey<phantom App: drop> has copy, store, drop {}
+    public struct AppKey<phantom App: drop> has copy, store, drop {}
 
     /// Create a `Data` struct that only authorized apps can get mutable access to.
     /// We don't save the coupon's table directly on the shared object, because we want authorized apps to only perform
     /// certain actions with the table (and not give full `mut` access to it).
-    struct Data has store {
+    public struct Data has store {
         // hold a list of all coupons in the system.
         coupons: Table<String, Coupon>
     }
 
     /// The CouponHouse Shared Object which holds a table of coupon codes available for claim.
-    struct CouponHouse has key, store {
+    public struct CouponHouse has key, store {
         id: UID,
         data: Data,
         version: u8
@@ -72,8 +72,8 @@ module coupons::coupons {
     /// - `Rules` are defined on the module `rules`, and covers a variety of everything we needed for the service.
     /// - `type` is a u8 constant, defined on `constants` which makes a coupon fixed price or discount percentage
     /// - `value` is a u64 constant, which can be in the range of (0,100] for discount percentage, or any value > 0 for fixed price.
-    struct Coupon has copy, store, drop {
-        type: u8, // 0 -> Percentage Discount | 1 -> Fixed Discount
+    public struct Coupon has copy, store, drop {
+        `type`: u8, // 0 -> Percentage Discount | 1 -> Fixed Discount
         amount: u64, // if type == 0, we need it to be between 0, 100. We only allow int stlye (not 0.5% discount).
         rules: CouponRules, // A list of base Rules for the coupon.
     }
@@ -209,13 +209,13 @@ module coupons::coupons {
         _: &AdminCap,
         self: &mut CouponHouse,
         code: String,
-        type: u8,
+        `type`: u8,
         amount: u64,
         rules: CouponRules,
         ctx: &mut TxContext
     ) {
         assert_version_is_valid(self);
-        internal_save_coupon(&mut self.data, code, internal_create_coupon(type, amount, rules, ctx));
+        internal_save_coupon(&mut self.data, code, internal_create_coupon(`type`, amount, rules, ctx));
     }
 
     // Remove a coupon as a system's admin.
@@ -227,12 +227,12 @@ module coupons::coupons {
     public fun app_add_coupon(
         self: &mut Data,
         code: String,
-        type: u8,
+        `type`: u8,
         amount: u64,
         rules: CouponRules,
         ctx: &mut TxContext
     ){
-        internal_save_coupon(self, code, internal_create_coupon(type, amount, rules, ctx));
+        internal_save_coupon(self, code, internal_create_coupon(`type`, amount, rules, ctx));
     }
 
     // Remove a coupon as a registered app.
@@ -244,7 +244,7 @@ module coupons::coupons {
     /// A helper to calculate the final price after the discount.
     fun internal_calculate_sale_price(price: u64, coupon: &Coupon): u64{
         // If it's fixed price, we just deduce the amount.
-        if(coupon.type == constants::fixed_price_discount_type()){
+        if(coupon.`type` == constants::fixed_price_discount_type()){
             if(coupon.amount > price) return 0; // protect underflow case.
             return price - coupon.amount
         };
@@ -268,15 +268,15 @@ module coupons::coupons {
 
     /// An internal function to create a coupon object.
     fun internal_create_coupon(
-        type: u8,
+        `type`: u8,
         amount: u64,
         rules: CouponRules,
         _ctx: &mut TxContext
     ): Coupon {
-        rules::assert_is_valid_amount(type, amount);
-        rules::assert_is_valid_discount_type(type);
+        rules::assert_is_valid_amount(`type`, amount);
+        rules::assert_is_valid_discount_type(`type`);
         Coupon {
-            type, amount, rules
+            `type`, amount, rules
         }
     }
 

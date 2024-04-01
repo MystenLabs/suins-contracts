@@ -1,6 +1,7 @@
 [package]
 name = "subdomains"
 version = "0.0.1"
+edition = "2024.beta"
 
 #mainnet
 #published-at="TODO: Fill this in once published"

@@ -20,19 +20,19 @@ module discounts::free_claims_tests {
     use day_one::day_one::{Self, DayOne};
 
     // An authorized type to test.
-    struct TestAuthorized has key, store { id: UID }
+    public struct TestAuthorized has key, store { id: UID }
 
     // An unauthorized type to test.
-    struct TestUnauthorized has key { id: UID }
+    public struct TestUnauthorized has key { id: UID }
 
     const SUINS_ADDRESS: address = @0xA001;
     const USER_ADDRESS: address = @0xA002;
 
     fun test_init(): Scenario {
-        let scenario_val = ts::begin(SUINS_ADDRESS);
+        let mut scenario_val = ts::begin(SUINS_ADDRESS);
         let scenario = &mut scenario_val;
         {
-            let suins = suins::init_for_testing(ctx(scenario));
+            let mut suins = suins::init_for_testing(ctx(scenario));
             suins::authorize_app_for_testing<DiscountHouseApp>(&mut suins);
             suins::share_for_testing(suins);
             house::init_for_testing(ctx(scenario));
@@ -42,8 +42,8 @@ module discounts::free_claims_tests {
         {
             ts::next_tx(scenario, SUINS_ADDRESS);
             let admin_cap = ts::take_from_sender<AdminCap>(scenario);
-            let suins = ts::take_shared<SuiNS>(scenario);
-            let discount_house = ts::take_shared<DiscountHouse>(scenario);
+            let mut suins = ts::take_shared<SuiNS>(scenario);
+            let mut discount_house = ts::take_shared<DiscountHouse>(scenario);
 
             // a more expensive alternative.
             free_claims::authorize_type<TestAuthorized>(&admin_cap, &mut discount_house, vector[10,63], ctx(scenario));
@@ -57,12 +57,12 @@ module discounts::free_claims_tests {
         scenario_val
     }
 
-    fun test_end(scenario_val: Scenario) {
+    fun test_end(mut scenario_val: Scenario) {
         let scenario = &mut scenario_val;
         {
             ts::next_tx(scenario, SUINS_ADDRESS);
             let admin_cap = ts::take_from_sender<AdminCap>(scenario);
-            let discount_house = ts::take_shared<DiscountHouse>(scenario);
+            let mut discount_house = ts::take_shared<DiscountHouse>(scenario);
             free_claims::deauthorize_type<TestAuthorized>(&admin_cap, &mut discount_house);
             free_claims::deauthorize_type<DayOne>(&admin_cap, &mut discount_house);
             ts::return_shared(discount_house);
@@ -84,8 +84,8 @@ module discounts::free_claims_tests {
         user: address
     ) {
         ts::next_tx(scenario, user);
-        let suins = ts::take_shared<SuiNS>(scenario);
-        let discount_house = ts::take_shared<DiscountHouse>(scenario);
+        let mut suins = ts::take_shared<SuiNS>(scenario);
+        let mut discount_house = ts::take_shared<DiscountHouse>(scenario);
         let clock = ts::take_shared<Clock>(scenario);
 
         let name = free_claims::free_claim<T>(&mut discount_house, &mut suins, item, domain_name, &clock, ctx(scenario));
@@ -104,8 +104,8 @@ module discounts::free_claims_tests {
         user: address
     ) {
         ts::next_tx(scenario, user);
-        let suins = ts::take_shared<SuiNS>(scenario);
-        let discount_house = ts::take_shared<DiscountHouse>(scenario);
+        let mut suins = ts::take_shared<SuiNS>(scenario);
+        let mut discount_house = ts::take_shared<DiscountHouse>(scenario);
         let clock = ts::take_shared<Clock>(scenario);
 
         let name = free_claims::free_claim_with_day_one(&mut discount_house, &mut suins, item, domain_name, &clock, ctx(scenario));
@@ -119,7 +119,7 @@ module discounts::free_claims_tests {
 
     #[test]
     fun test_e2e() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let test_item = TestAuthorized {
@@ -139,10 +139,10 @@ module discounts::free_claims_tests {
 
     #[test]
     fun use_day_one(){
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let day_one = day_one::mint_for_testing(ctx(scenario));
+        let mut day_one = day_one::mint_for_testing(ctx(scenario));
         day_one::set_is_active_for_testing(&mut day_one, true);
 
         free_claim_with_day_one(
@@ -158,7 +158,7 @@ module discounts::free_claims_tests {
 
     #[test, expected_failure(abort_code = discounts::free_claims::EAlreadyClaimed)]
     fun test_tries_to_claim_again_with_same_object_failure() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let test_item = TestAuthorized {
@@ -186,7 +186,7 @@ module discounts::free_claims_tests {
 
     #[test, expected_failure(abort_code = discounts::free_claims::EInvalidCharacterRange)]
     fun test_invalid_size_failure() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let test_item = TestAuthorized {
@@ -206,7 +206,7 @@ module discounts::free_claims_tests {
 
     #[test, expected_failure(abort_code = discounts::free_claims::EConfigNotExists)]
     fun register_with_unauthorized_type() {
-        let scenario_val = test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
         let test_item = TestUnauthorized {

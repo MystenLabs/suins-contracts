@@ -1,6 +1,7 @@
 [package]
 name = "temp_subdomain_proxy"
 version = "0.0.1"
+edition = "2024.beta"
 
 #testnet
 #published-at="0x471adb89c0b5094febfcde87f0a90ec32daea71755dd9eed9e68bc3e527562b5"

@@ -28,7 +28,7 @@ module suins::renew {
     const EGracePeriodPassed: u64 = 3;
 
     /// Authorization token for the app.
-    struct Renew has drop {}
+    public struct Renew has drop {}
 
     /// Renew a registered domain name by a number of years (not exceeding 5).
     /// The domain name must be already registered and active; `SuinsRegistration`

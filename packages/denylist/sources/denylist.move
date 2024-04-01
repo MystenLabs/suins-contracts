@@ -14,7 +14,7 @@ module denylist::denylist {
     const ENoWordsInList: u64 = 1;
 
     /// A wrapper that holds the reserved and blocked names.
-    struct Denylist has store {
+    public struct Denylist has store {
         // The list of reserved names. 
         // Our public SLD registrations will be checking against it.
         reserved: Table<String, bool>,
@@ -24,7 +24,7 @@ module denylist::denylist {
     }
 
     /// The authorization for the denylist registry.
-    struct DenyListAuth has drop {}
+    public struct DenyListAuth has drop {}
 
     public fun setup(suins: &mut SuiNS, cap: &AdminCap, ctx: &mut TxContext) {
         suins::add_registry(cap, suins, Denylist {
@@ -77,7 +77,7 @@ module denylist::denylist {
     fun internal_add_names_to_list(table: &mut Table<String, bool>, words: vector<String>) {
         assert!(vector::length(&words) > 0, ENoWordsInList);
 
-        let i = vector::length(&words);
+        let mut i = vector::length(&words);
 
         while (i > 0) {
             i = i - 1;
@@ -90,7 +90,7 @@ module denylist::denylist {
     fun internal_remove_names_from_list(table: &mut Table<String, bool>, words: vector<String>) {
         assert!(vector::length(&words) > 0, ENoWordsInList);
 
-        let i = vector::length(&words);
+        let mut i = vector::length(&words);
 
         while (i > 0) {
             i = i - 1;
