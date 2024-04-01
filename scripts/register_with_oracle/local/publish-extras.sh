@@ -1,6 +1,9 @@
 #!/bin/bash
 
 # check dependencies are available.
+ADMIN_ADDRESS=0x1b71380623813c8aee2ab9a68d96c19d0e45fc872e8c22dd70dfedfb76cbb192
+ADMIN_PHRASE='install early flip world glass volume vapor bid hat bleak wolf imitate'
+
 for i in jq curl sui; do
   if ! command -V ${i} 2>/dev/null; then
     echo "${i} is not installed"
@@ -8,8 +11,6 @@ for i in jq curl sui; do
   fi
 done
 
-ADMIN_ADDRESS=
-ADMIN_PHRASE=
 NETWORK=http://localhost:9000
 BACKEND_API=http://localhost:3000
 
@@ -28,12 +29,12 @@ fi
 
 echo "- Admin Address is: ${ADMIN_ADDRESS}"
 
-#utils_publish_res=$(sui client publish --skip-fetch-latest-git-deps --gas-budget 2000000000 --json ../../packages/utils --skip-dependency-verification)
-#echo ${utils_publish_res}
+# utils_publish_res=$(sui client publish --skip-fetch-latest-git-deps --gas-budget 2000000000 --json ../../packages/utils --skip-dependency-verification)
+# echo ${utils_publish_res}
 registration_publish_res=$(sui client publish --skip-fetch-latest-git-deps --gas-budget 2000000000 --json ../../packages/registration --skip-dependency-verification)
 echo ${registration_publish_res}
-#subdomains_publish_res=$(sui client publish --skip-fetch-latest-git-deps --gas-budget 2000000000 --json ../../packages/subdomains --skip-dependency-verification)
-#echo ${subdomains_publish_res}
+# subdomains_publish_res=$(sui client publish --skip-fetch-latest-git-deps --gas-budget 2000000000 --json ../../packages/subdomains)
+# echo ${subdomains_publish_res}
 
 utilsObjs=$(echo "$utils_publish_res" | jq -r '.objectChanges[] | select(.type == "published")')
 registrationObjs=$(echo "$registration_publish_res" | jq -r '.objectChanges[] | select(.type == "published")')
