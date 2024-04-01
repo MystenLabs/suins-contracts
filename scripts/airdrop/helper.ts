@@ -2,7 +2,7 @@ import { TransactionArgument, TransactionBlock } from "@mysten/sui.js/transactio
 import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
 import { blake2b } from '@noble/hashes/blake2b';
 import fs from "fs";
-import { AirdropConfig} from "../config/day_one";
+import { AirdropConfig, addressConfig, mainnetConfig } from "../config/day_one";
 import { Network, mainPackage } from "../config/constants";
 import { isValidSuiAddress, normalizeSuiAddress, toB64 } from "@mysten/sui.js/utils";
 import { ExecutionStatus, GasCostSummary, SuiClient, SuiTransactionBlockResponse } from "@mysten/sui.js/client";

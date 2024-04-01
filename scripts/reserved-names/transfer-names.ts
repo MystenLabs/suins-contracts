@@ -82,10 +82,6 @@ const prepareTx = () => {
         txb.transferObjects([...objects.map(x => txb.object(x))], txb.pure(recipient));
     }
 
-    txb.build({
-        client: new SuiClient({url: ''})
-    });
-
     return prepareMultisigTx(txb, 'mainnet');
 }
 

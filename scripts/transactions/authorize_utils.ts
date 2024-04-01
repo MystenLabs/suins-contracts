@@ -23,12 +23,6 @@ export const authorizeDirectSetupApp = async (network: Network) => {
         typeArguments: [`${config.directSetupPackageId}::direct_setup::DirectSetup`],
     });
 
-    tx.build({
-      client: new SuiClient({
-        url: ''
-      })
-    })
-
     // for mainnet, we just prepare multisig TX
     if(network === 'mainnet') return prepareMultisigTx(tx, 'mainnet');
 

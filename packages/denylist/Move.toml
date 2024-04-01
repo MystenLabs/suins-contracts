@@ -2,9 +2,6 @@
 name = "denylist"
 version = "0.0.1"
 
-#testnet
-published-at="0xefd5f77fbd6192d700df8403afe85179041ed4ad3ca2d6c1751e944d4ba5f33f"
-
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
 suins = { local = "../suins" }
