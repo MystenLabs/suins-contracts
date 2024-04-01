@@ -15,7 +15,7 @@
     "create-deepbook-pools": "ts-node transactions/deepbook/create_pools.ts",
     "authorize-renewals": "ts-node transactions/renewals/authorize_renewals.ts",
     "renew-reserved-names": "ts-node transactions/reserved_names/extend_reserved_names.ts",
-    "publish_suins": "ts-node register_with_oracle/deploy_suins_from_scratch.ts"
+    "register-with-oracle": "ts-node register_with_oracle/register_with_oracle.ts"
   },
   "keywords": [],
   "author": "",
@@ -26,11 +26,12 @@
     "@mysten/sui.js": "0.51.0",
     "@noble/hashes": "^1.4.0",
     "@pythnetwork/pyth-sui-js": "2.0.0",
+    "bn.js": "^5.2.1",
     "dotenv": "^16.3.1",
     "typescript": "^5.1.6"
   },
   "devDependencies": {
-    "ts-node": "^10.9.1",
-    "@types/node": "^20.11.30"
+    "@types/node": "^20.11.30",
+    "ts-node": "^10.9.1"
   }
 }

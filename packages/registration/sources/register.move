@@ -15,7 +15,7 @@ module registration::register {
     use suins::config::{Self, Config};
     use suins::suins_registration::SuinsRegistration;
 
-    use pyth::price_feed::{Self, PriceFeed};
+    use pyth::price_feed::{Self};
     use pyth::price_info::{Self, PriceInfoObject, PriceInfo};
     use pyth::price_identifier::{Self};
     use pyth::price;
@@ -62,20 +62,38 @@ module registration::register {
 
         assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
 
-        let price_info = &price_info::get_price_info_from_price_info_object(price_info_object);
-        validate_sui_price_feed(price_info);
-
         let label = domain::sld(&domain);
-        let price_feed = price_info::get_price_feed(price_info);
-        let (sui_value_in_usd_lower_bound, sui_value_in_usd_upper_bound) = calculate_lower_upper_price(price_feed, coin::value(&payment));
-        let price_in_usd = config::calculate_price(config, (string::length(label) as u8), no_years);
+        let config_cost = config::calculate_price(config, (string::length(label) as u8), no_years);
+        let sui_quantity_required = get_sui_required(price_info_object, config_cost);
+        let sui_quantity_required_min = sui_quantity_required * 995 / 1000;
+        let sui_quantity_required_max = sui_quantity_required * 1005 / 1000;
 
-        assert!(sui_value_in_usd_lower_bound <= price_in_usd, EIncorrectAmount);
-        assert!(sui_value_in_usd_upper_bound >= price_in_usd, EIncorrectAmount);
+        assert!(sui_quantity_required_min <= coin::value(&payment), EIncorrectAmount);
+        assert!(sui_quantity_required_max >= coin::value(&payment), EIncorrectAmount);
 
         suins::app_add_balance(Register {}, suins, coin::into_balance(payment));
         let registry = suins::app_registry_mut<Register, Registry>(Register {}, suins);
         registry::add_record(registry, domain, no_years, clock, ctx)
+    }
+
+    public fun get_sui_required(
+        price_info_object: &PriceInfoObject,
+        config_cost: u64
+    ): u64 {
+        let price_info = &price_info::get_price_info_from_price_info_object(price_info_object);
+        validate_sui_price_feed(price_info);
+
+        let price_feed = price_info::get_price_feed(price_info);
+        let sui_price = &price_feed::get_price(price_feed);
+        let sui_price_i64 = &price::get_price(sui_price);
+        let sui_price_u64 = i64::get_magnitude_if_positive(sui_price_i64);
+
+        let exponent_i64 = &price::get_expo(sui_price);
+        let exponent_u64 = i64::get_magnitude_if_negative(exponent_i64);
+        assert!(exponent_u64 < 256, EIncorrectPrecision);
+        let exponent_u8 = (exponent_u64 as u8);
+
+        config_cost * (math::pow(10, exponent_u8)) / sui_price_u64
     }
 
     fun validate_sui_price_feed(
@@ -84,26 +102,5 @@ module registration::register {
         let price_identifier = &price_info::get_price_identifier(price_info);
         let price_id_bytes = price_identifier::get_bytes(price_identifier);
         assert!(price_id_bytes == SUI_PRICE_FEED_MAINNET_ID || price_id_bytes == SUI_PRICE_FEED_TESTNET_ID, EIncorrectPriceFeedID);
-    }
-
-    fun calculate_lower_upper_price(
-        price_feed: &PriceFeed,
-        sui_quantity: u64
-    ): (u64, u64) {
-        // https://docs.pyth.network/price-feeds/pythnet-price-feeds/best-practices
-        let sui_price = &price_feed::get_price(price_feed);
-        let sui_price_i64 = &price::get_price(sui_price);
-        let sui_price_u64 = i64::get_magnitude_if_positive(sui_price_i64);
-        let sui_price_lower_bound = sui_price_u64 - price::get_conf(sui_price);
-        let sui_price_upper_bound = sui_price_u64 + price::get_conf(sui_price);
-        let exponent_i64 = &price::get_expo(sui_price);
-        let exponent_u64 = i64::get_magnitude_if_negative(exponent_i64);
-        assert!(exponent_u64 < 256, EIncorrectPrecision);
-        let exponent_u8 = (exponent_u64 as u8);
-
-        let sui_value_in_usd_lower_bound = sui_quantity * sui_price_lower_bound / (math::pow(10, exponent_u8));
-        let sui_value_in_usd_upper_bound = sui_quantity * sui_price_upper_bound / (math::pow(10, exponent_u8));
-
-        (sui_value_in_usd_lower_bound, sui_value_in_usd_upper_bound)
     }
 }
