@@ -1,11 +1,11 @@
 [package]
-name = "registration"
+name = "oracle_registration"
 version = "0.0.1"
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "mainnet", override=true }
-suins = { local = "../suins" }
+suins = { local = "../../suins" }
 Pyth = {git = "https://github.com/0xaslan/pyth-crosschain.git", subdir = "target_chains/sui/contracts", rev = "sui/price-info-test" }
 
 [addresses]
-registration = "0x0"
+oracle_registration = "0x0"

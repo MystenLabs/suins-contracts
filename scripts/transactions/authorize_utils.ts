@@ -6,7 +6,6 @@ dotenv.config();
 import { executeTx, prepareMultisigTx, prepareSigner } from "../airdrop/helper";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { Network, mainPackage } from "../config/constants";
-import { SuiClient } from "@mysten/sui.js/client";
 
 export const authorizeDirectSetupApp = async (network: Network) => {
     const tx = new TransactionBlock();
