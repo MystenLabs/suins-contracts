@@ -94,7 +94,7 @@ module suins::suins {
     /// transaction. This is useful for the admin to withdraw funds from the SuiNS
     /// and then send them somewhere specific or keep at the address.
     public fun withdraw(_: &AdminCap, self: &mut SuiNS, ctx: &mut TxContext): Coin<SUI> {
-        let amount = balance::value(&self.balance);
+        let amount = self.balance.value();
         assert!(amount > 0, ENoProfits);
         coin::take(&mut self.balance, amount, ctx)
     }
@@ -134,7 +134,7 @@ module suins::suins {
     /// Adds balance to the SuiNS.
     public fun app_add_balance<App: drop>(_: App, self: &mut SuiNS, balance: Balance<SUI>) {
         assert_app_is_authorized<App>(self);
-        balance::join(&mut self.balance, balance);
+        self.balance.join(balance);
     }
 
     /// Get a mutable access to the `Registry` object. Can only be performed by authorized
@@ -236,6 +236,6 @@ module suins::suins {
 
     #[test_only]
     public fun total_balance(self: &SuiNS): u64 {
-        balance::value(&self.balance)
+        self.balance.value()
     }
 }

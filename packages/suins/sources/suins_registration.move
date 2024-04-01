@@ -47,7 +47,7 @@ module suins::suins_registration {
     ): SuinsRegistration {
         SuinsRegistration {
             id: object::new(ctx),
-            domain_name: domain::to_string(&domain),
+            domain_name: domain.to_string(),
             domain,
             expiration_timestamp_ms: timestamp_ms(clock) + ((no_years as u64) * constants::year_ms()),
             image_url: constants::default_image(),
