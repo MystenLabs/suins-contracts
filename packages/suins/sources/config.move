@@ -56,7 +56,7 @@ module suins::config {
         four_char_price: u64,
         five_plus_char_price: u64,
     ): Config {
-        assert!(vector::length(&public_key) == 33, EInvalidPublicKey);
+        assert!(public_key.length() == 33, EInvalidPublicKey);
 
         Config {
             public_key,
@@ -70,7 +70,7 @@ module suins::config {
 
     /// Change the value of the `public_key` field.
     public fun set_public_key(self: &mut Config, value: vector<u8>) {
-        assert!(vector::length(&value) == 33, EInvalidPublicKey);
+        assert!(value.length() == 33, EInvalidPublicKey);
         self.public_key = value;
     }
 
@@ -133,9 +133,9 @@ module suins::config {
     /// - only has 1 label, "name", other than the TLD
     /// - "name" is >= 3 characters long
     public fun assert_valid_user_registerable_domain(domain: &Domain) {
-        assert!(domain::number_of_levels(domain) == 2, EInvalidDomain);
-        assert!(domain::tld(domain) == &constants::sui_tld(), EInvalidTld);
-        let length = string::length(domain::sld(domain));
+        assert!(domain.number_of_levels() == 2, EInvalidDomain);
+        assert!(domain.tld() == &constants::sui_tld(), EInvalidTld);
+        let length = domain.sld().length();
         assert!(length >= (constants::min_domain_length() as u64), ELabelTooShort);
         assert!(length <= (constants::max_domain_length() as u64), ELabelTooLong);
     }

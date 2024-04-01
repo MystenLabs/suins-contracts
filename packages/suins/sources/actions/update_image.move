@@ -32,23 +32,23 @@ module suins::update_image {
        signature: vector<u8>,
        clock: &Clock,
     ) {
-        suins::assert_app_is_authorized<UpdateImage>(suins);
-        let registry = suins::registry<Registry>(suins);
-        registry::assert_nft_is_authorized(registry, nft, clock);
+        suins.assert_app_is_authorized<UpdateImage>();
+        let registry = suins.registry<Registry>();
+        registry.assert_nft_is_authorized(nft, clock);
 
-        let config = suins::get_config<Config>(suins);
+        let config = suins.get_config<Config>();
 
         assert!(
-            ecdsa_k1::secp256k1_verify(&signature, config::public_key(config), &raw_msg, 1),
+            ecdsa_k1::secp256k1_verify(&signature, config.public_key(), &raw_msg, 1),
             ESignatureNotMatch
         );
 
         let (ipfs_hash, domain_name, expiration_timestamp_ms, _data) = image_data_from_bcs(raw_msg);
 
-        assert!(nft::expiration_timestamp_ms(nft) == expiration_timestamp_ms, EInvalidData);
-        assert!(domain::to_string(&nft::domain(nft)) == domain_name, EInvalidDomainData);
+        assert!(nft.expiration_timestamp_ms() == expiration_timestamp_ms, EInvalidData);
+        assert!(nft.domain().to_string() == domain_name, EInvalidDomainData);
 
-        nft::update_image_url(nft, ipfs_hash);
+        nft.update_image_url(ipfs_hash);
 
         // TODO emit an event
         // event::emit(ImageUpdatedEvent {
@@ -71,13 +71,13 @@ module suins::update_image {
     fun image_data_from_bcs(msg_bytes: vector<u8>): (String, String, u64, String) {
         let mut bcs = bcs::new(msg_bytes);
 
-        let ipfs_hash = utf8(bcs::peel_vec_u8(&mut bcs));
-        let domain_name = utf8(bcs::peel_vec_u8(&mut bcs));
-        let expiration_timestamp_ms = bcs::peel_u64(&mut bcs);
-        let data = utf8(bcs::peel_vec_u8(&mut bcs));
+        let ipfs_hash = utf8(bcs.peel_vec_u8());
+        let domain_name = utf8(bcs.peel_vec_u8());
+        let expiration_timestamp_ms = bcs.peel_u64();
+        let data = utf8(bcs.peel_vec_u8());
 
-        let remainder = bcs::into_remainder_bytes(bcs);
-        vector::destroy_empty(remainder);
+        let remainder = bcs.into_remainder_bytes();
+        remainder.destroy_empty();
 
         (
             ipfs_hash,

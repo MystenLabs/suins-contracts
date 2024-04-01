@@ -29,7 +29,6 @@ module suins::auction_tests {
     const FIRST_DOMAIN_NAME: vector<u8> = b"tes-t2.sui";
     const SECOND_DOMAIN_NAME: vector<u8> = b"tesq.sui";
     const AUCTION_BIDDING_PERIOD_MS: u64 = 2 * 24 * 60 * 60 * 1000;
-    const AUCTION_MIN_QUIET_PERIOD_MS: u64 = 10 * 60 * 1000; // 10 minutes of quiet time
 
     public fun test_init(): Scenario {
         let mut scenario_val = test_scenario::begin(SUINS_ADDRESS);

@@ -30,11 +30,11 @@ module suins::domain {
 
     // Construct a `Domain` by parsing and validating the provided string
     public fun new(domain: String): Domain {
-        assert!(string::length(&domain) <= MAX_DOMAIN_LENGTH, EInvalidDomain);
+        assert!(domain.length() <= MAX_DOMAIN_LENGTH, EInvalidDomain);
 
         let mut labels = split_by_dot(domain);
         validate_labels(&labels);
-        vector::reverse(&mut labels);
+        labels.reverse();
         Domain {
             labels
         }
@@ -43,17 +43,17 @@ module suins::domain {
     /// Converts a domain into a fully-qualified string representation.
     public fun to_string(self: &Domain): String {
         let dot = utf8(b".");
-        let len = vector::length(&self.labels);
+        let len = self.labels.length();
         let mut i = 0;
         let mut out = string::utf8(vector::empty());
 
         while (i < len) {
-            let part = vector::borrow(&self.labels, (len - i) - 1);
-            string::append(&mut out, *part);
+            let part = self.labels.borrow((len - i) - 1);
+            out.append(*part);
 
             i = i + 1;
             if (i != len) {
-                string::append(&mut out, dot);
+                out.append(dot);
             }
         };
 
@@ -69,7 +69,7 @@ module suins::domain {
     ///
     /// This means that the TLD will always be at level `0`.
     public fun label(self: &Domain, level: u64): &String {
-        vector::borrow(&self.labels, level)
+        self.labels.borrow(level)
     }
 
     /// Returns the TLD (Top-Level Domain) of a `Domain`.
@@ -87,7 +87,7 @@ module suins::domain {
     }
 
     public fun number_of_levels(self: &Domain): u64 {
-        vector::length(&self.labels)
+        self.labels.length()
     }
 
     public fun is_subdomain(domain: &Domain): bool {
@@ -99,7 +99,7 @@ module suins::domain {
     public fun parent(domain: &Domain): Domain {
         let mut labels = domain.labels;
         // we pop the last element and construct the parent from the remaining labels.
-        vector::pop_back(&mut labels);
+        labels.pop_back();
 
         Domain {
             labels
@@ -113,21 +113,21 @@ module suins::domain {
     }
 
     fun validate_labels(labels: &vector<String>) {
-        assert!(!vector::is_empty(labels), EInvalidDomain);
+        assert!(!labels.is_empty(), EInvalidDomain);
 
-        let len = vector::length(labels);
+        let len = labels.length();
         let mut index = 0;
 
         while (index < len) {
-            let label = vector::borrow(labels, index);
+            let label = labels.borrow(index);
             assert!(is_valid_label(label), EInvalidDomain);
             index = index + 1;
         }
     }
 
     fun is_valid_label(label: &String): bool {
-        let len = string::length(label);
-        let label_bytes = string::bytes(label);
+        let len = label.length();
+        let label_bytes = label.bytes();
         let mut index = 0;
 
         if (!(len >= MIN_LABEL_LENGTH && len <= MAX_LABEL_LENGTH)) {
@@ -135,7 +135,7 @@ module suins::domain {
         };
 
         while (index < len) {
-            let character = *vector::borrow(label_bytes, index);
+            let character = *label_bytes.borrow(index);
             let is_valid_character =
                 (0x61 <= character && character <= 0x7A)                   // a-z
                 || (0x30 <= character && character <= 0x39)                // 0-9
@@ -155,19 +155,19 @@ module suins::domain {
     fun split_by_dot(mut s: String): vector<String> {
         let dot = utf8(b".");
         let mut parts: vector<String> = vector[];
-        while (!string::is_empty(&s)) {
-            let index_of_next_dot = string::index_of(&s, &dot);
-            let part = string::sub_string(&s, 0, index_of_next_dot);
-            vector::push_back(&mut parts, part);
+        while (!s.is_empty()) {
+            let index_of_next_dot = s.index_of(&dot);
+            let part = s.sub_string(0, index_of_next_dot);
+            parts.push_back(part);
 
-            let len = string::length(&s);
+            let len = s.length();
             let start_of_next_part = if (index_of_next_dot == len) {
                 len
             } else {
                 index_of_next_dot + 1
             };
 
-            s = string::sub_string(&s, start_of_next_part, len);
+            s = s.sub_string(start_of_next_part, len);
         };
 
         parts
@@ -191,7 +191,7 @@ module suins::domain {
         let mut index = 0;
 
         while (index < len) {
-            let label = vector::borrow(&expected_labels, index);
+            let label = expected_labels.borrow(index);
             assert_eq(*label, *label(&domain, index));
             index = index + 1;
         }
@@ -200,9 +200,9 @@ module suins::domain {
     #[test_only]
     fun prep_expected_labels(mut labels: vector<vector<u8>>): vector<String> {
         let mut out = vector[];
-        while (!vector::is_empty(&labels)) {
-            let label = vector::pop_back(&mut labels);
-            vector::push_back(&mut out, utf8(label));
+        while (!labels.is_empty()) {
+            let label = labels.pop_back();
+            out.push_back(utf8(label));
         };
         out
     }

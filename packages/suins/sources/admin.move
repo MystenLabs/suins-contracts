@@ -37,7 +37,7 @@ module suins::admin {
         let domain = domain::new(domain_name);
         config::assert_valid_user_registerable_domain(&domain);
         let registry = suins::app_registry_mut<Admin, Registry>(Admin {}, suins);
-        registry::add_record(registry, domain, no_years, clock, ctx)
+        registry.add_record(domain, no_years, clock, ctx)
     }
 
     /// Reserve a list of domains.
@@ -51,10 +51,10 @@ module suins::admin {
     ) {
         let sender = sender(ctx);
         let registry = suins::app_registry_mut<Admin, Registry>(Admin {}, suins);
-        while (!vector::is_empty(&domains)) {
-            let domain = domain::new(vector::pop_back(&mut domains));
+        while (!domains.is_empty()) {
+            let domain = domain::new(domains.pop_back());
             config::assert_valid_user_registerable_domain(&domain);
-            let nft = registry::add_record(registry, domain, no_years, clock, ctx);
+            let nft = registry.add_record(domain, no_years, clock, ctx);
             sui::transfer::public_transfer(nft, sender);
         };
     }
