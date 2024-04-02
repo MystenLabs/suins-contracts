@@ -4,7 +4,6 @@
 /// Admin features of the SuiNS application. Meant to be called directly
 /// by the suins admin.
 module suins::admin {
-    use std::vector;
     use std::string::String;
     use sui::clock::Clock;
     use sui::tx_context::{sender, TxContext};
@@ -13,7 +12,7 @@ module suins::admin {
     use suins::config;
     use suins::suins::{Self, AdminCap, SuiNS};
     use suins::suins_registration::SuinsRegistration;
-    use suins::registry::{Self, Registry};
+    use suins::registry::Registry;
 
     /// The authorization witness.
     public struct Admin has drop {}

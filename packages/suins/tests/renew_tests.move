@@ -15,7 +15,7 @@ module suins::renew_tests {
     use suins::register_sample_tests::{register_util, assert_balance};
     use suins::constants::{mist_per_sui, year_ms};
     use suins::suins::{Self, SuiNS, AdminCap};
-    use suins::suins_registration::{Self, SuinsRegistration};
+    use suins::suins_registration::SuinsRegistration;
     use suins::registry;
 
     const SUINS_ADDRESS: address = @0xA001;

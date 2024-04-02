@@ -15,14 +15,10 @@ module suins::admin_tests {
     use sui::test_utils::assert_eq;
 
     use suins::admin::{Self, Admin};
-    use suins::suins_registration as nft;
     use suins::constants;
     use suins::domain;
     use suins::suins;
     use suins::registry;
-
-    /// The admin account.
-    const ADMIN: address = @suins;
 
     #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
     fun try_unathorized_fail() {

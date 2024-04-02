@@ -5,13 +5,13 @@
 /// More information in: ../../../docs
 module suins::auction {
     use std::option::{Self, Option, none, some, is_some};
-    use std::string::{Self, String};
+    use std::string::String;
 
     use sui::tx_context::{Self, TxContext};
     use sui::balance::{Self, Balance};
     use sui::transfer;
     use sui::coin::{Self, Coin};
-    use sui::clock::{Self, Clock};
+    use sui::clock::Clock;
     use sui::event;
     use sui::object::{Self, UID};
     use sui::sui::SUI;
@@ -19,8 +19,8 @@ module suins::auction {
 
     use suins::config::{Self, Config};
     use suins::suins::{Self, AdminCap, SuiNS};
-    use suins::suins_registration::{Self as nft, SuinsRegistration};
-    use suins::registry::{Self, Registry};
+    use suins::suins_registration::SuinsRegistration;
+    use suins::registry::Registry;
     use suins::domain::{Self, Domain};
 
     /// One year is the default duration for a domain.

@@ -15,7 +15,6 @@ module suins::register_sample_tests {
     use suins::constants::{mist_per_sui, grace_period_ms, year_ms};
     use suins::suins::{Self, SuiNS, total_balance, AdminCap};
     use suins::suins_registration::SuinsRegistration;
-    use suins::suins_registration;
     use suins::domain;
     use suins::registry;
     use suins::config;

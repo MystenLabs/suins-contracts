@@ -11,7 +11,7 @@ module suins::controller_tests {
     use sui::transfer;
     use sui::test_utils::assert_eq;
     use sui::dynamic_field;
-    use sui::vec_map::{Self, VecMap};
+    use sui::vec_map::VecMap;
 
     use suins::register_sample::Register;
     use suins::constants::{mist_per_sui, year_ms};
@@ -20,13 +20,11 @@ module suins::controller_tests {
     use suins::register_sample_tests::register_util;
     use suins::controller::{Self, Controller, set_target_address_for_testing, set_reverse_lookup_for_testing, unset_reverse_lookup_for_testing, set_user_data_for_testing, unset_user_data_for_testing};
     use suins::registry::{Self, Registry, lookup, reverse_lookup};
-    use suins::name_record;
     use suins::domain::{Self, Domain};
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_ADDRESS: address = @0xB001;
     const SECOND_ADDRESS: address = @0xB002;
-    const AUCTIONED_DOMAIN_NAME: vector<u8> = b"tes-t2.sui";
     const DOMAIN_NAME: vector<u8> = b"abc.sui";
     const AVATAR: vector<u8> = b"avatar";
     const CONTENT_HASH: vector<u8> = b"content_hash";

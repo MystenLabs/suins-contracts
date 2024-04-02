@@ -17,10 +17,8 @@
 /// and set again within the same Programmable Transaction Block (can only be
 /// performed by Admin)
 module suins::config {
-    use std::vector;
-    use std::string;
     use suins::constants;
-    use suins::domain::{Self, Domain};
+    use suins::domain::Domain;
 
     /// A label is too short to be registered.
     const ELabelTooShort: u64 = 0;

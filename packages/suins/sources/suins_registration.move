@@ -17,7 +17,7 @@ module suins::suins_registration {
     use sui::clock::{timestamp_ms, Clock};
 
     use suins::constants;
-    use suins::domain::{Self, Domain};
+    use suins::domain::Domain;
 
     /* friend suins::registry; */
     /* friend suins::update_image; */

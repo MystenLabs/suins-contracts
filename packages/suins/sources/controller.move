@@ -6,13 +6,11 @@ module suins::controller {
     use std::string::String;
     use sui::tx_context::{sender, TxContext};
     use sui::clock::Clock;
-    use sui::vec_map;
 
     use suins::domain;
-    use suins::registry::{Self, Registry};
+    use suins::registry::Registry;
     use suins::suins::{Self, SuiNS};
-    use suins::suins_registration::{Self as nft, SuinsRegistration};
-    use std::string;
+    use suins::suins_registration::SuinsRegistration;
 
     const AVATAR: vector<u8> = b"avatar";
     const CONTENT_HASH: vector<u8> = b"content_hash";

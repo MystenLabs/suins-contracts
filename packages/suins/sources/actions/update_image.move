@@ -2,17 +2,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
 module suins::update_image {
-    use std::vector;
     use std::string::{utf8, String};
     use sui::clock::Clock;
     use sui::bcs;
     use sui::ecdsa_k1;
 
-    use suins::domain;
-    use suins::registry::{Self, Registry};
-    use suins::suins::{Self, SuiNS};
-    use suins::config::{Self, Config};
-    use suins::suins_registration::{Self as nft, SuinsRegistration};
+    use suins::registry::Registry;
+    use suins::suins::SuiNS;
+    use suins::config::Config;
+    use suins::suins_registration::SuinsRegistration;
 
     /// Message data cannot be parsed.
     const EInvalidData: u64 = 0;
@@ -26,7 +24,7 @@ module suins::update_image {
 
     /// Updates the image attached to a `SuinsRegistration`.
     entry fun update_image_url(
-       suins: &mut SuiNS,
+       suins: &SuiNS,
        nft: &mut SuinsRegistration,
        raw_msg: vector<u8>,
        signature: vector<u8>,

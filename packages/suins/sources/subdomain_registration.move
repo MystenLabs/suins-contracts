@@ -13,8 +13,7 @@ module suins::subdomain_registration {
     use sui::tx_context::TxContext;
     use sui::clock::Clock;
 
-    use suins::suins_registration::{Self, SuinsRegistration};
-    use suins::domain;
+    use suins::suins_registration::SuinsRegistration;
 
     /* friend suins::registry; */
     /* #[test_only] */ /* friend suins::sub_name_tests; */

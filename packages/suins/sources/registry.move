@@ -13,7 +13,7 @@ module suins::registry {
 
     use suins::suins_registration::{Self as nft, SuinsRegistration};
     use suins::name_record::{Self, NameRecord};
-    use suins::domain::{Self, Domain};
+    use suins::domain::Domain;
     use suins::suins::AdminCap;
     use suins::subdomain_registration::{Self, SubDomainRegistration};
 
