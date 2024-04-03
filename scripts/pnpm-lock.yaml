@@ -20,6 +20,9 @@ dependencies:
   '@pythnetwork/pyth-sui-js':
     specifier: 2.0.0
     version: 2.0.0
+  bn.js:
+    specifier: ^5.2.1
+    version: 5.2.1
   dotenv:
     specifier: ^16.3.1
     version: 16.3.1
@@ -295,6 +298,10 @@ packages:
 
   /bech32@2.0.0:
     resolution: {integrity: sha512-LcknSilhIGatDAsY1ak2I8VtGaHNhgMSYVxFrGLXv+xLHytaKZKcaUJJUE7qmBr7h33o5YQwP55pMI0xmkpJwg==}
+    dev: false
+
+  /bn.js@5.2.1:
+    resolution: {integrity: sha512-eXRvHzWyYPBuB4NBy0cmYQjGitUrtqwbvlzP3G6VFnNRbsZQIxQ10PbKKHt8gZ/HW/D/747aDl+QkDqg3KQLMQ==}
     dev: false
 
   /bs58@5.0.0:

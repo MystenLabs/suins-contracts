@@ -231,4 +231,3 @@ function getExecutionStatus(res: SuiTransactionBlockResponse): ExecutionStatus |
 function getExecutionStatusGasSummary(res: SuiTransactionBlockResponse): GasCostSummary | undefined {
     return res.effects?.gasUsed;
 }
-
