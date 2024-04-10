@@ -12,9 +12,6 @@ module discounts::free_claims {
     use std::string::{String};
     use std::type_name::{Self as `type`};
 
-    use sui::object::{Self, ID};
-    use sui::tx_context::{TxContext};
-
     use sui::dynamic_field::{Self as df};
     use sui::clock::{Clock};
     use sui::linked_table::{Self, LinkedTable};
@@ -169,8 +166,8 @@ module discounts::free_claims {
     /// Validate that the domain length is valid for the passed configuration.
     fun assert_domain_length_eligible(domain: &Domain, config: &FreeClaimsConfig) {
         let domain_length = (domain.sld().length() as u8);
-        let from = *config.domain_length_range.borrow(0);
-        let to = *config.domain_length_range.borrow(1);
+        let from = config.domain_length_range[0];
+        let to = config.domain_length_range[1];
 
         assert!(domain_length >= from && domain_length <= to, EInvalidCharacterRange);
     }
@@ -180,8 +177,8 @@ module discounts::free_claims {
     fun assert_valid_length_setup(domain_length_range: &vector<u8>) {
         assert!(domain_length_range.length() == 2, EInvalidCharacterRange);
 
-        let from = *domain_length_range.borrow(0);
-        let to = *domain_length_range.borrow(1);
+        let from = domain_length_range[0];
+        let to = domain_length_range[1];
 
         assert!(to >= from, EInvalidCharacterRange);
     }

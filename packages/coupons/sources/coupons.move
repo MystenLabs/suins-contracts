@@ -108,7 +108,7 @@ module coupons::coupons {
         let domain_length = (label.length() as u8);
 
         // Borrow coupon from the table.
-        let coupon = self.data.coupons.borrow_mut(coupon_code);
+        let coupon = &mut self.data.coupons[coupon_code];
 
         // We need to do a total of 5 checks, based on `CouponRules`
         // Our checks work with `AND`, all of the conditions must pass for a coupon to be used.
@@ -149,7 +149,7 @@ module coupons::coupons {
         // Validate that specified coupon is valid.
         assert!(self.data.coupons.contains(coupon_code), ECouponNotExists);
         // Borrow coupon from the table.
-        let coupon = self.data.coupons.borrow_mut(coupon_code);
+        let coupon = &mut self.data.coupons[coupon_code];
         internal_calculate_sale_price(price, coupon)
     }
 

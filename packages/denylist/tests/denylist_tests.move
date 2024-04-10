@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 module denylist::denylist_tests {
-    use std::vector;
     use std::string::{utf8, String};
 
     use sui::test_scenario::{Self as ts, Scenario};

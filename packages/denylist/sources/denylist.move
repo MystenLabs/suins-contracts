@@ -4,7 +4,6 @@
 module denylist::denylist {
     use std::string::String;
 
-    use sui::tx_context::{TxContext};
     use sui::table::{Self, Table};
     
     use suins::suins::{Self, AdminCap, SuiNS};
@@ -80,7 +79,7 @@ module denylist::denylist {
 
         while (i > 0) {
             i = i - 1;
-            let word = *words.borrow(i);
+            let word = words[i];
             table.add(word, true);
         };
     }
@@ -93,7 +92,7 @@ module denylist::denylist {
 
         while (i > 0) {
             i = i - 1;
-            let word = *words.borrow(i);
+            let word = words[i];
             table.remove(word);
         };
     }

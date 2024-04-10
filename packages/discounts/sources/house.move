@@ -5,9 +5,6 @@
 /// and exports some package utilities for the 2 systems to use.
 module discounts::house {
 
-    use sui::object::{Self, UID};
-    use sui::tx_context::{TxContext};
-    use sui::transfer;
     use sui::clock::{Clock};
 
     use suins::domain::Domain;

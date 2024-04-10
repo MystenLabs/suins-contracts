@@ -3,14 +3,12 @@
 
 #[test_only]
 module discounts::discount_tests {
-    use std::option;
     use std::string::{utf8, String};
 
     use sui::test_scenario::{Self as ts, Scenario, ctx};
     use sui::clock::{Self, Clock};
     use sui::coin::{Self, Coin};
     use sui::sui::SUI;
-    use sui::transfer;
 
     use suins::suins::{Self, SuiNS, AdminCap};
     use suins::registry;

@@ -8,11 +8,9 @@
 /// Can be called only when promotions are active for a specific type T.
 /// Activation / deactivation happens through PTBs.
 module discounts::discounts {
-    use std::option::{Option};
     use std::string::String;
     use std::type_name::{Self as `type`};
 
-    use sui::tx_context::{TxContext};
     use sui::dynamic_field::{Self as df};
     use sui::clock::{Clock};
     use sui::coin::Coin;
