@@ -3,7 +3,6 @@
 
 #[test_only]
 module coupons::coupon_tests {
-    use std::option;
     use std::string::{utf8};
 
     use sui::test_scenario::{Self, Scenario, ctx, return_shared, end};

@@ -12,9 +12,6 @@ module coupons::coupons {
     use std::string::String;
 
     use sui::table::{Self, Table};
-    use sui::tx_context::{TxContext, sender};
-    use sui::object::{Self, UID};
-    use sui::transfer;
     use sui::dynamic_field::{Self as df};
     use sui::clock::Clock;
     use sui::sui::SUI;
@@ -120,7 +117,7 @@ module coupons::coupons {
         // 2. Decrease available claims. Will ABORT if the coupon doesn't have enough available claims.
         rules::decrease_available_claims(&mut coupon.rules);
         // 3. Validate the coupon is valid for the specified user.
-        rules::assert_coupon_valid_for_address(&coupon.rules, sender(ctx));
+        rules::assert_coupon_valid_for_address(&coupon.rules, ctx.sender());
         // 4. Validate the coupon hasn't expired (Based on clock)
         rules::assert_coupon_is_not_expired(&coupon.rules, clock);
         // 5. Validate years are valid for the coupon.

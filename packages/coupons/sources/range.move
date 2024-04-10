@@ -29,12 +29,12 @@ module coupons::range {
 
     /// Get floor limit for the range.
     public fun from(range: &Range): u8 {
-        *range.vec.borrow(0)
+        range.vec[0]
     }
     
     /// Get upper limit for the range.
     public fun to(range: &Range): u8 {
-        *range.vec.borrow(1)
+        range.vec[1]
     }
 
 }

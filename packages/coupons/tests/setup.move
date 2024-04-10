@@ -3,15 +3,12 @@
 
 #[test_only]
 module coupons::setup {
-    use std::option;
     use std::string::{utf8, String};
 
     use sui::clock::{Self, Clock};
     use sui::test_scenario::{Self, Scenario, ctx};
-    use sui::tx_context::{TxContext};
     use sui::sui::SUI;
     use sui::coin::{Self};
-    use sui::transfer;
     
     use coupons::coupons::{Self, CouponsApp,Data, CouponHouse};
     use coupons::rules::{Self};

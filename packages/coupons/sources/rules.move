@@ -4,9 +4,6 @@
 // A module with a couple of helpers for validation of coupons
 // validation of names etc.
 module coupons::rules {
-
-    use std::option::{Self, Option};
-
     use sui::clock::Clock;
 
     use coupons::{constants, range::Range};
