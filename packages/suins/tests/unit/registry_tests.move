@@ -3,19 +3,15 @@
 
 #[test_only]
 module suins::registry_tests {
-    use std::string::utf8;
-    use std::option::{Self, some};
-    use std::vector;
-    use sui::object;
-    use sui::tx_context::{Self, TxContext};
-    use sui::clock::{Self, Clock};
-    use sui::test_utils::assert_eq;
+    use std::{string::utf8, option::{some}};
+    use sui::{clock::{Self, Clock}, test_utils::assert_eq};
 
-    use suins::suins_registration::{Self as nft, SuinsRegistration};
-    use suins::name_record as record;
-    use suins::registry::{Self, Registry};
-    use suins::domain::{Self, Domain};
-    use suins::constants;
+    use suins::{
+        suins_registration::{Self as nft, SuinsRegistration}, 
+        name_record as record, 
+        registry::{Self, Registry}, 
+        domain::{Self, Domain}, constants
+    };
 
     // === Registry + Record Addition ===
 
@@ -25,15 +21,15 @@ module suins::registry_tests {
         let (mut registry, clock, domain) = setup(&mut ctx);
 
         // create a record for the test domain with expiration set to 1 year
-        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let nft = registry.add_record(domain, 1, &clock, &mut ctx);
 
         // make sure that the nft matches the domain
-        assert_eq(nft::domain(&nft), domain);
-        assert_eq(registry::has_record(&registry, nft::domain(&nft)), true);
+        assert_eq(nft.domain(), domain);
+        assert_eq(registry.has_record(nft.domain()), true);
 
         // take the record and compare it against the nft
-        let record = registry::remove_record_for_testing(&mut registry, domain);
-        assert_eq(record::expiration_timestamp_ms(&record), nft::expiration_timestamp_ms(&nft));
+        let record = registry.remove_record_for_testing(domain);
+        assert_eq(record.expiration_timestamp_ms(), nft.expiration_timestamp_ms());
 
 
         burn_nfts(vector[ nft ]);
@@ -52,24 +48,24 @@ module suins::registry_tests {
         let subdomain_one = domain::new(utf8(b"test.hahaha.sui"));
 
         // create a record for the test domain with expiration set to 1 year
-        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let nft = registry.add_record(domain, 1, &clock, &mut ctx);
 
         // register a leaf record and set the target to @0x0
-        registry::add_leaf_record(&mut registry, subdomain_one, &clock, @0x0, &mut ctx);
+        registry.add_leaf_record(subdomain_one, &clock, @0x0, &mut ctx);
     
         // set the reverse_Registry of @0x0 to be that leaf subdomain
-        registry::set_reverse_lookup(&mut registry, @0x0, subdomain_one);
+        registry.set_reverse_lookup(@0x0, subdomain_one);
 
-        let name_record = option::extract(&mut registry::lookup(&registry, subdomain_one));
+        let name_record = option::extract(&mut registry.lookup(subdomain_one));
         // validate that the parent nft_id is the same as the leaf's one.
-        assert_eq(object::id(&nft), record::nft_id(&name_record));
+        assert_eq(object::id(&nft), name_record.nft_id());
 
         // Reverse lookup should work as expected, since it's set.
-        let name = option::extract(&mut registry::reverse_lookup(&registry, @0x0));
+        let name = option::extract(&mut registry.reverse_lookup(@0x0));
         assert!(name == subdomain_one, 0);
 
         // remove leaf_record to test removal too
-        registry::remove_leaf_record(&mut registry, subdomain_one);
+        registry.remove_leaf_record(subdomain_one);
 
         // validate that now @0x0 doesn't have a reverse lookup anymore.
         let res = registry::reverse_lookup(&registry, @0x0);
@@ -86,21 +82,21 @@ module suins::registry_tests {
         let mut ctx = tx_context::dummy();
         let (mut registry, mut clock, _domain) = setup(&mut ctx);
 
-        let nft = registry::add_record(&mut registry, domain::new(utf8(b"test.sui")), 1, &clock, &mut ctx);
+        let nft = registry.add_record(domain::new(utf8(b"test.sui")), 1, &clock, &mut ctx);
 
         // add 2 leaf records as nft
-        registry::add_leaf_record(&mut registry, domain::new(utf8(b"test.test.sui")), &clock, @0x0, &mut ctx);
-        registry::add_leaf_record(&mut registry, domain::new(utf8(b"test2.test.sui")), &clock, @0x0, &mut ctx);
+        registry.add_leaf_record(domain::new(utf8(b"test.test.sui")), &clock, @0x0, &mut ctx);
+        registry.add_leaf_record(domain::new(utf8(b"test2.test.sui")), &clock, @0x0, &mut ctx);
 
         // increment the clock to 1 years + grace period
         clock::increment_for_testing(&mut clock, constants::year_ms() + constants::grace_period_ms() + 1);
 
         // become a new owner, `new_oner_nft`
-        let new_owner_nft = registry::add_record(&mut registry, domain::new(utf8(b"test.sui")), 1, &clock, &mut ctx);
+        let new_owner_nft = registry.add_record(domain::new(utf8(b"test.sui")), 1, &clock, &mut ctx);
 
         // override both leaf records, one with a node subdomain, the other iwth a leaf subdomain 
-        let normal_subdomain_override = registry::add_record_ignoring_grace_period(&mut registry, domain::new(utf8(b"test.test.sui")), 1, &clock, &mut ctx);
-        registry::add_leaf_record(&mut registry, domain::new(utf8(b"test2.test.sui")), &clock, @0x1, &mut ctx);
+        let normal_subdomain_override = registry.add_record_ignoring_grace_period(domain::new(utf8(b"test.test.sui")), 1, &clock, &mut ctx);
+        registry.add_leaf_record(domain::new(utf8(b"test2.test.sui")), &clock, @0x1, &mut ctx);
 
         burn_nfts(vector[ nft, new_owner_nft, normal_subdomain_override ]);
         wrapup_non_empty(registry, clock);
@@ -115,14 +111,14 @@ module suins::registry_tests {
         let (mut registry, mut clock, domain) = setup(&mut ctx);
 
         // create a record for the test domain with expiration set to 1 year
-        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let nft = registry.add_record(domain, 1, &clock, &mut ctx);
 
         // increment the clock to 1 years + grace period
         clock::increment_for_testing(&mut clock, constants::year_ms() + constants::grace_period_ms() + 1);
 
         // override the record
-        let nft_2 = registry::add_record(&mut registry, domain, 2, &clock, &mut ctx);
-        let record = registry::remove_record_for_testing(&mut registry, domain);
+        let nft_2 = registry.add_record(domain, 2, &clock, &mut ctx);
+        let record = registry.remove_record_for_testing(domain);
 
         // make sure the old NFT is no longer matches to the domain
         assert!(object::id(&nft) != record::nft_id(&record), 0);
@@ -143,14 +139,14 @@ module suins::registry_tests {
         let (mut registry, mut clock, domain) = setup(&mut ctx);
 
         // create a record for the test domain with expiration set to 1 year
-        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let nft = registry.add_record(domain, 1, &clock, &mut ctx);
 
         // increment the clock to 1 years + grace period
         clock::increment_for_testing(&mut clock, constants::year_ms() + 1);
 
         // override the record
-        let nft_2 = registry::add_record_ignoring_grace_period(&mut registry, domain, 2, &clock, &mut ctx);
-        let record = registry::remove_record_for_testing(&mut registry, domain);
+        let nft_2 = registry.add_record_ignoring_grace_period(domain, 2, &clock, &mut ctx);
+        let record = registry.remove_record_for_testing(domain);
 
         // make sure the old NFT is no longer matches to the domain
         assert!(object::id(&nft) != record::nft_id(&record), 0);
@@ -171,10 +167,10 @@ module suins::registry_tests {
         let (mut registry, clock, domain) = setup(&mut ctx);
 
         // create a record for the test domain with expiration set to 1 year
-        let _nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let _nft = registry.add_record(domain, 1, &clock, &mut ctx);
 
         // try to override the record and fail - not expired
-        let _nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let _nft = registry.add_record(domain, 1, &clock, &mut ctx);
 
         abort 1337
     }
@@ -186,11 +182,11 @@ module suins::registry_tests {
         let (mut registry, mut clock, domain) = setup(&mut ctx);
 
         // create a record for the test domain with expiration set to 1 year
-        let _nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let _nft = registry.add_record(domain, 1, &clock, &mut ctx);
         // increment the clock to 1 years + grace period
         clock::increment_for_testing(&mut clock, constants::year_ms() + 1);
         // try to override the record and fail - not expired
-        let _nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let _nft = registry.add_record(domain, 1, &clock, &mut ctx);
 
         abort 1337
     }
@@ -205,22 +201,22 @@ module suins::registry_tests {
         let (mut registry, mut clock, domain) = setup(&mut ctx);
 
         // create a record for the test domain with expiration set to 1 year
-        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let nft = registry.add_record(domain, 1, &clock, &mut ctx);
 
         // increment the clock to 1 years + grace period
         clock::increment_for_testing(&mut clock, constants::year_ms() + constants::grace_period_ms() + 1);
 
         // we re-register the same domain now that the other has expired.
-        let new_nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let new_nft = registry.add_record(domain, 1, &clock, &mut ctx);
 
         // we burn the first one as it is an expired name now.
-        registry::burn_registration_object(&mut registry, nft, &clock);
+        registry.burn_registration_object(nft, &clock);
 
         // we still have a registry entry though, it's not removed as the owner is different.
-        assert!(option::is_some(&registry::lookup(&registry, domain)), 1);
+        assert!(option::is_some(&registry.lookup(domain)), 1);
 
         // remove the record so we can wrap this up.
-        registry::remove_record_for_testing(&mut registry, domain);
+        registry.remove_record_for_testing(domain);
 
         wrapup(registry, clock);
         burn_nfts(vector[new_nft]);
@@ -234,16 +230,16 @@ module suins::registry_tests {
         let (mut registry, mut clock, domain) = setup(&mut ctx);
 
         // create a record for the test domain with expiration set to 1 year
-        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let nft = registry.add_record(domain, 1, &clock, &mut ctx);
 
         // increment the clock to 1 years + grace period
         clock::increment_for_testing(&mut clock, constants::year_ms() + constants::grace_period_ms() + 1);
 
         // we burn the first one as it is an expired name now.
-        registry::burn_registration_object(&mut registry, nft, &clock);
+        registry.burn_registration_object(nft, &clock);
 
         // we still have a registry entry though, it's not removed as the owner is different.
-        assert!(option::is_none(&registry::lookup(&registry, domain)), 1);
+        assert!(option::is_none(&registry.lookup(domain)), 1);
 
         wrapup(registry, clock);
     }
@@ -259,12 +255,12 @@ module suins::registry_tests {
         let (mut registry, clock, domain) = setup(&mut ctx);
 
         // create a record for the test domain with expiration set to 1 year
-        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
-        registry::set_target_address(&mut registry, domain, some(@0x2));
+        let nft = registry.add_record(domain, 1, &clock, &mut ctx);
+        registry.set_target_address(domain, some(@0x2));
 
         // try to find a record and then get a record
-        let mut search = registry::lookup(&registry, domain);
-        let record = registry::remove_record_for_testing(&mut registry, domain);
+        let mut search = registry.lookup(domain);
+        let record = registry.remove_record_for_testing(domain);
 
         // make sure the search is a success
         assert!(option::is_some(&search), 0);
@@ -284,11 +280,11 @@ module suins::registry_tests {
     fun set_reverse_lookup() {
         let mut ctx = tx_context::dummy();
         let (mut registry, clock, domain) = setup(&mut ctx);
-        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let nft = registry.add_record(domain, 1, &clock, &mut ctx);
 
         // set the `domain` points to @0x0; set the reverse lookup too
-        registry::set_target_address(&mut registry, domain, some(@0xB0B));
-        registry::set_reverse_lookup(&mut registry, @0xB0B, domain);
+        registry.set_target_address(domain, some(@0xB0B));
+        registry.set_reverse_lookup(@0xB0B, domain);
 
         // search for the reverse_lookup record
         let mut search = registry::reverse_lookup(&registry, @0xB0B);
@@ -297,8 +293,8 @@ module suins::registry_tests {
         assert!(option::extract(&mut search) == domain, 0);
 
         // wrapup
-        registry::unset_reverse_lookup(&mut registry, @0xB0B);
-        let _ = registry::remove_record_for_testing(&mut registry, domain);
+        registry.unset_reverse_lookup(@0xB0B);
+        let _ = registry.remove_record_for_testing(domain);
 
         wrapup(registry, clock);
         burn_nfts(vector[ nft ]);
@@ -309,13 +305,13 @@ module suins::registry_tests {
         let mut ctx = tx_context::dummy();
         let (mut registry, mut clock, _domain) = setup(&mut ctx);
         
-        let nft = registry::add_record(&mut registry, domain::new(utf8(b"node.test.sui")), 1, &clock, &mut ctx);
+        let nft = registry.add_record(domain::new(utf8(b"node.test.sui")), 1, &clock, &mut ctx);
 
-        let subdomain = registry::wrap_subdomain(&mut registry, nft, &clock, &mut ctx);
+        let subdomain = registry.wrap_subdomain(nft, &clock, &mut ctx);
 
         clock::increment_for_testing(&mut clock, constants::year_ms() + 1);
 
-        registry::burn_subdomain_object(&mut registry, subdomain, &clock);
+        registry.burn_subdomain_object(subdomain, &clock);
 
         wrapup(registry, clock);
     }
@@ -324,14 +320,14 @@ module suins::registry_tests {
     fun burn_expired_suins_registration() {
         let mut ctx = tx_context::dummy();
         let (mut registry, mut clock, domain) = setup(&mut ctx);
-        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let nft = registry.add_record(domain, 1, &clock, &mut ctx);
         // increment the clock to 1 years + grace period
         clock::increment_for_testing(&mut clock, constants::year_ms() + 1);
 
         // burn the registration object
-        registry::burn_registration_object(&mut registry, nft, &clock);
+        registry.burn_registration_object(nft, &clock);
 
-        let name = registry::lookup(&registry, domain);
+        let name = registry.lookup(domain);
         assert!(option::is_none(&name), 0);
         
         wrapup(registry, clock);
@@ -341,19 +337,19 @@ module suins::registry_tests {
     fun burn_expired_registration_without_overriding() {
         let mut ctx = tx_context::dummy();
         let (mut registry, mut clock, domain) = setup(&mut ctx);
-        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let nft = registry.add_record(domain, 1, &clock, &mut ctx);
         // increment the clock to 1 years + grace period
         clock::increment_for_testing(&mut clock, constants::year_ms() + constants::grace_period_ms() + 1);
         
         // re-register 
-        let new_nft_post_expiration = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let new_nft_post_expiration = registry.add_record(domain, 1, &clock, &mut ctx);
 
         // burn the expired object
-        registry::burn_registration_object(&mut registry, nft, &clock);
+        registry.burn_registration_object(nft, &clock);
 
         // Validate that the record still exists (no invalidation happened),
         // since the name was bought again after this.
-        let name = registry::lookup(&registry, domain);
+        let name = registry.lookup(domain);
         assert!(option::is_some(&name), 0);
         
         wrapup_non_empty(registry, clock);
@@ -366,10 +362,10 @@ module suins::registry_tests {
     fun set_reverse_lookup_fail_target_not_set() {
         let mut ctx = tx_context::dummy();
         let (mut registry, clock, domain) = setup(&mut ctx);
-        let _nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let _nft = registry.add_record(domain, 1, &clock, &mut ctx);
 
         // set the `domain` points to @0x0
-        registry::set_reverse_lookup(&mut registry, @0x0, domain);
+        registry.set_reverse_lookup(@0x0, domain);
 
         abort 1337
     }
@@ -381,11 +377,11 @@ module suins::registry_tests {
     fun set_reverse_lookup_fail_record_mismatch() {
         let mut ctx = tx_context::dummy();
         let (mut registry, clock, domain) = setup(&mut ctx);
-        let _nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let _nft = registry.add_record(domain, 1, &clock, &mut ctx);
 
         // set the `domain` points to @0x0
-        registry::set_target_address(&mut registry, domain, some(@0xB0B));
-        registry::set_reverse_lookup(&mut registry, @0xA11CE, domain);
+        registry.set_target_address(domain, some(@0xB0B));
+        registry.set_reverse_lookup(@0xA11CE, domain);
 
         abort 1337
     }
@@ -396,7 +392,7 @@ module suins::registry_tests {
         let mut ctx = tx_context::dummy();
         let (mut registry, clock, _domain) = setup(&mut ctx);
 
-        registry::add_leaf_record(&mut registry, domain::new(utf8(b"test.sui")), &clock,@0x0, &mut ctx);
+        registry.add_leaf_record(domain::new(utf8(b"test.sui")), &clock,@0x0, &mut ctx);
 
         abort 1337
     }
@@ -407,7 +403,7 @@ module suins::registry_tests {
         let mut ctx = tx_context::dummy();
         let (mut registry, clock, _domain) = setup(&mut ctx);
 
-        registry::add_leaf_record(&mut registry, domain::new(utf8(b"test.test.sui")), &clock,@0x0, &mut ctx);
+        registry.add_leaf_record(domain::new(utf8(b"test.test.sui")), &clock,@0x0, &mut ctx);
 
         abort 1337
     }
@@ -418,9 +414,9 @@ module suins::registry_tests {
         let mut ctx = tx_context::dummy();
         let (mut registry, clock, _domain) = setup(&mut ctx);
 
-        let _nft = registry::add_record(&mut registry, domain::new(utf8(b"test.test.sui")), 1, &clock, &mut ctx);
+        let _nft = registry.add_record(domain::new(utf8(b"test.test.sui")), 1, &clock, &mut ctx);
 
-        registry::remove_leaf_record(&mut registry, domain::new(utf8(b"test.test.sui")));
+         registry.remove_leaf_record(domain::new(utf8(b"test.test.sui")));
 
         abort 1337
     }
@@ -431,10 +427,10 @@ module suins::registry_tests {
         let mut ctx = tx_context::dummy();
         let (mut registry, clock, _domain) = setup(&mut ctx);
 
-        let _nft = registry::add_record(&mut registry, domain::new(utf8(b"test.sui")), 1, &clock, &mut ctx);
-        let _existing = registry::add_record(&mut registry, domain::new(utf8(b"test.test.sui")), 1, &clock, &mut ctx);
+        let _nft = registry.add_record(domain::new(utf8(b"test.sui")), 1, &clock, &mut ctx);
+        let _existing = registry.add_record(domain::new(utf8(b"test.test.sui")), 1, &clock, &mut ctx);
         
-        registry::add_leaf_record(&mut registry, domain::new(utf8(b"test.test.sui")), &clock,@0x0, &mut ctx);
+        registry.add_leaf_record(domain::new(utf8(b"test.test.sui")), &clock,@0x0, &mut ctx);
 
         abort 1337
     }
@@ -445,11 +441,11 @@ module suins::registry_tests {
         let mut ctx = tx_context::dummy();
         let (mut registry, clock, _domain) = setup(&mut ctx);
 
-        let _nft = registry::add_record(&mut registry, domain::new(utf8(b"test.sui")), 1, &clock, &mut ctx);
+        let _nft = registry.add_record(domain::new(utf8(b"test.sui")), 1, &clock, &mut ctx);
 
-        registry::add_leaf_record(&mut registry, domain::new(utf8(b"test.test.sui")), &clock,@0x0, &mut ctx);
+        registry.add_leaf_record(domain::new(utf8(b"test.test.sui")), &clock,@0x0, &mut ctx);
 
-        let _existing = registry::add_record_ignoring_grace_period(&mut registry, domain::new(utf8(b"test.test.sui")), 1, &clock, &mut ctx);
+        let _existing = registry.add_record_ignoring_grace_period(domain::new(utf8(b"test.test.sui")), 1, &clock, &mut ctx);
     
 
         abort 1337
@@ -459,10 +455,10 @@ module suins::registry_tests {
     fun burn_non_expired_domain_failure() {
         let mut ctx = tx_context::dummy();
         let (mut registry, clock, domain) = setup(&mut ctx);
-        let nft = registry::add_record(&mut registry, domain, 1, &clock, &mut ctx);
+        let nft = registry.add_record(domain, 1, &clock, &mut ctx);
 
                 // burn the expired object
-        registry::burn_registration_object(&mut registry, nft, &clock);
+        registry.burn_registration_object(nft, &clock);
 
         abort 1337
     }
@@ -482,12 +478,12 @@ module suins::registry_tests {
 
     fun wrapup(registry: Registry, clock: Clock) {
         registry::destroy_empty_for_testing(registry);
-        clock::destroy_for_testing(clock);
+        clock.destroy_for_testing();
     }
 
     fun wrapup_non_empty(registry: Registry, clock: Clock) {
         registry::destroy_for_testing(registry);
-        clock::destroy_for_testing(clock);
+        clock.destroy_for_testing();
     }
     
     #[test_only] 

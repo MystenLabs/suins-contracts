@@ -12,12 +12,9 @@
 ///
 module suins::suins_registration {
     use std::string::{String};
-    use sui::object::{Self, UID};
-    use sui::tx_context::TxContext;
     use sui::clock::{timestamp_ms, Clock};
 
-    use suins::constants;
-    use suins::domain::{Self, Domain};
+    use suins::{constants, domain::Domain};
 
     /* friend suins::registry; */
     /* friend suins::update_image; */
@@ -47,7 +44,7 @@ module suins::suins_registration {
     ): SuinsRegistration {
         SuinsRegistration {
             id: object::new(ctx),
-            domain_name: domain::to_string(&domain),
+            domain_name: domain.to_string(),
             domain,
             expiration_timestamp_ms: timestamp_ms(clock) + ((no_years as u64) * constants::year_ms()),
             image_url: constants::default_image(),

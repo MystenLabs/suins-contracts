@@ -5,61 +5,69 @@
 #[test_only]
 module coupons::app_authorization_tests {
 
-    // use std::string::{utf8, String};
-    use sui::test_scenario::{Self};
+    use sui::test_scenario::{return_shared, return_to_sender, end};
 
-    use coupons::coupons::{Self, CouponHouse};
-    use suins::suins::{AdminCap};
-    use coupons::setup::{Self, UnauthorizedTestApp, TestApp, admin, user};
+    use coupons::{
+        coupons::{app_data_mut, deauthorize_app}, 
+        setup::{
+            Self, 
+            UnauthorizedTestApp, 
+            TestApp, 
+            admin, 
+            user, 
+            test_init, 
+            unauthorized_test_app
+        }
+    };
 
     #[test]
     fun admin_get_app_success() {
-        let mut scenario_val = setup::test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         // auth style as authorized app
         {
-            test_scenario::next_tx(scenario, user());
-            let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
-            coupons::app_data_mut<TestApp>(setup::test_app(), &mut coupon_house);
-            test_scenario::return_shared(coupon_house);
+            scenario.next_tx(user());
+            let mut coupon_house = scenario.take_shared();
+            app_data_mut<TestApp>(setup::test_app(), &mut coupon_house);
+            return_shared(coupon_house);
         };
 
-        test_scenario::end(scenario_val);
+        end(scenario_val);
     }
 
     #[test]
     fun authorized_app_get_app_success(){
-        let mut scenario_val = setup::test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         {
-            test_scenario::next_tx(scenario, admin());
+            scenario.next_tx(admin());
 
-            let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
-            let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
+            let mut coupon_house = scenario.take_shared();
+            let admin_cap = scenario.take_from_sender();
             
             // test app deauthorization.
-            coupons::deauthorize_app<TestApp>(&admin_cap, &mut coupon_house);
+            deauthorize_app<TestApp>(&admin_cap, &mut coupon_house);
 
             // test that the app is indeed non authorized
-            assert!(!coupons::is_app_authorized<TestApp>(&coupon_house), 0);
+            assert!(!coupon_house.is_app_authorized<TestApp>(), 0);
         
-            test_scenario::return_to_sender(scenario, admin_cap);
-            test_scenario::return_shared(coupon_house);
+            return_to_sender(scenario, admin_cap);
+            return_shared(coupon_house);
         };
-        test_scenario::end(scenario_val);
+        end(scenario_val);
     }
 
     #[test, expected_failure(abort_code=::coupons::coupons::EAppNotAuthorized)]
     fun unauthorized_app_failure() {
-        let mut scenario_val = setup::test_init();
+        let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         {
-            test_scenario::next_tx(scenario, user());
-            let mut coupon_house = test_scenario::take_shared<CouponHouse>(scenario);
-            coupons::app_data_mut<UnauthorizedTestApp>(setup::unauthorized_test_app(), &mut coupon_house);
-            test_scenario::return_shared(coupon_house);
+            scenario.next_tx(user());
+            let mut coupon_house = scenario.take_shared();
+            app_data_mut<UnauthorizedTestApp>(unauthorized_test_app(), &mut coupon_house);
+            return_shared(coupon_house);
         };
-        test_scenario::end(scenario_val);
+        end(scenario_val);
     }
     
 }

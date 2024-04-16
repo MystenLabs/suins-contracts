@@ -6,12 +6,9 @@
 /// stored and managed. SuiNS has no direct and permanent dependency on this
 /// module.
 module suins::name_record {
-    use std::option::{Self, Option};
     use std::string::String;
 
-    use sui::clock::{timestamp_ms, Clock};
-    use sui::vec_map::{Self, VecMap};
-    use sui::object::ID;
+    use sui::{clock::{timestamp_ms, Clock}, vec_map::{Self, VecMap}};
 
     use suins::constants;
 

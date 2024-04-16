@@ -9,19 +9,12 @@
 /// Each coupon is validated towards a list of rules. View `rules` module for explanation.
 /// The app is authorized on `SuiNS` to be able to claim names and add earnings to the registry.
 module coupons::coupons {
-    use std::string::{Self, String};
+    use std::string::String;
 
-    use sui::table::{Self, Table};
-    use sui::tx_context::{TxContext, sender};
-    use sui::object::{Self, UID};
-    use sui::transfer;
-    use sui::dynamic_field::{Self as df};
-    use sui::clock::Clock;
-    use sui::sui::SUI;
-    use sui::coin::{Self, Coin};
+    use sui::{table::{Self, Table}, dynamic_field::{Self as df}, clock::Clock, sui::SUI, coin::Coin};
 
-    use coupons::rules::{Self, CouponRules};
-    use coupons::constants;
+    use coupons::{rules::{Self, CouponRules}, constants};
+    use suins::{domain, suins::{Self, AdminCap, SuiNS}, suins_registration::SuinsRegistration, config::Self, registry::Registry};
 
     /// Coupon already exists
     const ECouponAlreadyExists: u64 = 0;
@@ -41,12 +34,6 @@ module coupons::coupons {
     /// Our versioning of the coupons package.
     const VERSION: u8 = 1;
 
-    // use suins::config;
-    use suins::domain;
-    use suins::suins::{Self, AdminCap, SuiNS}; // re-use AdminCap for creating new coupons.
-    use suins::suins_registration::SuinsRegistration;
-    use suins::config::{Self, Config};
-    use suins::registry::{Self, Registry};
 
     // Authorization for the Coupons on SuiNS, to be able to register names on the app.
     public struct CouponsApp has drop {}
@@ -99,37 +86,37 @@ module coupons::coupons {
         clock: &Clock,
         ctx: &mut TxContext
     ): SuinsRegistration {
-        assert_version_is_valid(self);
+        self.assert_version_is_valid();
         // Validate that specified coupon is valid.
-        assert!(table::contains(&mut self.data.coupons, coupon_code), ECouponNotExists);
+        assert!(self.data.coupons.contains(coupon_code), ECouponNotExists);
 
         // Verify coupon house is authorized to buy names.
-        suins::assert_app_is_authorized<CouponsApp>(suins);
+        suins.assert_app_is_authorized<CouponsApp>();
 
         // Validate registration years are in [0,5] range.
         assert!(no_years > 0 && no_years <= 5, EInvalidYearsArgument);
 
-        let config = suins::get_config<Config>(suins);
+        let config = suins.get_config();
         let domain = domain::new(domain_name);
-        let label = domain::sld(&domain);
+        let label = domain.sld();
         
-        let domain_length = (string::length(label) as u8);
+        let domain_length = (label.length() as u8);
 
         // Borrow coupon from the table.
-        let coupon = table::borrow_mut(&mut self.data.coupons, coupon_code);
+        let coupon = &mut self.data.coupons[coupon_code];
 
         // We need to do a total of 5 checks, based on `CouponRules`
         // Our checks work with `AND`, all of the conditions must pass for a coupon to be used.
         // 1. Validate domain size.
-        rules::assert_coupon_valid_for_domain_size(&coupon.rules, domain_length);
+        coupon.rules.assert_coupon_valid_for_domain_size(domain_length);
         // 2. Decrease available claims. Will ABORT if the coupon doesn't have enough available claims.
-        rules::decrease_available_claims(&mut coupon.rules);
+        coupon.rules.decrease_available_claims();
         // 3. Validate the coupon is valid for the specified user.
-        rules::assert_coupon_valid_for_address(&coupon.rules, sender(ctx));
+        coupon.rules.assert_coupon_valid_for_address(ctx.sender());
         // 4. Validate the coupon hasn't expired (Based on clock)
-        rules::assert_coupon_is_not_expired(&coupon.rules, clock);
+        coupon.rules.assert_coupon_is_not_expired(clock);
         // 5. Validate years are valid for the coupon.
-        rules::assert_coupon_valid_for_domain_years(&coupon.rules, no_years);
+        coupon.rules.assert_coupon_valid_for_domain_years(no_years);
 
         // Validate name can be registered (is main domain (no subdomain) and length is valid)
         config::assert_valid_user_registerable_domain(&domain);
@@ -137,17 +124,17 @@ module coupons::coupons {
         let original_price = config::calculate_price(config, domain_length, no_years);
         let sale_price = internal_calculate_sale_price(original_price, coupon);
 
-        assert!(coin::value(&payment) == sale_price, EIncorrectAmount);
-        suins::app_add_balance(CouponsApp {}, suins, coin::into_balance(payment));
+        assert!(payment.value() == sale_price, EIncorrectAmount);
+        suins::app_add_balance(CouponsApp {}, suins, payment.into_balance());
 
         // Clean up our registry by removing the coupon if no more available claims!
-        if(!rules::has_available_claims(&coupon.rules)){
+        if(!coupon.rules.has_available_claims()){
             // remove the coupon, since it's no longer usable.
-            internal_remove_coupon(&mut self.data, coupon_code);
+            self.data.internal_remove_coupon(coupon_code);
         };
 
         let registry = suins::app_registry_mut<CouponsApp, Registry>(CouponsApp {}, suins);
-        registry::add_record(registry, domain, no_years, clock, ctx)
+        registry.add_record(domain, no_years, clock, ctx)
     }
 
     // A convenient helper to calculate the price in a PTB.
@@ -155,9 +142,9 @@ module coupons::coupons {
     // Nor does it calculate the original price. This is part of the Frontend anyways.
     public fun calculate_sale_price(self: &mut CouponHouse, price: u64, coupon_code: String): u64 {
         // Validate that specified coupon is valid.
-        assert!(table::contains(&mut self.data.coupons, coupon_code), ECouponNotExists);
+        assert!(self.data.coupons.contains(coupon_code), ECouponNotExists);
         // Borrow coupon from the table.
-        let coupon = table::borrow_mut(&mut self.data.coupons, coupon_code);
+        let coupon = &mut self.data.coupons[coupon_code];
         internal_calculate_sale_price(price, coupon)
     }
 
@@ -262,8 +249,8 @@ module coupons::coupons {
         code: String,
         coupon: Coupon
     ) {
-        assert!(!table::contains(&mut self.coupons, code), ECouponAlreadyExists);
-        table::add(&mut self.coupons, code, coupon);
+        assert!(!self.coupons.contains(code), ECouponAlreadyExists);
+        self.coupons.add(code, coupon);
     }
 
     /// An internal function to create a coupon object.
@@ -282,7 +269,7 @@ module coupons::coupons {
 
     // A function to remove a coupon from the system.
     fun internal_remove_coupon(self: &mut Data, code: String) {
-        table::remove(&mut self.coupons, code);
+        self.coupons.remove(code);
     }
 
     // test only functions.

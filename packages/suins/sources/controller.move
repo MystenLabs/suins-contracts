@@ -2,17 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 module suins::controller {
-    use std::option::Option;
     use std::string::String;
-    use sui::tx_context::{sender, TxContext};
-    use sui::clock::Clock;
-    use sui::vec_map;
+    use sui::{tx_context::{sender}, clock::Clock};
 
-    use suins::domain;
-    use suins::registry::{Self, Registry};
-    use suins::suins::{Self, SuiNS};
-    use suins::suins_registration::{Self as nft, SuinsRegistration};
-    use std::string;
+    use suins::{domain, registry::Registry, suins::{Self, SuiNS}, suins_registration::SuinsRegistration};
 
     const AVATAR: vector<u8> = b"avatar";
     const CONTENT_HASH: vector<u8> = b"content_hash";
@@ -32,23 +25,23 @@ module suins::controller {
         clock: &Clock,
     ) {
         let registry = suins::app_registry_mut<Controller, Registry>(Controller {}, suins);
-        registry::assert_nft_is_authorized(registry, nft, clock);
+        registry.assert_nft_is_authorized(nft, clock);
 
-        let domain = nft::domain(nft);
-        registry::set_target_address(registry, domain, new_target);
+        let domain = nft.domain();
+        registry.set_target_address(domain, new_target);
     }
 
     /// User-facing function (upgradable) - set the reverse lookup address for the domain.
     entry fun set_reverse_lookup(suins: &mut SuiNS, domain_name: String, ctx: &TxContext) {
         let domain = domain::new(domain_name);
         let registry = suins::app_registry_mut<Controller, Registry>(Controller {}, suins);
-        registry::set_reverse_lookup(registry, sender(ctx), domain);
+        registry.set_reverse_lookup(sender(ctx), domain);
     }
 
     /// User-facing function (upgradable) - unset the reverse lookup address for the domain.
     entry fun unset_reverse_lookup(suins: &mut SuiNS, ctx: &TxContext) {
         let registry = suins::app_registry_mut<Controller, Registry>(Controller {}, suins);
-        registry::unset_reverse_lookup(registry, sender(ctx));
+        registry.unset_reverse_lookup(sender(ctx));
     }
 
     /// User-facing function (upgradable) - add a new key-value pair to the name record's data.
@@ -57,19 +50,19 @@ module suins::controller {
     ) {
 
         let registry = suins::app_registry_mut<Controller, Registry>(Controller {}, suins);
-        let mut data = *registry::get_data(registry, nft::domain(nft));
-        let domain = nft::domain(nft);
+        let mut data = *registry.get_data(nft.domain());
+        let domain = nft.domain();
 
-        registry::assert_nft_is_authorized(registry, nft, clock);
-        let key_bytes = *string::bytes(&key);
+        registry.assert_nft_is_authorized(nft, clock);
+        let key_bytes = *key.bytes();
         assert!(key_bytes == AVATAR || key_bytes == CONTENT_HASH, EUnsupportedKey);
 
-        if (vec_map::contains(&data, &key)) {
-            vec_map::remove(&mut data, &key);
+        if (data.contains(&key)) {
+            data.remove(&key);
         };
 
-        vec_map::insert(&mut data, key, value);
-        registry::set_data(registry, domain, data);
+        data.insert(key, value);
+        registry.set_data(domain, data);
     }
 
     /// User-facing function (upgradable) - remove a key from the name record's data.
@@ -77,16 +70,16 @@ module suins::controller {
         suins: &mut SuiNS, nft: &SuinsRegistration, key: String, clock: &Clock
     ) {
         let registry = suins::app_registry_mut<Controller, Registry>(Controller {}, suins);
-        let mut data = *registry::get_data(registry, nft::domain(nft));
-        let domain = nft::domain(nft);
+        let mut data = *registry.get_data(nft.domain());
+        let domain = nft.domain();
 
-        registry::assert_nft_is_authorized(registry, nft, clock);
+        registry.assert_nft_is_authorized(nft, clock);
 
-        if (vec_map::contains(&data, &key)) {
-            vec_map::remove(&mut data, &key);
+        if (data.contains(&key)) {
+            data.remove(&key);
         };
 
-        registry::set_data(registry, domain, data);
+        registry.set_data(domain, data);
     }
 
     // === Testing ===

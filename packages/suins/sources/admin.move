@@ -4,16 +4,10 @@
 /// Admin features of the SuiNS application. Meant to be called directly
 /// by the suins admin.
 module suins::admin {
-    use std::vector;
     use std::string::String;
-    use sui::clock::Clock;
-    use sui::tx_context::{sender, TxContext};
+    use sui::{clock::Clock, tx_context::{sender}};
 
-    use suins::domain;
-    use suins::config;
-    use suins::suins::{Self, AdminCap, SuiNS};
-    use suins::suins_registration::SuinsRegistration;
-    use suins::registry::{Self, Registry};
+    use suins::{domain, config, suins::{Self, AdminCap, SuiNS}, suins_registration::SuinsRegistration, registry::Registry};
 
     /// The authorization witness.
     public struct Admin has drop {}
@@ -37,7 +31,7 @@ module suins::admin {
         let domain = domain::new(domain_name);
         config::assert_valid_user_registerable_domain(&domain);
         let registry = suins::app_registry_mut<Admin, Registry>(Admin {}, suins);
-        registry::add_record(registry, domain, no_years, clock, ctx)
+        registry.add_record(domain, no_years, clock, ctx)
     }
 
     /// Reserve a list of domains.
@@ -51,10 +45,10 @@ module suins::admin {
     ) {
         let sender = sender(ctx);
         let registry = suins::app_registry_mut<Admin, Registry>(Admin {}, suins);
-        while (!vector::is_empty(&domains)) {
-            let domain = domain::new(vector::pop_back(&mut domains));
+        while (!domains.is_empty()) {
+            let domain = domain::new(domains.pop_back());
             config::assert_valid_user_registerable_domain(&domain);
-            let nft = registry::add_record(registry, domain, no_years, clock, ctx);
+            let nft = registry.add_record(domain, no_years, clock, ctx);
             sui::transfer::public_transfer(nft, sender);
         };
     }

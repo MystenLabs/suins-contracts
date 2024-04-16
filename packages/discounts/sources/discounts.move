@@ -8,19 +8,11 @@
 /// Can be called only when promotions are active for a specific type T.
 /// Activation / deactivation happens through PTBs.
 module discounts::discounts {
-    use std::option::{Option};
-    use std::string::{Self, String};
-    use std::type_name::{Self as `type`};
+    use std::{string::String, type_name::{Self as `type`}};
 
-    use sui::tx_context::{TxContext};
-    use sui::dynamic_field::{Self as df};
-    use sui::clock::{Clock};
-    use sui::coin::{Self, Coin};
-    use sui::sui::SUI;
+    use sui::{dynamic_field::{Self as df}, clock::{Clock}, coin::Coin, sui::SUI};
 
-    use suins::domain::{Self};
-    use suins::suins::{Self, AdminCap, SuiNS};
-    use suins::suins_registration::SuinsRegistration;
+    use suins::{domain::{Self}, suins::{Self, AdminCap, SuiNS}, suins_registration::SuinsRegistration};
 
     // The base shared object.
     use discounts::house::{Self, DiscountHouse};
@@ -105,7 +97,7 @@ module discounts::discounts {
         four_char_price: u64, 
         five_plus_char_price: u64
     ) {
-        house::assert_version_is_valid(self);
+        self.assert_version_is_valid();
         assert!(!df::exists_(house::uid_mut(self), DiscountKey<T> {}), EConfigExists);
 
         df::add(house::uid_mut(self), DiscountKey<T>{}, DiscountConfig { 
@@ -117,9 +109,9 @@ module discounts::discounts {
 
     /// An admin action to deauthorize type T from getting discounts.
     public fun deauthorize_type<T>(_: &AdminCap, self: &mut DiscountHouse) {
-        house::assert_version_is_valid(self);
+        self.assert_version_is_valid();
         assert_config_exists<T>(self);
-        df::remove<DiscountKey<T>, DiscountConfig>(house::uid_mut(self), DiscountKey<T>{});
+        df::remove<DiscountKey<T>, DiscountConfig>(self.uid_mut(), DiscountKey<T>{});
     }
 
     /// Internal helper to handle the registration process
@@ -131,15 +123,15 @@ module discounts::discounts {
         clock: &Clock, 
         ctx: &mut TxContext
     ): SuinsRegistration {
-        house::assert_version_is_valid(self);
+        self.assert_version_is_valid();
         // validate that there's a configuration for type T.
         assert_config_exists<T>(self);
 
         let domain = domain::new(domain_name);
-        let price = calculate_price(df::borrow(house::uid_mut(self), DiscountKey<T>{}), (string::length(domain::sld(&domain)) as u8));
+        let price = calculate_price(df::borrow(self.uid_mut(), DiscountKey<T>{}), (domain.sld().length() as u8));
         
-        assert!(coin::value(&payment) == price, EIncorrectAmount);
-        suins::app_add_balance(house::suins_app_auth(), suins, coin::into_balance(payment));
+        assert!(payment.value() == price, EIncorrectAmount);
+        suins::app_add_balance(house::suins_app_auth(), suins, payment.into_balance());
 
         house::friend_add_registry_entry(suins, domain, clock, ctx)
     }

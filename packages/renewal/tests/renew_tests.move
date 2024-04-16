@@ -5,17 +5,16 @@
 module renewal::renew_tests {
     use std::string::utf8;
 
-    use sui::coin;
-    use sui::sui::SUI;
-    use sui::clock::{Self, Clock};
-    use sui::tx_context::{Self, TxContext};
+    use sui::{coin, sui::SUI, clock::{Self, Clock}};
 
-    use suins::constants::{mist_per_sui, year_ms, grace_period_ms};
-    use suins::suins::{Self, SuiNS};
-    use suins::suins_registration::{Self as nft, SuinsRegistration};
-    use suins::registry;
-    use suins::domain;
-    use suins::config;
+    use suins::{
+        constants::{mist_per_sui, year_ms, grace_period_ms}, 
+        suins::{Self, SuiNS}, 
+        suins_registration::{Self as nft, SuinsRegistration}, 
+        registry, 
+        domain, 
+        config
+    };
 
     use renewal::renew::{Self as renewal, Renew};
 
@@ -30,14 +29,14 @@ module renewal::renew_tests {
 
         let mut clock = clock::create_for_testing(&mut ctx);
 
-        clock::increment_for_testing(&mut clock, 10);
+        clock.increment_for_testing(10);
 
         renew_util(&mut suins, &mut nft, 5, &clock, &mut ctx);
 
         // our fresh domain with 5 years renewal is now 6 years
-        assert!(nft::expiration_timestamp_ms(&nft) == clock::timestamp_ms(&clock) + (6 * year_ms()) - 10, 0);
+        assert!(nft.expiration_timestamp_ms() == clock.timestamp_ms() + (6 * year_ms()) - 10, 0);
 
-        clock::destroy_for_testing(clock);
+        clock.destroy_for_testing();
 
         wrapup(suins);
         wrapup_name(nft);
@@ -143,11 +142,11 @@ module renewal::renew_tests {
 
         renewal::setup(&cap, &mut suins, config);
 
-        let nft = registry::add_record(&mut registry, domain, 1,&clock, ctx);
+        let nft = registry.add_record(domain, 1,&clock, ctx);
         suins::add_registry(&cap, &mut suins, registry);
 
         suins::burn_admin_cap_for_testing(cap);
-        clock::destroy_for_testing(clock);
+        clock.destroy_for_testing();
     
         (suins, nft)
     }
@@ -157,6 +156,6 @@ module renewal::renew_tests {
     }
 
     public fun wrapup(suins: SuiNS) {
-        suins::share_for_testing(suins);
+        suins.share_for_testing();
     }
 }

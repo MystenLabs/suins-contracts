@@ -3,9 +3,7 @@
 
 module denylist::denylist {
     use std::string::String;
-    use std::vector;
 
-    use sui::tx_context::{TxContext};
     use sui::table::{Self, Table};
     
     use suins::suins::{Self, AdminCap, SuiNS};
@@ -35,12 +33,12 @@ module denylist::denylist {
 
     /// Check for a reserved name
     public fun is_reserved_name(suins: &SuiNS, name: String): bool {
-        table::contains(&denylist(suins).reserved, name)
+        denylist(suins).reserved.contains(name)
     }
 
     /// Checks for a blocked name.
     public fun is_blocked_name(suins: &SuiNS, name: String): bool {
-        table::contains(&denylist(suins).blocked, name)
+        denylist(suins).blocked.contains(name)
     }
 
     /// Add a list of reserved names to the list as admin.
@@ -65,7 +63,7 @@ module denylist::denylist {
 
     /// Get immutable access to the registry.
     fun denylist(suins: &SuiNS): &Denylist {
-        suins::registry(suins)
+        suins.registry()
     }
 
     /// Internal helper to get access to the BlockedNames object
@@ -75,27 +73,27 @@ module denylist::denylist {
 
     /// Internal helper to batch add words to a table.
     fun internal_add_names_to_list(table: &mut Table<String, bool>, words: vector<String>) {
-        assert!(vector::length(&words) > 0, ENoWordsInList);
+        assert!(words.length() > 0, ENoWordsInList);
 
-        let mut i = vector::length(&words);
+        let mut i = words.length();
 
         while (i > 0) {
             i = i - 1;
-            let word = *vector::borrow(&words, i);
-            table::add(table, word, true);
+            let word = words[i];
+            table.add(word, true);
         };
     }
 
     /// Internal helper to remove words from a table.
     fun internal_remove_names_from_list(table: &mut Table<String, bool>, words: vector<String>) {
-        assert!(vector::length(&words) > 0, ENoWordsInList);
+        assert!(words.length() > 0, ENoWordsInList);
 
-        let mut i = vector::length(&words);
+        let mut i = words.length();
 
         while (i > 0) {
             i = i - 1;
-            let word = *vector::borrow(&words, i);
-            table::remove(table, word);
+            let word = words[i];
+            table.remove(word);
         };
     }
 

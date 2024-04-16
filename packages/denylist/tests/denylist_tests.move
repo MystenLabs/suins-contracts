@@ -2,10 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 module denylist::denylist_tests {
-    use std::vector;
     use std::string::{utf8, String};
 
-    use sui::test_scenario::{Self as ts, ctx, Scenario};
+    use sui::test_scenario::{Self as ts, Scenario};
 
     use suins::suins::{Self, SuiNS};
 
@@ -18,9 +17,9 @@ module denylist::denylist_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        ts::next_tx(scenario, ADDR);
-        let mut suins = ts::take_shared<SuiNS>(scenario);
-        let cap = suins::create_admin_cap_for_testing(ctx(scenario));
+        scenario.next_tx(ADDR);
+        let mut suins = scenario.take_shared<SuiNS>();
+        let cap = suins::create_admin_cap_for_testing(scenario.ctx());
 
         denylist::add_reserved_names(&mut suins, &cap, some_reserved_names());
         denylist::add_blocked_names(&mut suins, &cap, some_offensive_names());
@@ -38,7 +37,7 @@ module denylist::denylist_tests {
         suins::burn_admin_cap_for_testing(cap);
 
         ts::return_shared(suins);
-        ts::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code = ::denylist::denylist::ENoWordsInList)]
@@ -46,9 +45,9 @@ module denylist::denylist_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        ts::next_tx(scenario, ADDR);
-        let mut suins = ts::take_shared<SuiNS>(scenario);
-        let cap = suins::create_admin_cap_for_testing(ctx(scenario));
+        scenario.next_tx(ADDR);
+        let mut suins = scenario.take_shared<SuiNS>();
+        let cap = suins::create_admin_cap_for_testing(scenario.ctx());
 
         denylist::add_reserved_names(&mut suins, &cap, vector[]);
 
@@ -61,9 +60,9 @@ module denylist::denylist_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        ts::next_tx(scenario, ADDR);
-        let mut suins = ts::take_shared<SuiNS>(scenario);
-        let cap = suins::create_admin_cap_for_testing(ctx(scenario));
+        scenario.next_tx(ADDR);
+        let mut suins = scenario.take_shared<SuiNS>();
+        let cap = suins::create_admin_cap_for_testing(scenario.ctx());
 
         denylist::add_blocked_names(&mut suins, &cap, vector[]);
 
@@ -75,9 +74,9 @@ module denylist::denylist_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        ts::next_tx(scenario, ADDR);
-        let mut suins = ts::take_shared<SuiNS>(scenario);
-        let cap = suins::create_admin_cap_for_testing(ctx(scenario));
+        scenario.next_tx(ADDR);
+        let mut suins = scenario.take_shared<SuiNS>();
+        let cap = suins::create_admin_cap_for_testing(scenario.ctx());
 
         denylist::add_blocked_names(&mut suins, &cap, some_offensive_names());
 
@@ -90,7 +89,7 @@ module denylist::denylist_tests {
         suins::burn_admin_cap_for_testing(cap);
 
         ts::return_shared(suins);
-        ts::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -98,9 +97,9 @@ module denylist::denylist_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        ts::next_tx(scenario, ADDR);
-        let mut suins = ts::take_shared<SuiNS>(scenario);
-        let cap = suins::create_admin_cap_for_testing(ctx(scenario));
+        scenario.next_tx(ADDR);
+        let mut suins = scenario.take_shared<SuiNS>();
+        let cap = suins::create_admin_cap_for_testing(scenario.ctx());
 
         denylist::add_reserved_names(&mut suins, &cap, some_reserved_names());
 
@@ -115,7 +114,7 @@ module denylist::denylist_tests {
         suins::burn_admin_cap_for_testing(cap);
 
         ts::return_shared(suins);
-        ts::end(scenario_val);
+        scenario_val.end();
     }
 
     // data preparation
@@ -123,15 +122,15 @@ module denylist::denylist_tests {
     public fun test_init(): (Scenario) {
         let mut scenario = ts::begin(ADDR);
         {
-            ts::next_tx(&mut scenario, ADDR);
+            scenario.next_tx(ADDR);
 
-            let (mut suins, cap) = suins::new_for_testing(ctx(&mut scenario));
+            let (mut suins, cap) = suins::new_for_testing(scenario.ctx());
 
-            suins::authorize_app_for_testing<DenyListAuth>(&mut suins);
+            suins.authorize_app_for_testing<DenyListAuth>();
 
-            denylist::setup(&mut suins, &cap, ctx(&mut scenario));
+            denylist::setup(&mut suins, &cap, scenario.ctx());
 
-            suins::share_for_testing(suins);
+            suins.share_for_testing();
         
             suins::burn_admin_cap_for_testing(cap);
         };
@@ -142,17 +141,17 @@ module denylist::denylist_tests {
     fun some_reserved_names(): vector<String> {
         let mut vec: vector<String> = vector::empty();
 
-        vector::push_back(&mut vec, utf8(b"test"));
-        vector::push_back(&mut vec, utf8(b"test2"));
-        vector::push_back(&mut vec, utf8(b"test3"));
+        vec.push_back(utf8(b"test"));
+        vec.push_back(utf8(b"test2"));
+        vec.push_back(utf8(b"test3"));
         vec
     }
 
     fun some_offensive_names(): vector<String> {
         let mut vec: vector<String> = vector::empty();
-        vector::push_back(&mut vec, utf8(b"bad_test"));
-        vector::push_back(&mut vec, utf8(b"bad_test2"));
-        vector::push_back(&mut vec, utf8(b"bad_test3"));
+        vec.push_back(utf8(b"bad_test"));
+        vec.push_back(utf8(b"bad_test2"));
+        vec.push_back(utf8(b"bad_test3"));
         vec
     }
 }

@@ -23,22 +23,22 @@ module suins::config_tests {
         let mut config = default();
 
         // check that the values are set correctly in the `new` function
-        assert!(config::public_key(&config) == &b"000000000000000000000000000000000", 0);
-        assert!(config::three_char_price(&config) == THREE, 0);
-        assert!(config::four_char_price(&config) == FOUR, 0);
-        assert!(config::five_plus_char_price(&config) == FIVE_PLUS, 0);
+        assert!(config.public_key() == &b"000000000000000000000000000000000", 0);
+        assert!(config.three_char_price() == THREE, 0);
+        assert!(config.four_char_price() == FOUR, 0);
+        assert!(config.five_plus_char_price() == FIVE_PLUS, 0);
 
         // update each of the values and make sure they are updated
-        config::set_public_key(&mut config, b"000000000000000000000000000000001");
-        config::set_three_char_price(&mut config, 4_000_000_000);
-        config::set_four_char_price(&mut config, 3_000_000_000);
-        config::set_five_plus_char_price(&mut config, 1_000_000_000);
+        config.set_public_key(b"000000000000000000000000000000001");
+        config.set_three_char_price(4_000_000_000);
+        config.set_four_char_price(3_000_000_000);
+        config.set_five_plus_char_price(1_000_000_000);
 
         // check that the updated values match the new ones
-        assert!(config::public_key(&config) == &b"000000000000000000000000000000001", 0);
-        assert!(config::three_char_price(&config) == 4_000_000_000, 0);
-        assert!(config::four_char_price(&config) == 3_000_000_000, 0);
-        assert!(config::five_plus_char_price(&config) == 1_000_000_000, 0);
+        assert!(config.public_key() == &b"000000000000000000000000000000001", 0);
+        assert!(config.three_char_price() == 4_000_000_000, 0);
+        assert!(config.four_char_price() == 3_000_000_000, 0);
+        assert!(config.five_plus_char_price() == 1_000_000_000, 0);
     }
 
     #[test]
@@ -46,34 +46,34 @@ module suins::config_tests {
         let config = default();
 
         // test each of the length ranges and 1 year duration
-        assert!(THREE == config::calculate_price(&config, 3, 1), 0);
-        assert!(FOUR == config::calculate_price(&config, 4, 1), 0);
-        assert!(FIVE_PLUS == config::calculate_price(&config, 5, 1), 0);
-        assert!(FIVE_PLUS == config::calculate_price(&config, 6, 1), 0);
+        assert!(THREE == config.calculate_price(3, 1), 0);
+        assert!(FOUR == config.calculate_price(4, 1), 0);
+        assert!(FIVE_PLUS == config.calculate_price(5, 1), 0);
+        assert!(FIVE_PLUS == config.calculate_price(6, 1), 0);
 
         // test each of the length ranges and 2 year duration
-        assert!(THREE * 2 == config::calculate_price(&config, 3, 2), 0);
-        assert!(FOUR * 2 == config::calculate_price(&config, 4, 2), 0);
-        assert!(FIVE_PLUS * 2 == config::calculate_price(&config, 5, 2), 0);
-        assert!(FIVE_PLUS * 2 == config::calculate_price(&config, 6, 2), 0);
+        assert!(THREE * 2 == config.calculate_price(3, 2), 0);
+        assert!(FOUR * 2 == config.calculate_price(4, 2), 0);
+        assert!(FIVE_PLUS * 2 == config.calculate_price(5, 2), 0);
+        assert!(FIVE_PLUS * 2 == config.calculate_price(6, 2), 0);
     }
 
     #[test]
     #[expected_failure(abort_code = suins::config::ENoYears)]
     fun calculate_price_years_fail() {
-        config::calculate_price(&default(), 3, 0);
+        default().calculate_price(3, 0);
     }
 
     #[test]
     #[expected_failure(abort_code = suins::config::ELabelTooShort)]
     fun calculate_price_length_min_fail() {
-        config::calculate_price(&default(), 2, 1);
+        default().calculate_price(2, 1);
     }
 
     #[test]
     #[expected_failure(abort_code = suins::config::ELabelTooLong)]
     fun calculate_price_length_max_fail() {
-        config::calculate_price(&default(), 255, 1);
+        default().calculate_price(255, 1);
     }
 
     #[test]
@@ -89,7 +89,7 @@ module suins::config_tests {
     #[expected_failure(abort_code = suins::config::EInvalidPublicKey)]
     fun set_public_key_invalid_fail() {
         let mut config = default();
-        config::set_public_key(&mut config, vector[]);
+        config.set_public_key(vector[]);
     }
 
     #[test]

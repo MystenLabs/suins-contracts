@@ -10,19 +10,9 @@
 ///
 module suins::admin_tests {
     use std::string::utf8;
-    use sui::tx_context;
-    use sui::clock;
-    use sui::test_utils::assert_eq;
+    use sui::{clock, test_utils::assert_eq};
 
-    use suins::admin::{Self, Admin};
-    use suins::suins_registration as nft;
-    use suins::constants;
-    use suins::domain;
-    use suins::suins;
-    use suins::registry;
-
-    /// The admin account.
-    const ADMIN: address = @suins;
+    use suins::{admin::{Self, Admin}, constants, domain, suins, registry};
 
     #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
     fun try_unathorized_fail() {
@@ -62,11 +52,11 @@ module suins::admin_tests {
             &mut ctx,
         );
 
-        assert_eq(nft::domain(&nft), domain::new(utf8(b"test.sui")));
-        assert_eq(nft::expiration_timestamp_ms(&nft), constants::year_ms());
+        assert_eq(nft.domain(), domain::new(utf8(b"test.sui")));
+        assert_eq(nft.expiration_timestamp_ms(), constants::year_ms());
 
-        nft::burn_for_testing(nft);
-        clock::destroy_for_testing(clock);
+        nft.burn_for_testing();
+        clock.destroy_for_testing();
         suins::burn_admin_cap_for_testing(cap);
         suins::share_for_testing(suins);
     }

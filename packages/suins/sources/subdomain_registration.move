@@ -8,13 +8,9 @@
 /// 
 /// We maintain all core functionality unchanged for registry, expiration etc.
 module suins::subdomain_registration {
-    use sui::object::{Self, UID};
-
-    use sui::tx_context::TxContext;
     use sui::clock::Clock;
 
-    use suins::suins_registration::{Self, SuinsRegistration};
-    use suins::domain;
+    use suins::suins_registration::SuinsRegistration;
 
     /* friend suins::registry; */
     /* #[test_only] */ /* friend suins::sub_name_tests; */
@@ -38,9 +34,9 @@ module suins::subdomain_registration {
     /// (as long as it's used for a subdomain).
     public(package) fun new(nft: SuinsRegistration, clock: &Clock, ctx: &mut TxContext): SubDomainRegistration {
         // Can't wrap a non-subdomain NFT.
-        assert!(domain::is_subdomain(&suins_registration::domain(&nft)), ENotSubdomain);
+        assert!(nft.domain().is_subdomain(), ENotSubdomain);
         // Can't wrap an expired NFT.
-        assert!(!suins_registration::has_expired(&nft, clock), EExpired);
+        assert!(!nft.has_expired(clock), EExpired);
 
         SubDomainRegistration {
             id: object::new(ctx),
@@ -52,7 +48,7 @@ module suins::subdomain_registration {
     /// Fails if the subname is not expired.
     public(package) fun burn(name: SubDomainRegistration, clock: &Clock): SuinsRegistration {
         // tries to unwrap a non-expired subname.
-        assert!(suins_registration::has_expired(&name.nft, clock), ENameNotExpired);
+        assert!(name.nft.has_expired(clock), ENameNotExpired);
         
         let SubDomainRegistration {
             id, nft

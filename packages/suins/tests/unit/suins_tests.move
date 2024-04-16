@@ -4,11 +4,7 @@
 #[test_only]
 ///
 module suins::suins_tests {
-    use sui::coin;
-    use sui::balance;
-    use sui::sui::SUI;
-    use sui::tx_context;
-    use sui::test_utils::assert_eq;
+    use sui::{coin, balance, sui::SUI, test_utils::assert_eq};
     use suins::suins::{Self, AdminCap, SuiNS};
 
     // === Config management ===
@@ -22,7 +18,7 @@ module suins::suins_tests {
         let (mut suins, cap) = suins::new_for_testing(&mut ctx);
 
         suins::add_config(&cap, &mut suins, TestConfig { a: 1 });
-        let _cfg = suins::get_config<TestConfig>(&suins);
+        let _cfg = suins.get_config<TestConfig>();
         let cfg = suins::remove_config<TestConfig>(&cap, &mut suins);
         assert_eq(cfg.a, 1);
 
@@ -40,7 +36,7 @@ module suins::suins_tests {
         let (mut suins, cap) = suins::new_for_testing(&mut ctx);
 
         suins::add_registry(&cap, &mut suins, TestRegistry { counter: 1 });
-        let reg = suins::registry<TestRegistry>(&suins);
+        let reg = suins.registry<TestRegistry>();
         assert_eq(reg.counter, 1);
 
         wrapup(suins, cap);
@@ -78,8 +74,8 @@ module suins::suins_tests {
 
         // authorize and check right away
         suins::authorize_app<TestApp>(&cap, &mut suins);
-        assert!(suins::is_app_authorized<TestApp>(&suins), 0);
-        suins::assert_app_is_authorized<TestApp>(&suins);
+        assert!(suins.is_app_authorized<TestApp>(), 0);
+        suins.assert_app_is_authorized<TestApp>();
 
         // add balance and read registry
         suins::app_add_balance(TestApp {}, &mut suins, balance::zero());
@@ -87,11 +83,11 @@ module suins::suins_tests {
         registry.counter = 2;
 
         // now read the registry again
-        assert_eq(suins::registry<TestRegistry>(&suins).counter, 2);
+        assert_eq(suins.registry<TestRegistry>().counter, 2);
 
         // deauthorize application
         suins::deauthorize_app<TestApp>(&cap, &mut suins);
-        assert!(!suins::is_app_authorized<TestApp>(&suins), 0);
+        assert!(!suins.is_app_authorized<TestApp>(), 0);
 
         wrapup(suins, cap);
     }
@@ -128,7 +124,7 @@ module suins::suins_tests {
 
     // for a softer and simpler wrapup we can just share the object
     fun wrapup(suins: SuiNS, cap: AdminCap) {
-        suins::share_for_testing(suins);
+        suins.share_for_testing();
         suins::burn_admin_cap_for_testing(cap);
     }
 }

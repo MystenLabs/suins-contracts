@@ -5,16 +5,17 @@
 module subdomains::subdomain_tests {
     use std::string::{String, utf8};
 
-    use sui::test_scenario::{Self as ts, Scenario, ctx};
-    use sui::clock::{Self, Clock};
+    use sui::{test_scenario::{Self as ts, Scenario, ctx}, clock::{Self, Clock}};
 
-    use suins::domain;
-    use suins::constants::{grace_period_ms, year_ms};
-    use suins::suins::{Self, SuiNS, AdminCap};
-    use suins::registry::{Self, Registry};
-    use suins::suins_registration::{Self, SuinsRegistration};
-    use suins::subdomain_registration::{Self, SubDomainRegistration};
-    use suins::registry_tests::{burn_nfts};
+    use suins::{
+        domain, 
+        constants::{grace_period_ms, year_ms}, 
+        suins::{Self, SuiNS, AdminCap}, 
+        registry::{Self, Registry}, 
+        suins_registration::{Self, SuinsRegistration}, 
+        subdomain_registration::{Self, SubDomainRegistration}, 
+        registry_tests::{burn_nfts}
+    };
     
     use denylist::denylist;
 

@@ -21,13 +21,7 @@
 /// - Any of the old modules can be deauthorized hence disabling its access to
 /// the registry and the balance.
 module suins::suins {
-    use sui::tx_context::{Self, TxContext};
-    use sui::balance::{Self, Balance};
-    use sui::coin::{Self, Coin};
-    use sui::dynamic_field as df;
-    use sui::object::{Self, UID};
-    use sui::transfer;
-    use sui::sui::SUI;
+    use sui::{balance::{Self, Balance}, coin::{Self, Coin}, dynamic_field as df, sui::SUI};
 
     /// Trying to withdraw from an empty balance.
     const ENoProfits: u64 = 0;
@@ -94,7 +88,7 @@ module suins::suins {
     /// transaction. This is useful for the admin to withdraw funds from the SuiNS
     /// and then send them somewhere specific or keep at the address.
     public fun withdraw(_: &AdminCap, self: &mut SuiNS, ctx: &mut TxContext): Coin<SUI> {
-        let amount = balance::value(&self.balance);
+        let amount = self.balance.value();
         assert!(amount > 0, ENoProfits);
         coin::take(&mut self.balance, amount, ctx)
     }
@@ -134,7 +128,7 @@ module suins::suins {
     /// Adds balance to the SuiNS.
     public fun app_add_balance<App: drop>(_: App, self: &mut SuiNS, balance: Balance<SUI>) {
         assert_app_is_authorized<App>(self);
-        balance::join(&mut self.balance, balance);
+        self.balance.join(balance);
     }
 
     /// Get a mutable access to the `Registry` object. Can only be performed by authorized
@@ -236,6 +230,6 @@ module suins::suins {
 
     #[test_only]
     public fun total_balance(self: &SuiNS): u64 {
-        balance::value(&self.balance)
+        self.balance.value()
     }
 }
