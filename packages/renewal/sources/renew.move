@@ -6,13 +6,10 @@
 /// 
 /// The renewal is capped at 5 years.
 module renewal::renew {
-    use std::option;
-
     use sui::coin::{Self, Coin};
 
     use sui::clock::Clock;
     use sui::sui::SUI;
-    use sui::object;
 
     use suins::constants;
     use suins::domain::Domain;

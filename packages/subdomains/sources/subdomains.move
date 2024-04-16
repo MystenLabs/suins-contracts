@@ -25,11 +25,8 @@
 /// OPEN TODOS:
 /// 
 module subdomains::subdomains {
-    use std::option;
     use std::string::{String, utf8};
 
-    use sui::object::{Self, ID};
-    use sui::tx_context::{TxContext};
     use sui::clock::Clock;
     use sui::dynamic_field as df;
     use sui::vec_map::VecMap;

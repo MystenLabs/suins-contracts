@@ -8,7 +8,6 @@ module renewal::renew_tests {
     use sui::coin;
     use sui::sui::SUI;
     use sui::clock::{Self, Clock};
-    use sui::tx_context::{Self, TxContext};
 
     use suins::constants::{mist_per_sui, year_ms, grace_period_ms};
     use suins::suins::{Self, SuiNS};

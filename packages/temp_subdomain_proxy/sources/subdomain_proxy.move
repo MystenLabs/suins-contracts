@@ -11,7 +11,6 @@
 module temp_subdomain_proxy::subdomain_proxy {
     use std::string::String;
 
-    use sui::tx_context::TxContext;
     use sui::clock::Clock;
 
     use suins::suins::SuiNS;

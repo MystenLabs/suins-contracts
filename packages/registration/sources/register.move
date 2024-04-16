@@ -4,7 +4,6 @@
 module registration::register {
     use std::string::String;
     use sui::coin::Coin;
-    use sui::tx_context::TxContext;
     use sui::clock::Clock;
     use sui::sui::SUI;
 
