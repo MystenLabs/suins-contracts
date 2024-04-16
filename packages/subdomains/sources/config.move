@@ -80,7 +80,7 @@ module subdomains::config {
     public fun is_valid_tld(domain: &Domain, config: &SubDomainConfig): bool {
         let mut i=0;
         while (i < config.allowed_tlds.length()) {
-            if (domain.tld() == config.allowed_tlds.borrow(i)) {
+            if (domain.tld() == &config.allowed_tlds[i]) {
                 return true
             };
             i = i + 1;

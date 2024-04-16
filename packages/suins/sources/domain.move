@@ -48,7 +48,7 @@ module suins::domain {
         let mut out = string::utf8(vector::empty());
 
         while (i < len) {
-            let part = self.labels.borrow((len - i) - 1);
+            let part = &self.labels[(len - i) - 1];
             out.append(*part);
 
             i = i + 1;
@@ -69,7 +69,7 @@ module suins::domain {
     ///
     /// This means that the TLD will always be at level `0`.
     public fun label(self: &Domain, level: u64): &String {
-        self.labels.borrow(level)
+        &self.labels[level]
     }
 
     /// Returns the TLD (Top-Level Domain) of a `Domain`.
@@ -119,7 +119,7 @@ module suins::domain {
         let mut index = 0;
 
         while (index < len) {
-            let label = labels.borrow(index);
+            let label = &labels[index];
             assert!(is_valid_label(label), EInvalidDomain);
             index = index + 1;
         }
@@ -135,7 +135,7 @@ module suins::domain {
         };
 
         while (index < len) {
-            let character = *label_bytes.borrow(index);
+            let character = label_bytes[index];
             let is_valid_character =
                 (0x61 <= character && character <= 0x7A)                   // a-z
                 || (0x30 <= character && character <= 0x39)                // 0-9
@@ -191,7 +191,7 @@ module suins::domain {
         let mut index = 0;
 
         while (index < len) {
-            let label = expected_labels.borrow(index);
+            let label = &expected_labels[index];
             assert_eq(*label, *label(&domain, index));
             index = index + 1;
         }

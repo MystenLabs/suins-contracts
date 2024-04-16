@@ -258,7 +258,7 @@ module suins::auction {
         let domain = domain::new(domain_name);
 
         if (self.auctions.contains(domain)) {
-            let auction = self.auctions.borrow(domain);
+            let auction = &self.auctions[domain];
             let highest_amount = auction.current_bid.value();
             return (
                 some(auction.start_timestamp_ms),
@@ -375,7 +375,7 @@ module suins::auction {
             let domain = option::extract(&mut next_domain);
             next_domain = *self.auctions.prev(domain);
 
-            let auction = self.auctions.borrow(domain);
+            let auction = &self.auctions[domain];
 
             // If the auction has ended, then try to finalize it
             if (clock.timestamp_ms() > auction.end_timestamp_ms) {

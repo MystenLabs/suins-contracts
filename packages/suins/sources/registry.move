@@ -97,7 +97,7 @@ module suins::registry {
         // Then, if the registry still has a record for this domain and the NFT ID matches, we remove it.
         if (self.registry.contains(domain)) {
 
-            let record = self.registry.borrow(domain);
+            let record = &self.registry[domain];
             
             // We wanna remove the record only if the NFT ID matches.
             if (record.nft_id() == object::id(&nft)) {
@@ -211,7 +211,7 @@ module suins::registry {
         address: address,
         domain: Domain,
     ) {
-        let record = self.registry.borrow(domain);
+        let record = &self.registry[domain];
         let target = record.target_address();
 
         assert!(option::is_some(&target), ETargetNotSet);
@@ -262,7 +262,7 @@ module suins::registry {
     /// Returns the `NameRecord` associated with the given domain or None.
     public fun lookup(self: &Registry, domain: Domain): Option<NameRecord> {
         if (self.registry.contains(domain)) {
-            let record = self.registry.borrow(domain);
+            let record = &self.registry[domain];
             some(*record)
         } else {
             none()
@@ -272,7 +272,7 @@ module suins::registry {
     /// Returns the `domain_name` associated with the given address or None.
     public fun reverse_lookup(self: &Registry, address: address): Option<Domain> {
         if (table::contains(&self.reverse_registry, address)) {
-            some(*self.reverse_registry.borrow(address))
+            some(self.reverse_registry[address])
         } else {
             none()
         }
@@ -283,7 +283,7 @@ module suins::registry {
     /// 2. Has not expired (does not take into account the grace period)
     public fun assert_nft_is_authorized(self: &Registry, nft: &SuinsRegistration, clock: &Clock) {
         let domain = nft.domain();
-        let record = self.registry.borrow(domain);
+        let record = &self.registry[domain];
 
         // The NFT does not
         assert!(object::id(nft) == record.nft_id(), EIdMismatch);
@@ -293,7 +293,7 @@ module suins::registry {
 
     /// Returns the `data` associated with the given `Domain`.
     public fun get_data(self: &Registry, domain: Domain): &VecMap<String, String> {
-        let record = self.registry.borrow(domain);
+        let record = &self.registry[domain];
         record.data()
     }
 
@@ -398,7 +398,7 @@ module suins::registry {
         let reverse_registry = &mut self.reverse_registry;
 
         if (table::contains(reverse_registry, old_target_address)) {
-            let default_domain = reverse_registry.borrow(old_target_address);
+            let default_domain = &reverse_registry[old_target_address];
             if (default_domain == domain) {
                 reverse_registry.remove(old_target_address);
             }
