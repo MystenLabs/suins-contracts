@@ -11,10 +11,10 @@
 module coupons::coupons {
     use std::string::String;
 
-    use sui::{table::{Self, Table}, dynamic_field::{Self as df}, clock::Clock, sui::SUI, coin::{Self, Coin}};
+    use sui::{table::{Self, Table}, dynamic_field::{Self as df}, clock::Clock, sui::SUI, coin::Coin};
 
     use coupons::{rules::{Self, CouponRules}, constants};
-    use suins::{domain, suins::{Self, AdminCap, SuiNS}, suins_registration::SuinsRegistration, config::Self, registry::{Self, Registry}};
+    use suins::{domain, suins::{Self, AdminCap, SuiNS}, suins_registration::SuinsRegistration, config::Self, registry::Registry};
 
     /// Coupon already exists
     const ECouponAlreadyExists: u64 = 0;
@@ -91,7 +91,7 @@ module coupons::coupons {
         assert!(self.data.coupons.contains(coupon_code), ECouponNotExists);
 
         // Verify coupon house is authorized to buy names.
-        suins::assert_app_is_authorized<CouponsApp>(suins);
+        suins.assert_app_is_authorized<CouponsApp>();
 
         // Validate registration years are in [0,5] range.
         assert!(no_years > 0 && no_years <= 5, EInvalidYearsArgument);
