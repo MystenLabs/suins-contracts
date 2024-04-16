@@ -1,0 +1,24 @@
+# Smart Contracts
+
+## Looking up a name
+
+You can do on-chain lookups for names for various examples in your packages.
+E.g. to transfer some tokens to a given address.
+
+```rust
+use suins::suins;
+use suins::registry::{Self, Registry};
+use suins::name_record::NameRecord;
+use suins::domain;
+
+// Find the name_record on-chain for a given domain.
+// that way we can check if it's expired, whether it points to an address etc.
+fun get_name_record(suins: &SuiNS, name: String) {
+    let name_record = registry::lookup(registry(suins), domain::new(name));
+}
+
+/// Gives access to the main registry
+fun registry(suins: &SuiNS): &Registry {
+    suins::registry<Registry>(suins)
+}
+```
