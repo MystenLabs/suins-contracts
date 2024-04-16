@@ -197,7 +197,7 @@ module coupons::setup {
             rules::new_empty_rules(),
             ctx(scenario)
         );
-        test_scenario::return_to_sender(scenario, cap);
+        scenario.return_to_sender(cap);
         test_scenario::return_shared(coupon_house);
     }
     // Adds a 0 rule coupon that gives 15% discount to test admin additions.
@@ -210,7 +210,7 @@ module coupons::setup {
             &mut coupon_house,
             code_name
         );
-        test_scenario::return_to_sender(scenario, cap);
+        scenario.return_to_sender(cap);
         test_scenario::return_shared(coupon_house);
     }
 
