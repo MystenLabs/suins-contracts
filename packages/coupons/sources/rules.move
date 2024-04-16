@@ -82,7 +82,7 @@ module coupons::rules {
     /// We shouldn't get here ever, as we're checking this on the coupon creation, but
     /// keeping it as a sanity check (e.g. created a coupon with 0 available claims).
     public fun decrease_available_claims(rules: &mut CouponRules) {
-        if(option::is_some(&rules.available_claims)){
+        if(rules.available_claims.is_some()){
             assert!(has_available_claims(rules), ENoMoreAvailableClaims);
                // Decrease available claims by 1.
             let available_claims = *rules.available_claims.borrow();
@@ -93,7 +93,7 @@ module coupons::rules {
     // Checks whether a coupon has available claims. 
     // Returns true if the rule is not set OR it has used all the available claims.
     public fun has_available_claims(rules: &CouponRules): bool {
-        if(option::is_none(&rules.available_claims)) return true;
+        if(rules.available_claims.is_none()) return true;
         *rules.available_claims.borrow() > 0
     }
 
