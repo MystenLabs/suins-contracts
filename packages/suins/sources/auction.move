@@ -4,16 +4,13 @@
 /// Implementation of auction module.
 /// More information in: ../../../docs
 module suins::auction {
-    use std::option::{Self, Option, none, some, is_some};
+    use std::option::{none, some, is_some};
     use std::string::String;
 
-    use sui::tx_context::{Self, TxContext};
     use sui::balance::{Self, Balance};
-    use sui::transfer;
     use sui::coin::{Self, Coin};
     use sui::clock::Clock;
     use sui::event;
-    use sui::object::{Self, UID};
     use sui::sui::SUI;
     use sui::linked_table::{Self, LinkedTable};
 

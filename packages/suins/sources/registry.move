@@ -2,11 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 module suins::registry {
-    use std::option::{Self, none, some, Option};
+    use std::option::{none, some};
     use std::string::String;
 
-    use sui::tx_context::TxContext;
-    use sui::object;
     use sui::table::{Self, Table};
     use sui::clock::Clock;
     use sui::vec_map::VecMap;

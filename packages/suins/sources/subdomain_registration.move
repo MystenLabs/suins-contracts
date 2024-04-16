@@ -8,9 +8,6 @@
 /// 
 /// We maintain all core functionality unchanged for registry, expiration etc.
 module suins::subdomain_registration {
-    use sui::object::{Self, UID};
-
-    use sui::tx_context::TxContext;
     use sui::clock::Clock;
 
     use suins::suins_registration::SuinsRegistration;

@@ -4,10 +4,7 @@
 #[test_only]
 module suins::registry_tests {
     use std::string::utf8;
-    use std::option::{Self, some};
-    use std::vector;
-    use sui::object;
-    use sui::tx_context::{Self, TxContext};
+    use std::option::{some};
     use sui::clock::{Self, Clock};
     use sui::test_utils::assert_eq;
 

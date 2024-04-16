@@ -5,7 +5,6 @@
 module suins::sub_name_tests {
     use std::string::utf8;
 
-    use sui::tx_context;
     use sui::clock;
 
     use suins::suins_registration;

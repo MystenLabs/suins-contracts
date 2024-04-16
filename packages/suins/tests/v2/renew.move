@@ -3,12 +3,10 @@
 
 #[test_only]
 module suins::renew {
-    use std::option;
     use std::string;
     use sui::coin::{Self, Coin};
     use sui::clock::{timestamp_ms, Clock};
     use sui::sui::SUI;
-    use sui::object;
 
     use suins::domain;
     use suins::constants;

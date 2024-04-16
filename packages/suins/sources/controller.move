@@ -2,9 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 module suins::controller {
-    use std::option::Option;
     use std::string::String;
-    use sui::tx_context::{sender, TxContext};
+    use sui::tx_context::{sender,};
     use sui::clock::Clock;
 
     use suins::domain;

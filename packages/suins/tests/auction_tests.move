@@ -3,7 +3,6 @@
 
 #[test_only]
 module suins::auction_tests {
-    use std::option;
     use std::string::{String, utf8};
 
     use sui::test_scenario::{Self, Scenario, ctx};

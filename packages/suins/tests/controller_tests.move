@@ -4,11 +4,10 @@
 #[test_only]
 module suins::controller_tests {
     use std::string::{utf8, String};
-    use std::option::{Option, extract, some, none};
+    use std::option::{extract, some, none};
 
     use sui::test_scenario::{Self, Scenario, ctx};
     use sui::clock::{Self, Clock};
-    use sui::transfer;
     use sui::test_utils::assert_eq;
     use sui::dynamic_field;
     use sui::vec_map::VecMap;

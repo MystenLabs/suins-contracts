@@ -21,12 +21,9 @@
 /// - Any of the old modules can be deauthorized hence disabling its access to
 /// the registry and the balance.
 module suins::suins {
-    use sui::tx_context::{Self, TxContext};
     use sui::balance::{Self, Balance};
     use sui::coin::{Self, Coin};
     use sui::dynamic_field as df;
-    use sui::object::{Self, UID};
-    use sui::transfer;
     use sui::sui::SUI;
 
     /// Trying to withdraw from an empty balance.

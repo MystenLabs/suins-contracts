@@ -11,8 +11,6 @@
 module suins::name_record_tests {
     use std::string::utf8;
     use std::option::{none, some};
-    use sui::object::{Self, ID};
-    use sui::tx_context::{Self, TxContext};
     use sui::test_utils::assert_eq;
     use sui::vec_map;
     use sui::clock;

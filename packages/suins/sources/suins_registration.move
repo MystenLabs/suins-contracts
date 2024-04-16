@@ -12,8 +12,6 @@
 ///
 module suins::suins_registration {
     use std::string::{String};
-    use sui::object::{Self, UID};
-    use sui::tx_context::TxContext;
     use sui::clock::{timestamp_ms, Clock};
 
     use suins::constants;

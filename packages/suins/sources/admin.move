@@ -6,7 +6,7 @@
 module suins::admin {
     use std::string::String;
     use sui::clock::Clock;
-    use sui::tx_context::{sender, TxContext};
+    use sui::tx_context::{sender};
 
     use suins::domain;
     use suins::config;

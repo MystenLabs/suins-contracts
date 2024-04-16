@@ -10,7 +10,6 @@
 ///
 module suins::registation_nft_tests {
     use std::string::{utf8, String};
-    use sui::tx_context::{Self, TxContext};
     use sui::clock::{Self, Clock};
     use sui::test_utils::assert_eq;
 

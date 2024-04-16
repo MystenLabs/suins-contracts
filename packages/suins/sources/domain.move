@@ -8,7 +8,6 @@
 /// https://en.wikipedia.org/wiki/Domain_name#Domain_name_syntax
 module suins::domain {
     use std::string::{Self, String, utf8};
-    use std::vector;
 
     const EInvalidDomain: u64 = 0;
 

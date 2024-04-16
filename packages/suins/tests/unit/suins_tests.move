@@ -7,7 +7,6 @@ module suins::suins_tests {
     use sui::coin;
     use sui::balance;
     use sui::sui::SUI;
-    use sui::tx_context;
     use sui::test_utils::assert_eq;
     use suins::suins::{Self, AdminCap, SuiNS};
 

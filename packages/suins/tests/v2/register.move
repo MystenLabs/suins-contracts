@@ -5,7 +5,6 @@
 module suins::register_sample {
     use std::string::{Self, String};
     use sui::coin::{Self, Coin};
-    use sui::tx_context::TxContext;
     use sui::clock::Clock;
     use sui::sui::SUI;
 

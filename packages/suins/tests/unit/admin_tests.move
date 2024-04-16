@@ -10,7 +10,6 @@
 ///
 module suins::admin_tests {
     use std::string::utf8;
-    use sui::tx_context;
     use sui::clock;
     use sui::test_utils::assert_eq;
 
