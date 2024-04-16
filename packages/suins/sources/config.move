@@ -17,8 +17,7 @@
 /// and set again within the same Programmable Transaction Block (can only be
 /// performed by Admin)
 module suins::config {
-    use suins::constants;
-    use suins::domain::Domain;
+    use suins::{constants, domain::Domain};
 
     /// A label is too short to be registered.
     const ELabelTooShort: u64 = 0;

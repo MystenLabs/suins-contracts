@@ -5,16 +5,9 @@
 module renewal::renew_tests {
     use std::string::utf8;
 
-    use sui::coin;
-    use sui::sui::SUI;
-    use sui::clock::{Self, Clock};
+    use sui::{coin, sui::SUI, clock::{Self, Clock}};
 
-    use suins::constants::{mist_per_sui, year_ms, grace_period_ms};
-    use suins::suins::{Self, SuiNS};
-    use suins::suins_registration::{Self as nft, SuinsRegistration};
-    use suins::registry;
-    use suins::domain;
-    use suins::config;
+    use suins::{constants::{mist_per_sui, year_ms, grace_period_ms}, suins::{Self, SuiNS}, suins_registration::{Self as nft, SuinsRegistration}, registry, domain, config};
 
     use renewal::renew::{Self as renewal, Renew};
 

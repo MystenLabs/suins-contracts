@@ -4,17 +4,9 @@
 #[test_only]
 module suins::renew {
     use std::string;
-    use sui::coin::{Self, Coin};
-    use sui::clock::{timestamp_ms, Clock};
-    use sui::sui::SUI;
+    use sui::{coin::{Self, Coin}, clock::{timestamp_ms, Clock}, sui::SUI};
 
-    use suins::domain;
-    use suins::constants;
-    use suins::name_record;
-    use suins::registry::{Self, Registry};
-    use suins::suins::{Self, SuiNS};
-    use suins::config::{Self, Config};
-    use suins::suins_registration::{Self as nft, SuinsRegistration};
+    use suins::{domain, constants, name_record, registry::{Self, Registry}, suins::{Self, SuiNS}, config::{Self, Config}, suins_registration::{Self as nft, SuinsRegistration}};
 
     /// Number of years passed is not within [1-5] interval.
     const EInvalidYearsArgument: u64 = 0;

@@ -10,12 +10,9 @@
 ///
 module suins::registation_nft_tests {
     use std::string::{utf8, String};
-    use sui::clock::{Self, Clock};
-    use sui::test_utils::assert_eq;
+    use sui::{clock::{Self, Clock}, test_utils::assert_eq};
 
-    use suins::suins_registration::{Self as nft, SuinsRegistration};
-    use suins::constants;
-    use suins::domain;
+    use suins::{suins_registration::{Self as nft, SuinsRegistration}, constants, domain};
 
     #[test]
     fun test_new() {

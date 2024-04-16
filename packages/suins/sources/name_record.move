@@ -8,8 +8,7 @@
 module suins::name_record {
     use std::string::String;
 
-    use sui::clock::{timestamp_ms, Clock};
-    use sui::vec_map::{Self, VecMap};
+    use sui::{clock::{timestamp_ms, Clock}, vec_map::{Self, VecMap}};
 
     use suins::constants;
 

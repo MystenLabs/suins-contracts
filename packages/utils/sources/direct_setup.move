@@ -6,13 +6,9 @@
 module utils::direct_setup {
     use std::string::{String};
 
-    use sui::tx_context::{sender};
-    use sui::clock::Clock;
+    use sui::{tx_context::{sender}, clock::Clock};
 
-    use suins::domain;
-    use suins::registry::Registry;
-    use suins::suins::{Self, SuiNS};
-    use suins::suins_registration::SuinsRegistration;
+    use suins::{domain, registry::Registry, suins::{Self, SuiNS}, suins_registration::SuinsRegistration};
 
     /// Authorization token for the controller.
     public struct DirectSetup has drop {}

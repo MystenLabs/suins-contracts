@@ -2,18 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 module suins::registry {
-    use std::option::{none, some};
-    use std::string::String;
+    use std::{option::{none, some}, string::String};
 
-    use sui::table::{Self, Table};
-    use sui::clock::Clock;
-    use sui::vec_map::VecMap;
+    use sui::{table::{Self, Table}, clock::Clock, vec_map::VecMap};
 
-    use suins::suins_registration::{Self as nft, SuinsRegistration};
-    use suins::name_record::{Self, NameRecord};
-    use suins::domain::Domain;
-    use suins::suins::AdminCap;
-    use suins::subdomain_registration::{Self, SubDomainRegistration};
+    use suins::{suins_registration::{Self as nft, SuinsRegistration}, name_record::{Self, NameRecord}, domain::Domain, suins::AdminCap, subdomain_registration::{Self, SubDomainRegistration}};
 
     /// The `SuinsRegistration` has expired.
     const ENftExpired: u64 = 0;

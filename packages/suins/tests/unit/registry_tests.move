@@ -3,16 +3,10 @@
 
 #[test_only]
 module suins::registry_tests {
-    use std::string::utf8;
-    use std::option::{some};
-    use sui::clock::{Self, Clock};
-    use sui::test_utils::assert_eq;
+    use std::{string::utf8, option::{some}};
+    use sui::{clock::{Self, Clock}, test_utils::assert_eq};
 
-    use suins::suins_registration::{Self as nft, SuinsRegistration};
-    use suins::name_record as record;
-    use suins::registry::{Self, Registry};
-    use suins::domain::{Self, Domain};
-    use suins::constants;
+    use suins::{suins_registration::{Self as nft, SuinsRegistration}, name_record as record, registry::{Self, Registry}, domain::{Self, Domain}, constants};
 
     // === Registry + Record Addition ===
 

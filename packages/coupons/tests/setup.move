@@ -5,15 +5,9 @@
 module coupons::setup {
     use std::string::{utf8, String};
 
-    use sui::clock::{Self, Clock};
-    use sui::test_scenario::{Self, Scenario, ctx};
-    use sui::sui::SUI;
-    use sui::coin::{Self};
+    use sui::{clock::{Self, Clock}, test_scenario::{Self, Scenario, ctx}, sui::SUI, coin::{Self}};
     
-    use coupons::coupons::{Self, CouponsApp,Data, CouponHouse};
-    use coupons::rules::{Self};
-    use coupons::constants;
-    use coupons::range;
+    use coupons::{coupons::{Self, CouponsApp,Data, CouponHouse}, rules::{Self}, constants, range};
 
     public struct TestApp has drop {}
     

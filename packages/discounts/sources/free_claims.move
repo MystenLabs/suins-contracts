@@ -9,16 +9,10 @@
 /// Activation / deactivation happens through PTBs.
 module discounts::free_claims {
 
-    use std::string::{String};
-    use std::type_name::{Self as `type`};
+    use std::{string::{String}, type_name::{Self as `type`}};
+    use sui::{dynamic_field::{Self as df}, clock::{Clock}, linked_table::{Self, LinkedTable}};
 
-    use sui::dynamic_field::{Self as df};
-    use sui::clock::{Clock};
-    use sui::linked_table::{Self, LinkedTable};
-
-    use suins::domain::{Self, Domain};
-    use suins::suins::{AdminCap, SuiNS};
-    use suins::suins_registration::SuinsRegistration;
+    use suins::{domain::{Self, Domain}, suins::{AdminCap, SuiNS}, suins_registration::SuinsRegistration};
 
     use discounts::house::{Self, DiscountHouse};
 

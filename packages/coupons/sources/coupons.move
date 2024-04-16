@@ -11,14 +11,9 @@
 module coupons::coupons {
     use std::string::String;
 
-    use sui::table::{Self, Table};
-    use sui::dynamic_field::{Self as df};
-    use sui::clock::Clock;
-    use sui::sui::SUI;
-    use sui::coin::{Self, Coin};
+    use sui::{table::{Self, Table}, dynamic_field::{Self as df}, clock::Clock, sui::SUI, coin::{Self, Coin}};
 
-    use coupons::rules::{Self, CouponRules};
-    use coupons::constants;
+    use coupons::{rules::{Self, CouponRules}, constants};
     use suins::{domain, suins::{Self, AdminCap, SuiNS}, suins_registration::SuinsRegistration, config::Self, registry::{Self, Registry}};
 
     /// Coupon already exists

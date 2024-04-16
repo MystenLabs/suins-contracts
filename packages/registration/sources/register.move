@@ -3,15 +3,9 @@
 
 module registration::register {
     use std::string::String;
-    use sui::coin::Coin;
-    use sui::clock::Clock;
-    use sui::sui::SUI;
+    use sui::{coin::Coin, clock::Clock, sui::SUI};
 
-    use suins::domain;
-    use suins::registry::Registry;
-    use suins::suins::{Self, SuiNS};
-    use suins::config::{Self, Config};
-    use suins::suins_registration::SuinsRegistration;
+    use suins::{domain, registry::Registry, suins::{Self, SuiNS}, config::{Self, Config}, suins_registration::SuinsRegistration};
 
     /// Number of years passed is not within [1-5] interval.
     const EInvalidYearsArgument: u64 = 0;

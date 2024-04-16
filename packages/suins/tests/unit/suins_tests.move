@@ -4,10 +4,7 @@
 #[test_only]
 ///
 module suins::suins_tests {
-    use sui::coin;
-    use sui::balance;
-    use sui::sui::SUI;
-    use sui::test_utils::assert_eq;
+    use sui::{coin, balance, sui::SUI, test_utils::assert_eq};
     use suins::suins::{Self, AdminCap, SuiNS};
 
     // === Config management ===

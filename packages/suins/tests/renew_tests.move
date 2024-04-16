@@ -5,18 +5,22 @@
 module suins::renew_tests {
     use std::string::utf8;
 
-    use sui::test_scenario::{Self, Scenario, ctx};
-    use sui::coin;
-    use sui::sui::SUI;
-    use sui::clock::{Self, Clock};
+    use sui::{
+        test_scenario::{Self, Scenario, ctx},
+        coin,
+        sui::SUI,
+        clock::{Self, Clock}
+    };
 
-    use suins::renew::{Self, Renew, renew};
-    use suins::register_sample::Register;
-    use suins::register_sample_tests::{register_util, assert_balance};
-    use suins::constants::{mist_per_sui, year_ms};
-    use suins::suins::{Self, SuiNS, AdminCap};
-    use suins::suins_registration::SuinsRegistration;
-    use suins::registry;
+    use suins::{
+        renew::{Self, Renew, renew},
+        register_sample::Register,
+        register_sample_tests::{register_util, assert_balance},
+        constants::{mist_per_sui, year_ms},
+        suins::{Self, SuiNS, AdminCap},
+        suins_registration::SuinsRegistration,
+        registry,
+    };
 
     const SUINS_ADDRESS: address = @0xA001;
     const DOMAIN_NAME: vector<u8> = b"abc.sui";

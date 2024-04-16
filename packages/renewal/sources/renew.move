@@ -6,17 +6,9 @@
 /// 
 /// The renewal is capped at 5 years.
 module renewal::renew {
-    use sui::coin::{Self, Coin};
+    use sui::{coin::{Self, Coin}, clock::Clock, sui::SUI};
 
-    use sui::clock::Clock;
-    use sui::sui::SUI;
-
-    use suins::constants;
-    use suins::domain::Domain;
-    use suins::registry::Registry;
-    use suins::suins::{Self, SuiNS, AdminCap};
-    use suins::config::{Self, Config};
-    use suins::suins_registration::SuinsRegistration;
+    use suins::{constants, domain::Domain, registry::Registry, suins::{Self, SuiNS, AdminCap}, config::{Self, Config}, suins_registration::SuinsRegistration};
 
     /// Number of years passed is not within [1-5] interval.
     const EInvalidYearsArgument: u64 = 0;

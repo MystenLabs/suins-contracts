@@ -3,14 +3,9 @@
 
 module suins::update_image {
     use std::string::{utf8, String};
-    use sui::clock::Clock;
-    use sui::bcs;
-    use sui::ecdsa_k1;
+    use sui::{clock::Clock, bcs, ecdsa_k1};
 
-    use suins::registry::Registry;
-    use suins::suins::SuiNS;
-    use suins::config::Config;
-    use suins::suins_registration::SuinsRegistration;
+    use suins::{registry::Registry, suins::SuiNS, config::Config, suins_registration::SuinsRegistration};
 
     /// Message data cannot be parsed.
     const EInvalidData: u64 = 0;

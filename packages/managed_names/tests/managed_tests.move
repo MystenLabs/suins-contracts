@@ -4,12 +4,9 @@
 module managed_names::managed_tests {
     use std::string::{String, utf8};
 
-    use sui::test_scenario::{Self as ts, Scenario, ctx};
-    use sui::clock::{Self, Clock};
+    use sui::{test_scenario::{Self as ts, Scenario, ctx}, clock::{Self, Clock}};
 
-    use suins::suins_registration::{Self, new_for_testing, SuinsRegistration};
-    use suins::suins::{Self, SuiNS};
-    use suins::domain;
+    use suins::{suins_registration::{Self, new_for_testing, SuinsRegistration}, suins::{Self, SuiNS}, domain};
 
     use managed_names::managed::{Self, ManagedNamesApp, ReturnPromise};
 

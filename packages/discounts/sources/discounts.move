@@ -8,17 +8,11 @@
 /// Can be called only when promotions are active for a specific type T.
 /// Activation / deactivation happens through PTBs.
 module discounts::discounts {
-    use std::string::String;
-    use std::type_name::{Self as `type`};
+    use std::{string::String, type_name::{Self as `type`}};
 
-    use sui::dynamic_field::{Self as df};
-    use sui::clock::{Clock};
-    use sui::coin::Coin;
-    use sui::sui::SUI;
+    use sui::{dynamic_field::{Self as df}, clock::{Clock}, coin::Coin, sui::SUI};
 
-    use suins::domain::{Self};
-    use suins::suins::{Self, AdminCap, SuiNS};
-    use suins::suins_registration::SuinsRegistration;
+    use suins::{domain::{Self}, suins::{Self, AdminCap, SuiNS}, suins_registration::SuinsRegistration};
 
     // The base shared object.
     use discounts::house::{Self, DiscountHouse};

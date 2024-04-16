@@ -13,8 +13,7 @@ module temp_subdomain_proxy::subdomain_proxy {
 
     use sui::clock::Clock;
 
-    use suins::suins::SuiNS;
-    use suins::subdomain_registration::SubDomainRegistration;
+    use suins::{suins::SuiNS, subdomain_registration::SubDomainRegistration};
     
     use subdomains::subdomains;
     use utils::direct_setup;

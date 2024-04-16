@@ -6,11 +6,9 @@ module discounts::free_claims_tests {
 
     use std::string::{utf8, String};
 
-    use sui::test_scenario::{Self as ts, Scenario, ctx};
-    use sui::clock::{Self, Clock};
+    use sui::{test_scenario::{Self as ts, Scenario, ctx}, clock::{Self, Clock}};
 
-    use suins::suins::{Self, SuiNS, AdminCap};
-    use suins::registry;
+    use suins::{suins::{Self, SuiNS, AdminCap}, registry};
     
     use discounts::house::{Self, DiscountHouse, DiscountHouseApp};
     use discounts::free_claims;

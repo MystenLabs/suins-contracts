@@ -3,23 +3,23 @@
 
 #[test_only]
 module suins::controller_tests {
-    use std::string::{utf8, String};
-    use std::option::{extract, some, none};
+    use std::{string::{utf8, String}, option::{extract, some, none}};
 
-    use sui::test_scenario::{Self, Scenario, ctx};
-    use sui::clock::{Self, Clock};
-    use sui::test_utils::assert_eq;
-    use sui::dynamic_field;
-    use sui::vec_map::VecMap;
+    use sui::{test_scenario::{Self, Scenario, ctx}, clock::{Self, Clock}, test_utils::assert_eq, dynamic_field, vec_map::VecMap};
 
-    use suins::register_sample::Register;
-    use suins::constants::{mist_per_sui, year_ms};
-    use suins::suins::{Self, SuiNS, AdminCap};
-    use suins::suins_registration::SuinsRegistration;
-    use suins::register_sample_tests::register_util;
-    use suins::controller::{Self, Controller, set_target_address_for_testing, set_reverse_lookup_for_testing, unset_reverse_lookup_for_testing, set_user_data_for_testing, unset_user_data_for_testing};
-    use suins::registry::{Self, Registry, lookup, reverse_lookup};
-    use suins::domain::{Self, Domain};
+    use suins::{
+        register_sample::Register, 
+        constants::{mist_per_sui, year_ms}, 
+        suins::{Self, SuiNS, AdminCap}, 
+        suins_registration::SuinsRegistration, 
+        register_sample_tests::register_util,
+        controller::{
+            Self, Controller, set_target_address_for_testing, set_reverse_lookup_for_testing, 
+            unset_reverse_lookup_for_testing, set_user_data_for_testing, unset_user_data_for_testing
+        },
+        registry::{Self, Registry, lookup, reverse_lookup},
+        domain::{Self, Domain}
+    };
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_ADDRESS: address = @0xB001;

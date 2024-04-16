@@ -3,13 +3,9 @@
 
 module suins::controller {
     use std::string::String;
-    use sui::tx_context::{sender,};
-    use sui::clock::Clock;
+    use sui::{tx_context::{sender}, clock::Clock};
 
-    use suins::domain;
-    use suins::registry::Registry;
-    use suins::suins::{Self, SuiNS};
-    use suins::suins_registration::SuinsRegistration;
+    use suins::{domain, registry::Registry, suins::{Self, SuiNS}, suins_registration::SuinsRegistration};
 
     const AVATAR: vector<u8> = b"avatar";
     const CONTENT_HASH: vector<u8> = b"content_hash";

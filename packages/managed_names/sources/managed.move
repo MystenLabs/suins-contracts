@@ -18,13 +18,9 @@
 module managed_names::managed {
     use std::string::{String};
 
-    use sui::table::{Self, Table};
-    use sui::tx_context::sender;
-    use sui::clock::Clock;
+    use sui::{table::{Self, Table}, tx_context::sender, clock::Clock};
 
-    use suins::domain::{Self, Domain};
-    use suins::suins_registration::SuinsRegistration;
-    use suins::suins::{Self, SuiNS, AdminCap};
+    use suins::{domain::{Self, Domain}, suins_registration::SuinsRegistration, suins::{Self, SuiNS, AdminCap}};
 
     /// Tries to add an NFT that has expired.
     const EExpiredNFT: u64 = 1;

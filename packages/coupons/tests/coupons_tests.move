@@ -8,11 +8,7 @@ module coupons::coupon_tests {
     use sui::test_scenario::{Self, Scenario, ctx, return_shared, end};
 
     // test dependencies.
-    use coupons::setup::{Self, TestApp, user, user_two, mist_per_sui, test_app, admin_add_coupon, register_with_coupon, test_init};
-    use coupons::coupons::{Self, CouponHouse};
-    use coupons::constants::{Self};
-    use coupons::rules;
-    use coupons::range;
+    use coupons::{setup::{Self, TestApp, user, user_two, mist_per_sui, test_app, admin_add_coupon, register_with_coupon, test_init}, coupons::{Self, CouponHouse}, constants::{Self}, rules, range};
 
     // populate a lot of coupons with different cases.
     // This populates the coupon as an authorized app

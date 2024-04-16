@@ -10,16 +10,18 @@ module suins::auction_tests {
     use sui::clock::{Self, Clock};
     use sui::coin::{Self, Coin};
 
-    use suins::auction::{
-    Self, App as AuctionApp, place_bid, claim, AuctionHouse, start_auction_and_place_bid, total_balance,
-    admin_finalize_auction, admin_try_finalize_auctions, admin_withdraw_funds, collect_winning_auction_fund
+    use suins::{
+        auction::{
+            Self, App as AuctionApp, place_bid, claim, AuctionHouse, start_auction_and_place_bid, total_balance,
+            admin_finalize_auction, admin_try_finalize_auctions, admin_withdraw_funds, collect_winning_auction_fund
+        }, 
+        suins_registration::SuinsRegistration, 
+        config, 
+        domain, 
+        constants::{Self, mist_per_sui}, 
+        suins::{Self, SuiNS, AdminCap}, 
+        registry
     };
-    use suins::suins_registration::SuinsRegistration;
-    use suins::config;
-    use suins::domain;
-    use suins::constants::{Self, mist_per_sui};
-    use suins::suins::{Self, SuiNS, AdminCap};
-    use suins::registry;
 
     const SUINS_ADDRESS: address = @0xA001;
     const FIRST_ADDRESS: address = @0xB001;

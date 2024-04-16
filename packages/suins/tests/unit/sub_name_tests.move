@@ -7,9 +7,7 @@ module suins::sub_name_tests {
 
     use sui::clock;
 
-    use suins::suins_registration;
-    use suins::subdomain_registration as subdomain;
-    use suins::domain;
+    use suins::{suins_registration, subdomain_registration as subdomain, domain};
 
     #[test]
     fun test_wrap_and_destroy(){

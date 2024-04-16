@@ -21,10 +21,7 @@
 /// - Any of the old modules can be deauthorized hence disabling its access to
 /// the registry and the balance.
 module suins::suins {
-    use sui::balance::{Self, Balance};
-    use sui::coin::{Self, Coin};
-    use sui::dynamic_field as df;
-    use sui::sui::SUI;
+    use sui::{balance::{Self, Balance}, coin::{Self, Coin}, dynamic_field as df, sui::SUI};
 
     /// Trying to withdraw from an empty balance.
     const ENoProfits: u64 = 0;

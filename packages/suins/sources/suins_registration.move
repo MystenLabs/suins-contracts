@@ -14,8 +14,7 @@ module suins::suins_registration {
     use std::string::{String};
     use sui::clock::{timestamp_ms, Clock};
 
-    use suins::constants;
-    use suins::domain::Domain;
+    use suins::{constants, domain::Domain};
 
     /* friend suins::registry; */
     /* friend suins::update_image; */

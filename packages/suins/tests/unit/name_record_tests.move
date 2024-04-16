@@ -9,14 +9,10 @@
 ///   and the expiration timestamp are working correctly;
 ///
 module suins::name_record_tests {
-    use std::string::utf8;
-    use std::option::{none, some};
-    use sui::test_utils::assert_eq;
-    use sui::vec_map;
-    use sui::clock;
+    use std::{string::utf8, option::{none, some}};
+    use sui::{test_utils::assert_eq, vec_map, clock};
 
-    use suins::name_record as record;
-    use suins::constants;
+    use suins::{name_record as record, constants};
 
     #[test]
     /// Make sure that the fields are empty by default. That they are updated

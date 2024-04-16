@@ -7,11 +7,7 @@ module discounts::house {
 
     use sui::clock::{Clock};
 
-    use suins::domain::Domain;
-    use suins::registry::Registry;
-    use suins::suins::{Self, AdminCap, SuiNS};
-    use suins::config;
-    use suins::suins_registration::SuinsRegistration;
+    use suins::{domain::Domain, registry::Registry, suins::{Self, AdminCap, SuiNS}, config, suins_registration::SuinsRegistration};
 
     // The `free_claims` module can use the shared object to attach configuration & claim names.
     /* friend discounts::free_claims; */

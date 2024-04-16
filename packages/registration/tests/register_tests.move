@@ -6,21 +6,10 @@ module registration::register_tests {
 
     use std::string::{utf8, String};
 
-    use sui::test_scenario::{Self, Scenario, ctx};
-    use sui::clock::{Self, Clock};
-    use sui::coin;
-    use sui::sui::SUI;
+    use sui::{test_scenario::{Self, Scenario, ctx}, clock::{Self, Clock}, coin, sui::SUI};
 
     use registration::register::{Self, Register, register};
-    use suins::constants::{mist_per_sui, grace_period_ms, year_ms};
-    use suins::suins::{Self, SuiNS, total_balance, AdminCap};
-    use suins::suins_registration::SuinsRegistration;
-    use suins::suins_registration;
-    use suins::domain;
-    use suins::registry;
-    use suins::config;
-    use suins::auction_tests;
-    use suins::auction::{Self, App as AuctionApp};
+    use suins::{constants::{mist_per_sui, grace_period_ms, year_ms}, suins::{Self, SuiNS, total_balance, AdminCap}, suins_registration::SuinsRegistration, suins_registration, domain, registry, config, auction_tests, auction::{Self, App as AuctionApp}};
 
     const SUINS_ADDRESS: address = @0xA001;
     const AUCTIONED_DOMAIN_NAME: vector<u8> = b"tes-t2.sui";
