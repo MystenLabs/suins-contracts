@@ -194,7 +194,7 @@ module suins::registry {
         domain: Domain,
         new_target: Option<address>,
     ) {
-        let record = self.registry.borrow_mut(domain);
+        let record = &mut self.registry[domain];
         let old_target = record.target_address();
 
         record.set_target_address(new_target);
@@ -233,7 +233,7 @@ module suins::registry {
         domain: Domain,
         expiration_timestamp_ms: u64,
     ) {
-        let record = table::borrow_mut(&mut self.registry, domain);
+        let record = &mut self.registry[domain];
 
         assert!(object::id(nft) == record.nft_id(), EIdMismatch);
         record.set_expiration_timestamp_ms(expiration_timestamp_ms);
@@ -248,7 +248,7 @@ module suins::registry {
         domain: Domain,
         data: VecMap<String, String>
     ) {
-        let record = self.registry.borrow_mut(domain);
+        let record = &mut self.registry[domain];
         record.set_data(data);
     }
 

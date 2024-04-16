@@ -277,7 +277,7 @@ module suins::auction {
         ctx: &mut TxContext,
     ) {
         let domain = domain::new(domain_name);
-        let auction = self.auctions.borrow_mut(domain);
+        let auction = &mut self.auctions[domain];
         // Ensure that the auction is over
         assert!(clock.timestamp_ms() > auction.end_timestamp_ms, EAuctionNotEndedYet);
 

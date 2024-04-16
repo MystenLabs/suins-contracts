@@ -2,13 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 module managed_names::managed_tests {
-    use std::option;
     use std::string::{String, utf8};
 
     use sui::test_scenario::{Self as ts, Scenario, ctx};
     use sui::clock::{Self, Clock};
-    use sui::transfer;
-    use sui::object;
 
     use suins::suins_registration::{Self, new_for_testing, SuinsRegistration};
     use suins::suins::{Self, SuiNS};

@@ -17,13 +17,10 @@
 /// 
 module managed_names::managed {
     use std::string::{String};
-    use std::option::{Self, Option};
 
-    use sui::object::{Self, ID};
     use sui::table::{Self, Table};
-    use sui::tx_context::{TxContext, sender};
+    use sui::tx_context::sender;
     use sui::clock::Clock;
-    use sui::transfer;
 
     use suins::domain::{Self, Domain};
     use suins::suins_registration::SuinsRegistration;
@@ -206,7 +203,7 @@ module managed_names::managed {
     fun internal_get_managed_name(managed_names: &mut ManagedNames, domain: Domain): &mut ManagedName {
         assert!(managed_names.names.contains(domain), ENameNotExists);
         
-        managed_names.names.borrow_mut(domain)
+        &mut managed_names.names[domain]
     }
 
 
