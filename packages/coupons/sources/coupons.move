@@ -108,15 +108,15 @@ module coupons::coupons {
         // We need to do a total of 5 checks, based on `CouponRules`
         // Our checks work with `AND`, all of the conditions must pass for a coupon to be used.
         // 1. Validate domain size.
-        rules::assert_coupon_valid_for_domain_size(&coupon.rules, domain_length);
+        coupon.rules.assert_coupon_valid_for_domain_size(domain_length);
         // 2. Decrease available claims. Will ABORT if the coupon doesn't have enough available claims.
-        rules::decrease_available_claims(&mut coupon.rules);
+        coupon.rules.decrease_available_claims();
         // 3. Validate the coupon is valid for the specified user.
-        rules::assert_coupon_valid_for_address(&coupon.rules, ctx.sender());
+        coupon.rules.assert_coupon_valid_for_address(ctx.sender());
         // 4. Validate the coupon hasn't expired (Based on clock)
-        rules::assert_coupon_is_not_expired(&coupon.rules, clock);
+        coupon.rules.assert_coupon_is_not_expired(clock);
         // 5. Validate years are valid for the coupon.
-        rules::assert_coupon_valid_for_domain_years(&coupon.rules, no_years);
+        coupon.rules.assert_coupon_valid_for_domain_years(no_years);
 
         // Validate name can be registered (is main domain (no subdomain) and length is valid)
         config::assert_valid_user_registerable_domain(&domain);
@@ -124,17 +124,17 @@ module coupons::coupons {
         let original_price = config::calculate_price(config, domain_length, no_years);
         let sale_price = internal_calculate_sale_price(original_price, coupon);
 
-        assert!(coin::value(&payment) == sale_price, EIncorrectAmount);
-        suins::app_add_balance(CouponsApp {}, suins, coin::into_balance(payment));
+        assert!(payment.value() == sale_price, EIncorrectAmount);
+        suins::app_add_balance(CouponsApp {}, suins, payment.into_balance());
 
         // Clean up our registry by removing the coupon if no more available claims!
         if(!coupon.rules.has_available_claims()){
             // remove the coupon, since it's no longer usable.
-            internal_remove_coupon(&mut self.data, coupon_code);
+            self.data.internal_remove_coupon(coupon_code);
         };
 
         let registry = suins::app_registry_mut<CouponsApp, Registry>(CouponsApp {}, suins);
-        registry::add_record(registry, domain, no_years, clock, ctx)
+        registry.add_record(domain, no_years, clock, ctx)
     }
 
     // A convenient helper to calculate the price in a PTB.
