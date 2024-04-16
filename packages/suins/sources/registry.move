@@ -6,7 +6,13 @@ module suins::registry {
 
     use sui::{table::{Self, Table}, clock::Clock, vec_map::VecMap};
 
-    use suins::{suins_registration::{Self as nft, SuinsRegistration}, name_record::{Self, NameRecord}, domain::Domain, suins::AdminCap, subdomain_registration::{Self, SubDomainRegistration}};
+    use suins::{
+        suins_registration::{Self as nft, SuinsRegistration}, 
+        name_record::{Self, NameRecord}, 
+        domain::Domain, 
+        suins::AdminCap, 
+        subdomain_registration::{Self, SubDomainRegistration}
+    };
 
     /// The `SuinsRegistration` has expired.
     const ENftExpired: u64 = 0;

@@ -29,7 +29,14 @@ module subdomains::subdomains {
 
     use sui::{clock::Clock, dynamic_field as df, vec_map::VecMap};
 
-    use suins::{domain::{Self, Domain, is_subdomain}, registry::Registry, suins::{Self, SuiNS, AdminCap}, suins_registration::SuinsRegistration, subdomain_registration::SubDomainRegistration, constants::{subdomain_allow_extension_key, subdomain_allow_creation_key}};
+    use suins::{
+        domain::{Self, Domain, is_subdomain}, 
+        registry::Registry, 
+        suins::{Self, SuiNS, AdminCap}, 
+        suins_registration::SuinsRegistration, 
+        subdomain_registration::SubDomainRegistration, 
+        constants::{subdomain_allow_extension_key, subdomain_allow_creation_key}
+    };
 
     use subdomains::config::{Self, SubDomainConfig};
 

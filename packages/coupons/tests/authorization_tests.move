@@ -7,7 +7,18 @@ module coupons::app_authorization_tests {
 
     use sui::test_scenario::{return_shared, return_to_sender, end};
 
-    use coupons::{coupons::{app_data_mut, deauthorize_app}, setup::{Self, UnauthorizedTestApp, TestApp, admin, user, test_init, unauthorized_test_app}};
+    use coupons::{
+        coupons::{app_data_mut, deauthorize_app}, 
+        setup::{
+            Self, 
+            UnauthorizedTestApp, 
+            TestApp, 
+            admin, 
+            user, 
+            test_init, 
+            unauthorized_test_app
+        }
+    };
 
     #[test]
     fun admin_get_app_success() {

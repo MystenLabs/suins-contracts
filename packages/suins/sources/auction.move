@@ -6,9 +6,22 @@
 module suins::auction {
     use std::{option::{none, some, is_some}, string::String};
 
-    use sui::{balance::{Self, Balance}, coin::{Self, Coin}, clock::Clock, event, sui::SUI, linked_table::{Self, LinkedTable}};
+    use sui::{
+        balance::{Self, Balance}, 
+        coin::{Self, Coin}, 
+        clock::Clock, 
+        event, 
+        sui::SUI, 
+        linked_table::{Self, LinkedTable}
+    };
 
-    use suins::{config::{Self, Config}, suins::{Self, AdminCap, SuiNS}, suins_registration::SuinsRegistration, registry::Registry, domain::{Self, Domain}};
+    use suins::{
+        config::{Self, Config}, 
+        suins::{Self, AdminCap, SuiNS}, 
+        suins_registration::SuinsRegistration, 
+        registry::Registry, 
+        domain::{Self, Domain}
+    };
 
     /// One year is the default duration for a domain.
     const DEFAULT_DURATION: u8 = 1;

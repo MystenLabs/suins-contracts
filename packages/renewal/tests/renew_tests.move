@@ -7,7 +7,14 @@ module renewal::renew_tests {
 
     use sui::{coin, sui::SUI, clock::{Self, Clock}};
 
-    use suins::{constants::{mist_per_sui, year_ms, grace_period_ms}, suins::{Self, SuiNS}, suins_registration::{Self as nft, SuinsRegistration}, registry, domain, config};
+    use suins::{
+        constants::{mist_per_sui, year_ms, grace_period_ms}, 
+        suins::{Self, SuiNS}, 
+        suins_registration::{Self as nft, SuinsRegistration}, 
+        registry, 
+        domain, 
+        config
+    };
 
     use renewal::renew::{Self as renewal, Renew};
 

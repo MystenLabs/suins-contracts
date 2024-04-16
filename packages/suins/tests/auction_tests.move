@@ -12,8 +12,17 @@ module suins::auction_tests {
 
     use suins::{
         auction::{
-            Self, App as AuctionApp, place_bid, claim, AuctionHouse, start_auction_and_place_bid, total_balance,
-            admin_finalize_auction, admin_try_finalize_auctions, admin_withdraw_funds, collect_winning_auction_fund
+            Self, 
+            App as AuctionApp, 
+            place_bid, 
+            claim, 
+            AuctionHouse, 
+            start_auction_and_place_bid, 
+            total_balance,
+            admin_finalize_auction, 
+            admin_try_finalize_auctions, 
+            admin_withdraw_funds, 
+            collect_winning_auction_fund
         }, 
         suins_registration::SuinsRegistration, 
         config, 

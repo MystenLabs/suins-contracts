@@ -6,7 +6,12 @@ module suins::registry_tests {
     use std::{string::utf8, option::{some}};
     use sui::{clock::{Self, Clock}, test_utils::assert_eq};
 
-    use suins::{suins_registration::{Self as nft, SuinsRegistration}, name_record as record, registry::{Self, Registry}, domain::{Self, Domain}, constants};
+    use suins::{
+        suins_registration::{Self as nft, SuinsRegistration}, 
+        name_record as record, 
+        registry::{Self, Registry}, 
+        domain::{Self, Domain}, constants
+    };
 
     // === Registry + Record Addition ===
 
