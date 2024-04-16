@@ -4,10 +4,9 @@
 /// A simple package to allows us set a target address &  default name in a single PTB in frontend.
 /// Unblocks better UX in the registration flow | easier adoption for non-technical users.
 module utils::direct_setup {
-    use std::option;
     use std::string::{String};
 
-    use sui::tx_context::{TxContext, sender};
+    use sui::tx_context::{sender};
     use sui::clock::Clock;
 
     use suins::domain;
