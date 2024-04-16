@@ -123,12 +123,12 @@ module discounts::discounts {
         clock: &Clock, 
         ctx: &mut TxContext
     ): SuinsRegistration {
-        house::assert_version_is_valid(self);
+        self.assert_version_is_valid();
         // validate that there's a configuration for type T.
         assert_config_exists<T>(self);
 
         let domain = domain::new(domain_name);
-        let price = calculate_price(df::borrow(house::uid_mut(self), DiscountKey<T>{}), (domain.sld().length() as u8));
+        let price = calculate_price(df::borrow(self.uid_mut(), DiscountKey<T>{}), (domain.sld().length() as u8));
         
         assert!(payment.value() == price, EIncorrectAmount);
         suins::app_add_balance(house::suins_app_auth(), suins, payment.into_balance());
