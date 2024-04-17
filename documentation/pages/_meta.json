@@ -1,10 +1,7 @@
 {
-    "index": {
-        "title": "SuiNS Documentation",
-        "display": "hidden"
-    },
-    "developer": {
-        "title": "Developer",
-        "type": "page"
-    }
+    "index": "SuiNS Documentation",
+    "integration": "Integration",
+    "subnames": "Subnames",
+    "contracts": "Smart Contracts",
+    "sdk": "SDK"
 }

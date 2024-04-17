@@ -1,3 +1,33 @@
+import { Tabs } from 'nextra/components'
+import { Callout } from 'nextra/components'
+
 # SuiNS Documentation
 
-Main page
+SuiNS documentation is a place to find the available ways of integration with SuiNS.
+
+This includes ways to integrate using both the on-chain resolution, as well as off-chain resolution,
+based on the use-case.
+
+
+## Active Constants
+
+This is a list of our current active objects to interact with SuiNS. 
+
+<Callout type="info" emoji="ℹ️">
+  It's recommended to look here for the latest state, as some of the active constants might be changed.
+  That mostly applies to secondary packages responsible for registering a name, renewing a name & utilities.
+  The core package cannot change, nor can the core SuiNS object.
+</Callout>
+ 
+<Tabs items={['Mainnet', 'Testnet']}>
+    <Tabs.Tab>
+| Kind  	| ObjectID                                                            	|
+|--------------	|----------------------------------------------------------------------	|
+| SuiNS Shared Object 	| `0x6e0ddefc0ad98889c04bab9639e512c21766c5e6366f89e696956d9be6952871` 	|
+| SuiNS Core V2 (latest)     	| `0xb7004c7914308557f7afbaf0dca8dd258e18e306cb7a45b28019f3d0a693f162`                                        	|
+| SuiNS Core V1 | `0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0` |
+    </Tabs.Tab>
+    <Tabs.Tab>
+    test
+    </Tabs.Tab>
+</Tabs>
