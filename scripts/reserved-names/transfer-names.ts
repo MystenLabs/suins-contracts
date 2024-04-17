@@ -41,7 +41,7 @@ const parseOwnedObjects = () => {
 // Parses the combined CSV 
 const parseCsvFile = () => {
 
-    fs.readFileSync('./reserved-names/data/transfers-v3.csv')
+    fs.readFileSync('./reserved-names/data/transfers-v4.csv')
         .toString()
         .split('\n')
         .map(x => x.split(','))
