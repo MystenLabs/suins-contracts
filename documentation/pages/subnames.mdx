@@ -1,0 +1,49 @@
+import { Callout } from 'nextra/components'
+
+# Subnames
+
+<Callout type="warning" emoji="⚠️">
+    Subnames are currently available only on Testnet.
+</Callout>
+
+Subnames are nested names under a parent name. Unlike regular names, there is not a cost associated with creating subnames.
+
+The maximum nesting depth is **eight** levels. The total depth, including the SLD and TLD, means the maximum total depth is 10 levels.
+
+The parent rules control whether you can create nested names or not. The parent rules can also allow a subname to 
+extend the expiration to match the parent's expiration. You can alter the parent rules at any time, but revoking or burning follows the same rules that follow.
+
+## Subname types
+
+Subnames can be one of two types:
+
+1. **Node subnames**: Similar to regular names, they have an NFT associated with them that gives access to all extra features (personalization, avatars, and so on).
+1. **Leaf subnames**: These are subnames that are created under a node subname. They do not have an NFT associated with them, so the parent controls their configuration. Consequently, the typical use case for leaf subnames is to use them programmatically.
+
+The following table provides more details on the differences between the two types of names:
+
+| Capabilities/Category | Node subnames | Leaf subnames |
+| --- | --- | --- |
+| Has NFT | ✅ Yes, <ul style={{listStyle: 'disc', paddingLeft: 1 + 'rem'}}><li>`SuinsRegistration` for SLD*</li><li>`SubDomainRegistration` for nested names</li></ul> | ❌ No, parent's NFT acts as the capability |
+| Can create children (node/leaf) | ✅ Yes, provided the name is an SLD* or the parent allows it | ❌ No |
+| Expiration | ✅ Yes, SuiNS determines expiration for SLDs*, otherwise the parent determines | ❌ No, the parent's expiration determines the leaf expiration |
+| Extend expiration | ✅ Yes, you can extend expiration if parent rules allow it (or you can pay for it for SLD*) | ✅ Yes, leaf names do not expire |
+| Target address | ✅ Yes, NFT holder can update the target address; address can be empty | ✅ Yes, active parent's NFT holder can update the target address; address cannot be empty |
+| Reverse registry | ✅ Yes | ✅ Yes |
+| Revoke | ❌ No, you can't remove a node name (except when expired) | ✅ Yes, active parent holder can remove a leaf name |
+| Burn | ✅ Yes, post-expiration only | ✅ Yes, burn and revoking is the same for leaf names |
+| Transfer ownership | ✅ Yes, the NFT determines node name ownership | ❌ No, SuiNS preserves ownership for the active parent name holder |
+
+*SLD - Second-level domain (for instance, example in example.sui)*
+
+
+## Integration
+
+Similar to regular names, you can look up subnames through JSON-RPC and GraphQL. You can also look up subnames on chain, as described in [Integrations](./integration.mdx).
+
+
+## Creating subnames
+
+TODO: Show how someone could create subnames through the SDK (being the parent).
+
+TODO: Show how someone can integrate with the subdomains package to create subnames.
