@@ -261,12 +261,15 @@ export class SuinsTransaction {
 	extendExpiration({
 		parentNft,
 		expirationTimestampMs,
+		isSubdomain,
 	}: {
 		parentNft: ObjectArgument;
 		expirationTimestampMs: number;
+		isSubdomain?: boolean;
 	}) {
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('Suins Object ID not found');
 		if (!this.#suinsClient.constants.subNamesPackageId) throw new Error('Subdomains package ID not found');
+		if (isSubdomain && !this.#suinsClient.constants.tempSubNamesProxyPackageId) throw new Error('Subdomains proxy package ID not found');
 
 		this.transactionBlock.moveCall({
 			target: `${this.#suinsClient.constants.subNamesPackageId}::subdomains::extend_expiration`,
