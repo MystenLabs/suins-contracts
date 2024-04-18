@@ -241,6 +241,7 @@ export class SuinsTransaction {
 		const isParentSubdomain = isNestedSubName(name);
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('Suins Object ID not found');
 		if (!this.#suinsClient.constants.subNamesPackageId) throw new Error('Subdomains package ID not found');
+		if (isParentSubdomain && !this.#suinsClient.constants.tempSubNamesProxyPackageId) throw new Error('Subdomains proxy package ID not found');
 
 		this.transactionBlock.moveCall({
 			target: isParentSubdomain
