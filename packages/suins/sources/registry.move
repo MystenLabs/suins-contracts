@@ -150,7 +150,7 @@ module suins::registry {
 
         // get the parent of the domain
         let parent = domain.parent();
-        let option_parent_name_record = lookup(self, parent);
+        let option_parent_name_record = self.lookup(parent);
 
         assert!(option_parent_name_record.is_some(), ERecordNotFound);
 
@@ -353,7 +353,7 @@ module suins::registry {
         // Special case for leaf records, we can override them iff their parent has changed or has expired.
         if (record.is_leaf_record()) {
             // find the parent of the leaf record.
-            let option_parent_name_record = lookup(self, domain.parent());
+            let option_parent_name_record = self.lookup(domain.parent());
 
             // if there's a parent (if not, we can just remove it), we need to check if the parent is valid.
             // -> If the parent is valid, we need to check if the parent is expired.
