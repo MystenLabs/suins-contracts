@@ -1,7 +1,7 @@
 import { mainPackage } from "../config/constants";
 import fs from "fs";
 import { getClient } from "../utils/utils";
-import { SuiObjectResponse } from "@mysten/sui.js/dist/cjs/client";
+import { SuiObjectResponse } from "@mysten/sui.js/client";
 
 const config = mainPackage.mainnet;
 
