@@ -4,6 +4,9 @@ import { SuinsClient } from './suins-client';
 import { ObjectArgument } from './types';
 import { isNestedSubName, isSubName, validateName, validateYears } from './helpers';
 
+const CONTENT_HASH = 'content_hash';
+const AVATAR = 'avatar';
+
 export class SuinsTransaction {
 	#suinsClient: SuinsClient;
 	transactionBlock: TransactionBlock;
@@ -277,6 +280,23 @@ export class SuinsTransaction {
 				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
 				this.transactionBlock.object(parentNft),
 				this.transactionBlock.pure.u64(expirationTimestampMs),
+			],
+		});
+	}
+
+	setUserData({ nft, value, key }: { nft: ObjectArgument; value: string; key: string }) {
+		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('Suins Object ID not found');
+		if (!this.#suinsClient.constants.suinsPackageV1) throw new Error('suinsPackageV1 package ID not found');
+		if (key !== AVATAR && key !== CONTENT_HASH) throw new Error('Invalid key');
+
+		this.transactionBlock.moveCall({
+			target: `${this.#suinsClient.constants.suinsPackageV1}::controller::set_user_data`,
+			arguments: [
+				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
+				this.transactionBlock.object(nft),
+				this.transactionBlock.pure.string(key),
+				this.transactionBlock.pure.string(value),
+				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
 			],
 		});
 	}
