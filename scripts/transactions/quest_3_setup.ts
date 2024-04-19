@@ -3,10 +3,10 @@
 
 import dotenv from "dotenv";
 dotenv.config();
-import { Network, PackageInfo, mainPackage } from "../config/constants";
+import { Network, } from "../config/constants";
 import { MIST_PER_SUI } from '@mysten/sui.js/utils';
 import { TransactionBlock } from "@mysten/sui.js/transactions";
-import { DAY_ONE_TYPE, Discount, SUIFREN_BULLSHARK_TYPE, SUIFREN_CAPY_TYPE, removeDiscountForType, setupDiscountForType } from "../config/discounts";
+import { Discount } from "../config/discounts";
 import { prepareMultisigTx, signAndExecute } from "../utils/utils";
 
 // Setup Quests 3.

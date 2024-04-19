@@ -39,7 +39,6 @@ function chunkArray(array: any[], batchSize: number = MAX_NAMES_PER_BATCH) {
 
 const parseReservedObjects = () => {
     for(const object of reservedObjects) {
-
         const length = object.data.content.fields.domain_name.split('.')[0].length;
 
         const name = {
@@ -133,7 +132,6 @@ export const prepareInbetweenTransactions = async (run: string) => {
     if (!index) throw new Error("Invalid run ID");
 
     const batchToWork = chunkArray(names.fivePlus)[index];
-
     const batchSize = batchToWork.length;
 
     if (batchToWork.length > 500) {
