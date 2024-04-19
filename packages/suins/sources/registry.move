@@ -91,15 +91,15 @@ module suins::registry {
         assert!(nft.has_expired(clock), ERecordNotExpired);
         
         let domain = nft.domain();
+
         // Then, if the registry still has a record for this domain and the NFT ID matches, we remove it.
         if (self.registry.contains(domain)) {
-
             let record = &self.registry[domain];
             
             // We wanna remove the record only if the NFT ID matches.
             if (record.nft_id() == object::id(&nft)) {
                 let record = self.registry.remove(domain);
-                handle_invalidate_reverse_record(self, &domain, record.target_address(), none());
+                self.handle_invalidate_reverse_record(&domain, record.target_address(), none());
             }
         };
         // burn the NFT.
@@ -124,7 +124,7 @@ module suins::registry {
         clock: &Clock
     ) {
         let nft = nft.burn(clock);
-        burn_registration_object(self, nft, clock);
+        self.burn_registration_object(nft, clock);
     }
 
     /// Adds a `leaf` record to the registry.
@@ -152,17 +152,17 @@ module suins::registry {
         let parent = domain.parent();
         let option_parent_name_record = lookup(self, parent);
 
-        assert!(option::is_some(&option_parent_name_record), ERecordNotFound);
+        assert!(option_parent_name_record.is_some(), ERecordNotFound);
 
         // finds existing parent record
-        let parent_name_record = option::borrow(&option_parent_name_record);
+        let parent_name_record = option_parent_name_record.borrow();
 
         // Make sure that the parent isn't expired (because leaf record is invalid in that case).
         // Ignores grace period is it's only there so you don't accidently forget to renew your name.
         assert!(!parent_name_record.has_expired(clock), ERecordExpired);
 
         // Removes an existing record if it exists and is expired.
-        remove_existing_record_if_exists_and_expired(self, domain, clock, false);
+        self.remove_existing_record_if_exists_and_expired(domain, clock, false);
         
         // adds the `leaf` record to the registry.
         self.registry.add(domain, name_record::new_leaf(parent_name_record.nft_id(), some(target)));
@@ -176,14 +176,14 @@ module suins::registry {
         domain: Domain,
     ) {
         // We can only call remove on a leaf record.
-        assert!(is_leaf_record(self, domain), ENotLeafRecord);
+        assert!(self.is_leaf_record(domain), ENotLeafRecord);
 
         // if it's a leaf record, there's no `SuinsRegistration` object.
         // We can just go ahead and remove the name_record, and invalidate the reverse record (if any).
         let record = self.registry.remove(domain);
         let old_target_address = record.target_address();
 
-        handle_invalidate_reverse_record(self, &domain, old_target_address, none());
+        self.handle_invalidate_reverse_record(&domain, old_target_address, none());
     }
 
     public fun set_target_address(
@@ -195,7 +195,7 @@ module suins::registry {
         let old_target = record.target_address();
 
         record.set_target_address(new_target);
-        handle_invalidate_reverse_record(self, &domain, old_target, new_target);
+        self.handle_invalidate_reverse_record(&domain, old_target, new_target);
     }
 
     public fun unset_reverse_lookup(self: &mut Registry, address: address) {
@@ -211,7 +211,7 @@ module suins::registry {
         let record = &self.registry[domain];
         let target = record.target_address();
 
-        assert!(option::is_some(&target), ETargetNotSet);
+        assert!(target.is_some(), ETargetNotSet);
         assert!(some(address) == target, ERecordMismatch);
 
         if (self.reverse_registry.contains(address)) {
@@ -268,7 +268,7 @@ module suins::registry {
 
     /// Returns the `domain_name` associated with the given address or None.
     public fun reverse_lookup(self: &Registry, address: address): Option<Domain> {
-        if (table::contains(&self.reverse_registry, address)) {
+        if (self.reverse_registry.contains(address)) {
             some(self.reverse_registry[address])
         } else {
             none()
@@ -310,9 +310,9 @@ module suins::registry {
             return false
         };
         
-        let option_name_record = lookup(self, domain);
+        let option_name_record = self.lookup(domain);
 
-        if (option::is_none(&option_name_record)) {
+        if (option_name_record.is_none()) {
             return false
         };
 
@@ -328,7 +328,7 @@ module suins::registry {
         with_grace_period: bool,
         ctx: &mut TxContext,
     ): SuinsRegistration {
-        remove_existing_record_if_exists_and_expired(self, domain, clock, with_grace_period);
+        self.remove_existing_record_if_exists_and_expired(domain, clock, with_grace_period);
 
         // If we've made it to this point then we know that we are able to
         // register an entry for this domain.
@@ -358,8 +358,8 @@ module suins::registry {
             // if there's a parent (if not, we can just remove it), we need to check if the parent is valid.
             // -> If the parent is valid, we need to check if the parent is expired.
             // -> If the parent is not valid (nft_id has changed), or if the parent doesn't exist anymore (owner burned it), we can override the leaf record.
-            if (option::is_some(&option_parent_name_record)) {
-                let parent_name_record = option::borrow(&option_parent_name_record);
+            if (option_parent_name_record.is_some()) {
+                let parent_name_record = option_parent_name_record.borrow();
 
                 // If the parent is the same and hasn't expired, we can't override the leaf record like this.
                 // We need to first remove + then call create (to protect accidental overrides).
@@ -374,7 +374,7 @@ module suins::registry {
         };
 
         let old_target_address = record.target_address();
-        handle_invalidate_reverse_record(self, &domain, old_target_address, none());
+        self.handle_invalidate_reverse_record(&domain, old_target_address, none());
     }
 
     fun handle_invalidate_reverse_record(
@@ -387,14 +387,14 @@ module suins::registry {
             return
         };
 
-        if (option::is_none(&old_target_address)) {
+        if (old_target_address.is_none()) {
             return
         };
 
-        let old_target_address = option::destroy_some(old_target_address);
+        let old_target_address = old_target_address.destroy_some();
         let reverse_registry = &mut self.reverse_registry;
 
-        if (table::contains(reverse_registry, old_target_address)) {
+        if (reverse_registry.contains(old_target_address)) {
             let default_domain = &reverse_registry[old_target_address];
             if (default_domain == domain) {
                 reverse_registry.remove(old_target_address);

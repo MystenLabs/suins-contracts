@@ -3,13 +3,9 @@
 
 /// This module defines the `DayOne` Object airdropped to early supporters of the SuiNS project.
 module day_one::day_one {
-    use std::option;
-    use std::vector;
-
+    
     use sui::package;
-    use sui::object::{Self, UID};
-    use sui::transfer;
-    use sui::tx_context::{TxContext, sender};
+    use sui::tx_context::{sender};
     use sui::hash;
     use sui::dynamic_field as df;
     use sui::bcs;
@@ -47,7 +43,7 @@ module day_one::day_one {
         transfer::share_object(DropList { id: object::new(ctx), total_minted: 0 });
         // For SuiNS, we need 1 SetupCap to manage all the required addresses. We'll be setting up around 75K addresses.
         // We can mint 2K objects per run!
-        transfer::transfer(SetupCap { id: object::new(ctx) }, sender(ctx));
+        transfer::transfer(SetupCap { id: object::new(ctx) }, ctx.sender());
     }
 
     /// The DayOne object, granting participants special offers in
@@ -103,7 +99,7 @@ module day_one::day_one {
         assert!(vector::length(&hashes) <= 1000, ETooManyHashes);
 
         let SetupCap { id } = cap;
-        object::delete(id);
+        id.delete();
 
         // attach every hash as a dynamic field to the `DropList` object;
         while (vector::length(&hashes) > 0) {
@@ -150,7 +146,7 @@ module day_one::day_one {
             serial: _
         } = nft;
 
-        object::delete(id);
+        id.delete();
     }
 
     #[test_only]

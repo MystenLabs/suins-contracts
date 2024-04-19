@@ -54,8 +54,7 @@ module suins::subdomain_registration {
             id, nft
         } = name;
 
-        object::delete(id);
-
+        id.delete();
         nft
     }
 

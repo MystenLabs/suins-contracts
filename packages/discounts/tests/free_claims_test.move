@@ -70,7 +70,7 @@ module discounts::free_claims_tests {
 
     fun burn_authorized(authorized: TestAuthorized) {
         let TestAuthorized { id } = authorized;
-        object::delete(id);
+        id.delete();
     }
 
     fun free_claim_with_type<T: key>(
