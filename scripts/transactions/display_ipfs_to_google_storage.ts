@@ -3,9 +3,9 @@
 
 import dotenv from "dotenv";
 dotenv.config();
-import { prepareMultisigTx } from "../airdrop/helper";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { mainPackage } from "../config/constants";
+import { prepareMultisigTx } from "../utils/utils";
 
 const run = async () => {
     // read addresses from file

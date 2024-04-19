@@ -1,17 +1,19 @@
 import { mainPackage } from "../config/constants";
 import fs from "fs";
+import { getClient } from "../utils/utils";
+import { SuiObjectResponse } from "@mysten/sui.js/dist/cjs/client";
 
 const config = mainPackage.mainnet;
 
 const getAllOwnedDomains = async () => {
-
+    let client = getClient('mainnet');
     let hasNextPage = true;
-    let cursor = undefined;
+    let cursor: string | null | undefined = undefined;
 
-    let names = [];
+    let names: SuiObjectResponse[] = [];
 
     while(hasNextPage){
-        const res = await config.client.getOwnedObjects({
+        const res = await client.getOwnedObjects({
             owner: config.adminAddress,
             filter: {
                 MatchAll: [

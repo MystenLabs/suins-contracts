@@ -10,7 +10,6 @@ const gasObject = process.env.GAS_OBJECT;
 // Github actions are always on mainnet.
 // This will publish the day_one package.
 const publishDayOnePackage = async () => {
-
     if(!gasObject) throw new Error("Gas Object not supplied for a mainnet transaction");
 
     // on GH Action, the sui binary is located on root. Referencing that as `/` doesn't work.

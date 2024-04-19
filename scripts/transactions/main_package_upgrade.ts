@@ -13,7 +13,6 @@ const network = process.env.NETWORK as Network || 'mainnet';
 // if upgradeCap & gasObject is on mainnet, it has to be on mainnet.
 // Github actions are always on mainnet.
 const mainPackageUpgrade = async () => {
-
     if(!gasObject) throw new Error("Gas Object not supplied for a mainnet transaction");
 
     // on GH Action, the sui binary is located on root. Referencing that as `/` doesn't work.

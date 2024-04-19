@@ -3,7 +3,7 @@
 
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { mainPackage } from '../config/constants';
-import { prepareMultisigTx } from '../airdrop/helper';
+import { prepareMultisigTx } from "../utils/utils";
 
 /// MystenLabs treasury address.
 const ADDRESS_TO_TRANSFER_FUNDS =

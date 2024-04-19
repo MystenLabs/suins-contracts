@@ -1,9 +1,9 @@
 import { PackageInfo, mainPackage } from "../../config/constants"
 import reservedObjects from "../../reserved-names/owned-objects.json";
-import { prepareMultisigTx } from "../../airdrop/helper";
 import { MIST_PER_SUI, SUI_CLOCK_OBJECT_ID } from "@mysten/sui.js/utils";
 import { TransactionArgument, TransactionBlock } from "@mysten/sui.js/transactions";
 import { SuiObjectRef } from "@mysten/sui.js/client";
+import { prepareMultisigTx } from "../../utils/utils";
 
 const RUN = process.env.RUN_ID || '';
 
@@ -26,7 +26,7 @@ const MAX_NAMES_PER_BATCH = 815;
 const YEARS_TO_RENEW = 5n;
 
 function chunkArray(array: any[], batchSize: number = MAX_NAMES_PER_BATCH) {
-    const chunkedArray = [];
+    const chunkedArray: any[] = [];
     let index = 0;
 
     while (index < array.length) {

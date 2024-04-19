@@ -12,7 +12,7 @@ dependencies:
     specifier: 0.8.4
     version: 0.8.4
   '@mysten/sui.js':
-    specifier: 0.51.0
+    specifier: ^0.51.0
     version: 0.51.0
   '@noble/hashes':
     specifier: ^1.4.0

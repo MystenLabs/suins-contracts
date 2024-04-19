@@ -1,11 +1,11 @@
-import { TransactionArgument, TransactionBlock } from "@mysten/sui.js/transactions";
+import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { Network, mainPackage } from "../config/constants";
 import { AirdropConfig, addressConfig, mainnetConfig } from "../config/day_one";
-import { Network as KioskNetwork, ObjectArgument, TransferPolicyTransaction } from "@mysten/kiosk";
+import { Network as KioskNetwork, TransferPolicyTransaction } from "@mysten/kiosk";
 import { KioskClient } from '@mysten/kiosk';
+import { getClient } from "../utils/utils";
 
 export const dayOneType = (config: AirdropConfig) =>  `${config.packageId}::day_one::DayOne`;
-
 
 export const createDayOneDisplay = async (tx: TransactionBlock, network: Network) => {
   const config = network === 'mainnet' ? mainnetConfig : addressConfig;
@@ -48,7 +48,7 @@ export const createDayOneTransferPolicy = async (
     const mainPackageConfig = mainPackage[network];
 
     const kioskClient = new KioskClient({
-      client: mainPackageConfig.client,
+      client: getClient(network),
       network: network === 'mainnet' ? KioskNetwork.MAINNET : KioskNetwork.TESTNET
     })
 

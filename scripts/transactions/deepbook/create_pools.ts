@@ -3,13 +3,9 @@
 
 import dotenv from "dotenv";
 dotenv.config();
-import {
-  executeTx,
-  prepareMultisigTx,
-  prepareSigner,
-} from "../../airdrop/helper";
 import { Network, mainPackage } from "../../config/constants";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { prepareMultisigTx, signAndExecute } from "../../utils/utils";
 
 const SUI =
   "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI";
@@ -86,8 +82,6 @@ const DEFAULT_STABLE_TAKER_FEE = 100000;
 
 // Setup Deepbook Pool.
 const setup = async (network: Network) => {
-  const setup = mainPackage[network];
-
   const txb = new TransactionBlock();
   const [coin] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
 
@@ -123,7 +117,7 @@ const setup = async (network: Network) => {
   if (network === "mainnet") return prepareMultisigTx(txb, "mainnet");
 
   // For testnet, we execute the TX directly.
-  return executeTx(prepareSigner(), txb, setup.client);
+  return signAndExecute(txb, network);
 };
 
 if (process.env.NETWORK === "mainnet") setup("mainnet");

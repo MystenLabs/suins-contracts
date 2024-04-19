@@ -8,7 +8,6 @@ import { execSync } from 'child_process';
 const gasObject = process.env.GAS_OBJECT;
 
 const publish = async () => {
-
     if(!gasObject) throw new Error("Gas Object not supplied for a mainnet transaction");
 
     // on GH Action, the sui binary is located on root. Referencing that as `/` doesn't work.

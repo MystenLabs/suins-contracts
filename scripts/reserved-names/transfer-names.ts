@@ -1,9 +1,9 @@
-import { SuiClient, SuiObjectResponse } from "@mysten/sui.js/client";
+import { SuiObjectResponse } from "@mysten/sui.js/client";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { isValidSuiAddress } from "@mysten/sui.js/utils";
 
 import fs from "fs";
-import { prepareMultisigTx } from "../airdrop/helper";
+import { prepareMultisigTx } from "../utils/utils";
 
 // A {name: address} map
 const domains: Record<string, string> = {};
