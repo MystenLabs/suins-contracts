@@ -2,7 +2,7 @@ import { normalizeSuiAddress } from "@mysten/sui.js/utils";
 
 export type Network = 'mainnet' | 'testnet'
 
-export type Config = Record<Network, PackageInfo>
+export type Config = Record<'mainnet' | 'testnet', PackageInfo>
 
 export type PackageInfo = {
     packageId: string;
