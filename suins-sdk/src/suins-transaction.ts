@@ -280,4 +280,20 @@ export class SuinsTransaction {
 			],
 		});
 	}
+
+	setUserData({ nft, value, key }: { nft: ObjectArgument; value: string; key: string }) {
+		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('Suins Object ID not found');
+		if (!this.#suinsClient.constants.suinsPackageV1) throw new Error('suinsPackageV1 package ID not found');
+
+		this.transactionBlock.moveCall({
+			target: `${this.#suinsClient.constants.suinsPackageV1}::controller::set_user_data`,
+			arguments: [
+				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
+				this.transactionBlock.object(nft),
+				this.transactionBlock.pure.string(key),
+				this.transactionBlock.pure.string(value),
+				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
+			],
+		});
+	}
 }
