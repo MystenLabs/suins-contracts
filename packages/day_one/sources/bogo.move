@@ -9,14 +9,13 @@ module day_one::bogo {
     use std::string::{Self, String};
 
     use sui::clock::{Clock};
-    use sui::tx_context::{TxContext};
     use sui::dynamic_field::{Self as df};
 
     use suins::config;
     use suins::domain::{Self, Domain};
     use suins::suins::{Self, SuiNS};
     use suins::suins_registration::{Self as nft, SuinsRegistration};
-    use suins::registry::{Self, Registry};
+    use suins::registry::Registry;
 
     use day_one::day_one::{Self, DayOne};
 
@@ -55,20 +54,20 @@ module day_one::bogo {
         ctx: &mut TxContext,
     ): SuinsRegistration {
         // verify we can register names using this app.
-        suins::assert_app_is_authorized<BogoApp>(suins);
+        suins.assert_app_is_authorized<BogoApp>();
 
         // check that domain_nft hasn't been already used in this deal.
         assert!(!used_in_promo(domain_nft), EDomainAlreadyUsed);
 
         // Verify that the domain was bought in an auction.
         // We understand if a domain was bought in an auction if the expiry date is less than the last day of auction + 1 year. 
-        assert!(nft::expiration_timestamp_ms(domain_nft) <= LAST_VALID_EXPIRATION_DATE, ENotPurchasedInAuction);
+        assert!(domain_nft.expiration_timestamp_ms() <= LAST_VALID_EXPIRATION_DATE, ENotPurchasedInAuction);
 
         // generate a domain out of the input string.
         let new_domain = domain::new(domain_name);
         let new_domain_size = domain_length(&new_domain);
 
-        let domain_size = domain_length(&nft::domain(domain_nft));
+        let domain_size = domain_length(&domain_nft.domain());
 
         // make sure the domain is valid.
         config::assert_valid_user_registerable_domain(&new_domain);
@@ -81,7 +80,7 @@ module day_one::bogo {
         if(!day_one::is_active(day_one_nft)) day_one::activate(day_one_nft);
 
         let registry = suins::app_registry_mut<BogoApp, Registry>(BogoApp {}, suins);
-        let mut nft = registry::add_record(registry, new_domain, DEFAULT_DURATION, clock, ctx);
+        let mut nft = registry.add_record(new_domain, DEFAULT_DURATION, clock, ctx);
 
         // mark both the new and the current domain presented as used, so that they can't 
         // be redeemed twice in this deal.

@@ -2,7 +2,6 @@
 module suins::day_one_tests {
     // use std::debug::{print};
     use std::string::{utf8, String};
-    use sui::tx_context::{TxContext};
     use sui::clock::{Self, Clock};
     use sui::test_scenario::{Self, Scenario, ctx};
 
@@ -16,7 +15,6 @@ module suins::day_one_tests {
 
     const SUINS_ADDRESS: address = @0xA001;
     const USER_ADDRESS: address =  @0xA002;
-    const ATTACH_DOMAINS_PERIOD_MS: u64 = 1 * 24 * 60 * 60 * 1000;
 
     fun test_init(): Scenario {
         let mut scenario_val = test_scenario::begin(SUINS_ADDRESS);
