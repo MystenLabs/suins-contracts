@@ -4,8 +4,8 @@ import { SuinsClient } from './suins-client';
 import { ObjectArgument } from './types';
 import { isNestedSubName, isSubName, validateName, validateYears } from './helpers';
 
-export const CONTENT_HASH = 'content_hash';
-export const AVATAR = 'avatar';
+const CONTENT_HASH = 'content_hash';
+const AVATAR = 'avatar';
 
 export class SuinsTransaction {
 	#suinsClient: SuinsClient;
