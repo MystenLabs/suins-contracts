@@ -8,13 +8,11 @@ on:
         description: 'select transaction type to create'
         type: choice
         options:
-          - Authorize Basecamp Free Claim
           - Disable Discounts
           - Disable Free Claims
-          - Withdraw Auction Profits
+          - Profits to Treasury
           - Transfer Reserved Names
           - Main package upgrade
-          - Create Deepbook Pools
       sui_tools_image:
         description: 'image reference of sui_tools'
         default: 'mysten/sui-tools:mainnet'
@@ -107,15 +105,15 @@ jobs:
         run: |
           cd scripts && pnpm transfer::names
     
-      - name: Withdraw Auction Profits
-        if: ${{ inputs.transaction_type == 'Withdraw Auction Profits' }}
+      - name: Profits to Treasury
+        if: ${{ inputs.transaction_type == 'Profits to Treasury' }}
         env:
           NODE_ENV: production
           GAS_OBJECT: ${{ inputs.gas_object_id }}
           NETWORK: mainnet
           ORIGIN: gh_action
         run: |
-          cd scripts && pnpm withdraw:auction:profits
+          cd scripts && pnpm withdraw:profits
 
       - name: Authorize Basecamp Free Claim
         if: ${{ inputs.transaction_type == 'Authorize Basecamp Free Claim' }}

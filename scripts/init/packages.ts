@@ -1,9 +1,11 @@
 import { SuiTransactionBlockResponse } from "@mysten/sui.js/client";
 import { SuiNS, SuiNSDependentPackages, TempSubdomainProxy } from "./manifests";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
-import { setupApp } from "../transactions/authorization";
+import { addConfig, addRegistry, newLookupRegistry, newPriceConfig, setupApp } from "./authorization";
+import { createDisplay } from "./display_tp";
 
 export type Network = 'mainnet' | 'testnet' | 'devnet' | 'localnet';
+
 
 const parseCorePackageObjects = (data: SuiTransactionBlockResponse) => {
     const packageId = data.objectChanges!.find(x => x.type === 'published');
@@ -46,6 +48,40 @@ export const Packages = (network: Network) =>  {
                     adminCap
                 }
             },
+            setupFunction: (txb: TransactionBlock, packageId: string, adminCap: string, suins: string, publisher: string) => {
+                // Adds the default registry where name records and reverse records will live
+                addRegistry({
+                    txb,
+                    adminCap,
+                    suins,
+                    suinsPackageIdV1: packageId,
+                    registry: newLookupRegistry({ txb, suinsPackageIdV1: packageId, adminCap: adminCap }),
+                    type: `${packageId}::registry::Registry`,
+                });
+                // Adds the configuration file (pricelist and public key)
+                addConfig({
+                    txb,
+                    adminCap,
+                    suins,
+                    suinsPackageIdV1: packageId,
+                    config: newPriceConfig({ txb, suinsPackageIdV1: packageId, priceList: { three: 0, four: 0, fivePlus: 0 }}),
+                    type: `${packageId}::config::Config`,
+                });
+                // create display for names
+                createDisplay({
+                    txb,
+                    publisher,
+                    isSubdomain: false,
+                    suinsPackageIdV1: packageId
+                });
+                // create display for subnames
+                createDisplay({
+                    txb,
+                    publisher,
+                    isSubdomain: true,
+                    suinsPackageIdV1: packageId
+                });
+            }
         },
         Utils: {
             order: 2,
@@ -120,6 +156,22 @@ export const Packages = (network: Network) =>  {
                 }
             }
         },
+        Coupons: {
+            order: 2,
+            folder: 'coupons',
+            manifest: SuiNSDependentPackages(rev, 'coupons'),
+            processPublish: (data: SuiTransactionBlockResponse) => {
+                const { packageId, upgradeCap } = parseCorePackageObjects(data);
+                const couponHouse = parseCreatedObject(data, `${packageId}::coupons::CouponHouse`);
+
+                return {
+                    packageId,
+                    upgradeCap,
+                    authorizationType: `${packageId}::coupons::CouponsApp`,
+                    couponHouse
+                }
+            }
+        },
         Subdomains: {
             order: 3,
             folder: 'subdomains',
@@ -137,11 +189,22 @@ export const Packages = (network: Network) =>  {
                 setupApp({ txb, adminCap, suins, target: `${packageId}::subdomains` });
             }
         },
-        // Discounts: {
-        //     order: 3,
-        //     folder: 'discounts',
-        //     manifest: SuiNSDependentPackages(rev, 'discounts', 'day_one = { local = "../day_one" }'),
-        // },
+        Discounts: {
+            order: 3,
+            folder: 'discounts',
+            manifest: SuiNSDependentPackages(rev, 'discounts', 'day_one = { local = "../day_one" }'),
+            processPublish: (data: SuiTransactionBlockResponse) => {
+                const { packageId, upgradeCap } = parseCorePackageObjects(data);
+                const couponHouse = parseCreatedObject(data, `${packageId}::house::DiscountHouse`);
+
+                return {
+                    packageId,
+                    upgradeCap,
+                    authorizationType: `${packageId}::house::DiscountHouseApp`,
+                    couponHouse
+                }
+            }
+        },
         TempSubdomainProxy: {
             order: 3,
             folder: 'temp_subdomain_proxy',

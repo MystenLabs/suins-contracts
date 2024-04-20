@@ -3,6 +3,7 @@ import { Network, Packages } from "./packages"
 import { writeFileSync } from "fs";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { publishPackage, signAndExecute } from "../utils/utils";
+import { PackageInfo } from "./types";
 
 export const publishPackages = async (network: Network) => {
     const packages = Packages(network);
@@ -33,5 +34,6 @@ export const publishPackages = async (network: Network) => {
         }
     }
     writeFileSync(path.resolve(path.resolve(__dirname, '../'), 'published.json'), JSON.stringify(results, null, 2));
-    return results;
+    console.log("******* Packages published successfully *******");
+    return results as PackageInfo;
 }

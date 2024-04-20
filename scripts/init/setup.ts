@@ -1,34 +1,37 @@
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { Network, Packages } from "./packages";
-import { authorizeApp } from "../transactions/authorization";
-import published from "../published.json";
+import { authorizeApp } from "./authorization";
+import packageInfo from "../published.json";
 import { signAndExecute } from "../utils/utils";
+import { PackageInfo } from "./types";
 
-const setup = async (network: Network) => {
+export const setup = async (packageInfo: PackageInfo, network: Network) => {
     const packages = Packages(network);
 
     const txb = new TransactionBlock();
 
-    for(const pkg of Object.values(published)) {
-        if ('authorizationType' in pkg) {
+    for(const pkg of Object.values(packageInfo)) {
+        if ('authorizationType' in pkg && pkg.authorizationType) {
             authorizeApp({
                 txb,
-                adminCap: published.SuiNS.adminCap,
-                suins: published.SuiNS.suins,
+                adminCap: packageInfo.SuiNS.adminCap,
+                suins: packageInfo.SuiNS.suins,
                 type: pkg.authorizationType,
-                suinsPackageIdV1: published.SuiNS.packageId
+                suinsPackageIdV1: packageInfo.SuiNS.packageId
             });
         }
     }
+    // Call setup functions for our packages.
+    packages.Subdomains.setupFunction(txb, packageInfo.Subdomains.packageId, packageInfo.SuiNS.adminCap, packageInfo.SuiNS.suins);
+    packages.DenyList.setupFunction(txb, packageInfo.DenyList.packageId, packageInfo.SuiNS.adminCap, packageInfo.SuiNS.suins);
+    packages.SuiNS.setupFunction(txb, packageInfo.SuiNS.packageId, packageInfo.SuiNS.adminCap, packageInfo.SuiNS.suins, packageInfo.SuiNS.publisher);
 
-    // call setup for any function needed.
-    packages.Subdomains.setupFunction(txb, published.Subdomains.packageId, published.SuiNS.adminCap, published.SuiNS.suins);
-    packages.DenyList.setupFunction(txb, published.DenyList.packageId, published.SuiNS.adminCap, published.SuiNS.suins);
-
-    const res = await signAndExecute(txb, network).catch(e=>{
+    try{
+        await signAndExecute(txb, network);
+        console.log("******* Packages set up successfully *******");
+    
+    }catch(e) {
+        console.error("Something went wrong!");
         console.dir(e, { depth: null })
-    });
-    console.dir(res, { depth: null });
+    }
 }
-
-setup('testnet');
