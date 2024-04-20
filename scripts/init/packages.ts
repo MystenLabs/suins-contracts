@@ -3,6 +3,7 @@ import { SuiNS, SuiNSDependentPackages, TempSubdomainProxy } from "./manifests";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { addConfig, addRegistry, newLookupRegistry, newPriceConfig, setupApp } from "./authorization";
 import { createDisplay } from "./display_tp";
+import { MIST_PER_SUI } from "@mysten/sui.js/utils";
 
 export type Network = 'mainnet' | 'testnet' | 'devnet' | 'localnet';
 
@@ -64,7 +65,13 @@ export const Packages = (network: Network) =>  {
                     adminCap,
                     suins,
                     suinsPackageIdV1: packageId,
-                    config: newPriceConfig({ txb, suinsPackageIdV1: packageId, priceList: { three: 0, four: 0, fivePlus: 0 }}),
+                    config: newPriceConfig({ txb, 
+                        suinsPackageIdV1: packageId, 
+                        priceList: { 
+                            three: 5 * Number(MIST_PER_SUI), 
+                            four: 2 * Number(MIST_PER_SUI), 
+                            fivePlus: 0.5 * Number(MIST_PER_SUI)
+                        }}),
                     type: `${packageId}::config::Config`,
                 });
                 // create display for names
@@ -140,6 +147,24 @@ export const Packages = (network: Network) =>  {
                     upgradeCap,
                     authorizationType: `${packageId}::renew::Renew`,
                 }
+            },
+            setupFunction: (txb: TransactionBlock, packageId: string, suinsPackageIdV1: string, adminCap: string, suins: string) => {
+                const configuration = newPriceConfig({
+                    txb,
+                    suinsPackageIdV1,
+                    priceList: {
+                        three: 2 * Number(MIST_PER_SUI),
+                        four: 1 * Number(MIST_PER_SUI),
+                        fivePlus: 0.2 * Number(MIST_PER_SUI)
+                    }
+                });
+                setupApp({
+                    txb,
+                    adminCap,
+                    suins: suins,
+                    target: `${packageId}::renew::setup`,
+                    args: [configuration]
+                });
             }
         },
         DayOne: {
