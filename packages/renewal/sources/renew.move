@@ -50,7 +50,7 @@ module renewal::renew {
     /// and we can only have 1 config of each type in the suins app.
     /// We still set this up by using the default config functionality from suins package.
     /// The `public_key` passed in the `Config` can be a random u8 array with length 33.
-    public fun setup(cap: &AdminCap, suins: &mut SuiNS, config: Config) {
+    public fun setup(suins: &mut SuiNS, cap: &AdminCap, config: Config) {
         suins::add_config<RenewalConfig>(cap, suins, RenewalConfig { config });
     }
 
