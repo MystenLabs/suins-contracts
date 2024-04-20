@@ -7,7 +7,7 @@ import { getFullnodeUrl, ExecutionStatus, GasCostSummary, SuiClient, SuiTransact
 import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
 import { TransactionArgument, TransactionBlock } from '@mysten/sui.js/transactions';
 import { fromB64 } from '@mysten/sui.js/utils';
-import { execSync } from "child_process";
+import { execFileSync, execSync } from "child_process";
 import { toB64 } from "@mysten/sui.js/utils";
 import { Network } from "../init/packages";
 
@@ -19,8 +19,9 @@ export const getActiveAddress = () => {
 
 export const publishPackage = (txb: TransactionBlock, path: string, network: Network) => {
 	const { modules, dependencies } = JSON.parse(
-		execSync(
-			`sui move build --dump-bytecode-as-base64 --path ${path}`,
+        execFileSync(
+			'sui',
+			['move', 'build', '--dump-bytecode-as-base64', '--path', path],
 			{ encoding: 'utf-8' },
 		),
 	);
