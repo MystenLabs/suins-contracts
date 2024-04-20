@@ -3,12 +3,14 @@
 
 /// This module defines the `DayOne` Object airdropped to early supporters of the SuiNS project.
 module day_one::day_one {
-    
-    use sui::package;
-    use sui::tx_context::{sender};
-    use sui::hash;
-    use sui::dynamic_field as df;
-    use sui::bcs;
+
+    use sui::{
+        package,
+        tx_context::{sender},
+        hash,
+        dynamic_field as df,
+        bcs,
+    };
 
     // We mark as friend just the BOGO module.
     // This is the only one that can activate a DayOne object.
@@ -16,7 +18,7 @@ module day_one::day_one {
     /* friend day_one::bogo; */
 
     /// The shared object that stores the receivers destination.
-    public struct DropList has key { 
+    public struct DropList has key {
         id: UID,
         total_minted: u32
     }
@@ -25,7 +27,7 @@ module day_one::day_one {
     /// publish. Consumed in the setup call.
     public struct SetupCap has key { id: UID }
 
-    /// == ERRORS == 
+    /// == ERRORS ==
     // Error emitted when trying to mint with invalid addresses (non existent DF).
     const ENotFound: u64 = 0;
 
@@ -39,7 +41,7 @@ module day_one::day_one {
     fun init(otw: DAY_ONE, ctx: &mut TxContext) {
         // Claim the `Publisher` for the package!
         package::claim_and_keep(otw, ctx);
-        
+
         transfer::share_object(DropList { id: object::new(ctx), total_minted: 0 });
         // For SuiNS, we need 1 SetupCap to manage all the required addresses. We'll be setting up around 75K addresses.
         // We can mint 2K objects per run!
@@ -48,7 +50,7 @@ module day_one::day_one {
 
     /// The DayOne object, granting participants special offers in
     /// different future promotions.
-    public struct DayOne has key, store { 
+    public struct DayOne has key, store {
         id: UID,
         active: bool,
         serial: u32
@@ -68,12 +70,12 @@ module day_one::day_one {
 
         // fails if not found.
         let lookup = df::remove_if_exists(&mut self.id, sui::address::from_bytes(hash));
-        assert!(option::is_some<bool>(&lookup), ENotFound);
+        assert!(lookup.is_some<bool>(), ENotFound);
 
         let mut i: u32 = self.total_minted;
 
         while (vector::length(&recipients) > 0) {
-            let recipient = vector::pop_back(&mut recipients);
+            let recipient = recipients.pop_back();
             transfer::public_transfer(DayOne {
                 id: object::new(ctx),
                 active: false,
@@ -94,21 +96,21 @@ module day_one::day_one {
         cap: SetupCap,
         mut hashes: vector<address>,
     ) {
-        // verify we only pass less than 1000 hashes at the setup. 
+        // verify we only pass less than 1000 hashes at the setup.
         // That's the max amount of DFs we can create in a single run.
-        assert!(vector::length(&hashes) <= 1000, ETooManyHashes);
+        assert!(hashes.length() <= 1000, ETooManyHashes);
 
         let SetupCap { id } = cap;
         id.delete();
 
         // attach every hash as a dynamic field to the `DropList` object;
-        while (vector::length(&hashes) > 0) {
-            df::add(&mut self.id, vector::pop_back(&mut hashes), true);
+        while (hashes.length() > 0) {
+            df::add(&mut self.id, hashes.pop_back(), true);
         };
     }
-    
+
     // Private helper to activate the DayOne object
-    // Will only be called by the `bogo` module (friend), which marks the 
+    // Will only be called by the `bogo` module (friend), which marks the
     // beggining of the DayOne promotions.
     public(package) fun activate(self: &mut DayOne) {
         self.active = true
