@@ -1,22 +1,23 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-/// A simple BOGO that allows a `DayOne` holder to trade 
+/// A simple BOGO that allows a `DayOne` holder to trade
 /// a domain registered before the expiration day we set
 /// with another one of the same size.
-/// 
+///
 module day_one::bogo {
     use std::string::{Self, String};
-
-    use sui::clock::{Clock};
-    use sui::dynamic_field::{Self as df};
-
-    use suins::config;
-    use suins::domain::{Self, Domain};
-    use suins::suins::{Self, SuiNS};
-    use suins::suins_registration::{Self as nft, SuinsRegistration};
-    use suins::registry::Registry;
-
+    use sui::{
+        clock::{Clock},
+        dynamic_field::{Self as df},
+    };
+    use suins::{
+        config,
+        domain::{Self, Domain},
+        suins::{Self, SuiNS},
+        suins_registration::SuinsRegistration,
+        registry::Registry,
+    };
     use day_one::day_one::{Self, DayOne};
 
     /// Authorization token for the BOGO app.
@@ -28,7 +29,7 @@ module day_one::bogo {
     public struct UsedInDayOnePromo has copy, store, drop { }
 
     // This will define if a domain name was bought in an auction.
-    // The only way to understand that, is to check that the expiration day is 
+    // The only way to understand that, is to check that the expiration day is
     // less than last_day of auctions + 1 year.
     const LAST_VALID_EXPIRATION_DATE: u64 = 1721499031 * 1000; // Saturday, 20 July 2024 18:10:31 UTC
 
@@ -60,7 +61,7 @@ module day_one::bogo {
         assert!(!used_in_promo(domain_nft), EDomainAlreadyUsed);
 
         // Verify that the domain was bought in an auction.
-        // We understand if a domain was bought in an auction if the expiry date is less than the last day of auction + 1 year. 
+        // We understand if a domain was bought in an auction if the expiry date is less than the last day of auction + 1 year.
         assert!(domain_nft.expiration_timestamp_ms() <= LAST_VALID_EXPIRATION_DATE, ENotPurchasedInAuction);
 
         // generate a domain out of the input string.
@@ -82,7 +83,7 @@ module day_one::bogo {
         let registry = suins::app_registry_mut<BogoApp, Registry>(BogoApp {}, suins);
         let mut nft = registry.add_record(new_domain, DEFAULT_DURATION, clock, ctx);
 
-        // mark both the new and the current domain presented as used, so that they can't 
+        // mark both the new and the current domain presented as used, so that they can't
         // be redeemed twice in this deal.
         mark_domain_as_used(domain_nft);
         mark_domain_as_used(&mut nft);
@@ -92,12 +93,12 @@ module day_one::bogo {
 
     // Returns the size of a domain name. (e.g test.sui -> 4)
     fun domain_length(domain: &Domain): u64{
-        string::length(domain::sld(domain))
+        string::length(domain.sld())
     }
 
     // Check if the domain has been minted for free from this bogo promo.
     public fun used_in_promo(domain_nft: &SuinsRegistration): bool {
-        df::exists_(nft::uid(domain_nft), UsedInDayOnePromo {})
+        df::exists_(domain_nft.uid(), UsedInDayOnePromo {})
     }
 
     public fun last_valid_expiration(): u64 {
@@ -106,7 +107,7 @@ module day_one::bogo {
 
      /// Attaches a DF that marks a domain as `used` in another day 1 object.
     fun mark_domain_as_used(domain_nft: &mut SuinsRegistration) {
-        df::add(nft::uid_mut(domain_nft), UsedInDayOnePromo {}, true)
+        df::add(domain_nft.uid_mut(), UsedInDayOnePromo {}, true)
     }
 
 }
