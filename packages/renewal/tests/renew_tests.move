@@ -140,7 +140,7 @@ module renewal::renew_tests {
             REGULAR_PRICE * ::suins::constants::mist_per_sui(),
         );
 
-        renewal::setup(&cap, &mut suins, config);
+        renewal::setup(&mut suins, &cap, config);
 
         let nft = registry.add_record(domain, 1,&clock, ctx);
         suins::add_registry(&cap, &mut suins, registry);
