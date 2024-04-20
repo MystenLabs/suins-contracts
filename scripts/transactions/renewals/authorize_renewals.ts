@@ -8,11 +8,20 @@ import { Network, mainPackage } from "../../config/constants";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { prepareMultisigTx, signAndExecute } from "../../utils/utils";
 import { Packages } from "../../init/packages";
+import { authorizeApp } from "../../init/authorization";
 
 export const authorize = async (network: Network) => {
     const txb = new TransactionBlock();
     const config = mainPackage[network];
 
+    authorizeApp({
+        txb,
+        adminCap: config.adminCap,
+        suins: config.suins,
+        type: `${config.renewalsPackageId}::renew::Renew`,
+        suinsPackageIdV1: config.packageId
+    });
+  
     Packages('mainnet').Renewal.setupFunction({
       txb,
       adminCap: config.adminCap,
