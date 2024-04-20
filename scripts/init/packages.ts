@@ -148,15 +148,26 @@ export const Packages = (network: Network) =>  {
                     authorizationType: `${packageId}::renew::Renew`,
                 }
             },
-            setupFunction: (txb: TransactionBlock, packageId: string, suinsPackageIdV1: string, adminCap: string, suins: string) => {
+            setupFunction: ({
+                txb,
+                packageId,
+                adminCap,
+                suinsPackageIdV1,
+                suins,
+                priceList 
+            } : {
+                txb: TransactionBlock, 
+                packageId: string, 
+                suinsPackageIdV1: string, 
+                adminCap: string, 
+                suins: string;
+                priceList: { [key: string]: number };
+            }
+            ) => {
                 const configuration = newPriceConfig({
                     txb,
                     suinsPackageIdV1,
-                    priceList: {
-                        three: 2 * Number(MIST_PER_SUI),
-                        four: 1 * Number(MIST_PER_SUI),
-                        fivePlus: 0.2 * Number(MIST_PER_SUI)
-                    }
+                    priceList
                 });
                 setupApp({
                     txb,
