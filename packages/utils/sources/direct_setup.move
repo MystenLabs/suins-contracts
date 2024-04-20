@@ -41,7 +41,7 @@ module utils::direct_setup {
 
     /// Set the reverse lookup address for the domain
     public fun set_reverse_lookup(suins: &mut SuiNS, domain_name: String, ctx: &TxContext) {
-        registry_mut(suins).set_reverse_lookup(ctx.sender(), domain);
+        registry_mut(suins).set_reverse_lookup(ctx.sender(), domain::new(domain_name));
     }
 
     /// User-facing function - unset the reverse lookup address for the domain.
