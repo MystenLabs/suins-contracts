@@ -41,15 +41,12 @@ module utils::direct_setup {
 
     /// Set the reverse lookup address for the domain
     public fun set_reverse_lookup(suins: &mut SuiNS, domain_name: String, ctx: &TxContext) {
-        let domain = domain::new(domain_name);
-        let registry = registry_mut(suins);
-        registry.set_reverse_lookup(ctx.sender(), domain);
+        registry_mut(suins).set_reverse_lookup(ctx.sender(), domain);
     }
 
     /// User-facing function - unset the reverse lookup address for the domain.
     public fun unset_reverse_lookup(suins: &mut SuiNS, ctx: &TxContext) {
-        let registry = registry_mut(suins);
-        registry.unset_reverse_lookup(ctx.sender());
+        registry_mut(suins).unset_reverse_lookup(ctx.sender());
     }
 
     /// User-facing function - add a new key-value pair to the name record's data.
