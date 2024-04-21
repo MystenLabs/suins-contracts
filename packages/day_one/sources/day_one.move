@@ -6,7 +6,7 @@ module day_one::day_one {
 
     use sui::{
         package,
-        tx_context::{sender},
+        tx_context::sender,
         hash,
         dynamic_field as df,
         bcs,

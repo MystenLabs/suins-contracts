@@ -8,8 +8,8 @@
 module day_one::bogo {
     use std::string::{Self, String};
     use sui::{
-        clock::{Clock},
-        dynamic_field::{Self as df},
+        clock::Clock,
+        dynamic_field::Self as df,
     };
     use suins::{
         config,
