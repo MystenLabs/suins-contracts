@@ -73,7 +73,7 @@ module suins::suins_registration {
             expiration_timestamp_ms: _
         } = self;
 
-        object::delete(id);
+        id.delete();
     }
 
     // === Public methods ===
@@ -149,6 +149,6 @@ module suins::suins_registration {
             expiration_timestamp_ms: _
         } = nft;
 
-        object::delete(id);
+        id.delete();
     }
 }

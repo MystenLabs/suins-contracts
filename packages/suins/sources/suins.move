@@ -220,7 +220,7 @@ module suins::suins {
     /// Burn the admin cap - only for testing.
     public fun burn_admin_cap_for_testing(admin_cap: AdminCap) {
         let AdminCap { id } = admin_cap;
-        object::delete(id);
+        id.delete();
     }
 
     #[test_only]

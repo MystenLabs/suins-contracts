@@ -1,42 +1,45 @@
 #[test_only]
 module suins::day_one_tests {
-    // use std::debug::{print};
     use std::string::{utf8, String};
-    use sui::tx_context::{TxContext};
-    use sui::clock::{Self, Clock};
-    use sui::test_scenario::{Self, Scenario, ctx};
+    use sui::{
+        clock::{Self, Clock},
+        test_scenario::{Self, Scenario, ctx},
+    };
 
-    use suins::suins_registration::{Self as nft, SuinsRegistration};
-    use suins::domain;
-    use suins::registry;
-    use suins::suins::{Self, SuiNS, AdminCap};
+    use suins::{
+        suins_registration::{Self as nft, SuinsRegistration},
+        domain,
+        registry,
+        suins::{Self, SuiNS, AdminCap},
+    };
 
-    use day_one::day_one::{Self, DayOne};
-    use day_one::bogo::{Self, BogoApp};
+    use day_one::{
+        day_one::{Self, DayOne},
+        bogo::{Self, BogoApp},
+    };
 
     const SUINS_ADDRESS: address = @0xA001;
     const USER_ADDRESS: address =  @0xA002;
-    const ATTACH_DOMAINS_PERIOD_MS: u64 = 1 * 24 * 60 * 60 * 1000;
 
     fun test_init(): Scenario {
         let mut scenario_val = test_scenario::begin(SUINS_ADDRESS);
         let scenario = &mut scenario_val;
         {
             let mut suins = suins::init_for_testing(ctx(scenario));
-            suins::authorize_app_for_testing<BogoApp>(&mut suins);
-            suins::share_for_testing(suins);
+            suins.authorize_app_for_testing<BogoApp>();
+            suins.share_for_testing();
             let clock = clock::create_for_testing(ctx(scenario));
-            clock::share_for_testing(clock);
+            clock.share_for_testing();
         };
         {
-            test_scenario::next_tx(scenario, SUINS_ADDRESS);
-            let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
-            let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+            scenario.next_tx(SUINS_ADDRESS);
+            let admin_cap = scenario.take_from_sender<AdminCap>();
+            let mut suins = scenario.take_shared<SuiNS>();
 
             registry::init_for_testing(&admin_cap, &mut suins, ctx(scenario));
 
             test_scenario::return_shared(suins);
-            test_scenario::return_to_sender(scenario, admin_cap);
+            scenario.return_to_sender(admin_cap);
         };
         scenario_val
     }
@@ -46,10 +49,10 @@ module suins::day_one_tests {
         // an e2e scenario were we just purchase 3 domains normally using 3 registered ones.
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
-        test_scenario::next_tx(scenario, USER_ADDRESS);
-        let clock = test_scenario::take_shared<Clock>(scenario);
+        scenario.next_tx(USER_ADDRESS);
+        let clock = scenario.take_shared<Clock>();
         let (mut domain1, mut domain2, mut domain3, mut day_one) = prepare(ctx(scenario), &clock);
-        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+        let mut suins = scenario.take_shared<SuiNS>();
 
         let new_name_1 = bogo::claim(&mut day_one, &mut suins, &mut domain1, utf8(b"wow.sui"), &clock, ctx(scenario));
         let new_name_2 = bogo::claim(&mut day_one, &mut suins, &mut domain2, utf8(b"wow1.sui"), &clock, ctx(scenario));
@@ -66,7 +69,7 @@ module suins::day_one_tests {
 
         test_scenario::return_shared(suins);
         test_scenario::return_shared(clock);
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
 
@@ -76,10 +79,10 @@ module suins::day_one_tests {
         // tries to reuse the same SuinsRegistration for a second time.
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
-        test_scenario::next_tx(scenario, USER_ADDRESS);
-        let clock = test_scenario::take_shared<Clock>(scenario);
+        scenario.next_tx(USER_ADDRESS);
+        let clock = scenario.take_shared<Clock>();
         let (mut domain1, domain2, domain3, mut day_one) = prepare(ctx(scenario), &clock);
-        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+        let mut suins = scenario.take_shared<SuiNS>();
 
         let new_name_1 = bogo::claim(&mut day_one, &mut suins, &mut domain1, utf8(b"wow.sui"), &clock, ctx(scenario));
         let new_name_2 = bogo::claim(&mut day_one, &mut suins, &mut domain1, utf8(b"wop.sui"), &clock, ctx(scenario));
@@ -89,7 +92,7 @@ module suins::day_one_tests {
         cleanup(domain1, domain2, domain3, day_one);
         test_scenario::return_shared(suins);
         test_scenario::return_shared(clock);
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -98,10 +101,10 @@ module suins::day_one_tests {
       // an e2e scenario were we just purchase 3 domains normally using 3 registered ones.
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
-        test_scenario::next_tx(scenario, USER_ADDRESS);
-        let clock = test_scenario::take_shared<Clock>(scenario);
+        scenario.next_tx(USER_ADDRESS);
+        let clock = scenario.take_shared<Clock>();
         let (mut domain1, domain2, domain3, mut day_one) = prepare(ctx(scenario), &clock);
-        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+        let mut suins = scenario.take_shared<SuiNS>();
 
         let mut new_name_1 = bogo::claim(&mut day_one, &mut suins, &mut domain1, utf8(b"wow.sui"), &clock, ctx(scenario));
         let new_name_2 = bogo::claim(&mut day_one, &mut suins, &mut new_name_1, utf8(b"wop.sui"), &clock, ctx(scenario));
@@ -114,7 +117,7 @@ module suins::day_one_tests {
 
         test_scenario::return_shared(suins);
         test_scenario::return_shared(clock);
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -123,10 +126,10 @@ module suins::day_one_tests {
       // Tries to register a 4 letter domain while presenting a 3 letter one.
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
-        test_scenario::next_tx(scenario, USER_ADDRESS);
-        let clock = test_scenario::take_shared<Clock>(scenario);
+        scenario.next_tx(USER_ADDRESS);
+        let clock = scenario.take_shared<Clock>();
         let (mut domain1, domain2, domain3, mut day_one) = prepare(ctx(scenario), &clock);
-        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+        let mut suins = scenario.take_shared<SuiNS>();
 
         let new_name_1 = bogo::claim(&mut day_one, &mut suins, &mut domain1, utf8(b"wow1.sui"), &clock, ctx(scenario));
         burn_domain(new_name_1);
@@ -136,7 +139,7 @@ module suins::day_one_tests {
 
         test_scenario::return_shared(suins);
         test_scenario::return_shared(clock);
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -145,10 +148,10 @@ module suins::day_one_tests {
         // tries to use a fresh domain to get another one for free.
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
-        test_scenario::next_tx(scenario, USER_ADDRESS);
-        let mut clock = test_scenario::take_shared<Clock>(scenario);
+        scenario.next_tx(USER_ADDRESS);
+        let mut clock = scenario.take_shared<Clock>();
         let (domain1, domain2, domain3, mut day_one) = prepare(ctx(scenario), &clock);
-        let mut suins = test_scenario::take_shared<SuiNS>(scenario);    
+        let mut suins = scenario.take_shared<SuiNS>();
 
         // increment the clock by a lot.
         clock::increment_for_testing(&mut clock, bogo::last_valid_expiration());
@@ -164,7 +167,7 @@ module suins::day_one_tests {
 
         test_scenario::return_shared(suins);
         test_scenario::return_shared(clock);
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -173,21 +176,21 @@ module suins::day_one_tests {
         // Tries to claim a 3 letter name using a 4 letter domain.
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
-        test_scenario::next_tx(scenario, USER_ADDRESS);
-        let clock = test_scenario::take_shared<Clock>(scenario);
+        scenario.next_tx(USER_ADDRESS);
+        let clock = scenario.take_shared<Clock>();
         let (domain1, mut domain2, domain3, mut day_one) = prepare(ctx(scenario), &clock);
-        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+        let mut suins = scenario.take_shared<SuiNS>();
 
         // using a 4 digit domain and trying to get a 3 digit one.
         let new_name_1 = bogo::claim(&mut day_one, &mut suins, &mut domain2, utf8(b"wow.sui"), &clock, ctx(scenario));
         burn_domain(new_name_1);
-        
+
         // clean up all these domains.
         cleanup(domain1, domain2, domain3, day_one);
 
         test_scenario::return_shared(suins);
         test_scenario::return_shared(clock);
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -196,20 +199,20 @@ module suins::day_one_tests {
         // tries to get a 4 digit name using a 5 digit one.
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
-        test_scenario::next_tx(scenario, USER_ADDRESS);
-        let clock = test_scenario::take_shared<Clock>(scenario);
+        scenario.next_tx(USER_ADDRESS);
+        let clock = scenario.take_shared<Clock>();
         let (domain1, domain2, mut domain3, mut day_one) = prepare(ctx(scenario), &clock);
-        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+        let mut suins = scenario.take_shared<SuiNS>();
 
         let new_name_1 = bogo::claim(&mut day_one, &mut suins, &mut domain3, utf8(b"woww.sui"), &clock, ctx(scenario));
         burn_domain(new_name_1);
-        
+
         // clean up all these domains.
         cleanup(domain1, domain2, domain3, day_one);
 
         test_scenario::return_shared(suins);
         test_scenario::return_shared(clock);
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -219,20 +222,20 @@ module suins::day_one_tests {
         // protects the user from mistakes.
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
-        test_scenario::next_tx(scenario, USER_ADDRESS);
-        let clock = test_scenario::take_shared<Clock>(scenario);
+        scenario.next_tx(USER_ADDRESS);
+        let clock = scenario.take_shared<Clock>();
         let (mut domain1, domain2, domain3, mut day_one) = prepare(ctx(scenario), &clock);
-        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+        let mut suins = scenario.take_shared<SuiNS>();
 
         let new_name_1 = bogo::claim(&mut day_one, &mut suins, &mut domain1, utf8(b"wowowowo.sui"), &clock, ctx(scenario));
         burn_domain(new_name_1);
-        
+
         // clean up all these domains.
         cleanup(domain1, domain2, domain3, day_one);
 
         test_scenario::return_shared(suins);
         test_scenario::return_shared(clock);
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -241,19 +244,19 @@ module suins::day_one_tests {
         // we only care about 3 & 4 digits.
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
-        test_scenario::next_tx(scenario, USER_ADDRESS);
-        let clock = test_scenario::take_shared<Clock>(scenario);
+        scenario.next_tx(USER_ADDRESS);
+        let clock = scenario.take_shared<Clock>();
         let (domain1, domain2, mut domain3, mut day_one) = prepare(ctx(scenario), &clock);
-        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+        let mut suins = scenario.take_shared<SuiNS>();
         let new_name_1 = bogo::claim(&mut day_one, &mut suins, &mut domain3, utf8(b"wowwowowo.sui"), &clock, ctx(scenario));
         burn_domain(new_name_1);
-        
+
         // clean up all these domains.
         cleanup(domain1, domain2, domain3, day_one);
 
         test_scenario::return_shared(suins);
         test_scenario::return_shared(clock);
-        test_scenario::end(scenario_val);
+        scenario_val.end();
     }
 
 
@@ -261,9 +264,9 @@ module suins::day_one_tests {
 
     // destroys all the created objects
     fun cleanup(
-        domain1: SuinsRegistration, 
-        domain2: SuinsRegistration, 
-        domain3: SuinsRegistration, 
+        domain1: SuinsRegistration,
+        domain2: SuinsRegistration,
+        domain3: SuinsRegistration,
         day_one: DayOne
     ){
         day_one::burn_for_testing(day_one);
@@ -273,7 +276,7 @@ module suins::day_one_tests {
     }
 
     // Helper function. Registers 3 domains and returns 2 day_ones to play with;
-    fun prepare(ctx: &mut TxContext, clock: &Clock): 
+    fun prepare(ctx: &mut TxContext, clock: &Clock):
         (SuinsRegistration, SuinsRegistration, SuinsRegistration, DayOne){
 
         let domain1 = new_domain(utf8(b"tes.sui"), 1, clock, ctx);
@@ -301,7 +304,7 @@ module suins::day_one_tests {
     }
 
     fun burn_domain(nft: SuinsRegistration) {
-        nft::burn_for_testing(nft)
+        nft.burn_for_testing()
     }
 
 }

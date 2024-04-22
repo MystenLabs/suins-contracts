@@ -75,7 +75,7 @@ module temp_subdomain_proxy::subdomain_proxy {
     public fun set_target_address(
         suins: &mut SuiNS,
         subdomain: &SubDomainRegistration,
-        new_target: address,
+        new_target: Option<address>,
         clock: &Clock,
     ) {
         direct_setup::set_target_address(
