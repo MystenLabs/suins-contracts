@@ -6,16 +6,14 @@ module day_one::day_one {
 
     use sui::{
         package,
-        tx_context::sender,
         hash,
         dynamic_field as df,
         bcs,
     };
 
-    // We mark as friend just the BOGO module.
-    // This is the only one that can activate a DayOne object.
-    // This is a one-time operation that won't happen from any other modules.
-    /* friend day_one::bogo; */
+    ///  We mark as friend just the BOGO module.
+    /// This is the only one that can activate a DayOne object.
+    /// This is a one-time operation that won't happen from any other modules.
 
     /// The shared object that stores the receivers destination.
     public struct DropList has key {
@@ -109,9 +107,9 @@ module day_one::day_one {
         };
     }
 
-    // Private helper to activate the DayOne object
-    // Will only be called by the `bogo` module (friend), which marks the
-    // beggining of the DayOne promotions.
+    /// Private helper to activate the DayOne object
+    /// Will only be called by the `bogo` module (friend), which marks the
+    /// beggining of the DayOne promotions.
     public(package) fun activate(self: &mut DayOne) {
         self.active = true
     }

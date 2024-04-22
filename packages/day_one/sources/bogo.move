@@ -28,19 +28,19 @@ module day_one::bogo {
     /// minted from a Day1 promotion.
     public struct UsedInDayOnePromo has copy, store, drop { }
 
-    // This will define if a domain name was bought in an auction.
-    // The only way to understand that, is to check that the expiration day is
-    // less than last_day of auctions + 1 year.
+    /// This will define if a domain name was bought in an auction.
+    /// The only way to understand that, is to check that the expiration day is
+    /// less than last_day of auctions + 1 year.
     const LAST_VALID_EXPIRATION_DATE: u64 = 1721499031 * 1000; // Saturday, 20 July 2024 18:10:31 UTC
 
-    // Default registration duration is 1 year.
+    /// Default registration duration is 1 year.
     const DEFAULT_DURATION: u8 = 1;
 
-    // This domain has already been used to mint a free domain.
+    /// This domain has already been used to mint a free domain.
     const EDomainAlreadyUsed: u64 = 0;
-    // Domain was not bought in an auction.
+    /// Domain was not bought in an auction.
     const ENotPurchasedInAuction: u64 = 1;
-    // Domain user tries to purchase has a size missmatch. Only applicable for 3 + 4 length domains.
+    /// Domain user tries to purchase has a size missmatch. Only applicable for 3 + 4 length domains.
     const ESizeMissMatch: u64 = 2;
 
     /// We have a requirement that this promotion will run for a specified amount of time (30 Days).
@@ -91,12 +91,12 @@ module day_one::bogo {
         nft
     }
 
-    // Returns the size of a domain name. (e.g test.sui -> 4)
+    /// Returns the size of a domain name. (e.g test.sui -> 4)
     fun domain_length(domain: &Domain): u64{
         string::length(domain.sld())
     }
 
-    // Check if the domain has been minted for free from this bogo promo.
+    /// Check if the domain has been minted for free from this bogo promo.
     public fun used_in_promo(domain_nft: &SuinsRegistration): bool {
         df::exists_(domain_nft.uid(), UsedInDayOnePromo {})
     }
@@ -105,7 +105,7 @@ module day_one::bogo {
         LAST_VALID_EXPIRATION_DATE
     }
 
-     /// Attaches a DF that marks a domain as `used` in another day 1 object.
+    /// Attaches a DF that marks a domain as `used` in another day 1 object.
     fun mark_domain_as_used(domain_nft: &mut SuinsRegistration) {
         df::add(domain_nft.uid_mut(), UsedInDayOnePromo {}, true)
     }
