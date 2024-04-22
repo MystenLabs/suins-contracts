@@ -231,13 +231,13 @@ export const Packages = (network: Network) =>  {
             manifest: SuiNSDependentPackages(rev, 'discounts', 'day_one = { local = "../day_one" }'),
             processPublish: (data: SuiTransactionBlockResponse) => {
                 const { packageId, upgradeCap } = parseCorePackageObjects(data);
-                const couponHouse = parseCreatedObject(data, `${packageId}::house::DiscountHouse`);
+                const discountHouse = parseCreatedObject(data, `${packageId}::house::DiscountHouse`);
 
                 return {
                     packageId,
                     upgradeCap,
                     authorizationType: `${packageId}::house::DiscountHouseApp`,
-                    couponHouse
+                    discountHouse
                 }
             }
         },

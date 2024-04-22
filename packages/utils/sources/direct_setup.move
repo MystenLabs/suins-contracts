@@ -4,7 +4,7 @@
 /// A simple package to allows us set a target address &  default name in a single PTB in frontend.
 /// Unblocks better UX in the registration flow.
 module utils::direct_setup {
-    use std::string::{String};
+    use std::string::String;
 
     use sui::clock::Clock;
 

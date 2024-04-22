@@ -7,7 +7,9 @@ export type PackageInfo = {
     DayOne:             Package;
     Coupons:            Coupons;
     Subdomains:         Package;
-    Discounts:          Package;
+    Discounts:          Package & {
+        discountHouse: string;
+    };
     TempSubdomainProxy: Package;
 }
 

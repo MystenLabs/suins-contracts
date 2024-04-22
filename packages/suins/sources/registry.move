@@ -63,7 +63,7 @@ module suins::registry {
         clock: &Clock,
         ctx: &mut TxContext,
     ): SuinsRegistration {
-        internal_add_record(self, domain, no_years, clock, false, ctx)
+        self.internal_add_record(domain, no_years, clock, false, ctx)
     }
 
     /// Attempts to add a new record to the registry and returns a
@@ -77,7 +77,7 @@ module suins::registry {
         clock: &Clock,
         ctx: &mut TxContext,
     ): SuinsRegistration {
-        internal_add_record(self, domain, no_years, clock, true, ctx)
+        self.internal_add_record(domain, no_years, clock, true, ctx)
     }
 
     /// Attempts to burn an NFT and get storage rebates.

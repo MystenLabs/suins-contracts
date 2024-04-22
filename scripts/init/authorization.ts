@@ -12,7 +12,6 @@ export const authorizeApp = ({
     type: string;
     suinsPackageIdV1: string;
 }) => {
-  console.log({adminCap, suins, type, suinsPackageIdV1})
     txb.moveCall({
         target: `${suinsPackageIdV1}::suins::authorize_app`,
         arguments: [
