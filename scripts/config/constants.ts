@@ -19,6 +19,8 @@ export type PackageInfo = {
         discountHouseId: string;
     },
     renewalsPackageId: string;
+    subNamesPackageId: string;
+    tempSubdomainsProxyPackageId: string;
 }
 
 export const mainPackage: Config = {
@@ -37,21 +39,24 @@ export const mainPackage: Config = {
         },
         directSetupPackageId: '0xdac22652eb400beb1f5e2126459cae8eedc116b73b8ad60b71e3e8d7fdb317e2',
         renewalsPackageId: '0xd5e5f74126e7934e35991643b0111c3361827fc0564c83fa810668837c6f0b0f',
-
+        subNamesPackageId: 'TODO: Fill this in...',
+        tempSubdomainsProxyPackageId: 'TODO: Fill this in...'
     },
     testnet: {
-        packageId: '0x701b8ca1c40f11288a1ed2de0a9a2713e972524fbab748a7e6c137225361653f',
-        registrationPackageId: 'TODO: Fill this in',
-        publisherId: '0xd12afb9b5e4a8dc875d22fc927e78952dc9bd84730b33c02e9fd30949c100e38',
-        adminAddress: '0x7bdfc33239bd05af27d6989cee5455da4bc69ed4cfab5d178434a96ff412514a',
-        adminCap: normalizeSuiAddress('0xadc8b4c3fa0cc022e995968e06fca1d4a47f782f7bb0e88c52730eca77cdae03'),
-        suins: '0xedc672fadedee348108618da7555f771d4fec8d3331779a8411ff8184aded726',
-        directSetupPackageId: '0x9af70a4cb6d7144e68fd972eef672a74c7fe41aa5c0bb67ba40d7d1ae87bfb19',
+        packageId: '0x22fa05f21b1ad71442491220bb9338f7b7095fe35000ef88d5400d28523bdd93',
+        registrationPackageId: '0x4255184a0143c0ce4394a3f16a6f5aa5d64507269e54e51ea396d569fe8f1ba5',
+        publisherId: '0x62d9690d7e6234bfd57170a89c9c8ec54604ea31cefaa3869e8be4912ee1a4ab',
+        adminAddress: '0xfe09cf0b3d77678b99250572624bf74fe3b12af915c5db95f0ed5d755612eb68',
+        adminCap: normalizeSuiAddress('0x5def5bd9dc94b7d418d081a91c533ec619fb4350e6c4e4602aea96fd49331b15'),
+        suins: '0x300369e8909b9a6464da265b9a5a9ab6fe2158a040e84e808628cde7a07ee5a3',
+        directSetupPackageId: '0x6ed81fd808a23eae2da488052334d50478b36527474fc99707c1aed0e43104b1',
         discountsPackage: {
-            packageId: '0x319364827e018833f545d8291f0482c5859ead75663543dda153b50df83244eb',
-            discountHouseId: '0x5cee9eadc06ae2a330ba8caee517fc1502dffae6474454c45f79f0b00d148ec4',
+            packageId: 'TODO: Fill this in...',
+            discountHouseId: 'TODO: Fill this in...',
         },
-        renewalsPackageId: '',
+        renewalsPackageId: '0x54800ebb4606fd0c03b4554976264373b3374eeb3fd63e7ff69f31cac786ba8c',
+        subNamesPackageId: '0x3c272bc45f9157b7818ece4f7411bdfa8af46303b071aca4e18c03119c9ff636',
+        tempSubdomainsProxyPackageId: '0x3489ab5dcd346afee8b681267bcab2583a5eba9855680ec9931355e50e21c148'
     }
 }
 
