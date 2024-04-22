@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "transactions::main_package::upgrade": "ts-node transactions/main_package_upgrade.ts",
     "transfer::names": "ts-node reserved-names/transfer-names.ts",
-    "withdraw:auction:profits": "ts-node transactions/withdraw_funds_20290927.ts",
+    "withdraw:profits": "ts-node transactions/funds_to_treasury.ts",
     "authorize-utils": "ts-node transactions/authorize_utils.ts",
     "authorize-discounts": "ts-node transactions/basecamp/basecamp_free_claims.ts",
     "disable-free-claims": "ts-node transactions/quest3/disable_free_claims.ts",

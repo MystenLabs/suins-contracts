@@ -7,16 +7,34 @@ import { getFullnodeUrl, ExecutionStatus, GasCostSummary, SuiClient, SuiTransact
 import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
 import { TransactionArgument, TransactionBlock } from '@mysten/sui.js/transactions';
 import { fromB64 } from '@mysten/sui.js/utils';
-import { execSync } from "child_process";
+import { execFileSync, execSync } from "child_process";
 import { toB64 } from "@mysten/sui.js/utils";
-
-export type Network = 'mainnet' | 'testnet' | 'devnet' | 'localnet'
+import { Network } from "../init/packages";
 
 const SUI = `sui`;
 
 export const getActiveAddress = () => {
     return execSync(`${SUI} client active-address`, { encoding: 'utf8' }).trim();
 }
+
+export const publishPackage = (txb: TransactionBlock, path: string, network: Network) => {
+	const { modules, dependencies } = JSON.parse(
+        execFileSync(
+			'sui',
+			['move', 'build', '--dump-bytecode-as-base64', '--path', path],
+			{ encoding: 'utf-8' },
+		),
+	);
+
+	const cap = txb.publish({
+		modules,
+		dependencies,
+	});
+
+	// Transfer the upgrade capability to the sender so they can upgrade the package later if they want.
+	txb.transferObjects([cap], txb.pure.address(getActiveAddress()));
+}
+
 
 /// Returns a signer based on the active address of system's sui.
 export const getSigner = () => {
