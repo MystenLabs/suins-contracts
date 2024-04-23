@@ -1,0 +1,15 @@
+# ignore generated files
+/apps/icons/src
+npm-debug.log*
+package-lock.json
+yarn-debug.log*
+.next/
+.swc/
+build/
+coverage/
+dist/
+out/
+playwright-report/
+storybook-static/
+CHANGELOG.md
+
