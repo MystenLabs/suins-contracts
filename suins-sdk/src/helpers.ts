@@ -16,7 +16,6 @@ export function isNestedSubName(name: string): boolean {
     return name.split('.').length > 3;
 }
 
-
 /**
  * Validates a SuiNS name.
  * 
@@ -32,7 +31,6 @@ export function validateName(name: string) {
     if (parts.some(x => x.length < 3 || x.length > 63)) throw new Error('Invalid SuiNS name (each part must be between 3 and 63 characters)');
     if (!name.endsWith('.sui')) throw new Error('Invalid SuiNS name');
 }
-
 
 /**
  * The years must be between 1 and 5.

@@ -193,7 +193,7 @@ export class SuinsTransaction {
 		isSubdomain,
 	}: {
 		nft: ObjectArgument;
-		address: string;
+		address?: string;
 		isSubdomain?: boolean;
 	}) {
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('Suins Object ID not found');
@@ -208,7 +208,7 @@ export class SuinsTransaction {
 			arguments: [
 				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
 				this.transactionBlock.object(nft),
-				this.transactionBlock.pure.address(address),
+				this.transactionBlock.pure(address ? [address] : []),
 				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
 			],
 		});
@@ -286,11 +286,11 @@ export class SuinsTransaction {
 
 	setUserData({ nft, value, key }: { nft: ObjectArgument; value: string; key: string }) {
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('Suins Object ID not found');
-		if (!this.#suinsClient.constants.suinsPackageV1) throw new Error('suinsPackageV1 package ID not found');
+		if (!this.#suinsClient.constants.utilsPackageId) throw new Error('Utils package ID not found');
 		if (key !== AVATAR && key !== CONTENT_HASH) throw new Error('Invalid key');
 
 		this.transactionBlock.moveCall({
-			target: `${this.#suinsClient.constants.suinsPackageV1}::controller::set_user_data`,
+			target: `${this.#suinsClient.constants.utilsPackageId}::controller::set_user_data`,
 			arguments: [
 				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
 				this.transactionBlock.object(nft),

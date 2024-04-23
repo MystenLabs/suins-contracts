@@ -6,9 +6,15 @@ export type ObjectArgument = string | TransactionObjectArgument;
 
 export type Network = 'mainnet' | 'testnet' | 'custom';
 
+export type VersionedPackageId = {
+    latest: string;
+    v1: string;
+    [key: string]: string;
+}
+
 // A list of constants
 export type Constants = {
-    suinsPackageV1?: string;
+    suinsPackageId?: VersionedPackageId;
     suinsObjectId?: string;
     registryTableId?: string;
     utilsPackageId?: string;

@@ -31,12 +31,12 @@ export class SuinsClient {
      */
     async getPriceList(): Promise<SuinsPriceList> {
         if (!this.constants.suinsObjectId) throw new Error('Suins object ID is not set');
-        if (!this.constants.suinsPackageV1) throw new Error('Price list config not found');
+        if (!this.constants.suinsPackageId) throw new Error('Price list config not found');
 
         const priceList = await this.#client.getDynamicFieldObject({
             parentId: this.constants.suinsObjectId,
             name: {
-                type: getConfigType(this.constants.suinsPackageV1, getPricelistConfigType(this.constants.suinsPackageV1)),
+                type: getConfigType(this.constants.suinsPackageId.v1, getPricelistConfigType(this.constants.suinsPackageId.v1)),
                 value: { dummy_field: false }
             }
         });
@@ -53,13 +53,13 @@ export class SuinsClient {
 
     async getRenewalPriceList(): Promise<SuinsPriceList> {
         if (!this.constants.suinsObjectId) throw new Error('Suins object ID is not set');
-        if (!this.constants.suinsPackageV1) throw new Error('Price list config not found');
+        if (!this.constants.suinsPackageId) throw new Error('Price list config not found');
         if (!this.constants.renewalPackageId) throw new Error('Renewal package ID is not set');
 
         const priceList = await this.#client.getDynamicFieldObject({
             parentId: this.constants.suinsObjectId,
             name: {
-                type: getConfigType(this.constants.suinsPackageV1, getRenewalPricelistConfigType(this.constants.renewalPackageId)),
+                type: getConfigType(this.constants.suinsPackageId.v1, getRenewalPricelistConfigType(this.constants.renewalPackageId)),
                 value: { dummy_field: false }
             }
         });
@@ -76,13 +76,13 @@ export class SuinsClient {
 
     async getNameRecord(name: string): Promise<NameRecord> {
         validateName(name);
-        if (!this.constants.suinsPackageV1) throw new Error('Suins package ID is not set');
+        if (!this.constants.suinsPackageId) throw new Error('Suins package ID is not set');
         if (!this.constants.registryTableId) throw new Error('Registry table ID is not set');
 
         const nameRecord = await this.#client.getDynamicFieldObject({
             parentId: this.constants.registryTableId,
             name: {
-                type: getDomainType(this.constants.suinsPackageV1),
+                type: getDomainType(this.constants.suinsPackageId.v1),
                 value: name.split('.').reverse()
             }
         });
