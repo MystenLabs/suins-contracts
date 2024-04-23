@@ -115,10 +115,10 @@ export const Packages = (network: Network) => {
 
 				return {
 					packageId,
-					upgradeCap,
-					authorizationType: `${packageId}::direct_setup::DirectSetup`,
+					upgradeCap
 				};
 			},
+			authorizationType: (packageId: string) => `${packageId}::direct_setup::DirectSetup`,
 		},
 		DenyList: {
 			order: 2,
@@ -130,9 +130,9 @@ export const Packages = (network: Network) => {
 				return {
 					packageId,
 					upgradeCap,
-					authorizationType: `${packageId}::denylist::DenyListAuth`,
 				};
 			},
+			authorizationType: (packageId: string) => `${packageId}::denylist::DenyListAuth`,
 			setupFunction: (
 				txb: TransactionBlock,
 				packageId: string,
@@ -152,9 +152,9 @@ export const Packages = (network: Network) => {
 				return {
 					packageId,
 					upgradeCap,
-					authorizationType: `${packageId}::register::Register`,
 				};
 			},
+			authorizationType: (packageId: string) => `${packageId}::register::Register`,
 		},
 		Renewal: {
 			order: 2,
@@ -166,9 +166,9 @@ export const Packages = (network: Network) => {
 				return {
 					packageId,
 					upgradeCap,
-					authorizationType: `${packageId}::renew::Renew`,
 				};
 			},
+			authorizationType: (packageId: string) => `${packageId}::renew::Renew`,
 			setupFunction: ({
 				txb,
 				packageId,
@@ -208,9 +208,9 @@ export const Packages = (network: Network) => {
 				return {
 					packageId,
 					upgradeCap,
-					authorizationType: `${packageId}::bogo::BogoApp`,
 				};
 			},
+			authorizationType: (packageId: string) => `${packageId}::bogo::BogoApp`,
 		},
 		Coupons: {
 			order: 2,
@@ -223,10 +223,10 @@ export const Packages = (network: Network) => {
 				return {
 					packageId,
 					upgradeCap,
-					authorizationType: `${packageId}::coupons::CouponsApp`,
 					couponHouse,
 				};
 			},
+			authorizationType: (packageId: string) => `${packageId}::coupons::CouponsApp`,
 		},
 		Subdomains: {
 			order: 3,
@@ -238,7 +238,6 @@ export const Packages = (network: Network) => {
 				return {
 					packageId,
 					upgradeCap,
-					authorizationType: `${packageId}::subdomains::SubDomains`,
 				};
 			},
 			setupFunction: (
@@ -249,6 +248,7 @@ export const Packages = (network: Network) => {
 			) => {
 				setupApp({ txb, adminCap, suins, target: `${packageId}::subdomains` });
 			},
+			authorizationType: (packageId: string) => `${packageId}::subdomains::SubDomains`,
 		},
 		Discounts: {
 			order: 3,
@@ -261,10 +261,10 @@ export const Packages = (network: Network) => {
 				return {
 					packageId,
 					upgradeCap,
-					authorizationType: `${packageId}::house::DiscountHouseApp`,
 					discountHouse,
 				};
 			},
+			authorizationType: (packageId: string) => `${packageId}::house::DiscountHouseApp`,
 		},
 		TempSubdomainProxy: {
 			order: 3,

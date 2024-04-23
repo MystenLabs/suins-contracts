@@ -18,7 +18,6 @@ export type PackageInfo = {
 export type Package = {
 	packageId: string;
 	upgradeCap: string;
-	authorizationType?: string;
 };
 export type Coupons = Package & {
 	couponHouse: string;
