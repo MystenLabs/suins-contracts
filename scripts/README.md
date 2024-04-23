@@ -15,7 +15,8 @@ pnpm ts-node init/init.ts
 ```
 
 This will automatically publish all the packages in the correct order, collect all the variables in a `published.json`
-file, as well as do a full on-chain setup (creation of the registry, addition of pricelist, authorizing all apps).
+file, as well as do a full on-chain setup (creation of the registry, addition of pricelist, authorization of all apps as well as 
+calling their respective setup functions).
 
 Then, you can use these published variables to the SDK and call different actions (e.g. registering names, subnames etc)
 
