@@ -1,3 +1,6 @@
+// Copyright (c) Mysten Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 import { useConfig } from 'nextra-theme-docs';
 import Link from 'next/link';
 
@@ -17,6 +20,13 @@ const NavBar = () => {
                 </div>
                 <div className="col-span-9 flex  justify-end mr-8 items-center">
                     <ul>
+                        <li>
+                            <a href={useConfig().project.link} target="_blank">
+                                <span className="external-link text-xs ">GitHub 
+                                    <span className='hidden sm:inline'> Repo</span>
+                                </span>
+                            </a>
+                        </li>
                         <li>
                             <a href="https://suins.io/account/my-names" target="_blank">
                                 <span className="external-link text-xs ">

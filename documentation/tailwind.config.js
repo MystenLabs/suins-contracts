@@ -1,11 +1,7 @@
-/** @type {import("tailwindcss").Config} */
-//let colors = require("tailwindcss/colors");
+// Copyright (c) Mysten Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
 
-//delete colors.lightBlue;
-//delete colors.warmGray;
-//delete colors.trueGray;
-//delete colors.coolGray;
-//delete colors.blueGray;
+/** @type {import("tailwindcss").Config} */
 
 module.exports = {
   content: [
