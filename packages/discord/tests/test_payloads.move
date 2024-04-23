@@ -3,7 +3,6 @@
 
 #[test_only]
 module discord::test_payloads{
-    use std::vector;
     use std::string::{String, utf8};
 
     // This Private & Public Key are used only for the tests.
@@ -13,9 +12,9 @@ module discord::test_payloads{
         4,177,184,19,176,151,134,25,40,7,168,22,178,146,103,231,118,184,226,112,30,112,60,79,82,48,21,178,230,245,196,0,33,215,72,73,76,69,45,51,238,183,5,116,103,167,55,47,141,122,164,235,152,113,12,66,220,0,89,40,222,144,54,204,180
     ];
 
-    const PRIVATE_KEY: vector<u8> = vector[
-        41,57,20,16,48,176,168,150,45,108,210,160,72,179,198,136,55,154,99,223,169,111,177,151,119,241,163,34,227,94,174,212
-    ];
+    // const PRIVATE_KEY: vector<u8> = vector[
+    //     41,57,20,16,48,176,168,150,45,108,210,160,72,179,198,136,55,154,99,223,169,111,177,151,119,241,163,34,227,94,174,212
+    // ];
 
     // some sample roles & percentages
     const ROLES: vector<u8> = vector[0,1,2,3,4];
@@ -29,20 +28,19 @@ module discord::test_payloads{
     }
 
     public fun get_nth_user(i: u64): address {
-        *vector::borrow(&ADDRESSES, i)
+        ADDRESSES[i]
     }
 
     public fun get_nth_role(i: u64): u8 {
-         *vector::borrow(&ROLES, i)
+        ROLES[i]
     }
 
     public fun get_nth_role_percentage(i: u64): u8 {
-         *vector::borrow(&PERCENTAGES, i)
+        PERCENTAGES[i]
     }
 
     public fun get_nth_discord_id(i: u64): String {
-        let id = vector::borrow(&DISCORD_IDS, i);
-        utf8(*id)
+        utf8(DISCORD_IDS[i])
     }
 
     // A list of singed messages.
@@ -110,11 +108,11 @@ module discord::test_payloads{
 
 
     public fun get_nth_attach_roles_signature(i: u64): vector<u8> {
-         *vector::borrow(&SIGNED_MESSAGES, i)
+        SIGNED_MESSAGES[i]
     }
 
     public fun get_nth_address_mapping_signature(i: u64): vector<u8> {
-        *vector::borrow(&ADDRESS_MAPPING_SIGNATURES, i)
+        ADDRESS_MAPPING_SIGNATURES[i]
     }
 
 }

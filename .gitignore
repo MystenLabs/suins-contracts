@@ -14,3 +14,4 @@ tx-data.txt*
 published.json
 constants.sdk.json
 dist
+migration.patch
