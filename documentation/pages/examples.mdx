@@ -33,7 +33,7 @@ module demo::demo {
         let name_record = optional.extract();
         // Check that name has not expired. 
         // This check is optional, but it's recommended you perform the verification.
-        assert!(name_record.has_expired(clock), ENameExpired);
+        assert!(!name_record.has_expired(clock), ENameExpired);
         // Check that the name has a target address set.
         assert!(name_record.target_address().is_some(), ENameNotPointingToAddress);
 
