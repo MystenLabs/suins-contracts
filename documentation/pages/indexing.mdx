@@ -1,14 +1,13 @@
 # Indexing
 
-The reason we built an indexer was to enable more expressive queries about the active domain state, as the on-chain resolution wasn't enough to power our
-interface.
+The indexer enables more expressive queries about the active domain state, as the on-chain resolution wasn't enough to power the interface.
 
-This allows us to run complex queries such as:
+This allows for complex queries such as:
 
-- **Get all the subnames for a given parent:** Easily retrieve every subdomain linked to a parent domain, enhancing the ability to manage and analyze domain structures.
-- **Get all names pointing to a specified address:** Identify all domain names that are associated with a specific wallet address, which is invaluable for tracking ownership and usage.
+- **Get all the subnames for a given parent:** Retrieve every subdomain linked to a parent domain, enhancing the ability to manage and analyze domain structures.
+- **Get all names pointing to a specified address:** Identify all domain names associated with a specific wallet address to track ownership and usage.
 
-You can find the indexer in the [GitHub repository here](https://github.com/MystenLabs/sui/tree/main/crates/suins-indexer). 
+You can find the indexer in the [suins-indexer GitHub repository](https://github.com/MystenLabs/sui/tree/main/crates/suins-indexer). 
 Feel free to spin up your own service if you're looking to index data tailored to your needs.
 
-For a deeper understanding of how our indexer works and how to integrate it into your projects, please refer to [Sui's custom indexer documentation](https://docs.sui.io/guides/developer/advanced/custom-indexer).
+For a deeper understanding of how the indexer works and how to integrate it into your projects, refer to [Sui's custom indexer documentation](https://docs.sui.io/guides/developer/advanced/custom-indexer).
