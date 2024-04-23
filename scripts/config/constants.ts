@@ -55,7 +55,7 @@ export const mainPackage: Config = {
 			'0x5def5bd9dc94b7d418d081a91c533ec619fb4350e6c4e4602aea96fd49331b15',
 		),
 		suins: '0x300369e8909b9a6464da265b9a5a9ab6fe2158a040e84e808628cde7a07ee5a3',
-		directSetupPackageId: '0x6ed81fd808a23eae2da488052334d50478b36527474fc99707c1aed0e43104b1',
+		directSetupPackageId: '0xb82c701b383df8e5e55e2c8f201ee5a9fe43fc252dad291d52cc7da32f44161f',
 		discountsPackage: {
 			packageId: 'TODO: Fill this in...',
 			discountHouseId: 'TODO: Fill this in...',

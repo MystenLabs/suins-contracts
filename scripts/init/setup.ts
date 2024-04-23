@@ -13,13 +13,14 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 
 	const txb = new TransactionBlock();
 
-	for (const pkg of Object.values(packageInfo)) {
-		if ('authorizationType' in pkg && pkg.authorizationType) {
+	for (const [key, pkg] of Object.entries(packageInfo)) {
+		const data = packages[key as keyof typeof packages];
+		if (data && 'authorizationType' in data) {
 			authorizeApp({
 				txb,
 				adminCap: packageInfo.SuiNS.adminCap,
 				suins: packageInfo.SuiNS.suins,
-				type: pkg.authorizationType,
+				type: data.authorizationType(pkg.packageId),
 				suinsPackageIdV1: packageInfo.SuiNS.packageId,
 			});
 		}
