@@ -25,3 +25,8 @@ aside.nextra-sidebar-container .nx-sticky.nx-bottom-0 {
 button[title="Change theme"] {
     @apply !bg-slate-100 !text-blurpleDark
 }
+
+.external-link::after {
+    content: " ↗";
+    white-space: nowrap;
+}

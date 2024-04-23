@@ -9,7 +9,6 @@ const Footer = () => {
         <a href="https://mystenlabs.com" target="_blank">
         , Mysten Labs, Inc.
         </a>
-        .
       </div>
     </footer>
   );
