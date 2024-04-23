@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+      --suins-blurple: 46 39 71;
+      --suins-blurple-dark: 32 27 50;
+      /* ... */
+    }
+  }
+
+aside.nextra-sidebar-container .nx-sticky.nx-bottom-0 {
+    @apply hidden
+}
+
+:is(html[class~=dark] body) {
+    @apply !bg-blurpleDark
+}
+
+.nextra-search kbd {
+    @apply !bg-white !text-blurpleDark
+}
+
+button[title="Change theme"] {
+    @apply !bg-slate-100 !text-blurpleDark
+}
+
+.external-link::after {
+    content: " ↗";
+    white-space: nowrap;
+}
