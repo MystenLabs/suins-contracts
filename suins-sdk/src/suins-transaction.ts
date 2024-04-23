@@ -3,9 +3,8 @@ import {SUI_CLOCK_OBJECT_ID} from '@mysten/sui.js/utils'
 import { SuinsClient } from './suins-client';
 import { ObjectArgument } from './types';
 import { isNestedSubName, isSubName, validateName, validateYears } from './helpers';
+import { AVATAR, CONTENT_HASH } from './constants';
 
-const CONTENT_HASH = 'content_hash';
-const AVATAR = 'avatar';
 
 export class SuinsTransaction {
 	#suinsClient: SuinsClient;
@@ -287,6 +286,7 @@ export class SuinsTransaction {
 	setUserData({ nft, value, key }: { nft: ObjectArgument; value: string; key: string }) {
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('Suins Object ID not found');
 		if (!this.#suinsClient.constants.utilsPackageId) throw new Error('Utils package ID not found');
+
 		if (key !== AVATAR && key !== CONTENT_HASH) throw new Error('Invalid key');
 
 		this.transactionBlock.moveCall({
@@ -299,5 +299,27 @@ export class SuinsTransaction {
 				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
 			],
 		});
+	}
+
+	/**
+	 * Burns an expired NFT to collect storage rebates.
+	 */
+	burnExpired({nft, isSubdomain}: {
+		nft: ObjectArgument;
+		isSubdomain?: boolean;
+	}) {
+		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('Suins Object ID not found');
+		if (!this.#suinsClient.constants.utilsPackageId) throw new Error('Utils package ID not found');
+
+		
+		this.transactionBlock.moveCall({
+
+			target: `${this.#suinsClient.constants.utilsPackageId}::direct_setup::${isSubdomain ? 'burn_expired_subname' : 'burn_expired'}`,
+			arguments: [
+					this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
+					this.transactionBlock.object(nft), 
+					this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
+			],
+		})
 	}
 }
