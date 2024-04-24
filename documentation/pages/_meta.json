@@ -3,5 +3,11 @@
     "integration": "Integration",
     "subnames": "Subnames",
     "indexing": "Indexing",
-    "examples": "Examples"
+    "examples": "Examples",
+    "dashbaord": {
+        "title": "SuiNS Dashboard ↗",
+        "type": "page",
+        "href": "/",
+        "newWindow": true
+    }
 }
