@@ -42,3 +42,7 @@
 .nextra-search input {
     @apply placeholder:!text-slate-500 !text-slate-500
 }
+
+button.nextra-hamburger {
+    @apply !text-white
+}
