@@ -3,11 +3,10 @@
 
 import React from 'react';
 import { useRouter } from 'next/router';
-import NavBar from './components/nav';
 import Footer from './components/footer';
 
 export default {
-    logo: <span>Sui Name Service Docs</span>,
+    logo: <><img className="w-4 mx-4 inline" src="/logo.svg"></img><span>Sui Name Service Docs</span></>,
     docsRepositoryBase: 'https://github.com/MystenLabs/suins-contracts/tree/main/documentation',
     project: {
       link: 'https://github.com/MystenLabs/suins-contracts'
@@ -33,9 +32,6 @@ export default {
     },
     editLink: {
       component: null
-    },
-    navbar: {
-      component: NavBar,
     },
     footer: {
       component: Footer,

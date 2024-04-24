@@ -10,23 +10,35 @@
     }
   }
 
-aside.nextra-sidebar-container .nx-sticky.nx-bottom-0 {
-    @apply hidden
+:is(html[class~=dark] aside.nextra-sidebar-container .nx-sticky.nx-bottom-0) {
+    @apply !bg-blurpleDark
+}
+
+:is(html[class~=dark] .dark\:nx-shadow-\[0_-12px_16px_\#111\]) {
+    @apply !shadow-none
 }
 
 :is(html[class~=dark] body) {
     @apply !bg-blurpleDark
 }
 
+.nextra-nav-container nav > a {
+    @apply !text-white
+}
+
+.nextra-nav-container nav input {
+    @apply !bg-slate-100
+}
+
+.nextra-nav-container .nextra-nav-container-blur,
+:is(html[class~=dark] .nextra-nav-container .nextra-nav-container-blur) {
+    @apply !bg-blurple
+}
+
 .nextra-search kbd {
-    @apply !bg-white !text-blurpleDark
+    @apply !bg-white
 }
 
-button[title="Change theme"] {
-    @apply !bg-slate-100 !text-blurpleDark
-}
-
-.external-link::after {
-    content: " ↗";
-    white-space: nowrap;
+.nextra-search input {
+    @apply placeholder:!text-slate-500 !text-slate-500
 }
