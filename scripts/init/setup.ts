@@ -65,17 +65,22 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 		await signAndExecute(txb, network);
 		console.log('******* Packages set up successfully *******');
 
-		// correct the sdk constants to also include the registryTableID
-		const constants = JSON.parse(
-			readFileSync(path.resolve(__dirname, '../constants.sdk.json'), 'utf8'),
-		);
+		try{
+			// correct the sdk constants to also include the registryTableID
+			const constants = JSON.parse(
+				readFileSync(path.resolve(__dirname, '../constants.sdk.json'), 'utf8'),
+			);
 
-		constants.registryTableId = await queryRegistryTable(getClient(network), packageInfo.SuiNS.suins, packageInfo.SuiNS.packageId);
+			constants.registryTableId = await queryRegistryTable(getClient(network), packageInfo.SuiNS.suins, packageInfo.SuiNS.packageId);
 
-		writeFileSync(
-			path.resolve(path.resolve(__dirname, '../'), 'constants.sdk.json'),
-			JSON.stringify(constants)
-		);
+			writeFileSync(
+				path.resolve(path.resolve(__dirname, '../'), 'constants.sdk.json'),
+				JSON.stringify(constants)
+			);
+		}catch (e){
+			console.error('Error while updating sdk constants: Most likely the file does not exist if you run `setup` without publishing through this');
+		}
+
 	} catch (e) {
 		console.error('Something went wrong!');
 		console.dir(e, { depth: null });
