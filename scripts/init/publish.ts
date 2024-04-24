@@ -4,9 +4,10 @@ import { writeFileSync } from 'fs';
 import path from 'path';
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 
-import { publishPackage, signAndExecute } from '../utils/utils';
+import { getClient, publishPackage, signAndExecute } from '../utils/utils';
 import { Network, Packages } from './packages';
 import { PackageInfo } from './types';
+import { queryRegistryTable } from './queries';
 
 export const publishPackages = async (network: Network) => {
 	const packages = Packages(network);
@@ -41,5 +42,25 @@ export const publishPackages = async (network: Network) => {
 		JSON.stringify(results, null, 2),
 	);
 	console.log('******* Packages published successfully *******');
-	return results as PackageInfo;
+	const data = results as PackageInfo;
+
+	// Export the constants based on the SDK's format so SDK can be easily tested.
+	writeFileSync(
+		path.resolve(path.resolve(__dirname, '../'), 'constants.sdk.json'),
+		JSON.stringify({
+			suinsPackageId: {
+				latest: data.SuiNS.packageId,
+				v1: data.SuiNS.packageId,
+			},
+			suinsObjectId: data.SuiNS.suins,
+			utilsPackageId: data.Utils.packageId,
+			registrationPackageId: data.Registration.packageId,
+			renewalPackageId: data.Renewal.packageId,
+			subNamesPackageId: data.Subdomains.packageId,
+			tempSubNamesProxyPackageId: data.TempSubdomainProxy.packageId,
+			registryTableId: await queryRegistryTable(getClient(network), data.SuiNS.suins, data.SuiNS.packageId),
+		}, null, 2),
+	)
+
+	return data;
 };
