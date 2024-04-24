@@ -4,7 +4,7 @@ This repository holds the SuiNS contracts (both the core and all system packages
 
 ## Packages
 
-The [contracts](./packages/) folder contains a list of all the packages that are being used
+The [packages](./packages/) folder contains a list of all the packages that are being used
 for SuiNS, as well as their tests.
 
 ## Scripts
