@@ -4,10 +4,9 @@ import { writeFileSync } from 'fs';
 import path from 'path';
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 
-import { getClient, publishPackage, signAndExecute } from '../utils/utils';
+import { publishPackage, signAndExecute } from '../utils/utils';
 import { Network, Packages } from './packages';
 import { PackageInfo } from './types';
-import { queryRegistryTable } from './queries';
 
 export const publishPackages = async (network: Network) => {
 	const packages = Packages(network);
@@ -58,7 +57,6 @@ export const publishPackages = async (network: Network) => {
 			renewalPackageId: data.Renewal.packageId,
 			subNamesPackageId: data.Subdomains.packageId,
 			tempSubNamesProxyPackageId: data.TempSubdomainProxy.packageId,
-			registryTableId: await queryRegistryTable(getClient(network), data.SuiNS.suins, data.SuiNS.packageId),
 		}, null, 2),
 	)
 

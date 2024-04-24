@@ -17,7 +17,6 @@ import { SuiNS, SuiNSDependentPackages, TempSubdomainProxy } from './manifests';
 export type Network = 'mainnet' | 'testnet' | 'devnet' | 'localnet';
 
 const parseCorePackageObjects = (data: SuiTransactionBlockResponse) => {
-	console.log(data);
 	const packageId = data.objectChanges!.find((x) => x.type === 'published');
 	if (!packageId || packageId.type !== 'published') throw new Error('Expected Published object');
 	const upgradeCap = parseCreatedObject(data, '0x2::package::UpgradeCap');

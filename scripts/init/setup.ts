@@ -3,10 +3,13 @@
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { MIST_PER_SUI } from '@mysten/sui.js/utils';
 
-import { signAndExecute } from '../utils/utils';
+import { getClient, signAndExecute } from '../utils/utils';
 import { authorizeApp } from './authorization';
 import { Network, Packages } from './packages';
 import { PackageInfo } from './types';
+import { readFileSync, writeFileSync } from 'fs';
+import path from 'path';
+import { queryRegistryTable } from './queries';
 
 export const setup = async (packageInfo: PackageInfo, network: Network) => {
 	const packages = Packages(network);
@@ -61,6 +64,18 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 	try {
 		await signAndExecute(txb, network);
 		console.log('******* Packages set up successfully *******');
+
+		// correct the sdk constants to also include the registryTableID
+		const constants = JSON.parse(
+			readFileSync(path.resolve(__dirname, '../constants.sdk.json'), 'utf8'),
+		);
+
+		constants.registryTableId = await queryRegistryTable(getClient(network), packageInfo.SuiNS.suins, packageInfo.SuiNS.packageId);
+
+		writeFileSync(
+			path.resolve(path.resolve(__dirname, '../'), 'constants.sdk.json'),
+			JSON.stringify(constants)
+		);
 	} catch (e) {
 		console.error('Something went wrong!');
 		console.dir(e, { depth: null });
