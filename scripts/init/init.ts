@@ -5,6 +5,7 @@ import { publishPackages } from './publish';
 import { setup } from './setup';
 
 export const init = async (network: Network) => {
+	if (!network) throw new Error("Network not defined. Please run `export NETWORK=mainnet|testnet|lde`");
 	const published = await publishPackages(network);
 	await setup(published, network);
 };

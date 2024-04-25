@@ -2,15 +2,22 @@ name: Move Test CI
 
 on:
   pull_request:
+      paths:
+        - '.github/workflows/**'
+        - 'packages/**'
+
+concurrency: 
+    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+    cancel-in-progress: true
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
-        fetch-depth: 0
+        fetch-depth: 1
 
     - name: Install Homebrew
       run: |

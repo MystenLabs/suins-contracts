@@ -96,6 +96,30 @@ export const addConfig = ({
 };
 
 /**
+ * Remove a config from SuiNS object.
+ */
+export const removeConfig = ({
+	txb,
+	adminCap,
+	suins,
+	type,
+	suinsPackageIdV1,
+}: {
+	txb: TransactionBlock;
+	adminCap: string;
+	suins: string;
+	suinsPackageIdV1: string;
+	type: string;
+}) => {
+	txb.moveCall({
+		target: `${suinsPackageIdV1}::suins::remove_config`,
+		arguments: [txb.object(adminCap), txb.object(suins)],
+		typeArguments: [type],
+	});
+};
+
+
+/**
  * Creates a default `config` which saves the price list and public key.
  */
 export const newPriceConfig = ({

@@ -5,13 +5,16 @@ import fs, { readFileSync } from 'fs';
 import { homedir } from 'os';
 import path from 'path';
 import { getFullnodeUrl, SuiClient } from '@mysten/sui.js/client';
+import { decodeSuiPrivateKey } from '@mysten/sui.js/cryptography';
 import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
+import { Secp256k1Keypair } from '@mysten/sui.js/keypairs/secp256k1';
+import { Secp256r1Keypair } from '@mysten/sui.js/keypairs/secp256r1';
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { fromB64, toB64 } from '@mysten/sui.js/utils';
 
 import { Network } from '../init/packages';
 
-const SUI = `sui`;
+const SUI = process.env.SUI_BINARY ?? `sui`;
 
 export const getActiveAddress = () => {
 	return execSync(`${SUI} client active-address`, { encoding: 'utf8' }).trim();
@@ -19,7 +22,7 @@ export const getActiveAddress = () => {
 
 export const publishPackage = (txb: TransactionBlock, path: string, network: Network) => {
 	const { modules, dependencies } = JSON.parse(
-		execFileSync('sui', ['move', 'build', '--dump-bytecode-as-base64', '--path', path], {
+		execFileSync(SUI, ['move', 'build', '--dump-bytecode-as-base64', '--path', path], {
 			encoding: 'utf-8',
 		}),
 	);
@@ -29,12 +32,27 @@ export const publishPackage = (txb: TransactionBlock, path: string, network: Net
 		dependencies,
 	});
 
+	const sender = txb.moveCall({
+		target: `0x2::tx_context::sender`,
+	});
+
 	// Transfer the upgrade capability to the sender so they can upgrade the package later if they want.
-	txb.transferObjects([cap], txb.pure.address(getActiveAddress()));
+	txb.transferObjects([cap], sender);
 };
 
 /// Returns a signer based on the active address of system's sui.
 export const getSigner = () => {
+	if (process.env.PRIVATE_KEY) {
+		console.log('Using supplied private key.');
+		const { schema, secretKey } = decodeSuiPrivateKey(process.env.PRIVATE_KEY);
+
+		if (schema === 'ED25519') return Ed25519Keypair.fromSecretKey(secretKey);
+		if (schema === 'Secp256k1') return Secp256k1Keypair.fromSecretKey(secretKey);
+		if (schema === 'Secp256r1') return Secp256r1Keypair.fromSecretKey(secretKey);
+
+		throw new Error('Keypair not supported.');
+	}
+
 	const sender = getActiveAddress();
 
 	const keystore = JSON.parse(

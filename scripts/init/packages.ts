@@ -115,7 +115,7 @@ export const Packages = (network: Network) => {
 
 				return {
 					packageId,
-					upgradeCap
+					upgradeCap,
 				};
 			},
 			authorizationType: (packageId: string) => `${packageId}::direct_setup::DirectSetup`,
