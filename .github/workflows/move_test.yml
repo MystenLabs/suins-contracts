@@ -19,14 +19,6 @@ jobs:
       with:
         fetch-depth: 1
 
-    # Fetches the Sui REPO so we can run the `sui-test-validator`
-    # TODO: Figure out if there's a better way to do this.
-    - uses: actions/checkout@v4
-      with: 
-        repository: 'https://github.com/MystenLabs/sui.git'
-        path: 'sui'
-        fetch-depth: 1
-
     - name: Install Homebrew
       run: |
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
