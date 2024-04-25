@@ -1,9 +1,12 @@
 #!/bin/bash
 
-# Save the current directory as the root directory
-root_dir=$(pwd)
+# Determine directory where script is located
+script_dir=$(dirname "$(readlink -f "$0")")
 
-# Ensure the move-docs directory exists
+# Set the root directory relative to the script's location (assuming the script is in 'scripts/' and the root is one level up)
+root_dir=$(dirname "$script_dir")
+
+# Ensure the move-docs directory exists in the root directory
 mkdir -p "${root_dir}/move-docs"
 
 # List of directories to exclude from processing
