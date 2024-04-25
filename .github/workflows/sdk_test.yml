@@ -1,0 +1,25 @@
+name: SDK Tests CI
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+      - 'sdk/**'
+
+concurrency: 
+    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+    cancel-in-progress: true
+
+jobs:
+  sdk_test:
+    name: SDK Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run SDK tests
+        run: sui sdk test
+
