@@ -7,7 +7,7 @@
     "dashbaord": {
         "title": "SuiNS Dashboard ↗",
         "type": "page",
-        "href": "/",
+        "href": "https://suins.io/",
         "newWindow": true
     }
 }
