@@ -3,7 +3,7 @@ name: Move Test CI
 on:
   pull_request:
       paths:
-        - '.github/workflows/**'
+        - '.github/workflows/move_test.yml'
         - 'packages/**'
   push:
     branches:

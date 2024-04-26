@@ -21,15 +21,14 @@ export async function publishAndSetupSuinsContracts(
 	toolbox: TestToolbox,
 ): Promise<Constants> {
 	const folder = path.resolve(__dirname, './../../scripts');
-	// installs dependencies
-	execSync(`cd ${folder} && pnpm i`);
+	const rootFolder = path.resolve(__dirname, './../../');
 
 	// publishes & sets-up the contracts on our localnet.
 	execSync(`cd ${folder} && pnpm publish-and-setup`, {
 		env: {
 			...process.env,
 			PRIVATE_KEY: toolbox.keypair.getSecretKey(),
-			SUI_BINARY: SUI_BIN,
+			SUI_BINARY: rootFolder + '/sui',
 			NETWORK: 'localnet',
 		},
 	});
