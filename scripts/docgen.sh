@@ -3,16 +3,13 @@
 # Determine directory where script is located
 script_dir=$(dirname "$(readlink -f "$0")")
 
-# Set the root directory relative to the script's location (assuming the script is in 'scripts/' and the root is one level up)
+# Set the root directory relative to the script's location (assuming the script is in 'scripts/' and root is one level up)
 root_dir=$(dirname "$script_dir")
-
-# Ensure the move-docs directory exists in the root directory
-mkdir -p "${root_dir}/move-docs"
 
 # List of directories to exclude from processing
 exclude_dirs=("governance")
 
-# Convert the list of excluded directories to a lookup-ready string pattern
+# Convert excluded directories to a lookup-ready string pattern
 exclude_pattern=$(IFS="|"; echo "${exclude_dirs[*]}")
 
 # Loop through each sub-directory in the /packages directory
@@ -28,24 +25,24 @@ for dir in "${root_dir}/packages"/*; do
     echo "$dir"
     if [ -d "$dir" ]; then
         echo "Processing directory: $dir"
-
-        # Change to the sub-directory
         cd "$dir" || { echo "Failed to change directory to $dir"; continue; }
 
-        # Run the sui move build --doc command
         if ! sui move build --doc; then
             echo "Failed to build documentation in $dir"
             cd "$root_dir"
             continue
         fi
 
-        # Define the path where docs are expected to be
+        # Path where docs are expected to be
         doc_path="build/${dir##*/}/docs"
 
         # Check if the documentation directory exists
         if [ -d "$doc_path" ]; then
-            # Move all .md files from the specific docs directory to the /move-docs directory at the root
-            find "$doc_path" -maxdepth 1 -type f -name '*.md' -exec mv {} "${root_dir}/move-docs/" \;
+            # Create a local move-docs directory if it doesn't exist
+            mkdir -p "$dir/move-docs"
+
+            # Copy all .md files from the docs directory to the move-docs directory within the same project
+            find "$doc_path" -maxdepth 1 -type f -name '*.md' -exec cp {} "$dir/move-docs/" \;
         else
             echo "Documentation directory does not exist: $doc_path"
         fi
