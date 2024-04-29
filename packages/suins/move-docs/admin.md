@@ -7,7 +7,7 @@ Admin features of the SuiNS application. Meant to be called directly
 by the suins admin.
 
 
--  [Struct `Admin`](#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_admin_Admin)
+-  [Struct `Admin`](#0xd22b24490e0ba52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_admin_Admin)
 -  [Function `authorize`](#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_admin_authorize)
 -  [Function `reserve_domain`](#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_admin_reserve_domain)
 -  [Function `reserve_domains`](#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_admin_reserve_domains)
