@@ -22,8 +22,7 @@ jobs:
 
       - name: Run documentation script
         run: |
-          chmod +x ./scripts/docgen.sh
-          ./scripts/docgen.sh
+          bash ./scripts/docgen.sh
         shell: bash
 
       - name: Check for changes in move-docs directories
