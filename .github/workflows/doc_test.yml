@@ -24,9 +24,12 @@ jobs:
 
       - name: Check for changes
         run: |
-          if [[ `git status --porcelain` ]]; then
+          output=$(git status --porcelain)
+          echo "Git status output: $output"
+          if [[ -n "$output" ]]; then
             echo "Documentation is not up to date. Please update before merging."
             exit 1  # Fail the job to indicate documentation is not up-to-date
           else
             echo "Documentation is up-to-date."
           fi
+        shell: bash
