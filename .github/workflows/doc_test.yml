@@ -20,20 +20,18 @@ jobs:
       - name: Install Sui using Homebrew
         run: brew install sui
 
-      - name: Ensure script is executable and permissions are normalized
-        run: chmod 755 ./scripts/docgen.sh
-
       - name: Run documentation script
         run: |
+          chmod +x ./scripts/docgen.sh
           ./scripts/docgen.sh
         shell: bash
 
       - name: Check for changes
         run: |
-          output=$(git status --porcelain)
-          echo "Git status output: $output"
+          output=$(git status --porcelain | grep -v '^ M scripts/docgen.sh$')
+          echo "Filtered git status output: $output"
           if [[ -n "$output" ]]; then
-            echo "Documentation is not up to date. Please update before merging."
+            echo "Documentation or other tracked files are not up to date. Please update by running scripts/docgen.sh merging."
             exit 1  # Fail the job to indicate documentation is not up-to-date
           else
             echo "Documentation is up-to-date."
