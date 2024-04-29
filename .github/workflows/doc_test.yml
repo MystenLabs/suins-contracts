@@ -12,10 +12,13 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
 
-      - name: Install dependencies
+      - name: Install Homebrew
         run: |
-          sudo apt-get update
-          sudo apt-get install -y coreutils
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
+
+      - name: Install Sui using Homebrew
+        run: brew install sui
 
       - name: Run documentation script
         run: |
