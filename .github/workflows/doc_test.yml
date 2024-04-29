@@ -19,7 +19,8 @@ jobs:
 
       - name: Run documentation script
         run: |
-          sh ./scripts/docgen.sh
+          chmod +x ./scripts/docgen.sh
+          bash ./scripts/docgen.sh
 
       - name: Check for changes
         run: |
