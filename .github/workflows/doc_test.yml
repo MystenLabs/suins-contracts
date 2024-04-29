@@ -19,7 +19,7 @@ jobs:
 
       - name: Run documentation script
         run: |
-          sh scripts/docgen.sh
+          sh ./scripts/docgen.sh
 
       - name: Check for changes
         run: |
