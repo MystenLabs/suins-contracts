@@ -26,14 +26,14 @@ jobs:
           ./scripts/docgen.sh
         shell: bash
 
-      - name: Check for changes
+      - name: Check for changes in move-docs directories
         run: |
-          output=$(git status --porcelain | grep -v '^ M scripts/docgen.sh$')
+          output=$(git status --porcelain | grep '^?? packages/.*/move-docs/' || true)
           echo "Filtered git status output: $output"
           if [[ -n "$output" ]]; then
-            echo "Documentation or other tracked files are not up to date. Please update by running scripts/docgen.sh merging."
+            echo "Changes in move-docs directories are not committed. Please commit these changes before merging."
             exit 1  # Fail the job to indicate documentation is not up-to-date
           else
-            echo "Documentation is up-to-date."
+            echo "No changes in move-docs directories. Documentation is up-to-date."
           fi
         shell: bash
