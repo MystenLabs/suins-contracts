@@ -3,15 +3,15 @@ name: SDK Tests CI
 on:
   pull_request:
     paths:
-      - '.github/workflows/**'
+      - '.github/workflows/sdk_test.yml'
       - 'sdk/**'
   push:
     branches:
       - main
 
-concurrency: 
-    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-    cancel-in-progress: true
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   sdk_test:
@@ -23,3 +23,27 @@ jobs:
         with:
           fetch-depth: 1
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Do a global PNPM install
+        run: |
+          npm install -g pnpm
+
+      - name: Install Dependencies
+        run: |
+          pnpm install
+
+      - name: Download & Extract latest SUI binary
+        run: |
+          url=$(curl -s https://api.github.com/repos/mystenlabs/sui/releases/latest  | jq -r '.assets[] | select(.name | contains("ubuntu")) | .browser_download_url')
+          filename="sui-x86-64.tgz"
+          wget $url -O $filename
+          tar -xzf $filename
+          ls
+          ./sui -V
+
+      - name: Prepare local network & run SDK tests
+        run: |
+          ./sui-test-validator --epoch-duration-ms 300000 > /dev/null 2>&1 & cd sdk && VITE_SUI_BIN="../sui" pnpm test:e2e
