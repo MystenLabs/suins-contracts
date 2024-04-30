@@ -1,5 +1,6 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
+import { bcs } from '@mysten/sui.js/bcs';
 import type { TransactionBlock } from '@mysten/sui.js/transactions';
 import { isValidSuiNSName, normalizeSuiNSName, SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
 
@@ -196,7 +197,7 @@ export class SuinsTransaction {
 			arguments: [
 				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
 				this.transactionBlock.object(nft),
-				this.transactionBlock.pure(address ? [address] : []),
+				this.transactionBlock.pure(bcs.option(bcs.string()).serialize(address ?? null)),
 				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
 			],
 		});
