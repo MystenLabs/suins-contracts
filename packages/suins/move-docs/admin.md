@@ -13,7 +13,7 @@ by the suins admin.
 -  [Function `reserve_domains`](#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_admin_reserve_domains)
 
 
-<pre><code><b>use</b> <a href="dependencies/move-stdlib/string.md#0x1_string">0x1::string</a>;
+<pre><code><b>use</b> <a href="dependcies/move-stdlib/string.md#0x1_string">0x1::string</a>;
 <b>use</b> <a href="dependencies/move-stdlib/vector.md#0x1_vector">0x1::vector</a>;
 <b>use</b> <a href="dependencies/sui-framework/clock.md#0x2_clock">0x2::clock</a>;
 <b>use</b> <a href="dependencies/sui-framework/transfer.md#0x2_transfer">0x2::transfer</a>;
