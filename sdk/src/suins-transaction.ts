@@ -1,7 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 import type { TransactionBlock } from '@mysten/sui.js/transactions';
-import { isValidSuiNSName, SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
+import { isValidSuiNSName, normalizeSuiNSName, SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
 
 import { ALLOWED_METADATA } from './constants.js';
 import { isNestedSubName, isSubName, validateYears } from './helpers.js';
@@ -61,7 +61,7 @@ export class SuinsTransaction {
 			target: `${this.#suinsClient.constants.registrationPackageId}::register::register`,
 			arguments: [
 				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
-				this.transactionBlock.pure.string(name),
+				this.transactionBlock.pure.string(normalizeSuiNSName(name, 'dot')),
 				this.transactionBlock.pure.u8(years),
 				this.transactionBlock.splitCoins(this.transactionBlock.gas, [
 					this.transactionBlock.pure.u64(price),
@@ -102,7 +102,7 @@ export class SuinsTransaction {
 				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
 				this.transactionBlock.object(parentNft),
 				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
-				this.transactionBlock.pure.string(name),
+				this.transactionBlock.pure.string(normalizeSuiNSName(name, 'dot')),
 				this.transactionBlock.pure.u64(expirationTimestampMs),
 				this.transactionBlock.pure.bool(!!allowChildCreation),
 				this.transactionBlock.pure.bool(!!allowTimeExtension),
@@ -142,7 +142,7 @@ export class SuinsTransaction {
 				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
 				this.transactionBlock.object(parentNft),
 				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
-				this.transactionBlock.pure.string(name),
+				this.transactionBlock.pure.string(normalizeSuiNSName(name, 'dot')),
 				this.transactionBlock.pure.address(targetAddress),
 			],
 		});
@@ -169,7 +169,7 @@ export class SuinsTransaction {
 				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
 				this.transactionBlock.object(parentNft),
 				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
-				this.transactionBlock.pure.string(name),
+				this.transactionBlock.pure.string(normalizeSuiNSName(name, 'dot')),
 			],
 		});
 	}
@@ -212,7 +212,7 @@ export class SuinsTransaction {
 			target: `${this.#suinsClient.constants.utilsPackageId}::direct_setup::set_reverse_lookup`,
 			arguments: [
 				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
-				this.transactionBlock.pure.string(name),
+				this.transactionBlock.pure.string(normalizeSuiNSName(name, 'dot')),
 			],
 		});
 	}
@@ -244,7 +244,7 @@ export class SuinsTransaction {
 				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
 				this.transactionBlock.object(parentNft),
 				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
-				this.transactionBlock.pure.string(name),
+				this.transactionBlock.pure.string(normalizeSuiNSName(name, 'dot')),
 				this.transactionBlock.pure.bool(!!allowChildCreation),
 				this.transactionBlock.pure.bool(!!allowTimeExtension),
 			],
