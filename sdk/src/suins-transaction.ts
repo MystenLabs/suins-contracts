@@ -197,7 +197,7 @@ export class SuinsTransaction {
 			arguments: [
 				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
 				this.transactionBlock.object(nft),
-				this.transactionBlock.pure(bcs.option(bcs.Address).serialize(address ?? null)),
+				this.transactionBlock.pure(bcs.option(bcs.Address).serialize(address).toBytes()),
 				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
 			],
 		});

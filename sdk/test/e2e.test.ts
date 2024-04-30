@@ -177,4 +177,22 @@ describe('Testing SuiNS SDK e2e', () => {
 		const res = await execute(toolbox, txb);
 		expect(res.effects?.status.status).toBe('success');
 	});
+
+	it('Should be able to unset the target address', async () => {
+		const txb = new TransactionBlock();
+		const suinsTxb = new SuinsTransaction(suinsClient, txb);
+
+		let parentNameRecord = await suinsClient.getNameRecord(name);
+
+		suinsTxb.setTargetAddress({
+			nft: parentNameRecord.nftId,
+			isSubdomain: false,
+		});
+
+		const res = await execute(toolbox, txb);
+		expect(res.effects?.status.status).toBe('success');
+
+		parentNameRecord = await suinsClient.getNameRecord(name);
+		expect(parentNameRecord.targetAddress).toBeNull();
+	});
 });
