@@ -1,9 +1,10 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-// Copyright (c) Mysten Labs, Inc.
-// SPDX-License-Identifier: Apache-2.0
+
+import { normalizeSuiNSName } from '@mysten/sui.js/utils';
+
 export function isSubName(name: string): boolean {
-	return name.split('.').length > 2;
+	return normalizeSuiNSName(name, 'dot').split('.').length > 2;
 }
 
 /**
@@ -12,27 +13,7 @@ export function isSubName(name: string): boolean {
  * @param name The name to check (e.g test.example.sub.sui)
  */
 export function isNestedSubName(name: string): boolean {
-	return name.split('.').length > 3;
-}
-
-/**
- * Validates a SuiNS name.
- *
- * 1. Lowercase letters, numbers or hyphens
- * 2. Each part must be between 3 and 63 characters
- * 3. Must end with '.sui'
- *
- * @@TODO: Replace with TS SDK validation.
- *
- * @param name The name to validate (e.g example.sui)
- */
-export function validateName(name: string) {
-	const parts = name.split('.');
-	if (parts.some((x) => !x.match(/^[a-z0-9-]+$/)))
-		throw new Error('Invalid SuiNS name (only lowercase letters, numbers and hyphens are allowed)');
-	if (parts.some((x) => x.length < 3 || x.length > 63))
-		throw new Error('Invalid SuiNS name (each part must be between 3 and 63 characters)');
-	if (!name.endsWith('.sui')) throw new Error('Invalid SuiNS name');
+	return normalizeSuiNSName(name, 'dot').split('.').length > 3;
 }
 
 /**

@@ -9,7 +9,5 @@ build/
 coverage/
 dist/
 out/
-playwright-report/
-storybook-static/
 CHANGELOG.md
-
+documentation/

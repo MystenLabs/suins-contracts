@@ -5,9 +5,9 @@ import { normalizeSuiAddress } from '@mysten/sui.js/utils';
 import { retry } from 'ts-retry-promise';
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import { AVATAR, CONTENT_HASH, SuinsClient, SuinsTransaction } from '../src';
+import { ALLOWED_METADATA, SuinsClient, SuinsTransaction } from '../src';
 import { execute, publishAndSetupSuinsContracts } from './setup';
-import { TestToolbox, setupSuiClient } from './toolbox';
+import { setupSuiClient, TestToolbox } from './toolbox';
 
 /**
  * This e2e suite needs to run sequential (state needs to be preserved on-chain across)
@@ -22,13 +22,12 @@ describe('Testing SuiNS SDK e2e', () => {
 		toolbox = await setupSuiClient();
 
 		// publish and setup these contracts and get back the constants (packageIds / objectIds).
-		// const constants = await retry(() => publishAndSetupSuinsContracts(toolbox), {
-		// 	backoff: 'EXPONENTIAL',
-		// 	// overall timeout in 2 minutes
-		// 	timeout: 1000 * 60 * 2,
-		// 	logger: (msg) => console.warn('Retrying publishing the contracts: ' + msg),
-		// });
-		const constants = await publishAndSetupSuinsContracts(toolbox)
+		const constants = await retry(() => publishAndSetupSuinsContracts(toolbox), {
+			backoff: 'EXPONENTIAL',
+			// overall timeout in 2 minutes
+			timeout: 1000 * 60 * 2,
+			logger: (msg) => console.warn('Retrying publishing the contracts: ' + msg),
+		});
 
 		suinsClient = new SuinsClient({
 			client: toolbox.client,
@@ -55,24 +54,32 @@ describe('Testing SuiNS SDK e2e', () => {
 		suinsTxb.renew({
 			nftId: nft,
 			years: 2,
-			price: suinsClient.calculatePrice({ name, years: 2, priceList: renewalPriceList }),
+			price: suinsClient.calculatePrice({
+				name,
+				years: 2,
+				priceList: renewalPriceList,
+			}),
 		});
 
 		// Sets the target address of the NFT.
-		suinsTxb.setTargetAddress({ nft, address: toolbox.address(), isSubdomain: false });
+		suinsTxb.setTargetAddress({
+			nft,
+			address: toolbox.address(),
+			isSubdomain: false,
+		});
 
 		suinsTxb.setDefault(name);
 
 		// Sets the avatar of the NFT.
 		suinsTxb.setUserData({
 			nft,
-			key: AVATAR,
+			key: ALLOWED_METADATA.avatar,
 			value: '0x0',
 		});
 
 		suinsTxb.setUserData({
 			nft,
-			key: CONTENT_HASH,
+			key: ALLOWED_METADATA.contentHash,
 			value: '0x1',
 		});
 

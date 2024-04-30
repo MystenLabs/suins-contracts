@@ -5,8 +5,10 @@ import type { Constants } from './types.js';
 /**
  * Allowed keys for metadata.
  */
-export const CONTENT_HASH = 'content_hash';
-export const AVATAR = 'avatar';
+export const ALLOWED_METADATA = {
+	contentHash: 'content_hash',
+	avatar: 'avatar',
+};
 
 export const getConfigType = (suinsPackageV1: string, innerType: string) =>
 	`${suinsPackageV1}::suins::ConfigKey<${innerType}>`;

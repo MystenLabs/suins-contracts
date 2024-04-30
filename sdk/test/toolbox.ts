@@ -1,15 +1,14 @@
-import { SuiClient, getFullnodeUrl } from "@mysten/sui.js/client";
-import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
-import { FaucetRateLimitError, requestSuiFromFaucetV0, getFaucetHost } from "@mysten/sui.js/faucet"
-
-//@ts-ignore-next-line
-const DEFAULT_FAUCET_URL = import.meta.env.VITE_FAUCET_URL ?? getFaucetHost('localnet');
-//@ts-ignore-next-line
-const DEFAULT_FULLNODE_URL = import.meta.env.VITE_FULLNODE_URL ?? getFullnodeUrl('localnet');
-//@ts-ignore-next-line
-const SUI_BIN = import.meta.env.VITE_SUI_BIN ?? 'cargo run --bin sui';
-
+// Copyright (c) Mysten Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+import { getFullnodeUrl, SuiClient } from '@mysten/sui.js/client';
+import { FaucetRateLimitError, getFaucetHost, requestSuiFromFaucetV0 } from '@mysten/sui.js/faucet';
+import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
 import { retry } from 'ts-retry-promise';
+
+//@ts-ignore-next-line
+const DEFAULT_FAUCET_URL = process.env.VITE_FAUCET_URL ?? getFaucetHost('localnet');
+//@ts-ignore-next-line
+const DEFAULT_FULLNODE_URL = process.env.VITE_FULLNODE_URL ?? getFullnodeUrl('localnet');
 
 export class TestToolbox {
 	keypair: Ed25519Keypair;

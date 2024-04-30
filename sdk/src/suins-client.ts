@@ -1,6 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 import type { SuiClient } from '@mysten/sui.js/client';
+import { isValidSuiNSName } from '@mysten/sui.js/utils';
 
 import {
 	getConfigType,
@@ -10,7 +11,7 @@ import {
 	MAINNET_CONFIG,
 	TESTNET_CONFIG,
 } from './constants.js';
-import { isSubName, parsePriceListFromConfig, validateName, validateYears } from './helpers.js';
+import { isSubName, parsePriceListFromConfig, validateYears } from './helpers.js';
 import type { Constants, NameRecord, SuinsClientConfig, SuinsPriceList } from './types.js';
 
 /// The SuinsClient is the main entry point for the Suins SDK.
@@ -55,10 +56,7 @@ export class SuinsClient {
 		});
 
 		if (
-			!priceList ||
-			!priceList.data ||
-			!priceList.data.content ||
-			priceList.data.content.dataType !== 'moveObject' ||
+			priceList?.data?.content?.dataType !== 'moveObject' ||
 			!('value' in priceList.data.content.fields)
 		)
 			throw new Error('Price list not found');
@@ -99,7 +97,7 @@ export class SuinsClient {
 	}
 
 	async getNameRecord(name: string): Promise<NameRecord> {
-		validateName(name);
+		if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
 		if (!this.constants.suinsPackageId) throw new Error('Suins package ID is not set');
 		if (!this.constants.registryTableId) throw new Error('Registry table ID is not set');
 
@@ -152,7 +150,7 @@ export class SuinsClient {
 		years: number;
 		priceList: SuinsPriceList;
 	}) {
-		validateName(name);
+		if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
 		validateYears(years);
 		if (isSubName(name)) throw new Error('Subdomains do not have a registration fee');
 

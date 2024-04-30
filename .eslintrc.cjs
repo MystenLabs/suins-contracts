@@ -30,6 +30,7 @@ module.exports = {
 		'external-crates',
 		'storybook-static',
 		'.next',
+		'documentation',
 	],
 	rules: {
 		'no-case-declarations': 'off',

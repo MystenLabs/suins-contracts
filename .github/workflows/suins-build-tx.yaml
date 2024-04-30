@@ -83,7 +83,7 @@ jobs:
 
       - name: Set up working directory
         run: |
-          cd scripts && pnpm install
+          pnpm install
 
       - name: Main Package Upgrade
         if: ${{ inputs.transaction_type == 'Main package upgrade' }}
@@ -93,7 +93,7 @@ jobs:
           NETWORK: mainnet
           ORIGIN: gh_action
         run: |
-          cd scripts && pnpm transactions::main_package::upgrade 
+          cd scripts && pnpm transactions::main_package::upgrade
 
       - name: Transfer Reserved Names
         if: ${{ inputs.transaction_type == 'Transfer Reserved Names' }}
@@ -104,7 +104,7 @@ jobs:
           ORIGIN: gh_action
         run: |
           cd scripts && pnpm transfer::names
-    
+
       - name: Profits to Treasury
         if: ${{ inputs.transaction_type == 'Profits to Treasury' }}
         env:
@@ -134,7 +134,7 @@ jobs:
           ORIGIN: gh_action
         run: |
           cd scripts && pnpm disable-free-claims
-        
+
       - name: Disable Discounts
         if: ${{ inputs.transaction_type == 'Disable Discounts' }}
         env:
