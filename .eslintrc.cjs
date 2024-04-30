@@ -31,6 +31,7 @@ module.exports = {
 		'storybook-static',
 		'.next',
 		'documentation',
+		'packages',
 	],
 	rules: {
 		'no-case-declarations': 'off',
