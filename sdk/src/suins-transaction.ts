@@ -277,7 +277,7 @@ export class SuinsTransaction {
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
 		if (!this.#suinsClient.constants.utilsPackageId) throw new Error('Utils package ID not found');
 
-		if (!(key in ALLOWED_METADATA)) throw new Error('Invalid key');
+		if (!Object.values(ALLOWED_METADATA).some((x) => x === key)) throw new Error('Invalid key');
 
 		this.transactionBlock.moveCall({
 			target: `${this.#suinsClient.constants.utilsPackageId}::direct_setup::set_user_data`,
