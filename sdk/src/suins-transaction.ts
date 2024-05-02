@@ -91,9 +91,9 @@ export class SuinsTransaction {
 		const isParentSubdomain = isNestedSubName(name);
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
 		if (!this.#suinsClient.constants.subNamesPackageId)
-			throw new Error('Subdomains package ID not found');
+			throw new Error('Subnames package ID not found');
 		if (isParentSubdomain && !this.#suinsClient.constants.tempSubNamesProxyPackageId)
-			throw new Error('Subdomains proxy package ID not found');
+			throw new Error('Subnames proxy package ID not found');
 
 		const subNft = this.transactionBlock.moveCall({
 			target: isParentSubdomain
@@ -131,9 +131,9 @@ export class SuinsTransaction {
 		const isParentSubdomain = isNestedSubName(name);
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
 		if (!this.#suinsClient.constants.subNamesPackageId)
-			throw new Error('Subdomains package ID not found');
+			throw new Error('Subnames package ID not found');
 		if (isParentSubdomain && !this.#suinsClient.constants.tempSubNamesProxyPackageId)
-			throw new Error('Subdomains proxy package ID not found');
+			throw new Error('Subnames proxy package ID not found');
 
 		this.transactionBlock.moveCall({
 			target: isParentSubdomain
@@ -158,9 +158,9 @@ export class SuinsTransaction {
 		if (!isSubName(name)) throw new Error('This can only be invoked for subnames');
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
 		if (!this.#suinsClient.constants.subNamesPackageId)
-			throw new Error('Subdomains package ID not found');
+			throw new Error('Subnames package ID not found');
 		if (isParentSubdomain && !this.#suinsClient.constants.tempSubNamesProxyPackageId)
-			throw new Error('Subdomains proxy package ID not found');
+			throw new Error('Subnames proxy package ID not found');
 
 		this.transactionBlock.moveCall({
 			target: isParentSubdomain
@@ -178,20 +178,20 @@ export class SuinsTransaction {
 	setTargetAddress({
 		nft,
 		address,
-		isSubdomain,
+		isSubname,
 	}: {
 		nft: ObjectArgument;
 		address?: string;
-		isSubdomain?: boolean;
+		isSubname?: boolean;
 	}) {
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
 		if (!this.#suinsClient.constants.utilsPackageId) throw new Error('Utils package ID not found');
 
-		if (isSubdomain && !this.#suinsClient.constants.tempSubNamesProxyPackageId)
-			throw new Error('Subdomains proxy package ID not found');
+		if (isSubname && !this.#suinsClient.constants.tempSubNamesProxyPackageId)
+			throw new Error('Subnames proxy package ID not found');
 
 		this.transactionBlock.moveCall({
-			target: isSubdomain
+			target: isSubname
 				? `${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::set_target_address`
 				: `${this.#suinsClient.constants.utilsPackageId}::direct_setup::set_target_address`,
 			arguments: [
@@ -233,9 +233,9 @@ export class SuinsTransaction {
 		const isParentSubdomain = isNestedSubName(name);
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
 		if (!isParentSubdomain && !this.#suinsClient.constants.subNamesPackageId)
-			throw new Error('Subdomains package ID not found');
+			throw new Error('Subnames package ID not found');
 		if (isParentSubdomain && !this.#suinsClient.constants.tempSubNamesProxyPackageId)
-			throw new Error('Subdomains proxy package ID not found');
+			throw new Error('Subnames proxy package ID not found');
 
 		this.transactionBlock.moveCall({
 			target: isParentSubdomain
@@ -253,25 +253,21 @@ export class SuinsTransaction {
 	}
 
 	extendExpiration({
-		parentNft,
+		nft,
 		expirationTimestampMs,
-		isSubdomain,
 	}: {
-		parentNft: ObjectArgument;
+		nft: ObjectArgument;
 		expirationTimestampMs: number;
-		isSubdomain?: boolean;
 	}) {
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
-		if (isSubdomain && !this.#suinsClient.constants.tempSubNamesProxyPackageId)
-			throw new Error('Subdomains proxy package ID not found');
-		if (!isSubdomain && !this.#suinsClient.constants.subNamesPackageId)
-			throw new Error('Subdomains package ID not found');
+		if (!this.#suinsClient.constants.subNamesPackageId)
+			throw new Error('Subnames package ID not found');
 
 		this.transactionBlock.moveCall({
 			target: `${this.#suinsClient.constants.subNamesPackageId}::subdomains::extend_expiration`,
 			arguments: [
 				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
-				this.transactionBlock.object(parentNft),
+				this.transactionBlock.object(nft),
 				this.transactionBlock.pure.u64(expirationTimestampMs),
 			],
 		});
@@ -281,7 +277,7 @@ export class SuinsTransaction {
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
 		if (!this.#suinsClient.constants.utilsPackageId) throw new Error('Utils package ID not found');
 
-		if ('key' in ALLOWED_METADATA) throw new Error('Invalid key');
+		if (!Object.values(ALLOWED_METADATA).some((x) => x === key)) throw new Error('Invalid key');
 
 		this.transactionBlock.moveCall({
 			target: `${this.#suinsClient.constants.utilsPackageId}::direct_setup::set_user_data`,
@@ -298,13 +294,13 @@ export class SuinsTransaction {
 	/**
 	 * Burns an expired NFT to collect storage rebates.
 	 */
-	burnExpired({ nft, isSubdomain }: { nft: ObjectArgument; isSubdomain?: boolean }) {
+	burnExpired({ nft, isSubname }: { nft: ObjectArgument; isSubname?: boolean }) {
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
 		if (!this.#suinsClient.constants.utilsPackageId) throw new Error('Utils package ID not found');
 
 		this.transactionBlock.moveCall({
 			target: `${this.#suinsClient.constants.utilsPackageId}::direct_setup::${
-				isSubdomain ? 'burn_expired_subname' : 'burn_expired'
+				isSubname ? 'burn_expired_subname' : 'burn_expired'
 			}`,
 			arguments: [
 				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
