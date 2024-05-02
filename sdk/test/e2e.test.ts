@@ -65,7 +65,7 @@ describe('Testing SuiNS SDK e2e', () => {
 		suinsTxb.setTargetAddress({
 			nft,
 			address: toolbox.address(),
-			isSubdomain: false,
+			isSubname: false,
 		});
 
 		suinsTxb.setDefault(name);
@@ -118,7 +118,7 @@ describe('Testing SuiNS SDK e2e', () => {
 		suinsTxb.setTargetAddress({
 			nft: subNameNft,
 			address: toolbox.address(),
-			isSubdomain: true,
+			isSubname: true,
 		});
 		// Check setting the subname as default.
 		suinsTxb.setDefault(subName);
@@ -186,7 +186,7 @@ describe('Testing SuiNS SDK e2e', () => {
 
 		suinsTxb.setTargetAddress({
 			nft: parentNameRecord.nftId,
-			isSubdomain: false,
+			isSubname: false,
 		});
 
 		const res = await execute(toolbox, txb);
