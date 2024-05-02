@@ -3,9 +3,7 @@ import { Tabs } from 'nextra/components'
 
 # SuiNS SDK
 
-SuiNS SDK is a tool to interact with the Sui Name Service. 
-You can use it to query SuiNS data in a usable way as well as easily build transactions for interacting with names.
-
+Use the SuiNS SDK to interact with the Sui Name Service. Query SuiNS data in a usable way and build transactions that interact with service names.
 
 ## Installation
 
@@ -13,21 +11,21 @@ You can use it to query SuiNS data in a usable way as well as easily build trans
 npm i @mysten/suins
 ```
 
+## `SuinsClient`
 
-## SuiNS Client
+`SuinsClient` is the base for all SuiNS functionality.
 
-SuiNS Client is the base for all the SuiNS functionality.
-
-> We recommend you keep only one instance of `SuinsClient` throughout your dApp / API / script. For example, in react, you'd use a context to provide the client.
-
-## Initializing a SuinsClient
-
-<Callout type="warning" emoji="ℹ️">
-    It is recommended to always keep the dependency updated so you get the latest constants.
-    Failure to do so might end up with some transaction building failing.
+<Callout type="info" emoji="ℹ️">
+    You should keep only one instance of `SuinsClient` throughout your dApp, API, or script. For example, in React, you should use a context to provide the client.
 </Callout>
 
-You can initalize a `SuinsClient` by either providing the active network (mainnet/testnet),
+## Initializing a `SuinsClient`
+
+<Callout type="warning" emoji="ℹ️">
+    Always keep the dependency updated so you get the latest constants. If you don't, some of your transactions might fail to build.
+</Callout>
+
+You can initalize a `SuinsClient` by either providing the active network (`mainnet`/`testnet`),
 or by passing in the constants (usable for any network).
 
 <Tabs items={['Network initializer', 'Constants initializer']}>
@@ -36,11 +34,11 @@ or by passing in the constants (usable for any network).
 import { SuinsClient } from '@mysten/suins';
 import { getFullnodeUrl, SuiClient } from '@mysten/sui.js/client';
  
-// We need a Sui Client. You can re-use the SuiClient of your project
+// You need a Sui client. You can re-use the Sui client of your project
 // (it's not recommended to create a new one).
 const client = new SuiClient({ url: getFullnodeUrl('testnet') });
  
-// Now we can use it to create a SuiNS Client.
+// Now you can use it to create a SuiNS client.
 const suinsClient = new SuinsClient({
 	client,
 	network: 'testnet',
@@ -52,14 +50,14 @@ const suinsClient = new SuinsClient({
 import { SuinsClient } from '@mysten/suins';
 import { getFullnodeUrl, SuiClient } from '@mysten/sui.js/client';
  
-// We need a Sui Client. You can re-use the SuiClient of your project
+// You need a Sui client. You can re-use the Sui client of your project
 // (it's not recommended to create a new one).
 const client = new SuiClient({ url: getFullnodeUrl('testnet') });
  
-// Now we can use it to create a SuiNS Client.
+// Now you can use it to create a SuiNS client.
 const suinsClient = new SuinsClient({
 	client,
-    // This example is the mainnet configuration.
+    // This example is the Mainnet configuration.
     packageIds: {
         suinsPackageId: {
             latest: '0xb7004c7914308557f7afbaf0dca8dd258e18e306cb7a45b28019f3d0a693f162',

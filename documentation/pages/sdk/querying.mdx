@@ -1,6 +1,6 @@
 # Querying
 
-You can use the `SuinsClient` that was previously created to query on-chain data.
+Use the `SuinsClient` that was previously created to query on-chain data.
 
 ## Querying a NameRecord
 
@@ -22,7 +22,7 @@ console.log(nameRecord);
 
 ## Query active pricing
 
-You can query the active names pricelist by calling the `getPricelist` method on the `SuinsClient` instance.
+Call the `getPricelist` method on the `SuinsClient` instance to query the active names price list.
 
 ```js
 const priceList = await suinsClient.getPriceList();
@@ -38,7 +38,7 @@ console.log(priceList);
 
 ## Query active renewals pricing
 
-You can query the active renewals pricelist by calling the `getRenewalPricelist` method on the `SuinsClient` instance.
+Call the `getRenewalPricelist` method on the `SuinsClient` instance to query the active renewals price list.
 
 ```js
 const renewalPriceList = await suinsClient.getRenewalPricelist();
