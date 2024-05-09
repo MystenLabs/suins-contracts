@@ -44,7 +44,7 @@
 		"node": ">=16"
 	},
 	"dependencies": {
-		"@mysten/sui.js": "0.52.0"
+		"@mysten/sui.js": "0.54.0"
 	},
 	"devDependencies": {
 		"@types/tmp": "^0.2.3",
