@@ -17,7 +17,8 @@
 		"eslint:check": "eslint --max-warnings=0 '**/*.{ts,tsx}'",
 		"eslint:fix": "pnpm run eslint:check --fix",
 		"lint": "pnpm run eslint:check && pnpm run prettier:check",
-		"lint:fix": "pnpm run eslint:fix && pnpm run prettier:fix"
+		"lint:fix": "pnpm run eslint:fix && pnpm run prettier:fix",
+		"subdomains::01": "pnpm ts-node transactions/subnames/01.ts"
 	},
 	"keywords": [],
 	"author": "",
