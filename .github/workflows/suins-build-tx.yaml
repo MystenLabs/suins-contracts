@@ -50,9 +50,9 @@ jobs:
         run: brew install sui
 
       - name: NPM BUILD TX Environment
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.16
+          node-version: 18
 
       - name: Do a global PNPM install
         run: |
