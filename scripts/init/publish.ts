@@ -26,7 +26,7 @@ export const publishPackages = async (network: Network) => {
 			writeFileSync(manifestFile, pkg.manifest()); // save the manifest as is.
 
 			const txb = new TransactionBlock();
-			publishPackage(txb, packageFolder, network);
+			publishPackage(txb, packageFolder);
 			const res = await signAndExecute(txb, network);
 
 			// @ts-ignore-next-line
