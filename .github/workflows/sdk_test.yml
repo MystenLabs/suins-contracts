@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/sdk_test.yml'
       - 'sdk/**'
+      - 'packages/**'
   push:
     branches:
       - main
