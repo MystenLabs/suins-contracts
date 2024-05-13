@@ -37,40 +37,17 @@ jobs:
         run: |
           echo ${{ inputs.transaction_type }}
 
-      - name: Check out code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-      - name: Create client.yaml and keystore
-        working-directory: .
-        env:
-          NETWORK: mainnet
-          RPC: ${{ inputs.rpc }}
+      - name: Install Homebrew
         run: |
-          mkdir sui_config
-          touch sui_config/sui.keystore
-          cat <<EOF > sui_config/sui.keystore
-          [
-            "AJJqjgjU5B9vG2xV2c5kd51eyLYJ0yuEcSYRjzCKIQhT"
-          ]
-          EOF
-          cat <<EOF > sui_config/client.yaml
-          ---
-          keystore:
-            File: $HOME/.sui/sui_config/sui.keystore
-          envs:
-            - alias: $NETWORK
-              rpc: "$RPC"
-              ws: ~
-          EOF
-          mkdir $HOME/.sui
-          cp -r sui_config $HOME/.sui/sui_config
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
 
-      - name: Set up sui environment
-        working-directory: .
-        run: |
-          docker pull docker.io/${{ inputs.sui_tools_image }}
-          docker create --name tmp_cont docker.io/${{ inputs.sui_tools_image }}
-          docker cp tmp_cont:/usr/local/bin/sui sui
+      - name: Install Sui using Homebrew
+        run: brew install sui
 
       - name: NPM BUILD TX Environment
         uses: actions/setup-node@v3
@@ -142,9 +119,8 @@ jobs:
           GAS_OBJECT: ${{ inputs.gas_object_id }}
           NETWORK: mainnet
           ORIGIN: gh_action
-          SUI_BINARY: /sui
         run: |
-          cd scripts && pnpm subdomains:01
+          cd scripts && pnpm subdomains::01
 
       - name: Show Transaction Data (To sign)
         run: |

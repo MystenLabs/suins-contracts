@@ -6,7 +6,7 @@ import path from 'path';
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 
 import { mainPackage } from '../../config/constants';
-import { prepareMultisigTx, publishPackage, upgradePackage } from '../../utils/utils';
+import { prepareMultisigTx, upgradePackage } from '../../utils/utils';
 
 const UPGRADE_MANIFEST = `[package]
 name = "suins"
