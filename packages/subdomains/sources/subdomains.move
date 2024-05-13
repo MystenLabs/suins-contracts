@@ -32,7 +32,7 @@ module subdomains::subdomains {
     use suins::{
         domain::{Self, Domain, is_subdomain}, 
         registry::Registry, 
-        suins::{Self, SuiNS, AdminCap}, 
+        suins::{Self, SuiNS}, 
         suins_registration::SuinsRegistration, 
         subdomain_registration::SubDomainRegistration, 
         constants::{subdomain_allow_extension_key, subdomain_allow_creation_key}
@@ -63,18 +63,6 @@ module subdomains::subdomains {
 
     /// The key to store the parent's ID in the subdomain object.
     public struct ParentKey has copy, store, drop {}
-
-    /// The subdomain's config (specifies allowed TLDs, depth, sizes).
-    public struct App has store {
-        config: SubDomainConfig
-    }
-
-    // We initialize the `App`
-    public fun setup(suins: &mut SuiNS, cap: &AdminCap, _ctx: &mut TxContext){
-        suins::add_registry(cap, suins, App {
-            config: config::default()
-        })
-    }
 
     /// Creates a `leaf` subdomain
     /// A `leaf` subdomain, is a subdomain that is managed by the parent's NFT.
@@ -145,7 +133,7 @@ module subdomains::subdomains {
         internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, true);
 
         // Validate that the duration is at least the minimum duration.
-        assert!(expiration_timestamp_ms >= clock.timestamp_ms() + app_config(suins).config.minimum_duration(), EInvalidExpirationDate);
+        assert!(expiration_timestamp_ms >= clock.timestamp_ms() + app_config(suins).minimum_duration(), EInvalidExpirationDate);
         // validate that the requested expiration timestamp is not greater than the parent's one.
         assert!(expiration_timestamp_ms <= parent.expiration_timestamp_ms(), EInvalidExpirationDate);
 
@@ -219,7 +207,7 @@ module subdomains::subdomains {
 
         // validate that the subdomain is valid for the supplied parent
         // (as well as it is valid in label length, total length, depth, etc).
-        config::assert_is_valid_subdomain(&parent_domain, &subdomain, &app_config(suins).config);
+        config::assert_is_valid_subdomain(&parent_domain, &subdomain, app_config(suins));
 
         // We create the `setup` for the particular SubDomainRegistration.
         // We save a setting like: `subdomain.example.sui` -> { allow_creation: true/false, allow_time_extension: true/false }
@@ -305,7 +293,7 @@ module subdomains::subdomains {
         };
 
         // validate that the subdomain is valid for the supplied parent.
-        config::assert_is_valid_subdomain(&parent.domain(), &subdomain, &app_config(suins).config);
+        config::assert_is_valid_subdomain(&parent.domain(), &subdomain, app_config(suins));
     }
 
     /// Validate whether a `SuinsRegistration` object is eligible for creating a subdomain.
@@ -358,8 +346,8 @@ module subdomains::subdomains {
         suins::app_registry_mut<SubDomains, Registry>(SubDomains {}, suins)
     }
 
-    fun app_config(suins: &SuiNS): &App {
-        suins.registry<App>()
+    fun app_config(suins: &SuiNS): &SubDomainConfig {
+        suins.get_config<SubDomainConfig>()
     }
 
     #[test_only]

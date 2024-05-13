@@ -118,7 +118,6 @@ export const removeConfig = ({
 	});
 };
 
-
 /**
  * Creates a default `config` which saves the price list and public key.
  */

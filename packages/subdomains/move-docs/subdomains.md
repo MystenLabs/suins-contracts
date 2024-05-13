@@ -30,9 +30,7 @@ OPEN TODOS:
 
 -  [Struct `SubDomains`](#0x0_subdomains_SubDomains)
 -  [Struct `ParentKey`](#0x0_subdomains_ParentKey)
--  [Struct `App`](#0x0_subdomains_App)
 -  [Constants](#@Constants_0)
--  [Function `setup`](#0x0_subdomains_setup)
 -  [Function `new_leaf`](#0x0_subdomains_new_leaf)
 -  [Function `remove_leaf`](#0x0_subdomains_remove_leaf)
 -  [Function `new`](#0x0_subdomains_new)
@@ -128,34 +126,6 @@ The key to store the parent's ID in the subdomain object.
 
 </details>
 
-<a name="0x0_subdomains_App"></a>
-
-## Struct `App`
-
-The subdomain's config (specifies allowed TLDs, depth, sizes).
-
-
-<pre><code><b>struct</b> <a href="subdomains.md#0x0_subdomains_App">App</a> <b>has</b> store
-</code></pre>
-
-
-
-<details>
-<summary>Fields</summary>
-
-
-<dl>
-<dt>
-<code><a href="config.md#0x0_config">config</a>: <a href="config.md#0x0_config_SubDomainConfig">config::SubDomainConfig</a></code>
-</dt>
-<dd>
-
-</dd>
-</dl>
-
-
-</details>
-
 <a name="@Constants_0"></a>
 
 ## Constants
@@ -230,32 +200,6 @@ The subdomain has been replaced by a newer NFT, so it can't be renewed.
 </code></pre>
 
 
-
-<a name="0x0_subdomains_setup"></a>
-
-## Function `setup`
-
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x0_subdomains_setup">setup</a>(<a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins_SuiNS">suins::SuiNS</a>, cap: &<a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins_AdminCap">suins::AdminCap</a>, _ctx: &<b>mut</b> <a href="dependencies/sui-framework/tx_context.md#0x2_tx_context_TxContext">tx_context::TxContext</a>)
-</code></pre>
-
-
-
-<details>
-<summary>Implementation</summary>
-
-
-<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x0_subdomains_setup">setup</a>(<a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>: &<b>mut</b> SuiNS, cap: &AdminCap, _ctx: &<b>mut</b> TxContext){
-    <a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins_add_registry">suins::add_registry</a>(cap, <a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>, <a href="subdomains.md#0x0_subdomains_App">App</a> {
-        <a href="config.md#0x0_config">config</a>: <a href="config.md#0x0_config_default">config::default</a>()
-    })
-}
-</code></pre>
-
-
-
-</details>
 
 <a name="0x0_subdomains_new_leaf"></a>
 
@@ -381,7 +325,7 @@ It then saves the configuration for that child (manage-able by the parent), and 
     <a href="subdomains.md#0x0_subdomains_internal_validate_nft_can_manage_subdomain">internal_validate_nft_can_manage_subdomain</a>(<a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>, parent, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>, subdomain, <b>true</b>);
 
     // Validate that the duration is at least the minimum duration.
-    <b>assert</b>!(expiration_timestamp_ms &gt;= <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>.timestamp_ms() + <a href="subdomains.md#0x0_subdomains_app_config">app_config</a>(<a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>).<a href="config.md#0x0_config">config</a>.minimum_duration(), <a href="subdomains.md#0x0_subdomains_EInvalidExpirationDate">EInvalidExpirationDate</a>);
+    <b>assert</b>!(expiration_timestamp_ms &gt;= <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>.timestamp_ms() + <a href="subdomains.md#0x0_subdomains_app_config">app_config</a>(<a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>).minimum_duration(), <a href="subdomains.md#0x0_subdomains_EInvalidExpirationDate">EInvalidExpirationDate</a>);
     // validate that the requested expiration timestamp is not greater than the parent's one.
     <b>assert</b>!(expiration_timestamp_ms &lt;= parent.expiration_timestamp_ms(), <a href="subdomains.md#0x0_subdomains_EInvalidExpirationDate">EInvalidExpirationDate</a>);
 
@@ -495,7 +439,7 @@ Called by the parent domain to edit a subdomain's settings.
 
     // validate that the subdomain is valid for the supplied parent
     // (<b>as</b> well <b>as</b> it is valid in label length, total length, depth, etc).
-    <a href="config.md#0x0_config_assert_is_valid_subdomain">config::assert_is_valid_subdomain</a>(&parent_domain, &subdomain, &<a href="subdomains.md#0x0_subdomains_app_config">app_config</a>(<a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>).<a href="config.md#0x0_config">config</a>);
+    <a href="config.md#0x0_config_assert_is_valid_subdomain">config::assert_is_valid_subdomain</a>(&parent_domain, &subdomain, <a href="subdomains.md#0x0_subdomains_app_config">app_config</a>(<a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>));
 
     // We create the `setup` for the particular SubDomainRegistration.
     // We save a setting like: `subdomain.example.<a href="dependencies/sui-framework/sui.md#0x2_sui">sui</a>` -&gt; { allow_creation: <b>true</b>/<b>false</b>, allow_time_extension: <b>true</b>/<b>false</b> }
@@ -719,7 +663,7 @@ can operate on a given subdomain.
     };
 
     // validate that the subdomain is valid for the supplied parent.
-    <a href="config.md#0x0_config_assert_is_valid_subdomain">config::assert_is_valid_subdomain</a>(&parent.<a href="dependencies/suins/domain.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_domain">domain</a>(), &subdomain, &<a href="subdomains.md#0x0_subdomains_app_config">app_config</a>(<a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>).<a href="config.md#0x0_config">config</a>);
+    <a href="config.md#0x0_config_assert_is_valid_subdomain">config::assert_is_valid_subdomain</a>(&parent.<a href="dependencies/suins/domain.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_domain">domain</a>(), &subdomain, <a href="subdomains.md#0x0_subdomains_app_config">app_config</a>(<a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>));
 }
 </code></pre>
 
@@ -860,7 +804,7 @@ It doesn't check whether the expiration is valid. This needs to be checked on th
 
 
 
-<pre><code><b>fun</b> <a href="subdomains.md#0x0_subdomains_app_config">app_config</a>(<a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>: &<a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins_SuiNS">suins::SuiNS</a>): &<a href="subdomains.md#0x0_subdomains_App">subdomains::App</a>
+<pre><code><b>fun</b> <a href="subdomains.md#0x0_subdomains_app_config">app_config</a>(<a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>: &<a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins_SuiNS">suins::SuiNS</a>): &<a href="config.md#0x0_config_SubDomainConfig">config::SubDomainConfig</a>
 </code></pre>
 
 
@@ -869,8 +813,8 @@ It doesn't check whether the expiration is valid. This needs to be checked on th
 <summary>Implementation</summary>
 
 
-<pre><code><b>fun</b> <a href="subdomains.md#0x0_subdomains_app_config">app_config</a>(<a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>: &SuiNS): &<a href="subdomains.md#0x0_subdomains_App">App</a> {
-    <a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>.<a href="dependencies/suins/registry.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_registry">registry</a>&lt;<a href="subdomains.md#0x0_subdomains_App">App</a>&gt;()
+<pre><code><b>fun</b> <a href="subdomains.md#0x0_subdomains_app_config">app_config</a>(<a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>: &SuiNS): &SubDomainConfig {
+    <a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>.get_config&lt;SubDomainConfig&gt;()
 }
 </code></pre>
 
