@@ -16,6 +16,8 @@ This package will stop being used when we've implemented references in PTBs.
 -  [Function `new_leaf`](#0x0_subdomain_proxy_new_leaf)
 -  [Function `remove_leaf`](#0x0_subdomain_proxy_remove_leaf)
 -  [Function `set_target_address`](#0x0_subdomain_proxy_set_target_address)
+-  [Function `set_user_data`](#0x0_subdomain_proxy_set_user_data)
+-  [Function `unset_user_data`](#0x0_subdomain_proxy_unset_user_data)
 
 
 <pre><code><b>use</b> <a href="dependencies/utils/direct_setup.md#0x0_direct_setup">0x0::direct_setup</a>;
@@ -171,6 +173,76 @@ This package will stop being used when we've implemented references in PTBs.
         subdomain.nft(),
         new_target,
         <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>,
+    );
+}
+</code></pre>
+
+
+
+</details>
+
+<a name="0x0_subdomain_proxy_set_user_data"></a>
+
+## Function `set_user_data`
+
+
+
+<pre><code><b>public</b> <b>fun</b> <a href="subdomain_proxy.md#0x0_subdomain_proxy_set_user_data">set_user_data</a>(<a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins_SuiNS">suins::SuiNS</a>, subdomain: &<a href="dependencies/suins/subdomain_registration.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_subdomain_registration_SubDomainRegistration">subdomain_registration::SubDomainRegistration</a>, key: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, value: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &<a href="dependencies/sui-framework/clock.md#0x2_clock_Clock">clock::Clock</a>)
+</code></pre>
+
+
+
+<details>
+<summary>Implementation</summary>
+
+
+<pre><code><b>public</b> <b>fun</b> <a href="subdomain_proxy.md#0x0_subdomain_proxy_set_user_data">set_user_data</a>(
+    <a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>: &<b>mut</b> SuiNS,
+    subdomain: &SubDomainRegistration,
+    key: String,
+    value: String,
+    <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &Clock
+) {
+    <a href="dependencies/utils/direct_setup.md#0x0_direct_setup_set_user_data">direct_setup::set_user_data</a>(
+        <a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>,
+        subdomain.nft(),
+        key,
+        value,
+        <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>
+    );
+}
+</code></pre>
+
+
+
+</details>
+
+<a name="0x0_subdomain_proxy_unset_user_data"></a>
+
+## Function `unset_user_data`
+
+
+
+<pre><code><b>public</b> <b>fun</b> <a href="subdomain_proxy.md#0x0_subdomain_proxy_unset_user_data">unset_user_data</a>(<a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins_SuiNS">suins::SuiNS</a>, subdomain: &<a href="dependencies/suins/subdomain_registration.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_subdomain_registration_SubDomainRegistration">subdomain_registration::SubDomainRegistration</a>, key: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &<a href="dependencies/sui-framework/clock.md#0x2_clock_Clock">clock::Clock</a>)
+</code></pre>
+
+
+
+<details>
+<summary>Implementation</summary>
+
+
+<pre><code><b>public</b> <b>fun</b> <a href="subdomain_proxy.md#0x0_subdomain_proxy_unset_user_data">unset_user_data</a>(
+    <a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>: &<b>mut</b> SuiNS,
+    subdomain: &SubDomainRegistration,
+    key: String,
+    <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &Clock
+) {
+    <a href="dependencies/utils/direct_setup.md#0x0_direct_setup_unset_user_data">direct_setup::unset_user_data</a>(
+        <a href="dependencies/suins/suins.md#0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0_suins">suins</a>,
+        subdomain.nft(),
+        key,
+        <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>
     );
 }
 </code></pre>
