@@ -9,7 +9,7 @@ import { decodeSuiPrivateKey } from '@mysten/sui.js/cryptography';
 import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
 import { Secp256k1Keypair } from '@mysten/sui.js/keypairs/secp256k1';
 import { Secp256r1Keypair } from '@mysten/sui.js/keypairs/secp256r1';
-import { TransactionBlock } from '@mysten/sui.js/transactions';
+import { TransactionBlock, UpgradePolicy } from '@mysten/sui.js/transactions';
 import { fromB64, toB64 } from '@mysten/sui.js/utils';
 
 import { Network } from '../init/packages';
@@ -20,7 +20,7 @@ export const getActiveAddress = () => {
 	return execSync(`${SUI} client active-address`, { encoding: 'utf8' }).trim();
 };
 
-export const publishPackage = (txb: TransactionBlock, path: string, network: Network) => {
+export const publishPackage = (txb: TransactionBlock, path: string) => {
 	const { modules, dependencies } = JSON.parse(
 		execFileSync(SUI, ['move', 'build', '--dump-bytecode-as-base64', '--path', path], {
 			encoding: 'utf-8',
@@ -38,6 +38,38 @@ export const publishPackage = (txb: TransactionBlock, path: string, network: Net
 
 	// Transfer the upgrade capability to the sender so they can upgrade the package later if they want.
 	txb.transferObjects([cap], sender);
+};
+
+export const upgradePackage = (
+	txb: TransactionBlock,
+	path: string,
+	packageId: string,
+	upgradeCapId: string,
+) => {
+	const { modules, dependencies, digest } = JSON.parse(
+		execFileSync(SUI, ['move', 'build', '--dump-bytecode-as-base64', '--path', path], {
+			encoding: 'utf-8',
+		}),
+	);
+
+	const cap = txb.object(upgradeCapId);
+
+	const ticket = txb.moveCall({
+		target: '0x2::package::authorize_upgrade',
+		arguments: [cap, txb.pure.u8(UpgradePolicy.COMPATIBLE), txb.pure(digest)],
+	});
+
+	const receipt = txb.upgrade({
+		modules,
+		dependencies,
+		packageId,
+		ticket,
+	});
+
+	txb.moveCall({
+		target: '0x2::package::commit_upgrade',
+		arguments: [cap, receipt],
+	});
 };
 
 /// Returns a signer based on the active address of system's sui.
@@ -96,8 +128,12 @@ export const signAndExecute = async (txb: TransactionBlock, network: Network) =>
 
 /// Builds a transaction (unsigned) and saves it on `setup/tx/tx-data.txt` (on production)
 /// or `setup/src/tx-data.local.txt` on mainnet.
-export const prepareMultisigTx = async (tx: TransactionBlock, network: Network) => {
-	const adminAddress = getActiveAddress();
+export const prepareMultisigTx = async (
+	tx: TransactionBlock,
+	address: string,
+	network: Network,
+) => {
+	const adminAddress = address ?? getActiveAddress();
 	const client = getClient(network);
 	const gasObjectId = process.env.GAS_OBJECT;
 

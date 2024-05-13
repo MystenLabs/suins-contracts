@@ -12,7 +12,7 @@ on:
           - Disable Free Claims
           - Profits to Treasury
           - Transfer Reserved Names
-          - Main package upgrade
+          - Subdomains V1
       sui_tools_image:
         description: 'image reference of sui_tools'
         default: 'mysten/sui-tools:mainnet'
@@ -37,40 +37,17 @@ jobs:
         run: |
           echo ${{ inputs.transaction_type }}
 
-      - name: Check out code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-      - name: Create client.yaml and keystore
-        working-directory: .
-        env:
-          NETWORK: mainnet
-          RPC: ${{ inputs.rpc }}
+      - name: Install Homebrew
         run: |
-          mkdir sui_config
-          touch sui_config/sui.keystore
-          cat <<EOF > sui_config/sui.keystore
-          [
-            "AJJqjgjU5B9vG2xV2c5kd51eyLYJ0yuEcSYRjzCKIQhT"
-          ]
-          EOF
-          cat <<EOF > sui_config/client.yaml
-          ---
-          keystore:
-            File: $HOME/.sui/sui_config/sui.keystore
-          envs:
-            - alias: $NETWORK
-              rpc: "$RPC"
-              ws: ~
-          EOF
-          mkdir $HOME/.sui
-          cp -r sui_config $HOME/.sui/sui_config
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
 
-      - name: Set up sui environment
-        working-directory: .
-        run: |
-          docker pull docker.io/${{ inputs.sui_tools_image }}
-          docker create --name tmp_cont docker.io/${{ inputs.sui_tools_image }}
-          docker cp tmp_cont:/usr/local/bin/sui sui
+      - name: Install Sui using Homebrew
+        run: brew install sui
 
       - name: NPM BUILD TX Environment
         uses: actions/setup-node@v3
@@ -84,16 +61,6 @@ jobs:
       - name: Set up working directory
         run: |
           pnpm install
-
-      - name: Main Package Upgrade
-        if: ${{ inputs.transaction_type == 'Main package upgrade' }}
-        env:
-          NODE_ENV: production
-          GAS_OBJECT: ${{ inputs.gas_object_id }}
-          NETWORK: mainnet
-          ORIGIN: gh_action
-        run: |
-          cd scripts && pnpm transactions::main_package::upgrade
 
       - name: Transfer Reserved Names
         if: ${{ inputs.transaction_type == 'Transfer Reserved Names' }}
@@ -114,16 +81,6 @@ jobs:
           ORIGIN: gh_action
         run: |
           cd scripts && pnpm withdraw:profits
-
-      - name: Authorize Basecamp Free Claim
-        if: ${{ inputs.transaction_type == 'Authorize Basecamp Free Claim' }}
-        env:
-          NODE_ENV: production
-          GAS_OBJECT: ${{ inputs.gas_object_id }}
-          NETWORK: mainnet
-          ORIGIN: gh_action
-        run: |
-          cd scripts && pnpm authorize-discounts
 
       - name: Disable Free Claims
         if: ${{ inputs.transaction_type == 'Disable Free Claims' }}
@@ -154,6 +111,16 @@ jobs:
           ORIGIN: gh_action
         run: |
           cd scripts && pnpm create-deepbook-pools
+
+      - name: Subdomains V1
+        if: ${{ inputs.transaction_type == 'Subdomains V1' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+        run: |
+          cd scripts && pnpm subdomains::01
 
       - name: Show Transaction Data (To sign)
         run: |
