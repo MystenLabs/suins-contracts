@@ -18,7 +18,7 @@
 		"eslint:fix": "pnpm run eslint:check --fix",
 		"lint": "pnpm run eslint:check && pnpm run prettier:check",
 		"lint:fix": "pnpm run eslint:fix && pnpm run prettier:fix",
-		"subdomains::01": "pnpm ts-node transactions/subnames/01.ts"
+		"subdomains::02": "pnpm ts-node transactions/subnames/02.ts"
 	},
 	"keywords": [],
 	"author": "",
