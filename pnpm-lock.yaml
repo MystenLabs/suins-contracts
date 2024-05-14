@@ -87,8 +87,8 @@ importers:
   sdk:
     dependencies:
       '@mysten/sui.js':
-        specifier: 0.52.0
-        version: 0.52.0(svelte@4.2.15)(typescript@5.4.5)
+        specifier: 0.54.1
+        version: 0.54.1(svelte@4.2.15)(typescript@5.4.5)
     devDependencies:
       '@types/tmp':
         specifier: ^0.2.3
@@ -2594,6 +2594,27 @@ packages:
       - svelte
     dev: false
 
+  /@gql.tada/cli-utils@1.3.6(graphql@16.8.1)(svelte@4.2.15)(typescript@5.4.5):
+    resolution:
+      {
+        integrity: sha512-E0PX6CcDFJhNyhCXNFT2NNN5Op9VP4Etf+25pm+lDco0nqXn0Z7KL5TIl1b6QRBboUkQYOnXgEdgzxqKEL4DvA==,
+      }
+    peerDependencies:
+      graphql: ^15.5.0 || ^16.0.0 || ^17.0.0
+      typescript: ^5.0.0
+    dependencies:
+      '@0no-co/graphqlsp': 1.12.1(typescript@5.4.5)
+      '@gql.tada/internal': 1.0.0(graphql@16.8.1)(typescript@5.4.5)
+      '@vue/compiler-dom': 3.4.26
+      '@vue/language-core': 2.0.15(typescript@5.4.5)
+      graphql: 16.8.1
+      svelte2tsx: 0.7.7(svelte@4.2.15)(typescript@5.4.5)
+      typescript: 5.4.5
+    transitivePeerDependencies:
+      - encoding
+      - svelte
+    dev: false
+
   /@gql.tada/internal@0.3.3(graphql@16.8.1)(typescript@5.4.5):
     resolution:
       {
@@ -2601,6 +2622,20 @@ packages:
       }
     peerDependencies:
       graphql: ^16.8.1
+      typescript: ^5.0.0
+    dependencies:
+      '@0no-co/graphql.web': 1.0.7(graphql@16.8.1)
+      graphql: 16.8.1
+      typescript: 5.4.5
+    dev: false
+
+  /@gql.tada/internal@1.0.0(graphql@16.8.1)(typescript@5.4.5):
+    resolution:
+      {
+        integrity: sha512-B55aIYyZn5ewdgMqoJciPAwF5DKYX6HBabTU+ap/dpNH3EgJrLomc8Y8w+MCxCyOx+dXL9OduT6eWnVr7J7Eyg==,
+      }
+    peerDependencies:
+      graphql: ^15.5.0 || ^16.0.0 || ^17.0.0
       typescript: ^5.0.0
     dependencies:
       '@0no-co/graphql.web': 1.0.7(graphql@16.8.1)
@@ -2865,10 +2900,10 @@ packages:
       - typescript
     dev: false
 
-  /@mysten/sui.js@0.52.0(svelte@4.2.15)(typescript@5.4.5):
+  /@mysten/sui.js@0.54.1(svelte@4.2.15)(typescript@5.4.5):
     resolution:
       {
-        integrity: sha512-oqfA0O/STWDJgnxvu07HsDRybG8yD3pfqAhADFawZTthbPdl6U01qJQVCzW7yf2OqG9AkYWHT+392rVcVjbcnw==,
+        integrity: sha512-TSmGIX7U9O/uS9EKIQdv7/S69KTbBhMJVelXCafJE6IJw8iB9cN9uLu0+uklkBSDrbRmLSEY70jMr3uRFjReIg==,
       }
     engines: { node: '>=16' }
     dependencies:
@@ -2880,7 +2915,7 @@ packages:
       '@scure/bip39': 1.3.0
       '@suchipi/femver': 1.0.0
       bech32: 2.0.0
-      gql.tada: 1.6.3(graphql@16.8.1)(svelte@4.2.15)(typescript@5.4.5)
+      gql.tada: 1.7.2(graphql@16.8.1)(svelte@4.2.15)(typescript@5.4.5)
       graphql: 16.8.1
       superstruct: 1.0.4
       tweetnacl: 1.0.3
@@ -5778,6 +5813,25 @@ packages:
       '@0no-co/graphql.web': 1.0.7(graphql@16.8.1)
       '@gql.tada/cli-utils': 1.3.3(svelte@4.2.15)(typescript@5.4.5)
       '@gql.tada/internal': 0.3.3(graphql@16.8.1)(typescript@5.4.5)
+      typescript: 5.4.5
+    transitivePeerDependencies:
+      - encoding
+      - graphql
+      - svelte
+    dev: false
+
+  /gql.tada@1.7.2(graphql@16.8.1)(svelte@4.2.15)(typescript@5.4.5):
+    resolution:
+      {
+        integrity: sha512-gwNmDoPmUrtpT/nxNwJtcxu6d56ZwA6Rg7ONpzRl4xY5vceKjafvyXAqQuJx+0t/Dcat8+CB50YzfmI19O3AEw==,
+      }
+    hasBin: true
+    peerDependencies:
+      typescript: ^5.0.0
+    dependencies:
+      '@0no-co/graphql.web': 1.0.7(graphql@16.8.1)
+      '@gql.tada/cli-utils': 1.3.6(graphql@16.8.1)(svelte@4.2.15)(typescript@5.4.5)
+      '@gql.tada/internal': 1.0.0(graphql@16.8.1)(typescript@5.4.5)
       typescript: 5.4.5
     transitivePeerDependencies:
       - encoding
