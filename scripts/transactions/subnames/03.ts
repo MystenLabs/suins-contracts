@@ -57,7 +57,7 @@ export const secondTransaction = async () => {
 	});
 
 	// Create a transferPolicy for subdomain registration object.
-	transferPolicyTx.createAndShare({
+	await transferPolicyTx.createAndShare({
 		type: `0x00c2f85e07181b90c140b15c5ce27d863f93c4d9159d2a4e7bdaeb40e286d6f5::subdomain_registration::SubDomainRegistration`,
 		publisher: constants.publisherId,
 		address: constants.adminAddress,
