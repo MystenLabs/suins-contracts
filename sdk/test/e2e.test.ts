@@ -114,6 +114,13 @@ describe('Testing SuiNS SDK e2e', () => {
 			allowTimeExtension: true,
 		});
 
+		suinsTxb.setUserData({
+			nft: subNameNft,
+			key: ALLOWED_METADATA.contentHash,
+			value: '0x1',
+			isSubname: true,
+		});
+
 		// Check set the target address for a subname.
 		suinsTxb.setTargetAddress({
 			nft: subNameNft,
@@ -134,6 +141,7 @@ describe('Testing SuiNS SDK e2e', () => {
 		expect(nameRecord.name).toBe(subName);
 		expect(nameRecord.targetAddress).toBe(toolbox.address());
 		expect(nameRecord.expirationTimestampMs).toEqual(parentNameRecord.expirationTimestampMs);
+		expect(nameRecord.contentHash).toBe('0x1');
 	});
 
 	it('Should create leaf subnames, and remove them too', async () => {

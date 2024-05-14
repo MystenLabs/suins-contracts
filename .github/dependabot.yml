@@ -5,9 +5,9 @@
 
 version: 2
 updates:
-  - package-ecosystem: "npm"
-    directory: "/sdk/"
+  - package-ecosystem: 'npm'
+    directory: '/sdk/'
     schedule:
-      interval: "daily"
+      interval: 'daily'
     allow:
-      - dependency-name: "@mysten/sui.js"
+      - dependency-name: '@mysten/sui.js'

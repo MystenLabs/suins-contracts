@@ -45,6 +45,6 @@ export const TESTNET_CONFIG: Constants = {
 	registrationPackageId: '0x4255184a0143c0ce4394a3f16a6f5aa5d64507269e54e51ea396d569fe8f1ba5',
 	renewalPackageId: '0x54800ebb4606fd0c03b4554976264373b3374eeb3fd63e7ff69f31cac786ba8c',
 	subNamesPackageId: '0x3c272bc45f9157b7818ece4f7411bdfa8af46303b071aca4e18c03119c9ff636',
-	tempSubNamesProxyPackageId: '0x3489ab5dcd346afee8b681267bcab2583a5eba9855680ec9931355e50e21c148',
+	tempSubNamesProxyPackageId: '0xd258bfc8d5a58f18deaf069e758a66200eb09614566cc0ee66bbe17a261d2206',
 	registryTableId: '0xb120c0d55432630fce61f7854795a3463deb6e3b443cc4ae72e1282073ff56e4',
 };
