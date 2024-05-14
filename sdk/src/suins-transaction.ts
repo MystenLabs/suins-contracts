@@ -273,14 +273,29 @@ export class SuinsTransaction {
 		});
 	}
 
-	setUserData({ nft, value, key }: { nft: ObjectArgument; value: string; key: string }) {
+	setUserData({
+		nft,
+		value,
+		key,
+		isSubname,
+	}: {
+		nft: ObjectArgument;
+		value: string;
+		key: string;
+		isSubname?: boolean;
+	}) {
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
-		if (!this.#suinsClient.constants.utilsPackageId) throw new Error('Utils package ID not found');
+		if (!isSubname && !this.#suinsClient.constants.utilsPackageId)
+			throw new Error('Utils package ID not found');
+		if (isSubname && !this.#suinsClient.constants.tempSubNamesProxyPackageId)
+			throw new Error('Subnames proxy package ID not found');
 
 		if (!Object.values(ALLOWED_METADATA).some((x) => x === key)) throw new Error('Invalid key');
 
 		this.transactionBlock.moveCall({
-			target: `${this.#suinsClient.constants.utilsPackageId}::direct_setup::set_user_data`,
+			target: isSubname
+				? `${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::set_user_data`
+				: `${this.#suinsClient.constants.utilsPackageId}::direct_setup::set_user_data`,
 			arguments: [
 				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
 				this.transactionBlock.object(nft),
