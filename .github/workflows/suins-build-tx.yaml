@@ -12,7 +12,7 @@ on:
           - Disable Free Claims
           - Profits to Treasury
           - Transfer Reserved Names
-          - Subdomains V2
+          - Subdomains V3
       sui_tools_image:
         description: 'image reference of sui_tools'
         default: 'mysten/sui-tools:mainnet'
@@ -120,7 +120,7 @@ jobs:
           NETWORK: mainnet
           ORIGIN: gh_action
         run: |
-          cd scripts && pnpm subdomains::02
+          cd scripts && pnpm subdomains::03
 
       - name: Show Transaction Data (To sign)
         run: |

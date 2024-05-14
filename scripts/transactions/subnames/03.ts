@@ -17,7 +17,7 @@ export const secondTransaction = async () => {
 	const contractsFolder = path.resolve(__dirname + '../../../../packages');
 	const txb = new TransactionBlock();
 
-	const denylistPackageId = 'ADD DENYLIST PACKAGE ID AFTER PUBLISH';
+	const denylistPackageId = '0xc967b7862d926720761ee15fbd0254a975afa928712abcaa4f7c17bb2b38d38b';
 
 	// Publish subdomains package.
 	publishPackage(txb, contractsFolder + '/subdomains');
