@@ -112,8 +112,8 @@ jobs:
         run: |
           cd scripts && pnpm create-deepbook-pools
 
-      - name: Subdomains V2
-        if: ${{ inputs.transaction_type == 'Subdomains V2' }}
+      - name: Subdomains V3
+        if: ${{ inputs.transaction_type == 'Subdomains V3' }}
         env:
           NODE_ENV: production
           GAS_OBJECT: ${{ inputs.gas_object_id }}
