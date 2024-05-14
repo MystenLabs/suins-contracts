@@ -245,8 +245,18 @@ export const Packages = (network: Network) => {
 				packageId: string,
 				adminCap: string,
 				suins: string,
+				suinsPackageIdV1: string,
 			) => {
-				setupApp({ txb, adminCap, suins, target: `${packageId}::subdomains` });
+				addConfig({
+					txb,
+					adminCap,
+					suins,
+					suinsPackageIdV1,
+					config: txb.moveCall({
+						target: `${packageId}::config::default`,
+					}),
+					type: `${packageId}::config::SubDomainConfig`,
+				});
 			},
 			authorizationType: (packageId: string) => `${packageId}::subdomains::SubDomains`,
 		},

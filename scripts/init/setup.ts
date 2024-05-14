@@ -1,15 +1,15 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
+import { readFileSync, writeFileSync } from 'fs';
+import path from 'path';
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { MIST_PER_SUI } from '@mysten/sui.js/utils';
 
 import { getClient, signAndExecute } from '../utils/utils';
 import { authorizeApp } from './authorization';
 import { Network, Packages } from './packages';
-import { PackageInfo } from './types';
-import { readFileSync, writeFileSync } from 'fs';
-import path from 'path';
 import { queryRegistryTable } from './queries';
+import { PackageInfo } from './types';
 
 export const setup = async (packageInfo: PackageInfo, network: Network) => {
 	const packages = Packages(network);
@@ -34,6 +34,7 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 		packageInfo.Subdomains.packageId,
 		packageInfo.SuiNS.adminCap,
 		packageInfo.SuiNS.suins,
+		packageInfo.SuiNS.packageId,
 	);
 	packages.DenyList.setupFunction(
 		txb,
@@ -65,22 +66,27 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 		await signAndExecute(txb, network);
 		console.log('******* Packages set up successfully *******');
 
-		try{
+		try {
 			// correct the sdk constants to also include the registryTableID
 			const constants = JSON.parse(
 				readFileSync(path.resolve(__dirname, '../constants.sdk.json'), 'utf8'),
 			);
 
-			constants.registryTableId = await queryRegistryTable(getClient(network), packageInfo.SuiNS.suins, packageInfo.SuiNS.packageId);
+			constants.registryTableId = await queryRegistryTable(
+				getClient(network),
+				packageInfo.SuiNS.suins,
+				packageInfo.SuiNS.packageId,
+			);
 
 			writeFileSync(
 				path.resolve(path.resolve(__dirname, '../'), 'constants.sdk.json'),
-				JSON.stringify(constants)
+				JSON.stringify(constants),
 			);
-		}catch (e){
-			console.error('Error while updating sdk constants: Most likely the file does not exist if you run `setup` without publishing through this');
+		} catch (e) {
+			console.error(
+				'Error while updating sdk constants: Most likely the file does not exist if you run `setup` without publishing through this',
+			);
 		}
-
 	} catch (e) {
 		console.error('Something went wrong!');
 		console.dir(e, { depth: null });

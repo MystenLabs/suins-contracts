@@ -19,7 +19,10 @@ module subdomains::subdomain_tests {
     
     use denylist::denylist;
 
-    use subdomains::subdomains::{Self, SubDomains};
+    use subdomains::{
+        config,
+        subdomains::{Self, SubDomains}
+    };
 
     const USER_ADDRESS: address = @0x01;
     const TEST_ADDRESS: address = @0x02;
@@ -185,8 +188,8 @@ module subdomains::subdomain_tests {
             ts::next_tx(scenario, USER_ADDRESS);
             let admin_cap = ts::take_from_sender<AdminCap>(scenario);
             let mut suins = ts::take_shared<SuiNS>(scenario);
+            suins::add_config(&admin_cap, &mut suins, config::default());
 
-            subdomains::setup(&mut suins, &admin_cap, ctx(scenario));
             registry::init_for_testing(&admin_cap, &mut suins, ctx(scenario));
             denylist::setup(&mut suins, &admin_cap, ctx(scenario));
 
