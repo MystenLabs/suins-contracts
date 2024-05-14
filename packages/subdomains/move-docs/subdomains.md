@@ -24,8 +24,6 @@ both for effort-less upgradeability and gas savings.
 2. For any <code>registry_mut</code> call, we know that if this module is not authorized, we'll get an abort
 from the core suins package.
 
-OPEN TODOS:
-
 
 
 -  [Struct `SubDomains`](#0x0_subdomains_SubDomains)
@@ -701,7 +699,7 @@ Validate whether a <code>SuinsRegistration</code> object is eligible for creatin
     // <b>if</b> `parent` is a subdomain. We check the subdomain <a href="config.md#0x0_config">config</a> <b>to</b> see <b>if</b> we are allowed <b>to</b> mint <a href="subdomains.md#0x0_subdomains">subdomains</a>.
     // For regular names (e.g. example.<a href="dependencies/sui-framework/sui.md#0x2_sui">sui</a>), we can always mint <a href="subdomains.md#0x0_subdomains">subdomains</a>.
     // <b>if</b> there's no <a href="config.md#0x0_config">config</a> for this parent, and the parent is a subdomain, we can't create deeper names.
-     <b>assert</b>!(<a href="subdomains.md#0x0_subdomains_is_creation_allowed">is_creation_allowed</a>(&<a href="subdomains.md#0x0_subdomains_record_metadata">record_metadata</a>(self, parent)), <a href="subdomains.md#0x0_subdomains_ECreationDisabledForSubDomain">ECreationDisabledForSubDomain</a>);
+    <b>assert</b>!(<a href="subdomains.md#0x0_subdomains_is_creation_allowed">is_creation_allowed</a>(&<a href="subdomains.md#0x0_subdomains_record_metadata">record_metadata</a>(self, parent)), <a href="subdomains.md#0x0_subdomains_ECreationDisabledForSubDomain">ECreationDisabledForSubDomain</a>);
 }
 </code></pre>
 
