@@ -22,8 +22,6 @@
 /// 2. For any `registry_mut` call, we know that if this module is not authorized, we'll get an abort
 /// from the core suins package.
 /// 
-/// OPEN TODOS:
-/// 
 module subdomains::subdomains {
     use std::string::{String, utf8};
 
@@ -311,7 +309,7 @@ module subdomains::subdomains {
         // if `parent` is a subdomain. We check the subdomain config to see if we are allowed to mint subdomains.
         // For regular names (e.g. example.sui), we can always mint subdomains.
         // if there's no config for this parent, and the parent is a subdomain, we can't create deeper names.
-         assert!(is_creation_allowed(&record_metadata(self, parent)), ECreationDisabledForSubDomain);
+        assert!(is_creation_allowed(&record_metadata(self, parent)), ECreationDisabledForSubDomain);
     }
 
 
