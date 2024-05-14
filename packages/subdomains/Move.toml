@@ -10,7 +10,7 @@ edition = "2024.beta"
 #published-at="0xb0c14a9891efc8080e976db617a2d830183aa9034cbdf575dbb9e5856e38c283"
 
 [dependencies]
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet", override=true }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/mainnet", override=true }
 suins = { local = "../suins" }
 denylist = { local = "../denylist" }
 
