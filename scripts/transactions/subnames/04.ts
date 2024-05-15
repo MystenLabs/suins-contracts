@@ -28,6 +28,17 @@ export const execute = async () => {
 		suinsPackageIdV1: constants.packageId,
 	});
 
+	// Authorize utils package.
+	authorizeApp({
+		txb,
+		adminCap: constants.adminCap,
+		suins: constants.suins,
+		type: Packages('mainnet').Subdomains.authorizationType(
+			'0xe177697e191327901637f8d2c5ffbbde8b1aaac27ec1024c4b62d1ebd1cd7430',
+		),
+		suinsPackageIdV1: constants.packageId,
+	});
+
 	// setup subdomains package.
 	Packages('mainnet').Subdomains.setupFunction(
 		txb,
