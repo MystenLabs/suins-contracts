@@ -30,8 +30,8 @@ export const MAINNET_CONFIG: Constants = {
 	utilsPackageId: '0xdac22652eb400beb1f5e2126459cae8eedc116b73b8ad60b71e3e8d7fdb317e2',
 	registrationPackageId: '0x9d451fa0139fef8f7c1f0bd5d7e45b7fa9dbb84c2e63c2819c7abd0a7f7d749d',
 	renewalPackageId: '0xd5e5f74126e7934e35991643b0111c3361827fc0564c83fa810668837c6f0b0f',
-	subNamesPackageId: '',
-	tempSubNamesProxyPackageId: '',
+	subNamesPackageId: '0xe177697e191327901637f8d2c5ffbbde8b1aaac27ec1024c4b62d1ebd1cd7430',
+	tempSubNamesProxyPackageId: '0x59effd9323a836dd7373108ce1ca93acd8570c5d28a2ce790e5bfe34b649a0d0',
 	registryTableId: '0xe64cd9db9f829c6cc405d9790bd71567ae07259855f4fba6f02c84f52298c106',
 };
 
