@@ -1,9 +1,9 @@
 {
 	"name": "@mysten/suins",
-	"version": "0.0.1",
+	"version": "0.0.0",
 	"description": "An SDK to simplify SuiNS integration.",
 	"license": "Apache-2.0",
-	"private": true,
+	"private": false,
 	"type": "commonjs",
 	"main": "./dist/cjs/index.js",
 	"module": "./dist/esm/index.js",
@@ -55,5 +55,12 @@
 		"vite": "^4.4.4",
 		"vitest": "^0.33.0",
 		"wait-on": "^7.0.1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/mystenlabs/suins-contracts.git"
+	},
+	"bugs": {
+		"url": "https://github.com/mystenlabs/suins-contracts/issues"
 	}
 }
