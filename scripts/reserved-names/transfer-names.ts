@@ -88,7 +88,7 @@ const prepareTx = () => {
 		txb.transferObjects([...objects.map((x) => txb.object(x))], txb.pure(recipient));
 	}
 
-	return prepareMultisigTx(txb, 'mainnet');
+	return prepareMultisigTx(txb, 'mainnet', '0xa81a2328b7bbf70ab196d6aca400b5b0721dec7615bf272d95e0b0df04517e72');
 };
 
 // parses all owned OBjects from `json` file.
