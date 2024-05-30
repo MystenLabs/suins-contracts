@@ -13,6 +13,7 @@ on:
           - Profits to Treasury
           - Transfer Reserved Names
           - Main package upgrade
+          - Create Deepbook Pools
       sui_tools_image:
         description: 'image reference of sui_tools'
         default: 'mysten/sui-tools:mainnet'
@@ -164,3 +165,13 @@ jobs:
         with:
           name: transaction-data
           path: scripts/tx
+
+      - name: Create Deepbook Pools
+        if: ${{ inputs.transaction_type == 'Create Deepbook Pool' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+        run: |
+          cd scripts && pnpm create-deepbook-pools

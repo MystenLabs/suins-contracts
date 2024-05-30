@@ -40,31 +40,31 @@ const setup = async (network: Network) => {
 
 	// Create USDY / USDC
 	txb.moveCall({
-		typeArguments: [USDY, USDC],
+		typeArguments: [SUI, USDC],
 		target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
 		arguments: [
-			txb.pure(100000), // tick
-			txb.pure(100000), // lot
-			txb.pure(DEFAULT_STABLE_TAKER_FEE), // taker fee
-			txb.pure(DEFAULT_STABLE_MAKER_FEE), // maker rebate
+			txb.pure(100), // tick
+			txb.pure(10_000_000), // lot
+			txb.pure(DEFAULT_MAKER_FEE), // taker fee
+			txb.pure(DEFAULT_TAKER_FEE), // maker rebate
 			coin, // creation fee
 		],
 	});
 
-	const [coin2] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
+	// const [coin2] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
 
-	// Create SUI / USDY
-	txb.moveCall({
-		typeArguments: [SUI, USDY],
-		target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
-		arguments: [
-			txb.pure(100), // tick
-			txb.pure(100000000), // lot
-			txb.pure(DEFAULT_TAKER_FEE), // taker fee
-			txb.pure(DEFAULT_MAKER_FEE), // maker rebate
-			coin2, // creation fee
-		],
-	});
+	// // Create SUI / USDY
+	// txb.moveCall({
+	// 	typeArguments: [SUI, USDY],
+	// 	target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
+	// 	arguments: [
+	// 		txb.pure(100), // tick
+	// 		txb.pure(100000000), // lot
+	// 		txb.pure(DEFAULT_TAKER_FEE), // taker fee
+	// 		txb.pure(DEFAULT_MAKER_FEE), // maker rebate
+	// 		coin2, // creation fee
+	// 	],
+	// });
 
 	// for mainnet, we prepare the multi-sig tx.
 	if (network === 'mainnet') return prepareMultisigTx(txb, 'mainnet');
