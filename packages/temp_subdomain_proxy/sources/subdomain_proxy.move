@@ -85,5 +85,34 @@ module temp_subdomain_proxy::subdomain_proxy {
             clock,
         );
     }
-    
+
+    public fun set_user_data(
+        suins: &mut SuiNS, 
+        subdomain: &SubDomainRegistration, 
+        key: String, 
+        value: String, 
+        clock: &Clock
+    ) {
+        direct_setup::set_user_data(
+            suins,
+            subdomain.nft(),
+            key,
+            value,
+            clock
+        );
+    }
+
+    public fun unset_user_data(
+        suins: &mut SuiNS, 
+        subdomain: &SubDomainRegistration, 
+        key: String, 
+        clock: &Clock
+    ) {
+        direct_setup::unset_user_data(
+            suins,
+            subdomain.nft(),
+            key,
+            clock
+        );
+    }
 }

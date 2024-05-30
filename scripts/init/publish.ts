@@ -26,7 +26,7 @@ export const publishPackages = async (network: Network) => {
 			writeFileSync(manifestFile, pkg.manifest()); // save the manifest as is.
 
 			const txb = new TransactionBlock();
-			publishPackage(txb, packageFolder, network);
+			publishPackage(txb, packageFolder);
 			const res = await signAndExecute(txb, network);
 
 			// @ts-ignore-next-line
@@ -46,19 +46,23 @@ export const publishPackages = async (network: Network) => {
 	// Export the constants based on the SDK's format so SDK can be easily tested.
 	writeFileSync(
 		path.resolve(path.resolve(__dirname, '../'), 'constants.sdk.json'),
-		JSON.stringify({
-			suinsPackageId: {
-				latest: data.SuiNS.packageId,
-				v1: data.SuiNS.packageId,
+		JSON.stringify(
+			{
+				suinsPackageId: {
+					latest: data.SuiNS.packageId,
+					v1: data.SuiNS.packageId,
+				},
+				suinsObjectId: data.SuiNS.suins,
+				utilsPackageId: data.Utils.packageId,
+				registrationPackageId: data.Registration.packageId,
+				renewalPackageId: data.Renewal.packageId,
+				subNamesPackageId: data.Subdomains.packageId,
+				tempSubNamesProxyPackageId: data.TempSubdomainProxy.packageId,
 			},
-			suinsObjectId: data.SuiNS.suins,
-			utilsPackageId: data.Utils.packageId,
-			registrationPackageId: data.Registration.packageId,
-			renewalPackageId: data.Renewal.packageId,
-			subNamesPackageId: data.Subdomains.packageId,
-			tempSubNamesProxyPackageId: data.TempSubdomainProxy.packageId,
-		}, null, 2),
-	)
+			null,
+			2,
+		),
+	);
 
 	return data;
 };

@@ -13,3 +13,4 @@ tx-data.txt*
 .DS_STORE*
 published.json
 constants.sdk.json
+dist
