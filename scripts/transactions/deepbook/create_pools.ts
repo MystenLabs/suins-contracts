@@ -4,7 +4,7 @@
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import dotenv from 'dotenv';
 
-import { Network } from '../../config/constants';
+import { Network, mainPackage } from '../../config/constants';
 import { prepareMultisigTx, signAndExecute } from '../../utils/utils';
 
 dotenv.config();
@@ -44,30 +44,16 @@ const setup = async (network: Network) => {
 		target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
 		arguments: [
 			txb.pure(100), // tick
-			txb.pure(10_000_000), // lot
+			txb.pure(10000000), // lot
 			txb.pure(DEFAULT_MAKER_FEE), // taker fee
 			txb.pure(DEFAULT_TAKER_FEE), // maker rebate
 			coin, // creation fee
 		],
 	});
 
-	// const [coin2] = txb.splitCoins(txb.gas, [txb.pure(CREATION_FEE)]);
-
-	// // Create SUI / USDY
-	// txb.moveCall({
-	// 	typeArguments: [SUI, USDY],
-	// 	target: `${PACKAGE_ID}::${MODULE_CLOB}::create_customized_pool`,
-	// 	arguments: [
-	// 		txb.pure(100), // tick
-	// 		txb.pure(100000000), // lot
-	// 		txb.pure(DEFAULT_TAKER_FEE), // taker fee
-	// 		txb.pure(DEFAULT_MAKER_FEE), // maker rebate
-	// 		coin2, // creation fee
-	// 	],
-	// });
-
+	const constants = mainPackage.mainnet;
 	// for mainnet, we prepare the multi-sig tx.
-	if (network === 'mainnet') return prepareMultisigTx(txb, 'mainnet');
+	if (network === 'mainnet') return prepareMultisigTx(txb, constants.adminAddress, 'mainnet');
 
 	// For testnet, we execute the TX directly.
 	return signAndExecute(txb, network);
