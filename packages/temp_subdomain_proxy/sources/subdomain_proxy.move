@@ -72,6 +72,24 @@ module temp_subdomain_proxy::subdomain_proxy {
         );
     }
 
+    public fun edit_setup(
+        suins: &mut SuiNS,
+        parent: &SubDomainRegistration,
+        clock: &Clock,
+        subdomain_name: String,
+        allow_creation: bool,
+        allow_time_extension: bool
+    ) {
+        subdomains::edit_setup(
+            suins,
+            parent.nft(),
+            clock,
+            subdomain_name,
+            allow_creation,
+            allow_time_extension
+        );
+    }
+
     public fun set_target_address(
         suins: &mut SuiNS,
         subdomain: &SubDomainRegistration,
