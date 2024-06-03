@@ -2,11 +2,11 @@
 name = "utils"
 version = "0.0.1"
 edition = "2024.beta"
-published-at="0xf7854c81cf500d60a4437f4599f7ff3b89abd13f645ae08f62345c7a25317bee"
+published-at="0x7954ae683314ec7e156acbf0c0fc964ce035fd7f456fe7576848226502cfde1b"
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/mainnet", override=true }
 suins = { local = "../suins" }
 
 [addresses]
-utils = "0xf7854c81cf500d60a4437f4599f7ff3b89abd13f645ae08f62345c7a25317bee"
+utils = "0x7954ae683314ec7e156acbf0c0fc964ce035fd7f456fe7576848226502cfde1b"
