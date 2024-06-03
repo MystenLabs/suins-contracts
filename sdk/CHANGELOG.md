@@ -1,5 +1,11 @@
 # @mysten/suins
 
+## 0.0.3
+
+### Patch Changes
+
+- 83cc050: Adds new temp subname proxy to fix issue
+
 ## 0.0.2
 
 ### Patch Changes
