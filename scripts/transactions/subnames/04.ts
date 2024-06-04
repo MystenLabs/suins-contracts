@@ -48,7 +48,7 @@ export const execute = async () => {
 		constants.packageId,
 	);
 
-	await prepareMultisigTx(txb, constants.adminAddress, 'mainnet');
+	await prepareMultisigTx(txb, 'mainnet', constants.adminAddress);
 };
 
 execute();

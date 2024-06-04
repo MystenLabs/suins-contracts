@@ -130,8 +130,8 @@ export const signAndExecute = async (txb: TransactionBlock, network: Network) =>
 /// or `setup/src/tx-data.local.txt` on mainnet.
 export const prepareMultisigTx = async (
 	tx: TransactionBlock,
-	address: string,
 	network: Network,
+	address?: string,
 ) => {
 	const adminAddress = address ?? getActiveAddress();
 	const client = getClient(network);
