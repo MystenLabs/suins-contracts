@@ -10,4 +10,4 @@ updates:
     schedule:
       interval: 'daily'
     allow:
-      - dependency-name: '@mysten/sui.js'
+      - dependency-name: '@mysten/sui'

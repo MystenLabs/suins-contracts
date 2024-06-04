@@ -1,8 +1,8 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-import { getFullnodeUrl, SuiClient } from '@mysten/sui.js/client';
-import { TransactionBlock } from '@mysten/sui.js/transactions';
-import { normalizeSuiAddress } from '@mysten/sui.js/utils';
+import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
+import { Transaction } from '@mysten/sui/transactions';
+import { normalizeSuiAddress } from '@mysten/sui/utils';
 
 import { ALLOWED_METADATA, SuinsClient, SuinsTransaction } from '../src';
 
@@ -15,7 +15,7 @@ export const e2eLiveNetworkDryRunFlow = async (network: 'mainnet' | 'testnet') =
 		network,
 	});
 
-	const tx = new TransactionBlock();
+	const tx = new Transaction();
 	const suinsTx = new SuinsTransaction(suinsClient, tx);
 
 	const uniqueName =

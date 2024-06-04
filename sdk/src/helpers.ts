@@ -1,7 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-import { normalizeSuiNSName } from '@mysten/sui.js/utils';
+import { normalizeSuiNSName } from '@mysten/sui/utils';
 
 export function isSubName(name: string): boolean {
 	return normalizeSuiNSName(name, 'dot').split('.').length > 2;

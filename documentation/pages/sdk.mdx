@@ -7,9 +7,23 @@ Use the SuiNS SDK to interact with the Sui Name Service. Query SuiNS data in a u
 
 ## Installation
 
-```sh npm2yarn
-npm i @mysten/suins
-```
+<Tabs items={['Using @mysten/sui', 'Using @mysten/sui.js']}>
+    <Tabs.Tab>
+    To use with the latest version of the Typescript SDK, install using:
+    ```sh npm2yarn
+    npm i @mysten/suins
+    ```
+    </Tabs.Tab>
+      <Tabs.Tab>
+      To use with the older version (prior to 1.x) of the Typescript SDK (0.54.1), install using:
+      ```sh npm2yarn
+    npm i @mysten/suins@0.0.3
+    ```
+    </Tabs.Tab>
+
+    </Tabs>
+
+
 
 ## `SuinsClient`
 
@@ -32,7 +46,7 @@ or by passing in the constants (usable for any network).
     <Tabs.Tab>
 ```js
 import { SuinsClient } from '@mysten/suins';
-import { getFullnodeUrl, SuiClient } from '@mysten/sui.js/client';
+import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
  
 // You need a Sui client. You can re-use the Sui client of your project
 // (it's not recommended to create a new one).
@@ -48,7 +62,7 @@ const suinsClient = new SuinsClient({
       <Tabs.Tab>
 ```js
 import { SuinsClient } from '@mysten/suins';
-import { getFullnodeUrl, SuiClient } from '@mysten/sui.js/client';
+import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
  
 // You need a Sui client. You can re-use the Sui client of your project
 // (it's not recommended to create a new one).

@@ -1,7 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-import type { SuiClient } from '@mysten/sui.js/client';
-import type { TransactionObjectArgument } from '@mysten/sui.js/transactions';
+import type { SuiClient } from '@mysten/sui/client';
+import type { TransactionObjectArgument } from '@mysten/sui/transactions';
 
 /** You can pass in a TransactionArgument OR an objectId by string. */
 export type ObjectArgument = string | TransactionObjectArgument;
