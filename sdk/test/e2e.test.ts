@@ -35,8 +35,8 @@ describe('Testing SuiNS SDK e2e', () => {
 		});
 	});
 	it('Should register a new name, renew it, set the target address, set it as default', async () => {
-		const txb = new Transaction();
-		const suinsTxb = new SuinsTransaction(suinsClient, txb);
+		const transaction = new Transaction();
+		const suinsTxb = new SuinsTransaction(suinsClient, transaction);
 
 		const priceList = await suinsClient.getPriceList();
 		const renewalPriceList = await suinsClient.getRenewalPriceList();
@@ -83,9 +83,9 @@ describe('Testing SuiNS SDK e2e', () => {
 			value: '0x1',
 		});
 
-		txb.transferObjects([nft], txb.pure.address(toolbox.address()));
+		transaction.transferObjects([nft], transaction.pure.address(toolbox.address()));
 
-		const res = await execute(toolbox, txb);
+		const res = await execute(toolbox, transaction);
 
 		expect(res.effects?.status.status).toBe('success');
 
@@ -99,8 +99,8 @@ describe('Testing SuiNS SDK e2e', () => {
 	});
 
 	it('Should create some node subnames and call functionality with these', async () => {
-		const txb = new Transaction();
-		const suinsTxb = new SuinsTransaction(suinsClient, txb);
+		const transaction = new Transaction();
+		const suinsTxb = new SuinsTransaction(suinsClient, transaction);
 
 		const subName = 'node.test.sui';
 
@@ -130,9 +130,9 @@ describe('Testing SuiNS SDK e2e', () => {
 		// Check setting the subname as default.
 		suinsTxb.setDefault(subName);
 
-		txb.transferObjects([subNameNft], txb.pure.address(toolbox.address()));
+		transaction.transferObjects([subNameNft], transaction.pure.address(toolbox.address()));
 
-		const res = await execute(toolbox, txb);
+		const res = await execute(toolbox, transaction);
 		expect(res.effects?.status.status).toBe('success');
 
 		// Fetch and check the subname record.
@@ -145,8 +145,8 @@ describe('Testing SuiNS SDK e2e', () => {
 	});
 
 	it('Should create leaf subnames, and remove them too', async () => {
-		const txb = new Transaction();
-		const suinsTxb = new SuinsTransaction(suinsClient, txb);
+		const transaction = new Transaction();
+		const suinsTxb = new SuinsTransaction(suinsClient, transaction);
 		const leaf = 'leaf.test.sui';
 		const anotherSubname = 'another.test.sui';
 
@@ -163,7 +163,7 @@ describe('Testing SuiNS SDK e2e', () => {
 			name: anotherSubname,
 			targetAddress: '0x3',
 		});
-		const res = await execute(toolbox, txb);
+		const res = await execute(toolbox, transaction);
 		expect(res.effects?.status.status).toBe('success');
 
 		// Fetch and check the subname record.
@@ -173,8 +173,8 @@ describe('Testing SuiNS SDK e2e', () => {
 	});
 
 	it('Should be able to remove the leaf names created', async () => {
-		const txb = new Transaction();
-		const suinsTxb = new SuinsTransaction(suinsClient, txb);
+		const transaction = new Transaction();
+		const suinsTxb = new SuinsTransaction(suinsClient, transaction);
 
 		const parentNameRecord = await suinsClient.getNameRecord(name);
 		suinsTxb.removeLeafSubName({
@@ -182,13 +182,13 @@ describe('Testing SuiNS SDK e2e', () => {
 			name: 'leaf.test.sui',
 		});
 
-		const res = await execute(toolbox, txb);
+		const res = await execute(toolbox, transaction);
 		expect(res.effects?.status.status).toBe('success');
 	});
 
 	it('Should be able to unset the target address', async () => {
-		const txb = new Transaction();
-		const suinsTxb = new SuinsTransaction(suinsClient, txb);
+		const transaction = new Transaction();
+		const suinsTxb = new SuinsTransaction(suinsClient, transaction);
 
 		let parentNameRecord = await suinsClient.getNameRecord(name);
 
@@ -197,7 +197,7 @@ describe('Testing SuiNS SDK e2e', () => {
 			isSubname: false,
 		});
 
-		const res = await execute(toolbox, txb);
+		const res = await execute(toolbox, transaction);
 		expect(res.effects?.status.status).toBe('success');
 
 		parentNameRecord = await suinsClient.getNameRecord(name);
