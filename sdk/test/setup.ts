@@ -4,7 +4,7 @@
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import path from 'path';
-import type { TransactionBlock } from '@mysten/sui.js/transactions';
+import type { Transaction } from '@mysten/sui/transactions';
 
 import type { Constants } from '../src/types.js';
 import { TestToolbox } from './toolbox.js';
@@ -33,9 +33,9 @@ export async function publishAndSetupSuinsContracts(toolbox: TestToolbox): Promi
 	return JSON.parse(fs.readFileSync(`${folder}/constants.sdk.json`, 'utf8'));
 }
 
-export async function execute(toolbox: TestToolbox, transactionBlock: TransactionBlock) {
-	return toolbox.client.signAndExecuteTransactionBlock({
-		transactionBlock,
+export async function execute(toolbox: TestToolbox, transaction: Transaction) {
+	return toolbox.client.signAndExecuteTransaction({
+		transaction,
 		signer: toolbox.keypair,
 		options: {
 			showEffects: true,

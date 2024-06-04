@@ -1,7 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-import { TransactionBlock } from '@mysten/sui.js/transactions';
-import { normalizeSuiAddress } from '@mysten/sui.js/utils';
+import { Transaction } from '@mysten/sui/transactions';
+import { normalizeSuiAddress } from '@mysten/sui/utils';
 import { retry } from 'ts-retry-promise';
 import { beforeAll, describe, expect, it } from 'vitest';
 
@@ -35,7 +35,7 @@ describe('Testing SuiNS SDK e2e', () => {
 		});
 	});
 	it('Should register a new name, renew it, set the target address, set it as default', async () => {
-		const txb = new TransactionBlock();
+		const txb = new Transaction();
 		const suinsTxb = new SuinsTransaction(suinsClient, txb);
 
 		const priceList = await suinsClient.getPriceList();
@@ -99,7 +99,7 @@ describe('Testing SuiNS SDK e2e', () => {
 	});
 
 	it('Should create some node subnames and call functionality with these', async () => {
-		const txb = new TransactionBlock();
+		const txb = new Transaction();
 		const suinsTxb = new SuinsTransaction(suinsClient, txb);
 
 		const subName = 'node.test.sui';
@@ -145,7 +145,7 @@ describe('Testing SuiNS SDK e2e', () => {
 	});
 
 	it('Should create leaf subnames, and remove them too', async () => {
-		const txb = new TransactionBlock();
+		const txb = new Transaction();
 		const suinsTxb = new SuinsTransaction(suinsClient, txb);
 		const leaf = 'leaf.test.sui';
 		const anotherSubname = 'another.test.sui';
@@ -173,7 +173,7 @@ describe('Testing SuiNS SDK e2e', () => {
 	});
 
 	it('Should be able to remove the leaf names created', async () => {
-		const txb = new TransactionBlock();
+		const txb = new Transaction();
 		const suinsTxb = new SuinsTransaction(suinsClient, txb);
 
 		const parentNameRecord = await suinsClient.getNameRecord(name);
@@ -187,7 +187,7 @@ describe('Testing SuiNS SDK e2e', () => {
 	});
 
 	it('Should be able to unset the target address', async () => {
-		const txb = new TransactionBlock();
+		const txb = new Transaction();
 		const suinsTxb = new SuinsTransaction(suinsClient, txb);
 
 		let parentNameRecord = await suinsClient.getNameRecord(name);

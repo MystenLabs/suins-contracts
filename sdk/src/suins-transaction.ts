@@ -1,8 +1,8 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-import { bcs } from '@mysten/sui.js/bcs';
-import type { TransactionBlock } from '@mysten/sui.js/transactions';
-import { isValidSuiNSName, normalizeSuiNSName, SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
+import { bcs } from '@mysten/sui/bcs';
+import type { Transaction } from '@mysten/sui/transactions';
+import { isValidSuiNSName, normalizeSuiNSName, SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 
 import { ALLOWED_METADATA } from './constants.js';
 import { isNestedSubName, isSubName, validateYears } from './helpers.js';
@@ -11,11 +11,11 @@ import type { ObjectArgument } from './types.js';
 
 export class SuinsTransaction {
 	#suinsClient: SuinsClient;
-	transactionBlock: TransactionBlock;
+	transaction: Transaction;
 
-	constructor(client: SuinsClient, transactionBlock: TransactionBlock) {
+	constructor(client: SuinsClient, transaction: Transaction) {
 		this.#suinsClient = client;
-		this.transactionBlock = transactionBlock;
+		this.transaction = transaction;
 	}
 
 	/**
@@ -32,16 +32,14 @@ export class SuinsTransaction {
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
 		validateYears(years);
 
-		this.transactionBlock.moveCall({
+		this.transaction.moveCall({
 			target: `${this.#suinsClient.constants.renewalPackageId}::renew::renew`,
 			arguments: [
-				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
-				this.transactionBlock.object(nftId),
-				this.transactionBlock.pure.u8(years),
-				this.transactionBlock.splitCoins(this.transactionBlock.gas, [
-					this.transactionBlock.pure.u64(price),
-				]),
-				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
+				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
+				this.transaction.object(nftId),
+				this.transaction.pure.u8(years),
+				this.transaction.splitCoins(this.transaction.gas, [this.transaction.pure.u64(price)]),
+				this.transaction.object(SUI_CLOCK_OBJECT_ID),
 			],
 		});
 	}
@@ -58,16 +56,14 @@ export class SuinsTransaction {
 		if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
 		validateYears(years);
 
-		const nft = this.transactionBlock.moveCall({
+		const nft = this.transaction.moveCall({
 			target: `${this.#suinsClient.constants.registrationPackageId}::register::register`,
 			arguments: [
-				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
-				this.transactionBlock.pure.string(normalizeSuiNSName(name, 'dot')),
-				this.transactionBlock.pure.u8(years),
-				this.transactionBlock.splitCoins(this.transactionBlock.gas, [
-					this.transactionBlock.pure.u64(price),
-				]),
-				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
+				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
+				this.transaction.pure.string(normalizeSuiNSName(name, 'dot')),
+				this.transaction.pure.u8(years),
+				this.transaction.splitCoins(this.transaction.gas, [this.transaction.pure.u64(price)]),
+				this.transaction.object(SUI_CLOCK_OBJECT_ID),
 			],
 		});
 
@@ -95,18 +91,18 @@ export class SuinsTransaction {
 		if (isParentSubdomain && !this.#suinsClient.constants.tempSubNamesProxyPackageId)
 			throw new Error('Subnames proxy package ID not found');
 
-		const subNft = this.transactionBlock.moveCall({
+		const subNft = this.transaction.moveCall({
 			target: isParentSubdomain
 				? `${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::new`
 				: `${this.#suinsClient.constants.subNamesPackageId}::subdomains::new`,
 			arguments: [
-				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
-				this.transactionBlock.object(parentNft),
-				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
-				this.transactionBlock.pure.string(normalizeSuiNSName(name, 'dot')),
-				this.transactionBlock.pure.u64(expirationTimestampMs),
-				this.transactionBlock.pure.bool(!!allowChildCreation),
-				this.transactionBlock.pure.bool(!!allowTimeExtension),
+				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
+				this.transaction.object(parentNft),
+				this.transaction.object(SUI_CLOCK_OBJECT_ID),
+				this.transaction.pure.string(normalizeSuiNSName(name, 'dot')),
+				this.transaction.pure.u64(expirationTimestampMs),
+				this.transaction.pure.bool(!!allowChildCreation),
+				this.transaction.pure.bool(!!allowTimeExtension),
 			],
 		});
 
@@ -135,16 +131,16 @@ export class SuinsTransaction {
 		if (isParentSubdomain && !this.#suinsClient.constants.tempSubNamesProxyPackageId)
 			throw new Error('Subnames proxy package ID not found');
 
-		this.transactionBlock.moveCall({
+		this.transaction.moveCall({
 			target: isParentSubdomain
 				? `${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::new_leaf`
 				: `${this.#suinsClient.constants.subNamesPackageId}::subdomains::new_leaf`,
 			arguments: [
-				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
-				this.transactionBlock.object(parentNft),
-				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
-				this.transactionBlock.pure.string(normalizeSuiNSName(name, 'dot')),
-				this.transactionBlock.pure.address(targetAddress),
+				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
+				this.transaction.object(parentNft),
+				this.transaction.object(SUI_CLOCK_OBJECT_ID),
+				this.transaction.pure.string(normalizeSuiNSName(name, 'dot')),
+				this.transaction.pure.address(targetAddress),
 			],
 		});
 	}
@@ -162,15 +158,15 @@ export class SuinsTransaction {
 		if (isParentSubdomain && !this.#suinsClient.constants.tempSubNamesProxyPackageId)
 			throw new Error('Subnames proxy package ID not found');
 
-		this.transactionBlock.moveCall({
+		this.transaction.moveCall({
 			target: isParentSubdomain
 				? `${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::remove_leaf`
 				: `${this.#suinsClient.constants.subNamesPackageId}::subdomains::remove_leaf`,
 			arguments: [
-				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
-				this.transactionBlock.object(parentNft),
-				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
-				this.transactionBlock.pure.string(normalizeSuiNSName(name, 'dot')),
+				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
+				this.transaction.object(parentNft),
+				this.transaction.object(SUI_CLOCK_OBJECT_ID),
+				this.transaction.pure.string(normalizeSuiNSName(name, 'dot')),
 			],
 		});
 	}
@@ -190,15 +186,15 @@ export class SuinsTransaction {
 		if (isSubname && !this.#suinsClient.constants.tempSubNamesProxyPackageId)
 			throw new Error('Subnames proxy package ID not found');
 
-		this.transactionBlock.moveCall({
+		this.transaction.moveCall({
 			target: isSubname
 				? `${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::set_target_address`
 				: `${this.#suinsClient.constants.utilsPackageId}::direct_setup::set_target_address`,
 			arguments: [
-				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
-				this.transactionBlock.object(nft),
-				this.transactionBlock.pure(bcs.option(bcs.Address).serialize(address).toBytes()),
-				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
+				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
+				this.transaction.object(nft),
+				this.transaction.pure(bcs.option(bcs.Address).serialize(address).toBytes()),
+				this.transaction.object(SUI_CLOCK_OBJECT_ID),
 			],
 		});
 	}
@@ -209,11 +205,11 @@ export class SuinsTransaction {
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
 		if (!this.#suinsClient.constants.utilsPackageId) throw new Error('Utils package ID not found');
 
-		this.transactionBlock.moveCall({
+		this.transaction.moveCall({
 			target: `${this.#suinsClient.constants.utilsPackageId}::direct_setup::set_reverse_lookup`,
 			arguments: [
-				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
-				this.transactionBlock.pure.string(normalizeSuiNSName(name, 'dot')),
+				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
+				this.transaction.pure.string(normalizeSuiNSName(name, 'dot')),
 			],
 		});
 	}
@@ -237,17 +233,17 @@ export class SuinsTransaction {
 		if (isParentSubdomain && !this.#suinsClient.constants.tempSubNamesProxyPackageId)
 			throw new Error('Subnames proxy package ID not found');
 
-		this.transactionBlock.moveCall({
+		this.transaction.moveCall({
 			target: isParentSubdomain
 				? `${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::edit_setup`
 				: `${this.#suinsClient.constants.subNamesPackageId}::subdomains::edit_setup`,
 			arguments: [
-				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
-				this.transactionBlock.object(parentNft),
-				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
-				this.transactionBlock.pure.string(normalizeSuiNSName(name, 'dot')),
-				this.transactionBlock.pure.bool(!!allowChildCreation),
-				this.transactionBlock.pure.bool(!!allowTimeExtension),
+				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
+				this.transaction.object(parentNft),
+				this.transaction.object(SUI_CLOCK_OBJECT_ID),
+				this.transaction.pure.string(normalizeSuiNSName(name, 'dot')),
+				this.transaction.pure.bool(!!allowChildCreation),
+				this.transaction.pure.bool(!!allowTimeExtension),
 			],
 		});
 	}
@@ -263,12 +259,12 @@ export class SuinsTransaction {
 		if (!this.#suinsClient.constants.subNamesPackageId)
 			throw new Error('Subnames package ID not found');
 
-		this.transactionBlock.moveCall({
+		this.transaction.moveCall({
 			target: `${this.#suinsClient.constants.subNamesPackageId}::subdomains::extend_expiration`,
 			arguments: [
-				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
-				this.transactionBlock.object(nft),
-				this.transactionBlock.pure.u64(expirationTimestampMs),
+				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
+				this.transaction.object(nft),
+				this.transaction.pure.u64(expirationTimestampMs),
 			],
 		});
 	}
@@ -292,16 +288,16 @@ export class SuinsTransaction {
 
 		if (!Object.values(ALLOWED_METADATA).some((x) => x === key)) throw new Error('Invalid key');
 
-		this.transactionBlock.moveCall({
+		this.transaction.moveCall({
 			target: isSubname
 				? `${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::set_user_data`
 				: `${this.#suinsClient.constants.utilsPackageId}::direct_setup::set_user_data`,
 			arguments: [
-				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
-				this.transactionBlock.object(nft),
-				this.transactionBlock.pure.string(key),
-				this.transactionBlock.pure.string(value),
-				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
+				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
+				this.transaction.object(nft),
+				this.transaction.pure.string(key),
+				this.transaction.pure.string(value),
+				this.transaction.object(SUI_CLOCK_OBJECT_ID),
 			],
 		});
 	}
@@ -313,14 +309,14 @@ export class SuinsTransaction {
 		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
 		if (!this.#suinsClient.constants.utilsPackageId) throw new Error('Utils package ID not found');
 
-		this.transactionBlock.moveCall({
+		this.transaction.moveCall({
 			target: `${this.#suinsClient.constants.utilsPackageId}::direct_setup::${
 				isSubname ? 'burn_expired_subname' : 'burn_expired'
 			}`,
 			arguments: [
-				this.transactionBlock.object(this.#suinsClient.constants.suinsObjectId),
-				this.transactionBlock.object(nft),
-				this.transactionBlock.object(SUI_CLOCK_OBJECT_ID),
+				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
+				this.transaction.object(nft),
+				this.transaction.object(SUI_CLOCK_OBJECT_ID),
 			],
 		});
 	}
