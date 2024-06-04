@@ -34,7 +34,7 @@ const craftTx = async () => {
 		[auctionProfits, generalProfits],
 		txb.pure(ADDRESS_TO_TRANSFER_FUNDS, 'address'),
 	);
-	await prepareMultisigTx(txb, 'mainnet');
+	await prepareMultisigTx(txb, 'mainnet', config.adminAddress);
 };
 
 craftTx();
