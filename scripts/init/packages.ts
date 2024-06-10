@@ -224,7 +224,7 @@ export const Packages = (network: Network) => {
 					upgradeCap,
 				};
 			},
-			authorizationType: (packageId: string) => `${packageId}::coupons::CouponsApp`,
+			authorizationType: (packageId: string) => `${packageId}::coupon_house::CouponsApp`,
 			setupFunction: ({
 				txb,
 				packageId,
@@ -236,7 +236,7 @@ export const Packages = (network: Network) => {
 				adminCap: string;
 				suins: string;
 			}) => {
-				setupApp({ txb, adminCap, suins, target: `${packageId}::coupons` });
+				setupApp({ txb, adminCap, suins, target: `${packageId}::coupon_house` });
 			},
 		},
 		Subdomains: {
