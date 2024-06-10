@@ -24,7 +24,7 @@ module coupons::range {
 
     // Verify that the number is in the range (includes from, to)
     public fun is_in_range(range: &Range, number: u8): bool {
-        number >= from(range) && number <= to(range)
+        number >= range.from() && number <= range.to()
     }
 
     /// Get floor limit for the range.
