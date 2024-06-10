@@ -2,10 +2,12 @@
 name = "coupons"
 version = "0.0.1"
 edition = "2024.beta"
+published-at = "0xf6859389182791bf8f218ee869ba8225e1d46ea967b301f5c4da6b38d1ba1b46"
 
 [dependencies]
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "mainnet", override=true }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet", override=true }
 suins = { local = "../suins" }
 
+
 [addresses]
-coupons = "0x0"
+coupons = "0xf6859389182791bf8f218ee869ba8225e1d46ea967b301f5c4da6b38d1ba1b46"

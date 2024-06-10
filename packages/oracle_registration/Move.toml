@@ -1,0 +1,13 @@
+[package]
+name = "oracle_registration"
+version = "0.0.1"
+edition = "2024.beta"
+published-at = "0xd6dc2709ea6baba92a4b0fdc317ac7f3836eda9bc889c532ca7a81e08f93bacb"
+
+[dependencies]
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet", override=true }
+suins = { local = "../suins" }
+Pyth = {git = "https://github.com/pyth-network/pyth-crosschain.git", subdir = "target_chains/sui/contracts", rev = "sui-contract-testnet" }
+
+[addresses]
+oracle_registration = "0xd6dc2709ea6baba92a4b0fdc317ac7f3836eda9bc889c532ca7a81e08f93bacb"

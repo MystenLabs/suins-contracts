@@ -2,11 +2,12 @@
 name = "discounts"
 version = "0.0.1"
 edition = "2024.beta"
+published-at = "0xbaa887026d524cef89ff86536b59190e678ffd8d5dbcd10b1025cca34d33432d"
 
 [dependencies]
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/mainnet", override=true }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet", override=true }
 suins = { local = "../suins" }
 day_one = { local = "../day_one" }
 
 [addresses]
-discounts = "0x0"
+discounts = "0xbaa887026d524cef89ff86536b59190e678ffd8d5dbcd10b1025cca34d33432d"

@@ -19,7 +19,8 @@
 		"eslint:fix": "pnpm run eslint:check --fix",
 		"lint": "pnpm run eslint:check && pnpm run prettier:check",
 		"lint:fix": "pnpm run eslint:fix && pnpm run prettier:fix",
-		"subdomains::04": "pnpm ts-node transactions/subnames/04.ts"
+		"subdomains::04": "pnpm ts-node transactions/subnames/04.ts",
+		"oracle-registration": "pnpm ts-node transactions/oracle_registration/register_with_oracle.ts"
 	},
 	"keywords": [],
 	"author": "",
@@ -30,7 +31,8 @@
 		"@mysten/sui.js": "^0.54.1",
 		"@noble/hashes": "^1.4.0",
 		"@pythnetwork/pyth-sui-js": "2.0.0",
-		"dotenv": "^16.3.1"
+		"dotenv": "^16.3.1",
+		"axios": "^1.5.1"
 	},
 	"devDependencies": {
 		"esbuild": "^0.20.2",

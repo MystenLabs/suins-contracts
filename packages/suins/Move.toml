@@ -1,19 +1,11 @@
 [package]
 name = "suins"
-version = "0.0.2"
-#mainnet
-published-at="0x00c2f85e07181b90c140b15c5ce27d863f93c4d9159d2a4e7bdaeb40e286d6f5"
+version = "0.0.1"
 edition = "2024.beta"
-
-#testnet
-#published-at="0x67072134f0867b886c9541873d1cb327feb7e161cd56dd76cb6aa9e464410db1"
+published-at = "0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94"
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
 
 [addresses]
-#mainnet
-suins = "0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0"
-
-#testnet
-#suins = "0x22fa05f21b1ad71442491220bb9338f7b7095fe35000ef88d5400d28523bdd93"
+suins = "0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94"

@@ -1,13 +1,13 @@
 [package]
 name = "day_one"
 version = "0.0.1"
-published-at="0xbf1431324a4a6eadd70e0ac6c5a16f36492f255ed4d011978b2cf34ad738efe6"
 edition = "2024.beta"
+published-at = "0xbf417a054f5a4cf90a3fb12b71fcfe44d3d0892ac97a86725c0e91b4e05f655d"
 
 [dependencies]
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/mainnet", override=true }
-
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet", override=true }
 suins = { local = "../suins" }
 
+
 [addresses]
-day_one = "0xbf1431324a4a6eadd70e0ac6c5a16f36492f255ed4d011978b2cf34ad738efe6"
+day_one = "0xbf417a054f5a4cf90a3fb12b71fcfe44d3d0892ac97a86725c0e91b4e05f655d"

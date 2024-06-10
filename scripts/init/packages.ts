@@ -142,10 +142,13 @@ export const Packages = (network: Network) => {
 				setupApp({ txb, adminCap, suins, target: `${packageId}::denylist` });
 			},
 		},
-		Registration: {
+		OracleRegistration: {
 			order: 2,
-			folder: 'registration',
-			manifest: SuiNSDependentPackages(rev, 'registration'),
+			folder: 'oracle_registration',
+			manifest: SuiNSDependentPackages(
+				rev,
+				'oracle_registration',
+				`Pyth = {git = "https://github.com/pyth-network/pyth-crosschain.git", subdir = "target_chains/sui/contracts", rev = "sui-contract-testnet" }`),
 			processPublish: (data: SuiTransactionBlockResponse) => {
 				const { packageId, upgradeCap } = parseCorePackageObjects(data);
 
