@@ -1,5 +1,4 @@
 module coupons::coupon {
-
     use coupons::{
         rules::{Self, CouponRules},
         constants

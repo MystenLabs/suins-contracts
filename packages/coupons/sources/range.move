@@ -3,7 +3,6 @@
 
 /// A module to introduce `range` checks for the rules.
 module coupons::range {
-
     /// Invalid [from, to] setup in the range!
     /// `to` parameter has to be >= `from`
     const EInvalidRange: u64 = 0;

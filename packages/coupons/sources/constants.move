@@ -3,7 +3,6 @@
 
 // Some constants used in coupons.
 module coupons::constants {
-
     /// discount types
     /// Percentage discount (0,100]
     const PERCENTAGE_DISCOUNT: u8 = 0;

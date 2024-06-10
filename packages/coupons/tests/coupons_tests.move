@@ -3,13 +3,17 @@
 
 #[test_only]
 module coupons::coupon_tests {
-    use sui::test_scenario::{Self, Scenario, ctx, return_shared, end};
+    use sui::{
+        test_scenario::{Self, Scenario, return_shared},
+        test_utils
+    };
     use suins::suins::SuiNS;
 
     // test dependencies.
     use coupons::{
         setup::{Self, TestApp, user, user_two, mist_per_sui, test_app, admin_add_coupon, register_with_coupon, test_init}, 
         coupon_house,
+        data,
         constants::{Self}, 
         rules, 
         range
@@ -53,7 +57,7 @@ module coupons::coupon_tests {
         // 50% DISCOUNT, with all possible rules involved.
         register_with_coupon(b"50_DISCOUNT_SALAD".to_string(), b"teso.sui".to_string(), 1, 100 * mist_per_sui(), 0, user(), scenario);
 
-        end(scenario_val);
+        scenario_val.end();
     }
     #[test]
     fun zero_fee_purchase(){
@@ -65,7 +69,7 @@ module coupons::coupon_tests {
         admin_add_coupon(b"100_SUI_OFF".to_string(), constants::fixed_price_discount_type(), 100 * mist_per_sui(),  scenario);
         // Buy a name for free using the 100 SUI OFF coupon! 
         register_with_coupon(b"100_SUI_OFF".to_string(), b"testo.sui".to_string(), 1, 0 * mist_per_sui(), 0, user(), scenario);
-        end(scenario_val);
+        scenario_val.end();
     }
     #[test]
     fun specific_max_years(){
@@ -111,7 +115,7 @@ module coupons::coupon_tests {
             assert!(sale_price == 50, 1);
             test_scenario::return_shared(suins);
         };
-        end(scenario_val);
+        scenario_val.end();
     }
     // Tests the e2e experience for coupons (a list of different coupons with different rules)
     #[test, expected_failure(abort_code=::coupons::coupon_house::EIncorrectAmount)]
@@ -122,7 +126,7 @@ module coupons::coupon_tests {
         populate_coupons(scenario);
         // 5 SUI discount coupon.
         register_with_coupon(b"5_SUI_DISCOUNT".to_string(), b"test.sui".to_string(), 1, 200 * mist_per_sui(), 0, user(), scenario);
-        end(scenario_val);
+        scenario_val.end();
     }
      #[test, expected_failure(abort_code=::coupons::coupon_house::ECouponNotExists)]
     fun no_more_available_claims_failure() {
@@ -131,7 +135,7 @@ module coupons::coupon_tests {
         populate_coupons(scenario);
         register_with_coupon(b"25_PERCENT_DISCOUNT_USER_ONLY".to_string(), b"test.sui".to_string(), 1, 150 * mist_per_sui(), 0, user(), scenario);
         register_with_coupon(b"25_PERCENT_DISCOUNT_USER_ONLY".to_string(), b"tost.sui".to_string(), 1, 150 * mist_per_sui(), 0, user(), scenario);
-        end(scenario_val);
+        scenario_val.end();
     }
     #[test, expected_failure(abort_code=::coupons::coupon_house::EInvalidYearsArgument)]
     fun invalid_years_claim_failure() {
@@ -139,7 +143,7 @@ module coupons::coupon_tests {
         let scenario = &mut scenario_val;
         populate_coupons(scenario);
         register_with_coupon(b"25_PERCENT_DISCOUNT_USER_ONLY".to_string(), b"test.sui".to_string(), 6, 150 * mist_per_sui(), 0, user(), scenario);
-        end(scenario_val);
+        scenario_val.end();
     }
     #[test, expected_failure(abort_code=::coupons::coupon_house::EInvalidYearsArgument)]
     fun invalid_years_claim_1_failure() {
@@ -147,7 +151,7 @@ module coupons::coupon_tests {
         let scenario = &mut scenario_val;
         populate_coupons(scenario);
         register_with_coupon(b"25_PERCENT_DISCOUNT_USER_ONLY".to_string(), b"test.sui".to_string(), 0, 150 * mist_per_sui(), 0, user(), scenario);
-        end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code=::coupons::rules::EInvalidUser)]
@@ -156,7 +160,7 @@ module coupons::coupon_tests {
         let scenario = &mut scenario_val;
         populate_coupons(scenario);
         register_with_coupon(b"25_PERCENT_DISCOUNT_USER_ONLY".to_string(), b"test.sui".to_string(), 1, 150 * mist_per_sui(), 0, user_two(), scenario);
-        end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code=::coupons::rules::ECouponExpired)]
@@ -165,7 +169,7 @@ module coupons::coupon_tests {
         let scenario = &mut scenario_val;
         populate_coupons(scenario);
         register_with_coupon(b"50_PERCENT_3_DIGITS".to_string(), b"tes.sui".to_string(), 1, 150 * mist_per_sui(), 2, user_two(), scenario);
-        end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code=::coupons::rules::ENotValidYears)]
@@ -174,7 +178,7 @@ module coupons::coupon_tests {
         let scenario = &mut scenario_val;
         populate_coupons(scenario);
         register_with_coupon(b"50_DISCOUNT_SALAD".to_string(), b"tes.sui".to_string(), 3, 150 * mist_per_sui(), 0, user(), scenario);
-        end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code=::coupons::rules::EInvalidForDomainLength)]
@@ -183,7 +187,7 @@ module coupons::coupon_tests {
         let scenario = &mut scenario_val;
         populate_coupons(scenario);
         register_with_coupon(b"50_PERCENT_3_DIGITS".to_string(), b"test.sui".to_string(), 1, 150 * mist_per_sui(), 2, user_two(), scenario);
-        end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code=::coupons::rules::EInvalidForDomainLength)]
@@ -193,7 +197,7 @@ module coupons::coupon_tests {
         populate_coupons(scenario);
         // Tries to use 5 digit name for a <=4 digit one.
         register_with_coupon(b"50_DISCOUNT_SALAD".to_string(), b"testo.sui".to_string(), 1, 150 * mist_per_sui(), 2, user(), scenario);
-        end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code=::coupons::rules::EInvalidForDomainLength)]
@@ -203,7 +207,7 @@ module coupons::coupon_tests {
         populate_coupons(scenario);
         // Tries to use 4 digit name for a 5+ chars coupon.
         register_with_coupon(b"50_PERCENT_5_PLUS_NAMES".to_string(), b"test.sui".to_string(), 1, 150 * mist_per_sui(), 2, user(), scenario);
-        end(scenario_val);
+        scenario_val.end();
     }
 
     #[test]
@@ -215,7 +219,7 @@ module coupons::coupon_tests {
         admin_add_coupon(b"TEST_SUCCESS_ADDITION".to_string(), constants::fixed_price_discount_type(), 100 * mist_per_sui(),  scenario);
         setup::admin_remove_coupon(b"TEST_SUCCESS_ADDITION".to_string(), scenario);
 
-        end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code=::coupons::rules::EInvalidType)]
@@ -224,7 +228,7 @@ module coupons::coupon_tests {
         let scenario = &mut scenario_val;
         populate_coupons(scenario);
         admin_add_coupon(b"TEST_SUCCESS_ADDITION".to_string(), 5, 100 * mist_per_sui(),  scenario);
-        end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code=::coupons::rules::EInvalidAmount)]
@@ -233,7 +237,7 @@ module coupons::coupon_tests {
         let scenario = &mut scenario_val;
         populate_coupons(scenario);
         admin_add_coupon(b"TEST_SUCCESS_ADDITION".to_string(), constants::percentage_discount_type(), 101,  scenario);
-        end(scenario_val);
+        scenario_val.end();
     }
     #[test, expected_failure(abort_code=::coupons::rules::EInvalidAmount)]
     fun add_coupon_invalid_amount_2_failure() {
@@ -241,7 +245,7 @@ module coupons::coupon_tests {
         let scenario = &mut scenario_val;
         populate_coupons(scenario);
         admin_add_coupon(b"TEST_SUCCESS_ADDITION".to_string(), constants::percentage_discount_type(), 0,  scenario);
-        end(scenario_val);
+        scenario_val.end();
     }
 
     #[test, expected_failure(abort_code=::coupons::data::ECouponAlreadyExists)]
@@ -251,6 +255,14 @@ module coupons::coupon_tests {
         populate_coupons(scenario);
         admin_add_coupon(b"TEST_SUCCESS_ADDITION".to_string(), constants::percentage_discount_type(), 100,  scenario);
         admin_add_coupon(b"TEST_SUCCESS_ADDITION".to_string(), constants::percentage_discount_type(), 100,  scenario);
-        end(scenario_val);
+        scenario_val.end();
+    }
+
+   #[test, expected_failure(abort_code=::coupons::data::ECouponDoesNotExist)]
+    fun remove_non_existing_coupon() {
+        let mut ctx = tx_context::dummy();
+        let mut data = data::new(&mut ctx);
+        data.remove_coupon(b"TEST_SUCCESS_ADDITION".to_string());
+        test_utils::destroy(data);
     }
 }
