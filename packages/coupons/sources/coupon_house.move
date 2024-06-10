@@ -10,11 +10,24 @@
 /// The app is authorized on `SuiNS` to be able to claim names and add earnings to the registry.
 module coupons::coupon_house {
     use std::string::String;
-
-    use sui::{dynamic_field::{Self as df}, clock::Clock, sui::SUI, coin::Coin};
-
-    use coupons::{rules::CouponRules, data::{Self, Data}, coupon::{Self, Coupon} };
-    use suins::{domain, suins::{Self, AdminCap, SuiNS}, suins_registration::SuinsRegistration, config::{Self, Config}, registry::Registry};
+    use sui::{
+        dynamic_field::{Self as df}, 
+        clock::Clock, 
+        sui::SUI, 
+        coin::Coin
+    };
+    use coupons::{
+        rules::CouponRules, 
+        data::{Self, Data}, 
+        coupon::{Self, Coupon} 
+    };
+    use suins::{
+        domain, 
+        suins::{Self, AdminCap, SuiNS}, 
+        suins_registration::SuinsRegistration, 
+        config::{Self, Config}, 
+        registry::Registry
+    };
 
     /// An app that's not authorized tries to access private data.
     const EAppNotAuthorized: u64 = 1;
@@ -36,7 +49,7 @@ module coupons::coupon_house {
     public struct CouponsApp has drop {}
 
     /// Authorization Key for secondary apps (e.g. Discord) connected to this module.
-    public struct AppKey<phantom App: drop> has copy, store, drop {}
+    public struct AppKey<phantom A: drop> has copy, store, drop {}
 
     /// The CouponHouse Shared Object which holds a table of coupon codes available for claim.
     public struct CouponHouse has store {

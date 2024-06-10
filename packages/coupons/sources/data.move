@@ -1,13 +1,7 @@
-
 module coupons::data {
     use std::string::String;
-    use sui::{
-        bag::{Self, Bag}
-    };
-
-    use coupons::{
-        coupon::Coupon
-    };
+    use sui::bag::{Self, Bag};
+    use coupons::coupon::Coupon;
 
     const ECouponAlreadyExists: u64 = 1;
 
