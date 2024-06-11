@@ -2,7 +2,7 @@
 name = "renewal"
 version = "0.0.1"
 edition = "2024.beta"
-published-at = "0x2acc85a8f3bb96abb72ec06df0a9ac9b8026d6081560bf1f614531ec9fd93575"
+published-at = "0x1e95b48d4734f1509c8b1a06b85272c56557e8727e92a369e682e6636458bb16"
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet", override=true }
@@ -10,4 +10,4 @@ suins = { local = "../suins" }
 
 
 [addresses]
-renewal = "0x2acc85a8f3bb96abb72ec06df0a9ac9b8026d6081560bf1f614531ec9fd93575"
+renewal = "0x1e95b48d4734f1509c8b1a06b85272c56557e8727e92a369e682e6636458bb16"

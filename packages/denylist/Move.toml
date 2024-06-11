@@ -2,7 +2,7 @@
 name = "denylist"
 version = "0.0.1"
 edition = "2024.beta"
-published-at = "0xee65611da55aeec899a10df218a881d05236383eb61e4c20b21b4aa2d7580315"
+published-at = "0x92f333a152c9ada0a2fb69b9510ce1e27b1b093891deac99e4c35bbd25866b20"
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet", override=true }
@@ -10,4 +10,4 @@ suins = { local = "../suins" }
 
 
 [addresses]
-denylist = "0xee65611da55aeec899a10df218a881d05236383eb61e4c20b21b4aa2d7580315"
+denylist = "0x92f333a152c9ada0a2fb69b9510ce1e27b1b093891deac99e4c35bbd25866b20"

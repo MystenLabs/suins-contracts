@@ -1,29 +1,29 @@
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config"></a>
 
-# Module `0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3::config`
+# Module `0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4::config`
 
 
 
--  [Struct `SubDomainConfig`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_SubDomainConfig)
+-  [Struct `SubDomainConfig`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_SubDomainConfig)
 -  [Constants](#@Constants_0)
--  [Function `default`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_default)
--  [Function `new`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_new)
--  [Function `assert_is_valid_subdomain`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_assert_is_valid_subdomain)
--  [Function `minimum_duration`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_minimum_duration)
--  [Function `has_valid_depth`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_has_valid_depth)
--  [Function `is_valid_tld`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_is_valid_tld)
--  [Function `is_valid_label`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_is_valid_label)
+-  [Function `default`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_default)
+-  [Function `new`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_new)
+-  [Function `assert_is_valid_subdomain`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_assert_is_valid_subdomain)
+-  [Function `minimum_duration`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_minimum_duration)
+-  [Function `has_valid_depth`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_has_valid_depth)
+-  [Function `is_valid_tld`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_is_valid_tld)
+-  [Function `is_valid_label`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_is_valid_label)
 
 
 <pre><code><b>use</b> <a href="dependencies/move-stdlib/string.md#0x1_string">0x1::string</a>;
-<b>use</b> <a href="dependencies/suins/constants.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_constants">0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94::constants</a>;
-<b>use</b> <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94::domain</a>;
+<b>use</b> <a href="dependencies/suins/constants.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_constants">0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b::constants</a>;
+<b>use</b> <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b::domain</a>;
 </code></pre>
 
 
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_SubDomainConfig"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_SubDomainConfig"></a>
 
 ## Struct `SubDomainConfig`
 
@@ -31,7 +31,7 @@ A Subdomain configuration object.
 Holds the allow-listed tlds, the max depth and the minimum label size.
 
 
-<pre><code><b>struct</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_SubDomainConfig">SubDomainConfig</a> <b>has</b> <b>copy</b>, drop, store
+<pre><code><b>struct</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_SubDomainConfig">SubDomainConfig</a> <b>has</b> <b>copy</b>, drop, store
 </code></pre>
 
 
@@ -75,83 +75,83 @@ Holds the allow-listed tlds, the max depth and the minimum label size.
 ## Constants
 
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_EDepthOutOfLimit"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_EDepthOutOfLimit"></a>
 
 tries to register a subdomain with a depth more than the one allowed.
 
 
-<pre><code><b>const</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_EDepthOutOfLimit">EDepthOutOfLimit</a>: u64 = 1;
+<pre><code><b>const</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_EDepthOutOfLimit">EDepthOutOfLimit</a>: u64 = 1;
 </code></pre>
 
 
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_EInvalidLabelSize"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_EInvalidLabelSize"></a>
 
 tries to register a label of size less than 3.
 
 
-<pre><code><b>const</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_EInvalidLabelSize">EInvalidLabelSize</a>: u64 = 3;
+<pre><code><b>const</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_EInvalidLabelSize">EInvalidLabelSize</a>: u64 = 3;
 </code></pre>
 
 
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_EInvalidParent"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_EInvalidParent"></a>
 
 tries to register a subdomain with the wrong parent (based on name)
 
 
-<pre><code><b>const</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_EInvalidParent">EInvalidParent</a>: u64 = 2;
+<pre><code><b>const</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_EInvalidParent">EInvalidParent</a>: u64 = 2;
 </code></pre>
 
 
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_ENotSupportedTLD"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_ENotSupportedTLD"></a>
 
 tries to register a domain with an unsupported tld.
 
 
-<pre><code><b>const</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_ENotSupportedTLD">ENotSupportedTLD</a>: u64 = 4;
+<pre><code><b>const</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_ENotSupportedTLD">ENotSupportedTLD</a>: u64 = 4;
 </code></pre>
 
 
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_MAX_SUBDOMAIN_DEPTH"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_MAX_SUBDOMAIN_DEPTH"></a>
 
 the maximum depth a subdomain can have -> 8 (+ 2 for TLD, SLD)
 
 
-<pre><code><b>const</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_MAX_SUBDOMAIN_DEPTH">MAX_SUBDOMAIN_DEPTH</a>: u8 = 10;
+<pre><code><b>const</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_MAX_SUBDOMAIN_DEPTH">MAX_SUBDOMAIN_DEPTH</a>: u8 = 10;
 </code></pre>
 
 
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_MINIMUM_SUBDOMAIN_DURATION"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_MINIMUM_SUBDOMAIN_DURATION"></a>
 
 Minimum duration for a subdomain in milliseconds. (1 day)
 
 
-<pre><code><b>const</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_MINIMUM_SUBDOMAIN_DURATION">MINIMUM_SUBDOMAIN_DURATION</a>: u64 = 86400000;
+<pre><code><b>const</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_MINIMUM_SUBDOMAIN_DURATION">MINIMUM_SUBDOMAIN_DURATION</a>: u64 = 86400000;
 </code></pre>
 
 
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_MIN_LABEL_SIZE"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_MIN_LABEL_SIZE"></a>
 
 the minimum size a subdomain label can have.
 
 
-<pre><code><b>const</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_MIN_LABEL_SIZE">MIN_LABEL_SIZE</a>: u8 = 3;
+<pre><code><b>const</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_MIN_LABEL_SIZE">MIN_LABEL_SIZE</a>: u8 = 3;
 </code></pre>
 
 
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_default"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_default"></a>
 
 ## Function `default`
 
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_default">default</a>(): <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_SubDomainConfig">config::SubDomainConfig</a>
+<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_default">default</a>(): config::SubDomainConfig
 </code></pre>
 
 
@@ -160,12 +160,12 @@ the minimum size a subdomain label can have.
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_default">default</a>(): <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_SubDomainConfig">SubDomainConfig</a> {
-    <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_SubDomainConfig">SubDomainConfig</a> {
+<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_default">default</a>(): <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_SubDomainConfig">SubDomainConfig</a> {
+    <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_SubDomainConfig">SubDomainConfig</a> {
         allowed_tlds: <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>[sui_tld()],
-        max_depth: <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_MAX_SUBDOMAIN_DEPTH">MAX_SUBDOMAIN_DEPTH</a>,
-        min_label_size: <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_MIN_LABEL_SIZE">MIN_LABEL_SIZE</a>,
-        minimum_duration: <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_MINIMUM_SUBDOMAIN_DURATION">MINIMUM_SUBDOMAIN_DURATION</a>
+        max_depth: <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_MAX_SUBDOMAIN_DEPTH">MAX_SUBDOMAIN_DEPTH</a>,
+        min_label_size: <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_MIN_LABEL_SIZE">MIN_LABEL_SIZE</a>,
+        minimum_duration: <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_MINIMUM_SUBDOMAIN_DURATION">MINIMUM_SUBDOMAIN_DURATION</a>
     }
 }
 </code></pre>
@@ -174,13 +174,13 @@ the minimum size a subdomain label can have.
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_new"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_new"></a>
 
 ## Function `new`
 
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_new">new</a>(allowed_tlds: <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>&gt;, max_depth: u8, min_label_size: u8, minimum_duration: u64): <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_SubDomainConfig">config::SubDomainConfig</a>
+<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_new">new</a>(allowed_tlds: <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>&gt;, max_depth: u8, min_label_size: u8, minimum_duration: u64): config::SubDomainConfig
 </code></pre>
 
 
@@ -189,13 +189,13 @@ the minimum size a subdomain label can have.
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_new">new</a>(
+<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_new">new</a>(
     allowed_tlds: <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;String&gt;,
     max_depth: u8,
     min_label_size: u8,
     minimum_duration: u64
-): <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_SubDomainConfig">SubDomainConfig</a> {
-    <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_SubDomainConfig">SubDomainConfig</a> {
+): <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_SubDomainConfig">SubDomainConfig</a> {
+    <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_SubDomainConfig">SubDomainConfig</a> {
         allowed_tlds,
         max_depth,
         min_label_size,
@@ -208,14 +208,14 @@ the minimum size a subdomain label can have.
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_assert_is_valid_subdomain"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_assert_is_valid_subdomain"></a>
 
 ## Function `assert_is_valid_subdomain`
 
 Validates that the child name is a valid child for parent.
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_assert_is_valid_subdomain">assert_is_valid_subdomain</a>(parent: &<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>, child: &<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>, <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>: &<a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_SubDomainConfig">config::SubDomainConfig</a>)
+<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_assert_is_valid_subdomain">assert_is_valid_subdomain</a>(parent: &<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>, child: &<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>, <a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>: &config::SubDomainConfig)
 </code></pre>
 
 
@@ -224,11 +224,11 @@ Validates that the child name is a valid child for parent.
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_assert_is_valid_subdomain">assert_is_valid_subdomain</a>(parent: &Domain, child: &Domain, <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>: &<a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_SubDomainConfig">SubDomainConfig</a>) {
-    <b>assert</b>!(<a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_is_valid_tld">is_valid_tld</a>(child, <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>), <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_ENotSupportedTLD">ENotSupportedTLD</a>);
-    <b>assert</b>!(<a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_is_valid_label">is_valid_label</a>(child, <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>), <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_EInvalidLabelSize">EInvalidLabelSize</a>);
-    <b>assert</b>!(<a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_has_valid_depth">has_valid_depth</a>(child, <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>), <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_EDepthOutOfLimit">EDepthOutOfLimit</a>);
-    <b>assert</b>!(is_parent_of(parent, child), <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_EInvalidParent">EInvalidParent</a>);
+<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_assert_is_valid_subdomain">assert_is_valid_subdomain</a>(parent: &Domain, child: &Domain, <a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>: &<a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_SubDomainConfig">SubDomainConfig</a>) {
+    <b>assert</b>!(<a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_is_valid_tld">is_valid_tld</a>(child, <a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>), <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_ENotSupportedTLD">ENotSupportedTLD</a>);
+    <b>assert</b>!(<a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_is_valid_label">is_valid_label</a>(child, <a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>), <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_EInvalidLabelSize">EInvalidLabelSize</a>);
+    <b>assert</b>!(<a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_has_valid_depth">has_valid_depth</a>(child, <a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>), <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_EDepthOutOfLimit">EDepthOutOfLimit</a>);
+    <b>assert</b>!(is_parent_of(parent, child), <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_EInvalidParent">EInvalidParent</a>);
 }
 </code></pre>
 
@@ -236,13 +236,13 @@ Validates that the child name is a valid child for parent.
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_minimum_duration"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_minimum_duration"></a>
 
 ## Function `minimum_duration`
 
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_minimum_duration">minimum_duration</a>(<a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>: &<a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_SubDomainConfig">config::SubDomainConfig</a>): u64
+<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_minimum_duration">minimum_duration</a>(<a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>: &config::SubDomainConfig): u64
 </code></pre>
 
 
@@ -251,8 +251,8 @@ Validates that the child name is a valid child for parent.
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_minimum_duration">minimum_duration</a>(<a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>: &<a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_SubDomainConfig">SubDomainConfig</a>): u64 {
-    <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>.minimum_duration
+<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_minimum_duration">minimum_duration</a>(<a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>: &<a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_SubDomainConfig">SubDomainConfig</a>): u64 {
+    <a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>.minimum_duration
 }
 </code></pre>
 
@@ -260,14 +260,14 @@ Validates that the child name is a valid child for parent.
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_has_valid_depth"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_has_valid_depth"></a>
 
 ## Function `has_valid_depth`
 
 Validate that the depth of the subdomain is with the allowed range.
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_has_valid_depth">has_valid_depth</a>(<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>: &<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>, <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>: &<a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_SubDomainConfig">config::SubDomainConfig</a>): bool
+<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_has_valid_depth">has_valid_depth</a>(<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>: &<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>, <a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>: &config::SubDomainConfig): bool
 </code></pre>
 
 
@@ -276,8 +276,8 @@ Validate that the depth of the subdomain is with the allowed range.
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_has_valid_depth">has_valid_depth</a>(<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>: &Domain, <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>: &<a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_SubDomainConfig">SubDomainConfig</a>): bool {
-    <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>.number_of_levels() &lt;= (<a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>.max_depth <b>as</b> u64)
+<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_has_valid_depth">has_valid_depth</a>(<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>: &Domain, <a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>: &<a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_SubDomainConfig">SubDomainConfig</a>): bool {
+    <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>.number_of_levels() &lt;= (<a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>.max_depth <b>as</b> u64)
 }
 </code></pre>
 
@@ -285,7 +285,7 @@ Validate that the depth of the subdomain is with the allowed range.
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_is_valid_tld"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_is_valid_tld"></a>
 
 ## Function `is_valid_tld`
 
@@ -295,7 +295,7 @@ want to add support for others (or not allow).
 (E.g., with <code>.<b>move</b></code> service, we might want to restrict how subdomains are created)
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_is_valid_tld">is_valid_tld</a>(<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>: &<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>, <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>: &<a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_SubDomainConfig">config::SubDomainConfig</a>): bool
+<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_is_valid_tld">is_valid_tld</a>(<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>: &<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>, <a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>: &config::SubDomainConfig): bool
 </code></pre>
 
 
@@ -304,10 +304,10 @@ want to add support for others (or not allow).
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_is_valid_tld">is_valid_tld</a>(<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>: &Domain, <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>: &<a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_SubDomainConfig">SubDomainConfig</a>): bool {
+<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_is_valid_tld">is_valid_tld</a>(<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>: &Domain, <a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>: &<a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_SubDomainConfig">SubDomainConfig</a>): bool {
     <b>let</b> <b>mut</b> i=0;
-    <b>while</b> (i &lt; <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>.allowed_tlds.length()) {
-        <b>if</b> (<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>.tld() == &<a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>.allowed_tlds[i]) {
+    <b>while</b> (i &lt; <a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>.allowed_tlds.length()) {
+        <b>if</b> (<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>.tld() == &<a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>.allowed_tlds[i]) {
             <b>return</b> <b>true</b>
         };
         i = i + 1;
@@ -320,7 +320,7 @@ want to add support for others (or not allow).
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_is_valid_label"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_is_valid_label"></a>
 
 ## Function `is_valid_label`
 
@@ -329,7 +329,7 @@ We do not need to check for max length (64), as this is already checked
 in the <code>Domain</code> construction.
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_is_valid_label">is_valid_label</a>(<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>: &<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>, <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>: &<a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_SubDomainConfig">config::SubDomainConfig</a>): bool
+<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_is_valid_label">is_valid_label</a>(<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>: &<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>, <a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>: &config::SubDomainConfig): bool
 </code></pre>
 
 
@@ -338,10 +338,10 @@ in the <code>Domain</code> construction.
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_is_valid_label">is_valid_label</a>(<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>: &Domain, <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>: &<a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_SubDomainConfig">SubDomainConfig</a>): bool {
+<pre><code><b>public</b> <b>fun</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_is_valid_label">is_valid_label</a>(<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>: &Domain, <a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>: &<a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config_SubDomainConfig">SubDomainConfig</a>): bool {
     // our label is the last <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a> element, <b>as</b> labels are stored in reverse order.
-    <b>let</b> label = <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>.label(<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>.number_of_levels() - 1);
-    label.length() &gt;= (<a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>.min_label_size <b>as</b> u64)
+    <b>let</b> label = <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>.label(<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>.number_of_levels() - 1);
+    label.length() &gt;= (<a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>.min_label_size <b>as</b> u64)
 }
 </code></pre>
 

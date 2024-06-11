@@ -2,7 +2,7 @@
 name = "utils"
 version = "0.0.1"
 edition = "2024.beta"
-published-at = "0xe52fa8c249c9f303c6ecfff976cdfe68ae7906552725c8a9155756a9a53ad41e"
+published-at = "0x42cff5d07eca51e9dcef278c9c3a8b98a0f70f06977868614f6eab1a22d9bd89"
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet", override=true }
@@ -10,4 +10,4 @@ suins = { local = "../suins" }
 
 
 [addresses]
-utils = "0xe52fa8c249c9f303c6ecfff976cdfe68ae7906552725c8a9155756a9a53ad41e"
+utils = "0x42cff5d07eca51e9dcef278c9c3a8b98a0f70f06977868614f6eab1a22d9bd89"

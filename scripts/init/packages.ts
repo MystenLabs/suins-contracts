@@ -148,7 +148,8 @@ export const Packages = (network: Network) => {
 			manifest: SuiNSDependentPackages(
 				rev,
 				'oracle_registration',
-				`Pyth = {git = "https://github.com/pyth-network/pyth-crosschain.git", subdir = "target_chains/sui/contracts", rev = "sui-contract-testnet" }`),
+				`Pyth = {git = "https://github.com/0xaslan/pyth-crosschain.git", subdir = "target_chains/sui/contracts", rev = "sui/price-info-test" }`,
+			),
 			processPublish: (data: SuiTransactionBlockResponse) => {
 				const { packageId, upgradeCap } = parseCorePackageObjects(data);
 

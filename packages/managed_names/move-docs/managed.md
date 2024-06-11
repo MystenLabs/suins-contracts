@@ -44,9 +44,9 @@ we're also using it to store the managed names (to avoid using separate shared o
 <b>use</b> <a href="dependencies/sui-framework/table.md#0x2_table">0x2::table</a>;
 <b>use</b> <a href="dependencies/sui-framework/transfer.md#0x2_transfer">0x2::transfer</a>;
 <b>use</b> <a href="dependencies/sui-framework/tx_context.md#0x2_tx_context">0x2::tx_context</a>;
-<b>use</b> <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94::domain</a>;
-<b>use</b> <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94::suins</a>;
-<b>use</b> <a href="dependencies/suins/suins_registration.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_registration">0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94::suins_registration</a>;
+<b>use</b> <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b::domain</a>;
+<b>use</b> <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b::suins</a>;
+<b>use</b> <a href="dependencies/suins/suins_registration.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_registration">0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b::suins_registration</a>;
 </code></pre>
 
 
@@ -55,7 +55,7 @@ we're also using it to store the managed names (to avoid using separate shared o
 
 ## Struct `ManagedNamesApp`
 
-Authorizes the <code><a href="managed.md#0x0_managed_ManagedNames">ManagedNames</a></code> to add a <code><a href="dependencies/suins/registry.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_registry">registry</a></code> under the main SuiNS object.
+Authorizes the <code><a href="managed.md#0x0_managed_ManagedNames">ManagedNames</a></code> to add a <code><a href="dependencies/suins/registry.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_registry">registry</a></code> under the main SuiNS object.
 
 
 <pre><code><b>struct</b> <a href="managed.md#0x0_managed_ManagedNamesApp">ManagedNamesApp</a> <b>has</b> drop
@@ -83,7 +83,7 @@ Authorizes the <code><a href="managed.md#0x0_managed_ManagedNames">ManagedNames<
 
 ## Struct `ManagedNames`
 
-The <code><a href="dependencies/suins/registry.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_registry">registry</a></code> that holds the managed names per domain.
+The <code><a href="dependencies/suins/registry.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_registry">registry</a></code> that holds the managed names per domain.
 To simplify, we can only hold a single managed name per domain.
 If a valid NFT is passed, the previous name is returned to the owner (who can burn it, as it's an expired one).
 
@@ -99,7 +99,7 @@ If a valid NFT is passed, the previous name is returned to the owner (who can bu
 
 <dl>
 <dt>
-<code>names: <a href="dependencies/sui-framework/table.md#0x2_table_Table">table::Table</a>&lt;<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>, <a href="managed.md#0x0_managed_ManagedName">managed::ManagedName</a>&gt;</code>
+<code>names: <a href="dependencies/sui-framework/table.md#0x2_table_Table">table::Table</a>&lt;<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>, <a href="managed.md#0x0_managed_ManagedName">managed::ManagedName</a>&gt;</code>
 </dt>
 <dd>
 
@@ -142,7 +142,7 @@ A managed name.
 
 </dd>
 <dt>
-<code>nft: <a href="dependencies/move-stdlib/option.md#0x1_option_Option">option::Option</a>&lt;<a href="dependencies/suins/suins_registration.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>&gt;</code>
+<code>nft: <a href="dependencies/move-stdlib/option.md#0x1_option_Option">option::Option</a>&lt;<a href="dependencies/suins/suins_registration.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>&gt;</code>
 </dt>
 <dd>
 
@@ -241,7 +241,7 @@ Tries to borrow a name that doesn't exist in the managed registry
 
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="managed.md#0x0_managed_setup">setup</a>(self: &<b>mut</b> <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_SuiNS">suins::SuiNS</a>, cap: &<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_AdminCap">suins::AdminCap</a>, ctx: &<b>mut</b> <a href="dependencies/sui-framework/tx_context.md#0x2_tx_context_TxContext">tx_context::TxContext</a>)
+<pre><code><b>public</b> <b>fun</b> <a href="managed.md#0x0_managed_setup">setup</a>(self: &<b>mut</b> <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_SuiNS">suins::SuiNS</a>, cap: &<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_AdminCap">suins::AdminCap</a>, ctx: &<b>mut</b> <a href="dependencies/sui-framework/tx_context.md#0x2_tx_context_TxContext">tx_context::TxContext</a>)
 </code></pre>
 
 
@@ -251,7 +251,7 @@ Tries to borrow a name that doesn't exist in the managed registry
 
 
 <pre><code><b>public</b> <b>fun</b> <a href="managed.md#0x0_managed_setup">setup</a>(self: &<b>mut</b> SuiNS, cap: &AdminCap, ctx: &<b>mut</b> TxContext) {
-    <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_add_registry">suins::add_registry</a>(cap, self, <a href="managed.md#0x0_managed_ManagedNames">ManagedNames</a> {
+    <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_add_registry">suins::add_registry</a>(cap, self, <a href="managed.md#0x0_managed_ManagedNames">ManagedNames</a> {
         names: <a href="dependencies/sui-framework/table.md#0x2_table_new">table::new</a>(ctx)
     });
 }
@@ -268,7 +268,7 @@ Tries to borrow a name that doesn't exist in the managed registry
 Attaches a <code>SuinsRegistration</code> object for usability from third-party addresses.
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="managed.md#0x0_managed_attach_managed_name">attach_managed_name</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_SuiNS">suins::SuiNS</a>, nft: <a href="dependencies/suins/suins_registration.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &<a href="dependencies/sui-framework/clock.md#0x2_clock_Clock">clock::Clock</a>, allowed_addresses: <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;<b>address</b>&gt;, ctx: &<b>mut</b> <a href="dependencies/sui-framework/tx_context.md#0x2_tx_context_TxContext">tx_context::TxContext</a>)
+<pre><code><b>public</b> <b>fun</b> <a href="managed.md#0x0_managed_attach_managed_name">attach_managed_name</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_SuiNS">suins::SuiNS</a>, nft: <a href="dependencies/suins/suins_registration.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &<a href="dependencies/sui-framework/clock.md#0x2_clock_Clock">clock::Clock</a>, allowed_addresses: <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;<b>address</b>&gt;, ctx: &<b>mut</b> <a href="dependencies/sui-framework/tx_context.md#0x2_tx_context_TxContext">tx_context::TxContext</a>)
 </code></pre>
 
 
@@ -278,7 +278,7 @@ Attaches a <code>SuinsRegistration</code> object for usability from third-party 
 
 
 <pre><code><b>public</b> <b>fun</b> <a href="managed.md#0x0_managed_attach_managed_name">attach_managed_name</a>(
-    <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> SuiNS,
+    <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> SuiNS,
     nft: SuinsRegistration,
     <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &Clock,
     allowed_addresses: <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;<b>address</b>&gt;,
@@ -286,13 +286,13 @@ Attaches a <code>SuinsRegistration</code> object for usability from third-party 
 ) {
     <b>assert</b>!(!nft.has_expired(<a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>), <a href="managed.md#0x0_managed_EExpiredNFT">EExpiredNFT</a>);
 
-    <b>let</b> managed_names = <a href="managed.md#0x0_managed_managed_names_mut">managed_names_mut</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>);
+    <b>let</b> managed_names = <a href="managed.md#0x0_managed_managed_names_mut">managed_names_mut</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>);
 
-    <b>let</b> <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a> = nft.<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>();
+    <b>let</b> <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a> = nft.<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>();
 
     // <b>if</b> the name exists. We check <b>if</b> it's expired, and <b>return</b> it <b>to</b> the owner.
-    <b>if</b>(<a href="dependencies/sui-framework/table.md#0x2_table_contains">table::contains</a>(&managed_names.names, <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>)) {
-        <b>let</b> existing = <a href="dependencies/sui-framework/table.md#0x2_table_remove">table::remove</a>(&<b>mut</b> managed_names.names, <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>);
+    <b>if</b>(<a href="dependencies/sui-framework/table.md#0x2_table_contains">table::contains</a>(&managed_names.names, <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>)) {
+        <b>let</b> existing = <a href="dependencies/sui-framework/table.md#0x2_table_remove">table::remove</a>(&<b>mut</b> managed_names.names, <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>);
 
         <b>let</b> <a href="managed.md#0x0_managed_ManagedName">ManagedName</a> { nft, allowed_addresses: _, owner } = existing;
 
@@ -304,7 +304,7 @@ Attaches a <code>SuinsRegistration</code> object for usability from third-party 
     };
 
     // add the name <b>to</b> the <a href="managed.md#0x0_managed">managed</a> names list.
-    managed_names.names.add(<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>, <a href="managed.md#0x0_managed_ManagedName">ManagedName</a> {
+    managed_names.names.add(<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>, <a href="managed.md#0x0_managed_ManagedName">ManagedName</a> {
         owner: sender(ctx),
         allowed_addresses,
         nft: <a href="dependencies/move-stdlib/option.md#0x1_option_some">option::some</a>(nft)
@@ -323,7 +323,7 @@ Attaches a <code>SuinsRegistration</code> object for usability from third-party 
 Allows the <code>owner</code> to remove a name from the managed system.
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="managed.md#0x0_managed_remove_attached_name">remove_attached_name</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_SuiNS">suins::SuiNS</a>, name: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, ctx: &<b>mut</b> <a href="dependencies/sui-framework/tx_context.md#0x2_tx_context_TxContext">tx_context::TxContext</a>): <a href="dependencies/suins/suins_registration.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>
+<pre><code><b>public</b> <b>fun</b> <a href="managed.md#0x0_managed_remove_attached_name">remove_attached_name</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_SuiNS">suins::SuiNS</a>, name: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, ctx: &<b>mut</b> <a href="dependencies/sui-framework/tx_context.md#0x2_tx_context_TxContext">tx_context::TxContext</a>): <a href="dependencies/suins/suins_registration.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>
 </code></pre>
 
 
@@ -333,15 +333,15 @@ Allows the <code>owner</code> to remove a name from the managed system.
 
 
 <pre><code><b>public</b> <b>fun</b> <a href="managed.md#0x0_managed_remove_attached_name">remove_attached_name</a>(
-    <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> SuiNS,
+    <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> SuiNS,
     name: String,
     ctx: &<b>mut</b> TxContext
 ): SuinsRegistration {
-    <b>let</b> managed_names = <a href="managed.md#0x0_managed_managed_names_mut">managed_names_mut</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>);
-    <b>let</b> <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a> = <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_new">domain::new</a>(name);
+    <b>let</b> managed_names = <a href="managed.md#0x0_managed_managed_names_mut">managed_names_mut</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>);
+    <b>let</b> <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a> = <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_new">domain::new</a>(name);
 
-    <b>assert</b>!(<a href="dependencies/sui-framework/table.md#0x2_table_contains">table::contains</a>(&managed_names.names, <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>), <a href="managed.md#0x0_managed_ENameNotExists">ENameNotExists</a>);
-    <b>let</b> existing = managed_names.names.remove(<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>);
+    <b>assert</b>!(<a href="dependencies/sui-framework/table.md#0x2_table_contains">table::contains</a>(&managed_names.names, <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>), <a href="managed.md#0x0_managed_ENameNotExists">ENameNotExists</a>);
+    <b>let</b> existing = managed_names.names.remove(<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>);
 
     <b>assert</b>!(<a href="managed.md#0x0_managed_is_owner">is_owner</a>(&existing, sender(ctx)), <a href="managed.md#0x0_managed_ENotAuthorized">ENotAuthorized</a>);
 
@@ -362,7 +362,7 @@ Allows the <code>owner</code> to remove a name from the managed system.
 Allow a list of addresses to borrow the <code>SuinsRegistration</code> object.
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="managed.md#0x0_managed_allow_addresses">allow_addresses</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_SuiNS">suins::SuiNS</a>, name: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, addresses: <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;<b>address</b>&gt;, ctx: &<b>mut</b> <a href="dependencies/sui-framework/tx_context.md#0x2_tx_context_TxContext">tx_context::TxContext</a>)
+<pre><code><b>public</b> <b>fun</b> <a href="managed.md#0x0_managed_allow_addresses">allow_addresses</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_SuiNS">suins::SuiNS</a>, name: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, addresses: <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;<b>address</b>&gt;, ctx: &<b>mut</b> <a href="dependencies/sui-framework/tx_context.md#0x2_tx_context_TxContext">tx_context::TxContext</a>)
 </code></pre>
 
 
@@ -372,12 +372,12 @@ Allow a list of addresses to borrow the <code>SuinsRegistration</code> object.
 
 
 <pre><code><b>public</b> <b>fun</b> <a href="managed.md#0x0_managed_allow_addresses">allow_addresses</a>(
-    <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> SuiNS,
+    <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> SuiNS,
     name: String,
     <b>mut</b> addresses: <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;<b>address</b>&gt;,
     ctx: &<b>mut</b> TxContext
 ) {
-    <b>let</b> existing = <a href="managed.md#0x0_managed_internal_get_managed_name">internal_get_managed_name</a>(<a href="managed.md#0x0_managed_managed_names_mut">managed_names_mut</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>), <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_new">domain::new</a>(name));
+    <b>let</b> existing = <a href="managed.md#0x0_managed_internal_get_managed_name">internal_get_managed_name</a>(<a href="managed.md#0x0_managed_managed_names_mut">managed_names_mut</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>), <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_new">domain::new</a>(name));
     <b>assert</b>!(<a href="managed.md#0x0_managed_is_owner">is_owner</a>(existing, sender(ctx)), <a href="managed.md#0x0_managed_ENotAuthorized">ENotAuthorized</a>);
 
     <b>while</b>(addresses.length() &gt; 0) {
@@ -400,7 +400,7 @@ Allow a list of addresses to borrow the <code>SuinsRegistration</code> object.
 
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="managed.md#0x0_managed_revoke_addresses">revoke_addresses</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_SuiNS">suins::SuiNS</a>, name: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, addresses: <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;<b>address</b>&gt;, ctx: &<b>mut</b> <a href="dependencies/sui-framework/tx_context.md#0x2_tx_context_TxContext">tx_context::TxContext</a>)
+<pre><code><b>public</b> <b>fun</b> <a href="managed.md#0x0_managed_revoke_addresses">revoke_addresses</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_SuiNS">suins::SuiNS</a>, name: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, addresses: <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;<b>address</b>&gt;, ctx: &<b>mut</b> <a href="dependencies/sui-framework/tx_context.md#0x2_tx_context_TxContext">tx_context::TxContext</a>)
 </code></pre>
 
 
@@ -410,12 +410,12 @@ Allow a list of addresses to borrow the <code>SuinsRegistration</code> object.
 
 
 <pre><code><b>public</b> <b>fun</b> <a href="managed.md#0x0_managed_revoke_addresses">revoke_addresses</a>(
-    <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> SuiNS,
+    <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> SuiNS,
     name: String,
     <b>mut</b> addresses: <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;<b>address</b>&gt;,
     ctx: &<b>mut</b> TxContext
 ) {
-    <b>let</b> existing = <a href="managed.md#0x0_managed_internal_get_managed_name">internal_get_managed_name</a>(<a href="managed.md#0x0_managed_managed_names_mut">managed_names_mut</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>), <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_new">domain::new</a>(name));
+    <b>let</b> existing = <a href="managed.md#0x0_managed_internal_get_managed_name">internal_get_managed_name</a>(<a href="managed.md#0x0_managed_managed_names_mut">managed_names_mut</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>), <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_new">domain::new</a>(name));
     <b>assert</b>!(<a href="managed.md#0x0_managed_is_owner">is_owner</a>(existing, sender(ctx)), <a href="managed.md#0x0_managed_ENotAuthorized">ENotAuthorized</a>);
 
     <b>while</b>(addresses.length() &gt; 0) {
@@ -441,7 +441,7 @@ Allow a list of addresses to borrow the <code>SuinsRegistration</code> object.
 Borrows the <code>SuinsRegistration</code> object.
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="managed.md#0x0_managed_borrow_val">borrow_val</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_SuiNS">suins::SuiNS</a>, name: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, ctx: &<b>mut</b> <a href="dependencies/sui-framework/tx_context.md#0x2_tx_context_TxContext">tx_context::TxContext</a>): (<a href="dependencies/suins/suins_registration.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>, <a href="managed.md#0x0_managed_ReturnPromise">managed::ReturnPromise</a>)
+<pre><code><b>public</b> <b>fun</b> <a href="managed.md#0x0_managed_borrow_val">borrow_val</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_SuiNS">suins::SuiNS</a>, name: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, ctx: &<b>mut</b> <a href="dependencies/sui-framework/tx_context.md#0x2_tx_context_TxContext">tx_context::TxContext</a>): (<a href="dependencies/suins/suins_registration.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>, <a href="managed.md#0x0_managed_ReturnPromise">managed::ReturnPromise</a>)
 </code></pre>
 
 
@@ -451,11 +451,11 @@ Borrows the <code>SuinsRegistration</code> object.
 
 
 <pre><code><b>public</b> <b>fun</b> <a href="managed.md#0x0_managed_borrow_val">borrow_val</a>(
-    <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> SuiNS,
+    <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> SuiNS,
     name: String,
     ctx: &<b>mut</b> TxContext
 ): (SuinsRegistration, <a href="managed.md#0x0_managed_ReturnPromise">ReturnPromise</a>) {
-    <b>let</b> existing = <a href="managed.md#0x0_managed_internal_get_managed_name">internal_get_managed_name</a>(<a href="managed.md#0x0_managed_managed_names_mut">managed_names_mut</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>), <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_new">domain::new</a>(name));
+    <b>let</b> existing = <a href="managed.md#0x0_managed_internal_get_managed_name">internal_get_managed_name</a>(<a href="managed.md#0x0_managed_managed_names_mut">managed_names_mut</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>), <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_new">domain::new</a>(name));
 
     <b>assert</b>!(<a href="managed.md#0x0_managed_is_authorized_address">is_authorized_address</a>(existing, sender(ctx)), <a href="managed.md#0x0_managed_ENotAuthorized">ENotAuthorized</a>);
 
@@ -479,7 +479,7 @@ Borrows the <code>SuinsRegistration</code> object.
 Returns the <code>SuinsRegistration</code> object back with the promise.
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="managed.md#0x0_managed_return_val">return_val</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_SuiNS">suins::SuiNS</a>, nft: <a href="dependencies/suins/suins_registration.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>, promise: <a href="managed.md#0x0_managed_ReturnPromise">managed::ReturnPromise</a>)
+<pre><code><b>public</b> <b>fun</b> <a href="managed.md#0x0_managed_return_val">return_val</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_SuiNS">suins::SuiNS</a>, nft: <a href="dependencies/suins/suins_registration.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>, promise: <a href="managed.md#0x0_managed_ReturnPromise">managed::ReturnPromise</a>)
 </code></pre>
 
 
@@ -489,14 +489,14 @@ Returns the <code>SuinsRegistration</code> object back with the promise.
 
 
 <pre><code><b>public</b> <b>fun</b> <a href="managed.md#0x0_managed_return_val">return_val</a>(
-    <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> SuiNS,
+    <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> SuiNS,
     nft: SuinsRegistration,
     promise: <a href="managed.md#0x0_managed_ReturnPromise">ReturnPromise</a>
 ) {
     <b>let</b> <a href="managed.md#0x0_managed_ReturnPromise">ReturnPromise</a> { id } = promise;
     <b>assert</b>!(<a href="dependencies/sui-framework/object.md#0x2_object_id">object::id</a>(&nft) == id, <a href="managed.md#0x0_managed_EInvalidReturnedNFT">EInvalidReturnedNFT</a>);
 
-    <b>let</b> existing = <a href="managed.md#0x0_managed_internal_get_managed_name">internal_get_managed_name</a>(<a href="managed.md#0x0_managed_managed_names_mut">managed_names_mut</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>), nft.<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>());
+    <b>let</b> existing = <a href="managed.md#0x0_managed_internal_get_managed_name">internal_get_managed_name</a>(<a href="managed.md#0x0_managed_managed_names_mut">managed_names_mut</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>), nft.<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>());
 
     // <b>return</b> the NFT back.
     <a href="dependencies/move-stdlib/option.md#0x1_option_fill">option::fill</a>(&<b>mut</b> existing.nft, nft)
@@ -513,7 +513,7 @@ Returns the <code>SuinsRegistration</code> object back with the promise.
 
 
 
-<pre><code><b>fun</b> <a href="managed.md#0x0_managed_internal_get_managed_name">internal_get_managed_name</a>(managed_names: &<b>mut</b> <a href="managed.md#0x0_managed_ManagedNames">managed::ManagedNames</a>, <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>: <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>): &<b>mut</b> <a href="managed.md#0x0_managed_ManagedName">managed::ManagedName</a>
+<pre><code><b>fun</b> <a href="managed.md#0x0_managed_internal_get_managed_name">internal_get_managed_name</a>(managed_names: &<b>mut</b> <a href="managed.md#0x0_managed_ManagedNames">managed::ManagedNames</a>, <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>: <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>): &<b>mut</b> <a href="managed.md#0x0_managed_ManagedName">managed::ManagedName</a>
 </code></pre>
 
 
@@ -522,10 +522,10 @@ Returns the <code>SuinsRegistration</code> object back with the promise.
 <summary>Implementation</summary>
 
 
-<pre><code><b>fun</b> <a href="managed.md#0x0_managed_internal_get_managed_name">internal_get_managed_name</a>(managed_names: &<b>mut</b> <a href="managed.md#0x0_managed_ManagedNames">ManagedNames</a>, <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>: Domain): &<b>mut</b> <a href="managed.md#0x0_managed_ManagedName">ManagedName</a> {
-    <b>assert</b>!(managed_names.names.contains(<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>), <a href="managed.md#0x0_managed_ENameNotExists">ENameNotExists</a>);
+<pre><code><b>fun</b> <a href="managed.md#0x0_managed_internal_get_managed_name">internal_get_managed_name</a>(managed_names: &<b>mut</b> <a href="managed.md#0x0_managed_ManagedNames">ManagedNames</a>, <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>: Domain): &<b>mut</b> <a href="managed.md#0x0_managed_ManagedName">ManagedName</a> {
+    <b>assert</b>!(managed_names.names.contains(<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>), <a href="managed.md#0x0_managed_ENameNotExists">ENameNotExists</a>);
 
-    &<b>mut</b> managed_names.names[<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>]
+    &<b>mut</b> managed_names.names[<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>]
 }
 </code></pre>
 
@@ -589,7 +589,7 @@ Check if an address is authorized for borrowing.
 a mutable reference to the registry
 
 
-<pre><code><b>fun</b> <a href="managed.md#0x0_managed_managed_names_mut">managed_names_mut</a>(self: &<b>mut</b> <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_SuiNS">suins::SuiNS</a>): &<b>mut</b> <a href="managed.md#0x0_managed_ManagedNames">managed::ManagedNames</a>
+<pre><code><b>fun</b> <a href="managed.md#0x0_managed_managed_names_mut">managed_names_mut</a>(self: &<b>mut</b> <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_SuiNS">suins::SuiNS</a>): &<b>mut</b> <a href="managed.md#0x0_managed_ManagedNames">managed::ManagedNames</a>
 </code></pre>
 
 
@@ -599,7 +599,7 @@ a mutable reference to the registry
 
 
 <pre><code><b>fun</b> <a href="managed.md#0x0_managed_managed_names_mut">managed_names_mut</a>(self: &<b>mut</b> SuiNS): &<b>mut</b> <a href="managed.md#0x0_managed_ManagedNames">ManagedNames</a> {
-    <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_app_registry_mut">suins::app_registry_mut</a>&lt;<a href="managed.md#0x0_managed_ManagedNamesApp">ManagedNamesApp</a>, <a href="managed.md#0x0_managed_ManagedNames">ManagedNames</a>&gt;(<a href="managed.md#0x0_managed_ManagedNamesApp">ManagedNamesApp</a> {}, self)
+    <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_app_registry_mut">suins::app_registry_mut</a>&lt;<a href="managed.md#0x0_managed_ManagedNamesApp">ManagedNamesApp</a>, <a href="managed.md#0x0_managed_ManagedNames">ManagedNames</a>&gt;(<a href="managed.md#0x0_managed_ManagedNamesApp">ManagedNamesApp</a> {}, self)
 }
 </code></pre>
 

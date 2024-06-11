@@ -2,7 +2,7 @@
 name = "day_one"
 version = "0.0.1"
 edition = "2024.beta"
-published-at = "0xbf417a054f5a4cf90a3fb12b71fcfe44d3d0892ac97a86725c0e91b4e05f655d"
+published-at = "0x50f27a05cbfb319617403dec4a4c420e4b0c6cc139a9af9305218bd4dddc2a4f"
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet", override=true }
@@ -10,4 +10,4 @@ suins = { local = "../suins" }
 
 
 [addresses]
-day_one = "0xbf417a054f5a4cf90a3fb12b71fcfe44d3d0892ac97a86725c0e91b4e05f655d"
+day_one = "0x50f27a05cbfb319617403dec4a4c420e4b0c6cc139a9af9305218bd4dddc2a4f"

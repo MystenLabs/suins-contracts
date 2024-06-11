@@ -2,7 +2,7 @@
 name = "subdomains"
 version = "0.0.1"
 edition = "2024.beta"
-published-at = "0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3"
+published-at = "0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4"
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet", override=true }
@@ -10,4 +10,4 @@ suins = { local = "../suins" }
 denylist = { local = "../denylist" }
 
 [addresses]
-subdomains = "0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3"
+subdomains = "0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4"

@@ -1,29 +1,29 @@
 
-<a name="0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain"></a>
+<a name="0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain"></a>
 
-# Module `0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94::domain`
+# Module `0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b::domain`
 
-Defines the <code><a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">Domain</a></code> type and helper functions.
+Defines the <code><a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">Domain</a></code> type and helper functions.
 
 Domains are structured similar to their web2 counterpart and the rules
 determining what a valid domain is can be found here:
 https://en.wikipedia.org/wiki/Domain_name#Domain_name_syntax
 
 
--  [Struct `Domain`](#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain)
+-  [Struct `Domain`](#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain)
 -  [Constants](#@Constants_0)
--  [Function `new`](#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_new)
--  [Function `to_string`](#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_to_string)
--  [Function `label`](#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_label)
--  [Function `tld`](#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_tld)
--  [Function `sld`](#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_sld)
--  [Function `number_of_levels`](#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_number_of_levels)
--  [Function `is_subdomain`](#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_is_subdomain)
--  [Function `parent`](#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_parent)
--  [Function `is_parent_of`](#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_is_parent_of)
--  [Function `validate_labels`](#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_validate_labels)
--  [Function `is_valid_label`](#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_is_valid_label)
--  [Function `split_by_dot`](#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_split_by_dot)
+-  [Function `new`](#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_new)
+-  [Function `to_string`](#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_to_string)
+-  [Function `label`](#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_label)
+-  [Function `tld`](#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_tld)
+-  [Function `sld`](#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_sld)
+-  [Function `number_of_levels`](#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_number_of_levels)
+-  [Function `is_subdomain`](#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_is_subdomain)
+-  [Function `parent`](#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_parent)
+-  [Function `is_parent_of`](#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_is_parent_of)
+-  [Function `validate_labels`](#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_validate_labels)
+-  [Function `is_valid_label`](#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_is_valid_label)
+-  [Function `split_by_dot`](#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_split_by_dot)
 
 
 <pre><code><b>use</b> <a href="dependencies/move-stdlib/string.md#0x1_string">0x1::string</a>;
@@ -32,14 +32,14 @@ https://en.wikipedia.org/wiki/Domain_name#Domain_name_syntax
 
 
 
-<a name="0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain"></a>
+<a name="0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain"></a>
 
 ## Struct `Domain`
 
-Representation of a valid SuiNS <code><a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">Domain</a></code>.
+Representation of a valid SuiNS <code><a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">Domain</a></code>.
 
 
-<pre><code><b>struct</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">Domain</a> <b>has</b> <b>copy</b>, drop, store
+<pre><code><b>struct</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">Domain</a> <b>has</b> <b>copy</b>, drop, store
 </code></pre>
 
 
@@ -68,52 +68,52 @@ Representation of a valid SuiNS <code><a href="domain.md#0xba51681ecaf0a6e961ed9
 ## Constants
 
 
-<a name="0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_EInvalidDomain"></a>
+<a name="0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_EInvalidDomain"></a>
 
 
 
-<pre><code><b>const</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_EInvalidDomain">EInvalidDomain</a>: u64 = 0;
+<pre><code><b>const</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_EInvalidDomain">EInvalidDomain</a>: u64 = 0;
 </code></pre>
 
 
 
-<a name="0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_MAX_DOMAIN_LENGTH"></a>
+<a name="0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_MAX_DOMAIN_LENGTH"></a>
 
 The maximum length of a full domain
 
 
-<pre><code><b>const</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_MAX_DOMAIN_LENGTH">MAX_DOMAIN_LENGTH</a>: u64 = 235;
+<pre><code><b>const</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_MAX_DOMAIN_LENGTH">MAX_DOMAIN_LENGTH</a>: u64 = 235;
 </code></pre>
 
 
 
-<a name="0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_MAX_LABEL_LENGTH"></a>
+<a name="0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_MAX_LABEL_LENGTH"></a>
 
 The maximum length of an individual label in a domain.
 
 
-<pre><code><b>const</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_MAX_LABEL_LENGTH">MAX_LABEL_LENGTH</a>: u64 = 63;
+<pre><code><b>const</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_MAX_LABEL_LENGTH">MAX_LABEL_LENGTH</a>: u64 = 63;
 </code></pre>
 
 
 
-<a name="0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_MIN_LABEL_LENGTH"></a>
+<a name="0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_MIN_LABEL_LENGTH"></a>
 
 The minimum length of an individual label in a domain.
 
 
-<pre><code><b>const</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_MIN_LABEL_LENGTH">MIN_LABEL_LENGTH</a>: u64 = 1;
+<pre><code><b>const</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_MIN_LABEL_LENGTH">MIN_LABEL_LENGTH</a>: u64 = 1;
 </code></pre>
 
 
 
-<a name="0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_new"></a>
+<a name="0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_new"></a>
 
 ## Function `new`
 
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_new">new</a>(<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>): <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>
+<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_new">new</a>(<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>): <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>
 </code></pre>
 
 
@@ -122,13 +122,13 @@ The minimum length of an individual label in a domain.
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_new">new</a>(<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>: String): <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">Domain</a> {
-    <b>assert</b>!(<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>.length() &lt;= <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_MAX_DOMAIN_LENGTH">MAX_DOMAIN_LENGTH</a>, <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_EInvalidDomain">EInvalidDomain</a>);
+<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_new">new</a>(<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>: String): <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">Domain</a> {
+    <b>assert</b>!(<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>.length() &lt;= <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_MAX_DOMAIN_LENGTH">MAX_DOMAIN_LENGTH</a>, <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_EInvalidDomain">EInvalidDomain</a>);
 
-    <b>let</b> <b>mut</b> labels = <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_split_by_dot">split_by_dot</a>(<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>);
-    <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_validate_labels">validate_labels</a>(&labels);
+    <b>let</b> <b>mut</b> labels = <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_split_by_dot">split_by_dot</a>(<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>);
+    <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_validate_labels">validate_labels</a>(&labels);
     labels.reverse();
-    <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">Domain</a> {
+    <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">Domain</a> {
         labels
     }
 }
@@ -138,14 +138,14 @@ The minimum length of an individual label in a domain.
 
 </details>
 
-<a name="0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_to_string"></a>
+<a name="0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_to_string"></a>
 
 ## Function `to_string`
 
 Converts a domain into a fully-qualified string representation.
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_to_string">to_string</a>(self: &<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>): <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>
+<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_to_string">to_string</a>(self: &<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>): <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>
 </code></pre>
 
 
@@ -154,7 +154,7 @@ Converts a domain into a fully-qualified string representation.
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_to_string">to_string</a>(self: &<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">Domain</a>): String {
+<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_to_string">to_string</a>(self: &<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">Domain</a>): String {
     <b>let</b> dot = utf8(b".");
     <b>let</b> len = self.labels.length();
     <b>let</b> <b>mut</b> i = 0;
@@ -178,7 +178,7 @@ Converts a domain into a fully-qualified string representation.
 
 </details>
 
-<a name="0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_label"></a>
+<a name="0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_label"></a>
 
 ## Function `label`
 
@@ -192,7 +192,7 @@ Given the domain "pay.name.sui" the individual labels have the following levels:
 This means that the TLD will always be at level <code>0</code>.
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_label">label</a>(self: &<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>, level: u64): &<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>
+<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_label">label</a>(self: &<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>, level: u64): &<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>
 </code></pre>
 
 
@@ -201,7 +201,7 @@ This means that the TLD will always be at level <code>0</code>.
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_label">label</a>(self: &<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">Domain</a>, level: u64): &String {
+<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_label">label</a>(self: &<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">Domain</a>, level: u64): &String {
     &self.labels[level]
 }
 </code></pre>
@@ -210,16 +210,16 @@ This means that the TLD will always be at level <code>0</code>.
 
 </details>
 
-<a name="0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_tld"></a>
+<a name="0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_tld"></a>
 
 ## Function `tld`
 
-Returns the TLD (Top-Level Domain) of a <code><a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">Domain</a></code>.
+Returns the TLD (Top-Level Domain) of a <code><a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">Domain</a></code>.
 
 "name.sui" -> "sui"
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_tld">tld</a>(self: &<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>): &<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>
+<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_tld">tld</a>(self: &<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>): &<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>
 </code></pre>
 
 
@@ -228,8 +228,8 @@ Returns the TLD (Top-Level Domain) of a <code><a href="domain.md#0xba51681ecaf0a
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_tld">tld</a>(self: &<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">Domain</a>): &String {
-    <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_label">label</a>(self, 0)
+<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_tld">tld</a>(self: &<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">Domain</a>): &String {
+    <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_label">label</a>(self, 0)
 }
 </code></pre>
 
@@ -237,16 +237,16 @@ Returns the TLD (Top-Level Domain) of a <code><a href="domain.md#0xba51681ecaf0a
 
 </details>
 
-<a name="0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_sld"></a>
+<a name="0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_sld"></a>
 
 ## Function `sld`
 
-Returns the SLD (Second-Level Domain) of a <code><a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">Domain</a></code>.
+Returns the SLD (Second-Level Domain) of a <code><a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">Domain</a></code>.
 
 "name.sui" -> "sui"
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_sld">sld</a>(self: &<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>): &<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>
+<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_sld">sld</a>(self: &<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>): &<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>
 </code></pre>
 
 
@@ -255,8 +255,8 @@ Returns the SLD (Second-Level Domain) of a <code><a href="domain.md#0xba51681eca
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_sld">sld</a>(self: &<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">Domain</a>): &String {
-    <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_label">label</a>(self, 1)
+<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_sld">sld</a>(self: &<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">Domain</a>): &String {
+    <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_label">label</a>(self, 1)
 }
 </code></pre>
 
@@ -264,13 +264,13 @@ Returns the SLD (Second-Level Domain) of a <code><a href="domain.md#0xba51681eca
 
 </details>
 
-<a name="0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_number_of_levels"></a>
+<a name="0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_number_of_levels"></a>
 
 ## Function `number_of_levels`
 
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_number_of_levels">number_of_levels</a>(self: &<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>): u64
+<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_number_of_levels">number_of_levels</a>(self: &<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>): u64
 </code></pre>
 
 
@@ -279,7 +279,7 @@ Returns the SLD (Second-Level Domain) of a <code><a href="domain.md#0xba51681eca
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_number_of_levels">number_of_levels</a>(self: &<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">Domain</a>): u64 {
+<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_number_of_levels">number_of_levels</a>(self: &<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">Domain</a>): u64 {
     self.labels.length()
 }
 </code></pre>
@@ -288,13 +288,13 @@ Returns the SLD (Second-Level Domain) of a <code><a href="domain.md#0xba51681eca
 
 </details>
 
-<a name="0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_is_subdomain"></a>
+<a name="0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_is_subdomain"></a>
 
 ## Function `is_subdomain`
 
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_is_subdomain">is_subdomain</a>(<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>: &<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>): bool
+<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_is_subdomain">is_subdomain</a>(<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>: &<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>): bool
 </code></pre>
 
 
@@ -303,8 +303,8 @@ Returns the SLD (Second-Level Domain) of a <code><a href="domain.md#0xba51681eca
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_is_subdomain">is_subdomain</a>(<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>: &<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">Domain</a>): bool {
-    <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_number_of_levels">number_of_levels</a>(<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>) &gt; 2
+<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_is_subdomain">is_subdomain</a>(<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>: &<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">Domain</a>): bool {
+    <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_number_of_levels">number_of_levels</a>(<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>) &gt; 2
 }
 </code></pre>
 
@@ -312,7 +312,7 @@ Returns the SLD (Second-Level Domain) of a <code><a href="domain.md#0xba51681eca
 
 </details>
 
-<a name="0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_parent"></a>
+<a name="0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_parent"></a>
 
 ## Function `parent`
 
@@ -320,7 +320,7 @@ Derive the parent of a subdomain.
 e.g. <code>subdomain.example.<a href="dependencies/sui-framework/sui.md#0x2_sui">sui</a></code> -> <code>example.<a href="dependencies/sui-framework/sui.md#0x2_sui">sui</a></code>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_parent">parent</a>(<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>: &<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>): <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>
+<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_parent">parent</a>(<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>: &<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>): <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>
 </code></pre>
 
 
@@ -329,12 +329,12 @@ e.g. <code>subdomain.example.<a href="dependencies/sui-framework/sui.md#0x2_sui"
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_parent">parent</a>(<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>: &<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">Domain</a>): <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">Domain</a> {
-    <b>let</b> <b>mut</b> labels = <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>.labels;
+<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_parent">parent</a>(<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>: &<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">Domain</a>): <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">Domain</a> {
+    <b>let</b> <b>mut</b> labels = <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>.labels;
     // we pop the last element and construct the parent from the remaining labels.
     labels.pop_back();
 
-    <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">Domain</a> {
+    <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">Domain</a> {
         labels
     }
 }
@@ -344,14 +344,14 @@ e.g. <code>subdomain.example.<a href="dependencies/sui-framework/sui.md#0x2_sui"
 
 </details>
 
-<a name="0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_is_parent_of"></a>
+<a name="0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_is_parent_of"></a>
 
 ## Function `is_parent_of`
 
 Checks if <code>parent</code> domain is a valid parent for <code>child</code>.
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_is_parent_of">is_parent_of</a>(parent: &<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>, child: &<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>): bool
+<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_is_parent_of">is_parent_of</a>(parent: &<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>, child: &<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>): bool
 </code></pre>
 
 
@@ -360,9 +360,9 @@ Checks if <code>parent</code> domain is a valid parent for <code>child</code>.
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_is_parent_of">is_parent_of</a>(parent: &<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">Domain</a>, child: &<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">Domain</a>): bool {
-    <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_number_of_levels">number_of_levels</a>(parent) &lt; <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_number_of_levels">number_of_levels</a>(child) &&
-    &<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_parent">parent</a>(child).labels == &parent.labels
+<pre><code><b>public</b> <b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_is_parent_of">is_parent_of</a>(parent: &<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">Domain</a>, child: &<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">Domain</a>): bool {
+    <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_number_of_levels">number_of_levels</a>(parent) &lt; <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_number_of_levels">number_of_levels</a>(child) &&
+    &<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_parent">parent</a>(child).labels == &parent.labels
 }
 </code></pre>
 
@@ -370,13 +370,13 @@ Checks if <code>parent</code> domain is a valid parent for <code>child</code>.
 
 </details>
 
-<a name="0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_validate_labels"></a>
+<a name="0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_validate_labels"></a>
 
 ## Function `validate_labels`
 
 
 
-<pre><code><b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_validate_labels">validate_labels</a>(labels: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>&gt;)
+<pre><code><b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_validate_labels">validate_labels</a>(labels: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>&gt;)
 </code></pre>
 
 
@@ -385,15 +385,15 @@ Checks if <code>parent</code> domain is a valid parent for <code>child</code>.
 <summary>Implementation</summary>
 
 
-<pre><code><b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_validate_labels">validate_labels</a>(labels: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;String&gt;) {
-    <b>assert</b>!(!labels.is_empty(), <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_EInvalidDomain">EInvalidDomain</a>);
+<pre><code><b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_validate_labels">validate_labels</a>(labels: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;String&gt;) {
+    <b>assert</b>!(!labels.is_empty(), <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_EInvalidDomain">EInvalidDomain</a>);
 
     <b>let</b> len = labels.length();
     <b>let</b> <b>mut</b> index = 0;
 
     <b>while</b> (index &lt; len) {
         <b>let</b> label = &labels[index];
-        <b>assert</b>!(<a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_is_valid_label">is_valid_label</a>(label), <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_EInvalidDomain">EInvalidDomain</a>);
+        <b>assert</b>!(<a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_is_valid_label">is_valid_label</a>(label), <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_EInvalidDomain">EInvalidDomain</a>);
         index = index + 1;
     }
 }
@@ -403,13 +403,13 @@ Checks if <code>parent</code> domain is a valid parent for <code>child</code>.
 
 </details>
 
-<a name="0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_is_valid_label"></a>
+<a name="0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_is_valid_label"></a>
 
 ## Function `is_valid_label`
 
 
 
-<pre><code><b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_is_valid_label">is_valid_label</a>(label: &<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>): bool
+<pre><code><b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_is_valid_label">is_valid_label</a>(label: &<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>): bool
 </code></pre>
 
 
@@ -418,12 +418,12 @@ Checks if <code>parent</code> domain is a valid parent for <code>child</code>.
 <summary>Implementation</summary>
 
 
-<pre><code><b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_is_valid_label">is_valid_label</a>(label: &String): bool {
+<pre><code><b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_is_valid_label">is_valid_label</a>(label: &String): bool {
     <b>let</b> len = label.length();
     <b>let</b> label_bytes = label.bytes();
     <b>let</b> <b>mut</b> index = 0;
 
-    <b>if</b> (!(len &gt;= <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_MIN_LABEL_LENGTH">MIN_LABEL_LENGTH</a> && len &lt;= <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_MAX_LABEL_LENGTH">MAX_LABEL_LENGTH</a>)) {
+    <b>if</b> (!(len &gt;= <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_MIN_LABEL_LENGTH">MIN_LABEL_LENGTH</a> && len &lt;= <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_MAX_LABEL_LENGTH">MAX_LABEL_LENGTH</a>)) {
         <b>return</b> <b>false</b>
     };
 
@@ -449,14 +449,14 @@ Checks if <code>parent</code> domain is a valid parent for <code>child</code>.
 
 </details>
 
-<a name="0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_split_by_dot"></a>
+<a name="0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_split_by_dot"></a>
 
 ## Function `split_by_dot`
 
 Splits a string <code>s</code> by the character <code>.</code> into a vector of subslices, excluding the <code>.</code>
 
 
-<pre><code><b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_split_by_dot">split_by_dot</a>(s: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>): <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>&gt;
+<pre><code><b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_split_by_dot">split_by_dot</a>(s: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>): <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>&gt;
 </code></pre>
 
 
@@ -465,7 +465,7 @@ Splits a string <code>s</code> by the character <code>.</code> into a vector of 
 <summary>Implementation</summary>
 
 
-<pre><code><b>fun</b> <a href="domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_split_by_dot">split_by_dot</a>(<b>mut</b> s: String): <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;String&gt; {
+<pre><code><b>fun</b> <a href="domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_split_by_dot">split_by_dot</a>(<b>mut</b> s: String): <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;String&gt; {
     <b>let</b> dot = utf8(b".");
     <b>let</b> <b>mut</b> parts: <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;String&gt; = <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>[];
     <b>while</b> (!s.is_empty()) {

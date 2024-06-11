@@ -1,7 +1,7 @@
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains"></a>
 
-# Module `0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3::subdomains`
+# Module `0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4::subdomains`
 
 A registration module for subdomains.
 
@@ -26,26 +26,26 @@ from the core suins package.
 
 
 
--  [Struct `SubDomains`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_SubDomains)
--  [Struct `ParentKey`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_ParentKey)
+-  [Struct `SubDomains`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_SubDomains)
+-  [Struct `ParentKey`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_ParentKey)
 -  [Constants](#@Constants_0)
--  [Function `new_leaf`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_new_leaf)
--  [Function `remove_leaf`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_remove_leaf)
--  [Function `new`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_new)
--  [Function `extend_expiration`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_extend_expiration)
--  [Function `edit_setup`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_edit_setup)
--  [Function `burn`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_burn)
--  [Function `parent`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_parent)
--  [Function `internal_set_flag`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_set_flag)
--  [Function `is_creation_allowed`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_is_creation_allowed)
--  [Function `is_extension_allowed`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_is_extension_allowed)
--  [Function `record_metadata`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_record_metadata)
--  [Function `internal_validate_nft_can_manage_subdomain`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_validate_nft_can_manage_subdomain)
--  [Function `internal_assert_parent_can_create_subdomains`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_assert_parent_can_create_subdomains)
--  [Function `internal_create_subdomain`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_create_subdomain)
--  [Function `registry`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_registry)
--  [Function `registry_mut`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_registry_mut)
--  [Function `app_config`](#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_app_config)
+-  [Function `new_leaf`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_new_leaf)
+-  [Function `remove_leaf`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_remove_leaf)
+-  [Function `new`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_new)
+-  [Function `extend_expiration`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_extend_expiration)
+-  [Function `edit_setup`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_edit_setup)
+-  [Function `burn`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_burn)
+-  [Function `parent`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_parent)
+-  [Function `internal_set_flag`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_set_flag)
+-  [Function `is_creation_allowed`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_is_creation_allowed)
+-  [Function `is_extension_allowed`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_is_extension_allowed)
+-  [Function `record_metadata`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_record_metadata)
+-  [Function `internal_validate_nft_can_manage_subdomain`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_validate_nft_can_manage_subdomain)
+-  [Function `internal_assert_parent_can_create_subdomains`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_assert_parent_can_create_subdomains)
+-  [Function `internal_create_subdomain`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_create_subdomain)
+-  [Function `registry`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_registry)
+-  [Function `registry_mut`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_registry_mut)
+-  [Function `app_config`](#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_app_config)
 
 
 <pre><code><b>use</b> <a href="dependencies/move-stdlib/option.md#0x1_option">0x1::option</a>;
@@ -55,27 +55,27 @@ from the core suins package.
 <b>use</b> <a href="dependencies/sui-framework/object.md#0x2_object">0x2::object</a>;
 <b>use</b> <a href="dependencies/sui-framework/tx_context.md#0x2_tx_context">0x2::tx_context</a>;
 <b>use</b> <a href="dependencies/sui-framework/vec_map.md#0x2_vec_map">0x2::vec_map</a>;
-<b>use</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3::config</a>;
-<b>use</b> <a href="dependencies/suins/constants.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_constants">0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94::constants</a>;
-<b>use</b> <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94::domain</a>;
-<b>use</b> <a href="dependencies/suins/name_record.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_name_record">0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94::name_record</a>;
-<b>use</b> <a href="dependencies/suins/registry.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_registry">0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94::registry</a>;
-<b>use</b> <a href="dependencies/suins/subdomain_registration.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_subdomain_registration">0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94::subdomain_registration</a>;
-<b>use</b> <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94::suins</a>;
-<b>use</b> <a href="dependencies/suins/suins_registration.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_registration">0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94::suins_registration</a>;
-<b>use</b> <a href="dependencies/denylist/denylist.md#0xee65611da55aeec899a10df218a881d05236383eb61e4c20b21b4aa2d7580315_denylist">0xee65611da55aeec899a10df218a881d05236383eb61e4c20b21b4aa2d7580315::denylist</a>;
+<b>use</b> <a href="dependencies/suins/constants.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_constants">0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b::constants</a>;
+<b>use</b> <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b::domain</a>;
+<b>use</b> <a href="dependencies/suins/name_record.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_name_record">0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b::name_record</a>;
+<b>use</b> <a href="dependencies/suins/registry.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_registry">0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b::registry</a>;
+<b>use</b> <a href="dependencies/suins/subdomain_registration.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_subdomain_registration">0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b::subdomain_registration</a>;
+<b>use</b> <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b::suins</a>;
+<b>use</b> <a href="dependencies/suins/suins_registration.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_registration">0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b::suins_registration</a>;
+<b>use</b> <a href="config.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_config">0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4::config</a>;
+<b>use</b> <a href="dependencies/denylist/denylist.md#0x92f333a152c9ada0a2fb69b9510ce1e27b1b093891deac99e4c35bbd25866b20_denylist">0x92f333a152c9ada0a2fb69b9510ce1e27b1b093891deac99e4c35bbd25866b20::denylist</a>;
 </code></pre>
 
 
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_SubDomains"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_SubDomains"></a>
 
 ## Struct `SubDomains`
 
 The authentication scheme for SuiNS.
 
 
-<pre><code><b>struct</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_SubDomains">SubDomains</a> <b>has</b> drop
+<pre><code><b>struct</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_SubDomains">SubDomains</a> <b>has</b> drop
 </code></pre>
 
 
@@ -96,14 +96,14 @@ The authentication scheme for SuiNS.
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_ParentKey"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_ParentKey"></a>
 
 ## Struct `ParentKey`
 
 The key to store the parent's ID in the subdomain object.
 
 
-<pre><code><b>struct</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_ParentKey">ParentKey</a> <b>has</b> <b>copy</b>, drop, store
+<pre><code><b>struct</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_ParentKey">ParentKey</a> <b>has</b> <b>copy</b>, drop, store
 </code></pre>
 
 
@@ -129,77 +129,77 @@ The key to store the parent's ID in the subdomain object.
 ## Constants
 
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_ACTIVE_METADATA_VALUE"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_ACTIVE_METADATA_VALUE"></a>
 
 Enabled metadata value.
 
 
-<pre><code><b>const</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_ACTIVE_METADATA_VALUE">ACTIVE_METADATA_VALUE</a>: <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt; = [49];
+<pre><code><b>const</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_ACTIVE_METADATA_VALUE">ACTIVE_METADATA_VALUE</a>: <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt; = [49];
 </code></pre>
 
 
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_ECreationDisabledForSubDomain"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_ECreationDisabledForSubDomain"></a>
 
 Tries to create a subdomain with a parent that is not allowed to do so.
 
 
-<pre><code><b>const</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_ECreationDisabledForSubDomain">ECreationDisabledForSubDomain</a>: u64 = 2;
+<pre><code><b>const</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_ECreationDisabledForSubDomain">ECreationDisabledForSubDomain</a>: u64 = 2;
 </code></pre>
 
 
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_EExtensionDisabledForSubDomain"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_EExtensionDisabledForSubDomain"></a>
 
 Tries to extend the expiration of a subdomain which doesn't have the permission to do so.
 
 
-<pre><code><b>const</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_EExtensionDisabledForSubDomain">EExtensionDisabledForSubDomain</a>: u64 = 3;
+<pre><code><b>const</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_EExtensionDisabledForSubDomain">EExtensionDisabledForSubDomain</a>: u64 = 3;
 </code></pre>
 
 
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_EInvalidExpirationDate"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_EInvalidExpirationDate"></a>
 
 Tries to create a subdomain that expires later than the parent or below the minimum.
 
 
-<pre><code><b>const</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_EInvalidExpirationDate">EInvalidExpirationDate</a>: u64 = 1;
+<pre><code><b>const</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_EInvalidExpirationDate">EInvalidExpirationDate</a>: u64 = 1;
 </code></pre>
 
 
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_ENotAllowedName"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_ENotAllowedName"></a>
 
 Checks whether a name is allowed or not (against blocked names list)
 
 
-<pre><code><b>const</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_ENotAllowedName">ENotAllowedName</a>: u64 = 6;
+<pre><code><b>const</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_ENotAllowedName">ENotAllowedName</a>: u64 = 6;
 </code></pre>
 
 
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_EParentChanged"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_EParentChanged"></a>
 
 Parent for a given subdomain has changed, hence time extension cannot be done.
 
 
-<pre><code><b>const</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_EParentChanged">EParentChanged</a>: u64 = 5;
+<pre><code><b>const</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_EParentChanged">EParentChanged</a>: u64 = 5;
 </code></pre>
 
 
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_ESubdomainReplaced"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_ESubdomainReplaced"></a>
 
 The subdomain has been replaced by a newer NFT, so it can't be renewed.
 
 
-<pre><code><b>const</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_ESubdomainReplaced">ESubdomainReplaced</a>: u64 = 4;
+<pre><code><b>const</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_ESubdomainReplaced">ESubdomainReplaced</a>: u64 = 4;
 </code></pre>
 
 
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_new_leaf"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_new_leaf"></a>
 
 ## Function `new_leaf`
 
@@ -207,7 +207,7 @@ Creates a <code>leaf</code> subdomain
 A <code>leaf</code> subdomain, is a subdomain that is managed by the parent's NFT.
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_new_leaf">new_leaf</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_SuiNS">suins::SuiNS</a>, parent: &<a href="dependencies/suins/suins_registration.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &<a href="dependencies/sui-framework/clock.md#0x2_clock_Clock">clock::Clock</a>, subdomain_name: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, target: <b>address</b>, ctx: &<b>mut</b> <a href="dependencies/sui-framework/tx_context.md#0x2_tx_context_TxContext">tx_context::TxContext</a>)
+<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_new_leaf">new_leaf</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_SuiNS">suins::SuiNS</a>, parent: &<a href="dependencies/suins/suins_registration.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &<a href="dependencies/sui-framework/clock.md#0x2_clock_Clock">clock::Clock</a>, subdomain_name: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, target: <b>address</b>, ctx: &<b>mut</b> <a href="dependencies/sui-framework/tx_context.md#0x2_tx_context_TxContext">tx_context::TxContext</a>)
 </code></pre>
 
 
@@ -216,22 +216,22 @@ A <code>leaf</code> subdomain, is a subdomain that is managed by the parent's NF
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_new_leaf">new_leaf</a>(
-    <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> SuiNS,
+<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_new_leaf">new_leaf</a>(
+    <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> SuiNS,
     parent: &SuinsRegistration,
     <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &Clock,
     subdomain_name: String,
     target: <b>address</b>,
     ctx: &<b>mut</b> TxContext
 ) {
-    <b>assert</b>!(!<a href="dependencies/denylist/denylist.md#0xee65611da55aeec899a10df218a881d05236383eb61e4c20b21b4aa2d7580315_denylist_is_blocked_name">denylist::is_blocked_name</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>, subdomain_name), <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_ENotAllowedName">ENotAllowedName</a>);
+    <b>assert</b>!(!<a href="dependencies/denylist/denylist.md#0x92f333a152c9ada0a2fb69b9510ce1e27b1b093891deac99e4c35bbd25866b20_denylist_is_blocked_name">denylist::is_blocked_name</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>, subdomain_name), <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_ENotAllowedName">ENotAllowedName</a>);
 
-    <b>let</b> subdomain = <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_new">domain::new</a>(subdomain_name);
+    <b>let</b> subdomain = <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_new">domain::new</a>(subdomain_name);
     // all validation logic for subdomain creation / management.
-    <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_validate_nft_can_manage_subdomain">internal_validate_nft_can_manage_subdomain</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>, parent, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>, subdomain, <b>true</b>);
+    <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_validate_nft_can_manage_subdomain">internal_validate_nft_can_manage_subdomain</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>, parent, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>, subdomain, <b>true</b>);
 
     // Aborts <b>with</b> `suins::registry::ERecordExists` <b>if</b> the subdomain already exists.
-    <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_registry_mut">registry_mut</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>).add_leaf_record(subdomain, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>, target, ctx)
+    <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_registry_mut">registry_mut</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>).add_leaf_record(subdomain, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>, target, ctx)
 }
 </code></pre>
 
@@ -239,7 +239,7 @@ A <code>leaf</code> subdomain, is a subdomain that is managed by the parent's NF
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_remove_leaf"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_remove_leaf"></a>
 
 ## Function `remove_leaf`
 
@@ -247,7 +247,7 @@ Removes a <code>leaf</code> subdomain from the registry.
 Management of the <code>leaf</code> subdomain can only be achieved through the parent's valid NFT.
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_remove_leaf">remove_leaf</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_SuiNS">suins::SuiNS</a>, parent: &<a href="dependencies/suins/suins_registration.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &<a href="dependencies/sui-framework/clock.md#0x2_clock_Clock">clock::Clock</a>, subdomain_name: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>)
+<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_remove_leaf">remove_leaf</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_SuiNS">suins::SuiNS</a>, parent: &<a href="dependencies/suins/suins_registration.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &<a href="dependencies/sui-framework/clock.md#0x2_clock_Clock">clock::Clock</a>, subdomain_name: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>)
 </code></pre>
 
 
@@ -256,20 +256,20 @@ Management of the <code>leaf</code> subdomain can only be achieved through the p
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_remove_leaf">remove_leaf</a>(
-    <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> SuiNS,
+<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_remove_leaf">remove_leaf</a>(
+    <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> SuiNS,
     parent: &SuinsRegistration,
     <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &Clock,
     subdomain_name: String,
 ) {
-    <b>let</b> subdomain = <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_new">domain::new</a>(subdomain_name);
+    <b>let</b> subdomain = <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_new">domain::new</a>(subdomain_name);
 
     // All validation logic for subdomain creation / management.
     // We pass `<b>false</b>` <b>as</b> last argument because even <b>if</b> we don't have create capabilities (anymore),
     // we can still remove a leaf name (we just can't add a new one).
-    <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_validate_nft_can_manage_subdomain">internal_validate_nft_can_manage_subdomain</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>, parent, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>, subdomain, <b>false</b>);
+    <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_validate_nft_can_manage_subdomain">internal_validate_nft_can_manage_subdomain</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>, parent, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>, subdomain, <b>false</b>);
 
-    <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_registry_mut">registry_mut</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>).remove_leaf_record(subdomain)
+    <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_registry_mut">registry_mut</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>).remove_leaf_record(subdomain)
 }
 </code></pre>
 
@@ -277,7 +277,7 @@ Management of the <code>leaf</code> subdomain can only be achieved through the p
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_new"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_new"></a>
 
 ## Function `new`
 
@@ -297,7 +297,7 @@ The following script does the following lookups:
 It then saves the configuration for that child (manage-able by the parent), and returns the SuinsRegistration object.
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_new">new</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_SuiNS">suins::SuiNS</a>, parent: &<a href="dependencies/suins/suins_registration.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &<a href="dependencies/sui-framework/clock.md#0x2_clock_Clock">clock::Clock</a>, subdomain_name: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, expiration_timestamp_ms: u64, allow_creation: bool, allow_time_extension: bool, ctx: &<b>mut</b> <a href="dependencies/sui-framework/tx_context.md#0x2_tx_context_TxContext">tx_context::TxContext</a>): <a href="dependencies/suins/subdomain_registration.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_subdomain_registration_SubDomainRegistration">subdomain_registration::SubDomainRegistration</a>
+<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_new">new</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_SuiNS">suins::SuiNS</a>, parent: &<a href="dependencies/suins/suins_registration.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &<a href="dependencies/sui-framework/clock.md#0x2_clock_Clock">clock::Clock</a>, subdomain_name: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, expiration_timestamp_ms: u64, allow_creation: bool, allow_time_extension: bool, ctx: &<b>mut</b> <a href="dependencies/sui-framework/tx_context.md#0x2_tx_context_TxContext">tx_context::TxContext</a>): <a href="dependencies/suins/subdomain_registration.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_subdomain_registration_SubDomainRegistration">subdomain_registration::SubDomainRegistration</a>
 </code></pre>
 
 
@@ -306,8 +306,8 @@ It then saves the configuration for that child (manage-able by the parent), and 
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_new">new</a>(
-    <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> SuiNS,
+<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_new">new</a>(
+    <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> SuiNS,
     parent: &SuinsRegistration,
     <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &Clock,
     subdomain_name: String,
@@ -316,29 +316,29 @@ It then saves the configuration for that child (manage-able by the parent), and 
     allow_time_extension: bool,
     ctx: &<b>mut</b> TxContext
 ): SubDomainRegistration {
-    <b>assert</b>!(!<a href="dependencies/denylist/denylist.md#0xee65611da55aeec899a10df218a881d05236383eb61e4c20b21b4aa2d7580315_denylist_is_blocked_name">denylist::is_blocked_name</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>, subdomain_name), <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_ENotAllowedName">ENotAllowedName</a>);
+    <b>assert</b>!(!<a href="dependencies/denylist/denylist.md#0x92f333a152c9ada0a2fb69b9510ce1e27b1b093891deac99e4c35bbd25866b20_denylist_is_blocked_name">denylist::is_blocked_name</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>, subdomain_name), <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_ENotAllowedName">ENotAllowedName</a>);
 
-    <b>let</b> subdomain = <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_new">domain::new</a>(subdomain_name);
+    <b>let</b> subdomain = <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_new">domain::new</a>(subdomain_name);
     // all validation logic for subdomain creation / management.
-    <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_validate_nft_can_manage_subdomain">internal_validate_nft_can_manage_subdomain</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>, parent, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>, subdomain, <b>true</b>);
+    <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_validate_nft_can_manage_subdomain">internal_validate_nft_can_manage_subdomain</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>, parent, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>, subdomain, <b>true</b>);
 
     // Validate that the duration is at least the minimum duration.
-    <b>assert</b>!(expiration_timestamp_ms &gt;= <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>.timestamp_ms() + <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_app_config">app_config</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>).minimum_duration(), <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_EInvalidExpirationDate">EInvalidExpirationDate</a>);
+    <b>assert</b>!(expiration_timestamp_ms &gt;= <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>.timestamp_ms() + <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_app_config">app_config</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>).minimum_duration(), <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_EInvalidExpirationDate">EInvalidExpirationDate</a>);
     // validate that the requested expiration timestamp is not greater than the parent's one.
-    <b>assert</b>!(expiration_timestamp_ms &lt;= parent.expiration_timestamp_ms(), <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_EInvalidExpirationDate">EInvalidExpirationDate</a>);
+    <b>assert</b>!(expiration_timestamp_ms &lt;= parent.expiration_timestamp_ms(), <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_EInvalidExpirationDate">EInvalidExpirationDate</a>);
 
     // We register the subdomain (e.g. `subdomain.example.<a href="dependencies/sui-framework/sui.md#0x2_sui">sui</a>`) and <b>return</b> the SuinsRegistration <a href="dependencies/sui-framework/object.md#0x2_object">object</a>.
     // Aborts <b>with</b> `suins::registry::ERecordExists` <b>if</b> the subdomain already exists.
-    <b>let</b> nft = <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_create_subdomain">internal_create_subdomain</a>(<a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_registry_mut">registry_mut</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>), subdomain, expiration_timestamp_ms, <a href="dependencies/sui-framework/object.md#0x2_object_id">object::id</a>(parent), <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>, ctx);
+    <b>let</b> nft = <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_create_subdomain">internal_create_subdomain</a>(<a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_registry_mut">registry_mut</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>), subdomain, expiration_timestamp_ms, <a href="dependencies/sui-framework/object.md#0x2_object_id">object::id</a>(parent), <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>, ctx);
 
     // We create the `setup` for the particular SubDomainRegistration.
     // We save a setting like: `subdomain.example.<a href="dependencies/sui-framework/sui.md#0x2_sui">sui</a>` -&gt; { allow_creation: <b>true</b>/<b>false</b>, allow_time_extension: <b>true</b>/<b>false</b> }
     <b>if</b> (allow_creation) {
-        <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_set_flag">internal_set_flag</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>, subdomain, subdomain_allow_creation_key(), allow_creation);
+        <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_set_flag">internal_set_flag</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>, subdomain, subdomain_allow_creation_key(), allow_creation);
     };
 
     <b>if</b> (allow_time_extension){
-        <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_set_flag">internal_set_flag</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>, subdomain, subdomain_allow_extension_key(), allow_time_extension);
+        <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_set_flag">internal_set_flag</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>, subdomain, subdomain_allow_extension_key(), allow_time_extension);
     };
 
     nft
@@ -349,14 +349,14 @@ It then saves the configuration for that child (manage-able by the parent), and 
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_extend_expiration"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_extend_expiration"></a>
 
 ## Function `extend_expiration`
 
 Extends the expiration of a <code>node</code> subdomain.
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_extend_expiration">extend_expiration</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_SuiNS">suins::SuiNS</a>, sub_nft: &<b>mut</b> <a href="dependencies/suins/subdomain_registration.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_subdomain_registration_SubDomainRegistration">subdomain_registration::SubDomainRegistration</a>, expiration_timestamp_ms: u64)
+<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_extend_expiration">extend_expiration</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_SuiNS">suins::SuiNS</a>, sub_nft: &<b>mut</b> <a href="dependencies/suins/subdomain_registration.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_subdomain_registration_SubDomainRegistration">subdomain_registration::SubDomainRegistration</a>, expiration_timestamp_ms: u64)
 </code></pre>
 
 
@@ -365,36 +365,36 @@ Extends the expiration of a <code>node</code> subdomain.
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_extend_expiration">extend_expiration</a>(
-    <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> SuiNS,
+<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_extend_expiration">extend_expiration</a>(
+    <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> SuiNS,
     sub_nft: &<b>mut</b> SubDomainRegistration,
     expiration_timestamp_ms: u64,
 ) {
-    <b>let</b> <a href="dependencies/suins/registry.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_registry">registry</a> = <a href="dependencies/suins/registry.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_registry">registry</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>);
+    <b>let</b> <a href="dependencies/suins/registry.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_registry">registry</a> = <a href="dependencies/suins/registry.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_registry">registry</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>);
 
     <b>let</b> nft = sub_nft.nft_mut();
-    <b>let</b> subdomain = nft.<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>();
-    <b>let</b> parent_domain = subdomain.<a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_parent">parent</a>();
+    <b>let</b> subdomain = nft.<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>();
+    <b>let</b> parent_domain = subdomain.<a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_parent">parent</a>();
 
     // Check <b>if</b> time extension is allowed for this subdomain.
-    <b>assert</b>!(<a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_is_extension_allowed">is_extension_allowed</a>(&<a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_record_metadata">record_metadata</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>, subdomain)), <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_EExtensionDisabledForSubDomain">EExtensionDisabledForSubDomain</a>);
+    <b>assert</b>!(<a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_is_extension_allowed">is_extension_allowed</a>(&<a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_record_metadata">record_metadata</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>, subdomain)), <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_EExtensionDisabledForSubDomain">EExtensionDisabledForSubDomain</a>);
 
-    <b>let</b> existing_name_record = <a href="dependencies/suins/registry.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_registry">registry</a>.lookup(subdomain);
-    <b>let</b> parent_name_record = <a href="dependencies/suins/registry.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_registry">registry</a>.lookup(parent_domain);
+    <b>let</b> existing_name_record = <a href="dependencies/suins/registry.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_registry">registry</a>.lookup(subdomain);
+    <b>let</b> parent_name_record = <a href="dependencies/suins/registry.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_registry">registry</a>.lookup(parent_domain);
 
     // we need <b>to</b> make sure this name record exists (both child + parent), otherwise we don't have a valid <a href="dependencies/sui-framework/object.md#0x2_object">object</a>.
-    <b>assert</b>!(<a href="dependencies/move-stdlib/option.md#0x1_option_is_some">option::is_some</a>(&existing_name_record) && <a href="dependencies/move-stdlib/option.md#0x1_option_is_some">option::is_some</a>(&parent_name_record), <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_ESubdomainReplaced">ESubdomainReplaced</a>);
+    <b>assert</b>!(<a href="dependencies/move-stdlib/option.md#0x1_option_is_some">option::is_some</a>(&existing_name_record) && <a href="dependencies/move-stdlib/option.md#0x1_option_is_some">option::is_some</a>(&parent_name_record), <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_ESubdomainReplaced">ESubdomainReplaced</a>);
 
     // Validate that the parent of the name is the same <b>as</b> the actual parent
-    // (<b>to</b> prevent cases <b>where</b> owner of the parent changed. When that happens, <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains">subdomains</a> lose all abilities <b>to</b> renew / create <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains">subdomains</a>)
-    <b>assert</b>!(<a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_parent">parent</a>(nft) == <a href="dependencies/move-stdlib/option.md#0x1_option_borrow">option::borrow</a>(&parent_name_record).nft_id(), <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_EParentChanged">EParentChanged</a>);
+    // (<b>to</b> prevent cases <b>where</b> owner of the parent changed. When that happens, <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains">subdomains</a> lose all abilities <b>to</b> renew / create <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains">subdomains</a>)
+    <b>assert</b>!(<a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_parent">parent</a>(nft) == <a href="dependencies/move-stdlib/option.md#0x1_option_borrow">option::borrow</a>(&parent_name_record).nft_id(), <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_EParentChanged">EParentChanged</a>);
 
     // validate that expiration date is &gt; than the current.
-    <b>assert</b>!(expiration_timestamp_ms &gt; nft.expiration_timestamp_ms(), <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_EInvalidExpirationDate">EInvalidExpirationDate</a>);
+    <b>assert</b>!(expiration_timestamp_ms &gt; nft.expiration_timestamp_ms(), <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_EInvalidExpirationDate">EInvalidExpirationDate</a>);
     // validate that the requested expiration timestamp is not greater than the parent's one.
-    <b>assert</b>!(expiration_timestamp_ms &lt;= <a href="dependencies/move-stdlib/option.md#0x1_option_borrow">option::borrow</a>(&parent_name_record).expiration_timestamp_ms(), <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_EInvalidExpirationDate">EInvalidExpirationDate</a>);
+    <b>assert</b>!(expiration_timestamp_ms &lt;= <a href="dependencies/move-stdlib/option.md#0x1_option_borrow">option::borrow</a>(&parent_name_record).expiration_timestamp_ms(), <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_EInvalidExpirationDate">EInvalidExpirationDate</a>);
 
-    <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_registry_mut">registry_mut</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>).set_expiration_timestamp_ms(nft, subdomain, expiration_timestamp_ms);
+    <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_registry_mut">registry_mut</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>).set_expiration_timestamp_ms(nft, subdomain, expiration_timestamp_ms);
 }
 </code></pre>
 
@@ -402,7 +402,7 @@ Extends the expiration of a <code>node</code> subdomain.
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_edit_setup"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_edit_setup"></a>
 
 ## Function `edit_setup`
 
@@ -412,7 +412,7 @@ Called by the parent domain to edit a subdomain's settings.
 --> For creations: A parent can't retract already created children, nor can limit the depth if creation capability is on.
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_edit_setup">edit_setup</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_SuiNS">suins::SuiNS</a>, parent: &<a href="dependencies/suins/suins_registration.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &<a href="dependencies/sui-framework/clock.md#0x2_clock_Clock">clock::Clock</a>, subdomain_name: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, allow_creation: bool, allow_time_extension: bool)
+<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_edit_setup">edit_setup</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_SuiNS">suins::SuiNS</a>, parent: &<a href="dependencies/suins/suins_registration.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &<a href="dependencies/sui-framework/clock.md#0x2_clock_Clock">clock::Clock</a>, subdomain_name: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, allow_creation: bool, allow_time_extension: bool)
 </code></pre>
 
 
@@ -421,8 +421,8 @@ Called by the parent domain to edit a subdomain's settings.
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_edit_setup">edit_setup</a>(
-    <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> SuiNS,
+<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_edit_setup">edit_setup</a>(
+    <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> SuiNS,
     parent: &SuinsRegistration,
     <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &Clock,
     subdomain_name: String,
@@ -430,19 +430,19 @@ Called by the parent domain to edit a subdomain's settings.
     allow_time_extension: bool
 ) {
     // validate that parent is a valid, non expired <a href="dependencies/sui-framework/object.md#0x2_object">object</a>.
-    <a href="dependencies/suins/registry.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_registry">registry</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>).assert_nft_is_authorized(parent, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>);
+    <a href="dependencies/suins/registry.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_registry">registry</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>).assert_nft_is_authorized(parent, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>);
 
-    <b>let</b> parent_domain = parent.<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>();
-    <b>let</b> subdomain = <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_new">domain::new</a>(subdomain_name);
+    <b>let</b> parent_domain = parent.<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>();
+    <b>let</b> subdomain = <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_new">domain::new</a>(subdomain_name);
 
     // validate that the subdomain is valid for the supplied parent
     // (<b>as</b> well <b>as</b> it is valid in label length, total length, depth, etc).
-    <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_assert_is_valid_subdomain">config::assert_is_valid_subdomain</a>(&parent_domain, &subdomain, <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_app_config">app_config</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>));
+    config::assert_is_valid_subdomain(&parent_domain, &subdomain, <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_app_config">app_config</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>));
 
     // We create the `setup` for the particular SubDomainRegistration.
     // We save a setting like: `subdomain.example.<a href="dependencies/sui-framework/sui.md#0x2_sui">sui</a>` -&gt; { allow_creation: <b>true</b>/<b>false</b>, allow_time_extension: <b>true</b>/<b>false</b> }
-    <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_set_flag">internal_set_flag</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>, subdomain, subdomain_allow_creation_key(), allow_creation);
-    <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_set_flag">internal_set_flag</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>, subdomain, subdomain_allow_extension_key(), allow_time_extension);
+    <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_set_flag">internal_set_flag</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>, subdomain, subdomain_allow_creation_key(), allow_creation);
+    <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_set_flag">internal_set_flag</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>, subdomain, subdomain_allow_extension_key(), allow_time_extension);
 }
 </code></pre>
 
@@ -450,14 +450,14 @@ Called by the parent domain to edit a subdomain's settings.
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_burn"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_burn"></a>
 
 ## Function `burn`
 
 Burns a <code>SubDomainRegistration</code> object if it is expired.
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_burn">burn</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_SuiNS">suins::SuiNS</a>, nft: <a href="dependencies/suins/subdomain_registration.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_subdomain_registration_SubDomainRegistration">subdomain_registration::SubDomainRegistration</a>, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &<a href="dependencies/sui-framework/clock.md#0x2_clock_Clock">clock::Clock</a>)
+<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_burn">burn</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_SuiNS">suins::SuiNS</a>, nft: <a href="dependencies/suins/subdomain_registration.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_subdomain_registration_SubDomainRegistration">subdomain_registration::SubDomainRegistration</a>, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &<a href="dependencies/sui-framework/clock.md#0x2_clock_Clock">clock::Clock</a>)
 </code></pre>
 
 
@@ -466,12 +466,12 @@ Burns a <code>SubDomainRegistration</code> object if it is expired.
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_burn">burn</a>(
-    <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> SuiNS,
+<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_burn">burn</a>(
+    <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> SuiNS,
     nft: SubDomainRegistration,
     <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &Clock,
 ) {
-    <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_registry_mut">registry_mut</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>).burn_subdomain_object(nft, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>);
+    <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_registry_mut">registry_mut</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>).burn_subdomain_object(nft, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>);
 }
 </code></pre>
 
@@ -479,14 +479,14 @@ Burns a <code>SubDomainRegistration</code> object if it is expired.
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_parent"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_parent"></a>
 
 ## Function `parent`
 
 Parent ID of a subdomain
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_parent">parent</a>(subdomain: &<a href="dependencies/suins/suins_registration.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>): <a href="dependencies/sui-framework/object.md#0x2_object_ID">object::ID</a>
+<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_parent">parent</a>(subdomain: &<a href="dependencies/suins/suins_registration.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>): <a href="dependencies/sui-framework/object.md#0x2_object_ID">object::ID</a>
 </code></pre>
 
 
@@ -495,8 +495,8 @@ Parent ID of a subdomain
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_parent">parent</a>(subdomain: &SuinsRegistration): ID {
-    *df::borrow(subdomain.uid(), <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_ParentKey">ParentKey</a> {})
+<pre><code><b>public</b> <b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_parent">parent</a>(subdomain: &SuinsRegistration): ID {
+    *df::borrow(subdomain.uid(), <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_ParentKey">ParentKey</a> {})
 }
 </code></pre>
 
@@ -504,13 +504,13 @@ Parent ID of a subdomain
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_set_flag"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_set_flag"></a>
 
 ## Function `internal_set_flag`
 
 
 
-<pre><code><b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_set_flag">internal_set_flag</a>(self: &<b>mut</b> <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_SuiNS">suins::SuiNS</a>, subdomain: <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>, key: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, enable: bool)
+<pre><code><b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_set_flag">internal_set_flag</a>(self: &<b>mut</b> <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_SuiNS">suins::SuiNS</a>, subdomain: <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>, key: <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, enable: bool)
 </code></pre>
 
 
@@ -519,24 +519,24 @@ Parent ID of a subdomain
 <summary>Implementation</summary>
 
 
-<pre><code><b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_set_flag">internal_set_flag</a>(
+<pre><code><b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_set_flag">internal_set_flag</a>(
     self: &<b>mut</b> SuiNS,
     subdomain: Domain,
     key: String,
     enable: bool
 ) {
-    <b>let</b> <b>mut</b> <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a> = <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_record_metadata">record_metadata</a>(self, subdomain);
-    <b>let</b> is_enabled = <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>.contains(&key);
+    <b>let</b> <b>mut</b> <a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a> = <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_record_metadata">record_metadata</a>(self, subdomain);
+    <b>let</b> is_enabled = <a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>.contains(&key);
 
     <b>if</b> (enable && !is_enabled) {
-        <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>.insert(key,  utf8(<a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_ACTIVE_METADATA_VALUE">ACTIVE_METADATA_VALUE</a>));
+        <a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>.insert(key,  utf8(<a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_ACTIVE_METADATA_VALUE">ACTIVE_METADATA_VALUE</a>));
     };
 
     <b>if</b>(!enable && is_enabled) {
-        <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>.remove(&key);
+        <a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>.remove(&key);
     };
 
-    <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_registry_mut">registry_mut</a>(self).set_data(subdomain, <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a>);
+    <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_registry_mut">registry_mut</a>(self).set_data(subdomain, <a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a>);
 }
 </code></pre>
 
@@ -544,14 +544,14 @@ Parent ID of a subdomain
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_is_creation_allowed"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_is_creation_allowed"></a>
 
 ## Function `is_creation_allowed`
 
 Check if subdomain creation is allowed.
 
 
-<pre><code><b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_is_creation_allowed">is_creation_allowed</a>(metadata: &<a href="dependencies/sui-framework/vec_map.md#0x2_vec_map_VecMap">vec_map::VecMap</a>&lt;<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>&gt;): bool
+<pre><code><b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_is_creation_allowed">is_creation_allowed</a>(metadata: &<a href="dependencies/sui-framework/vec_map.md#0x2_vec_map_VecMap">vec_map::VecMap</a>&lt;<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>&gt;): bool
 </code></pre>
 
 
@@ -560,7 +560,7 @@ Check if subdomain creation is allowed.
 <summary>Implementation</summary>
 
 
-<pre><code><b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_is_creation_allowed">is_creation_allowed</a>(metadata: &VecMap&lt;String, String&gt;): bool {
+<pre><code><b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_is_creation_allowed">is_creation_allowed</a>(metadata: &VecMap&lt;String, String&gt;): bool {
     metadata.contains(&subdomain_allow_creation_key())
 }
 </code></pre>
@@ -569,14 +569,14 @@ Check if subdomain creation is allowed.
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_is_extension_allowed"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_is_extension_allowed"></a>
 
 ## Function `is_extension_allowed`
 
 Check if time extension is allowed.
 
 
-<pre><code><b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_is_extension_allowed">is_extension_allowed</a>(metadata: &<a href="dependencies/sui-framework/vec_map.md#0x2_vec_map_VecMap">vec_map::VecMap</a>&lt;<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>&gt;): bool
+<pre><code><b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_is_extension_allowed">is_extension_allowed</a>(metadata: &<a href="dependencies/sui-framework/vec_map.md#0x2_vec_map_VecMap">vec_map::VecMap</a>&lt;<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>&gt;): bool
 </code></pre>
 
 
@@ -585,7 +585,7 @@ Check if time extension is allowed.
 <summary>Implementation</summary>
 
 
-<pre><code><b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_is_extension_allowed">is_extension_allowed</a>(metadata: &VecMap&lt;String, String&gt;): bool {
+<pre><code><b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_is_extension_allowed">is_extension_allowed</a>(metadata: &VecMap&lt;String, String&gt;): bool {
     metadata.contains(&subdomain_allow_extension_key())
 }
 </code></pre>
@@ -594,14 +594,14 @@ Check if time extension is allowed.
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_record_metadata"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_record_metadata"></a>
 
 ## Function `record_metadata`
 
 Get the name record's metadata for a subdomain.
 
 
-<pre><code><b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_record_metadata">record_metadata</a>(self: &<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_SuiNS">suins::SuiNS</a>, subdomain: <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>): <a href="dependencies/sui-framework/vec_map.md#0x2_vec_map_VecMap">vec_map::VecMap</a>&lt;<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>&gt;
+<pre><code><b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_record_metadata">record_metadata</a>(self: &<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_SuiNS">suins::SuiNS</a>, subdomain: <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>): <a href="dependencies/sui-framework/vec_map.md#0x2_vec_map_VecMap">vec_map::VecMap</a>&lt;<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>, <a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>&gt;
 </code></pre>
 
 
@@ -610,11 +610,11 @@ Get the name record's metadata for a subdomain.
 <summary>Implementation</summary>
 
 
-<pre><code><b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_record_metadata">record_metadata</a>(
+<pre><code><b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_record_metadata">record_metadata</a>(
     self: &SuiNS,
     subdomain: Domain
 ): VecMap&lt;String, String&gt; {
-    *<a href="dependencies/suins/registry.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_registry">registry</a>(self).get_data(subdomain)
+    *<a href="dependencies/suins/registry.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_registry">registry</a>(self).get_data(subdomain)
 }
 </code></pre>
 
@@ -622,7 +622,7 @@ Get the name record's metadata for a subdomain.
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_validate_nft_can_manage_subdomain"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_validate_nft_can_manage_subdomain"></a>
 
 ## Function `internal_validate_nft_can_manage_subdomain`
 
@@ -634,7 +634,7 @@ can operate on a given subdomain.
 3. Validates that the subdomain is valid (accepted TLD, depth, length, is child of given parent, etc).
 
 
-<pre><code><b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_validate_nft_can_manage_subdomain">internal_validate_nft_can_manage_subdomain</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_SuiNS">suins::SuiNS</a>, parent: &<a href="dependencies/suins/suins_registration.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &<a href="dependencies/sui-framework/clock.md#0x2_clock_Clock">clock::Clock</a>, subdomain: <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>, check_creation_auth: bool)
+<pre><code><b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_validate_nft_can_manage_subdomain">internal_validate_nft_can_manage_subdomain</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_SuiNS">suins::SuiNS</a>, parent: &<a href="dependencies/suins/suins_registration.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_registration_SuinsRegistration">suins_registration::SuinsRegistration</a>, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &<a href="dependencies/sui-framework/clock.md#0x2_clock_Clock">clock::Clock</a>, subdomain: <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>, check_creation_auth: bool)
 </code></pre>
 
 
@@ -643,25 +643,25 @@ can operate on a given subdomain.
 <summary>Implementation</summary>
 
 
-<pre><code><b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_validate_nft_can_manage_subdomain">internal_validate_nft_can_manage_subdomain</a>(
-    <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &SuiNS,
+<pre><code><b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_validate_nft_can_manage_subdomain">internal_validate_nft_can_manage_subdomain</a>(
+    <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &SuiNS,
     parent: &SuinsRegistration,
     <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &Clock,
     subdomain: Domain,
-    // Set <b>to</b> `<b>true</b>` for `validate_creation` <b>if</b> you want <b>to</b> validate that the parent can create <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains">subdomains</a>.
+    // Set <b>to</b> `<b>true</b>` for `validate_creation` <b>if</b> you want <b>to</b> validate that the parent can create <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains">subdomains</a>.
     // Set <b>to</b> <b>false</b> when editing the setup of a subdomain or removing leaf names.
     check_creation_auth: bool
 ) {
     // validate that parent is a valid, non expired <a href="dependencies/sui-framework/object.md#0x2_object">object</a>.
-    <a href="dependencies/suins/registry.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_registry">registry</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>).assert_nft_is_authorized(parent, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>);
+    <a href="dependencies/suins/registry.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_registry">registry</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>).assert_nft_is_authorized(parent, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>);
 
     <b>if</b> (check_creation_auth) {
-        // validate that the parent can create <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains">subdomains</a>.
-        <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_assert_parent_can_create_subdomains">internal_assert_parent_can_create_subdomains</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>, parent.<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>());
+        // validate that the parent can create <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains">subdomains</a>.
+        <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_assert_parent_can_create_subdomains">internal_assert_parent_can_create_subdomains</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>, parent.<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>());
     };
 
     // validate that the subdomain is valid for the supplied parent.
-    <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_assert_is_valid_subdomain">config::assert_is_valid_subdomain</a>(&parent.<a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>(), &subdomain, <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_app_config">app_config</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>));
+    config::assert_is_valid_subdomain(&parent.<a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>(), &subdomain, <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_app_config">app_config</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>));
 }
 </code></pre>
 
@@ -669,7 +669,7 @@ can operate on a given subdomain.
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_assert_parent_can_create_subdomains"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_assert_parent_can_create_subdomains"></a>
 
 ## Function `internal_assert_parent_can_create_subdomains`
 
@@ -678,7 +678,7 @@ Validate whether a <code>SuinsRegistration</code> object is eligible for creatin
 2. If the parent is a subdomain, check whether it is allowed to create subdomains.
 
 
-<pre><code><b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_assert_parent_can_create_subdomains">internal_assert_parent_can_create_subdomains</a>(self: &<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_SuiNS">suins::SuiNS</a>, parent: <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>)
+<pre><code><b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_assert_parent_can_create_subdomains">internal_assert_parent_can_create_subdomains</a>(self: &<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_SuiNS">suins::SuiNS</a>, parent: <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>)
 </code></pre>
 
 
@@ -687,19 +687,19 @@ Validate whether a <code>SuinsRegistration</code> object is eligible for creatin
 <summary>Implementation</summary>
 
 
-<pre><code><b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_assert_parent_can_create_subdomains">internal_assert_parent_can_create_subdomains</a>(
+<pre><code><b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_assert_parent_can_create_subdomains">internal_assert_parent_can_create_subdomains</a>(
     self: &SuiNS,
     parent: Domain,
 ) {
-    // <b>if</b> the parent is not a subdomain, we can always create <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains">subdomains</a>.
+    // <b>if</b> the parent is not a subdomain, we can always create <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains">subdomains</a>.
     <b>if</b> (!is_subdomain(&parent)) {
         <b>return</b>
     };
 
-    // <b>if</b> `parent` is a subdomain. We check the subdomain <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a> <b>to</b> see <b>if</b> we are allowed <b>to</b> mint <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains">subdomains</a>.
-    // For regular names (e.g. example.<a href="dependencies/sui-framework/sui.md#0x2_sui">sui</a>), we can always mint <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains">subdomains</a>.
-    // <b>if</b> there's no <a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config">config</a> for this parent, and the parent is a subdomain, we can't create deeper names.
-    <b>assert</b>!(<a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_is_creation_allowed">is_creation_allowed</a>(&<a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_record_metadata">record_metadata</a>(self, parent)), <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_ECreationDisabledForSubDomain">ECreationDisabledForSubDomain</a>);
+    // <b>if</b> `parent` is a subdomain. We check the subdomain <a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a> <b>to</b> see <b>if</b> we are allowed <b>to</b> mint <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains">subdomains</a>.
+    // For regular names (e.g. example.<a href="dependencies/sui-framework/sui.md#0x2_sui">sui</a>), we can always mint <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains">subdomains</a>.
+    // <b>if</b> there's no <a href="dependencies/suins/config.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_config">config</a> for this parent, and the parent is a subdomain, we can't create deeper names.
+    <b>assert</b>!(<a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_is_creation_allowed">is_creation_allowed</a>(&<a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_record_metadata">record_metadata</a>(self, parent)), <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_ECreationDisabledForSubDomain">ECreationDisabledForSubDomain</a>);
 }
 </code></pre>
 
@@ -707,7 +707,7 @@ Validate whether a <code>SuinsRegistration</code> object is eligible for creatin
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_create_subdomain"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_create_subdomain"></a>
 
 ## Function `internal_create_subdomain`
 
@@ -715,7 +715,7 @@ An internal function to add a subdomain to the registry with the correct expirat
 It doesn't check whether the expiration is valid. This needs to be checked on the calling function.
 
 
-<pre><code><b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_create_subdomain">internal_create_subdomain</a>(<a href="dependencies/suins/registry.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_registry">registry</a>: &<b>mut</b> <a href="dependencies/suins/registry.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_registry_Registry">registry::Registry</a>, subdomain: <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain_Domain">domain::Domain</a>, expiration_timestamp_ms: u64, parent_nft_id: <a href="dependencies/sui-framework/object.md#0x2_object_ID">object::ID</a>, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &<a href="dependencies/sui-framework/clock.md#0x2_clock_Clock">clock::Clock</a>, ctx: &<b>mut</b> <a href="dependencies/sui-framework/tx_context.md#0x2_tx_context_TxContext">tx_context::TxContext</a>): <a href="dependencies/suins/subdomain_registration.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_subdomain_registration_SubDomainRegistration">subdomain_registration::SubDomainRegistration</a>
+<pre><code><b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_create_subdomain">internal_create_subdomain</a>(<a href="dependencies/suins/registry.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_registry">registry</a>: &<b>mut</b> <a href="dependencies/suins/registry.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_registry_Registry">registry::Registry</a>, subdomain: <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain_Domain">domain::Domain</a>, expiration_timestamp_ms: u64, parent_nft_id: <a href="dependencies/sui-framework/object.md#0x2_object_ID">object::ID</a>, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &<a href="dependencies/sui-framework/clock.md#0x2_clock_Clock">clock::Clock</a>, ctx: &<b>mut</b> <a href="dependencies/sui-framework/tx_context.md#0x2_tx_context_TxContext">tx_context::TxContext</a>): <a href="dependencies/suins/subdomain_registration.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_subdomain_registration_SubDomainRegistration">subdomain_registration::SubDomainRegistration</a>
 </code></pre>
 
 
@@ -724,23 +724,23 @@ It doesn't check whether the expiration is valid. This needs to be checked on th
 <summary>Implementation</summary>
 
 
-<pre><code><b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_internal_create_subdomain">internal_create_subdomain</a>(
-    <a href="dependencies/suins/registry.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_registry">registry</a>: &<b>mut</b> Registry,
+<pre><code><b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_internal_create_subdomain">internal_create_subdomain</a>(
+    <a href="dependencies/suins/registry.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_registry">registry</a>: &<b>mut</b> Registry,
     subdomain: Domain,
     expiration_timestamp_ms: u64,
     parent_nft_id: ID,
     <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>: &Clock,
     ctx: &<b>mut</b> TxContext,
 ): SubDomainRegistration {
-    <b>let</b> <b>mut</b> nft = <a href="dependencies/suins/registry.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_registry">registry</a>.add_record_ignoring_grace_period(subdomain, 1, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>, ctx);
+    <b>let</b> <b>mut</b> nft = <a href="dependencies/suins/registry.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_registry">registry</a>.add_record_ignoring_grace_period(subdomain, 1, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>, ctx);
     // set the timestamp <b>to</b> the correct one. `add_record` only works <b>with</b> years but we can correct it easily here.
-    <a href="dependencies/suins/registry.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_registry">registry</a>.set_expiration_timestamp_ms(&<b>mut</b> nft, subdomain, expiration_timestamp_ms);
+    <a href="dependencies/suins/registry.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_registry">registry</a>.set_expiration_timestamp_ms(&<b>mut</b> nft, subdomain, expiration_timestamp_ms);
 
     // attach the `ParentID` <b>to</b> the SuinsRegistration, so we validate that the parent who created this subdomain
-    // is the same <b>as</b> the one currently holding the parent <a href="dependencies/suins/domain.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_domain">domain</a>.
-    df::add(nft.uid_mut(), <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_ParentKey">ParentKey</a> {}, parent_nft_id);
+    // is the same <b>as</b> the one currently holding the parent <a href="dependencies/suins/domain.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_domain">domain</a>.
+    df::add(nft.uid_mut(), <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_ParentKey">ParentKey</a> {}, parent_nft_id);
 
-    <a href="dependencies/suins/registry.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_registry">registry</a>.wrap_subdomain(nft, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>, ctx)
+    <a href="dependencies/suins/registry.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_registry">registry</a>.wrap_subdomain(nft, <a href="dependencies/sui-framework/clock.md#0x2_clock">clock</a>, ctx)
 }
 </code></pre>
 
@@ -748,13 +748,13 @@ It doesn't check whether the expiration is valid. This needs to be checked on th
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_registry"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_registry"></a>
 
 ## Function `registry`
 
 
 
-<pre><code><b>fun</b> <a href="dependencies/suins/registry.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_registry">registry</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_SuiNS">suins::SuiNS</a>): &<a href="dependencies/suins/registry.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_registry_Registry">registry::Registry</a>
+<pre><code><b>fun</b> <a href="dependencies/suins/registry.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_registry">registry</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_SuiNS">suins::SuiNS</a>): &<a href="dependencies/suins/registry.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_registry_Registry">registry::Registry</a>
 </code></pre>
 
 
@@ -763,8 +763,8 @@ It doesn't check whether the expiration is valid. This needs to be checked on th
 <summary>Implementation</summary>
 
 
-<pre><code><b>fun</b> <a href="dependencies/suins/registry.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_registry">registry</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &SuiNS): &Registry {
-    <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>.<a href="dependencies/suins/registry.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_registry">registry</a>&lt;Registry&gt;()
+<pre><code><b>fun</b> <a href="dependencies/suins/registry.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_registry">registry</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &SuiNS): &Registry {
+    <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>.<a href="dependencies/suins/registry.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_registry">registry</a>&lt;Registry&gt;()
 }
 </code></pre>
 
@@ -772,13 +772,13 @@ It doesn't check whether the expiration is valid. This needs to be checked on th
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_registry_mut"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_registry_mut"></a>
 
 ## Function `registry_mut`
 
 
 
-<pre><code><b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_registry_mut">registry_mut</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_SuiNS">suins::SuiNS</a>): &<b>mut</b> <a href="dependencies/suins/registry.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_registry_Registry">registry::Registry</a>
+<pre><code><b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_registry_mut">registry_mut</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_SuiNS">suins::SuiNS</a>): &<b>mut</b> <a href="dependencies/suins/registry.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_registry_Registry">registry::Registry</a>
 </code></pre>
 
 
@@ -787,8 +787,8 @@ It doesn't check whether the expiration is valid. This needs to be checked on th
 <summary>Implementation</summary>
 
 
-<pre><code><b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_registry_mut">registry_mut</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<b>mut</b> SuiNS): &<b>mut</b> Registry {
-    <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_app_registry_mut">suins::app_registry_mut</a>&lt;<a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_SubDomains">SubDomains</a>, Registry&gt;(<a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_SubDomains">SubDomains</a> {}, <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>)
+<pre><code><b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_registry_mut">registry_mut</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<b>mut</b> SuiNS): &<b>mut</b> Registry {
+    <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_app_registry_mut">suins::app_registry_mut</a>&lt;<a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_SubDomains">SubDomains</a>, Registry&gt;(<a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_SubDomains">SubDomains</a> {}, <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>)
 }
 </code></pre>
 
@@ -796,13 +796,13 @@ It doesn't check whether the expiration is valid. This needs to be checked on th
 
 </details>
 
-<a name="0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_app_config"></a>
+<a name="0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_app_config"></a>
 
 ## Function `app_config`
 
 
 
-<pre><code><b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_app_config">app_config</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins_SuiNS">suins::SuiNS</a>): &<a href="config.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_config_SubDomainConfig">config::SubDomainConfig</a>
+<pre><code><b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_app_config">app_config</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins_SuiNS">suins::SuiNS</a>): &config::SubDomainConfig
 </code></pre>
 
 
@@ -811,8 +811,8 @@ It doesn't check whether the expiration is valid. This needs to be checked on th
 <summary>Implementation</summary>
 
 
-<pre><code><b>fun</b> <a href="subdomains.md#0x42f86f6582fcf0ee56efea33f13427e4f4cbe2f6b87686809073ac898a1a91d3_subdomains_app_config">app_config</a>(<a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>: &SuiNS): &SubDomainConfig {
-    <a href="dependencies/suins/suins.md#0xba51681ecaf0a6e961ed95a6cfb9a5978cc607c43e2a41ef92b9a091abc73d94_suins">suins</a>.get_config&lt;SubDomainConfig&gt;()
+<pre><code><b>fun</b> <a href="subdomains.md#0x592c74fa94d44dd22059b3907cec280384847f8025e33aff7930cdff0111bac4_subdomains_app_config">app_config</a>(<a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>: &SuiNS): &SubDomainConfig {
+    <a href="dependencies/suins/suins.md#0x2b10a05147fd7ab35d05314031e5821e9ad1718e4962552d659273b711c0961b_suins">suins</a>.get_config&lt;SubDomainConfig&gt;()
 }
 </code></pre>
 

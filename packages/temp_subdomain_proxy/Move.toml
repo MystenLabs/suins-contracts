@@ -2,7 +2,7 @@
 name = "temp_subdomain_proxy"
 version = "0.0.1"
 edition = "2024.beta"
-published-at = "0xae5f3d861bf8217f8a68e416d586e868887c8933b43034c31c1800e892105ecb"
+published-at = "0x16248d179910aa3ebc140b87dd0fd83b9b7c64341616af376dd790242e8dd014"
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet", override=true }
@@ -10,4 +10,4 @@ subdomains = { local = "../subdomains" }
 utils = { local = "../utils" }
 
 [addresses]
-temp_subdomain_proxy = "0xae5f3d861bf8217f8a68e416d586e868887c8933b43034c31c1800e892105ecb"
+temp_subdomain_proxy = "0x16248d179910aa3ebc140b87dd0fd83b9b7c64341616af376dd790242e8dd014"
