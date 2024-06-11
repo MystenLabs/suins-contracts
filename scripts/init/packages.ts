@@ -218,15 +218,26 @@ export const Packages = (network: Network) => {
 			manifest: SuiNSDependentPackages(rev, 'coupons'),
 			processPublish: (data: SuiTransactionBlockResponse) => {
 				const { packageId, upgradeCap } = parseCorePackageObjects(data);
-				const couponHouse = parseCreatedObject(data, `${packageId}::coupons::CouponHouse`);
 
 				return {
 					packageId,
 					upgradeCap,
-					couponHouse,
 				};
 			},
-			authorizationType: (packageId: string) => `${packageId}::coupons::CouponsApp`,
+			authorizationType: (packageId: string) => `${packageId}::coupon_house::CouponsApp`,
+			setupFunction: ({
+				txb,
+				packageId,
+				adminCap,
+				suins,
+			}: {
+				txb: TransactionBlock;
+				packageId: string;
+				adminCap: string;
+				suins: string;
+			}) => {
+				setupApp({ txb, adminCap, suins, target: `${packageId}::coupon_house` });
+			},
 		},
 		Subdomains: {
 			order: 3,
