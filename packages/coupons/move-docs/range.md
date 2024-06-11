@@ -107,7 +107,7 @@ a new Range constructor[from, to]
 
 
 <pre><code><b>public</b> <b>fun</b> <a href="range.md#0xb14b7077dafce4f7a0725cfc6e25fe39bfd76720ab8acefc0c00a8eb12f528f8_range_is_in_range">is_in_range</a>(<a href="range.md#0xb14b7077dafce4f7a0725cfc6e25fe39bfd76720ab8acefc0c00a8eb12f528f8_range">range</a>: &<a href="range.md#0xb14b7077dafce4f7a0725cfc6e25fe39bfd76720ab8acefc0c00a8eb12f528f8_range_Range">Range</a>, number: u8): bool {
-    number &gt;= <a href="range.md#0xb14b7077dafce4f7a0725cfc6e25fe39bfd76720ab8acefc0c00a8eb12f528f8_range_from">from</a>(<a href="range.md#0xb14b7077dafce4f7a0725cfc6e25fe39bfd76720ab8acefc0c00a8eb12f528f8_range">range</a>) && number &lt;= <b>to</b>(<a href="range.md#0xb14b7077dafce4f7a0725cfc6e25fe39bfd76720ab8acefc0c00a8eb12f528f8_range">range</a>)
+    number &gt;= <a href="range.md#0xb14b7077dafce4f7a0725cfc6e25fe39bfd76720ab8acefc0c00a8eb12f528f8_range">range</a>.<a href="range.md#0xb14b7077dafce4f7a0725cfc6e25fe39bfd76720ab8acefc0c00a8eb12f528f8_range_from">from</a>() && number &lt;= <a href="range.md#0xb14b7077dafce4f7a0725cfc6e25fe39bfd76720ab8acefc0c00a8eb12f528f8_range">range</a>.<b>to</b>()
 }
 </code></pre>
 
