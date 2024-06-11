@@ -62,6 +62,13 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 		},
 	});
 
+	packages.Coupons.setupFunction({
+		txb,
+		adminCap: packageInfo.SuiNS.adminCap,
+		suins: packageInfo.SuiNS.suins,
+		packageId: packageInfo.Coupons.packageId,
+	});
+
 	try {
 		await signAndExecute(txb, network);
 		console.log('******* Packages set up successfully *******');
