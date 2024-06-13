@@ -28,7 +28,7 @@ module discord::discord {
         table::{Self, Table},
         ecdsa_k1,
         address,
-        hash::blake2b256 as hash,
+        hash,
     };
     use coupons::{
         coupon_house,
@@ -121,7 +121,9 @@ module discord::discord {
         assert!(ecdsa_k1::secp256k1_verify(&signature, &discord.public_key, &msg_bytes, 1), ESignatureNotMatch);
 
         // if the table doens't contain that discord membership,add it.
-        if (!discord.users.contains(discord_id)) discord.users.add(discord_id, new_member());
+        if (!discord.users.contains(discord_id)) {
+            discord.users.add(discord_id, new_member());
+        };
 
         let member = discord.users.borrow_mut(discord_id); // borrow a mutable reference. 
         member.add_roles_internal(roles, &discord.discord_roles);
@@ -145,7 +147,6 @@ module discord::discord {
         member.owner.updates = updates_count + 1;
 
         let mut msg_bytes = vector::empty<u8>();
-
         msg_bytes.append(b"address_");
         msg_bytes.append(bcs::to_bytes(&updates_count));
         msg_bytes.append(*discord_id.bytes());
@@ -226,11 +227,7 @@ module discord::discord {
         member.available_points
     }
 
-    public fun member_roles(member: &Member): VecSet<u8> {
-        member.roles
-    }
-
-    public fun member(discord: &Discord, discord_id: String): &Member {
+    public(package) fun member(discord: &Discord, discord_id: String): &Member {
         discord.users.borrow(discord_id)
     }
 
@@ -254,11 +251,11 @@ module discord::discord {
         // We generate it by the hash(discord_id + total coupons claimed)
         // so for first it's discord_id+0, second is discord_id+1 ...
         // That way, we could predict the copon codes off-chain too.
-        let coupon_code = address::to_string(address::from_bytes(
-            hash(
+        let coupon_code = address::from_bytes(
+            hash::blake2b256(
                 &bcs::to_bytes(&vector[bcs::to_bytes(&discord_id), bcs::to_bytes(&member.claimed_coupons.length())
             ])
-        )));
+        )).to_string();
 
         member.available_points = member.available_points - (amount as u64);
         member.claimed_coupons.push_back(coupon_code); // save coupon in the users claimed list.
