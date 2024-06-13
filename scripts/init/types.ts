@@ -4,7 +4,7 @@ export type PackageInfo = {
 	SuiNS: SuiNS;
 	Utils: Package;
 	DenyList: Package;
-	OracleRegistration: Package;
+	Registration: Package;
 	Renewal: Package;
 	DayOne: Package;
 	Coupons: Coupons;

@@ -54,7 +54,7 @@ export const publishPackages = async (network: Network) => {
 				},
 				suinsObjectId: data.SuiNS.suins,
 				utilsPackageId: data.Utils.packageId,
-				registrationPackageId: data.OracleRegistration.packageId,
+				registrationPackageId: data.Registration.packageId,
 				renewalPackageId: data.Renewal.packageId,
 				subNamesPackageId: data.Subdomains.packageId,
 				tempSubNamesProxyPackageId: data.TempSubdomainProxy.packageId,
