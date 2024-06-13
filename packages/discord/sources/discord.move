@@ -91,11 +91,8 @@ module discord::discord {
         public_key: vector<u8>, 
         /// mapping a roleId -> percentage discount ([0,100]) (Up to 256 roles)
         discord_roles: VecMap<u8, u8>, 
-
         /// DiscordId -> Member
         users: Table<String, Member>, 
-        // /// Mapping of DiscordId -> Address
-        // address_mapping: Table<String, AddressMapping> 
     }
 
     fun init(ctx: &mut TxContext){
