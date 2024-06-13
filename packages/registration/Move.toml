@@ -2,10 +2,12 @@
 name = "registration"
 version = "0.0.1"
 edition = "2024.beta"
+published-at = "0xdfd22ce86121252f786b86951111d8e345eaf30ae8677267b408a020ac24cb60"
 
 [dependencies]
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "mainnet", override=true }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet", override=true }
 suins = { local = "../suins" }
 
+
 [addresses]
-registration = "0x0"
+registration = "0xdfd22ce86121252f786b86951111d8e345eaf30ae8677267b408a020ac24cb60"
