@@ -120,7 +120,7 @@ module coupons::coupon_house {
         };
 
         suins::app_add_balance(CouponsApp {}, suins, payment.into_balance());
-        let registry = suins::app_registry_mut<CouponsApp, Registry>(CouponsApp {}, suins);
+        let registry: &mut Registry = suins::app_registry_mut(CouponsApp {}, suins);
         registry.add_record(domain, no_years, clock, ctx)
     }
 
@@ -211,13 +211,13 @@ module coupons::coupon_house {
     }
 
     /// Check if an application is authorized to access protected features of the Coupon House.
-    public fun is_app_authorized<A: drop>(coupon_house: &CouponHouse): bool {
+    fun is_app_authorized<A: drop>(coupon_house: &CouponHouse): bool {
         df::exists_(&coupon_house.storage, AppKey<A>{})
     }
 
     /// Assert that an application is authorized to access protected features of Coupon House. 
     /// Aborts with `EAppNotAuthorized` if not.
-    public fun assert_app_is_authorized<A: drop>(coupon_house: &CouponHouse) {
+    fun assert_app_is_authorized<A: drop>(coupon_house: &CouponHouse) {
         assert!(coupon_house.is_app_authorized<A>(), EAppNotAuthorized);
     }
 

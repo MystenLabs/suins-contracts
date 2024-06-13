@@ -22,8 +22,7 @@
 /// The coupon's format that is being generated is calculated based on hash(discord_id + claim_idx)
 
 module discord::discord {
-    use std::string::{String};
-
+    use std::string::String;
     use sui:: {
         vec_map::{Self, VecMap},
         vec_set::{Self, VecSet},
@@ -33,13 +32,13 @@ module discord::discord {
         address,
         hash::blake2b256 as hash,
     };
-
     use coupons::{
-        coupons::{Self, CouponHouse},
+        coupon_house,
         rules,
         range,
         constants::{percentage_discount_type},
     };
+    use suins::suins::SuiNS;
 
     /// Errors
 
@@ -83,6 +82,7 @@ module discord::discord {
         available_points: u64,
         /// Roles already assigned to a member. Helps us verify we never give the same rewards twice.
         roles: VecSet<u8>,
+        /// List of coupons claimed by the user.
         claimed_coupons: vector<String>,
     }
 
@@ -165,19 +165,16 @@ module discord::discord {
         assert!(ecdsa_k1::secp256k1_verify(&signature, &discord.public_key, &msg_bytes, 1), ESignatureNotMatch); 
     }
 
-
     /// A user protected function to generate a coupon based on Membership data.
     /// Only claimable if there's a mapping {discord_id -> address (which needs to be the sender)}
-    public fun claim_coupon(discord: &mut Discord, coupon_house: &mut CouponHouse, discord_id: String, amount: u8, ctx: &mut TxContext) {
-        // Verify that this app can claim coupons, before proceeding.
-        coupons::assert_app_is_authorized<DiscordApp>(coupon_house);
+    public fun claim_coupon(discord: &mut Discord, suins: &mut SuiNS, discord_id: String, amount: u8, ctx: &mut TxContext) {
+        let coupon_code = discord.claim_coupon_internal(discord_id, amount, ctx);
+        let app = coupon_house::app_data_mut(suins, DiscordApp {});
 
-        let coupon_code = discord.internal_coupon_claim_handling(discord_id, amount, ctx);
-
-        let app = coupons::app_data_mut<DiscordApp>(DiscordApp {}, coupon_house);
         // Generates the coupon code.
         // A percentage off coupon that's only valid for that user, and has 1 claim.
-        app.app_add_coupon(
+        coupon_house::app_add_coupon(
+            app,
             coupon_code, 
             percentage_discount_type(),
             (amount as u64),
@@ -193,7 +190,6 @@ module discord::discord {
     }
 
     /// Admin Actions
-
     public fun set_public_key(_: &DiscordCap, discord: &mut Discord, key: vector<u8>, ) {
         assert!(key.length() > 0, EInvalidPublicKey);
         discord.public_key = key;
@@ -206,14 +202,13 @@ module discord::discord {
         // check if discount amount is valid.
         assert_is_valid_discount(discount);
         assert!(!discord.discord_roles.contains(&role_id), ERoleAlreadyExists);
-        vec_map::insert(&mut discord.discord_roles, role_id, discount);
+        discord.discord_roles.insert(role_id, discount);
     }
 
     /// discount is in range (0,100]
     public fun assert_is_valid_discount(discount: u8) {
         assert!(discount > 0 && discount <= 100, EInvalidDiscount);
     }
-
 
     /// internal function to add roles to a member and save the points.
     /// Aborts if the member already had these roles.
@@ -237,7 +232,6 @@ module discord::discord {
     }
 
     /// Getters
-
     public fun available_points(member: &Member): u64 {
         member.available_points
     }
@@ -246,29 +240,13 @@ module discord::discord {
         member.roles
     }
 
-    public fun member(discord: &Discord, discord_id: &String): &Member {
-        table::borrow(&discord.users, *discord_id)
-    }
-
-    public fun member_claimed_coupons(member: &Member): vector<String> {
-        member.claimed_coupons
-    }
-
-    public fun discord_roles(discord: &Discord): &VecMap<u8,u8> {
-        &discord.discord_roles
-    }
-
-    public fun discord_users(discord: &Discord): &Table<String, Member> {
-        &discord.users
-    }
-
-    public fun address_mapping(discord: &Discord): &Table<String, AddressMapping> {
-        &discord.address_mapping
+    public fun member(discord: &Discord, discord_id: String): &Member {
+        discord.users.borrow(discord_id)
     }
 
     /// An internal coupon claim handler that validates data, creates the coupon code, updates membership details
     /// and returns the `coupon_code` to be registered.
-    fun internal_coupon_claim_handling(discord: &mut Discord, discord_id: String, amount: u8, ctx: &TxContext): String {
+    public(package) fun claim_coupon_internal(discord: &mut Discord, discord_id: String, amount: u8, ctx: &TxContext): String {
         // check the amount asked is valid.
         assert_is_valid_discount(amount);
 
@@ -289,7 +267,7 @@ module discord::discord {
         // That way, we could predict the copon codes off-chain too.
         let coupon_code = address::to_string(address::from_bytes(
             hash(
-                &bcs::to_bytes(&vector[bcs::to_bytes(&discord_id),bcs::to_bytes(&member.claimed_coupons.length())
+                &bcs::to_bytes(&vector[bcs::to_bytes(&discord_id), bcs::to_bytes(&member.claimed_coupons.length())
             ])
         )));
 
@@ -302,11 +280,5 @@ module discord::discord {
     #[test_only]
     public fun init_for_testing(ctx: &mut TxContext) {
         init(ctx)
-    }
-
-    // Helps us claim for test only. We don't create the coupon here.
-    #[test_only]
-    public fun claim_for_testing(discord: &mut Discord, discord_id: String, amount: u8, ctx: &mut TxContext) {
-        discord.internal_coupon_claim_handling(discord_id, amount, ctx);
     }
 }
