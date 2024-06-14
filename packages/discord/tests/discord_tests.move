@@ -4,10 +4,14 @@
 #[test_only]
 module discord::discord_tests {
     use sui::test_scenario::{Self, Scenario};
-    use discord::discord::{Self, Discord, DiscordCap};
+    use discord::discord::{Self, Discord, DiscordCap, DiscordApp};
     use discord::test_payloads::{Self as tp};
     use coupons::{
-        setup as coupon_setup
+        setup as coupon_setup,
+        coupon_house
+    };
+    use suins::{
+        suins::{SuiNS, AdminCap}
     };
 
     const ADMIN_ADDRESS: address = @0xA001;
@@ -38,7 +42,11 @@ module discord::discord_tests {
             test_scenario::return_shared(discord);
         };
         {
-            // let admin_cap = scenario.take_from_sender<AdminCap>();
+            let admin_cap = scenario.take_from_sender<AdminCap>();
+            let mut suins = scenario.take_shared<SuiNS>();
+            coupon_house::authorize_app<DiscordApp>(&admin_cap, &mut suins);
+            scenario.return_to_sender(admin_cap);
+            test_scenario::return_shared(suins);
         };
         scenario_val
     }
@@ -65,23 +73,28 @@ module discord::discord_tests {
         {
             scenario.next_tx(tp::get_nth_user(0));
             let mut discord = scenario.take_shared<Discord>();
-            discord.claim_coupon_internal(tp::get_nth_discord_id(0), 50, scenario.ctx());
+            let mut suins = scenario.take_shared<SuiNS>();
+            discord.claim_coupon(&mut suins, tp::get_nth_discord_id(0), 50, scenario.ctx());
             test_scenario::return_shared(discord);
+            test_scenario::return_shared(suins);
         };
         {
             scenario.next_tx(tp::get_nth_user(1));
             let mut discord = scenario.take_shared<Discord>();
-            discord.claim_coupon_internal(tp::get_nth_discord_id(1), 100, scenario.ctx());
+            let mut suins = scenario.take_shared<SuiNS>();
+            discord.claim_coupon(&mut suins, tp::get_nth_discord_id(1), 100, scenario.ctx());
 
             test_scenario::return_shared(discord);
+            test_scenario::return_shared(suins);
         };
         {
             scenario.next_tx(tp::get_nth_user(1));
             let mut discord = scenario.take_shared<Discord>();
-            discord.claim_coupon_internal(tp::get_nth_discord_id(1), 40, scenario.ctx());
-    
+            let mut suins = scenario.take_shared<SuiNS>();
+            discord.claim_coupon(&mut suins, tp::get_nth_discord_id(1), 40, scenario.ctx());
 
             test_scenario::return_shared(discord);
+            test_scenario::return_shared(suins);
         };
         {
             scenario.next_tx(tp::get_nth_user(1));
@@ -238,6 +251,36 @@ module discord::discord_tests {
         scenario.next_tx(tp::get_nth_user(1));
         let mut discord = scenario.take_shared<Discord>();
         discord.claim_coupon_internal(tp::get_nth_discord_id(0), 50, scenario.ctx());
+
+        abort 1337
+    }
+
+    #[test, expected_failure(abort_code = ::discord::discord::EAddressNoMapping)]
+    fun claim_with_invalid_user_failure() {
+        let mut scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        // prepare data and data mappings!
+        prepare_data(scenario);
+
+        scenario.next_tx(tp::get_nth_user(0));
+        let mut discord = scenario.take_shared<Discord>();
+        let mut suins = scenario.take_shared<SuiNS>();
+        discord.claim_coupon(&mut suins, tp::get_nth_discord_id(1), 50, scenario.ctx());
+
+        abort 1337
+    }
+
+    #[test, expected_failure(abort_code = ::discord::discord::EDiscordIdNotFound)]
+    fun claim_non_existent_discord_id() {
+        let mut scenario_val = test_init();
+        let scenario = &mut scenario_val;
+        // prepare data and data mappings!
+        prepare_data(scenario);
+    
+        scenario.next_tx(tp::get_nth_user(0));
+        let mut discord = scenario.take_shared<Discord>();
+        let mut suins = scenario.take_shared<SuiNS>();
+        discord.claim_coupon(&mut suins, b"non_existent".to_string(), 50, scenario.ctx());
 
         abort 1337
     }
