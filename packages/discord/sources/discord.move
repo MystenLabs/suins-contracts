@@ -11,7 +11,7 @@
 /// After the setup has been done, the BE can sign messages to:
 /// 1. Attach roles to a discordId. DiscordID is our "unique" trusted actor here,
 ///    since the users will be able to call the BE only through a discord bot, which can recognize their discord id.
-/// 2. Set the user's address. That helps map a discordId to an on-chain address, so that this address can convert the points to coupons.
+/// 2. Set the user's address. That helps map a discordId to an on-chain address, so that this address is authorized to convert points to coupons.
 
 /// After any setup has been made, a user, whose address belongs to a mapping, can come in and
 /// claim coupons based on the available points.
@@ -222,7 +222,6 @@ module discord::discord {
         };
     }
 
-    /// Getters
     public fun available_points(member: &Member): u64 {
         member.available_points
     }
