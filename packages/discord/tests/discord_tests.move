@@ -6,6 +6,9 @@ module discord::discord_tests {
     use sui::test_scenario::{Self, Scenario};
     use discord::discord::{Self, Discord, DiscordCap};
     use discord::test_payloads::{Self as tp};
+    use coupons::{
+        setup as coupon_setup
+    };
 
     const ADMIN_ADDRESS: address = @0xA001;
 
@@ -15,6 +18,7 @@ module discord::discord_tests {
         {
             discord::init_for_testing(scenario.ctx());
         };
+        coupon_setup::initialize_coupon_house(scenario);
         {
             scenario.next_tx(ADMIN_ADDRESS);
             let mut discord = scenario.take_shared<Discord>();
@@ -32,6 +36,9 @@ module discord::discord_tests {
 
             scenario.return_to_sender(cap);
             test_scenario::return_shared(discord);
+        };
+        {
+            // let admin_cap = scenario.take_from_sender<AdminCap>();
         };
         scenario_val
     }

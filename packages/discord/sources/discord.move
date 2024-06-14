@@ -114,6 +114,7 @@ module discord::discord {
         let mut msg_bytes = vector::empty<u8>();
         msg_bytes.append(b"roles_");
         msg_bytes.append(*discord_id.bytes());
+        msg_bytes.append(b"|");
         msg_bytes.append(roles);
 
         // Verify that the signed message is valid.
@@ -149,7 +150,9 @@ module discord::discord {
         let mut msg_bytes = vector::empty<u8>();
         msg_bytes.append(b"address_");
         msg_bytes.append(bcs::to_bytes(&updates_count));
+        msg_bytes.append(b"|");
         msg_bytes.append(*discord_id.bytes());
+        msg_bytes.append(b"|");
         msg_bytes.append(addr.to_bytes());
 
         // verify that the signed message is the address of the user.
