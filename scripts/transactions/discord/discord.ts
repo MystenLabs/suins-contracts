@@ -6,6 +6,7 @@ import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { mainPackage, PackageInfo } from '../../config/constants';
 import { signAndExecute } from '../../utils/utils';
 import { attachRoles, setAddress } from './user';
+import { bcs } from '@mysten/sui.js/bcs';
 
 export const discordRoles = {
 	master: {
@@ -72,8 +73,8 @@ export const addDiscordRole = (
 		arguments: [
 			txb.object(config.discord?.discordCap),
 			txb.object(config.discord?.discordObjectId),
-			txb.pure(role.id, 'u8'),
-			txb.pure(role.percentage, 'u8'),
+			txb.pure.u8(role.id),
+			txb.pure.u8(role.percentage),
 		],
 	});
 };
@@ -90,7 +91,7 @@ export const setPublicKey = async (
 		arguments: [
 			txb.object(config.discord?.discordCap),
 			txb.object(config.discord?.discordObjectId),
-			txb.pure([...pubKey]),
+			txb.pure(bcs.vector(bcs.U8).serialize([...pubKey])),
 		],
 	});
 };
