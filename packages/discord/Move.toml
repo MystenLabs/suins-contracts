@@ -6,7 +6,8 @@ edition = "2024.beta"
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/mainnet", override=true }
 coupons = { local = "../coupons" }
-suins = { local = "../suins" }
+# suins = { local = "../suins" }
+suins = { git = "https://github.com/mystenlabs/suins-contracts/", subdir = "packages/suins", rev = "releases/testnet/core/v2" }
 
 [addresses]
 discord = "0x0"

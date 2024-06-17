@@ -133,7 +133,7 @@ module discord::discord {
     /// A function to set the address mapping for a DiscordID <-> Address.
     /// Can be called only by anyone, only works for a specific pair (address -> discordId)
     /// which is signed by the BE.
-    public fun set_address(discord: &mut Discord, signature: vector<u8>, discord_id: String, addr: address) {
+    public fun set_address(discord: &mut Discord, signature: vector<u8>, discord_id: String, ctx: &TxContext) {
         let member = if (!discord.users.contains(discord_id)) {
             discord.users.add(discord_id, new_member());
             discord.users.borrow_mut(discord_id)
@@ -144,7 +144,7 @@ module discord::discord {
         let updates_count = member.owner.updates;
 
         // set the mapping address!
-        member.owner.addr = option::some(addr);
+        member.owner.addr = option::some(ctx.sender());
         member.owner.updates = updates_count + 1;
 
         let mut msg_bytes = vector::empty<u8>();
@@ -153,10 +153,10 @@ module discord::discord {
         msg_bytes.append(b"|");
         msg_bytes.append(*discord_id.bytes());
         msg_bytes.append(b"|");
-        msg_bytes.append(addr.to_bytes());
+        msg_bytes.append(ctx.sender().to_bytes());
 
         // verify that the signed message is the address of the user.
-        assert!(ecdsa_k1::secp256k1_verify(&signature, &discord.public_key, &msg_bytes, 1), ESignatureNotMatch); 
+        assert!(ecdsa_k1::secp256k1_verify(&signature, &discord.public_key, &msg_bytes, 1), ESignatureNotMatch);
     }
 
     /// A user protected function to generate a coupon based on Membership data.

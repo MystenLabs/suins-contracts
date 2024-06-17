@@ -58,8 +58,10 @@ module discord::discord_tests {
         discord.attach_roles(tp::get_nth_attach_roles_signature(0), tp::get_nth_discord_id(0), vector[tp::get_nth_role(0), tp::get_nth_role(1)]);
         discord.attach_roles(tp::get_nth_attach_roles_signature(2), tp::get_nth_discord_id(1), vector[tp::get_nth_role(2), tp::get_nth_role(3)]);
 
-        discord.set_address(tp::get_nth_address_mapping_signature(0), tp::get_nth_discord_id(0), tp::get_nth_user(0));
-        discord.set_address(tp::get_nth_address_mapping_signature(1), tp::get_nth_discord_id(1), tp::get_nth_user(1));
+        discord.set_address(tp::get_nth_address_mapping_signature(0), tp::get_nth_discord_id(0), scenario.ctx());
+
+        scenario.next_tx(tp::get_nth_user(1));
+        discord.set_address(tp::get_nth_address_mapping_signature(1), tp::get_nth_discord_id(1), scenario.ctx());
         test_scenario::return_shared(discord);
     }
 
@@ -170,10 +172,10 @@ module discord::discord_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
         {
-            scenario.next_tx(tp::get_nth_user(0));
+            scenario.next_tx(tp::get_nth_user(1));
             let mut discord = scenario.take_shared<Discord>();
 
-            discord.set_address(tp::get_nth_address_mapping_signature(0), tp::get_nth_discord_id(0), tp::get_nth_user(1));
+            discord.set_address(tp::get_nth_address_mapping_signature(0), tp::get_nth_discord_id(0), scenario.ctx());
             test_scenario::return_shared(discord);
         };
         // let scenario = &mut scenario_val;
@@ -189,7 +191,7 @@ module discord::discord_tests {
             scenario.next_tx(tp::get_nth_user(0));
             let mut discord = scenario.take_shared<Discord>();
 
-            discord.set_address(tp::get_nth_address_mapping_signature(0), tp::get_nth_discord_id(0), tp::get_nth_user(0));
+            discord.set_address(tp::get_nth_address_mapping_signature(0), tp::get_nth_discord_id(0), scenario.ctx());
             test_scenario::return_shared(discord);
         };
         scenario_val.end();

@@ -6,6 +6,13 @@ export type Network = 'mainnet' | 'testnet';
 
 export type Config = Record<'mainnet' | 'testnet', PackageInfo>;
 
+export type DiscordConfig = {
+	packageId: string;
+	discordCap: string;
+	discordObjectId: string;
+	discordTableId: string;
+};
+
 export type PackageInfo = {
 	packageId: string;
 	registrationPackageId: string;
@@ -23,6 +30,10 @@ export type PackageInfo = {
 	renewalsPackageId: string;
 	subNamesPackageId: string;
 	tempSubdomainsProxyPackageId: string;
+	discord: DiscordConfig | undefined;
+	coupons: {
+		packageId: string;
+	};
 };
 
 export const mainPackage: Config = {
@@ -45,6 +56,10 @@ export const mainPackage: Config = {
 		renewalsPackageId: '0xd5e5f74126e7934e35991643b0111c3361827fc0564c83fa810668837c6f0b0f',
 		subNamesPackageId: 'TODO: Fill this in...',
 		tempSubdomainsProxyPackageId: 'TODO: Fill this in...',
+		discord: undefined,
+		coupons: {
+			packageId: 'TODO: Fill this in...',
+		},
 	},
 	testnet: {
 		packageId: '0x22fa05f21b1ad71442491220bb9338f7b7095fe35000ef88d5400d28523bdd93',
@@ -64,5 +79,14 @@ export const mainPackage: Config = {
 		subNamesPackageId: '0x3c272bc45f9157b7818ece4f7411bdfa8af46303b071aca4e18c03119c9ff636',
 		tempSubdomainsProxyPackageId:
 			'0x3489ab5dcd346afee8b681267bcab2583a5eba9855680ec9931355e50e21c148',
+		discord: {
+			discordCap: '0x7855fea8596ed665fa0aa308f9d2fc63d2186970ba0094d7603a5914eabf41df',
+			discordObjectId: '0xf19fb56e24e26766ab650c752af9422e6bd39f53e2a8ffcc2963a9881650149c',
+			packageId: '0x3632aa821af418cd7ea22fe3e5ddd1ea0437d785598de80241b74a0ba1c2c1c1',
+			discordTableId: '0x2bf826d3f41ed992342eb089814467d782262cce06bfd635738f3003d16fb2b5',
+		},
+		coupons: {
+			packageId: '0x689a2d65a9666921e73ad4d59d13fee0d4be5df1ab5c0eeda8e0f7ebecb6f1b7',
+		},
 	},
 };
