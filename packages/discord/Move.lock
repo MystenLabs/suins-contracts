@@ -8,7 +8,7 @@ dependencies = [
   { name = "coupons" },
   { name = "suins" },
 ]
-manifest_digest = "4B56EAC21C4963BA95038EE207F963699979911646EBA063712667FFFFB37F2F"
+manifest_digest = "C488D0BD18C8290C46485B8528126369EF13493F2C62ECAC18F402AB22973B8F"
 deps_digest = "060AD7E57DFB13104F21BE5F5C3759D03F0553FC3229247D9A7A6B45F50D03A3"
 
 [[move.package]]
@@ -25,7 +25,7 @@ dependencies = [
 
 [[move.package]]
 name = "coupons"
-source = { local = "../coupons" }
+source = { git = "https://github.com/mystenlabs/suins-contracts/", rev = "releases/mainnet/coupons/v1", subdir = "packages/coupons" }
 
 dependencies = [
   { name = "Sui" },
@@ -34,7 +34,7 @@ dependencies = [
 
 [[move.package]]
 name = "suins"
-source = { git = "https://github.com/mystenlabs/suins-contracts/", rev = "releases/testnet/core/v2", subdir = "packages/suins" }
+source = { git = "https://github.com/mystenlabs/suins-contracts/", rev = "releases/mainnet/core/v3", subdir = "packages/suins" }
 
 dependencies = [
   { name = "Sui" },
@@ -51,4 +51,10 @@ flavor = "sui"
 chain-id = "4c78adac"
 original-published-id = "0x8f01eb1378d53e62239f8cf4ca495c703eb346f35902cf5d7b7727cd6c0b39fc"
 latest-published-id = "0x8f01eb1378d53e62239f8cf4ca495c703eb346f35902cf5d7b7727cd6c0b39fc"
+published-version = "1"
+
+[env.mainnet]
+chain-id = "35834a8a"
+original-published-id = "0x408d22066775f20e0c13617c1f157a110d9a5b0873b878692b78aba92b1a46e1"
+latest-published-id = "0x408d22066775f20e0c13617c1f157a110d9a5b0873b878692b78aba92b1a46e1"
 published-version = "1"

@@ -60,6 +60,8 @@ module discord::discord {
     const EAddressNoMapping: u64 = 8;
     /// Tries to claim a coupon higher than the available points.
     const ENotEnoughPoints: u64 = 9;
+    /// Tries to add an action without a public key on the contract
+    const ENoSignatureSet: u64 = 10;
 
     /// authorization struct, to allow the app to create coupons in the coupon system.
     public struct DiscordApp has drop {}
@@ -111,6 +113,7 @@ module discord::discord {
     /// A signature protected route, which the BE signs, which allows adding roles.
     /// Can be called by anyone, only works for the { discord_id -> roles[] } mapping.
     public fun attach_roles(discord: &mut Discord, signature: vector<u8>, discord_id: String, roles: vector<u8>) {
+        assert!(discord.public_key.length() > 0, ENoSignatureSet);
         let mut msg_bytes = vector::empty<u8>();
         msg_bytes.append(b"roles_");
         msg_bytes.append(*discord_id.bytes());
@@ -134,6 +137,7 @@ module discord::discord {
     /// Can be called only by anyone, only works for a specific pair (address -> discordId)
     /// which is signed by the BE.
     public fun set_address(discord: &mut Discord, signature: vector<u8>, discord_id: String, ctx: &TxContext) {
+        assert!(discord.public_key.length() > 0, ENoSignatureSet);
         let member = if (!discord.users.contains(discord_id)) {
             discord.users.add(discord_id, new_member());
             discord.users.borrow_mut(discord_id)
@@ -184,7 +188,7 @@ module discord::discord {
     }
 
     /// Admin Actions
-    public fun set_public_key(_: &DiscordCap, discord: &mut Discord, key: vector<u8>, ) {
+    public fun set_public_key(_: &DiscordCap, discord: &mut Discord, key: vector<u8>) {
         assert!(key.length() > 0, EInvalidPublicKey);
         discord.public_key = key;
     }
@@ -192,7 +196,7 @@ module discord::discord {
     /// We allow adding discord roles, but not removing one.
     /// This way we make sure that unique role_ids are mapped per Member.
     /// We can simply ignore (not sign) any messages tht include this role.
-    public fun add_discord_role(_: &DiscordCap, discord: &mut Discord, role_id: u8, discount: u8){
+    public fun add_discord_role(_: &DiscordCap, discord: &mut Discord, role_id: u8, discount: u8) {
         // check if discount amount is valid.
         assert_is_valid_discount(discount);
         assert!(!discord.discord_roles.contains(&role_id), ERoleAlreadyExists);

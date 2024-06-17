@@ -2,12 +2,14 @@
 name = "discord"
 version = "0.0.1"
 edition = "2024.beta"
+published-at="0x408d22066775f20e0c13617c1f157a110d9a5b0873b878692b78aba92b1a46e1"
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/mainnet", override=true }
-coupons = { local = "../coupons" }
+# coupons = { local = "../coupons" }
 # suins = { local = "../suins" }
-suins = { git = "https://github.com/mystenlabs/suins-contracts/", subdir = "packages/suins", rev = "releases/testnet/core/v2" }
+suins = { git = "https://github.com/mystenlabs/suins-contracts/", subdir = "packages/suins", rev = "releases/mainnet/core/v3" }
+coupons = { git = "https://github.com/mystenlabs/suins-contracts/", subdir = "packages/coupons", rev = "releases/mainnet/coupons/v1" }
 
 [addresses]
-discord = "0x0"
+discord = "0x408d22066775f20e0c13617c1f157a110d9a5b0873b878692b78aba92b1a46e1"

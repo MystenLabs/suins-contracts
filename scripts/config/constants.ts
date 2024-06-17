@@ -56,9 +56,14 @@ export const mainPackage: Config = {
 		renewalsPackageId: '0xd5e5f74126e7934e35991643b0111c3361827fc0564c83fa810668837c6f0b0f',
 		subNamesPackageId: 'TODO: Fill this in...',
 		tempSubdomainsProxyPackageId: 'TODO: Fill this in...',
-		discord: undefined,
+		discord: {
+			discordCap: '0xd369c89ef88534b5ba9a78f16fec6adb3b5bc5d2ae72c990fd8aaccae1f2c56b',
+			discordObjectId: '0x20eb3a33886f6cfb62600881207dd9acf0de125a40006bb7661898eb8426fae9',
+			packageId: '0x408d22066775f20e0c13617c1f157a110d9a5b0873b878692b78aba92b1a46e1',
+			discordTableId: '0x118167416475935cd8f98e104faa99302b72a85c8b9ae4ebb7d22fbd269ed8db',
+		},
 		coupons: {
-			packageId: 'TODO: Fill this in...',
+			packageId: '0x6d14ca3049be747ec87166e6dce5d0d9a30f3b3c281c55d6e518958a236f8b97',
 		},
 	},
 	testnet: {
