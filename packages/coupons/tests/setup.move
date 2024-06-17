@@ -23,30 +23,32 @@ module coupons::setup {
     public fun test_init(): Scenario {
         let mut scenario_val = test_scenario::begin(ADMIN_ADDRESS);
         let scenario = &mut scenario_val;
+        initialize_coupon_house(scenario);
+        scenario_val
+    }
+
+    public fun initialize_coupon_house(scenario: &mut Scenario) {
         {
-            let mut suins = suins::init_for_testing(ctx(scenario));
+            let mut suins = suins::init_for_testing(scenario.ctx());
             suins::authorize_app_for_testing<CouponsApp>(&mut suins);
             suins::share_for_testing(suins);
-            let clock = clock::create_for_testing(ctx(scenario));
+            let clock = clock::create_for_testing(scenario.ctx());
             clock::share_for_testing(clock);
         };
         {
             scenario.next_tx(ADMIN_ADDRESS);
-        
             // get admin cap
             let admin_cap = scenario.take_from_sender<AdminCap>();
             let mut suins = scenario.take_shared<SuiNS>();
             // initialize coupon data.
-            coupon_house::setup(&mut suins, &admin_cap, ctx(scenario));
-            registry::init_for_testing(&admin_cap, &mut suins, ctx(scenario));
+            coupon_house::setup(&mut suins, &admin_cap, scenario.ctx());
+            registry::init_for_testing(&admin_cap, &mut suins, scenario.ctx());
             // authorize TestApp to CouponHouse.
             coupon_house::authorize_app<TestApp>(&admin_cap, &mut suins);
             test_scenario::return_to_sender(scenario, admin_cap);
             test_scenario::return_shared(suins);
         };
-        scenario_val
     }
-
 
     public fun admin(): address {
         ADMIN_ADDRESS
@@ -191,7 +193,7 @@ module coupons::setup {
             kind,
             value,
             rules::new_empty_rules(),
-            ctx(scenario)
+            scenario.ctx()
         );
         scenario.return_to_sender(cap);
         test_scenario::return_shared(suins);
@@ -222,7 +224,7 @@ module coupons::setup {
         clock.increment_for_testing(clock_value);
         let mut suins = scenario.take_shared<SuiNS>();
 
-        let payment = coin::mint_for_testing<SUI>(amount, ctx(scenario));
+        let payment = coin::mint_for_testing<SUI>(amount, scenario.ctx());
 
         let nft = coupon_house::register_with_coupon(
             &mut suins, 
@@ -231,7 +233,7 @@ module coupons::setup {
             no_years,
             payment,
             &clock,
-            ctx(scenario)
+            scenario.ctx()
         );
 
         transfer::public_transfer(nft, user);
