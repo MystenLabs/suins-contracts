@@ -53,7 +53,7 @@ export const discordRoles = {
 
 export const authorizeDiscordApp = (txb: TransactionBlock, config: PackageInfo) => {
 	txb.moveCall({
-		target: `${config.coupons.packageId}::coupons::authorize_app`,
+		target: `${config.coupons.packageId}::coupon_house::authorize_app`,
 		arguments: [txb.object(config.adminCap), txb.object(config.suins)],
 		typeArguments: [`${config.discord?.packageId}::discord::DiscordApp`],
 	});
@@ -147,5 +147,3 @@ const demoTestnetUserCreation = async () => {
     }
 
 };
-
-demoTestnetUserCreation();

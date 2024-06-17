@@ -19,7 +19,7 @@
 		"eslint:fix": "pnpm run eslint:check --fix",
 		"lint": "pnpm run eslint:check && pnpm run prettier:check",
 		"lint:fix": "pnpm run eslint:fix && pnpm run prettier:fix",
-		"subdomains::04": "pnpm ts-node transactions/subnames/04.ts"
+		"coupons-discord-setup": "pnpm ts-node transactions/discord/mainnet-setup.ts"
 	},
 	"keywords": [],
 	"author": "",
