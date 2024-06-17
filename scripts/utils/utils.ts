@@ -140,6 +140,8 @@ export const prepareMultisigTx = async (
 	// enabling the gas Object check only on mainnet, to allow testnet multisig tests.
 	if (!gasObjectId) throw new Error('No gas object supplied for a mainnet transaction');
 
+	// Prevent any possible RGP changes across epoch change, which would invalidate the transaction.
+	tx.setGasPrice(1_000);
 	// set the gas budget.
 	tx.setGasBudget(2_000_000_000);
 
