@@ -44,6 +44,10 @@ export const discordRoles = {
 		id: 8,
 		percentage: 100,
 	},
+    serverBoost: {
+        id: 9,
+        percentage: 50
+    }
 };
 
 export const authorizeDiscordApp = (txb: TransactionBlock, config: PackageInfo) => {
@@ -91,56 +95,56 @@ export const setPublicKey = async (
 	});
 };
 
-// const prepareTestnetContract = async () => {
-// 	const config = mainPackage.testnet;
-// 	const publicKey = Uint8Array.from([
-// 		3, 202, 251, 116, 250, 209, 47, 31, 156, 77, 81, 12, 59, 90, 45, 189, 89, 69, 131, 250, 125, 24,
-// 		69, 39, 116, 176, 59, 114, 83, 28, 209, 143, 129,
-// 	]);
+const prepareTestnetContract = async () => {
+	const config = mainPackage.testnet;
+	const publicKey = Uint8Array.from([
+		3, 202, 251, 116, 250, 209, 47, 31, 156, 77, 81, 12, 59, 90, 45, 189, 89, 69, 131, 250, 125, 24,
+		69, 39, 116, 176, 59, 114, 83, 28, 209, 143, 129,
+	]);
 
-// 	const tx = new TransactionBlock();
+	const tx = new TransactionBlock();
 
-// 	for (let role of Object.values(discordRoles)) {
-// 		addDiscordRole(tx, role, config);
-// 	}
+	for (let role of Object.values(discordRoles)) {
+		addDiscordRole(tx, role, config);
+	}
 
-// 	setPublicKey(tx, publicKey, config);
+	setPublicKey(tx, publicKey, config);
 
-// 	await signAndExecute(tx, 'testnet');
-// };
+	const res = await signAndExecute(tx, 'testnet');
+    console.dir(res, { depth: null });
+};
 
 const demoTestnetUserCreation = async () => {
 	const config = mainPackage.testnet;
 
 	const tx = new TransactionBlock();
 
-	attachRoles(
-		tx,
-		'discord_demo_usr_1',
-		[0, 1, 2],
-		Uint8Array.from([
-			53, 89, 173, 74, 68, 120, 194, 76, 103, 209, 68, 234, 113, 247, 82, 0, 184, 5, 229, 49, 86,
-			74, 201, 26, 163, 166, 155, 190, 57, 222, 169, 15, 92, 213, 252, 236, 156, 236, 56, 45, 217,
-			69, 4, 217, 173, 57, 97, 9, 109, 158, 93, 212, 196, 190, 60, 48, 198, 239, 142, 248, 60, 72,
-			253, 84,
-		]),
-		config,
-	);
+	// attachRoles(
+	// 	tx,
+	// 	'discord_demo_usr_1',
+	// 	[3, 4],
+	// 	Uint8Array.from([
+	// 		106,17,155,184,210,81,79,170,139,163,251,98,118,7,10,115,70,146,70,127,227,248,75,33,117,121,127,1,83,12,134,102,30,88,60,6,50,140,88,127,50,130,149,35,218,191,83,73,32,36,136,196,43,53,10,79,203,211,36,156,73,73,164,134,
+	// 	]),
+	// 	config,
+	// );
 
 	setAddress(
 		tx,
 		'discord_demo_usr_1',
-		'0xe0b97bff42fcef320b5f148db69033b9f689555348b2e90f1da72b0644fa37d0',
 		Uint8Array.from([
-			8, 220, 197, 237, 206, 56, 12, 159, 149, 27, 197, 214, 220, 8, 217, 149, 201, 25, 155, 220,
-			69, 79, 117, 110, 209, 87, 228, 167, 234, 174, 130, 68, 48, 148, 99, 232, 213, 93, 14, 8, 226,
-			115, 49, 82, 249, 183, 213, 222, 125, 79, 250, 85, 116, 196, 197, 73, 225, 187, 127, 234, 195,
-			80, 65, 164,
-		]),
+            224,179,0,88,228,89,228,175,245,218,85,229,51,90,28,164,37,32,175,210,232,39,61,31,169,179,158,245,207,232,61,147,58,145,250,153,237,178,116,28,122,227,249,86,242,67,86,205,223,242,64,13,63,108,34,2,174,83,42,17,180,175,69,156
+        ]),
 		config,
 	);
 
-	await signAndExecute(tx, 'testnet');
+    try{
+        const res = await signAndExecute(tx, 'testnet');
+        console.log(res, { depth: null });
+    } catch(e) {
+        console.dir(e, { depth: null })
+    }
+
 };
 
 demoTestnetUserCreation();

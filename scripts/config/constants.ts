@@ -80,10 +80,10 @@ export const mainPackage: Config = {
 		tempSubdomainsProxyPackageId:
 			'0x3489ab5dcd346afee8b681267bcab2583a5eba9855680ec9931355e50e21c148',
 		discord: {
-			discordCap: '0x7855fea8596ed665fa0aa308f9d2fc63d2186970ba0094d7603a5914eabf41df',
-			discordObjectId: '0xf19fb56e24e26766ab650c752af9422e6bd39f53e2a8ffcc2963a9881650149c',
-			packageId: '0x3632aa821af418cd7ea22fe3e5ddd1ea0437d785598de80241b74a0ba1c2c1c1',
-			discordTableId: '0x2bf826d3f41ed992342eb089814467d782262cce06bfd635738f3003d16fb2b5',
+			discordCap: '0x539810749d2f6f59f54606a6aaef0123f1568a8564b74e1eedff7ad768e0d0db',
+			discordObjectId: '0x2e10e61b53e17e89aef8f8137e8ed3207043410ac3b628294a1f09ef059fac09',
+			packageId: '0x8f01eb1378d53e62239f8cf4ca495c703eb346f35902cf5d7b7727cd6c0b39fc',
+			discordTableId: '0x594e2b06246d5c4112309a8549eb2cc21169a884c05a87ef35e42cda1f4d54a4',
 		},
 		coupons: {
 			packageId: '0x689a2d65a9666921e73ad4d59d13fee0d4be5df1ab5c0eeda8e0f7ebecb6f1b7',
