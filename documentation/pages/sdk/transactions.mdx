@@ -194,8 +194,6 @@ const createLeafSubname = async (name: stringify, parentNftId: string, targetAdd
         targetAddress
     });
 
-    // Transfer the NFT
-    transaction.transferObjects([subNameNft], transaction.pure.address('0xMyAddress'));
     // ... sign and execute the transaction
 }
 ```
