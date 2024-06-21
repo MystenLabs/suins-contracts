@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import ReactPlayer from 'react-player/lazy'
+import ReactPlayer from 'react-player'
 
 const Player = ({ videoFilename }) => {
   const [hasWindow, setHasWindow] = useState(false);
