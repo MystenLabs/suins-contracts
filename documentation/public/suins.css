@@ -46,3 +46,7 @@
 button.nextra-hamburger {
     @apply !text-white
 }
+
+ol > li > ul {
+    @apply !mt-0
+}
