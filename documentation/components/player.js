@@ -18,9 +18,9 @@ const Player = ({ videoFilename }) => {
   }, []);
 
   return (
-    <div>
+    <div>    
     <p className="py-4">Watch this quick {duration && <span>{Math.floor(duration)} second</span>} clip to see how.</p>
-    <div className='relative pt-[56.25%] p-4 m-4 border'>
+    <div className='relative pt-[56.25%]'>
       {hasWindow && <ReactPlayer
         className='absolute top-0 left-0'
         url={videoUrl}

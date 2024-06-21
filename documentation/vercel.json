@@ -1,11 +1,11 @@
 {
   "redirects": [
-      { "source": "/integration", "destination": "/developer/integration", "permanent": false },
-      { "source": "/subnames", "destination": "/developer/subnames", "permanent": false },
-      { "source": "/indexing", "destination": "/developer/indexing", "permanent": false },
-      { "source": "/examples", "destination": "/developer/examples", "permanent": false },
-      { "source": "/sdk", "destination": "/developer/sdk", "permanent": false },
-      { "source": "/sdk/querying", "destination": "/developer/sdk/querying", "permanent": false },
-      { "source": "/sdk/transactions", "destination": "/developer/sdk/transactions", "permanent": false }
+      { "source": "/integration", "destination": "/developer/integration", "permanent": true },
+      { "source": "/subnames", "destination": "/developer/subnames", "permanent": true },
+      { "source": "/indexing", "destination": "/developer/indexing", "permanent": true },
+      { "source": "/examples", "destination": "/developer/examples", "permanent": true },
+      { "source": "/sdk", "destination": "/developer/sdk", "permanent": true },
+      { "source": "/sdk/querying", "destination": "/developer/sdk/querying", "permanent": true },
+      { "source": "/sdk/transactions", "destination": "/developer/sdk/transactions", "permanent": true }
   ]
 }
