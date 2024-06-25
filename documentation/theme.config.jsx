@@ -6,7 +6,7 @@ import { useRouter } from 'next/router';
 import Footer from './components/footer';
 
 export default {
-    logo: <><img className="w-4 mx-4 inline" src="/logo.svg"></img><span>Sui Name Service Docs</span></>,
+    logo: <><img className="w-[200px] mx-4 inline text-white" src="/logo.svg"></img><span>Sui Name Service Docs</span></>,
     docsRepositoryBase: 'https://github.com/MystenLabs/suins-contracts/tree/main/documentation',
     project: {
       link: 'https://github.com/MystenLabs/suins-contracts'
