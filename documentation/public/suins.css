@@ -50,3 +50,7 @@ button.nextra-hamburger {
 ol > li > ul {
     @apply !mt-0
 }
+
+li > p, li img {
+    @apply !m-2
+}
