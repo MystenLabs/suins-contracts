@@ -1,11 +1,8 @@
 {
     "index": "SuiNS Documentation",
-    "integration": "Integration",
-    "subnames": "Subnames",
-    "indexing": "Indexing",
-    "sdk": "SuiNS SDK",
-    "examples": "Examples",
-    "dashbaord": {
+    "developer": "Developer",
+    "user": "User",
+    "dashboard": {
         "title": "SuiNS Dashboard ↗",
         "type": "page",
         "href": "https://suins.io/",
