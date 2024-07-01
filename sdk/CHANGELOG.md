@@ -1,5 +1,11 @@
 # @mysten/suins
 
+## 0.1.1
+
+### Patch Changes
+
+- cdd8215: Bump SDK version
+
 ## 0.1.0
 
 ### Minor Changes
