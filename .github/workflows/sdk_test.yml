@@ -47,4 +47,4 @@ jobs:
 
       - name: Prepare local network & run SDK tests
         run: |
-          ./sui-test-validator --epoch-duration-ms 300000 > /dev/null 2>&1 & cd sdk && VITE_SUI_BIN="../sui" pnpm test:e2e
+          ./sui start --with-faucet --force-regenesis --epoch-duration-ms 300000 > /dev/null 2>&1 & cd sdk && VITE_SUI_BIN="../sui" pnpm test:e2e
