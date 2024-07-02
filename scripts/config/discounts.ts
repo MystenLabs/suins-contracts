@@ -47,9 +47,9 @@ export const setupDiscountForType = (
 		arguments: [
 			txb.object(setup.adminCap),
 			txb.object(setup.discountsPackage.discountHouseId),
-			txb.pure(prices.threeCharacterPrice, 'u64'),
-			txb.pure(prices.fourCharacterPrice, 'u64'),
-			txb.pure(prices.fivePlusCharacterPrice, 'u64'),
+			txb.pure.u64(prices.threeCharacterPrice),
+			txb.pure.u64(prices.fourCharacterPrice),
+			txb.pure.u64(prices.fivePlusCharacterPrice),
 		],
 		typeArguments: [type],
 	});

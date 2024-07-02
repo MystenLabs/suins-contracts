@@ -19,7 +19,7 @@
 		"eslint:fix": "pnpm run eslint:check --fix",
 		"lint": "pnpm run eslint:check && pnpm run prettier:check",
 		"lint:fix": "pnpm run eslint:fix && pnpm run prettier:fix",
-		"coupons-discord-setup": "pnpm ts-node transactions/discord/mainnet-setup.ts"
+		"setup-dayone-discount": "ts-node transactions/authorize-day-one-discount.ts"
 	},
 	"keywords": [],
 	"author": "",
