@@ -95,9 +95,9 @@ export class CouponType {
 			arguments: [
 				adminCap,
 				txb.object(config.suins),
-				txb.pure(this.name),
-				txb.pure(this.type),
-				txb.pure(this.value),
+				txb.pure.string(this.name),
+				txb.pure.u8(this.type),
+				txb.pure.u64(this.value),
 				rules,
 			],
 		});
