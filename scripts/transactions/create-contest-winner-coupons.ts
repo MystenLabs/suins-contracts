@@ -16,6 +16,7 @@ const create = async () => {
 		.setAvailableClaims(1)
 		.setLengthRule([4, 63])
 		.setUser('0x88528ee645ca295e618fec3ad8735d79712a7c4964796717ac0dc2651261f795')
+		.setYears([1, 1])
 		.toTransaction(tx, pkg);
 
 	new PercentageOffCoupon(100)
@@ -23,6 +24,7 @@ const create = async () => {
 		.setAvailableClaims(1)
 		.setLengthRule([4, 63])
 		.setUser('0xda4e42546326a001086b70828e507ffe7a745e85cdc4bb1b25b52e54749999f4')
+		.setYears([1, 1])
 		.toTransaction(tx, pkg);
 
 	new PercentageOffCoupon(100)
@@ -30,6 +32,7 @@ const create = async () => {
 		.setAvailableClaims(1)
 		.setLengthRule([4, 63])
 		.setUser('0x74fed224663d295ba11e22522c53d76b09f7fa6ed1cce7ecf866c8edf417666e')
+		.setYears([1, 1])
 		.toTransaction(tx, pkg);
 
 	await prepareMultisigTx(tx, 'mainnet', pkg.adminAddress);
