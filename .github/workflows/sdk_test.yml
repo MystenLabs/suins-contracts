@@ -46,5 +46,7 @@ jobs:
           ./sui -V
 
       - name: Prepare local network & run SDK tests
+        env: 
+          IS_CI_JOB: true
         run: |
-          ./sui start --with-faucet --force-regenesis --epoch-duration-ms 300000 > /dev/null 2>&1 & cd sdk && VITE_SUI_BIN="../sui" pnpm test:e2e
+          export IS_CI_JOB=true && ./sui start --with-faucet --force-regenesis --epoch-duration-ms 300000 > /dev/null 2>&1 & cd sdk && VITE_SUI_BIN="../sui" pnpm test:e2e
