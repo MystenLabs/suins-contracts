@@ -6,7 +6,7 @@
 version: 2
 updates:
   - package-ecosystem: 'npm'
-    directory: '/sdk/'
+    directory: '/'
     schedule:
       interval: 'daily'
     allow:

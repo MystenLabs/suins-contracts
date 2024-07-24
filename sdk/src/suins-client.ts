@@ -1,7 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 import type { SuiClient } from '@mysten/sui/client';
-import { isValidSuiNSName } from '@mysten/sui/utils';
+import { isValidSuiNSName, normalizeSuiNSName } from '@mysten/sui/utils';
 
 import {
 	getConfigType,
@@ -105,7 +105,7 @@ export class SuinsClient {
 			parentId: this.constants.registryTableId,
 			name: {
 				type: getDomainType(this.constants.suinsPackageId.v1),
-				value: name.split('.').reverse(),
+				value: normalizeSuiNSName(name, 'dot').split('.').reverse(),
 			},
 		});
 		const fields = nameRecord.data?.content;
@@ -154,7 +154,7 @@ export class SuinsClient {
 		validateYears(years);
 		if (isSubName(name)) throw new Error('Subdomains do not have a registration fee');
 
-		const length = name.split('.')[0].length;
+		const length = normalizeSuiNSName(name, 'dot').split('.')[0].length;
 		if (length === 3) return years * priceList.threeLetters;
 		if (length === 4) return years * priceList.fourLetters;
 		return years * priceList.fivePlusLetters;
