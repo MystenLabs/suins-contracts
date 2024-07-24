@@ -1,5 +1,11 @@
 # @mysten/suins
 
+## 0.2.0
+
+### Minor Changes
+
+- 537078a: Update to @mysten/sui 1.3, accept @ format in client queries
+
 ## 0.1.1
 
 ### Patch Changes
