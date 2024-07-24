@@ -8,8 +8,8 @@ import { publishPackage, signAndExecute } from '../utils/utils';
 import { Network, Packages } from './packages';
 import { PackageInfo } from './types';
 
-export const publishPackages = async (network: Network) => {
-	const packages = Packages(network);
+export const publishPackages = async (network: Network, isCiJob = false) => {
+	const packages = Packages(isCiJob ? 'mainnet' : network);
 	const contractsPath = path.resolve(__dirname, '../../packages');
 	const results: Record<string, Record<string, string>> = {};
 
