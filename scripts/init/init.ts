@@ -4,13 +4,13 @@ import { Network } from './packages';
 import { publishPackages } from './publish';
 import { setup } from './setup';
 
-export const init = async (network: Network) => {
+export const init = async (network: Network, isCIJob: boolean) => {
 	if (!network)
 		throw new Error(
 			'Network not defined. Please run `export NETWORK=mainnet|testnet|devnet|localnet`',
 		);
-	const published = await publishPackages(network);
+	const published = await publishPackages(network, isCIJob);
 	await setup(published, network);
 };
 
-init(process.env.NETWORK as Network);
+init(process.env.NETWORK as Network, !!process.env.IS_CI_JOB);
