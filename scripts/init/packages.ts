@@ -96,6 +96,8 @@ export const Packages = (network: Network) => {
 					publisher,
 					isSubdomain: false,
 					suinsPackageIdV1: packageId,
+					network: 'testnet',
+					subdomainsPackageId: packageId,
 				});
 				// create display for subnames
 				createDisplay({
@@ -103,6 +105,8 @@ export const Packages = (network: Network) => {
 					publisher,
 					isSubdomain: true,
 					suinsPackageIdV1: packageId,
+					network: 'testnet',
+					subdomainsPackageId: packageId,
 				});
 			},
 		},
