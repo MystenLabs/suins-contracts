@@ -121,8 +121,8 @@ importers:
   sdk:
     dependencies:
       '@mysten/sui':
-        specifier: ^1.3.0
-        version: 1.3.0(svelte@4.2.15)(typescript@5.4.5)
+        specifier: ^1.3.1
+        version: 1.3.1(svelte@4.2.15)(typescript@5.4.5)
     devDependencies:
       '@types/tmp':
         specifier: ^0.2.3
@@ -158,11 +158,6 @@ packages:
     peerDependenciesMeta:
       graphql:
         optional: true
-
-  '@0no-co/graphqlsp@1.12.1':
-    resolution: {integrity: sha512-KHMs1a9qXoiwA4aUKGgcsyM38SXH6ddQFwu4Hf2p8XjUOkRKHy38pd4qYM0hgA1vpkUf8WSj5GyDAbezhApfpw==}
-    peerDependencies:
-      typescript: ^5.0.0
 
   '@0no-co/graphqlsp@1.12.12':
     resolution: {integrity: sha512-BmCAc/q3tQcIwXxKoxubYaB23s2fWMMmNGSlY9mgQvWiReBS8ZutPZSf11OADfwTv1J1JIazU6q6OFX+cEp8PQ==}
@@ -1247,12 +1242,6 @@ packages:
       graphql: ^15.5.0 || ^16.0.0 || ^17.0.0
       typescript: ^5.0.0
 
-  '@gql.tada/internal@0.3.3':
-    resolution: {integrity: sha512-lBOiN0c/Fx5eY5KGwkzB5+6asUv9IAoD6f5rZjN8r9h4hvSk4V5Kuuu6EfKixF6h5/o/xDRgA/BU3355udnK3g==}
-    peerDependencies:
-      graphql: ^16.8.1
-      typescript: ^5.0.0
-
   '@gql.tada/internal@1.0.0':
     resolution: {integrity: sha512-B55aIYyZn5ewdgMqoJciPAwF5DKYX6HBabTU+ap/dpNH3EgJrLomc8Y8w+MCxCyOx+dXL9OduT6eWnVr7J7Eyg==}
     peerDependencies:
@@ -1375,8 +1364,8 @@ packages:
     resolution: {integrity: sha512-TSmGIX7U9O/uS9EKIQdv7/S69KTbBhMJVelXCafJE6IJw8iB9cN9uLu0+uklkBSDrbRmLSEY70jMr3uRFjReIg==}
     engines: {node: '>=16'}
 
-  '@mysten/sui@1.3.0':
-    resolution: {integrity: sha512-KBEM+nzY30i+S1meWage5jU+upNBGSrZxY5v+oz68gj1VluldWwiaf/LtcZ3RnMcnNtkyMkeYpDL9eiMxTBTbQ==}
+  '@mysten/sui@1.3.1':
+    resolution: {integrity: sha512-TxTYFO9ou/LOk3LQYZIJrZQJ/8UHEqYpT67MbCHYLCxGiPqAnvpIgnVBzJkpYFA/7vR0pQ1e3KELvQrYHnz2Ag==}
     engines: {node: '>=18'}
 
   '@napi-rs/simple-git-android-arm-eabi@0.1.16':
@@ -1544,6 +1533,7 @@ packages:
 
   '@pythnetwork/price-service-client@1.9.0':
     resolution: {integrity: sha512-SLm3IFcfmy9iMqHeT4Ih6qMNZhJEefY14T9yTlpsH2D/FE5+BaGGnfcexUifVlfH6M7mwRC4hEFdNvZ6ebZjJg==}
+    deprecated: This package is deprecated and is no longer maintained. Please use @pythnetwork/hermes-client instead.
 
   '@pythnetwork/price-service-sdk@1.6.1':
     resolution: {integrity: sha512-sZdtMu45ppce6GVNJQblt6ztxs4VRtbG6r0N4sDcWiU2RilN/ACIxoLE3CjaI/BM1O1gZ9oGgquCRvBVL546qg==}
@@ -3975,15 +3965,6 @@ packages:
   no-case@3.0.4:
     resolution: {integrity: sha512-fgAN3jGAh+RoxUGZHTSOLJIqUc2wmoBwGR4tbpNAKmmovFoWq0OdRkb0VkldReO2a2iBT/OEulG9XSUc10r3zg==}
 
-  node-fetch@2.7.0:
-    resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
-    engines: {node: 4.x || >=6.0.0}
-    peerDependencies:
-      encoding: ^0.1.0
-    peerDependenciesMeta:
-      encoding:
-        optional: true
-
   node-releases@2.0.14:
     resolution: {integrity: sha512-y10wOWt8yZpqXmOgRo77WaHEmhYQYGNA6y421PKsKYWEK8aW+cqAphborZDhqfyKrbZEN92CN1X2KbafY2s7Yw==}
 
@@ -4772,9 +4753,6 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
-  tr46@0.0.3:
-    resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
-
   trim-lines@3.0.1:
     resolution: {integrity: sha512-kRj8B+YHZCc9kQYdWfJB2/oUl9rA99qbowYYBtr4ui4mZyAQ2JpvVBd/6U2YloATfqBhBTSMhTpgBHtU0Mf3Rg==}
 
@@ -5112,12 +5090,6 @@ packages:
   web-worker@1.3.0:
     resolution: {integrity: sha512-BSR9wyRsy/KOValMgd5kMyr3JzpdeoR9KVId8u5GVlTTAtNChlsE4yTxeY7zMdNSyOmoKBv8NH2qeRY9Tg+IaA==}
 
-  webidl-conversions@3.0.1:
-    resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
-
-  whatwg-url@5.0.0:
-    resolution: {integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==}
-
   which-boxed-primitive@1.0.2:
     resolution: {integrity: sha512-bwZdv0AKLpplFY2KZRX6TvyuN7ojjr7lwkg6ml0roIy9YeuSr7JS372qlNW18UQYzgYK9ziGcerWqZOmEn9VNg==}
 
@@ -5254,14 +5226,11 @@ snapshots:
     optionalDependencies:
       graphql: 16.9.0
 
-  '@0no-co/graphqlsp@1.12.1(typescript@5.4.5)':
+  '@0no-co/graphqlsp@1.12.12(graphql@16.8.1)(typescript@5.4.5)':
     dependencies:
-      '@gql.tada/internal': 0.3.3(graphql@16.8.1)(typescript@5.4.5)
+      '@gql.tada/internal': 1.0.4(graphql@16.8.1)(typescript@5.4.5)
       graphql: 16.8.1
-      node-fetch: 2.7.0
       typescript: 5.4.5
-    transitivePeerDependencies:
-      - encoding
 
   '@0no-co/graphqlsp@1.12.12(graphql@16.9.0)(typescript@5.4.5)':
     dependencies:
@@ -6443,7 +6412,7 @@ snapshots:
 
   '@gql.tada/cli-utils@1.3.6(graphql@16.8.1)(svelte@4.2.15)(typescript@5.4.5)':
     dependencies:
-      '@0no-co/graphqlsp': 1.12.1(typescript@5.4.5)
+      '@0no-co/graphqlsp': 1.12.12(graphql@16.8.1)(typescript@5.4.5)
       '@gql.tada/internal': 1.0.0(graphql@16.8.1)(typescript@5.4.5)
       '@vue/compiler-dom': 3.4.26
       '@vue/language-core': 2.0.15(typescript@5.4.5)
@@ -6451,7 +6420,6 @@ snapshots:
       svelte2tsx: 0.7.7(svelte@4.2.15)(typescript@5.4.5)
       typescript: 5.4.5
     transitivePeerDependencies:
-      - encoding
       - svelte
 
   '@gql.tada/cli-utils@1.5.1(@0no-co/graphqlsp@1.12.12(graphql@16.9.0)(typescript@5.4.5))(graphql@16.9.0)(svelte@4.2.15)(typescript@5.4.5)':
@@ -6466,13 +6434,13 @@ snapshots:
     transitivePeerDependencies:
       - svelte
 
-  '@gql.tada/internal@0.3.3(graphql@16.8.1)(typescript@5.4.5)':
+  '@gql.tada/internal@1.0.0(graphql@16.8.1)(typescript@5.4.5)':
     dependencies:
       '@0no-co/graphql.web': 1.0.7(graphql@16.8.1)
       graphql: 16.8.1
       typescript: 5.4.5
 
-  '@gql.tada/internal@1.0.0(graphql@16.8.1)(typescript@5.4.5)':
+  '@gql.tada/internal@1.0.4(graphql@16.8.1)(typescript@5.4.5)':
     dependencies:
       '@0no-co/graphql.web': 1.0.7(graphql@16.8.1)
       graphql: 16.8.1
@@ -6633,14 +6601,13 @@ snapshots:
     dependencies:
       '@mysten/sui.js': 0.54.1(svelte@4.2.15)(typescript@5.4.5)
     transitivePeerDependencies:
-      - encoding
       - svelte
       - typescript
 
   '@mysten/sui.js@0.49.1':
     dependencies:
       '@mysten/bcs': 0.10.1
-      '@noble/curves': 1.4.0
+      '@noble/curves': 1.4.2
       '@noble/hashes': 1.4.0
       '@scure/bip32': 1.4.0
       '@scure/bip39': 1.3.0
@@ -6663,11 +6630,10 @@ snapshots:
       superstruct: 1.0.4
       tweetnacl: 1.0.3
     transitivePeerDependencies:
-      - encoding
       - svelte
       - typescript
 
-  '@mysten/sui@1.3.0(svelte@4.2.15)(typescript@5.4.5)':
+  '@mysten/sui@1.3.1(svelte@4.2.15)(typescript@5.4.5)':
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.9.0)
       '@mysten/bcs': 1.0.3
@@ -6826,7 +6792,7 @@ snapshots:
 
   '@scure/bip32@1.4.0':
     dependencies:
-      '@noble/curves': 1.4.0
+      '@noble/curves': 1.4.2
       '@noble/hashes': 1.4.0
       '@scure/base': 1.1.6
 
@@ -8772,7 +8738,6 @@ snapshots:
       '@gql.tada/internal': 1.0.0(graphql@16.8.1)(typescript@5.4.5)
       typescript: 5.4.5
     transitivePeerDependencies:
-      - encoding
       - graphql
       - svelte
 
@@ -9994,10 +9959,6 @@ snapshots:
       lower-case: 2.0.2
       tslib: 2.6.2
 
-  node-fetch@2.7.0:
-    dependencies:
-      whatwg-url: 5.0.0
-
   node-releases@2.0.14: {}
 
   non-layered-tidy-tree-layout@2.0.2: {}
@@ -10869,8 +10830,6 @@ snapshots:
     dependencies:
       is-number: 7.0.0
 
-  tr46@0.0.3: {}
-
   trim-lines@3.0.1: {}
 
   trim-newlines@3.0.1: {}
@@ -11255,13 +11214,6 @@ snapshots:
   web-namespaces@2.0.1: {}
 
   web-worker@1.3.0: {}
-
-  webidl-conversions@3.0.1: {}
-
-  whatwg-url@5.0.0:
-    dependencies:
-      tr46: 0.0.3
-      webidl-conversions: 3.0.1
 
   which-boxed-primitive@1.0.2:
     dependencies:
