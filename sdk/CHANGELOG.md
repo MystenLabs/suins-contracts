@@ -1,5 +1,11 @@
 # @mysten/suins
 
+## 0.3.0
+
+### Minor Changes
+
+- aa943ec: Bumps TS SDK from 1.3 to 1.4
+
 ## 0.2.0
 
 ### Minor Changes
