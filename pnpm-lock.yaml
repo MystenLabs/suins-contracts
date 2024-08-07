@@ -121,8 +121,8 @@ importers:
   sdk:
     dependencies:
       '@mysten/sui':
-        specifier: ^1.4.0
-        version: 1.4.0(svelte@4.2.15)(typescript@5.4.5)
+        specifier: ^1.5.0
+        version: 1.5.0(svelte@4.2.15)(typescript@5.4.5)
     devDependencies:
       '@types/tmp':
         specifier: ^0.2.3
@@ -1349,8 +1349,8 @@ packages:
   '@mysten/bcs@0.11.1':
     resolution: {integrity: sha512-xP85isNSYUCHd3O/g+TmZYmg4wK6cU8q/n/MebkIGP4CYVJZz2wU/G24xIZ3wI+0iTop4dfgA5kYrg/DQKCUzA==}
 
-  '@mysten/bcs@1.0.3':
-    resolution: {integrity: sha512-fc2xDj8eteP18zCNr6WStlE0Hxi7kYeY9yAzAN8oyz5EYOLas0JwScR9pAd9VR61BfIThJ+5vxQ6K7Y22lHDVQ==}
+  '@mysten/bcs@1.0.4':
+    resolution: {integrity: sha512-6JoQi59GN/dVEBCNq8Rj4uOR0niDrJqDx/2gNQWXANwJakHIGH0AMniHrXP41B2dF+mZ3HVmh9Hi3otiEVQTrQ==}
 
   '@mysten/kiosk@0.8.10':
     resolution: {integrity: sha512-YiU1SiabdArNyHSKX1elQxNKtpwGthw/bg6wYmR0i+wE8q7ER4JnUeJVxQQg1smyklswqgiLsYa56JmKF1rIeg==}
@@ -1364,8 +1364,8 @@ packages:
     resolution: {integrity: sha512-TSmGIX7U9O/uS9EKIQdv7/S69KTbBhMJVelXCafJE6IJw8iB9cN9uLu0+uklkBSDrbRmLSEY70jMr3uRFjReIg==}
     engines: {node: '>=16'}
 
-  '@mysten/sui@1.4.0':
-    resolution: {integrity: sha512-j1JVdmL4pAqMmPQXw/RPAVJP0jqCfj/GVH4Z4NBPfl6nwcbLOJdcBczRhyY8WB/87rTog1N0guxPylfvU76gqw==}
+  '@mysten/sui@1.5.0':
+    resolution: {integrity: sha512-RRB3EPiEbtfhkTW+p1Hc9Hf8zM+hGrAhhjyzMqCWhjnWuF7yM+5PL3jLcTZaZe+jGjFP9lKGol/0uOWVtfGL5w==}
     engines: {node: '>=18'}
 
   '@napi-rs/simple-git-android-arm-eabi@0.1.16':
@@ -6593,7 +6593,7 @@ snapshots:
     dependencies:
       bs58: 5.0.0
 
-  '@mysten/bcs@1.0.3':
+  '@mysten/bcs@1.0.4':
     dependencies:
       bs58: 6.0.0
 
@@ -6633,10 +6633,10 @@ snapshots:
       - svelte
       - typescript
 
-  '@mysten/sui@1.4.0(svelte@4.2.15)(typescript@5.4.5)':
+  '@mysten/sui@1.5.0(svelte@4.2.15)(typescript@5.4.5)':
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.9.0)
-      '@mysten/bcs': 1.0.3
+      '@mysten/bcs': 1.0.4
       '@noble/curves': 1.4.2
       '@noble/hashes': 1.4.0
       '@scure/bip32': 1.4.0
