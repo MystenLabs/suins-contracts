@@ -6,6 +6,8 @@
 sui.log.*
 .trace
 .coverage_map.mvcov
+/scripts/tx/*
+!/scripts/tx/.gitkeep
 
 **/.env
 node_modules

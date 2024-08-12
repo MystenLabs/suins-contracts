@@ -108,7 +108,8 @@ export const getSigner = () => {
 
 /// Get the client for the specified network.
 export const getClient = (network: Network) => {
-	return new SuiClient({ url: getFullnodeUrl(network) });
+	const url = process.env.RPC_URL || getFullnodeUrl(network);
+	return new SuiClient({ url });
 };
 
 /// A helper to sign & execute a transaction.
