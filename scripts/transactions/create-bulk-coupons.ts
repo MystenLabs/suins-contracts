@@ -115,56 +115,56 @@ const create = async () => {
 			.toTransaction(tx, pkg);
 	}
 
-	// Also de-authorize the DayOne NFT discounts!
-	removeDiscountForType(tx, pkg, dayOneType(mainnetConfig));
+	// // Also de-authorize the DayOne NFT discounts!
+	// removeDiscountForType(tx, pkg, dayOneType(mainnetConfig));
 
-	const lengthRange = optionalRangeConstructor(tx, pkg, [3, 63]);
-	const yearsRange = optionalRangeConstructor(tx, pkg, [1, 1]);
+	// const lengthRange = optionalRangeConstructor(tx, pkg, [3, 63]);
+	// const yearsRange = optionalRangeConstructor(tx, pkg, [1, 1]);
 
-	// for batch operations with same setup coupons, we can create the coupon rules
-	// once and re-use them (as they can be copied on-chain).
-	const rules = newCouponRules(
-		tx,
-		pkg,
-		{
-			availableClaims: 1,
-		},
-		lengthRange,
-		yearsRange,
-	);
+	// // for batch operations with same setup coupons, we can create the coupon rules
+	// // once and re-use them (as they can be copied on-chain).
+	// const rules = newCouponRules(
+	// 	tx,
+	// 	pkg,
+	// 	{
+	// 		availableClaims: 1,
+	// 	},
+	// 	lengthRange,
+	// 	yearsRange,
+	// );
 
-	// create 130 50% coupons
-	for (let i = 0; i < 130; i++) {
-		const coupon = generateRandomString(16);
-		coupons50Off.push(coupon);
-		new PercentageOffCoupon(50).setName(coupon).toTransaction(tx, pkg, rules);
-	}
+	// // create 130 50% coupons
+	// for (let i = 0; i < 130; i++) {
+	// 	const coupon = generateRandomString(16);
+	// 	coupons50Off.push(coupon);
+	// 	new PercentageOffCoupon(50).setName(coupon).toTransaction(tx, pkg, rules);
+	// }
 
-	const coupons33Off = [];
+	// const coupons33Off = [];
 
-	// create 650 33% coupons.
-	for (let i = 0; i < 640; i++) {
-		const coupon = generateRandomString(16);
-		coupons33Off.push(coupon);
-		new PercentageOffCoupon(33).setName(coupon).toTransaction(tx, pkg, rules);
-	}
+	// // create 650 33% coupons.
+	// for (let i = 0; i < 640; i++) {
+	// 	const coupon = generateRandomString(16);
+	// 	coupons33Off.push(coupon);
+	// 	new PercentageOffCoupon(33).setName(coupon).toTransaction(tx, pkg, rules);
+	// }
 
-	console.log('******** 50% Coupons ********');
-	console.dir(coupons50Off, { depth: null });
-	console.log('******** 33% Coupons ********');
-	console.dir(coupons33Off, { depth: null });
+	// console.log('******** 50% Coupons ********');
+	// console.dir(coupons50Off, { depth: null });
+	// console.log('******** 33% Coupons ********');
+	// console.dir(coupons33Off, { depth: null });
 
-	writeFileSync(
-		'./tx/coupon-list.json',
-		JSON.stringify(
-			{
-				coupons50Off,
-				coupons33Off,
-			},
-			null,
-			2,
-		),
-	);
+	// writeFileSync(
+	// 	'./tx/coupon-list.json',
+	// 	JSON.stringify(
+	// 		{
+	// 			coupons50Off,
+	// 			coupons33Off,
+	// 		},
+	// 		null,
+	// 		2,
+	// 	),
+	// );
 
 	await prepareMultisigTx(tx, 'mainnet', pkg.adminAddress);
 };
