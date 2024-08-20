@@ -6,6 +6,7 @@ import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { isValidSuiAddress } from '@mysten/sui.js/utils';
 
 import { prepareMultisigTx } from '../utils/utils';
+import { mainPackage } from '../config/constants';
 
 // A {name: address} map
 const domains: Record<string, string> = {};
@@ -44,7 +45,7 @@ const parseOwnedObjects = () => {
 
 // Parses the combined CSV
 const parseCsvFile = () => {
-	fs.readFileSync('./reserved-names/data/transfers-v4.csv')
+	fs.readFileSync('./reserved-names/sample/sample.csv')
 		.toString()
 		.split('\n')
 		.map((x) => x.split(','))
@@ -82,13 +83,14 @@ const parseCsvFile = () => {
 
 const prepareTx = () => {
 	const txb = new TransactionBlock();
+	const pkg = mainPackage.mainnet;
 
 	for (let recipient of Object.keys(recipients)) {
 		const objects = [...recipients[recipient]].filter((x) => !!x);
 		txb.transferObjects([...objects.map((x) => txb.object(x))], txb.pure(recipient));
 	}
 
-	return prepareMultisigTx(txb, 'mainnet');
+	return prepareMultisigTx(txb, 'mainnet', pkg.adminAddress);
 };
 
 // parses all owned OBjects from `json` file.
