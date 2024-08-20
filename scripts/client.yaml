@@ -1,8 +1,0 @@
----
-keystore:
-  File: /sui_config/sui.keystore
-envs:
-  - alias: devnet
-    rpc: "https://fullnode.devnet.sui.io:443"
-    ws: ~
-active_env: devnet
