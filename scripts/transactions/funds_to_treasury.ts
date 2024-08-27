@@ -6,10 +6,6 @@ import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { mainPackage } from '../config/constants';
 import { prepareMultisigTx } from '../utils/utils';
 
-/// MystenLabs treasury address.
-const ADDRESS_TO_TRANSFER_FUNDS =
-	'0x638791b625c4482bc1b917847cdf8aa76fe226c0f3e0a9b1aa595625989e98a1';
-
 const craftTx = async () => {
 	const txb = new TransactionBlock();
 	const config = mainPackage.mainnet;
@@ -32,7 +28,7 @@ const craftTx = async () => {
 
 	txb.transferObjects(
 		[auctionProfits, generalProfits],
-		txb.pure(ADDRESS_TO_TRANSFER_FUNDS, 'address'),
+		txb.pure(config.treasuryAddress, 'address'),
 	);
 	await prepareMultisigTx(txb, 'mainnet', config.adminAddress);
 };
