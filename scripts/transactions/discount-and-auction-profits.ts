@@ -24,8 +24,8 @@ export const run = async () => {
 		`${mainPackage.mainnet.packageId}::suins_registration::SuinsRegistration`,
 		{
 			threeCharacterPrice: 350n * MIST_PER_SUI,
-			fourCharacterPrice: 70n * MIST_PER_SUI,
-			fivePlusCharacterPrice: 14n * MIST_PER_SUI,
+			fourCharacterPrice: 100n * MIST_PER_SUI,
+			fivePlusCharacterPrice: 20n * MIST_PER_SUI,
 		},
 	);
 
