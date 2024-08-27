@@ -13,10 +13,7 @@ export const run = async () => {
 
 	if (!mainPackage.mainnet.treasuryAddress) throw new Error('Treasury address not set');
 
-	const auction = {
-		packageId: '0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0',
-		objectId: '0x2588e11685b460c725e1dc6739a57c483fcd23977369af53d432605225e387f9',
-	};
+	const auctionObjectId = '0x2588e11685b460c725e1dc6739a57c483fcd23977369af53d432605225e387f9';
 
 	const adminCapObj = tx.object(mainPackage.mainnet.adminCap);
 
@@ -37,7 +34,7 @@ export const run = async () => {
 		target: `${mainPackage.mainnet.packageId}::auction::admin_try_finalize_auctions`,
 		arguments: [
 			adminCapObj,
-			tx.object(auction.objectId),
+			tx.object(auctionObjectId),
 			tx.pure.u64(261),
 			tx.object(SUI_CLOCK_OBJECT_ID),
 		],
