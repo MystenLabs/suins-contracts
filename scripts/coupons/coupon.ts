@@ -3,7 +3,7 @@
 import { TransactionArgument, TransactionBlock } from '@mysten/sui.js/transactions';
 import { isValidSuiAddress } from '@mysten/sui.js/utils';
 
-import { Config, PackageInfo } from '../config/constants';
+import { PackageInfo } from '../config/constants';
 
 export class CouponType {
 	name?: string;
@@ -160,10 +160,9 @@ export const optionalRangeConstructor = (
 	});
 };
 
-
 export const newCouponRules = (
-	txb: TransactionBlock, 
-	config: PackageInfo, 
+	txb: TransactionBlock,
+	config: PackageInfo,
 	rules: CouponRules,
 	lengthRule: TransactionArgument,
 	yearsRule: TransactionArgument,
@@ -175,13 +174,9 @@ export const newCouponRules = (
 			rules.availableClaims
 				? filledOption(txb, rules.availableClaims, 'u64')
 				: emptyOption(txb, 'u64'),
-			rules.user
-				? filledOption(txb, rules.user, 'address')
-				: emptyOption(txb, 'address'),
-			rules.expiration
-				? filledOption(txb, rules.expiration, 'u64')
-				: emptyOption(txb, 'u64'),
+			rules.user ? filledOption(txb, rules.user, 'address') : emptyOption(txb, 'address'),
+			rules.expiration ? filledOption(txb, rules.expiration, 'u64') : emptyOption(txb, 'u64'),
 			yearsRule,
 		],
 	});
-}
+};

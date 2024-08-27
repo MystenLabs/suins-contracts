@@ -34,6 +34,7 @@ export type PackageInfo = {
 	coupons: {
 		packageId: string;
 	};
+	treasuryAddress?: string;
 };
 
 export const mainPackage: Config = {
@@ -65,6 +66,7 @@ export const mainPackage: Config = {
 		coupons: {
 			packageId: '0x6d14ca3049be747ec87166e6dce5d0d9a30f3b3c281c55d6e518958a236f8b97',
 		},
+		treasuryAddress: '0x638791b625c4482bc1b917847cdf8aa76fe226c0f3e0a9b1aa595625989e98a1',
 	},
 	testnet: {
 		packageId: '0x22fa05f21b1ad71442491220bb9338f7b7095fe35000ef88d5400d28523bdd93',
