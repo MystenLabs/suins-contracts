@@ -43,10 +43,7 @@ export const run = async () => {
 	// Auction house profits.
 	const auctionProfits = tx.moveCall({
 		target: `${mainPackage.mainnet.packageId}::auction::admin_withdraw_funds`,
-		arguments: [
-			adminCapObj,
-			tx.object('0x2588e11685b460c725e1dc6739a57c483fcd23977369af53d432605225e387f9'),
-		],
+		arguments: [adminCapObj, tx.object(auctionObjectId)],
 	});
 
 	const generalProfits = tx.moveCall({
