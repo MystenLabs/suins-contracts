@@ -1,6 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+import { writeFileSync } from 'fs';
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 
 import { mainPackage } from '../config/constants';
@@ -125,19 +126,34 @@ const run = async () => {
 		yearsRange,
 	);
 
-	// now 150x generic use 60% discounts
-	for (let i = 0; i < 150; i++) {
-		new PercentageOffCoupon(60).setName(generateRandomString(10)).toTransaction(tx, config, rules);
-	}
-	// // now 150x generic use 40% discounts
-	for (let i = 0; i < 150; i++) {
-		new PercentageOffCoupon(40).setName(generateRandomString(10)).toTransaction(tx, config, rules);
+	const coupons: Record<string, { total: number; coupons: string[] }> = {
+		'60': {
+			total: 150,
+			coupons: [],
+		},
+		'40': {
+			total: 150,
+			coupons: [],
+		},
+		'50': {
+			total: 500,
+			coupons: [],
+		},
+		'25': {
+			total: 75,
+			coupons: [],
+		},
+	};
+
+	for (const [discount, { total }] of Object.entries(coupons)) {
+		for (let i = 0; i < total; i++) {
+			const name = generateRandomString(10);
+			coupons[discount].coupons.push(name);
+			new PercentageOffCoupon(parseInt(discount)).setName(name).toTransaction(tx, config, rules);
+		}
 	}
 
-	// now let's create 500x 50% discounts
-	for (let i = 0; i < 500; i++) {
-		new PercentageOffCoupon(50).setName(generateRandomString(10)).toTransaction(tx, config, rules);
-	}
+	writeFileSync('./tx/coupons.json', JSON.stringify(coupons, null, 2));
 
 	await prepareMultisigTx(tx, 'mainnet', mainPackage.mainnet.adminAddress);
 };
