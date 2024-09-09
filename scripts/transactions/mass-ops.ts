@@ -77,6 +77,15 @@ const run = async () => {
 		tx.pure.address('0x2a25e5d858849bf2af0bf30aaa106bff8cdce25b9ae8ec3acfe1f2c346f30c36'),
 	);
 
+	// transfer `stashed.sui` to `0x5a3afb4e2d6421488d4417f8cbdaf276079dd6f9c0195d8c8453c7a56d863194`
+	const stashedObj = reservedObjects.find(
+		(obj) => obj.data.content.fields.domain_name === 'stashed.sui',
+	);
+	tx.transferObjects(
+		[stashedObj!.data.objectId],
+		tx.pure.address('0x5a3afb4e2d6421488d4417f8cbdaf276079dd6f9c0195d8c8453c7a56d863194'),
+	);
+
 	// 100% free coupons with 1 claim for the list of addresses
 	for (const address of freeNamesAddresses) {
 		new PercentageOffCoupon(100)
