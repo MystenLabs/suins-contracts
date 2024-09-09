@@ -1,5 +1,11 @@
 # @mysten/suins
 
+## 0.3.1
+
+### Patch Changes
+
+- 5001e9c: Update @mysten/sui dependency to 1.8.0
+
 ## 0.3.0
 
 ### Minor Changes
