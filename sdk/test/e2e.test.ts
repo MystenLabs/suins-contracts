@@ -34,6 +34,12 @@ describe('Testing SuiNS SDK e2e', () => {
 			packageIds: constants,
 		});
 	});
+
+	it('Should return null as a non-existing name', async () => {
+		const result = await suinsClient.getNameRecord('5215153153534543653.sui');
+		expect(result).toBeNull();
+	});
+
 	it('Should register a new name, renew it, set the target address, set it as default', async () => {
 		const transaction = new Transaction();
 		const suinsTxb = new SuinsTransaction(suinsClient, transaction);
@@ -92,10 +98,10 @@ describe('Testing SuiNS SDK e2e', () => {
 		// Fetch and check the name record.
 		const nameRecord = await suinsClient.getNameRecord(name);
 
-		expect(nameRecord.name).toBe(name);
-		expect(nameRecord.targetAddress).toBe(toolbox.address());
-		expect(nameRecord.contentHash).toBe('0x1');
-		expect(nameRecord.avatar).toBe('0x0');
+		expect(nameRecord?.name).toBe(name);
+		expect(nameRecord?.targetAddress).toBe(toolbox.address());
+		expect(nameRecord?.contentHash).toBe('0x1');
+		expect(nameRecord?.avatar).toBe('0x0');
 	});
 
 	it('Should create some node subnames and call functionality with these', async () => {
@@ -105,6 +111,7 @@ describe('Testing SuiNS SDK e2e', () => {
 		const subName = 'node.test.sui';
 
 		const parentNameRecord = await suinsClient.getNameRecord(name);
+		if (!parentNameRecord) throw new Error('Parent not found');
 
 		const subNameNft = suinsTxb.createSubName({
 			parentNft: parentNameRecord.nftId,
@@ -138,10 +145,10 @@ describe('Testing SuiNS SDK e2e', () => {
 		// Fetch and check the subname record.
 		const nameRecord = await suinsClient.getNameRecord(subName);
 
-		expect(nameRecord.name).toBe(subName);
-		expect(nameRecord.targetAddress).toBe(toolbox.address());
-		expect(nameRecord.expirationTimestampMs).toEqual(parentNameRecord.expirationTimestampMs);
-		expect(nameRecord.contentHash).toBe('0x1');
+		expect(nameRecord?.name).toBe(subName);
+		expect(nameRecord?.targetAddress).toBe(toolbox.address());
+		expect(nameRecord?.expirationTimestampMs).toEqual(parentNameRecord.expirationTimestampMs);
+		expect(nameRecord?.contentHash).toBe('0x1');
 	});
 
 	it('Should create leaf subnames, and remove them too', async () => {
@@ -151,6 +158,7 @@ describe('Testing SuiNS SDK e2e', () => {
 		const anotherSubname = 'another.test.sui';
 
 		const parentNameRecord = await suinsClient.getNameRecord(name);
+		if (!parentNameRecord) throw new Error('Parent not found');
 
 		suinsTxb.createLeafSubName({
 			parentNft: parentNameRecord.nftId,
@@ -168,8 +176,8 @@ describe('Testing SuiNS SDK e2e', () => {
 
 		// Fetch and check the subname record.
 		const nameRecord = await suinsClient.getNameRecord(leaf);
-		expect(nameRecord.name).toBe(leaf);
-		expect(nameRecord.targetAddress).toBe(normalizeSuiAddress('0x2'));
+		expect(nameRecord?.name).toBe(leaf);
+		expect(nameRecord?.targetAddress).toBe(normalizeSuiAddress('0x2'));
 	});
 
 	it('Should be able to remove the leaf names created', async () => {
@@ -177,6 +185,8 @@ describe('Testing SuiNS SDK e2e', () => {
 		const suinsTxb = new SuinsTransaction(suinsClient, transaction);
 
 		const parentNameRecord = await suinsClient.getNameRecord(name);
+		if (!parentNameRecord) throw new Error('Parent not found');
+
 		suinsTxb.removeLeafSubName({
 			parentNft: parentNameRecord.nftId,
 			name: 'leaf.test.sui',
@@ -191,6 +201,7 @@ describe('Testing SuiNS SDK e2e', () => {
 		const suinsTxb = new SuinsTransaction(suinsClient, transaction);
 
 		let parentNameRecord = await suinsClient.getNameRecord(name);
+		if (!parentNameRecord) throw new Error('Parent not found');
 
 		suinsTxb.setTargetAddress({
 			nft: parentNameRecord.nftId,
@@ -201,6 +212,8 @@ describe('Testing SuiNS SDK e2e', () => {
 		expect(res.effects?.status.status).toBe('success');
 
 		parentNameRecord = await suinsClient.getNameRecord(name);
+		if (!parentNameRecord) throw new Error('Parent not found');
+
 		expect(parentNameRecord.targetAddress).toBeNull();
 	});
 });

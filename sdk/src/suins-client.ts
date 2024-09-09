@@ -96,7 +96,7 @@ export class SuinsClient {
 		return parsePriceListFromConfig(contents);
 	}
 
-	async getNameRecord(name: string): Promise<NameRecord> {
+	async getNameRecord(name: string): Promise<NameRecord | null> {
 		if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
 		if (!this.constants.suinsPackageId) throw new Error('Suins package ID is not set');
 		if (!this.constants.registryTableId) throw new Error('Registry table ID is not set');
@@ -109,6 +109,9 @@ export class SuinsClient {
 			},
 		});
 		const fields = nameRecord.data?.content;
+
+		// in case the name record is not found, return null
+		if (nameRecord.error?.code === 'dynamicFieldNotFound') return null;
 
 		if (nameRecord.error || !fields || fields.dataType !== 'moveObject')
 			throw new Error('Name record not found. This domain is not registered.');
