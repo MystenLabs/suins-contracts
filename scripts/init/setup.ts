@@ -73,6 +73,8 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 	});
 
 	try {
+		// TODO: Use "waitForTransaction" when we migrate to latest SDK.
+		await sleep(2000);
 		await signAndExecute(txb, network);
 		console.log('******* Packages set up successfully *******');
 
@@ -81,6 +83,7 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 			const constants = JSON.parse(
 				readFileSync(path.resolve(__dirname, '../constants.sdk.json'), 'utf8'),
 			);
+			// TODO: Use "waitForTransaction" when we migrate to latest SDK.
 			await sleep(2000);
 			constants.registryTableId = await queryRegistryTable(
 				getClient(network),

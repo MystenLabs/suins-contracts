@@ -28,6 +28,7 @@ export async function publishAndSetupSuinsContracts(toolbox: TestToolbox): Promi
 			// we need to set this to a temp file, so that the client uses the correct config.
 			CLIENT_CONFIG_FILE: toolbox.configPath,
 		},
+		// stdio: 'inherit',
 		encoding: 'utf8',
 	});
 
@@ -37,7 +38,7 @@ export async function publishAndSetupSuinsContracts(toolbox: TestToolbox): Promi
 }
 
 export async function execute(toolbox: TestToolbox, transaction: Transaction) {
-	return toolbox.client.signAndExecuteTransaction({
+	const result = await toolbox.client.signAndExecuteTransaction({
 		transaction,
 		signer: toolbox.keypair,
 		options: {
@@ -45,4 +46,10 @@ export async function execute(toolbox: TestToolbox, transaction: Transaction) {
 			showObjectChanges: true,
 		},
 	});
+
+	await toolbox.client.waitForTransaction({
+		digest: result.digest,
+	});
+
+	return result;
 }
