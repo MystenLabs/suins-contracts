@@ -153,8 +153,6 @@ export const prepareMultisigTx = async (
 
 	// Prevent any possible RGP changes across epoch change, which would invalidate the transaction.
 	tx.setGasPrice(1_000);
-	// set the gas budget.
-	tx.setGasBudget(2_000_000_000);
 
 	// set the sender to be the admin address from config.
 	tx.setSenderIfNotSet(adminAddress as string);
