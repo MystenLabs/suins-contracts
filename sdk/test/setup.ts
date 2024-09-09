@@ -25,7 +25,10 @@ export async function publishAndSetupSuinsContracts(toolbox: TestToolbox): Promi
 			PRIVATE_KEY: toolbox.keypair.getSecretKey(),
 			SUI_BINARY: SUI_BIN,
 			NETWORK: 'localnet',
+			// we need to set this to a temp file, so that the client uses the correct config.
+			CLIENT_CONFIG_FILE: toolbox.configPath,
 		},
+		encoding: 'utf8',
 	});
 
 	console.log('SuiNS Contract published & set up successfully.');

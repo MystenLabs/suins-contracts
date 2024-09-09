@@ -11,6 +11,9 @@ import { Network, Packages } from './packages';
 import { queryRegistryTable } from './queries';
 import { PackageInfo } from './types';
 
+// create a sleep async function
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export const setup = async (packageInfo: PackageInfo, network: Network) => {
 	const packages = Packages(network);
 
@@ -78,7 +81,7 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 			const constants = JSON.parse(
 				readFileSync(path.resolve(__dirname, '../constants.sdk.json'), 'utf8'),
 			);
-
+			await sleep(2000);
 			constants.registryTableId = await queryRegistryTable(
 				getClient(network),
 				packageInfo.SuiNS.suins,
@@ -93,6 +96,7 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 			console.error(
 				'Error while updating sdk constants: Most likely the file does not exist if you run `setup` without publishing through this',
 			);
+			console.error(e);
 		}
 	} catch (e) {
 		console.error('Something went wrong!');

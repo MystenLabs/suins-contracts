@@ -9,7 +9,9 @@ export const init = async (network: Network, isCIJob: boolean) => {
 		throw new Error(
 			'Network not defined. Please run `export NETWORK=mainnet|testnet|devnet|localnet`',
 		);
-	const published = await publishPackages(network, isCIJob);
+
+	const published = await publishPackages(network, isCIJob, process.env.CLIENT_CONFIG_FILE);
+	console.log('Published:', published);
 	await setup(published, network);
 };
 
