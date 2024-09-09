@@ -55,8 +55,10 @@ const run = async () => {
 
 	const tx = new TransactionBlock();
 
+	const NS_TYPE = `${config.packageId}::suins_registration::SuinsRegistration`;
+
 	// remove discount for NS objects
-	removeDiscountForType(tx, config, `${config.packageId}::suins_registration::SuinsRegistration`);
+	removeDiscountForType(tx, config, NS_TYPE);
 
 	// Transfer list of names to the specified wallet
 	const namesToTransfer = ['gateio.sui', 'bybit.sui', 'okx.sui', 'binance.sui', 'kucoin.sui'];
@@ -81,10 +83,21 @@ const run = async () => {
 	const stashedObj = reservedObjects.find(
 		(obj) => obj.data.content.fields.domain_name === 'stashed.sui',
 	);
-	tx.transferObjects(
-		[stashedObj!.data.objectId],
-		tx.pure.address('0x5a3afb4e2d6421488d4417f8cbdaf276079dd6f9c0195d8c8453c7a56d863194'),
-	);
+
+	const EnokiManagedObjects = {
+		packageId: '0x6c2c547abd69a924fc371c7ab3b4498f09c38e576374d1e653eb3f8879dbb57d',
+		custodyObject: '0xf7d22d9deca0032e43a2f9d340f14df9f6470532a31f9fe814bf74cfaccaa94c',
+	};
+
+	tx.moveCall({
+		target: `${EnokiManagedObjects.packageId}::managed::attach_object`,
+		arguments: [
+			tx.object(EnokiManagedObjects.custodyObject),
+			tx.object(stashedObj?.data.objectId!),
+			tx.pure.string('a3d77b61-b6fc-4a22-a29e-48a5ad620c38'),
+		],
+		typeArguments: [NS_TYPE],
+	});
 
 	// 100% free coupons with 1 claim for the list of addresses
 	for (const address of freeNamesAddresses) {
