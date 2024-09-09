@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import { execFileSync, execSync } from 'child_process';
 import fs, { readFileSync } from 'fs';
-import { homedir } from 'os';
+import { mkdtemp } from 'fs/promises';
+import { homedir, tmpdir } from 'os';
 import path from 'path';
 import { getFullnodeUrl, SuiClient } from '@mysten/sui.js/client';
 import { decodeSuiPrivateKey } from '@mysten/sui.js/cryptography';
@@ -20,9 +21,18 @@ export const getActiveAddress = () => {
 	return execSync(`${SUI} client active-address`, { encoding: 'utf8' }).trim();
 };
 
-export const publishPackage = (txb: TransactionBlock, path: string) => {
+export const publishPackage = (txb: TransactionBlock, path: string, configPath?: string) => {
+	const command = [
+		'move',
+		...(configPath ? ['--client.config', configPath] : []),
+		'build',
+		'--dump-bytecode-as-base64',
+		'--path',
+		path,
+	];
+
 	const { modules, dependencies } = JSON.parse(
-		execFileSync(SUI, ['move', 'build', '--dump-bytecode-as-base64', '--path', path], {
+		execFileSync(SUI, command, {
 			encoding: 'utf-8',
 		}),
 	);

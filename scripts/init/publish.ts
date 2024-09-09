@@ -1,6 +1,6 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-import { writeFileSync } from 'fs';
+import { existsSync, unlinkSync, writeFileSync } from 'fs';
 import path from 'path';
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 
@@ -8,7 +8,7 @@ import { publishPackage, signAndExecute } from '../utils/utils';
 import { Network, Packages } from './packages';
 import { PackageInfo } from './types';
 
-export const publishPackages = async (network: Network, isCiJob = false) => {
+export const publishPackages = async (network: Network, isCiJob = false, configPath?: string) => {
 	const packages = Packages(isCiJob ? 'mainnet' : network);
 	const contractsPath = path.resolve(__dirname, '../../packages');
 	const results: Record<string, Record<string, string>> = {};
@@ -23,15 +23,27 @@ export const publishPackages = async (network: Network, isCiJob = false) => {
 		for (const [key, pkg] of list) {
 			const packageFolder = path.resolve(contractsPath, pkg.folder);
 			const manifestFile = path.resolve(packageFolder + '/Move.toml');
+			// remove the lockfile on CI to allow fresh flows.
+			if (isCiJob) {
+				console.info('Removing lock file for CI job');
+				const lockFile = path.resolve(packageFolder + '/Move.lock');
+				if (existsSync(lockFile)) {
+					unlinkSync(lockFile);
+					console.info('Lock file removed');
+				}
+			}
+
 			writeFileSync(manifestFile, pkg.manifest()); // save the manifest as is.
 
 			const txb = new TransactionBlock();
-			publishPackage(txb, packageFolder);
+			publishPackage(txb, packageFolder, configPath);
 			const res = await signAndExecute(txb, network);
 
 			// @ts-ignore-next-line
 			const data = pkg.processPublish(res);
 			results[key] = data;
+
+			console.info(`Published ${key} with packageId: ${data.packageId}`);
 
 			writeFileSync(manifestFile, pkg.manifest(data.packageId)); // update the manifest with the published-at field.
 		}
