@@ -121,8 +121,8 @@ importers:
   sdk:
     dependencies:
       '@mysten/sui':
-        specifier: ^1.8.0
-        version: 1.8.0(svelte@4.2.15)(typescript@5.4.5)
+        specifier: ^1.9.0
+        version: 1.9.0(svelte@4.2.15)(typescript@5.4.5)
     devDependencies:
       '@types/tmp':
         specifier: ^0.2.3
@@ -1364,8 +1364,8 @@ packages:
     resolution: {integrity: sha512-TSmGIX7U9O/uS9EKIQdv7/S69KTbBhMJVelXCafJE6IJw8iB9cN9uLu0+uklkBSDrbRmLSEY70jMr3uRFjReIg==}
     engines: {node: '>=16'}
 
-  '@mysten/sui@1.8.0':
-    resolution: {integrity: sha512-iL7yztpePS/GWFZ7yiD/Pl7ciuOD2ySyogJZmLFu4WxZfiIcXJX+U/U+Egq9VHvELk8+m+Z1OvvPlNQfuowMIg==}
+  '@mysten/sui@1.9.0':
+    resolution: {integrity: sha512-AcnwVK7ro8+GWAp/vz0V35naS1/PD1FkYlH6rglupKWvVIpnmEBgjr+XE7U4LvtAyoXPiE4uj/MhXLIx5rZuzw==}
     engines: {node: '>=18'}
 
   '@napi-rs/simple-git-android-arm-eabi@0.1.16':
@@ -6633,7 +6633,7 @@ snapshots:
       - svelte
       - typescript
 
-  '@mysten/sui@1.8.0(svelte@4.2.15)(typescript@5.4.5)':
+  '@mysten/sui@1.9.0(svelte@4.2.15)(typescript@5.4.5)':
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.9.0)
       '@mysten/bcs': 1.0.4
