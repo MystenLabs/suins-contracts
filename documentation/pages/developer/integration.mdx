@@ -3,14 +3,26 @@ import { Callout } from 'nextra/components'
 
 # Integration
 
-Integration with SuiNS works in multiple ways. For dApps, you typically integrate SuiNS through off-chain resolution using remote procedural calls (RPCs). The calls enable you to interact with the Sui network or display names instead of addresses. For example, your RPCs might create transactions that send assets to names, or show names instead of addresses
-in a leaderboard.
+Integration with SuiNS works in multiple ways. For dApps, you typically integrate SuiNS through off-chain resolution using remote procedural calls (RPCs). The calls enable you to interact with the Sui network or display names instead of addresses. For example, your RPCs might create transactions that send assets to names, or show names instead of addresses on a leaderboard.
 
 Resolution works in two ways: 
 
-- Lookup: A name can point to an address or an object (for example, `example.sui` might point to `0x2`).
-- Reverse lookup: An address can have a default name (for example, `0x2` might have the default `example.sui`).
+- Lookup: A name can point to an address or an object (target address).
+- Reverse lookup: An address can have a default name.
 
+## Addresses
+
+Lookups work with two types of addresses:
+
+- **Target address:** The address that a SuiNS name resolves to. For example, `example.sui` might point to `0x2`, making `0x2` the target address for `example.sui`. Lookup resolution retrieves this information.
+- **Default address:** The SuiNS name that the owner of a particular address has selected to represent that address. For example, if you own `0x2` you can make `example.sui` its default address. The owner must sign and execute a "set default" transaction to establish this connection. The default address resets anytime the target address changes. Reverse lookup resolution retrieves this name.
+
+        
+## SuiNS NFT ownership
+
+Don't use ownership of the SuiNS NFT as a resolution method. The NFT is used as the key (capability) to change the target address, but shouldn’t be used to identify any name with an address.
+
+SuiNS NFT ownership allows any address to be set as the target address. So, the `example.sui` address used in the previous section can point to any address, not just `0x2`. Consequently, when you want to display default addresses, you should trust the default address over target address because it's guaranteed on chain. 
 
 ## Off-chain resolution
 
