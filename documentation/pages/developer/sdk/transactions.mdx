@@ -107,7 +107,7 @@ const createSubname = async (subName: string, parentNftId: string, expirationMs:
     const suinsTransaction = new SuinsTransaction(suinsClient, transaction);
 
     // We build the transaction to create a subname.
-	const subNameNft = suinsTxb.createSubName({
+	const subNameNft = suinsTransaction.createSubName({
         // The NFT of the parent
         parentNft: parentNftId,
         // The subname to be created.
@@ -185,7 +185,7 @@ const createLeafSubname = async (name: stringify, parentNftId: string, targetAdd
 
     // We build the transaction to create a leaf subname.
     // A leaf subname is a subname that has a target address and no NFT of its own.
-    suinsTxb.createLeafSubName({
+    suinsTransaction.createLeafSubName({
         // The NFT of the parent
         parentNft: parentNftId,
         // The leaf subname to be created.
@@ -208,7 +208,7 @@ const removeLeafSubname = async (name: string, parentNftId: string) => {
     const suinsTransaction = new SuinsTransaction(suinsClient, transaction);
 
     // Build the transaction to remove a leaf subname.
-    suinsTxb.removeLeafSubName({
+    suinsTransaction.removeLeafSubName({
         // The NFT of the parent
         parentNft: parentNftId,
         // The leaf subname to be removed.
