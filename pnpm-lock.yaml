@@ -121,8 +121,8 @@ importers:
   sdk:
     dependencies:
       '@mysten/sui':
-        specifier: ^1.8.0
-        version: 1.8.0(svelte@4.2.15)(typescript@5.4.5)
+        specifier: ^1.10.0
+        version: 1.10.0(svelte@4.2.15)(typescript@5.4.5)
     devDependencies:
       '@types/tmp':
         specifier: ^0.2.3
@@ -1359,13 +1359,15 @@ packages:
   '@mysten/sui.js@0.49.1':
     resolution: {integrity: sha512-xMndhhlnlVYjMVmBkXnGs9wdw7/bh3R/QggD/DkqGG7Iq7RL2uldtAeIFYsPGfTua/TJW8RFX7q59RagIOwWdw==}
     engines: {node: '>=16'}
+    deprecated: This package has been renamed to @mysten/sui, please update to use the renamed package.
 
   '@mysten/sui.js@0.54.1':
     resolution: {integrity: sha512-TSmGIX7U9O/uS9EKIQdv7/S69KTbBhMJVelXCafJE6IJw8iB9cN9uLu0+uklkBSDrbRmLSEY70jMr3uRFjReIg==}
     engines: {node: '>=16'}
+    deprecated: This package has been renamed to @mysten/sui, please update to use the renamed package.
 
-  '@mysten/sui@1.8.0':
-    resolution: {integrity: sha512-iL7yztpePS/GWFZ7yiD/Pl7ciuOD2ySyogJZmLFu4WxZfiIcXJX+U/U+Egq9VHvELk8+m+Z1OvvPlNQfuowMIg==}
+  '@mysten/sui@1.10.0':
+    resolution: {integrity: sha512-N+JwsYt//XOaNcQeYqjBqvAb39PUXO9WyJwc3xBk1QutITnB4kwtkrGUU0HEW+AzO2zU9e4eFgGIcTfsuDX9ug==}
     engines: {node: '>=18'}
 
   '@napi-rs/simple-git-android-arm-eabi@0.1.16':
@@ -6633,7 +6635,7 @@ snapshots:
       - svelte
       - typescript
 
-  '@mysten/sui@1.8.0(svelte@4.2.15)(typescript@5.4.5)':
+  '@mysten/sui@1.10.0(svelte@4.2.15)(typescript@5.4.5)':
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.9.0)
       '@mysten/bcs': 1.0.4
