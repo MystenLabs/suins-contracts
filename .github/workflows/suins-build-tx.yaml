@@ -10,6 +10,7 @@ on:
         options:
           - Multi Purpose Operation
           - Profits to Treasury
+          - Transfer Reserved Names
       sui_tools_image:
         description: 'image reference of sui_tools'
         default: 'mysten/sui-tools:mainnet'
@@ -58,7 +59,7 @@ jobs:
       - name: Set up working directory
         run: |
           pnpm install
-  
+
       - name: Profits to Treasury
         if: ${{ inputs.transaction_type == 'Profits to Treasury' }}
         env:
@@ -68,6 +69,16 @@ jobs:
           ORIGIN: gh_action
         run: |
           cd scripts && pnpm withdraw:profits
+
+      - name: Transfer Reserved Names
+        if: ${{ inputs.transaction_type == 'Transfer Reserved Names' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+        run: |
+          cd scripts && pnpm transfer::names
 
       - name: Multi Purpose Operation
         if: ${{ inputs.transaction_type == 'Multi Purpose Operation' }}
