@@ -111,7 +111,7 @@ const mso99 = async () => {
     new PercentageOffCoupon(30).setName(coupon).toTransaction(tx, pkg, rules);
 
 	writeFileSync(
-		'./tx/coupon-list.json',
+		'./tx/coupon.json',
 		JSON.stringify(
 			{
 				unlimitedCoupon,
