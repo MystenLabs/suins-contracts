@@ -19,7 +19,7 @@ function generateRandomString(length: number) {
 	return result;
 }
 
-const create = async () => {
+const mso89 = async () => {
 	const pkg = mainPackage.mainnet;
 
 	const tx = new TransactionBlock();
@@ -86,4 +86,43 @@ const create = async () => {
 	await prepareMultisigTx(tx, 'mainnet', pkg.adminAddress);
 };
 
-create();
+const mso99 = async () => {
+	const pkg = mainPackage.mainnet;
+
+	const tx = new TransactionBlock();
+	const lengthRange = optionalRangeConstructor(tx, pkg, [3, 3]);
+	const yearsRange = optionalRangeConstructor(tx, pkg, [1, 1]);
+
+	const rules = newCouponRules(
+		tx,
+		pkg,
+		{
+            expiration: "1729656000000",
+		},
+		lengthRange,
+		yearsRange,
+	);
+
+    const unlimitedCoupon = [];
+
+	// create 30% coupons for 3 length names
+    const coupon = generateRandomString(16);
+    unlimitedCoupon.push(coupon);
+    new PercentageOffCoupon(30).setName(coupon).toTransaction(tx, pkg, rules);
+
+	writeFileSync(
+		'./tx/coupon-list.json',
+		JSON.stringify(
+			{
+				unlimitedCoupon,
+			},
+			null,
+			2,
+		),
+	);
+
+	await prepareMultisigTx(tx, 'mainnet', pkg.adminAddress);
+};
+
+mso89();
+mso99();
