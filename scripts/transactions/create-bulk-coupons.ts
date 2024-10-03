@@ -4,10 +4,7 @@ import { writeFileSync } from 'fs';
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 
 import { mainPackage } from '../config/constants';
-import { mainnetConfig } from '../config/day_one';
-import { removeDiscountForType } from '../config/discounts';
 import { newCouponRules, optionalRangeConstructor, PercentageOffCoupon } from '../coupons/coupon';
-import { dayOneType } from '../day_one/setup';
 import { prepareMultisigTx } from '../utils/utils';
 
 function generateRandomString(length: number) {
