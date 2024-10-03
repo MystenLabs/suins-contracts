@@ -71,18 +71,6 @@ const create = async () => {
 	console.log('******** 25% Coupons ********');
 	console.dir(coupons25Off, { depth: null });
 
-	writeFileSync(
-		'./tx/coupon-list.json',
-		JSON.stringify(
-			{
-				coupons80Off,
-				coupons25Off,
-			},
-			null,
-			2,
-		),
-	);
-
     const lengthRange2 = optionalRangeConstructor(tx, pkg, [3, 3]);
 	const yearsRange2 = optionalRangeConstructor(tx, pkg, [1, 1]);
 
@@ -104,10 +92,12 @@ const create = async () => {
     new PercentageOffCoupon(30).setName(coupon).toTransaction(tx, pkg, rules2);
 
 	writeFileSync(
-		'./tx/coupon.json',
+		'./tx/coupon-list.json',
 		JSON.stringify(
 			{
-				unlimitedCoupon,
+				coupons80Off,
+				coupons25Off,
+                unlimitedCoupon,
 			},
 			null,
 			2,
