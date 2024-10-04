@@ -8,6 +8,7 @@ on:
         description: 'select transaction type to create'
         type: choice
         options:
+          - Create Deepbook Pools
           - Multi Purpose Operation
           - Profits to Treasury
           - Transfer Reserved Names
@@ -23,7 +24,7 @@ on:
         description: 'object id to get gas from for multisig transaction'
         required: true
         type: string
-        default: '0x5cc6e842a17918ad7ce5e4e333309b387f1d5151bc3c89682abda460a700c2f5'
+        default: '0xae841028e9c704badbeb0f3f837b371f663bf647e6f9c984ce47284869a8754e'
 
 jobs:
   suins:
@@ -59,6 +60,16 @@ jobs:
       - name: Set up working directory
         run: |
           pnpm install
+
+      - name: Create Deepbook Pools
+        if: ${{ inputs.transaction_type == 'Create Deepbook Pools' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+        run: |
+          cd scripts && pnpm create-deepbook-pools
 
       - name: Profits to Treasury
         if: ${{ inputs.transaction_type == 'Profits to Treasury' }}
