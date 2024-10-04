@@ -38,8 +38,8 @@ const setup = async (network: Network) => {
 		arguments: [
 			txb.pure(100000), // tick
 			txb.pure(100000), // lot
-			txb.pure(DEFAULT_STABLE_TAKER_FEE), // taker fee
-			txb.pure(DEFAULT_STABLE_MAKER_FEE), // maker rebate
+			txb.pure(0), // taker fee
+			txb.pure(0), // maker rebate
 			coin, // creation fee
 		],
 	});
