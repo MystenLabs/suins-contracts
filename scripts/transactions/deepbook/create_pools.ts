@@ -4,7 +4,7 @@
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import dotenv from 'dotenv';
 
-import { Network } from '../../config/constants';
+import { Network, mainPackage } from '../../config/constants';
 import { prepareMultisigTx, signAndExecute } from '../../utils/utils';
 
 dotenv.config();
@@ -45,7 +45,7 @@ const setup = async (network: Network) => {
 	});
 
 	// for mainnet, we prepare the multi-sig tx.
-	if (network === 'mainnet') return prepareMultisigTx(txb, 'mainnet');
+	if (network === 'mainnet') return prepareMultisigTx(txb, 'mainnet', mainPackage.mainnet.adminAddress);
 
 	// For testnet, we execute the TX directly.
 	return signAndExecute(txb, network);
