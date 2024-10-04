@@ -8,10 +8,10 @@ on:
         description: 'select transaction type to create'
         type: choice
         options:
+          - Create Deepbook Pools
           - Multi Purpose Operation
           - Profits to Treasury
           - Transfer Reserved Names
-          - Create Deepbook Pools
       sui_tools_image:
         description: 'image reference of sui_tools'
         default: 'mysten/sui-tools:mainnet'
