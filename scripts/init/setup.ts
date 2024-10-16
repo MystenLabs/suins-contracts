@@ -69,15 +69,28 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 		packageId: packageInfo.Coupons.packageId,
 	});
 
+	let retries = 0;
+
 	try {
 		txb.setGasBudget(1_000_000_000);
-		const res = await signAndExecute(txb, network);
 
-		await getClient(network).waitForTransaction({
-			digest: res.digest,
-		});
+		while (retries < 3) {
+			console.log('Retrying setup...');
+			const res = await signAndExecute(txb, network);
 
-		console.log(res);
+			await getClient(network).waitForTransaction({
+				digest: res.digest,
+			});
+
+			if (res.effects?.status.status === 'success') break;
+			console.log(res);
+			retries++;
+
+			if (retries === 3) {
+				console.error('Failed to set up packages');
+				return;
+			}
+		}
 
 		console.log('******* Packages set up successfully *******');
 
