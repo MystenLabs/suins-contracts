@@ -7,6 +7,12 @@ export const queryRegistryTable = async (
 	suins: string,
 	suinsPackageId: string,
 ) => {
+	const allFields = await client.getDynamicFields({
+		parentId: suins,
+	});
+
+	// just for testing..
+	console.log(allFields);
 	const table = await client.getDynamicFieldObject({
 		parentId: suins,
 		name: {

@@ -86,6 +86,9 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 
 			console.log(constants);
 
+			// delay 3 seconds
+			await new Promise((resolve) => setTimeout(resolve, 3000));
+
 			constants.registryTableId = await queryRegistryTable(
 				getClient(network),
 				packageInfo.SuiNS.suins,
