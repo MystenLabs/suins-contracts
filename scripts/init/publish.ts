@@ -4,7 +4,7 @@ import { existsSync, unlinkSync, writeFileSync } from 'fs';
 import path from 'path';
 import { Transaction } from '@mysten/sui/transactions';
 
-import { publishPackage, signAndExecute } from '../utils/utils';
+import { getClient, publishPackage, signAndExecute } from '../utils/utils';
 import { Network, Packages } from './packages';
 import { PackageInfo } from './types';
 
@@ -38,6 +38,10 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 			const txb = new Transaction();
 			publishPackage(txb, packageFolder, configPath);
 			const res = await signAndExecute(txb, network);
+
+			await getClient(network).waitForTransaction({
+				digest: res.digest,
+			});
 
 			// @ts-ignore-next-line
 			const data = pkg.processPublish(res);

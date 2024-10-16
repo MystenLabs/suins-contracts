@@ -73,9 +73,12 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 	});
 
 	try {
-		// TODO: Use "waitForTransaction" when we migrate to latest SDK.
-		await sleep(2000);
-		await signAndExecute(txb, network);
+		const res = await signAndExecute(txb, network);
+
+		await getClient(network).waitForTransaction({
+			digest: res.digest,
+		});
+
 		console.log('******* Packages set up successfully *******');
 
 		try {
