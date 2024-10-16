@@ -28,7 +28,8 @@ export async function publishAndSetupSuinsContracts(toolbox: TestToolbox): Promi
 			// we need to set this to a temp file, so that the client uses the correct config.
 			CLIENT_CONFIG_FILE: toolbox.configPath,
 		},
-		// stdio: 'inherit',
+		// keep logs.
+		stdio: 'inherit',
 		encoding: 'utf8',
 	});
 

@@ -17,7 +17,8 @@ export const queryRegistryTable = async (
 		},
 	});
 
-	if (table.data?.content?.dataType !== 'moveObject') throw new Error('Invalid data');
+	if (table.data?.content?.dataType !== 'moveObject')
+		throw new Error(`Invalid data ${suinsPackageId}`);
 
 	const data = table.data?.content.fields as Record<string, any>;
 	return data.value.fields.registry.fields.id.id;
