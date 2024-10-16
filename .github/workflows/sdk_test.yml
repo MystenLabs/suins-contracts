@@ -24,6 +24,14 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install Homebrew
+        run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
+
+      - name: Install Sui using Homebrew
+        run: brew install sui
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -35,15 +43,6 @@ jobs:
       - name: Install Dependencies
         run: |
           pnpm install
-
-      - name: Download & Extract latest SUI binary
-        run: |
-          url=$(curl -s https://api.github.com/repos/mystenlabs/sui/releases/latest  | jq -r '.assets[] | select(.name | contains("ubuntu")) | .browser_download_url')
-          filename="sui-x86-64.tgz"
-          wget $url -O $filename
-          tar -xzf $filename
-          ls
-          ./sui -V
 
       - name: Prepare local network & run SDK tests
         env: 
