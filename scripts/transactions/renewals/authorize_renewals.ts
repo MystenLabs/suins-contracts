@@ -1,8 +1,8 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-import { TransactionBlock } from '@mysten/sui.js/transactions';
-import { MIST_PER_SUI } from '@mysten/sui.js/utils';
+import { Transaction } from '@mysten/sui/transactions';
+import { MIST_PER_SUI } from '@mysten/sui/utils';
 import dotenv from 'dotenv';
 
 import { mainPackage, Network } from '../../config/constants';
@@ -13,7 +13,7 @@ import { prepareMultisigTx, signAndExecute } from '../../utils/utils';
 dotenv.config();
 
 export const authorize = async (network: Network) => {
-	const txb = new TransactionBlock();
+	const txb = new Transaction();
 	const config = mainPackage[network];
 
 	authorizeApp({

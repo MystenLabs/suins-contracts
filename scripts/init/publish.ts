@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { existsSync, unlinkSync, writeFileSync } from 'fs';
 import path from 'path';
-import { TransactionBlock } from '@mysten/sui.js/transactions';
+import { Transaction } from '@mysten/sui/transactions';
 
 import { publishPackage, signAndExecute } from '../utils/utils';
 import { Network, Packages } from './packages';
@@ -35,7 +35,7 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 
 			writeFileSync(manifestFile, pkg.manifest()); // save the manifest as is.
 
-			const txb = new TransactionBlock();
+			const txb = new Transaction();
 			publishPackage(txb, packageFolder, configPath);
 			const res = await signAndExecute(txb, network);
 

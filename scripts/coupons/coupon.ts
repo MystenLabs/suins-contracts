@@ -1,7 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-import { TransactionArgument, TransactionBlock } from '@mysten/sui.js/transactions';
-import { isValidSuiAddress } from '@mysten/sui.js/utils';
+import { Transaction, TransactionArgument } from '@mysten/sui/transactions';
+import { isValidSuiAddress } from '@mysten/sui/utils';
 
 import { PackageInfo } from '../config/constants';
 
@@ -64,11 +64,7 @@ export class CouponType {
 	/**
 	 * Converts the coupon to a transaction.
 	 */
-	toTransaction(
-		txb: TransactionBlock,
-		config: PackageInfo,
-		rules?: TransactionArgument,
-	): TransactionBlock {
+	toTransaction(txb: Transaction, config: PackageInfo, rules?: TransactionArgument): Transaction {
 		if (this.type === undefined) throw new Error('You have to define a type');
 		if (!this.name) throw new Error('Please define a name for the coupon');
 
@@ -79,7 +75,7 @@ export class CouponType {
 		let lengthRule = rules ? null : optionalRangeConstructor(txb, config, this.rules.length);
 		let yearsRule = hasRulesSet ? null : optionalRangeConstructor(txb, config, this.rules.years);
 
-		let ruleArg = rules || newCouponRules(txb, config, this.rules, lengthRule, yearsRule);
+		let ruleArg = rules || newCouponRules(txb, config, this.rules, lengthRule!, yearsRule!);
 
 		txb.moveCall({
 			target: `${config.coupons.packageId}::coupon_house::admin_add_coupon`,
@@ -118,26 +114,8 @@ export type CouponRules = {
 	years?: number[];
 };
 
-const emptyOption = (txb: TransactionBlock, type: string) => {
-	return txb.pure(
-		{
-			None: true,
-		},
-		`Option<${type}>`,
-	);
-};
-
-const filledOption = (txb: TransactionBlock, value: any, type: string) => {
-	return txb.pure(
-		{
-			Some: value,
-		},
-		`Option<${type}>`,
-	);
-};
-
 export const optionalRangeConstructor = (
-	txb: TransactionBlock,
+	txb: Transaction,
 	config: PackageInfo,
 	range?: number[],
 ) => {
@@ -150,7 +128,7 @@ export const optionalRangeConstructor = (
 
 	let rangeArg = txb.moveCall({
 		target: `${config.coupons.packageId}::range::new`,
-		arguments: [txb.pure(range[0], 'u8'), txb.pure(range[1], 'u8')],
+		arguments: [txb.pure.u8(range[0]), txb.pure.u8(range[1])],
 	});
 
 	return txb.moveCall({
@@ -161,7 +139,7 @@ export const optionalRangeConstructor = (
 };
 
 export const newCouponRules = (
-	txb: TransactionBlock,
+	txb: Transaction,
 	config: PackageInfo,
 	rules: CouponRules,
 	lengthRule: TransactionArgument,
@@ -171,11 +149,9 @@ export const newCouponRules = (
 		target: `${config.coupons.packageId}::rules::new_coupon_rules`,
 		arguments: [
 			lengthRule,
-			rules.availableClaims
-				? filledOption(txb, rules.availableClaims, 'u64')
-				: emptyOption(txb, 'u64'),
-			rules.user ? filledOption(txb, rules.user, 'address') : emptyOption(txb, 'address'),
-			rules.expiration ? filledOption(txb, rules.expiration, 'u64') : emptyOption(txb, 'u64'),
+			txb.pure.option('u64', rules.availableClaims ?? null),
+			txb.pure.option('address', rules.user ?? null),
+			txb.pure.option('u64', rules.expiration ?? null),
 			yearsRule,
 		],
 	});

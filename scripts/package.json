@@ -25,9 +25,8 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
-		"@mysten/bcs": "0.11.1",
-		"@mysten/kiosk": "0.8.10",
-		"@mysten/sui.js": "^0.54.1",
+		"@mysten/kiosk": "0.9.21",
+		"@mysten/sui": "^1.12.0",
 		"@noble/hashes": "^1.4.0",
 		"@pythnetwork/pyth-sui-js": "2.0.0",
 		"dotenv": "^16.3.1"

@@ -1,8 +1,8 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-import { SuiObjectRef } from '@mysten/sui.js/client';
-import { TransactionArgument, TransactionBlock } from '@mysten/sui.js/transactions';
-import { MIST_PER_SUI, SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
+import { SuiObjectRef } from '@mysten/sui/client';
+import { Transaction, TransactionArgument } from '@mysten/sui/transactions';
+import { MIST_PER_SUI, SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 
 import { mainPackage, PackageInfo } from '../../config/constants';
 import reservedObjects from '../../reserved-names/owned-objects.json';
@@ -62,7 +62,7 @@ const parseReservedObjects = () => {
 parseReservedObjects();
 
 // Does withdraw from suins and returns the funds to be used in the PTB.
-const withdrawTx = (txb: TransactionBlock, config: PackageInfo) => {
+const withdrawTx = (txb: Transaction, config: PackageInfo) => {
 	return txb.moveCall({
 		target: `${config.packageId}::suins::withdraw`,
 		arguments: [txb.object(config.adminCap), txb.object(config.suins)],
@@ -70,7 +70,7 @@ const withdrawTx = (txb: TransactionBlock, config: PackageInfo) => {
 };
 
 const renewTx = (
-	txb: TransactionBlock,
+	txb: Transaction,
 	config: PackageInfo,
 	name: SuiObjectRef,
 	price: bigint,
@@ -85,7 +85,7 @@ const renewTx = (
 				version: name.version,
 				digest: name.digest,
 			}),
-			txb.pure(5),
+			txb.pure.u8(5),
 			splitFrom,
 			txb.object(SUI_CLOCK_OBJECT_ID),
 		],
@@ -94,7 +94,7 @@ const renewTx = (
 
 /// First transaction will process 1K 5+ letter names.
 export const prepareFirstTransaction = async () => {
-	const txb = new TransactionBlock();
+	const txb = new Transaction();
 	const config = mainPackage.mainnet;
 
 	// let's work with the first batch of 5Plus names (so we need 10 SUI / name (2*5))
@@ -104,12 +104,12 @@ export const prepareFirstTransaction = async () => {
 	// split 500 + 341 coins
 	txb.splitCoins(
 		coin,
-		[...Array(500).keys()].map((x) => txb.pure(YEARS_TO_RENEW * PRICE_LIST.fivePlus)),
+		[...Array(500).keys()].map((x) => txb.pure.u64(YEARS_TO_RENEW * PRICE_LIST.fivePlus)),
 	);
 	txb.splitCoins(
 		coin,
 		[...Array(batchToWork.length - 500).keys()].map((x) =>
-			txb.pure(YEARS_TO_RENEW * PRICE_LIST.fivePlus),
+			txb.pure.u64(YEARS_TO_RENEW * PRICE_LIST.fivePlus),
 		),
 	);
 
@@ -130,7 +130,7 @@ export const prepareFirstTransaction = async () => {
 	// merge as one and send to admin
 	txb.mergeCoins(coin, [coin2]);
 
-	txb.transferObjects([coin], txb.pure(config.adminAddress, 'address'));
+	txb.transferObjects([coin], txb.pure.address(config.adminAddress));
 
 	return prepareMultisigTx(txb, 'mainnet');
 };
@@ -139,7 +139,7 @@ export const prepareFirstTransaction = async () => {
 /// gas coin object ID.
 /// Both the second and the third are again operating on 1K 5+ letter names.
 export const prepareInbetweenTransactions = async (run: string) => {
-	const txb = new TransactionBlock();
+	const txb = new Transaction();
 	const config = mainPackage.mainnet;
 
 	const index = run === '2' ? 1 : run === '3' ? 2 : 3;
@@ -152,16 +152,18 @@ export const prepareInbetweenTransactions = async (run: string) => {
 		// split 500
 		txb.splitCoins(
 			txb.gas,
-			[...Array(500).keys()].map((x) => txb.pure(YEARS_TO_RENEW * PRICE_LIST.fivePlus)),
+			[...Array(500).keys()].map((x) => txb.pure.u64(YEARS_TO_RENEW * PRICE_LIST.fivePlus)),
 		);
 		txb.splitCoins(
 			txb.gas,
-			[...Array(batchSize - 500).keys()].map((x) => txb.pure(YEARS_TO_RENEW * PRICE_LIST.fivePlus)),
+			[...Array(batchSize - 500).keys()].map((x) =>
+				txb.pure.u64(YEARS_TO_RENEW * PRICE_LIST.fivePlus),
+			),
 		);
 	} else {
 		txb.splitCoins(
 			txb.gas,
-			[...Array(batchSize).keys()].map((x) => txb.pure(YEARS_TO_RENEW * PRICE_LIST.fivePlus)),
+			[...Array(batchSize).keys()].map((x) => txb.pure.u64(YEARS_TO_RENEW * PRICE_LIST.fivePlus)),
 		);
 	}
 
@@ -186,20 +188,16 @@ export const prepareInbetweenTransactions = async (run: string) => {
 };
 
 export const prepareLastTransaction = async () => {
-	const txb = new TransactionBlock();
+	const txb = new Transaction();
 	const config = mainPackage.mainnet;
 
 	txb.splitCoins(
 		txb.gas,
-		[...Array(names.four.length).keys()].map((x) => txb.pure(YEARS_TO_RENEW * PRICE_LIST.four)),
+		[...Array(names.four.length).keys()].map((x) => txb.pure.u64(YEARS_TO_RENEW * PRICE_LIST.four)),
 	);
 	// now we shall handle 4 letter names (that's 50 sui / name)
 	for (const [idx, name] of names.four.entries()) {
-		renewTx(txb, config, name, PRICE_LIST.four, {
-			kind: 'NestedResult',
-			index: 0,
-			resultIndex: idx,
-		});
+		renewTx(txb, config, name, PRICE_LIST.four, { NestedResult: [0, idx] });
 	}
 
 	const firstWithdrawal = withdrawTx(txb, config);
@@ -215,7 +213,7 @@ export const prepareLastTransaction = async () => {
 				config,
 				name,
 				PRICE_LIST.three,
-				txb.splitCoins(txb.gas, [txb.pure(YEARS_TO_RENEW * PRICE_LIST.three)]),
+				txb.splitCoins(txb.gas, [txb.pure.u64(YEARS_TO_RENEW * PRICE_LIST.three)]),
 			);
 		}
 		// we re-get some money to have enough balance for the last batch.
@@ -226,8 +224,8 @@ export const prepareLastTransaction = async () => {
 	// transfer profits to treasury in the same PTB :)
 	// We transfer 47K from the SuiNS app profits.
 	txb.transferObjects(
-		[txb.splitCoins(txb.gas, [txb.pure(47_350n * MIST_PER_SUI)])],
-		txb.pure(ADDRESS_TO_TRANSFER_FUNDS, 'address'),
+		[txb.splitCoins(txb.gas, [txb.pure.u64(47_350n * MIST_PER_SUI)])],
+		txb.pure.address(ADDRESS_TO_TRANSFER_FUNDS),
 	);
 
 	return prepareMultisigTx(txb, 'mainnet');

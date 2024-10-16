@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import { readFileSync, writeFileSync } from 'fs';
 import path from 'path';
-import { TransactionBlock } from '@mysten/sui.js/transactions';
-import { MIST_PER_SUI } from '@mysten/sui.js/utils';
+import { Transaction } from '@mysten/sui/transactions';
+import { MIST_PER_SUI } from '@mysten/sui/utils';
 
 import { getClient, signAndExecute } from '../utils/utils';
 import { authorizeApp } from './authorization';
@@ -17,7 +17,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export const setup = async (packageInfo: PackageInfo, network: Network) => {
 	const packages = Packages(network);
 
-	const txb = new TransactionBlock();
+	const txb = new Transaction();
 
 	for (const [key, pkg] of Object.entries(packageInfo)) {
 		const data = packages[key as keyof typeof packages];

@@ -1,8 +1,9 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-import { SuiTransactionBlockResponse } from '@mysten/sui.js/client';
-import { TransactionBlock } from '@mysten/sui.js/transactions';
-import { MIST_PER_SUI } from '@mysten/sui.js/utils';
+
+import { SuiTransactionBlockResponse } from '@mysten/sui/client';
+import { Transaction } from '@mysten/sui/transactions';
+import { MIST_PER_SUI } from '@mysten/sui/utils';
 
 import {
 	addConfig,
@@ -58,7 +59,7 @@ export const Packages = (network: Network) => {
 				};
 			},
 			setupFunction: (
-				txb: TransactionBlock,
+				txb: Transaction,
 				packageId: string,
 				adminCap: string,
 				suins: string,
@@ -137,12 +138,7 @@ export const Packages = (network: Network) => {
 				};
 			},
 			authorizationType: (packageId: string) => `${packageId}::denylist::DenyListAuth`,
-			setupFunction: (
-				txb: TransactionBlock,
-				packageId: string,
-				adminCap: string,
-				suins: string,
-			) => {
+			setupFunction: (txb: Transaction, packageId: string, adminCap: string, suins: string) => {
 				setupApp({ txb, adminCap, suins, target: `${packageId}::denylist` });
 			},
 		},
@@ -181,7 +177,7 @@ export const Packages = (network: Network) => {
 				suins,
 				priceList,
 			}: {
-				txb: TransactionBlock;
+				txb: Transaction;
 				packageId: string;
 				suinsPackageIdV1: string;
 				adminCap: string;
@@ -235,7 +231,7 @@ export const Packages = (network: Network) => {
 				adminCap,
 				suins,
 			}: {
-				txb: TransactionBlock;
+				txb: Transaction;
 				packageId: string;
 				adminCap: string;
 				suins: string;
@@ -256,7 +252,7 @@ export const Packages = (network: Network) => {
 				};
 			},
 			setupFunction: (
-				txb: TransactionBlock,
+				txb: Transaction,
 				packageId: string,
 				adminCap: string,
 				suins: string,

@@ -1,12 +1,12 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 import fs from 'fs';
-import { SuiObjectResponse } from '@mysten/sui.js/client';
-import { TransactionBlock } from '@mysten/sui.js/transactions';
-import { isValidSuiAddress } from '@mysten/sui.js/utils';
+import { SuiObjectResponse } from '@mysten/sui/client';
+import { Transaction } from '@mysten/sui/transactions';
+import { isValidSuiAddress } from '@mysten/sui/utils';
 
-import { prepareMultisigTx } from '../utils/utils';
 import { mainPackage } from '../config/constants';
+import { prepareMultisigTx } from '../utils/utils';
 
 // A {name: address} map
 const domains: Record<string, string> = {};
@@ -82,12 +82,12 @@ const parseCsvFile = () => {
 };
 
 const prepareTx = () => {
-	const txb = new TransactionBlock();
+	const txb = new Transaction();
 	const pkg = mainPackage.mainnet;
 
 	for (let recipient of Object.keys(recipients)) {
 		const objects = [...recipients[recipient]].filter((x) => !!x);
-		txb.transferObjects([...objects.map((x) => txb.object(x))], txb.pure(recipient));
+		txb.transferObjects([...objects.map((x) => txb.object(x))], txb.pure.address(recipient));
 	}
 
 	return prepareMultisigTx(txb, 'mainnet', pkg.adminAddress);
