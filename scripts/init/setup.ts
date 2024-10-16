@@ -11,9 +11,6 @@ import { Network, Packages } from './packages';
 import { queryRegistryTable } from './queries';
 import { PackageInfo } from './types';
 
-// create a sleep async function
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 export const setup = async (packageInfo: PackageInfo, network: Network) => {
 	const packages = Packages(network);
 
@@ -86,8 +83,9 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 			const constants = JSON.parse(
 				readFileSync(path.resolve(__dirname, '../constants.sdk.json'), 'utf8'),
 			);
-			// TODO: Use "waitForTransaction" when we migrate to latest SDK.
-			await sleep(2000);
+
+			console.log(constants);
+
 			constants.registryTableId = await queryRegistryTable(
 				getClient(network),
 				packageInfo.SuiNS.suins,
