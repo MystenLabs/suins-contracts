@@ -70,6 +70,7 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 	});
 
 	try {
+		txb.setGasBudget(1_000_000_000);
 		const res = await signAndExecute(txb, network);
 
 		await getClient(network).waitForTransaction({
