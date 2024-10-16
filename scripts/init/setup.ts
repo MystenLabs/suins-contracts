@@ -76,6 +76,8 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 			digest: res.digest,
 		});
 
+		console.log(res);
+
 		console.log('******* Packages set up successfully *******');
 
 		try {
