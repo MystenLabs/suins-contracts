@@ -49,4 +49,4 @@ jobs:
           IS_CI_JOB: true
           NETWORK: localnet
         run: |
-          sui start --with-faucet --force-regenesis --epoch-duration-ms 180000 > /dev/null 2>&1 & cd sdk && VITE_SUI_BIN="sui" pnpm test:e2e
+          sui start --with-faucet --force-regenesis --epoch-duration-ms 120000 > /dev/null 2>&1 & cd sdk && VITE_SUI_BIN="sui" pnpm test:e2e
