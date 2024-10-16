@@ -12,7 +12,7 @@ on:
           - Multi Purpose Operation
           - Profits to Treasury
           - Transfer Reserved Names
-          - Bulk Coupons
+          - Free Coupons
       sui_tools_image:
         description: 'image reference of sui_tools'
         default: 'mysten/sui-tools:mainnet'
@@ -114,8 +114,8 @@ jobs:
         run: |
           cd scripts && pnpm ts-node transactions/discount-and-auction-profits.ts
 
-      - name: Bulk Coupons
-        if: ${{ inputs.transaction_type == 'Bulk Coupons' }}
+      - name: Free Coupons
+        if: ${{ inputs.transaction_type == 'Free Coupons' }}
         env:
           NODE_ENV: production
           GAS_OBJECT: ${{ inputs.gas_object_id }}
@@ -123,7 +123,7 @@ jobs:
           ORIGIN: gh_action
           RPC_URL: ${{ inputs.rpc }}
         run: |
-          cd scripts && pnpm ts-node transactions/create-bulk-coupons.ts
+          cd scripts && pnpm ts-node transactions/free-three-digit.ts
 
       - name: Show Transaction Data (To sign)
         run: |
