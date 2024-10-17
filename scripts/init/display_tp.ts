@@ -1,6 +1,6 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-import { TransactionBlock } from '@mysten/sui.js/transactions';
+import { Transaction } from '@mysten/sui/transactions';
 
 export const getImageUrl = (isSubdomain: boolean, network: 'mainnet' | 'testnet') => {
 	const name = `{${isSubdomain ? 'nft.' : ''}domain_name}`;
@@ -18,7 +18,7 @@ export const createDisplay = ({
 	subdomainsPackageId,
 	network = 'mainnet',
 }: {
-	txb: TransactionBlock;
+	txb: Transaction;
 	publisher: string;
 	isSubdomain: boolean;
 	suinsPackageIdV1: string;
@@ -38,8 +38,8 @@ export const createDisplay = ({
 		target: `0x2::display::add_multiple`,
 		arguments: [
 			display,
-			txb.pure(['name', 'link', 'image_url', 'description', 'project_url']),
-			txb.pure([
+			txb.pure.vector('string', ['name', 'link', 'image_url', 'description', 'project_url']),
+			txb.pure.vector('string', [
 				`{${isSubdomain ? 'nft.' : ''}domain_name}`,
 				`https://{${isSubdomain ? 'nft.' : ''}domain_name}.id`,
 				getImageUrl(isSubdomain, network),

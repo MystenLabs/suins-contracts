@@ -1,14 +1,14 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-import { TransactionBlock } from '@mysten/sui.js/transactions';
-import { MIST_PER_SUI } from '@mysten/sui.js/utils';
+import { Transaction } from '@mysten/sui/transactions';
+import { MIST_PER_SUI } from '@mysten/sui/utils';
 
 import { mainPackage } from '../config/constants';
 import { setupDiscountForType } from '../config/discounts';
 import { prepareMultisigTx } from '../utils/utils';
 
 export const run = async () => {
-	const txb = new TransactionBlock();
+	const txb = new Transaction();
 
 	const suiLinkType = (innerType: string) => {
 		return `0xf857fa9df5811e6df2a0240a1029d365db24b5026896776ddd1c3c70803bccd3::suilink::SuiLink<${innerType}>`;

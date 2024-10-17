@@ -1,6 +1,6 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-import { TransactionBlock } from '@mysten/sui.js/transactions';
+import { Transaction } from '@mysten/sui/transactions';
 
 import { Network, PackageInfo } from './constants';
 
@@ -37,7 +37,7 @@ export type Range = {
 
 // Sets up discount prices for type.
 export const setupDiscountForType = (
-	txb: TransactionBlock,
+	txb: Transaction,
 	setup: PackageInfo,
 	type: string,
 	prices: Discount,
@@ -56,7 +56,7 @@ export const setupDiscountForType = (
 };
 
 // remove discount for type
-export const removeDiscountForType = (txb: TransactionBlock, setup: PackageInfo, type: string) => {
+export const removeDiscountForType = (txb: Transaction, setup: PackageInfo, type: string) => {
 	txb.moveCall({
 		target: `${setup.discountsPackage.packageId}::discounts::deauthorize_type`,
 		arguments: [txb.object(setup.adminCap), txb.object(setup.discountsPackage.discountHouseId)],
@@ -66,7 +66,7 @@ export const removeDiscountForType = (txb: TransactionBlock, setup: PackageInfo,
 
 // Sets up free claims for type.
 export const setupFreeClaimsForType = (
-	txb: TransactionBlock,
+	txb: Transaction,
 	setup: PackageInfo,
 	type: string,
 	characters: Range,
@@ -76,17 +76,13 @@ export const setupFreeClaimsForType = (
 		arguments: [
 			txb.object(setup.adminCap),
 			txb.object(setup.discountsPackage.discountHouseId),
-			txb.pure([characters.from, characters.to], 'vector<u8>'),
+			txb.pure.vector('u8', [characters.from, characters.to]),
 		],
 		typeArguments: [type],
 	});
 };
 
-export const removeFreeClaimsForType = (
-	txb: TransactionBlock,
-	setup: PackageInfo,
-	type: string,
-) => {
+export const removeFreeClaimsForType = (txb: Transaction, setup: PackageInfo, type: string) => {
 	txb.moveCall({
 		target: `${setup.discountsPackage.packageId}::free_claims::force_deauthorize_type`,
 		arguments: [txb.object(setup.adminCap), txb.object(setup.discountsPackage.discountHouseId)],

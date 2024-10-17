@@ -1,7 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 import { KioskClient, Network as KioskNetwork, TransferPolicyTransaction } from '@mysten/kiosk';
-import { TransactionBlock } from '@mysten/sui.js/transactions';
+import { Transaction } from '@mysten/sui/transactions';
 
 import { mainPackage, Network } from '../config/constants';
 import { addressConfig, AirdropConfig, mainnetConfig } from '../config/day_one';
@@ -9,7 +9,7 @@ import { getClient } from '../utils/utils';
 
 export const dayOneType = (config: AirdropConfig) => `${config.packageId}::day_one::DayOne`;
 
-export const createDayOneDisplay = async (tx: TransactionBlock, network: Network) => {
+export const createDayOneDisplay = async (tx: Transaction, network: Network) => {
 	const config = network === 'mainnet' ? mainnetConfig : addressConfig;
 	const displayObject = {
 		keys: ['name', 'description', 'link', 'image_url'],
@@ -27,8 +27,8 @@ export const createDayOneDisplay = async (tx: TransactionBlock, network: Network
 		target: '0x2::display::new_with_fields',
 		arguments: [
 			tx.object(config.publisher),
-			tx.pure(displayObject.keys),
-			tx.pure(displayObject.values),
+			tx.pure.vector('string', displayObject.keys),
+			tx.pure.vector('string', displayObject.values),
 		],
 		typeArguments: [dayOneType(config)],
 	});
@@ -39,10 +39,10 @@ export const createDayOneDisplay = async (tx: TransactionBlock, network: Network
 		typeArguments: [dayOneType(config)],
 	});
 
-	tx.transferObjects([display], tx.pure(mainPackageConfig.adminAddress));
+	tx.transferObjects([display], tx.pure.address(mainPackageConfig.adminAddress));
 };
 
-export const createDayOneTransferPolicy = async (tx: TransactionBlock, network: Network) => {
+export const createDayOneTransferPolicy = async (tx: Transaction, network: Network) => {
 	const config = network === 'mainnet' ? mainnetConfig : addressConfig;
 	const mainPackageConfig = mainPackage[network];
 
@@ -59,7 +59,7 @@ export const createDayOneTransferPolicy = async (tx: TransactionBlock, network: 
 	}
 
 	// create transfer policy
-	let tpTx = new TransferPolicyTransaction({ kioskClient, transactionBlock: tx });
+	let tpTx = new TransferPolicyTransaction({ kioskClient, transaction: tx });
 	await tpTx.create({
 		type: `${dayOneType(config)}`,
 		publisher: config.publisher,

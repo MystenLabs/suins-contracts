@@ -111,6 +111,24 @@ export const e2eLiveNetworkDryRunFlow = async (network: 'mainnet' | 'testnet') =
 
 	tx.setSender(sender);
 
+	if (network === 'mainnet') {
+		tx.setGasPayment([
+			{
+				objectId: '0xc7fcf957faeb0cdd9809b2ab43e0a8bf7a945cfdac13e8cba527261fecefa4dd',
+				version: '86466933',
+				digest: '2F8iuFVJm55J96FnJ99Th493D254BaJkUccbwz5rHFDc',
+			},
+		]);
+	} else if (network === 'testnet') {
+		tx.setGasPayment([
+			{
+				objectId: '0xeb709b97ca3e87e385d019ccb7da4a9bd99f9405f9b0d692f21c9d2e5714f27a',
+				version: '169261602',
+				digest: 'HJehhEV1N8rqjjHbwDgjeCZJkHPRavMmihTvyTJme2rA',
+			},
+		]);
+	}
+
 	return client.dryRunTransactionBlock({
 		transactionBlock: await tx.build({
 			client,

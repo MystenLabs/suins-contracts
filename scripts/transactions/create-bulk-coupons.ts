@@ -1,7 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 import { writeFileSync } from 'fs';
-import { TransactionBlock } from '@mysten/sui.js/transactions';
+import { Transaction } from '@mysten/sui/transactions';
 
 import { mainPackage } from '../config/constants';
 import { newCouponRules, optionalRangeConstructor, PercentageOffCoupon } from '../coupons/coupon';
@@ -22,16 +22,16 @@ function generateRandomString(length: number) {
 const create = async () => {
 	const pkg = mainPackage.mainnet;
 
-	const tx = new TransactionBlock();
+	const tx = new Transaction();
 
-    const freeCouponAddress = "0x11469060268ba1d611e3ad95f3134332f68e21198ce068a14f30975336be9ca1";
+	const freeCouponAddress = '0x11469060268ba1d611e3ad95f3134332f68e21198ce068a14f30975336be9ca1';
 
-    new PercentageOffCoupon(100)
-        .setName(freeCouponAddress)
-        .setAvailableClaims(200)
-        .setYears([1, 1])
-        .setUser(freeCouponAddress)
-        .toTransaction(tx, pkg);
+	new PercentageOffCoupon(100)
+		.setName(freeCouponAddress)
+		.setAvailableClaims(200)
+		.setYears([1, 1])
+		.setUser(freeCouponAddress)
+		.toTransaction(tx, pkg);
 
 	const lengthRange = optionalRangeConstructor(tx, pkg, [3, 63]);
 	const yearsRange = optionalRangeConstructor(tx, pkg, [1, 1]);
@@ -48,7 +48,7 @@ const create = async () => {
 		yearsRange,
 	);
 
-    const coupons80Off = [];
+	const coupons80Off = [];
 
 	// create 300 80% coupons
 	for (let i = 0; i < 300; i++) {
@@ -71,25 +71,25 @@ const create = async () => {
 	console.log('******** 25% Coupons ********');
 	console.dir(coupons25Off, { depth: null });
 
-    const lengthRange2 = optionalRangeConstructor(tx, pkg, [3, 3]);
+	const lengthRange2 = optionalRangeConstructor(tx, pkg, [3, 3]);
 	const yearsRange2 = optionalRangeConstructor(tx, pkg, [1, 1]);
 
 	const rules2 = newCouponRules(
 		tx,
 		pkg,
 		{
-            expiration: "1729656000000",
+			expiration: '1729656000000',
 		},
 		lengthRange2,
 		yearsRange2,
 	);
 
-    const unlimitedCoupon = [];
+	const unlimitedCoupon = [];
 
 	// create 30% coupons for 3 length names
-    const coupon = generateRandomString(16);
-    unlimitedCoupon.push(coupon);
-    new PercentageOffCoupon(30).setName(coupon).toTransaction(tx, pkg, rules2);
+	const coupon = generateRandomString(16);
+	unlimitedCoupon.push(coupon);
+	new PercentageOffCoupon(30).setName(coupon).toTransaction(tx, pkg, rules2);
 
 	writeFileSync(
 		'./tx/coupon-list.json',
@@ -97,7 +97,7 @@ const create = async () => {
 			{
 				coupons80Off,
 				coupons25Off,
-                unlimitedCoupon,
+				unlimitedCoupon,
 			},
 			null,
 			2,

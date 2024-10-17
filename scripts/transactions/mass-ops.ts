@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { writeFileSync } from 'fs';
-import { TransactionBlock } from '@mysten/sui.js/transactions';
+import { Transaction } from '@mysten/sui/transactions';
 
 import { mainPackage } from '../config/constants';
 import { removeDiscountForType } from '../config/discounts';
@@ -53,7 +53,7 @@ const run = async () => {
 		]),
 	];
 
-	const tx = new TransactionBlock();
+	const tx = new Transaction();
 
 	const NS_TYPE = `${config.packageId}::suins_registration::SuinsRegistration`;
 

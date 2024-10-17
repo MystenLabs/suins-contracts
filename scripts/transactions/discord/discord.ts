@@ -1,12 +1,11 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-import { TransactionBlock } from '@mysten/sui.js/transactions';
+import { Transaction } from '@mysten/sui/transactions';
 
 import { mainPackage, PackageInfo } from '../../config/constants';
 import { signAndExecute } from '../../utils/utils';
 import { attachRoles, setAddress } from './user';
-import { bcs } from '@mysten/sui.js/bcs';
 
 export const discordRoles = {
 	master: {
@@ -51,7 +50,7 @@ export const discordRoles = {
     }
 };
 
-export const authorizeDiscordApp = (txb: TransactionBlock, config: PackageInfo) => {
+export const authorizeDiscordApp = (txb: Transaction, config: PackageInfo) => {
 	txb.moveCall({
 		target: `${config.coupons.packageId}::coupon_house::authorize_app`,
 		arguments: [txb.object(config.adminCap), txb.object(config.suins)],
@@ -61,7 +60,7 @@ export const authorizeDiscordApp = (txb: TransactionBlock, config: PackageInfo) 
 
 // add role to discord.
 export const addDiscordRole = (
-	txb: TransactionBlock,
+	txb: Transaction,
 	role: {
 		id: number;
 		percentage: number;
@@ -71,8 +70,8 @@ export const addDiscordRole = (
 	txb.moveCall({
 		target: `${config.discord?.packageId}::discord::add_discord_role`,
 		arguments: [
-			txb.object(config.discord?.discordCap),
-			txb.object(config.discord?.discordObjectId),
+			txb.object(config.discord!.discordCap),
+			txb.object(config.discord!.discordObjectId),
 			txb.pure.u8(role.id),
 			txb.pure.u8(role.percentage),
 		],
@@ -80,7 +79,7 @@ export const addDiscordRole = (
 };
 
 export const setPublicKey = async (
-	txb: TransactionBlock,
+	txb: Transaction,
 	pubKey: Uint8Array,
 	config: PackageInfo,
 ) => {
@@ -89,9 +88,9 @@ export const setPublicKey = async (
 	txb.moveCall({
 		target: `${config.discord?.packageId}::discord::set_public_key`,
 		arguments: [
-			txb.object(config.discord?.discordCap),
-			txb.object(config.discord?.discordObjectId),
-			txb.pure(bcs.vector(bcs.U8).serialize([...pubKey])),
+			txb.object(config.discord!.discordCap),
+			txb.object(config.discord!.discordObjectId),
+			txb.pure.vector('u8', [...pubKey]),
 		],
 	});
 };
@@ -103,7 +102,7 @@ const prepareTestnetContract = async () => {
 		69, 39, 116, 176, 59, 114, 83, 28, 209, 143, 129,
 	]);
 
-	const tx = new TransactionBlock();
+	const tx = new Transaction();
 
 	for (let role of Object.values(discordRoles)) {
 		addDiscordRole(tx, role, config);
@@ -118,7 +117,7 @@ const prepareTestnetContract = async () => {
 const demoTestnetUserCreation = async () => {
 	const config = mainPackage.testnet;
 
-	const tx = new TransactionBlock();
+	const tx = new Transaction();
 
 	// attachRoles(
 	// 	tx,

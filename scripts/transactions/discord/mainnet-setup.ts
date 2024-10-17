@@ -1,7 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-import { TransactionBlock } from '@mysten/sui.js/transactions';
+import { Transaction } from '@mysten/sui/transactions';
 
 import { mainPackage } from '../../config/constants';
 import { authorizeApp } from '../../init/authorization';
@@ -10,7 +10,7 @@ import { prepareMultisigTx } from '../../utils/utils';
 import { authorizeDiscordApp } from './discord';
 
 export const prepareMainnetSetupPTB = async () => {
-	const txb = new TransactionBlock();
+	const txb = new Transaction();
 	const config = mainPackage.mainnet;
 
 	Packages('mainnet').Coupons.setupFunction({

@@ -8,7 +8,6 @@ import { e2eLiveNetworkDryRunFlow } from './pre-built';
 describe('it should work on live networks', () => {
 	it('should work on mainnet', async () => {
 		const res = await e2eLiveNetworkDryRunFlow('mainnet');
-
 		expect(res.effects.status.status).toEqual('success');
 	});
 

@@ -1,13 +1,13 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-import { TransactionBlock } from '@mysten/sui.js/transactions';
+import { Transaction } from '@mysten/sui/transactions';
 
 import { mainPackage } from '../config/constants';
 import { prepareMultisigTx } from '../utils/utils';
 
 const craftTx = async () => {
-	const txb = new TransactionBlock();
+	const txb = new Transaction();
 	const config = mainPackage.mainnet;
 
 	const adminCapObj = txb.object(config.adminCap);
@@ -17,7 +17,7 @@ const craftTx = async () => {
 		arguments: [adminCapObj, txb.object(config.suins)],
 	});
 
-	txb.transferObjects([generalProfits], txb.pure(config.treasuryAddress, 'address'));
+	txb.transferObjects([generalProfits], txb.pure.address(config.treasuryAddress!));
 	await prepareMultisigTx(txb, 'mainnet', config.adminAddress);
 };
 

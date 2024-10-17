@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import { readFileSync, writeFileSync } from 'fs';
 import path from 'path';
-import { TransactionBlock } from '@mysten/sui.js/transactions';
-import { MIST_PER_SUI } from '@mysten/sui.js/utils';
+import { Transaction } from '@mysten/sui/transactions';
+import { MIST_PER_SUI } from '@mysten/sui/utils';
 
 import { getClient, signAndExecute } from '../utils/utils';
 import { authorizeApp } from './authorization';
@@ -11,13 +11,10 @@ import { Network, Packages } from './packages';
 import { queryRegistryTable } from './queries';
 import { PackageInfo } from './types';
 
-// create a sleep async function
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 export const setup = async (packageInfo: PackageInfo, network: Network) => {
 	const packages = Packages(network);
 
-	const txb = new TransactionBlock();
+	const txb = new Transaction();
 
 	for (const [key, pkg] of Object.entries(packageInfo)) {
 		const data = packages[key as keyof typeof packages];
@@ -72,10 +69,29 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 		packageId: packageInfo.Coupons.packageId,
 	});
 
+	let retries = 0;
+
 	try {
-		// TODO: Use "waitForTransaction" when we migrate to latest SDK.
-		await sleep(2000);
-		await signAndExecute(txb, network);
+		txb.setGasBudget(1_000_000_000);
+
+		while (retries < 3) {
+			console.log('Retrying setup...');
+			const res = await signAndExecute(txb, network);
+
+			await getClient(network).waitForTransaction({
+				digest: res.digest,
+			});
+
+			if (res.effects?.status.status === 'success') break;
+			console.log(res);
+			retries++;
+
+			if (retries === 3) {
+				console.error('Failed to set up packages');
+				return;
+			}
+		}
+
 		console.log('******* Packages set up successfully *******');
 
 		try {
@@ -83,8 +99,12 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 			const constants = JSON.parse(
 				readFileSync(path.resolve(__dirname, '../constants.sdk.json'), 'utf8'),
 			);
-			// TODO: Use "waitForTransaction" when we migrate to latest SDK.
-			await sleep(2000);
+
+			console.log(constants);
+
+			// delay 3 seconds
+			await new Promise((resolve) => setTimeout(resolve, 3000));
+
 			constants.registryTableId = await queryRegistryTable(
 				getClient(network),
 				packageInfo.SuiNS.suins,

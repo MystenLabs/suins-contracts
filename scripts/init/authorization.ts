@@ -1,6 +1,6 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-import { TransactionArgument, TransactionBlock } from '@mysten/sui.js/transactions';
+import { TransactionArgument, type Transaction } from '@mysten/sui/transactions';
 
 /**
  * A helper to authorize any app in the SuiNS object.
@@ -12,7 +12,7 @@ export const authorizeApp = ({
 	type,
 	suinsPackageIdV1,
 }: {
-	txb: TransactionBlock;
+	txb: Transaction;
 	adminCap: string;
 	suins: string;
 	type: string;
@@ -35,7 +35,7 @@ export const deauthorizeApp = ({
 	type,
 	suinsPackageIdV1,
 }: {
-	txb: TransactionBlock;
+	txb: Transaction;
 	adminCap: string;
 	suins: string;
 	type: string;
@@ -58,7 +58,7 @@ export const setupApp = ({
 	target,
 	args,
 }: {
-	txb: TransactionBlock;
+	txb: Transaction;
 	adminCap: string;
 	suins: string;
 	target: `${string}::${string}`;
@@ -81,7 +81,7 @@ export const addConfig = ({
 	config,
 	suinsPackageIdV1,
 }: {
-	txb: TransactionBlock;
+	txb: Transaction;
 	adminCap: string;
 	suins: string;
 	suinsPackageIdV1: string;
@@ -105,7 +105,7 @@ export const removeConfig = ({
 	type,
 	suinsPackageIdV1,
 }: {
-	txb: TransactionBlock;
+	txb: Transaction;
 	adminCap: string;
 	suins: string;
 	suinsPackageIdV1: string;
@@ -127,7 +127,7 @@ export const newPriceConfig = ({
 	priceList,
 	publicKey = [...Array(33).keys()],
 }: {
-	txb: TransactionBlock;
+	txb: Transaction;
 	suinsPackageIdV1: string;
 	priceList: { [key: string]: number };
 	publicKey?: number[];
@@ -135,10 +135,10 @@ export const newPriceConfig = ({
 	return txb.moveCall({
 		target: `${suinsPackageIdV1}::config::new`,
 		arguments: [
-			txb.pure(publicKey),
-			txb.pure(priceList.three),
-			txb.pure(priceList.four),
-			txb.pure(priceList.fivePlus),
+			txb.pure.vector('u8', publicKey),
+			txb.pure.u64(priceList.three),
+			txb.pure.u64(priceList.four),
+			txb.pure.u64(priceList.fivePlus),
 		],
 	});
 };
@@ -154,7 +154,7 @@ export const addRegistry = ({
 	registry,
 	suinsPackageIdV1,
 }: {
-	txb: TransactionBlock;
+	txb: Transaction;
 	adminCap: string;
 	suins: string;
 	suinsPackageIdV1: string;
@@ -177,7 +177,7 @@ export const newLookupRegistry = ({
 	adminCap,
 	suinsPackageIdV1,
 }: {
-	txb: TransactionBlock;
+	txb: Transaction;
 	adminCap: string;
 	suinsPackageIdV1: string;
 }): TransactionArgument => {
