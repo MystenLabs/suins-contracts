@@ -72,6 +72,7 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 	let retries = 0;
 
 	try {
+		txb.setGasBudget(0.018 * Number(MIST_PER_SUI));
 		while (retries < 3) {
 			console.log('Retrying setup...');
 			console.dir(txb.getData(), { depth: null });
