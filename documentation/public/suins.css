@@ -47,7 +47,7 @@ button.nextra-hamburger {
     @apply !text-white
 }
 
-ol > li > ul {
+li :is(ul, ol) {
     @apply !mt-0
 }
 
