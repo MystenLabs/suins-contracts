@@ -1,5 +1,11 @@
 # @mysten/suins
 
+## 0.4.1
+
+### Patch Changes
+
+- d684ec0: Update @mysten/sui.js dependency
+
 ## 0.4.0
 
 ### Minor Changes
