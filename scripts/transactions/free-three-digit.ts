@@ -1,6 +1,6 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-import { TransactionBlock } from '@mysten/sui.js/transactions';
+import { Transaction } from '@mysten/sui/transactions';
 
 import { mainPackage } from '../config/constants';
 import { PercentageOffCoupon } from '../coupons/coupon';
@@ -11,7 +11,7 @@ import addresses from './addresses.json';
 /// with full price.
 const prepareCoupons = async () => {
 	const pkg = mainPackage.mainnet;
-	const tx = new TransactionBlock();
+	const tx = new Transaction();
 
 	const expiration = `1760691600000`; // 2025 Oct 17 09:00:00 UTC
 
