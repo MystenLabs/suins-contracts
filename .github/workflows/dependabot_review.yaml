@@ -5,17 +5,8 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  assign-reviewers:
-    if: github.actor == 'dependabot[bot]'  # Only for Dependabot PRs
-    runs-on: ubuntu-latest
-    steps:
-      - name: Assign Reviewers
-        uses: kentaro-m/auto-assign-action@v1.2.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   run-changeset:
-    if: github.actor == 'dependabot[bot]'  # Only for Dependabot PRs
+    if: github.actor == 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -48,4 +39,13 @@ jobs:
           git commit -m "chore: update after pnpm release"
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  assign-reviewers:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign Reviewers
+        uses: kentaro-m/auto-assign-action@v1.2.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
