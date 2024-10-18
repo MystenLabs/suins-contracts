@@ -6,6 +6,7 @@ on:
       - '.github/workflows/sdk_test.yml'
       - 'sdk/**'
       - 'packages/**'
+      - 'scripts/**'
   push:
     branches:
       - main
