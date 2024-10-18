@@ -1,4 +1,4 @@
-name: Auto-Assign Reviewers for Dependabot PRs
+name: Auto-Assign Reviewers and Run pnpm changeset for Dependabot PRs
 
 on:
   pull_request_target:
@@ -6,10 +6,46 @@ on:
 
 jobs:
   assign-reviewers:
-    if: github.actor == 'dependabot[bot]'
+    if: github.actor == 'dependabot[bot]'  # Only for Dependabot PRs
     runs-on: ubuntu-latest
     steps:
       - name: Assign Reviewers
         uses: kentaro-m/auto-assign-action@v1.2.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  run-changeset:
+    if: github.actor == 'dependabot[bot]'  # Only for Dependabot PRs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run pnpm release
+        run: pnpm release
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit and push changes
+        run: |
+          git add .
+          git commit -m "chore: update after pnpm release"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
