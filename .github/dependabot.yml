@@ -11,3 +11,4 @@ updates:
       interval: 'daily'
     allow:
       - dependency-name: '@mysten/sui'
+    automerge: true
