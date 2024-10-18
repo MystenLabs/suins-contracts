@@ -37,7 +37,7 @@ jobs:
         run: |
           git add .
           git commit -m "chore: update after pnpm release"
-          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          git push origin HEAD:$PR_HEAD_REF
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
