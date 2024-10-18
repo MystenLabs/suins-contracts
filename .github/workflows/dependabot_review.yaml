@@ -34,12 +34,13 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Commit and push changes
+        env:
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           git add .
           git commit -m "chore: update after pnpm release"
           git push origin HEAD:$PR_HEAD_REF
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
   assign-reviewers:
     if: github.actor == 'dependabot[bot]'
