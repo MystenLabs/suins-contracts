@@ -25,8 +25,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Run pnpm release
-        run: pnpm release
+      - name: Create changeset file
+        run: |
+          echo "---" > .changeset/metal-grapes-flow.md
+          echo "\"@mysten/suins\": patch" >> .changeset/metal-grapes-flow.md
+          echo "---" >> .changeset/metal-grapes-flow.md
+          echo "" >> .changeset/metal-grapes-flow.md
+          echo "@mysten/sui update" >> .changeset/metal-grapes-flow.md
 
       - name: Configure Git
         run: |
@@ -39,7 +44,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           git add .
-          git commit -m "chore: update after pnpm release"
+          git commit -m "changeset"
           git push origin HEAD:$PR_HEAD_REF
 
   assign-reviewers:
