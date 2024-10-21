@@ -34,6 +34,7 @@ module suins::register_sample {
     ): SuinsRegistration {
         suins::assert_app_is_authorized<Register>(suins);
 
+        // Where does the test add the config?
         let config = suins::get_config<PricingConfig<T>>(suins);
 
         let domain = domain::new(domain_name);
