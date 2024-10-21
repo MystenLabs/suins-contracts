@@ -7,19 +7,19 @@ module suins::auction {
     use std::{option::{none, some, is_some}, string::String};
 
     use sui::{
-        balance::{Self, Balance}, 
-        coin::{Self, Coin}, 
-        clock::Clock, 
-        event, 
-        sui::SUI, 
+        balance::{Self, Balance},
+        coin::{Self, Coin},
+        clock::Clock,
+        event,
+        sui::SUI,
         linked_table::{Self, LinkedTable}
     };
 
     use suins::{
-        config::{Self, Config}, 
-        suins::{Self, AdminCap, SuiNS}, 
-        suins_registration::SuinsRegistration, 
-        registry::Registry, 
+        config::{Self, Config},
+        suins::{Self, AdminCap, SuiNS},
+        suins_registration::SuinsRegistration,
+        registry::Registry,
         domain::{Self, Domain}
     };
 
@@ -56,6 +56,7 @@ module suins::auction {
     }
 
     /// The Auction application.
+    #[allow(lint(coin_field))]
     public struct Auction has store {
         domain: Domain,
         start_timestamp_ms: u64,
