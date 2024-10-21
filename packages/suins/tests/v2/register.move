@@ -6,7 +6,7 @@ module suins::register_sample {
     use std::string::{Self, String};
     use sui::{coin::{Self, Coin}, clock::Clock, sui::SUI};
 
-    use suins::{domain, registry::{Self, Registry}, suins::{Self, SuiNS}, config::{Self, Config}, suins_registration::SuinsRegistration};
+    use suins::{domain, registry::{Self, Registry}, suins::{Self, SuiNS}, config::{Self}, suins_registration::SuinsRegistration, pricing::{Self, PricingConfig}};
 
     /// Number of years passed is not within [1-5] interval.
     const EInvalidYearsArgument: u64 = 0;
@@ -24,7 +24,7 @@ module suins::register_sample {
     // - the domain TLD is .sui
     // - the domain is not a subdomain
     // - number of years is within [1-5] interval
-    public fun register(
+    public fun register<T>(
         suins: &mut SuiNS,
         domain_name: String,
         no_years: u8,
@@ -34,7 +34,7 @@ module suins::register_sample {
     ): SuinsRegistration {
         suins::assert_app_is_authorized<Register>(suins);
 
-        let config = suins::get_config<Config>(suins);
+        let config = suins::get_config<PricingConfig<T>>(suins);
 
         let domain = domain::new(domain_name);
         config::assert_valid_user_registerable_domain(&domain);
@@ -42,7 +42,7 @@ module suins::register_sample {
         assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
 
         let label = domain::sld(&domain);
-        let price = config::calculate_price(config, (string::length(label) as u8), no_years);
+        let price = pricing::calculate_price(config, string::length(label));
 
         assert!(coin::value(&payment) == price, EIncorrectAmount);
 
