@@ -1,0 +1,6 @@
+addReviewers: true
+addAssignees: false
+reviewers:
+  - leecchh
+  - manolisliolios
+numberOfReviewers: 0
