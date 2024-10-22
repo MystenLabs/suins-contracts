@@ -61,7 +61,7 @@ module suins::register_sample_tests {
         let mut clock = test_scenario::take_shared<Clock>(scenario);
 
         clock.increment_for_testing(clock_tick);
-        let nft = register(&mut suins, domain_name, no_years, payment, &clock, ctx(scenario));
+        let nft = register<SUI>(&mut suins, domain_name, no_years, payment, &clock, ctx(scenario));
 
         test_scenario::return_shared(clock);
         test_scenario::return_shared(suins);

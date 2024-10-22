@@ -43,7 +43,7 @@ module suins::register_sample {
         assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
 
         let label = domain::sld(&domain);
-        let price = pricing::calculate_price(config, string::length(label));
+        let price = pricing::calculate_price(config, string::length(label)) * (no_years as u64);
 
         assert!(coin::value(&payment) == price, EIncorrectAmount);
 

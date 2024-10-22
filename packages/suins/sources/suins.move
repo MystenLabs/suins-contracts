@@ -22,6 +22,7 @@
 /// the registry and the balance.
 module suins::suins {
     use sui::{balance::{Self, Balance}, coin::{Self, Coin}, dynamic_field as df, sui::SUI};
+    use suins::pricing::{Self, new_range};
 
     /// Trying to withdraw from an empty balance.
     const ENoProfits: u64 = 0;
@@ -201,6 +202,19 @@ module suins::suins {
             200 * suins::constants::mist_per_sui(),
             50 * suins::constants::mist_per_sui(),
         ));
+
+        let range1 = new_range(vector[3, 3]);
+        let range2 = new_range(vector[4, 4]);
+        let range3 = new_range(vector[5, 63]);
+        let prices = vector[
+            1200 * suins::constants::mist_per_sui(),
+            200 * suins::constants::mist_per_sui(),
+            50 * suins::constants::mist_per_sui()
+        ];
+
+        let pricing_config = pricing::new<SUI>(vector[range1, range2, range3], prices);
+        add_config(&admin_cap, &mut suins, pricing_config);
+
         transfer::transfer(admin_cap, tx_context::sender(ctx));
         suins
     }
