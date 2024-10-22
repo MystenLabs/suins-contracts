@@ -4,7 +4,7 @@
 #[test_only]
 module suins::register_sample;
 
-use std::string::{Self, String};
+use std::string::String;
 use sui::clock::Clock;
 use sui::coin::Coin;
 use suins::config;
@@ -48,8 +48,7 @@ public fun register<T>(
     assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
 
     let label = domain.sld();
-    let price =
-        config.calculate_price(string::length(label)) * (no_years as u64);
+    let price = config.calculate_price(label.length()) * (no_years as u64);
     assert!(payment.value() == price, EIncorrectAmount);
 
     suins::app_add_balance_v2<_, T>(Register {}, suins, payment.into_balance());

@@ -8,6 +8,7 @@ use std::option::{extract, some, none};
 use std::string::{utf8, String};
 use sui::clock::{Self, Clock};
 use sui::dynamic_field;
+use sui::sui::SUI;
 use sui::test_scenario::{Self, Scenario, ctx};
 use sui::test_utils::assert_eq;
 use sui::vec_map::VecMap;
@@ -60,7 +61,7 @@ fun test_init(): Scenario {
 }
 
 fun setup(scenario: &mut Scenario, sender: address, clock_tick: u64) {
-    let nft = register_util(
+    let nft = register_util<SUI>(
         scenario,
         utf8(DOMAIN_NAME),
         1,
