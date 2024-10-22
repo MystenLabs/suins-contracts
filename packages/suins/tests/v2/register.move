@@ -6,12 +6,11 @@ module suins::register_sample;
 
 use std::string::{Self, String};
 use sui::clock::Clock;
-use sui::coin::{Self, Coin};
-use sui::sui::SUI;
-use suins::config::{Self, Config};
+use sui::coin::Coin;
+use suins::config;
 use suins::domain;
-use suins::pricing::{Self, PricingConfig};
-use suins::registry::{Self, Registry};
+use suins::pricing::PricingConfig;
+use suins::registry::Registry;
 use suins::suins::{Self, SuiNS};
 use suins::suins_registration::SuinsRegistration;
 
