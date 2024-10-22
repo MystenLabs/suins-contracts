@@ -16,11 +16,12 @@ module suins::auction {
     };
 
     use suins::{
-        config::{Self, Config},
+        config::Self,
         suins::{Self, AdminCap, SuiNS},
         suins_registration::SuinsRegistration,
         registry::Registry,
-        domain::{Self, Domain}
+        domain::{Self, Domain},
+        pricing::PricingConfig,
     };
 
     /// One year is the default duration for a domain.
@@ -93,9 +94,9 @@ module suins::auction {
         assert!(!self.auctions.contains(domain), EAuctionStarted);
 
         // The minimum price only applies to newly created auctions
-        let config = suins.get_config<Config>();
+        let config = suins.get_config<PricingConfig<SUI>>();
         let label = domain.sld();
-        let min_price = config.calculate_price((label.length() as u8), DEFAULT_DURATION);
+        let min_price = config.calculate_price<SUI>(label.length());
         assert!(bid.value() >= min_price, EInvalidBidValue);
 
         let registry = suins::app_registry_mut<App, Registry>(App {}, suins);

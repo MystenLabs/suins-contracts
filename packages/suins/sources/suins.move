@@ -175,7 +175,6 @@ module suins::suins {
 
     // === Testing ===
 
-    #[test_only] use suins::config;
     #[test_only] public struct Test has drop {}
 
     #[test_only]
@@ -196,12 +195,6 @@ module suins::suins {
         };
 
         authorize_app<Test>(&admin_cap, &mut suins);
-        add_config(&admin_cap, &mut suins, config::new(
-            b"000000000000000000000000000000000",
-            1200 * suins::constants::mist_per_sui(),
-            200 * suins::constants::mist_per_sui(),
-            50 * suins::constants::mist_per_sui(),
-        ));
 
         let range1 = new_range(vector[3, 3]);
         let range2 = new_range(vector[4, 4]);

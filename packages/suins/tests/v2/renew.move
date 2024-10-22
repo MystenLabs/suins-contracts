@@ -7,13 +7,14 @@ module suins::renew {
     use sui::{coin::{Self, Coin}, clock::{timestamp_ms, Clock}, sui::SUI};
 
     use suins::{
-        domain, 
-        constants, 
-        name_record, 
-        registry::{Self, Registry}, 
-        suins::{Self, SuiNS}, 
-        config::{Self, Config}, 
-        suins_registration::{Self as nft, SuinsRegistration}
+        domain,
+        constants,
+        name_record,
+        registry::{Self, Registry},
+        suins::{Self, SuiNS},
+        config::Self,
+        suins_registration::{Self as nft, SuinsRegistration},
+        pricing::PricingConfig,
     };
 
     /// Number of years passed is not within [1-5] interval.
@@ -60,10 +61,47 @@ module suins::renew {
 
         config::assert_valid_user_registerable_domain(&domain);
 
-        let config = suins::get_config<Config>(suins);
+        let config = suins::get_config<PricingConfig<SUI>>(suins);
         assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
         let label = domain::sld(&domain);
-        let price = config::calculate_price(config, (string::length(label) as u8), no_years);
+        let price = config.calculate_price<SUI>((string::length(label))) * (no_years as u64);
+        assert!(coin::value(&payment) == price, EIncorrectAmount);
+
+        let expiration_timestamp_ms = name_record::expiration_timestamp_ms(&record);
+        let new_expiration_timestamp_ms = expiration_timestamp_ms + ((no_years as u64) * constants::year_ms());
+        // Ensure that the new expiration timestamp is less than 5 years from now
+        assert!(new_expiration_timestamp_ms - timestamp_ms(clock) <= 5 * constants::year_ms(), EInvalidNewExpiredAt);
+
+        let registry = suins::app_registry_mut<Renew, Registry>(Renew {}, suins);
+        registry::set_expiration_timestamp_ms(registry, nft, domain, new_expiration_timestamp_ms);
+
+        suins::app_add_balance(Renew {}, suins, coin::into_balance(payment));
+    }
+
+    public fun renew_v2<T>(
+        suins: &mut SuiNS,
+        nft: &mut SuinsRegistration,
+        no_years: u8,
+        payment: Coin<SUI>,
+        clock: &Clock,
+    ) {
+        suins::assert_app_is_authorized<Renew>(suins);
+
+        let domain = nft::domain(nft);
+        let registry = suins::registry<Registry>(suins);
+
+        // Lookup the existing record and verify ownership and expiration including grace period
+        let record = option::destroy_some(registry::lookup(registry, domain));
+        assert!(object::id(nft) == name_record::nft_id(&record), 0);
+        assert!(!name_record::has_expired_past_grace_period(&record, clock), EGracePeriodPassed);
+        assert!(!nft::has_expired_past_grace_period(nft, clock), 0);
+
+        config::assert_valid_user_registerable_domain(&domain);
+
+        let config = suins::get_config<PricingConfig<T>>(suins);
+        assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
+        let label = domain::sld(&domain);
+        let price = config.calculate_price<T>((string::length(label))) * (no_years as u64);
         assert!(coin::value(&payment) == price, EIncorrectAmount);
 
         let expiration_timestamp_ms = name_record::expiration_timestamp_ms(&record);
