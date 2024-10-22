@@ -9,7 +9,7 @@ module suins::register_sample_tests {
     use sui::{test_scenario::{Self, Scenario, ctx}, clock::{Self, Clock}, coin, sui::SUI};
 
     use suins::{
-        register_sample::{Self as register, Register, register},
+        register_sample::{Self as register, Register, register_v2},
         constants::{mist_per_sui, grace_period_ms, year_ms},
         suins::{Self, SuiNS, total_balance, AdminCap},
         suins_registration::SuinsRegistration,
@@ -48,7 +48,7 @@ module suins::register_sample_tests {
         scenario_val
     }
 
-    public fun register_util(
+    public fun register_util<T>(
         scenario: &mut Scenario,
         domain_name: String,
         no_years: u8,
@@ -61,7 +61,7 @@ module suins::register_sample_tests {
         let mut clock = test_scenario::take_shared<Clock>(scenario);
 
         clock.increment_for_testing(clock_tick);
-        let nft = register<SUI>(&mut suins, domain_name, no_years, payment, &clock, ctx(scenario));
+        let nft = register_v2<T>(&mut suins, domain_name, no_years, payment, &clock, ctx(scenario));
 
         test_scenario::return_shared(clock);
         test_scenario::return_shared(suins);
@@ -92,19 +92,19 @@ module suins::register_sample_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
+        let nft = register_util<SUI>(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
         assert_balance(scenario, 1200 * mist_per_sui());
         assert!(nft.domain() == domain::new(utf8(DOMAIN_NAME)), 0);
         assert!(nft.expiration_timestamp_ms() == year_ms() + 10, 0);
         nft.burn_for_testing();
 
-        let nft = register_util(scenario, utf8(b"abcd.sui"), 2, 400 * mist_per_sui(), 20);
+        let nft = register_util<SUI>(scenario, utf8(b"abcd.sui"), 2, 400 * mist_per_sui(), 20);
         assert_balance(scenario, 1600 * mist_per_sui());
         assert!(nft.domain() == domain::new(utf8(b"abcd.sui")), 0);
         assert!(nft.expiration_timestamp_ms() == 2 * year_ms() + 30, 0);
         nft.burn_for_testing();
 
-        let nft = register_util(scenario, utf8(b"abce-f12.sui"), 3, 150 * mist_per_sui(), 30);
+        let nft = register_util<SUI>(scenario, utf8(b"abce-f12.sui"), 3, 150 * mist_per_sui(), 30);
         assert_balance(scenario, 1750 * mist_per_sui());
         assert!(nft.domain() == domain::new(utf8(b"abce-f12.sui")), 0);
         assert!(nft.expiration_timestamp_ms() == 3 * year_ms() + 60, 0);
@@ -118,7 +118,7 @@ module suins::register_sample_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let nft = register_util(scenario, utf8(b"abc.move"), 1, 1200 * mist_per_sui(), 10);
+        let nft = register_util<SUI>(scenario, utf8(b"abc.move"), 1, 1200 * mist_per_sui(), 10);
         nft.burn_for_testing();
 
         scenario_val.end();
@@ -129,7 +129,7 @@ module suins::register_sample_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1210 * mist_per_sui(), 10);
+        let nft = register_util<SUI>(scenario, utf8(DOMAIN_NAME), 1, 1210 * mist_per_sui(), 10);
         nft.burn_for_testing();
 
         scenario_val.end();
@@ -140,7 +140,7 @@ module suins::register_sample_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 90 * mist_per_sui(), 10);
+        let nft = register_util<SUI>(scenario, utf8(DOMAIN_NAME), 1, 90 * mist_per_sui(), 10);
         nft.burn_for_testing();
 
         scenario_val.end();
@@ -151,7 +151,7 @@ module suins::register_sample_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let nft = register_util(scenario, utf8(DOMAIN_NAME), 6, 6 * 1200 * mist_per_sui(), 10);
+        let nft = register_util<SUI>(scenario, utf8(DOMAIN_NAME), 6, 6 * 1200 * mist_per_sui(), 10);
         nft.burn_for_testing();
 
         scenario_val.end();
@@ -162,7 +162,7 @@ module suins::register_sample_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let nft = register_util(scenario, utf8(DOMAIN_NAME), 0, 1200 * mist_per_sui(), 10);
+        let nft = register_util<SUI>(scenario, utf8(DOMAIN_NAME), 0, 1200 * mist_per_sui(), 10);
         nft.burn_for_testing();
 
         scenario_val.end();
@@ -173,13 +173,13 @@ module suins::register_sample_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
+        let nft = register_util<SUI>(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
         assert_balance(scenario, 1200 * mist_per_sui());
         assert!(nft.domain() == domain::new(utf8(DOMAIN_NAME)), 0);
         assert!(nft.expiration_timestamp_ms() == year_ms() + 10, 0);
         nft.burn_for_testing();
 
-        let nft = register_util(
+        let nft = register_util<SUI>(
             scenario,
             utf8(DOMAIN_NAME),
             1,
@@ -202,13 +202,13 @@ module suins::register_sample_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
+        let nft = register_util<SUI>(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
         assert_balance(scenario, 1200 * mist_per_sui());
         assert!(nft.domain() == domain::new(utf8(DOMAIN_NAME)), 0);
         assert!(nft.expiration_timestamp_ms() == year_ms() + 10, 0);
         nft.burn_for_testing();
 
-        let nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 20);
+        let nft = register_util<SUI>(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 20);
         nft.burn_for_testing();
 
         scenario_val.end();
@@ -219,7 +219,7 @@ module suins::register_sample_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let nft = register_util(scenario, utf8(b"-ab.sui"), 1, 1200 * mist_per_sui(), 10);
+        let nft = register_util<SUI>(scenario, utf8(b"-ab.sui"), 1, 1200 * mist_per_sui(), 10);
         nft.burn_for_testing();
 
         scenario_val.end();
@@ -230,7 +230,7 @@ module suins::register_sample_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let nft = register_util(scenario, utf8(b"ab-.sui"), 1, 1200 * mist_per_sui(), 10);
+        let nft = register_util<SUI>(scenario, utf8(b"ab-.sui"), 1, 1200 * mist_per_sui(), 10);
         nft.burn_for_testing();
 
         scenario_val.end();
@@ -241,7 +241,7 @@ module suins::register_sample_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let nft = register_util(scenario, utf8(b"Abc.com"), 1, 1200 * mist_per_sui(), 10);
+        let nft = register_util<SUI>(scenario, utf8(b"Abc.com"), 1, 1200 * mist_per_sui(), 10);
         nft.burn_for_testing();
 
         scenario_val.end();
@@ -252,7 +252,7 @@ module suins::register_sample_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let nft = register_util(scenario, utf8(b"ab.sui"), 1, 1200 * mist_per_sui(), 10);
+        let nft = register_util<SUI>(scenario, utf8(b"ab.sui"), 1, 1200 * mist_per_sui(), 10);
         nft.burn_for_testing();
 
         scenario_val.end();
@@ -263,7 +263,7 @@ module suins::register_sample_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let nft = register_util(scenario, utf8(b"abc.xyz.sui"), 1, 1200 * mist_per_sui(), 10);
+        let nft = register_util<SUI>(scenario, utf8(b"abc.xyz.sui"), 1, 1200 * mist_per_sui(), 10);
         nft.burn_for_testing();
 
         scenario_val.end();
@@ -276,7 +276,7 @@ module suins::register_sample_tests {
         auction::init_for_testing(ctx(scenario));
 
         auction_tests::normal_auction_flow(scenario);
-        let nft = register_util(scenario, utf8(AUCTIONED_DOMAIN_NAME), 1, 50 * mist_per_sui(), 10);
+        let nft = register_util<SUI>(scenario, utf8(AUCTIONED_DOMAIN_NAME), 1, 50 * mist_per_sui(), 10);
         nft.burn_for_testing();
 
         scenario_val.end();
@@ -289,7 +289,7 @@ module suins::register_sample_tests {
         auction::init_for_testing(ctx(scenario));
 
         auction_tests::normal_auction_flow(scenario);
-        let nft = register_util(
+        let nft = register_util<SUI>(
             scenario,
             utf8(AUCTIONED_DOMAIN_NAME),
             1,
@@ -309,7 +309,7 @@ module suins::register_sample_tests {
         let scenario = &mut scenario_val;
 
         deauthorize_app_util(scenario);
-        let nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
+        let nft = register_util<SUI>(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
         nft.burn_for_testing();
 
         scenario_val.end();

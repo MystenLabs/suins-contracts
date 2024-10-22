@@ -5,16 +5,16 @@
 module suins::controller_tests {
     use std::{string::{utf8, String}, option::{extract, some, none}};
 
-    use sui::{test_scenario::{Self, Scenario, ctx}, clock::{Self, Clock}, test_utils::assert_eq, dynamic_field, vec_map::VecMap};
+    use sui::{test_scenario::{Self, Scenario, ctx}, clock::{Self, Clock}, test_utils::assert_eq, dynamic_field, vec_map::VecMap, sui::SUI};
 
     use suins::{
-        register_sample::Register, 
-        constants::{mist_per_sui, year_ms}, 
-        suins::{Self, SuiNS, AdminCap}, 
-        suins_registration::SuinsRegistration, 
+        register_sample::Register,
+        constants::{mist_per_sui, year_ms},
+        suins::{Self, SuiNS, AdminCap},
+        suins_registration::SuinsRegistration,
         register_sample_tests::register_util,
         controller::{
-            Self, Controller, set_target_address_for_testing, set_reverse_lookup_for_testing, 
+            Self, Controller, set_target_address_for_testing, set_reverse_lookup_for_testing,
             unset_reverse_lookup_for_testing, set_user_data_for_testing, unset_user_data_for_testing
         },
         registry::{Self, Registry, lookup, reverse_lookup},
@@ -53,7 +53,7 @@ module suins::controller_tests {
     }
 
     fun setup(scenario: &mut Scenario, sender: address, clock_tick: u64) {
-        let nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), clock_tick);
+        let nft = register_util<SUI>(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), clock_tick);
         transfer::public_transfer(nft, sender);
     }
 

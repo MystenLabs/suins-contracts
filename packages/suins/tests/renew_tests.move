@@ -78,19 +78,19 @@ module suins::renew_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let mut nft = register_util(scenario, utf8(b"abcd.sui"), 1, 200 * mist_per_sui(), 0);
+        let mut nft = register_util<SUI>(scenario, utf8(b"abcd.sui"), 1, 200 * mist_per_sui(), 0);
         assert!(nft.expiration_timestamp_ms() == year_ms(), 0);
         renew_util(scenario, &mut nft, 1, 200 * mist_per_sui(), 0);
         assert_balance(scenario, 400 * mist_per_sui());
         nft.burn_for_testing();
 
-        let mut nft = register_util(scenario, utf8(b"abcde.sui"), 1, 50 * mist_per_sui(), 0);
+        let mut nft = register_util<SUI>(scenario, utf8(b"abcde.sui"), 1, 50 * mist_per_sui(), 0);
         assert!(nft.expiration_timestamp_ms() == year_ms(), 0);
         renew_util(scenario, &mut nft, 1, 50 * mist_per_sui(), 0);
         assert_balance(scenario, 500 * mist_per_sui());
         nft.burn_for_testing();
 
-        let mut nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
+        let mut nft = register_util<SUI>(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
         assert!(nft.expiration_timestamp_ms() == year_ms() + 10, 0);
         renew_util(scenario, &mut nft, 1, 1200 * mist_per_sui(), 0);
         assert_balance(scenario, 2900 * mist_per_sui());
@@ -109,7 +109,7 @@ module suins::renew_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let mut nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
+        let mut nft = register_util<SUI>(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
         renew_util(scenario, &mut nft, 1, 1210 * mist_per_sui(), 0);
         nft.burn_for_testing();
 
@@ -121,7 +121,7 @@ module suins::renew_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let mut nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
+        let mut nft = register_util<SUI>(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
         renew_util(scenario, &mut nft, 1, 10 * mist_per_sui(), 0);
         nft.burn_for_testing();
 
@@ -133,7 +133,7 @@ module suins::renew_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let mut nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
+        let mut nft = register_util<SUI>(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 10);
         renew_util(scenario, &mut nft, 1, 1200 * mist_per_sui(), 2 * year_ms() + 20);
         nft.burn_for_testing();
 
@@ -145,7 +145,7 @@ module suins::renew_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let mut nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 0);
+        let mut nft = register_util<SUI>(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 0);
         renew_util(scenario, &mut nft, 6, 7200 * mist_per_sui(), 0);
         nft.burn_for_testing();
 
@@ -157,7 +157,7 @@ module suins::renew_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let mut nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 0);
+        let mut nft = register_util<SUI>(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 0);
         renew_util(scenario, &mut nft, 2, 2400 * mist_per_sui(), 0);
         renew_util(scenario, &mut nft, 4, 4800 * mist_per_sui(), 0);
         nft.burn_for_testing();
@@ -170,7 +170,7 @@ module suins::renew_tests {
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
 
-        let mut nft = register_util(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 0);
+        let mut nft = register_util<SUI>(scenario, utf8(DOMAIN_NAME), 1, 1200 * mist_per_sui(), 0);
         deauthorize_app_util(scenario);
         renew_util(scenario, &mut nft, 2, 2400 * mist_per_sui(), 0);
         nft.burn_for_testing();

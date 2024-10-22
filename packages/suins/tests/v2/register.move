@@ -24,7 +24,7 @@ module suins::register_sample {
     // - the domain TLD is .sui
     // - the domain is not a subdomain
     // - number of years is within [1-5] interval
-    public fun register<T>(
+    public fun register(
         suins: &mut SuiNS,
         domain_name: String,
         no_years: u8,
@@ -34,7 +34,33 @@ module suins::register_sample {
     ): SuinsRegistration {
         suins::assert_app_is_authorized<Register>(suins);
 
-        // Where does the test add the config?
+        let config = suins::get_config<PricingConfig<SUI>>(suins);
+
+        let domain = domain::new(domain_name);
+        config::assert_valid_user_registerable_domain(&domain);
+
+        assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
+
+        let label = domain::sld(&domain);
+        let price = pricing::calculate_price(config, string::length(label)) * (no_years as u64);
+
+        assert!(coin::value(&payment) == price, EIncorrectAmount);
+
+        suins::app_add_balance(Register {}, suins, coin::into_balance(payment));
+        let registry = suins::app_registry_mut<Register, Registry>(Register {}, suins);
+        registry::add_record(registry, domain, no_years, clock, ctx)
+    }
+
+    public fun register_v2<T>(
+        suins: &mut SuiNS,
+        domain_name: String,
+        no_years: u8,
+        payment: Coin<SUI>,
+        clock: &Clock,
+        ctx: &mut TxContext
+    ): SuinsRegistration {
+        suins::assert_app_is_authorized<Register>(suins);
+
         let config = suins::get_config<PricingConfig<T>>(suins);
 
         let domain = domain::new(domain_name);
