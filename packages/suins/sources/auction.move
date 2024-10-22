@@ -52,6 +52,7 @@ public struct AuctionHouse has key, store {
 }
 
 /// The Auction application.
+#[allow(lint(coin_field))]
 public struct Auction has store {
     domain: Domain,
     start_timestamp_ms: u64,
