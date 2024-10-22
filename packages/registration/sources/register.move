@@ -33,7 +33,7 @@ module registration::register {
     ): SuinsRegistration {
         suins.assert_app_is_authorized<Register>();
 
-        let config = suins::get_config<PricingConfig<SUI>>(suins);
+        let config = suins.get_config<PricingConfig<SUI>>();
 
         let domain = domain::new(domain_name);
         config::assert_valid_user_registerable_domain(&domain);
@@ -41,11 +41,11 @@ module registration::register {
         assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
 
         let label = domain::sld(&domain);
-        let price = pricing::calculate_price(config, string::length(label)) * (no_years as u64);
+        let price = config.calculate_price(string::length(label)) * (no_years as u64);
 
-        assert!(coin::value(&payment) == price, EIncorrectAmount);
+        assert!(payment.value() == price, EIncorrectAmount);
 
-        suins::app_add_balance(Register {}, suins, coin::into_balance(payment));
+        suins::app_add_balance(Register {}, suins, payment.into_balance());
         let registry = suins::app_registry_mut<Register, Registry>(Register {}, suins);
         registry::add_record(registry, domain, no_years, clock, ctx)
     }
@@ -54,11 +54,11 @@ module registration::register {
         suins: &mut SuiNS,
         domain_name: String,
         no_years: u8,
-        payment: Coin<SUI>,
+        payment: Coin<T>,
         clock: &Clock,
         ctx: &mut TxContext
     ): SuinsRegistration {
-        suins::assert_app_is_authorized<Register>(suins);
+        suins.assert_app_is_authorized<Register>();
 
         let config = suins::get_config<PricingConfig<T>>(suins);
 
