@@ -3,18 +3,19 @@
 
 /// A renewal module for the SuiNS app.
 /// This module allows users to renew their domains.
-/// 
+///
 /// The renewal is capped at 5 years.
 module renewal::renew {
     use sui::{coin::{Self, Coin}, clock::Clock, sui::SUI};
 
     use suins::{
-        constants, 
-        domain::Domain, 
-        registry::Registry, 
-        suins::{Self, SuiNS, AdminCap}, 
-        config::{Self, Config}, 
-        suins_registration::SuinsRegistration
+        constants,
+        domain::Domain,
+        registry::Registry,
+        suins::{Self, SuiNS, AdminCap},
+        config::{Self, Config},
+        suins_registration::SuinsRegistration,
+        pricing::{PricingConfig}
     };
 
     /// Number of years passed is not within [1-5] interval.
@@ -39,10 +40,14 @@ module renewal::renew {
         domain: Domain,
         amount: u64
     }
-    
+
     /// The renewal's package configuration.
     public struct RenewalConfig has store, drop {
         config: Config
+    }
+
+    public struct RenewalConfigV2<phantom T> has store, drop {
+        config: PricingConfig<T>
     }
 
     /// Allows admin to initalize the custom pricing config for the renewal module.
@@ -52,6 +57,10 @@ module renewal::renew {
     /// The `public_key` passed in the `Config` can be a random u8 array with length 33.
     public fun setup(suins: &mut SuiNS, cap: &AdminCap, config: Config) {
         suins::add_config<RenewalConfig>(cap, suins, RenewalConfig { config });
+    }
+
+    public fun setup_v2<T>(suins: &mut SuiNS, cap: &AdminCap, config: PricingConfig<T>) {
+        suins::add_config<RenewalConfigV2<T>>(cap, suins, RenewalConfigV2 { config });
     }
 
     // Allows renewals of names.
@@ -83,14 +92,44 @@ module renewal::renew {
         // Calculate target expiration. Aborts if expiration or selected years are invalid.
         let target_expiration = target_expiration(registry, nft, domain, clock, no_years);
 
-        // set the expiration of the NFT + the registry's name record. 
+        // set the expiration of the NFT + the registry's name record.
         registry.set_expiration_timestamp_ms(nft, domain, target_expiration);
 
         sui::event::emit(NameRenewed { domain, amount: coin::value(&payment) });
         suins::app_add_balance(Renew {}, suins, coin::into_balance(payment));
     }
 
-    /// Calculate the target expiration for a domain, 
+    // TODO: this will change the SuiNS struct
+    // public fun renew_v2<T>(
+    //     suins: &mut SuiNS,
+    //     nft: &mut SuinsRegistration,
+    //     no_years: u8,
+    //     payment: Coin<T>,
+    //     clock: &Clock
+    // ) {
+    //     // authorization occurs inside the call.
+    //     let domain =  nft.domain();
+    //     // check if the name is valid, for public registration
+    //     // Also checks if the domain is not a subdomain, validates label lengths, TLD.
+    //     config::assert_valid_user_registerable_domain(&domain);
+
+    //     // check that the payment is correct for the specified name.
+    //     validate_payment_v2<T>(suins, &payment, &domain, no_years);
+
+    //     // Get registry (also checks that app is authorized) + start validating.
+    //     let registry = suins::app_registry_mut<Renew, Registry>(Renew {}, suins);
+
+    //     // Calculate target expiration. Aborts if expiration or selected years are invalid.
+    //     let target_expiration = target_expiration(registry, nft, domain, clock, no_years);
+
+    //     // set the expiration of the NFT + the registry's name record.
+    //     registry.set_expiration_timestamp_ms(nft, domain, target_expiration);
+
+    //     sui::event::emit(NameRenewed { domain, amount: coin::value(&payment) });
+    //     suins::app_add_balance(Renew {}, suins, coin::into_balance(payment));
+    // }
+
+    /// Calculate the target expiration for a domain,
     /// or abort if the domain or the expiration setup is invalid.
     fun target_expiration(
         registry: &Registry,
@@ -125,9 +164,16 @@ module renewal::renew {
 
     /// Validates that the payment Coin is correct for the domain + number of years
     fun validate_payment(suins: &SuiNS, payment: &Coin<SUI>, domain: &Domain, no_years: u8){
-        let config = suins.get_config<RenewalConfig>();
+        let config = suins.get_config<RenewalConfigV2<SUI>>();
         let label = domain.sld();
-        let price = config.config.calculate_price((label.length() as u8), no_years);
+        let price = config.config.calculate_price(label.length()) * (no_years as u64);
         assert!(payment.value() == price, EIncorrectAmount);
     }
+
+    // fun validate_payment_v2<T>(suins: &SuiNS, payment: &Coin<T>, domain: &Domain, no_years: u8){
+    //     let config = suins.get_config<RenewalConfigV2<T>>();
+    //     let label = domain.sld();
+    //     let price = config.config.calculate_price<T>(label.length()) * (no_years as u64);
+    //     assert!(payment.value() == price, EIncorrectAmount);
+    // }
 }

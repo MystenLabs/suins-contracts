@@ -32,7 +32,7 @@ module suins::register_sample {
         clock: &Clock,
         ctx: &mut TxContext
     ): SuinsRegistration {
-        suins::assert_app_is_authorized<Register>(suins);
+        suins.assert_app_is_authorized<Register>();
 
         let config = suins::get_config<PricingConfig<SUI>>(suins);
 

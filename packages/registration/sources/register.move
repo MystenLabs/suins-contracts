@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 module registration::register {
-    use std::string::String;
-    use sui::{coin::Coin, clock::Clock, sui::SUI};
+    use std::string::{Self, String};
+    use sui::{coin::{Self, Coin}, clock::Clock, sui::SUI};
 
-    use suins::{domain, registry::Registry, suins::{Self, SuiNS}, config::{Self, Config}, suins_registration::SuinsRegistration};
+    use suins::{domain, registry::{Self, Registry}, suins::{Self, SuiNS}, config::{Self}, suins_registration::SuinsRegistration, pricing::{Self, PricingConfig}};
 
     /// Number of years passed is not within [1-5] interval.
     const EInvalidYearsArgument: u64 = 0;
@@ -33,20 +33,47 @@ module registration::register {
     ): SuinsRegistration {
         suins.assert_app_is_authorized<Register>();
 
-        let config = suins.get_config<Config>();
+        let config = suins::get_config<PricingConfig<SUI>>(suins);
 
         let domain = domain::new(domain_name);
         config::assert_valid_user_registerable_domain(&domain);
 
         assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
 
-        let label = domain.sld();
-        let price = config.calculate_price((label.length() as u8), no_years);
+        let label = domain::sld(&domain);
+        let price = pricing::calculate_price(config, string::length(label)) * (no_years as u64);
 
-        assert!(payment.value() == price, EIncorrectAmount);
+        assert!(coin::value(&payment) == price, EIncorrectAmount);
 
-        suins::app_add_balance(Register {}, suins, payment.into_balance());
+        suins::app_add_balance(Register {}, suins, coin::into_balance(payment));
         let registry = suins::app_registry_mut<Register, Registry>(Register {}, suins);
-        registry.add_record(domain, no_years, clock, ctx)
+        registry::add_record(registry, domain, no_years, clock, ctx)
+    }
+
+    public fun register_v2<T>(
+        suins: &mut SuiNS,
+        domain_name: String,
+        no_years: u8,
+        payment: Coin<SUI>,
+        clock: &Clock,
+        ctx: &mut TxContext
+    ): SuinsRegistration {
+        suins::assert_app_is_authorized<Register>(suins);
+
+        let config = suins::get_config<PricingConfig<T>>(suins);
+
+        let domain = domain::new(domain_name);
+        config::assert_valid_user_registerable_domain(&domain);
+
+        assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
+
+        let label = domain::sld(&domain);
+        let price = pricing::calculate_price(config, string::length(label)) * (no_years as u64);
+
+        assert!(coin::value(&payment) == price, EIncorrectAmount);
+
+        suins::app_add_balance(Register {}, suins, coin::into_balance(payment));
+        let registry = suins::app_registry_mut<Register, Registry>(Register {}, suins);
+        registry::add_record(registry, domain, no_years, clock, ctx)
     }
 }

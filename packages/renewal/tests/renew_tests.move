@@ -8,12 +8,12 @@ module renewal::renew_tests {
     use sui::{coin, sui::SUI, clock::{Self, Clock}};
 
     use suins::{
-        constants::{mist_per_sui, year_ms, grace_period_ms}, 
-        suins::{Self, SuiNS}, 
-        suins_registration::{Self as nft, SuinsRegistration}, 
-        registry, 
-        domain, 
-        config
+        constants::{mist_per_sui, year_ms, grace_period_ms},
+        suins::{Self, SuiNS},
+        suins_registration::{Self as nft, SuinsRegistration},
+        registry,
+        domain,
+        pricing::{Self, new_range}
     };
 
     use renewal::renew::{Self as renewal, Renew};
@@ -48,7 +48,7 @@ module renewal::renew_tests {
         let (mut suins, mut nft) = prepare_registry(&mut ctx);
 
         let clock = clock::create_for_testing(&mut ctx);
-        
+
         renew_util(&mut suins, &mut nft, 2, &clock, &mut ctx);
         renew_util(&mut suins, &mut nft, 4, &clock, &mut ctx);
         abort 1337
@@ -60,7 +60,7 @@ module renewal::renew_tests {
         let (mut suins, mut nft) = prepare_registry(&mut ctx);
 
         let clock = clock::create_for_testing(&mut ctx);
-        
+
         renew_util(&mut suins, &mut nft, 6, &clock, &mut ctx);
         abort 1337
     }
@@ -72,7 +72,7 @@ module renewal::renew_tests {
         let (mut suins, _nft) = prepare_registry(&mut ctx);
         let clock = clock::create_for_testing(&mut ctx);
         let mut nft = nft::new_for_testing(domain::new(utf8(DOMAIN_NAME)), 1, &clock, &mut ctx);
-        
+
         renew_util(&mut suins, &mut nft, 3, &clock, &mut ctx);
         abort 1337
     }
@@ -83,7 +83,7 @@ module renewal::renew_tests {
         let (mut suins, _nft) = prepare_registry(&mut ctx);
         let clock = clock::create_for_testing(&mut ctx);
         let mut nft = nft::new_for_testing(domain::new(utf8(b"hehehe.sui")), 1, &clock, &mut ctx);
-        
+
         renew_util(&mut suins, &mut nft, 3, &clock, &mut ctx);
         abort 1337
     }
@@ -93,7 +93,7 @@ module renewal::renew_tests {
         let mut ctx = tx_context::dummy();
         let (mut suins, mut nft) = prepare_registry(&mut ctx);
         let mut clock = clock::create_for_testing(&mut ctx);
-        
+
         clock::increment_for_testing(&mut clock, year_ms() + grace_period_ms() + 1);
 
         renew_util(&mut suins, &mut nft, 1, &clock, &mut ctx);
@@ -105,49 +105,48 @@ module renewal::renew_tests {
         let mut ctx = tx_context::dummy();
         let (mut suins, mut nft) = prepare_registry(&mut ctx);
         let clock = clock::create_for_testing(&mut ctx);
-        
+
         renewal::renew(&mut suins, &mut nft, 2,coin::mint_for_testing<SUI>((1 as u64) * REGULAR_PRICE * mist_per_sui(), &mut ctx), &clock);
         abort 1337
     }
-    
+
     public fun renew_util(suins: &mut SuiNS, nft: &mut SuinsRegistration, no_years: u8, clock: &Clock, ctx: &mut TxContext) {
         renewal::renew(suins, nft, no_years,coin::mint_for_testing<SUI>((no_years as u64) * REGULAR_PRICE * mist_per_sui(), ctx), clock);
     }
 
-    /// Local test to prepare a registry with a domain. 
+    /// Local test to prepare a registry with a domain.
     /// Authorizes registry, adds domain, and burns admin cap.
     public fun prepare_registry(ctx: &mut TxContext): (SuiNS, SuinsRegistration) {
 
         let mut suins = suins::init_for_testing(ctx);
         let mut registry = registry::new_for_testing(ctx);
 
-        let domain = domain::new(utf8(DOMAIN_NAME));        
+        let domain = domain::new(utf8(DOMAIN_NAME));
         suins::authorize_app_for_testing<Renew>(&mut suins);
 
         let clock = clock::create_for_testing(ctx);
 
         let cap = suins::create_admin_cap_for_testing(ctx);
 
-        let config = config::new(
-            // We do not care about the public key of the configuration in tests.
-            // Also, for renewals, we do not care about it in production mode too.
-            // We re-use the type to be able to use the same utilities.
-            b"000000000000000000000000000000000",
-            // random price, not being tested in renewal tests.
-            1200 * ::suins::constants::mist_per_sui(),
-            // Random price, not being tested in renewal tests.
-            200 * ::suins::constants::mist_per_sui(),
-            REGULAR_PRICE * ::suins::constants::mist_per_sui(),
-        );
+        let range1 = new_range(vector[3, 3]);
+        let range2 = new_range(vector[4, 4]);
+        let range3 = new_range(vector[5, 63]);
+        let prices = vector[
+            1200 * mist_per_sui(),
+            200 * mist_per_sui(),
+            REGULAR_PRICE * mist_per_sui()
+        ];
 
-        renewal::setup(&mut suins, &cap, config);
+        let pricing_config = pricing::new<SUI>(vector[range1, range2, range3], prices);
+
+        renewal::setup_v2(&mut suins, &cap, pricing_config);
 
         let nft = registry.add_record(domain, 1,&clock, ctx);
         suins::add_registry(&cap, &mut suins, registry);
 
         suins::burn_admin_cap_for_testing(cap);
         clock.destroy_for_testing();
-    
+
         (suins, nft)
     }
 
