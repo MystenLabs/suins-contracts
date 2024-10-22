@@ -13,8 +13,9 @@ use sui::coin::{Self, Coin};
 use sui::event;
 use sui::linked_table::{Self, LinkedTable};
 use sui::sui::SUI;
-use suins::config::{Self, Config};
+use suins::config;
 use suins::domain::{Self, Domain};
+use suins::pricing::PricingConfig;
 use suins::registry::Registry;
 use suins::suins::{Self, AdminCap, SuiNS};
 use suins::suins_registration::SuinsRegistration;
@@ -89,12 +90,9 @@ public fun start_auction_and_place_bid(
     assert!(!self.auctions.contains(domain), EAuctionStarted);
 
     // The minimum price only applies to newly created auctions
-    let config = suins.get_config<Config>();
+    let config = suins.get_config<PricingConfig<SUI>>();
     let label = domain.sld();
-    let min_price = config.calculate_price(
-        (label.length() as u8),
-        DEFAULT_DURATION,
-    );
+    let min_price = config.calculate_price<SUI>(label.length());
     assert!(bid.value() >= min_price, EInvalidBidValue);
 
     let registry = suins::app_registry_mut<App, Registry>(App {}, suins);

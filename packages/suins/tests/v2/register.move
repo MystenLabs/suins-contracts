@@ -10,6 +10,7 @@ use sui::coin::{Self, Coin};
 use sui::sui::SUI;
 use suins::config::{Self, Config};
 use suins::domain;
+use suins::pricing::{Self, PricingConfig};
 use suins::registry::{Self, Registry};
 use suins::suins::{Self, SuiNS};
 use suins::suins_registration::SuinsRegistration;
@@ -30,36 +31,32 @@ public struct Register has drop {}
 // - the domain TLD is .sui
 // - the domain is not a subdomain
 // - number of years is within [1-5] interval
-public fun register(
+public fun register<T>(
     suins: &mut SuiNS,
     domain_name: String,
     no_years: u8,
-    payment: Coin<SUI>,
+    payment: Coin<T>,
     clock: &Clock,
     ctx: &mut TxContext,
 ): SuinsRegistration {
-    suins::assert_app_is_authorized<Register>(suins);
+    suins.assert_app_is_authorized<Register>();
 
-    let config = suins::get_config<Config>(suins);
+    let config = suins.get_config<PricingConfig<T>>();
 
     let domain = domain::new(domain_name);
     config::assert_valid_user_registerable_domain(&domain);
 
     assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
 
-    let label = domain::sld(&domain);
-    let price = config::calculate_price(
-        config,
-        (string::length(label) as u8),
-        no_years,
-    );
+    let label = domain.sld();
+    let price =
+        config.calculate_price(string::length(label)) * (no_years as u64);
+    assert!(payment.value() == price, EIncorrectAmount);
 
-    assert!(coin::value(&payment) == price, EIncorrectAmount);
-
-    suins::app_add_balance(Register {}, suins, coin::into_balance(payment));
+    suins::app_add_balance_v2<_, T>(Register {}, suins, payment.into_balance());
     let registry = suins::app_registry_mut<Register, Registry>(
         Register {},
         suins,
     );
-    registry::add_record(registry, domain, no_years, clock, ctx)
+    registry.add_record(domain, no_years, clock, ctx)
 }
