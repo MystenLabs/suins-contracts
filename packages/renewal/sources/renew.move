@@ -60,8 +60,7 @@ public fun setup<T>(
     cap: &AdminCap,
     config: PricingConfig<T>,
 ) {
-    suins::add_config<RenewalConfig<T>>(
-        cap,
+    cap.add_config(
         suins,
         RenewalConfig { config },
     );
@@ -158,6 +157,7 @@ fun validate_payment<T>(
     no_years: u8,
 ) {
     let config = suins.get_config<RenewalConfig<T>>();
+    // If no RenewalConfig of type T, add an error code
     let label = domain.sld();
     let price =
         config.config.calculate_price(label.length()) * (no_years as u64);

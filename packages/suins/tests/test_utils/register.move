@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #[test_only]
-module suins::register_sample;
+module suins::register;
 
 use std::string::String;
 use sui::clock::Clock;
@@ -41,6 +41,7 @@ public fun register<T>(
     suins.assert_app_is_authorized<Register>();
 
     let config = suins.get_config<PricingConfig<T>>();
+    // If no PricingConfig of type T, add an error code
 
     let domain = domain::new(domain_name);
     config::assert_valid_user_registerable_domain(&domain);

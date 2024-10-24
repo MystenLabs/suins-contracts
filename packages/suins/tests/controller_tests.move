@@ -23,8 +23,8 @@ use suins::controller::{
     unset_user_data_for_testing
 };
 use suins::domain::{Self, Domain};
-use suins::register_sample::Register;
-use suins::register_sample_tests::register_util;
+use suins::register::Register;
+use suins::register_utils::register_util;
 use suins::registry::{Self, Registry, lookup, reverse_lookup};
 use suins::suins::{Self, SuiNS, AdminCap};
 use suins::suins_registration::SuinsRegistration;
