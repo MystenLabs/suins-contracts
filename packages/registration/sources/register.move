@@ -6,9 +6,9 @@ module registration::register;
 use std::string::String;
 use sui::clock::Clock;
 use sui::coin::Coin;
-use sui::sui::SUI;
-use suins::config::{Self, Config};
+use suins::config;
 use suins::domain;
+use suins::pricing::PricingConfig;
 use suins::registry::Registry;
 use suins::suins::{Self, SuiNS};
 use suins::suins_registration::SuinsRegistration;
@@ -29,17 +29,18 @@ public struct Register has drop {}
 // - the domain TLD is .sui
 // - the domain is not a subdomain
 // - number of years is within [1-5] interval
-public fun register(
+public fun register<T>(
     suins: &mut SuiNS,
     domain_name: String,
     no_years: u8,
-    payment: Coin<SUI>,
+    payment: Coin<T>,
     clock: &Clock,
     ctx: &mut TxContext,
 ): SuinsRegistration {
     suins.assert_app_is_authorized<Register>();
 
-    let config = suins.get_config<Config>();
+    let config = suins.get_config<PricingConfig<T>>();
+    // If no PricingConfig of type T, add an error code
 
     let domain = domain::new(domain_name);
     config::assert_valid_user_registerable_domain(&domain);
@@ -47,11 +48,10 @@ public fun register(
     assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
 
     let label = domain.sld();
-    let price = config.calculate_price((label.length() as u8), no_years);
-
+    let price = config.calculate_price(label.length()) * (no_years as u64);
     assert!(payment.value() == price, EIncorrectAmount);
 
-    suins::app_add_balance(Register {}, suins, payment.into_balance());
+    suins::app_add_balance_v2<_, T>(Register {}, suins, payment.into_balance());
     let registry = suins::app_registry_mut<Register, Registry>(
         Register {},
         suins,

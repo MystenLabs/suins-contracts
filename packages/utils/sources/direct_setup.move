@@ -67,7 +67,7 @@ public fun set_user_data(
     let domain = nft.domain();
 
     registry.assert_nft_is_authorized(nft, clock);
-    let key_bytes = *key.bytes();
+    let key_bytes = *key.as_bytes();
     assert!(key_bytes == AVATAR || key_bytes == CONTENT_HASH, EUnsupportedKey);
 
     if (data.contains(&key)) {
