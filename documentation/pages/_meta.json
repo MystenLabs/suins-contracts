@@ -3,6 +3,7 @@
     "dao": "SuiNS DAO",
     "developer": "Developer",
     "user": "User",
+    "node-operator": "Node Operator",
     "dashboard": {
         "title": "SuiNS Dashboard ↗",
         "type": "page",
