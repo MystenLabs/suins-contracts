@@ -1,0 +1,19 @@
+# Move Registry
+
+Move Registry is built to provide a name service for interacting / building with packages from the ecosystem. You could consider it the name service for packages.
+
+Move Registry is currently used for the following scenarios: 
+
+1. To reference packages and types in PTBs using their names.
+2. To depend on other packages when developing with Move.
+
+## Why would I use the Move Registry?
+
+Move Registry provides a uniform (single source of truth) naming service for packages in the Move ecosystem. 
+This means that you can reference packages by their names, and the Move Registry will resolve the package address for you, despite the network*.
+
+Additionally, Move Registry helps with working with versioning of packages. You can call a specific version of a package easily, without having to 
+resolve the addresses yourself, or worry about the package being updated (name without a specified version defaults to the latest).
+
+
+*Move Registry default service currently supports Mainnet and testnet.*

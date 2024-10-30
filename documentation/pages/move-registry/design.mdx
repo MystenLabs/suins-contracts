@@ -1,0 +1,36 @@
+# Design of the Move Registry
+
+Before diving into specifics, we first need to analyze the design. The Move Registry consists of two independent components:
+
+1. Package Info registration: Exists independently on each network.
+2. Move Registry: A single source of truth located on mainnet.
+
+![High level design](/images/mvr/mvr-overall.svg)
+
+
+## Package Info objects
+
+The first step when publishing a package is to register its metadata object. This metadata object serves as a key source of information for:
+
+1. Locating the source code across different versions of the package.
+2. (Future) Providing text-based metadata (title, description, tags) for the package, which can be used in the MVR search engine.
+
+This metadata object can be reused when authorizing any package upgrades to supply source information for the new version. 
+It is designed to be indexable by Sui Indexers, as it cannot be stored within another object.
+
+![Package Info Objects](/images/mvr/mvr-package-info.svg)
+
+
+## Move Registry
+
+Move Registry registration is separate from the PackageInfo registration process. This separation is necessary because the PackageInfo object acts as both the source of truth for package metadata and a proof of package ownership, whereas the Move Registry is used to register applications that can be resolved using MVR tooling.
+
+The steps to register a package are as follows:
+
+1. Using your SuiNS name, register an application.
+2. Based on the network, associate the application name with a `PackageInfo` object:
+- **Mainnet**: Associate the application name with a complete PackageInfo object, which provides the full metadata and ownership proof.
+- **Other Networks**: Associate the application name with only the PackageInfo object ID, acting as a pointer without ensuring a full mapping.
+
+
+![Move Registry](/images/mvr/mvr-registry.svg)

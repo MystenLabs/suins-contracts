@@ -1,0 +1,45 @@
+import { Tabs } from 'nextra/components'
+import { Callout } from 'nextra/components'
+
+# MVR CLI
+
+MVR CLI is used to manage your package dependencies and to interact with the Move Registry. It is a command-line tool that allows you to:
+
+1. Add dependencies to your Move project.
+2. Build your Move project with MVR dependencies.
+
+
+## Installation
+
+To install the MVR CLI, you can use the following command:
+
+```bash
+TODO: add installation command
+```
+
+## Adding dependencies
+
+To add a dependency to your move code, you can use the `mvr add` command. This command will add the dependency to your `Move.toml` file.
+
+```bash
+mvr add <package_name> --network <mainnet|testnet>
+```
+
+Using this, a new entry will be added to your `Move.toml` file.
+
+```toml
+[dependencies]
+...
+app = { r.mvr = "@mvr/app" }
+
+[r.mvr]
+network = "mainnet"
+```
+
+## Building against MVR dependencies
+
+You can use `sui move build` as usual, and the MVR CLI will be automatically invoked to resolve dependencies and build your project.
+
+```bash
+sui move build
+```
