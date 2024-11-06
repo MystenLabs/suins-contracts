@@ -12,6 +12,7 @@ on:
           - Profits to Treasury
           - Transfer Reserved Names
           - Free Coupons
+          - Create Coupons
       sui_tools_image:
         description: 'image reference of sui_tools'
         default: 'mysten/sui-tools:mainnet'
@@ -113,6 +114,17 @@ jobs:
           RPC_URL: ${{ inputs.rpc }}
         run: |
           cd scripts && pnpm ts-node transactions/free-three-digit.ts
+
+      - name: Create Coupons
+        if: ${{ inputs.transaction_type == 'Create Coupons' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+          RPC_URL: ${{ inputs.rpc }}
+        run: |
+          cd scripts && pnpm ts-node transactions/create-bulk-coupons.ts
 
       - name: Show Transaction Data (To sign)
         run: |
