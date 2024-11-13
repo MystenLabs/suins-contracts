@@ -9,6 +9,7 @@
 		"publish-and-setup": "ts-node init/init.ts",
 		"transactions::main_package::upgrade": "ts-node transactions/main_package_upgrade.ts",
 		"transfer::names": "ts-node reserved-names/transfer-names.ts",
+		"transfer::caps": "ts-node transactions/caps-to-foundation.ts",
 		"withdraw:profits": "ts-node transactions/funds_to_treasury.ts",
 		"create-deepbook-pools": "ts-node transactions/deepbook/create_pools.ts",
 		"authorize-renewals": "ts-node transactions/renewals/authorize_renewals.ts",
