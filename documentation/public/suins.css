@@ -54,3 +54,7 @@ li :is(ul, ol) {
 li > p, li img {
     @apply !m-2
 }
+
+ol ul ol {
+    @apply !list-[lower-roman]
+}
