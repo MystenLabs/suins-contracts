@@ -13,9 +13,8 @@ use sui::coin::{Self, Coin};
 use sui::event;
 use sui::linked_table::{Self, LinkedTable};
 use sui::sui::SUI;
-use suins::config;
+use suins::config::{Self, Config};
 use suins::domain::{Self, Domain};
-use suins::pricing::PricingConfig;
 use suins::registry::Registry;
 use suins::suins::{Self, AdminCap, SuiNS};
 use suins::suins_registration::SuinsRegistration;
@@ -53,7 +52,6 @@ public struct AuctionHouse has key, store {
 }
 
 /// The Auction application.
-#[allow(lint(coin_field))]
 public struct Auction has store {
     domain: Domain,
     start_timestamp_ms: u64,
@@ -90,9 +88,12 @@ public fun start_auction_and_place_bid(
     assert!(!self.auctions.contains(domain), EAuctionStarted);
 
     // The minimum price only applies to newly created auctions
-    let config = suins.get_config<PricingConfig<SUI>>();
+    let config = suins.get_config<Config>();
     let label = domain.sld();
-    let min_price = config.calculate_price<SUI>(label.length());
+    let min_price = config.calculate_price(
+        (label.length() as u8),
+        DEFAULT_DURATION,
+    );
     assert!(bid.value() >= min_price, EInvalidBidValue);
 
     let registry = suins::app_registry_mut<App, Registry>(App {}, suins);
