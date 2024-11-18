@@ -11,6 +11,7 @@ on:
           - Multi Purpose Operation
           - Profits to Treasury
           - Transfer Reserved Names
+          - Transfer Admin Caps
           - Free Coupons
           - Create Coupons
       sui_tools_image:
@@ -81,6 +82,16 @@ jobs:
           ORIGIN: gh_action
         run: |
           cd scripts && pnpm transfer::names
+
+      - name: Transfer Admin Caps
+        if: ${{ inputs.transaction_type == 'Transfer Admin Caps' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+        run: |
+          cd scripts && pnpm transfer::caps
 
       - name: Multi Purpose Operation
         if: ${{ inputs.transaction_type == 'Multi Purpose Operation' }}
