@@ -20,6 +20,10 @@ public struct PricingConfig<phantom T> has copy, store, drop {
     pricing: VecMap<Range, u64>,
 }
 
+public struct Renewal<phantom T> has copy, store, drop {
+    config: PricingConfig<T>,
+}
+
 /// Calculates the price for a given length.
 /// Aborts with EPriceNotSet if the price for the given length is not set.
 public fun calculate_price<T>(config: &PricingConfig<T>, length: u64): u64 {
@@ -60,9 +64,21 @@ public fun new<T>(
     }
 }
 
+/// Constructor for Renewal<T> that initializes it with a PricingConfig.
+public fun new_renewal<T>(
+    ranges: vector<Range>,
+    prices: vector<u64>,
+): Renewal<T> {
+    Renewal { config: new<T>(ranges, prices) }
+}
+
 public fun new_range(range: vector<u64>): Range {
     assert!(range.length() == 2, EInvalidLength);
     assert!(range[0] <= range[1], EInvalidRange);
 
     Range(range[0], range[1])
+}
+
+public fun get_config<T>(renewal: &Renewal<T>): &PricingConfig<T> {
+    &renewal.config
 }
