@@ -112,7 +112,7 @@ public fun parent(domain: &Domain): Domain {
 
 /// Checks if `parent` domain is a valid parent for `child`.
 public fun is_parent_of(parent: &Domain, child: &Domain): bool {
-    number_of_levels(parent) < number_of_levels(child) && 
+    number_of_levels(parent) < number_of_levels(child) &&
         &parent(child).labels == &parent.labels
 }
 
