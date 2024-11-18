@@ -163,8 +163,8 @@ public fun app_add_balance<App: drop>(
 }
 
 public fun app_add_balance_v2<App: drop, T>(
-    _: App,
     self: &mut SuiNS,
+    _: App,
     balance: Balance<T>,
 ) {
     self.assert_app_is_authorized<App>();
@@ -266,7 +266,7 @@ public fun init_for_testing(ctx: &mut TxContext): SuiNS {
         vector[range1, range2, range3],
         prices,
     );
-    add_config(&admin_cap, &mut suins, pricing_config);
+    admin_cap.add_config(&mut suins, pricing_config);
 
     transfer::transfer(admin_cap, tx_context::sender(ctx));
     suins

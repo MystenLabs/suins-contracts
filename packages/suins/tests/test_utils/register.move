@@ -52,7 +52,7 @@ public fun register<T>(
     let price = config.calculate_price(label.length()) * (no_years as u64);
     assert!(payment.value() == price, EIncorrectAmount);
 
-    suins::app_add_balance_v2<_, T>(Register {}, suins, payment.into_balance());
+    suins.app_add_balance_v2<_, T>(Register {}, payment.into_balance());
     let registry = suins::app_registry_mut<Register, Registry>(
         Register {},
         suins,
