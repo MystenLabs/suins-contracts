@@ -10,16 +10,17 @@ use sui::clock::{Self, Clock};
 use sui::coin;
 use sui::sui::SUI;
 use sui::test_scenario::{Self, Scenario, ctx};
-use suins::auction::App as AuctionApp;
+use suins::auction::{Self, App as AuctionApp};
+use suins::auction_tests;
 use suins::config;
 use suins::constants::{mist_per_sui, grace_period_ms, year_ms};
 use suins::domain;
 use suins::registry;
 use suins::suins::{Self, SuiNS, total_balance, AdminCap};
-use suins::suins_registration::SuinsRegistration;
+use suins::suins_registration::{Self, SuinsRegistration};
 
 const SUINS_ADDRESS: address = @0xA001;
-// const AUCTIONED_DOMAIN_NAME: vector<u8> = b"tes-t2.sui";
+const AUCTIONED_DOMAIN_NAME: vector<u8> = b"tes-t2.sui";
 const DOMAIN_NAME: vector<u8> = b"abc.sui";
 
 public fun test_init(): Scenario {
@@ -370,48 +371,48 @@ fun test_register_if_domain_name_contains_subdomain() {
     scenario_val.end();
 }
 
-// #[test, expected_failure(abort_code = registry::ERecordNotExpired)]
-// fun test_register_aborts_if_domain_name_went_through_auction() {
-//     let mut scenario_val = test_init();
-//     let scenario = &mut scenario_val;
-//     auction::init_for_testing(scenario.ctx());
+#[test, expected_failure(abort_code = registry::ERecordNotExpired)]
+fun test_register_aborts_if_domain_name_went_through_auction() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+    auction::init_for_testing(scenario.ctx());
 
-//     auction_tests::normal_auction_flow(scenario);
-//     let nft = register_util(
-//         scenario,
-//         utf8(AUCTIONED_DOMAIN_NAME),
-//         1,
-//         50 * mist_per_sui(),
-//         10,
-//     );
-//     nft.burn_for_testing();
+    auction_tests::normal_auction_flow(scenario);
+    let nft = register_util(
+        scenario,
+        utf8(AUCTIONED_DOMAIN_NAME),
+        1,
+        50 * mist_per_sui(),
+        10,
+    );
+    nft.burn_for_testing();
 
-//     scenario_val.end();
-// }
+    scenario_val.end();
+}
 
-// #[test]
-// fun test_register_works_if_auctioned_domain_name_expired() {
-//     let mut scenario_val = test_init();
-//     let scenario = &mut scenario_val;
-//     auction::init_for_testing(scenario.ctx());
+#[test]
+fun test_register_works_if_auctioned_domain_name_expired() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+    auction::init_for_testing(scenario.ctx());
 
-//     auction_tests::normal_auction_flow(scenario);
-//     let nft = register_util(
-//         scenario,
-//         utf8(AUCTIONED_DOMAIN_NAME),
-//         1,
-//         50 * mist_per_sui(),
-//         year_ms() + grace_period_ms() + 20,
-//     );
-//     assert_balance(scenario, 50 * mist_per_sui());
-//     assert!(
-//         suins_registration::domain(&nft) == domain::new(utf8(AUCTIONED_DOMAIN_NAME)),
-//         0,
-//     );
-//     nft.burn_for_testing();
+    auction_tests::normal_auction_flow(scenario);
+    let nft = register_util(
+        scenario,
+        utf8(AUCTIONED_DOMAIN_NAME),
+        1,
+        50 * mist_per_sui(),
+        year_ms() + grace_period_ms() + 20,
+    );
+    assert_balance(scenario, 50 * mist_per_sui());
+    assert!(
+        suins_registration::domain(&nft) == domain::new(utf8(AUCTIONED_DOMAIN_NAME)),
+        0,
+    );
+    nft.burn_for_testing();
 
-//     scenario_val.end();
-// }
+    scenario_val.end();
+}
 
 #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
 fun test_register_aborts_if_register_is_deauthorized() {
