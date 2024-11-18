@@ -20,7 +20,7 @@ public struct PricingConfig<phantom T> has copy, store, drop {
     pricing: VecMap<Range, u64>,
 }
 
-public struct Renewal<phantom T> has copy, store, drop {
+public struct RenewalConfig<phantom T> has copy, store, drop {
     config: PricingConfig<T>,
 }
 
@@ -68,8 +68,8 @@ public fun new<T>(
 public fun new_renewal<T>(
     ranges: vector<Range>,
     prices: vector<u64>,
-): Renewal<T> {
-    Renewal { config: new<T>(ranges, prices) }
+): RenewalConfig<T> {
+    RenewalConfig { config: new<T>(ranges, prices) }
 }
 
 public fun new_range(range: vector<u64>): Range {
@@ -79,6 +79,6 @@ public fun new_range(range: vector<u64>): Range {
     Range(range[0], range[1])
 }
 
-public fun get_config<T>(renewal: &Renewal<T>): &PricingConfig<T> {
+public fun get_config<T>(renewal: &RenewalConfig<T>): &PricingConfig<T> {
     &renewal.config
 }
