@@ -204,3 +204,29 @@ async function inspectTransaction(tx: Transaction, client: SuiClient) {
 
 	return result.effects.status.status === 'success';
 }
+
+export const getAllObjectsByType = async (type: string, owner: string, client: SuiClient) => {
+	let objects = [];
+	let hasNextPage = true;
+	let cursor = null;
+
+	while (hasNextPage) {
+		const data = await client.getOwnedObjects({
+			owner,
+			filter: {
+				StructType: type,
+			},
+			options: {
+				showContent: true,
+				showType: true,
+			},
+			cursor,
+		});
+
+		hasNextPage = data.hasNextPage;
+		cursor = data.nextCursor;
+		objects.push(...data.data.map((x) => x.data!));
+	}
+
+	return objects;
+};
