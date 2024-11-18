@@ -109,8 +109,8 @@ public fun withdraw(
 }
 
 public fun withdraw_v2<T>(
-    _: &AdminCap,
     self: &mut SuiNS,
+    _: &AdminCap,
     ctx: &mut TxContext,
 ): Coin<T> {
     let balance_key = BalanceKey<T> {};
