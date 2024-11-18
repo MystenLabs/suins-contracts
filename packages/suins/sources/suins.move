@@ -26,11 +26,13 @@ use sui::balance::{Self, Balance};
 use sui::coin::{Self, Coin};
 use sui::dynamic_field as df;
 use sui::sui::SUI;
+use suins::pricing::{Self, new_range};
 
 /// Trying to withdraw from an empty balance.
 const ENoProfits: u64 = 0;
 /// An application is not authorized to access the feature.
 const EAppNotAuthorized: u64 = 1;
+const ENoProfitsInCoinType: u64 = 2;
 
 /// An admin capability. The admin has full control over the application.
 /// This object must be issued only once during module initialization.
@@ -65,6 +67,7 @@ public struct ConfigKey<phantom Config> has copy, store, drop {}
 /// future migration purposes (if we ever need to change the Registry), we
 /// keep the phantom parameter so two different Registries can co-exist.
 public struct RegistryKey<phantom Config> has copy, store, drop {}
+public struct BalanceKey<phantom T> has store, copy, drop {}
 
 /// Module initializer:
 /// - create SuiNS object
@@ -105,6 +108,18 @@ public fun withdraw(
     coin::take(&mut self.balance, amount, ctx)
 }
 
+public fun withdraw_v2<T>(
+    _: &AdminCap,
+    self: &mut SuiNS,
+    ctx: &mut TxContext,
+): Coin<T> {
+    let balance_key = BalanceKey<T> {};
+    assert!(df::exists_(&self.id, balance_key), ENoProfitsInCoinType);
+    let balance: Balance<T> = df::remove(&mut self.id, balance_key);
+
+    balance.into_coin(ctx)
+}
+
 // === App Auth ===
 
 /// An authorization Key kept in the SuiNS - allows applications access
@@ -143,9 +158,25 @@ public fun app_add_balance<App: drop>(
     self: &mut SuiNS,
     balance: Balance<SUI>,
 ) {
-    assert_app_is_authorized<App>(self);
+    self.assert_app_is_authorized<App>();
     self.balance.join(balance);
 }
+
+public fun app_add_balance_v2<App: drop, T>(
+    self: &mut SuiNS,
+    _: App,
+    balance: Balance<T>,
+) {
+    self.assert_app_is_authorized<App>();
+    let key = BalanceKey<T> {};
+    if (df::exists_(&self.id, key)) {
+        let balances: &mut Balance<T> = df::borrow_mut(&mut self.id, key);
+        balances.join(balance);
+    } else {
+        df::add(&mut self.id, key, balance);
+    }
+}
+// assign dynamic field to UID, use fun df::remove as UID.remove;
 
 /// Get a mutable access to the `Registry` object. Can only be performed by
 /// authorized
@@ -154,7 +185,7 @@ public fun app_registry_mut<App: drop, R: store>(
     _: App,
     self: &mut SuiNS,
 ): &mut R {
-    assert_app_is_authorized<App>(self);
+    self.assert_app_is_authorized<App>();
     df::borrow_mut(&mut self.id, RegistryKey<R> {})
 }
 
@@ -216,7 +247,8 @@ public fun new_for_testing(ctx: &mut TxContext): (SuiNS, AdminCap) {
 
 #[test_only]
 /// Wrapper of module initializer for testing
-public fun init_for_testing(ctx: &mut TxContext): SuiNS {
+public fun init_for_testing_prev(ctx: &mut TxContext): SuiNS {
+    // Add back previous tests
     let admin_cap = AdminCap { id: object::new(ctx) };
     let mut suins = SuiNS {
         id: object::new(ctx),
@@ -234,6 +266,35 @@ public fun init_for_testing(ctx: &mut TxContext): SuiNS {
             50 * suins::constants::mist_per_sui(),
         ),
     );
+    transfer::transfer(admin_cap, tx_context::sender(ctx));
+    suins
+}
+
+#[test_only]
+/// Wrapper of module initializer for testing
+public fun init_for_testing(ctx: &mut TxContext): SuiNS {
+    let admin_cap = AdminCap { id: object::new(ctx) };
+    let mut suins = SuiNS {
+        id: object::new(ctx),
+        balance: balance::zero(),
+    };
+
+    authorize_app<Test>(&admin_cap, &mut suins);
+    let range1 = new_range(vector[3, 3]);
+    let range2 = new_range(vector[4, 4]);
+    let range3 = new_range(vector[5, 63]);
+    let prices = vector[
+        1200 * suins::constants::mist_per_sui(),
+        200 * suins::constants::mist_per_sui(),
+        50 * suins::constants::mist_per_sui(),
+    ];
+
+    let pricing_config = pricing::new<SUI>(
+        vector[range1, range2, range3],
+        prices,
+    );
+    admin_cap.add_config(&mut suins, pricing_config);
+
     transfer::transfer(admin_cap, tx_context::sender(ctx));
     suins
 }
@@ -264,4 +325,14 @@ public fun authorize_app_for_testing<App: drop>(self: &mut SuiNS) {
 #[test_only]
 public fun total_balance(self: &SuiNS): u64 {
     self.balance.value()
+}
+
+#[test_only]
+public fun id(self: &SuiNS): &UID {
+    &self.id
+}
+
+#[test_only]
+public fun balance_key<T>(_: &SuiNS): BalanceKey<T> {
+    BalanceKey {}
 }
