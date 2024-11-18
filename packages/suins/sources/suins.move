@@ -247,8 +247,7 @@ public fun new_for_testing(ctx: &mut TxContext): (SuiNS, AdminCap) {
 
 #[test_only]
 /// Wrapper of module initializer for testing
-public fun init_for_testing_prev(ctx: &mut TxContext): SuiNS {
-    // Add back previous tests
+public fun init_for_testing(ctx: &mut TxContext): SuiNS {
     let admin_cap = AdminCap { id: object::new(ctx) };
     let mut suins = SuiNS {
         id: object::new(ctx),
@@ -266,20 +265,6 @@ public fun init_for_testing_prev(ctx: &mut TxContext): SuiNS {
             50 * suins::constants::mist_per_sui(),
         ),
     );
-    transfer::transfer(admin_cap, tx_context::sender(ctx));
-    suins
-}
-
-#[test_only]
-/// Wrapper of module initializer for testing
-public fun init_for_testing(ctx: &mut TxContext): SuiNS {
-    let admin_cap = AdminCap { id: object::new(ctx) };
-    let mut suins = SuiNS {
-        id: object::new(ctx),
-        balance: balance::zero(),
-    };
-
-    authorize_app<Test>(&admin_cap, &mut suins);
     let range1 = new_range(vector[3, 3]);
     let range2 = new_range(vector[4, 4]);
     let range3 = new_range(vector[5, 63]);
