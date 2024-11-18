@@ -176,7 +176,6 @@ public fun app_add_balance_v2<App: drop, T>(
         df::add(&mut self.id, key, balance);
     }
 }
-// assign dynamic field to UID, use fun df::remove as UID.remove;
 
 /// Get a mutable access to the `Registry` object. Can only be performed by
 /// authorized
