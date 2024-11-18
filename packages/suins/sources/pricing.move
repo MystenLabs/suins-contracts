@@ -79,10 +79,6 @@ public fun new_range(range: vector<u64>): Range {
     Range(range[0], range[1])
 }
 
-public fun renewal_config<T>(renewal: &Renewal<T>): &PricingConfig<T> {
+public fun config<T>(renewal: &Renewal<T>): &PricingConfig<T> {
     &renewal.config
-}
-
-public fun pricing_config<T>(pricing: &PricingConfig<T>): &VecMap<Range, u64> {
-    &pricing.pricing
 }
