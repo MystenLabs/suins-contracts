@@ -13,7 +13,7 @@ fun test_e2e() {
         pricing::new_range(vector[31, 31]),
     ];
 
-    let pricing_config = pricing::new<Coin<SUI>>(
+    let pricing_config = pricing::new(
         ranges,
         vector[10, 20, 30, 45],
     );
@@ -44,7 +44,7 @@ fun test_range_overlap_1() {
         pricing::new_range(vector[9, 20]),
     ];
 
-    pricing::new<Coin<SUI>>(ranges, vector[10, 20]);
+    pricing::new(ranges, vector[10, 20]);
 }
 
 #[test, expected_failure(abort_code = ::suins::pricing::EInvalidRange)]
@@ -54,7 +54,7 @@ fun test_range_overlap_2() {
         pricing::new_range(vector[10, 20]),
     ];
 
-    pricing::new<Coin<SUI>>(ranges, vector[10, 20]);
+    pricing::new(ranges, vector[10, 20]);
 }
 
 #[test, expected_failure(abort_code = ::suins::pricing::EInvalidRange)]
@@ -65,7 +65,7 @@ fun test_range_overlap_3() {
         pricing::new_range(vector[11, 20]),
     ];
 
-    pricing::new<Coin<SUI>>(ranges, vector[10, 20, 30]);
+    pricing::new(ranges, vector[10, 20, 30]);
 }
 
 #[test, expected_failure(abort_code = ::suins::pricing::EInvalidRange)]
@@ -76,14 +76,14 @@ fun test_range_overlap_4() {
         pricing::new_range(vector[40, 50]),
     ];
 
-    pricing::new<Coin<SUI>>(ranges, vector[10, 20, 30]);
+    pricing::new(ranges, vector[10, 20, 30]);
 }
 
 #[test, expected_failure(abort_code = ::suins::pricing::ELengthMissmatch)]
 fun test_length_missmatch() {
     let ranges = vector[pricing::new_range(vector[10, 20])];
 
-    pricing::new<Coin<SUI>>(ranges, vector[10, 20]);
+    pricing::new(ranges, vector[10, 20]);
 }
 
 #[test, expected_failure(abort_code = ::suins::pricing::EInvalidLength)]
@@ -100,7 +100,7 @@ fun test_invalid_range_construction() {
 fun test_price_not_set() {
     let ranges = vector[pricing::new_range(vector[1, 10])];
 
-    let pricing = pricing::new<Coin<SUI>>(ranges, vector[10]);
+    let pricing = pricing::new(ranges, vector[10]);
 
     pricing.calculate_price(20);
 }

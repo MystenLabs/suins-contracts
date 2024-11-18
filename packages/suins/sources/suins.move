@@ -273,7 +273,7 @@ public fun init_for_testing(ctx: &mut TxContext): SuiNS {
         50 * suins::constants::mist_per_sui(),
     ];
 
-    let pricing_config = pricing::new<SUI>(
+    let pricing_config = pricing::new(
         vector[range1, range2, range3],
         prices,
     );

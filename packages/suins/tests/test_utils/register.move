@@ -40,7 +40,7 @@ public fun register<T>(
 ): SuinsRegistration {
     suins.assert_app_is_authorized<Register>();
 
-    let config = suins.get_config<PricingConfig<T>>();
+    let config = suins.get_config<PricingConfig>();
     // If no PricingConfig of type T, add an error code
 
     let domain = domain::new(domain_name);

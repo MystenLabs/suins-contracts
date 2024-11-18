@@ -16,17 +16,17 @@ const EPriceNotSet: u64 = 4;
 public struct Range(u64, u64) has copy, store, drop;
 
 /// A struct that holds the length range and the price of a service.
-public struct PricingConfig<phantom T> has copy, store, drop {
+public struct PricingConfig has copy, store, drop {
     pricing: VecMap<Range, u64>,
 }
 
-public struct RenewalConfig<phantom T> has copy, store, drop {
-    config: PricingConfig<T>,
+public struct RenewalConfig has copy, store, drop {
+    config: PricingConfig,
 }
 
 /// Calculates the price for a given length.
 /// Aborts with EPriceNotSet if the price for the given length is not set.
-public fun calculate_price<T>(config: &PricingConfig<T>, length: u64): u64 {
+public fun calculate_price(config: &PricingConfig, length: u64): u64 {
     let keys = config.pricing.keys();
     let mut idx = keys.find_index!(
         |range| range.0 <= length && range.1 >= length,
@@ -43,10 +43,7 @@ public fun calculate_price<T>(config: &PricingConfig<T>, length: u64): u64 {
 /// - The length of the ranges and prices should be the same.
 ///
 /// All the ranges are inclusive (e.g. [3,5]: includes 3, 4, and 5).
-public fun new<T>(
-    ranges: vector<Range>,
-    prices: vector<u64>,
-): PricingConfig<T> {
+public fun new(ranges: vector<Range>, prices: vector<u64>): PricingConfig {
     assert!(ranges.length() == prices.length(), ELengthMissmatch);
     // Validate that our ranges are passed in the correct order
     // we expect them to be sorted in ascending order, and we expect them
@@ -65,9 +62,7 @@ public fun new<T>(
 }
 
 /// Constructor for Renewal<T> that initializes it with a PricingConfig.
-public fun new_renewal_config<T>(
-    pricing_config: PricingConfig<T>,
-): RenewalConfig<T> {
+public fun new_renewal_config<T>(pricing_config: PricingConfig): RenewalConfig {
     RenewalConfig { config: pricing_config }
 }
 
@@ -78,6 +73,6 @@ public fun new_range(range: vector<u64>): Range {
     Range(range[0], range[1])
 }
 
-public fun config<T>(renewal: &RenewalConfig<T>): &PricingConfig<T> {
+public fun config<T>(renewal: &RenewalConfig): &PricingConfig {
     &renewal.config
 }
