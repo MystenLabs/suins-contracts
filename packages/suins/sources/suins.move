@@ -233,6 +233,8 @@ public fun add_registry<R: store>(_: &AdminCap, self: &mut SuiNS, registry: R) {
 // === Testing ===
 
 #[test_only]
+use suins::config;
+#[test_only]
 public struct Test has drop {}
 
 #[test_only]
@@ -241,6 +243,31 @@ public fun new_for_testing(ctx: &mut TxContext): (SuiNS, AdminCap) {
         SuiNS { id: object::new(ctx), balance: balance::zero() },
         AdminCap { id: object::new(ctx) },
     )
+}
+
+#[test_only]
+/// Wrapper of module initializer for testing
+public fun init_for_testing_prev(ctx: &mut TxContext): SuiNS {
+    // Add back previous tests
+    let admin_cap = AdminCap { id: object::new(ctx) };
+    let mut suins = SuiNS {
+        id: object::new(ctx),
+        balance: balance::zero(),
+    };
+
+    authorize_app<Test>(&admin_cap, &mut suins);
+    add_config(
+        &admin_cap,
+        &mut suins,
+        config::new(
+            b"000000000000000000000000000000000",
+            1200 * suins::constants::mist_per_sui(),
+            200 * suins::constants::mist_per_sui(),
+            50 * suins::constants::mist_per_sui(),
+        ),
+    );
+    transfer::transfer(admin_cap, tx_context::sender(ctx));
+    suins
 }
 
 #[test_only]
