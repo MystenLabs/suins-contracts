@@ -9,9 +9,9 @@ use std::string::utf8;
 use sui::clock::{Self, Clock};
 use sui::coin;
 use sui::sui::SUI;
+use suins::config;
 use suins::constants::{mist_per_sui, year_ms, grace_period_ms};
 use suins::domain;
-use suins::pricing::{Self, new_range};
 use suins::registry;
 use suins::suins::{Self, SuiNS};
 use suins::suins_registration::{Self as nft, SuinsRegistration};
@@ -161,18 +161,16 @@ public fun prepare_registry(ctx: &mut TxContext): (SuiNS, SuinsRegistration) {
 
     let cap = suins::create_admin_cap_for_testing(ctx);
 
-    let range1 = new_range(vector[3, 3]);
-    let range2 = new_range(vector[4, 4]);
-    let range3 = new_range(vector[5, 63]);
-    let prices = vector[
-        1200 * mist_per_sui(),
-        200 * mist_per_sui(),
-        REGULAR_PRICE * mist_per_sui(),
-    ];
-
-    let config = pricing::new<SUI>(
-        vector[range1, range2, range3],
-        prices,
+    let config = config::new(
+        // We do not care about the public key of the configuration in tests.
+        // Also, for renewals, we do not care about it in production mode too.
+        // We re-use the type to be able to use the same utilities.
+        b"000000000000000000000000000000000",
+        // random price, not being tested in renewal tests.
+        1200 * ::suins::constants::mist_per_sui(),
+        // Random price, not being tested in renewal tests.
+        200 * ::suins::constants::mist_per_sui(),
+        REGULAR_PRICE * ::suins::constants::mist_per_sui(),
     );
 
     renewal::setup(&mut suins, &cap, config);

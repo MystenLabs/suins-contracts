@@ -6,22 +6,21 @@ module registration::register_tests;
 
 use registration::register::{Self, Register, register};
 use std::string::{utf8, String};
-use sui::balance::Balance;
 use sui::clock::{Self, Clock};
 use sui::coin;
-use sui::dynamic_field as df;
 use sui::sui::SUI;
 use sui::test_scenario::{Self, Scenario, ctx};
-use suins::auction::App as AuctionApp;
+use suins::auction::{Self, App as AuctionApp};
+use suins::auction_tests;
 use suins::config;
 use suins::constants::{mist_per_sui, grace_period_ms, year_ms};
 use suins::domain;
 use suins::registry;
-use suins::suins::{Self, SuiNS, AdminCap};
-use suins::suins_registration::SuinsRegistration;
+use suins::suins::{Self, SuiNS, total_balance, AdminCap};
+use suins::suins_registration::{Self, SuinsRegistration};
 
 const SUINS_ADDRESS: address = @0xA001;
-// const AUCTIONED_DOMAIN_NAME: vector<u8> = b"tes-t2.sui";
+const AUCTIONED_DOMAIN_NAME: vector<u8> = b"tes-t2.sui";
 const DOMAIN_NAME: vector<u8> = b"abc.sui";
 
 public fun test_init(): Scenario {
@@ -48,7 +47,7 @@ public fun test_init(): Scenario {
     scenario_val
 }
 
-public fun register_util<T>(
+public fun register_util(
     scenario: &mut Scenario,
     domain_name: String,
     no_years: u8,
@@ -57,11 +56,11 @@ public fun register_util<T>(
 ): SuinsRegistration {
     scenario.next_tx(SUINS_ADDRESS);
     let mut suins = scenario.take_shared<SuiNS>();
-    let payment = coin::mint_for_testing<T>(amount, scenario.ctx());
+    let payment = coin::mint_for_testing<SUI>(amount, scenario.ctx());
     let mut clock = scenario.take_shared<Clock>();
 
     clock.increment_for_testing(clock_tick);
-    let nft = register<T>(
+    let nft = register(
         &mut suins,
         domain_name,
         no_years,
@@ -87,14 +86,10 @@ fun deauthorize_app_util(scenario: &mut Scenario) {
     scenario.return_to_sender(admin_cap);
 }
 
-public fun assert_balance<T>(scenario: &mut Scenario, amount: u64) {
+public fun assert_balance(scenario: &mut Scenario, amount: u64) {
     scenario.next_tx(SUINS_ADDRESS);
     let auction_house = scenario.take_shared<SuiNS>();
-    let balances: &Balance<T> = df::borrow(
-        auction_house.id(),
-        auction_house.balance_key<T>(),
-    );
-    assert!(balances.value() == amount, 0);
+    assert!(auction_house.total_balance() == amount, 0);
     test_scenario::return_shared(auction_house);
 }
 
@@ -103,38 +98,38 @@ fun test_register() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
 
-    let nft = register_util<SUI>(
+    let nft = register_util(
         scenario,
         utf8(DOMAIN_NAME),
         1,
         1200 * mist_per_sui(),
         10,
     );
-    assert_balance<SUI>(scenario, 1200 * mist_per_sui());
+    assert_balance(scenario, 1200 * mist_per_sui());
     assert!(nft.domain() == domain::new(utf8(DOMAIN_NAME)), 0);
     assert!(nft.expiration_timestamp_ms() == year_ms() + 10, 0);
     nft.burn_for_testing();
 
-    let nft = register_util<SUI>(
+    let nft = register_util(
         scenario,
         utf8(b"abcd.sui"),
         2,
         400 * mist_per_sui(),
         20,
     );
-    assert_balance<SUI>(scenario, 1600 * mist_per_sui());
+    assert_balance(scenario, 1600 * mist_per_sui());
     assert!(nft.domain() == domain::new(utf8(b"abcd.sui")), 0);
     assert!(nft.expiration_timestamp_ms() == 2 * year_ms() + 30, 0);
     nft.burn_for_testing();
 
-    let nft = register_util<SUI>(
+    let nft = register_util(
         scenario,
         utf8(b"abce-f12.sui"),
         3,
         150 * mist_per_sui(),
         30,
     );
-    assert_balance<SUI>(scenario, 1750 * mist_per_sui());
+    assert_balance(scenario, 1750 * mist_per_sui());
     assert!(nft.domain() == domain::new(utf8(b"abce-f12.sui")), 0);
     assert!(nft.expiration_timestamp_ms() == 3 * year_ms() + 60, 0);
     nft.burn_for_testing();
@@ -147,7 +142,7 @@ fun test_register_if_not_sui_tld() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
 
-    let nft = register_util<SUI>(
+    let nft = register_util(
         scenario,
         utf8(b"abc.move"),
         1,
@@ -164,7 +159,7 @@ fun test_register_if_incorrect_amount() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
 
-    let nft = register_util<SUI>(
+    let nft = register_util(
         scenario,
         utf8(DOMAIN_NAME),
         1,
@@ -181,7 +176,7 @@ fun test_register_if_incorrect_amount_2() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
 
-    let nft = register_util<SUI>(
+    let nft = register_util(
         scenario,
         utf8(DOMAIN_NAME),
         1,
@@ -198,7 +193,7 @@ fun test_register_if_no_years_more_than_5_years() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
 
-    let nft = register_util<SUI>(
+    let nft = register_util(
         scenario,
         utf8(DOMAIN_NAME),
         6,
@@ -215,7 +210,7 @@ fun test_register_if_no_years_is_zero() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
 
-    let nft = register_util<SUI>(
+    let nft = register_util(
         scenario,
         utf8(DOMAIN_NAME),
         0,
@@ -232,26 +227,26 @@ fun test_register_if_expired() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
 
-    let nft = register_util<SUI>(
+    let nft = register_util(
         scenario,
         utf8(DOMAIN_NAME),
         1,
         1200 * mist_per_sui(),
         10,
     );
-    assert_balance<SUI>(scenario, 1200 * mist_per_sui());
+    assert_balance(scenario, 1200 * mist_per_sui());
     assert!(nft.domain() == domain::new(utf8(DOMAIN_NAME)), 0);
     assert!(nft.expiration_timestamp_ms() == year_ms() + 10, 0);
     nft.burn_for_testing();
 
-    let nft = register_util<SUI>(
+    let nft = register_util(
         scenario,
         utf8(DOMAIN_NAME),
         1,
         1200 * mist_per_sui(),
         year_ms() + grace_period_ms() + 20,
     );
-    assert_balance<SUI>(scenario, 2400 * mist_per_sui());
+    assert_balance(scenario, 2400 * mist_per_sui());
     assert!(nft.domain() == domain::new(utf8(DOMAIN_NAME)), 0);
     assert!(
         nft.expiration_timestamp_ms() == 2 * year_ms() + grace_period_ms() + 30,
@@ -267,19 +262,19 @@ fun test_register_if_not_expired() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
 
-    let nft = register_util<SUI>(
+    let nft = register_util(
         scenario,
         utf8(DOMAIN_NAME),
         1,
         1200 * mist_per_sui(),
         10,
     );
-    assert_balance<SUI>(scenario, 1200 * mist_per_sui());
+    assert_balance(scenario, 1200 * mist_per_sui());
     assert!(nft.domain() == domain::new(utf8(DOMAIN_NAME)), 0);
     assert!(nft.expiration_timestamp_ms() == year_ms() + 10, 0);
     nft.burn_for_testing();
 
-    let nft = register_util<SUI>(
+    let nft = register_util(
         scenario,
         utf8(DOMAIN_NAME),
         1,
@@ -296,7 +291,7 @@ fun test_register_if_domain_name_starts_with_dash() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
 
-    let nft = register_util<SUI>(
+    let nft = register_util(
         scenario,
         utf8(b"-ab.sui"),
         1,
@@ -313,7 +308,7 @@ fun test_register_if_domain_name_ends_with_dash() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
 
-    let nft = register_util<SUI>(
+    let nft = register_util(
         scenario,
         utf8(b"ab-.sui"),
         1,
@@ -330,7 +325,7 @@ fun test_register_if_domain_name_contains_uppercase_character() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
 
-    let nft = register_util<SUI>(
+    let nft = register_util(
         scenario,
         utf8(b"Abc.com"),
         1,
@@ -347,7 +342,7 @@ fun test_register_if_domain_name_too_short() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
 
-    let nft = register_util<SUI>(
+    let nft = register_util(
         scenario,
         utf8(b"ab.sui"),
         1,
@@ -364,7 +359,7 @@ fun test_register_if_domain_name_contains_subdomain() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
 
-    let nft = register_util<SUI>(
+    let nft = register_util(
         scenario,
         utf8(b"abc.xyz.sui"),
         1,
@@ -376,48 +371,48 @@ fun test_register_if_domain_name_contains_subdomain() {
     scenario_val.end();
 }
 
-// #[test, expected_failure(abort_code = registry::ERecordNotExpired)]
-// fun test_register_aborts_if_domain_name_went_through_auction() {
-//     let mut scenario_val = test_init();
-//     let scenario = &mut scenario_val;
-//     auction::init_for_testing(scenario.ctx());
+#[test, expected_failure(abort_code = registry::ERecordNotExpired)]
+fun test_register_aborts_if_domain_name_went_through_auction() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+    auction::init_for_testing(scenario.ctx());
 
-//     auction_tests::normal_auction_flow(scenario);
-//     let nft = register_util<SUI>(
-//         scenario,
-//         utf8(AUCTIONED_DOMAIN_NAME),
-//         1,
-//         50 * mist_per_sui(),
-//         10,
-//     );
-//     nft.burn_for_testing();
+    auction_tests::normal_auction_flow(scenario);
+    let nft = register_util(
+        scenario,
+        utf8(AUCTIONED_DOMAIN_NAME),
+        1,
+        50 * mist_per_sui(),
+        10,
+    );
+    nft.burn_for_testing();
 
-//     scenario_val.end();
-// }
+    scenario_val.end();
+}
 
-// #[test]
-// fun test_register_works_if_auctioned_domain_name_expired() {
-//     let mut scenario_val = test_init();
-//     let scenario = &mut scenario_val;
-//     auction::init_for_testing(scenario.ctx());
+#[test]
+fun test_register_works_if_auctioned_domain_name_expired() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+    auction::init_for_testing(scenario.ctx());
 
-//     auction_tests::normal_auction_flow(scenario);
-//     let nft = register_util<SUI>(
-//         scenario,
-//         utf8(AUCTIONED_DOMAIN_NAME),
-//         1,
-//         50 * mist_per_sui(),
-//         year_ms() + grace_period_ms() + 20,
-//     );
-//     assert_balance<SUI>(scenario, 50 * mist_per_sui());
-//     assert!(
-//         suins_registration::domain(&nft) == domain::new(utf8(AUCTIONED_DOMAIN_NAME)),
-//         0,
-//     );
-//     nft.burn_for_testing();
+    auction_tests::normal_auction_flow(scenario);
+    let nft = register_util(
+        scenario,
+        utf8(AUCTIONED_DOMAIN_NAME),
+        1,
+        50 * mist_per_sui(),
+        year_ms() + grace_period_ms() + 20,
+    );
+    assert_balance(scenario, 50 * mist_per_sui());
+    assert!(
+        suins_registration::domain(&nft) == domain::new(utf8(AUCTIONED_DOMAIN_NAME)),
+        0,
+    );
+    nft.burn_for_testing();
 
-//     scenario_val.end();
-// }
+    scenario_val.end();
+}
 
 #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
 fun test_register_aborts_if_register_is_deauthorized() {
@@ -425,7 +420,7 @@ fun test_register_aborts_if_register_is_deauthorized() {
     let scenario = &mut scenario_val;
 
     deauthorize_app_util(scenario);
-    let nft = register_util<SUI>(
+    let nft = register_util(
         scenario,
         utf8(DOMAIN_NAME),
         1,
