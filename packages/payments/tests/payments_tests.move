@@ -12,9 +12,9 @@ fun test_math() {
     let exponent_with_buffer =
         buffer + target_decimals + pyth_decimals - base_decimals;
     let target_currency_amount =
-        (base_currency_amount as u128 * 10u128.pow(exponent_with_buffer as u8))
+        (base_currency_amount as u128 * 10u128.pow(exponent_with_buffer))
             .divide_and_round_up(pyth_price as u128)
-            .divide_and_round_up(10u128.pow(buffer as u8)) as u64;
+            .divide_and_round_up(10u128.pow(buffer)) as u64;
 
     assert!(target_currency_amount == 26315789474, 1); // 26.315789474 SUI
 }
@@ -31,9 +31,9 @@ fun test_math_2() {
     let exponent_with_buffer =
         buffer + target_decimals + pyth_decimals - base_decimals;
     let target_currency_amount =
-        (base_currency_amount as u128 * 10u128.pow(exponent_with_buffer as u8))
+        (base_currency_amount as u128 * 10u128.pow(exponent_with_buffer))
             .divide_and_round_up(pyth_price as u128)
-            .divide_and_round_up(10u128.pow(buffer as u8)) as u64;
+            .divide_and_round_up(10u128.pow(buffer)) as u64;
 
     assert!(target_currency_amount == 27, 1); // 27 TOKEN
 }
