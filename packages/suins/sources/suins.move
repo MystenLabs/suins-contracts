@@ -26,7 +26,7 @@ use sui::balance::{Self, Balance};
 use sui::coin::{Self, Coin};
 use sui::dynamic_field as df;
 use sui::sui::SUI;
-use suins::pricing_config::{Self, new_range};
+use suins::pricing_config;
 
 use fun df::add as UID.add;
 use fun df::borrow as UID.borrow;
@@ -276,9 +276,9 @@ public fun init_for_testing(ctx: &mut TxContext): SuiNS {
             50 * suins::constants::mist_per_sui(),
         ),
     );
-    let range1 = new_range(vector[3, 3]);
-    let range2 = new_range(vector[4, 4]);
-    let range3 = new_range(vector[5, 63]);
+    let range1 = pricing_config::new_range(vector[3, 3]);
+    let range2 = pricing_config::new_range(vector[4, 4]);
+    let range3 = pricing_config::new_range(vector[5, 63]);
     let prices = vector[
         1200 * suins::constants::mist_per_sui(),
         200 * suins::constants::mist_per_sui(),

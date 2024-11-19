@@ -62,6 +62,9 @@ const EVersionMismatch: vector<u8> =
     b"Version mismatch. The payment intent is not of the correct version for this package.";
 #[error]
 const EInvalidDiscountPercentage: vector<u8> = b"Discount range is [0, 100].";
+#[error]
+const ECannotRenewSubdomain: vector<u8> =
+    b"Cannot renew a subdomain using the payment system.";
 
 /// The data required to complete a payment request.
 public struct RequestData has drop {
@@ -125,17 +128,17 @@ public fun apply_percentage_discount<App: drop>(
 
 /// Allow an authorized app to finalize a payment.
 /// Returns a receipt that can be used to register or renew a domain.
-public fun finalize_payment<App: drop, T>(
+public fun finalize_payment<A: drop, T>(
     intent: PaymentIntent,
     suins: &mut SuiNS,
-    app: App,
+    app: A,
     // could also be a 0 balance coin if the app offers a free registration.
     coin: Coin<T>,
 ): Receipt {
     // Ensure the app is authorized to finalize the payment.
-    suins.assert_app_is_authorized<App>();
+    suins.assert_app_is_authorized<A>();
     // add funds to SuiNS balance.
-    suins.app_add_custom_balance<App, T>(app, coin.into_balance());
+    suins.app_add_custom_balance(app, coin.into_balance());
 
     match (intent) {
         PaymentIntent::Registration(data) => {
@@ -188,6 +191,30 @@ public fun init_registration(suins: &mut SuiNS, domain: String): PaymentIntent {
         domain,
         years: 1,
         base_amount: price,
+        discount_applied: false,
+        version: PAYMENT_VERSION,
+    })
+}
+
+/// Creates a `PaymentIntent` for renewing an existing domain.
+/// This is a hot-potato and can only be consumed in a single transaction.
+public fun init_renewal(
+    suins: &mut SuiNS,
+    nft: &SuinsRegistration,
+    years: u8,
+): PaymentIntent {
+    let domain = nft.domain();
+    assert!(!domain.is_subdomain(), ECannotRenewSubdomain);
+
+    let price = suins
+        .get_config<RenewalConfig>()
+        .config()
+        .calculate_base_price(domain.sld().length());
+
+    PaymentIntent::Renewal(RequestData {
+        domain,
+        years,
+        base_amount: price * (years as u64),
         discount_applied: false,
         version: PAYMENT_VERSION,
     })
@@ -248,29 +275,6 @@ public fun renew(
             abort ENotSupportedType
         },
     }
-}
-
-/// Creates a `PaymentIntent` for renewing an existing domain.
-/// This is a hot-potato and can only be consumed in a single transaction.
-public fun init_renewal(
-    suins: &mut SuiNS,
-    nft: &SuinsRegistration,
-    years: u8,
-): PaymentIntent {
-    let domain = nft.domain();
-
-    let price = suins
-        .get_config<RenewalConfig>()
-        .config()
-        .calculate_base_price(domain.sld().length());
-
-    PaymentIntent::Renewal(RequestData {
-        domain,
-        years,
-        base_amount: price * (years as u64),
-        discount_applied: false,
-        version: PAYMENT_VERSION,
-    })
 }
 
 /// Getters
