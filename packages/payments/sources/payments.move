@@ -125,9 +125,12 @@ public fun calculate_target_currency_amount(
     pyth_price: u64,
     pyth_decimals: u8,
 ): u64 {
+    // We use a buffer in the edge case where target_decimals + pyth_decimals <
+    // base_decimals
     let exponent_with_buffer =
         BUFFER + target_decimals + pyth_decimals - base_decimals;
 
+    // We cast to u128 to avoid overflow, which is very likely with the buffer
     let target_currency_amount =
         (base_currency_amount as u128 * 10u128.pow(exponent_with_buffer))
             .divide_and_round_up(pyth_price as u128)
