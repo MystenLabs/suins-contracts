@@ -105,21 +105,35 @@ public fun handle_payment<T>(
     let pyth_decimals = price.get_expo().get_magnitude_if_negative() as u8;
     let pyth_price = price.get_price().get_magnitude_if_positive();
 
-    // TODO: Optionally assert confidence is high enough?
-    // let pyth_confidence = price.get_conf();
+    let target_currency_amount = calculate_target_currency_amount(
+        base_currency_amount,
+        target_decimals,
+        base_decimals,
+        pyth_price,
+        pyth_decimals,
+    );
 
+    assert!(payment.value() == target_currency_amount, EInsufficientPayment);
+
+    intent.finalize_payment(suins, PaymentsApp(), payment)
+}
+
+public fun calculate_target_currency_amount(
+    base_currency_amount: u64,
+    target_decimals: u8,
+    base_decimals: u8,
+    pyth_price: u64,
+    pyth_decimals: u8,
+): u64 {
     let exponent_with_buffer =
         BUFFER + target_decimals + pyth_decimals - base_decimals;
+
     let target_currency_amount =
         (base_currency_amount as u128 * 10u128.pow(exponent_with_buffer))
             .divide_and_round_up(pyth_price as u128)
             .divide_and_round_up(10u128.pow(BUFFER)) as u64;
 
-    // TODO: What if oracle price is volatile? Should we have a read only
-    // function for the currency amount needed?
-    assert!(payment.value() == target_currency_amount, EInsufficientPayment);
-
-    intent.finalize_payment(suins, PaymentsApp(), payment)
+    target_currency_amount
 }
 
 /// Creates a new CoinTypeData struct.
