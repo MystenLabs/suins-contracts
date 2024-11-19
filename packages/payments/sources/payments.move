@@ -25,6 +25,8 @@ const ECannotUseOracleForBaseCurrency: vector<u8> =
 #[error]
 const EPriceFeedIdMismatch: vector<u8> =
     b"The supplied `PriceInfoObject` is invalid for the given coin type.";
+#[error]
+const EInvalidPythPrice: vector<u8> = b"Invalid Pyth price.";
 
 const BUFFER: u8 = 10;
 
@@ -125,6 +127,8 @@ public fun calculate_target_currency_amount(
     pyth_price: u64,
     pyth_decimals: u8,
 ): u64 {
+    assert!(pyth_price > 0, EInvalidPythPrice);
+
     // We use a buffer in the edge case where target_decimals + pyth_decimals <
     // base_decimals
     let exponent_with_buffer =
