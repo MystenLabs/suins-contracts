@@ -1,22 +1,39 @@
+module payments::payments_tests;
 
-// module payments::payments_tests;
+#[test]
+fun test_math() {
+    let buffer = 10;
+    let target_decimals: u8 = 9;
+    let base_decimals: u8 = 6;
+    let pyth_decimals: u8 = 8;
+    let pyth_price = 380000000; // SUI price 3.8
+    let base_currency_amount = 100 * 1_000_000; // 100 USDC
 
-// use std::u64;
+    let exponent_with_buffer =
+        buffer + target_decimals + pyth_decimals - base_decimals;
+    let target_currency_amount =
+        (base_currency_amount as u128 * 10u128.pow(exponent_with_buffer as u8))
+            .divide_and_round_up(pyth_price as u128)
+            .divide_and_round_up(10u128.pow(buffer as u8)) as u64;
 
-// #[test]
-// fun test_ugly_math() {
+    assert!(target_currency_amount == 26315789474, 1); // 26.315789474 SUI
+}
 
-//     let chain_decimals = 6;
-//     let pyth_decimals = 8; // -8 equivalent
-//     let target_decimals = 6;
+#[test]
+fun test_math_2() {
+    let buffer = 10;
+    let target_decimals: u8 = 0; // TOKEN has no decimals
+    let base_decimals: u8 = 6;
+    let pyth_decimals: u8 = 3;
+    let pyth_price = 3800; // TOKEN price 3.8
+    let base_currency_amount = 100 * 1_000_000; // 100 USDC
 
-//     let pyth_price = 37017259;
+    let exponent_with_buffer =
+        buffer + target_decimals + pyth_decimals - base_decimals;
+    let target_currency_amount =
+        (base_currency_amount as u128 * 10u128.pow(exponent_with_buffer as u8))
+            .divide_and_round_up(pyth_price as u128)
+            .divide_and_round_up(10u128.pow(buffer as u8)) as u64;
 
-//     let exponent = 0;
-
-//     let val = (2_000_000 * 1_000_000 * 10u64.pow(exponent as u8)).divide_and_round_up(pyth_price);
-
-//     std::debug::print(&val);
-
-//     // 10^(chain_decimal_ns - pyth_expo - usdc_decimal) / pyth_price * x
-// }
+    assert!(target_currency_amount == 27, 1); // 27 TOKEN
+}

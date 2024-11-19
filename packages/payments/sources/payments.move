@@ -26,6 +26,8 @@ const ECannotUseOracleForBaseCurrency: vector<u8> =
 const EPriceFeedIdMismatch: vector<u8> =
     b"The supplied `PriceInfoObject` is invalid for the given coin type.";
 
+const BUFFER: u8 = 10;
+
 /// Configuration for the payments module.
 /// Holds a VecMap that determines the configuration for each currency.
 public struct PaymentsConfig has store, drop {
@@ -42,7 +44,8 @@ public struct CoinTypeData has store, drop {
     decimals: u8,
     // A discount can be applied if the user pays with this currency.
     discount_percentage: u8,
-    // Pyth's price feed id for the given currency. Make sure you omit the `0x` prefix.
+    // Pyth's price feed id for the given currency. Make sure you omit the `0x`
+    // prefix.
     price_feed_id: vector<u8>,
 }
 
@@ -95,20 +98,26 @@ public fun handle_payment<T>(
     );
 
     // The amount that has to be paid in base currency.
-    let base_currency_price = intent.request_data().base_amount();
+    let base_currency_amount = intent.request_data().base_amount();
 
-    // Now we need to calculate the amount of `T` coins that the user needs to pay.
-    // We know that the price we'll be getting is relative to the base currency 
-    // (In our scenario, USD)
-    let decimal_i64 = price.get_expo();
-    let price = price.get_price();
+    let target_decimals = config.currencies.get(&payment_type).decimals;
+    let base_decimals = config.currencies.get(&config.base_currency).decimals;
+    let pyth_decimals = price.get_expo().get_magnitude_if_negative() as u8;
+    let pyth_price = price.get_price().get_magnitude_if_positive();
 
-    // get the u64 price of SUI.
-    let price_u64 = price.get_magnitude_if_positive();
+    // TODO: Optionally assert confidence is high enough?
+    // let pyth_confidence = price.get_conf();
 
+    let exponent_with_buffer =
+        BUFFER + target_decimals + pyth_decimals - base_decimals;
+    let target_currency_amount =
+        (base_currency_amount as u128 * 10u128.pow(exponent_with_buffer as u8))
+            .divide_and_round_up(pyth_price as u128)
+            .divide_and_round_up(10u128.pow(BUFFER as u8)) as u64;
 
-    // TODO: Calculate the price, and if payment is sufficient, finalize or abort.
-    // Math needed :)
+    // TODO: What if oracle price is volatile? Should we have a read only
+    // function for the currency amount needed?
+    assert!(payment.value() == target_currency_amount, EInsufficientPayment);
 
     intent.finalize_payment(suins, PaymentsApp(), payment)
 }
