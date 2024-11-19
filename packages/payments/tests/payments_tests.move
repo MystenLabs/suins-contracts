@@ -39,3 +39,20 @@ fun test_calculate_target_currency_2() {
 
     assert!(target_currency_amount == 27, 1); // 27 TOKEN
 }
+
+#[test, expected_failure(abort_code = ::payments::payments::EInvalidPythPrice)]
+fun test_calculate_target_currency_invalid_pyth_price() {
+    let target_decimals: u8 = 9;
+    let base_decimals: u8 = 6;
+    let pyth_decimals: u8 = 8;
+    let pyth_price = 0; // Price 0
+    let base_currency_amount = 100 * 1_000_000; // 100 USDC
+
+    calculate_target_currency_amount(
+        base_currency_amount,
+        target_decimals,
+        base_decimals,
+        pyth_price,
+        pyth_decimals,
+    );
+}
