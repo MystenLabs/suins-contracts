@@ -111,9 +111,9 @@ public fun handle_payment<T>(
     let exponent_with_buffer =
         BUFFER + target_decimals + pyth_decimals - base_decimals;
     let target_currency_amount =
-        (base_currency_amount as u128 * 10u128.pow(exponent_with_buffer as u8))
+        (base_currency_amount as u128 * 10u128.pow(exponent_with_buffer))
             .divide_and_round_up(pyth_price as u128)
-            .divide_and_round_up(10u128.pow(BUFFER as u8)) as u64;
+            .divide_and_round_up(10u128.pow(BUFFER)) as u64;
 
     // TODO: What if oracle price is volatile? Should we have a read only
     // function for the currency amount needed?
