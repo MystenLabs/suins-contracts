@@ -46,7 +46,7 @@ fun test_calculate_target_currency_invalid_pyth_price() {
     let base_decimals: u8 = 6;
     let pyth_decimals: u8 = 8;
     let pyth_price = 0; // Price 0
-    let base_currency_amount = 100 * 1_000_000; // 100 USDC
+    let base_currency_amount = 100 * 1_000_000;
 
     calculate_target_currency_amount(
         base_currency_amount,
