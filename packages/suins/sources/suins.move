@@ -26,7 +26,13 @@ use sui::balance::{Self, Balance};
 use sui::coin::{Self, Coin};
 use sui::dynamic_field as df;
 use sui::sui::SUI;
-use suins::pricing::{Self, new_range};
+use suins::pricing_config::{Self, new_range};
+
+use fun df::add as UID.add;
+use fun df::borrow as UID.borrow;
+use fun df::borrow_mut as UID.borrow_mut;
+use fun df::exists_ as UID.exists_;
+use fun df::remove as UID.remove;
 
 /// Trying to withdraw from an empty balance.
 const ENoProfits: u64 = 0;
@@ -114,10 +120,9 @@ public fun withdraw_v2<T>(
     ctx: &mut TxContext,
 ): Coin<T> {
     let balance_key = BalanceKey<T> {};
-    assert!(df::exists_(&self.id, balance_key), ENoProfitsInCoinType);
-    let balance: Balance<T> = df::remove(&mut self.id, balance_key);
+    assert!(self.id.exists_(balance_key), ENoProfitsInCoinType);
 
-    balance.into_coin(ctx)
+    self.id.borrow_mut<_, Balance<T>>(balance_key).withdraw_all().into_coin(ctx)
 }
 
 // === App Auth ===
@@ -141,13 +146,13 @@ public fun deauthorize_app<App: drop>(_: &AdminCap, self: &mut SuiNS): bool {
 /// Check if an application is authorized to access protected features of
 /// the SuiNS.
 public fun is_app_authorized<App: drop>(self: &SuiNS): bool {
-    df::exists_(&self.id, AppKey<App> {})
+    self.id.exists_(AppKey<App> {})
 }
 
 /// Assert that an application is authorized to access protected features of
 /// the SuiNS. Aborts with `EAppNotAuthorized` if not.
 public fun assert_app_is_authorized<App: drop>(self: &SuiNS) {
-    assert!(is_app_authorized<App>(self), EAppNotAuthorized);
+    assert!(self.is_app_authorized<App>(), EAppNotAuthorized);
 }
 
 // === Protected features ===
@@ -162,7 +167,8 @@ public fun app_add_balance<App: drop>(
     self.balance.join(balance);
 }
 
-public fun app_add_balance_v2<App: drop, T>(
+/// Adds a balance of type `T` to the SuiNS protocol as an authorized app.
+public fun app_add_custom_balance<App: drop, T>(
     self: &mut SuiNS,
     _: App,
     balance: Balance<T>,
@@ -185,7 +191,7 @@ public fun app_registry_mut<App: drop, R: store>(
     self: &mut SuiNS,
 ): &mut R {
     self.assert_app_is_authorized<App>();
-    df::borrow_mut(&mut self.id, RegistryKey<R> {})
+    self.pkg_registry_mut<R>()
 }
 
 // === Config management ===
@@ -196,12 +202,12 @@ public fun add_config<Config: store + drop>(
     self: &mut SuiNS,
     config: Config,
 ) {
-    df::add(&mut self.id, ConfigKey<Config> {}, config);
+    self.id.add(ConfigKey<Config> {}, config);
 }
 
 /// Borrow configuration object. Read-only mode for applications.
 public fun get_config<Config: store + drop>(self: &SuiNS): &Config {
-    df::borrow(&self.id, ConfigKey<Config> {})
+    self.id.borrow(ConfigKey<Config> {})
 }
 
 /// Get the configuration object for editing. The admin should put it back
@@ -214,19 +220,25 @@ public fun remove_config<Config: store + drop>(
     _: &AdminCap,
     self: &mut SuiNS,
 ): Config {
-    df::remove(&mut self.id, ConfigKey<Config> {})
+    self.id.remove(ConfigKey<Config> {})
 }
 
 // === Registry ===
 
 /// Get a read-only access to the `Registry` object.
 public fun registry<R: store>(self: &SuiNS): &R {
-    df::borrow(&self.id, RegistryKey<R> {})
+    self.id.borrow(RegistryKey<R> {})
 }
 
 /// Add a registry to the SuiNS. Can only be performed by the admin.
 public fun add_registry<R: store>(_: &AdminCap, self: &mut SuiNS, registry: R) {
-    df::add(&mut self.id, RegistryKey<R> {}, registry);
+    self.id.add(RegistryKey<R> {}, registry);
+}
+
+/// Get a mutable access to the `Registry` object. Can only be called
+/// internally by SuiNS.
+public(package) fun pkg_registry_mut<R: store>(self: &mut SuiNS): &mut R {
+    self.id.borrow_mut(RegistryKey<R> {})
 }
 
 // === Testing ===
@@ -273,7 +285,7 @@ public fun init_for_testing(ctx: &mut TxContext): SuiNS {
         50 * suins::constants::mist_per_sui(),
     ];
 
-    let pricing_config = pricing::new(
+    let pricing_config = pricing_config::new(
         vector[range1, range2, range3],
         prices,
     );

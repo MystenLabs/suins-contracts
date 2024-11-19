@@ -9,7 +9,7 @@ use sui::clock::Clock;
 use sui::coin::Coin;
 use suins::config;
 use suins::domain;
-use suins::pricing::PricingConfig;
+use suins::pricing_config::PricingConfig;
 use suins::registry::Registry;
 use suins::suins::{Self, SuiNS};
 use suins::suins_registration::SuinsRegistration;
@@ -49,10 +49,10 @@ public fun register<T>(
     assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
 
     let label = domain.sld();
-    let price = config.calculate_price(label.length()) * (no_years as u64);
+    let price = config.calculate_base_price(label.length()) * (no_years as u64);
     assert!(payment.value() == price, EIncorrectAmount);
 
-    suins.app_add_balance_v2<_, T>(Register {}, payment.into_balance());
+    suins.app_add_custom_balance<_, T>(Register {}, payment.into_balance());
     let registry = suins::app_registry_mut<Register, Registry>(
         Register {},
         suins,

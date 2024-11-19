@@ -135,7 +135,7 @@ fun balance_and_withdraw_v2() {
     suins::authorize_app<TestApp>(&cap, &mut suins);
 
     let paid = balance::create_for_testing<SUI>(1000);
-    suins.app_add_balance_v2<TestApp, SUI>(TestApp {}, paid);
+    suins.app_add_custom_balance<TestApp, SUI>(TestApp {}, paid);
 
     let withdrawn = suins.withdraw_v2<SUI>(&cap, &mut ctx);
     assert_eq(coin::burn_for_testing(withdrawn), 1000);
@@ -152,7 +152,7 @@ fun balance_and_withdraw_fail_no_profits_in_type_v2() {
     suins::authorize_app<TestApp>(&cap, &mut suins);
 
     let paid = balance::create_for_testing<SUI>(1000);
-    suins.app_add_balance_v2<TestApp, SUI>(TestApp {}, paid);
+    suins.app_add_custom_balance<TestApp, SUI>(TestApp {}, paid);
     let _withdrawn = suins.withdraw_v2<USDC>(&cap, &mut ctx);
 
     abort 1337

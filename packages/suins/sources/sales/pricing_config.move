@@ -1,4 +1,4 @@
-module suins::pricing;
+module suins::pricing_config;
 
 use sui::vec_map::{Self, VecMap};
 
@@ -16,17 +16,19 @@ const EPriceNotSet: u64 = 4;
 public struct Range(u64, u64) has copy, store, drop;
 
 /// A struct that holds the length range and the price of a service.
-public struct PricingConfig has copy, store, drop {
-    pricing: VecMap<Range, u64>,
-}
+public struct PricingConfig has store, drop { pricing: VecMap<Range, u64> }
 
-public struct RenewalConfig has copy, store, drop {
-    config: PricingConfig,
-}
+/// A struct that holds the renewal configuration. Exposed from base pricing
+/// module
+/// to allow easy access to the pricing config by external packages.
+public struct RenewalConfig has store, drop { config: PricingConfig }
 
-/// Calculates the price for a given length.
-/// Aborts with EPriceNotSet if the price for the given length is not set.
-public fun calculate_price(config: &PricingConfig, length: u64): u64 {
+/// Calculates the base price for a given length.
+/// - Base price type is abstracted away. We can switch to a different base.
+///  Our core base will become USDC.
+/// - The price is calculated based on the length of the domain name and the
+/// available ranges.
+public fun calculate_base_price(config: &PricingConfig, length: u64): u64 {
     let keys = config.pricing.keys();
     let mut idx = keys.find_index!(
         |range| range.0 <= length && range.1 >= length,
@@ -62,8 +64,8 @@ public fun new(ranges: vector<Range>, prices: vector<u64>): PricingConfig {
 }
 
 /// Constructor for Renewal<T> that initializes it with a PricingConfig.
-public fun new_renewal_config<T>(pricing_config: PricingConfig): RenewalConfig {
-    RenewalConfig { config: pricing_config }
+public fun new_renewal_config(config: PricingConfig): RenewalConfig {
+    RenewalConfig { config }
 }
 
 public fun new_range(range: vector<u64>): Range {
@@ -73,6 +75,6 @@ public fun new_range(range: vector<u64>): Range {
     Range(range[0], range[1])
 }
 
-public fun config<T>(renewal: &RenewalConfig): &PricingConfig {
+public fun config(renewal: &RenewalConfig): &PricingConfig {
     &renewal.config
 }
