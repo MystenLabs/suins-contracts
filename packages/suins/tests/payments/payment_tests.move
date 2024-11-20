@@ -16,6 +16,9 @@ use suins::domain;
 public struct PaymentsApp() has drop;
 public struct DiscountsApp() has drop;
 
+const BASE_DISCOUNT_KEY: vector<u8> = b"base_discount";
+const SECONDARY_DISCOUNT_KEY: vector<u8> = b"secondary_discount";
+
 #[test]
 fun test_e2e() {
     let mut ctx = tx_context::dummy();
@@ -48,6 +51,7 @@ fun test_e2e() {
     intent.apply_percentage_discount(
         &mut suins,
         DiscountsApp(),
+        BASE_DISCOUNT_KEY.to_string(),
         40,
         false, // we shouldn't apply this discount if there have been more discounts applied.
     );
@@ -55,6 +59,7 @@ fun test_e2e() {
     intent.apply_percentage_discount(
         &mut suins,
         DiscountsApp(),
+        SECONDARY_DISCOUNT_KEY.to_string(),
         50,
         true, // we shouldn't apply this discount if there have been more discounts applied.
     );
@@ -95,6 +100,7 @@ fun try_apply_two_discounts_while_both_require_single(){
     intent.apply_percentage_discount(
         &mut suins,
         DiscountsApp(),
+        BASE_DISCOUNT_KEY.to_string(),
         40,
         false,
     );
@@ -102,6 +108,35 @@ fun try_apply_two_discounts_while_both_require_single(){
     intent.apply_percentage_discount(
         &mut suins,
         DiscountsApp(),
+        SECONDARY_DISCOUNT_KEY.to_string(),
+        50,
+        false,
+    );
+
+    abort 1337
+}
+
+#[test, expected_failure(abort_code = ::suins::payment::EDiscountAlreadyApplied)]
+fun try_apply_second_discount_twice(){
+    let mut ctx = tx_context::dummy();
+    let mut suins = setup_suins(&mut ctx);
+
+    let mut intent = payment::init_registration(
+        &mut suins,
+        b"test.sui".to_string(),
+    );
+    intent.apply_percentage_discount(
+        &mut suins,
+        DiscountsApp(),
+        BASE_DISCOUNT_KEY.to_string(),
+        40,
+        false,
+    );
+
+    intent.apply_percentage_discount(
+        &mut suins,
+        DiscountsApp(),
+        BASE_DISCOUNT_KEY.to_string(),
         50,
         false,
     );
@@ -121,6 +156,7 @@ fun discount_overflow(){
     intent.apply_percentage_discount(
         &mut suins,
         DiscountsApp(),
+        BASE_DISCOUNT_KEY.to_string(),
         101,
         false,
     );
