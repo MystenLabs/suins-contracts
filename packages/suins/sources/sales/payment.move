@@ -14,16 +14,18 @@
 /// Authorized apps can also apply discounts to the payment intent. This is
 /// useful for system-level discounts, or user-specific discounts.
 ///
-/// TODO: Convert percentages to basis points (u16: 1-10_000) instead of u8
-/// (1-100) (??)
-/// TODO: Add system-level events for renewals / registrations.
-/// TODO: Add metadata (for future-proofness) VecMap on `RequestData`
 /// TODO: Consider re-using `RequestData` inside the `Receipt`.
+/// TODO: Add settings for max year of renewals / max duration of registration here? 
+/// (Maybe through an admin controlled config)
 module suins::payment;
 
 use std::string::String;
+use std::type_name::{Self, TypeName};
 use sui::clock::Clock;
 use sui::coin::Coin;
+use sui::event;
+use sui::vec_map::{Self, VecMap};
+use sui::vec_set::{Self, VecSet};
 use suins::config;
 use suins::constants;
 use suins::domain::{Self, Domain};
@@ -62,6 +64,12 @@ const EVersionMismatch: vector<u8> =
     b"Version mismatch. The payment intent is not of the correct version for this package.";
 #[error]
 const EInvalidDiscountPercentage: vector<u8> = b"Discount range is [0, 100].";
+#[error]
+const ECannotRenewSubdomain: vector<u8> =
+    b"Cannot renew a subdomain using the payment system.";
+#[error]
+const EDiscountAlreadyApplied: vector<u8> =
+    b"This discount key has already been applied to the payment intent.";
 
 /// The data required to complete a payment request.
 public struct RequestData has drop {
@@ -74,9 +82,12 @@ public struct RequestData has drop {
     years: u8,
     /// The amount the user has to pay in base units.
     base_amount: u64,
-    /// Whether a discount has already been applied to the amount.
-    discount_applied: bool,
-    // TODO: Add metadata for future-proofness?
+    /// The discounts (each app can add a key for its discount)
+    /// to avoid multiple additions of the same discount.
+    discounts_applied: VecSet<String>,
+    /// a metadata field for future-proofness.
+    /// No use-cases are enabled in the current release.
+    metadata: VecMap<String, String>,
 }
 
 /// The payment intent for a given domain
@@ -96,12 +107,29 @@ public enum Receipt {
     Renewal { domain: Domain, years: u8, version: u8 },
 }
 
+/// An event that is emitted after a successful payment for
+/// a `PaymentIntent`
+public struct TransactionEvent has copy, store, drop {
+    app: TypeName,
+    domain: Domain,
+    years: u8,
+    request_data_version: u8,
+    base_amount: u64,
+    discounts_applied: VecSet<String>,
+    metadata: VecMap<String, String>,
+    is_renewal: bool,
+    // info about the actual payment (currency and equivalent amount)
+    currency: TypeName,
+    currency_amount: u64,
+}
+
 /// Allow an authorized app to apply a percentage discount to
 /// the payment intent.
-public fun apply_percentage_discount<App: drop>(
+public fun apply_percentage_discount<A: drop>(
     intent: &mut PaymentIntent,
     suins: &mut SuiNS,
-    _: App,
+    _: A,
+    discount_key: String,
     // discount can be in range [1, 100]
     discount: u8,
     // whether multiple discounts can be applied. This is here to allow for
@@ -111,31 +139,41 @@ public fun apply_percentage_discount<App: drop>(
     // discount.
     allow_multiple_discounts: bool,
 ) {
-    suins.assert_app_is_authorized<App>();
+    suins.assert_app_is_authorized<A>();
 
     match (intent) {
         PaymentIntent::Registration(base) => {
-            base.adjust_discount(discount, allow_multiple_discounts);
+            base.adjust_discount(
+                discount_key,
+                discount,
+                allow_multiple_discounts,
+            );
         },
         PaymentIntent::Renewal(base) => {
-            base.adjust_discount(discount, allow_multiple_discounts);
+            base.adjust_discount(
+                discount_key,
+                discount,
+                allow_multiple_discounts,
+            );
         },
     }
 }
 
 /// Allow an authorized app to finalize a payment.
 /// Returns a receipt that can be used to register or renew a domain.
-public fun finalize_payment<App: drop, T>(
+public fun finalize_payment<A: drop, T>(
     intent: PaymentIntent,
     suins: &mut SuiNS,
-    app: App,
+    app: A,
     // could also be a 0 balance coin if the app offers a free registration.
     coin: Coin<T>,
 ): Receipt {
     // Ensure the app is authorized to finalize the payment.
-    suins.assert_app_is_authorized<App>();
+    suins.assert_app_is_authorized<A>();
+    // Emit an event for the payment.
+    event::emit(intent.to_event<A, T>(coin.value()));
     // add funds to SuiNS balance.
-    suins.app_add_custom_balance<App, T>(app, coin.into_balance());
+    suins.app_add_custom_balance(app, coin.into_balance());
 
     match (intent) {
         PaymentIntent::Registration(data) => {
@@ -158,11 +196,16 @@ public fun finalize_payment<App: drop, T>(
 /// Adjusts the amount based on the discount.
 fun adjust_discount(
     data: &mut RequestData,
+    discount_key: String,
     discount: u8,
     allow_multiple_discounts: bool,
 ) {
     assert!(
-        allow_multiple_discounts || !data.discount_applied,
+        !data.discounts_applied.contains(&discount_key),
+        EDiscountAlreadyApplied,
+    );
+    assert!(
+        allow_multiple_discounts || !data.discount_applied(),
         ENotMultipleDiscountsAllowed,
     );
     assert!(discount <= 100, EInvalidDiscountPercentage);
@@ -171,7 +214,7 @@ fun adjust_discount(
     let discount_amount = (((price as u128) * (discount as u128) / 100) as u64);
 
     data.base_amount = price - discount_amount;
-    data.discount_applied = true;
+    data.discounts_applied.insert(discount_key);
 }
 
 /// Creates a `PaymentIntent` for registering a new domain.
@@ -188,7 +231,33 @@ public fun init_registration(suins: &mut SuiNS, domain: String): PaymentIntent {
         domain,
         years: 1,
         base_amount: price,
-        discount_applied: false,
+        discounts_applied: vec_set::empty(),
+        metadata: vec_map::empty(),
+        version: PAYMENT_VERSION,
+    })
+}
+
+/// Creates a `PaymentIntent` for renewing an existing domain.
+/// This is a hot-potato and can only be consumed in a single transaction.
+public fun init_renewal(
+    suins: &mut SuiNS,
+    nft: &SuinsRegistration,
+    years: u8,
+): PaymentIntent {
+    let domain = nft.domain();
+    assert!(!domain.is_subdomain(), ECannotRenewSubdomain);
+
+    let price = suins
+        .get_config<RenewalConfig>()
+        .config()
+        .calculate_base_price(domain.sld().length());
+
+    PaymentIntent::Renewal(RequestData {
+        domain,
+        years,
+        base_amount: price * (years as u64),
+        discounts_applied: vec_set::empty(),
+        metadata: vec_map::empty(),
         version: PAYMENT_VERSION,
     })
 }
@@ -250,29 +319,6 @@ public fun renew(
     }
 }
 
-/// Creates a `PaymentIntent` for renewing an existing domain.
-/// This is a hot-potato and can only be consumed in a single transaction.
-public fun init_renewal(
-    suins: &mut SuiNS,
-    nft: &SuinsRegistration,
-    years: u8,
-): PaymentIntent {
-    let domain = nft.domain();
-
-    let price = suins
-        .get_config<RenewalConfig>()
-        .config()
-        .calculate_base_price(domain.sld().length());
-
-    PaymentIntent::Renewal(RequestData {
-        domain,
-        years,
-        base_amount: price * (years as u64),
-        discount_applied: false,
-        version: PAYMENT_VERSION,
-    })
-}
-
 /// Getters
 public fun request_data(intent: &PaymentIntent): &RequestData {
     match (intent) {
@@ -287,7 +333,41 @@ public fun base_amount(self: &RequestData): u64 { self.base_amount }
 
 public fun domain(self: &RequestData): &Domain { &self.domain }
 
-public fun discount_applied(self: &RequestData): bool { self.discount_applied }
+/// Returns true if at least one discount has been applied to the payment
+/// intent.
+public fun discount_applied(self: &RequestData): bool {
+    self.discounts_applied.size() > 0
+}
+
+/// A list of discounts that have been applied to the payment intent.
+public fun discounts_applied(self: &RequestData): VecSet<String> {
+    self.discounts_applied
+}
+
+/// Construct an event from a payment intent.
+fun to_event<A: drop, T>(
+    intent: &PaymentIntent,
+    currency_amount: u64,
+): TransactionEvent {
+    let data = intent.request_data();
+    let is_renewal = match (intent) {
+        PaymentIntent::Registration(_) => false,
+        PaymentIntent::Renewal(_) => true,
+    };
+
+    TransactionEvent {
+        app: type_name::get<A>(),
+        domain: data.domain,
+        years: data.years,
+        request_data_version: data.version,
+        base_amount: data.base_amount,
+        discounts_applied: data.discounts_applied,
+        metadata: data.metadata,
+        is_renewal,
+        currency: type_name::get<T>(),
+        currency_amount,
+    }
+}
 
 /// Calculate the target expiration for a domain,
 /// or abort if the domain or the expiration setup is invalid.
