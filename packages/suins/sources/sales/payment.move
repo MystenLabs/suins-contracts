@@ -25,7 +25,6 @@ use sui::clock::Clock;
 use sui::coin::Coin;
 use sui::event;
 use sui::vec_map::{Self, VecMap};
-use sui::vec_set::{Self, VecSet};
 use suins::config;
 use suins::constants;
 use suins::domain::{Self, Domain};
@@ -84,7 +83,7 @@ public struct RequestData has drop {
     base_amount: u64,
     /// The discounts (each app can add a key for its discount)
     /// to avoid multiple additions of the same discount.
-    discounts_applied: VecSet<String>,
+    discounts_applied: VecMap<String, u64>,
     /// a metadata field for future-proofness.
     /// No use-cases are enabled in the current release.
     metadata: VecMap<String, String>,
@@ -115,7 +114,7 @@ public struct TransactionEvent has copy, store, drop {
     years: u8,
     request_data_version: u8,
     base_amount: u64,
-    discounts_applied: VecSet<String>,
+    discounts_applied: VecMap<String, u64>,
     metadata: VecMap<String, String>,
     is_renewal: bool,
     // info about the actual payment (currency and equivalent amount)
@@ -214,7 +213,7 @@ fun adjust_discount(
     let discount_amount = (((price as u128) * (discount as u128) / 100) as u64);
 
     data.base_amount = price - discount_amount;
-    data.discounts_applied.insert(discount_key);
+    data.discounts_applied.insert(discount_key, discount as u64);
 }
 
 /// Creates a `PaymentIntent` for registering a new domain.
@@ -231,7 +230,7 @@ public fun init_registration(suins: &mut SuiNS, domain: String): PaymentIntent {
         domain,
         years: 1,
         base_amount: price,
-        discounts_applied: vec_set::empty(),
+        discounts_applied: vec_map::empty(),
         metadata: vec_map::empty(),
         version: PAYMENT_VERSION,
     })
@@ -256,7 +255,7 @@ public fun init_renewal(
         domain,
         years,
         base_amount: price * (years as u64),
-        discounts_applied: vec_set::empty(),
+        discounts_applied: vec_map::empty(),
         metadata: vec_map::empty(),
         version: PAYMENT_VERSION,
     })
@@ -340,7 +339,7 @@ public fun discount_applied(self: &RequestData): bool {
 }
 
 /// A list of discounts that have been applied to the payment intent.
-public fun discounts_applied(self: &RequestData): VecSet<String> {
+public fun discounts_applied(self: &RequestData): VecMap<String, u64> {
     self.discounts_applied
 }
 
