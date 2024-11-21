@@ -71,11 +71,11 @@ export const register = (receipt: TransactionObjectArgument) => (tx: Transaction
 	});
 };
 
-export const exampleRegisteration = async () => {
+export const exampleRegisteration = async (domain: string) => {
 	const tx = new Transaction();
 	const payment = tx.object(''); // This should be the payment coin object
 
-	const paymentIntent = tx.add(initRegistration('example.com'));
+	const paymentIntent = tx.add(initRegistration(domain));
 	const receipt = tx.add(finalizePayment(paymentIntent, payment, config.authorizedCoinType.SUI));
 	const nft = tx.add(register(receipt));
 
