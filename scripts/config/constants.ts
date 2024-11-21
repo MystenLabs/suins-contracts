@@ -35,6 +35,11 @@ export type PackageInfo = {
 		packageId: string;
 	};
 	treasuryAddress?: string;
+	authorizedCoinType: {
+		SUI: string;
+		NS: string;
+		USDC: string;
+	};
 };
 
 export const mainPackage: Config = {
@@ -67,6 +72,11 @@ export const mainPackage: Config = {
 			packageId: '0x6d14ca3049be747ec87166e6dce5d0d9a30f3b3c281c55d6e518958a236f8b97',
 		},
 		treasuryAddress: '0x638791b625c4482bc1b917847cdf8aa76fe226c0f3e0a9b1aa595625989e98a1',
+		authorizedCoinType: {
+			SUI: '0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI',
+			NS: '0x5145494a5f5100e645e4b0aa950fa6b68f614e8c59e17bc5ded3495123a79178::ns::NS',
+			USDC: '0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC',
+		},
 	},
 	testnet: {
 		packageId: '0x22fa05f21b1ad71442491220bb9338f7b7095fe35000ef88d5400d28523bdd93',
@@ -94,6 +104,11 @@ export const mainPackage: Config = {
 		},
 		coupons: {
 			packageId: '0x689a2d65a9666921e73ad4d59d13fee0d4be5df1ab5c0eeda8e0f7ebecb6f1b7',
+		},
+		authorizedCoinType: {
+			SUI: '0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI',
+			NS: '',
+			USDC: '',
 		},
 	},
 };
