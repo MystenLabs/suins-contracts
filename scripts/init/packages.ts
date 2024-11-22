@@ -101,7 +101,7 @@ export const Packages = (network: Network) => {
 					suinsPackageIdV1: packageId,
 					config: newPriceConfigV2({
 						txb,
-						suinsPackageIdV1: packageId,
+						packageId,
 						ranges: [
 							[3, 3],
 							[4, 4],
@@ -295,8 +295,8 @@ export const Packages = (network: Network) => {
 					packageId,
 					coinTypeAndDiscount: [
 						[config.coins.USDC.type, config.coins.USDC.metadataID, 0],
-						[config.coins.SUI.type, config.coins.SUI.metadataID, 0],
-						[config.coins.NS.type, config.coins.NS.metadataID, 0],
+						[config.coins.SUI.type, config.coins.SUI.metadataID, 5],
+						[config.coins.NS.type, config.coins.NS.metadataID, 10],
 					],
 					baseCurrencyType: config.coins.USDC.type,
 					maxAge: MAX_AGE,

@@ -145,12 +145,12 @@ export const newPriceConfigV1 = ({
 
 export const newPriceConfigV2 = ({
 	txb,
-	suinsPackageIdV1,
+	packageId,
 	ranges,
 	prices,
 }: {
 	txb: Transaction;
-	suinsPackageIdV1: string;
+	packageId: string;
 	ranges: number[][];
 	prices: number[];
 }): TransactionArgument => {
@@ -159,12 +159,12 @@ export const newPriceConfigV2 = ({
 		if (range.length !== 2) {
 			throw new Error('Each range must have exactly 2 elements');
 		}
-		rangesList.push(newRange({ txb, suinsPackageIdV1, range }));
+		rangesList.push(newRange({ txb, packageId, range }));
 	}
 	return txb.moveCall({
-		target: `${suinsPackageIdV1}::pricing_config::new`,
+		target: `${packageId}::pricing_config::new`,
 		arguments: [
-			txb.makeMoveVec({ elements: rangesList, type: `${suinsPackageIdV1}::pricing_config::Range` }),
+			txb.makeMoveVec({ elements: rangesList, type: `${packageId}::pricing_config::Range` }),
 			txb.pure.vector('u64', prices),
 		],
 	});
@@ -172,15 +172,15 @@ export const newPriceConfigV2 = ({
 
 export const newRange = ({
 	txb,
-	suinsPackageIdV1,
+	packageId,
 	range,
 }: {
 	txb: Transaction;
-	suinsPackageIdV1: string;
+	packageId: string;
 	range: number[];
 }): TransactionArgument => {
 	return txb.moveCall({
-		target: `${suinsPackageIdV1}::pricing_config::new_range`,
+		target: `${packageId}::pricing_config::new_range`,
 		arguments: [txb.pure.vector('u64', range)],
 	});
 };
