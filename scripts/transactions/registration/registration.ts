@@ -76,7 +76,7 @@ export const exampleRegisteration = async (domain: string) => {
 	const payment = tx.object(''); // This should be the payment coin object
 
 	const paymentIntent = tx.add(initRegistration(domain));
-	const receipt = tx.add(finalizePayment(paymentIntent, payment, config.authorizedCoinType.SUI));
+	const receipt = tx.add(finalizePayment(paymentIntent, payment, config.coins.SUI.type));
 	const nft = tx.add(register(receipt));
 
 	tx.transferObjects([nft], getActiveAddress());

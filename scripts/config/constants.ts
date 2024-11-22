@@ -115,6 +115,7 @@ export const mainPackage: Config = {
 		coupons: {
 			packageId: '0x689a2d65a9666921e73ad4d59d13fee0d4be5df1ab5c0eeda8e0f7ebecb6f1b7',
 		},
+		/// Testnet coins will be different here for testing purposes
 		coins: {
 			SUI: {
 				type: '0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI',
