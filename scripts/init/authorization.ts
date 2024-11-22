@@ -213,7 +213,7 @@ export const newPaymentsConfig = ({
 	}
 
 	return txb.moveCall({
-		target: `${packageId}::payments::new_coin_type_data`,
+		target: `${packageId}::payments::new_payments_config`,
 		arguments: [
 			txb.makeMoveVec({
 				elements: coinTypeDataList,
