@@ -121,7 +121,7 @@ export const removeConfig = ({
 /**
  * Creates a default `config` which saves the price list and public key.
  */
-export const newPriceConfig = ({
+export const newPriceConfigV1 = ({
 	txb,
 	suinsPackageIdV1,
 	priceList,
@@ -140,6 +140,45 @@ export const newPriceConfig = ({
 			txb.pure.u64(priceList.four),
 			txb.pure.u64(priceList.fivePlus),
 		],
+	});
+};
+
+export const newPriceConfigV2 = ({
+	txb,
+	suinsPackageIdV1,
+	ranges,
+	prices,
+}: {
+	txb: Transaction;
+	suinsPackageIdV1: string;
+	ranges: number[][];
+	prices: number[];
+}): TransactionArgument => {
+	var rangesList: TransactionArgument[] = [];
+	for (const range of ranges) {
+		if (range.length !== 2) {
+			throw new Error('Each range must have exactly 2 elements');
+		}
+		rangesList.push(newRange({ txb, suinsPackageIdV1, range }));
+	}
+	return txb.moveCall({
+		target: `${suinsPackageIdV1}::pricing_config::new`,
+		arguments: [txb.makeMoveVec({ elements: rangesList }), txb.pure.vector('u64', prices)],
+	});
+};
+
+export const newRange = ({
+	txb,
+	suinsPackageIdV1,
+	range,
+}: {
+	txb: Transaction;
+	suinsPackageIdV1: string;
+	range: number[];
+}): TransactionArgument => {
+	return txb.moveCall({
+		target: `${suinsPackageIdV1}::pricing_config::new_range`,
+		arguments: [txb.pure.vector('u64', range)],
 	});
 };
 

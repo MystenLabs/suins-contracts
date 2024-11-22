@@ -9,13 +9,16 @@ import {
 	addConfig,
 	addRegistry,
 	newLookupRegistry,
-	newPriceConfig,
+	newPriceConfigV1,
+	newPriceConfigV2,
 	setupApp,
 } from './authorization';
 import { createDisplay } from './display_tp';
 import { SuiNS, SuiNSDependentPackages, TempSubdomainProxy } from './manifests';
 
 export type Network = 'mainnet' | 'testnet' | 'devnet' | 'localnet';
+
+const MIST_PER_USDC = 1000000;
 
 const parseCorePackageObjects = (data: SuiTransactionBlockResponse) => {
 	const packageId = data.objectChanges!.find((x) => x.type === 'published');
@@ -80,7 +83,7 @@ export const Packages = (network: Network) => {
 					adminCap,
 					suins,
 					suinsPackageIdV1: packageId,
-					config: newPriceConfig({
+					config: newPriceConfigV1({
 						txb,
 						suinsPackageIdV1: packageId,
 						priceList: {
@@ -88,6 +91,27 @@ export const Packages = (network: Network) => {
 							four: 2 * Number(MIST_PER_SUI),
 							fivePlus: 0.5 * Number(MIST_PER_SUI),
 						},
+					}),
+					type: `${packageId}::config::Config`,
+				});
+				addConfig({
+					txb,
+					adminCap,
+					suins,
+					suinsPackageIdV1: packageId,
+					config: newPriceConfigV2({
+						txb,
+						suinsPackageIdV1: packageId,
+						ranges: [
+							[3, 3],
+							[4, 4],
+							[5, 63],
+						],
+						prices: [
+							500 * Number(MIST_PER_USDC),
+							100 * Number(MIST_PER_USDC),
+							20 * Number(MIST_PER_USDC),
+						],
 					}),
 					type: `${packageId}::config::Config`,
 				});
@@ -184,7 +208,7 @@ export const Packages = (network: Network) => {
 				suins: string;
 				priceList: { [key: string]: number };
 			}) => {
-				const configuration = newPriceConfig({
+				const configuration = newPriceConfigV1({
 					txb,
 					suinsPackageIdV1,
 					priceList,
