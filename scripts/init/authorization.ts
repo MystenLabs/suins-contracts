@@ -163,7 +163,10 @@ export const newPriceConfigV2 = ({
 	}
 	return txb.moveCall({
 		target: `${suinsPackageIdV1}::pricing_config::new`,
-		arguments: [txb.makeMoveVec({ elements: rangesList }), txb.pure.vector('u64', prices)],
+		arguments: [
+			txb.makeMoveVec({ elements: rangesList, type: `${suinsPackageIdV1}::pricing_config::Range` }),
+			txb.pure.vector('u64', prices),
+		],
 	});
 };
 
@@ -179,6 +182,85 @@ export const newRange = ({
 	return txb.moveCall({
 		target: `${suinsPackageIdV1}::pricing_config::new_range`,
 		arguments: [txb.pure.vector('u64', range)],
+	});
+};
+
+export const newPaymentsConfig = ({
+	txb,
+	packageId,
+	coinTypeAndDiscount,
+	baseCurrencyType,
+	maxAge,
+}: {
+	txb: Transaction;
+	packageId: string;
+	coinTypeAndDiscount: [string, string, number][]; // Array of [coinType, discountPercentage] pairs
+	baseCurrencyType: string;
+	maxAge: number;
+}): TransactionArgument => {
+	const coinTypeDataList: TransactionArgument[] = [];
+
+	for (const [coinType, coinMetadataId, discountPercentage] of coinTypeAndDiscount) {
+		coinTypeDataList.push(
+			newCoinTypeData({
+				txb,
+				packageId,
+				discountPercentage,
+				coinType,
+				coinMetadataId,
+			}),
+		);
+	}
+
+	return txb.moveCall({
+		target: `${packageId}::payments::new_coin_type_data`,
+		arguments: [
+			txb.makeMoveVec({
+				elements: coinTypeDataList,
+				type: `${packageId}::payments::CoinTypeData`,
+			}),
+			getTypeName({ txb, coinType: baseCurrencyType }),
+			txb.pure.u64(maxAge),
+		],
+	});
+};
+
+export const getTypeName = ({
+	txb,
+	coinType,
+}: {
+	txb: Transaction;
+	coinType: string;
+}): TransactionArgument => {
+	return txb.moveCall({
+		target: '0x1::type_name::get',
+		typeArguments: [coinType],
+	});
+};
+
+export const newCoinTypeData = ({
+	txb,
+	packageId,
+	discountPercentage,
+	coinType,
+	coinMetadataId,
+	priceFeed = [],
+}: {
+	txb: Transaction;
+	packageId: string;
+	discountPercentage: number;
+	coinType: string;
+	coinMetadataId: string;
+	priceFeed?: number[];
+}): TransactionArgument => {
+	return txb.moveCall({
+		target: `${packageId}::payments::new_coin_type_data`,
+		arguments: [
+			txb.object(coinMetadataId),
+			txb.pure.u8(discountPercentage),
+			txb.pure.vector('u8', priceFeed),
+		],
+		typeArguments: [coinType],
 	});
 };
 

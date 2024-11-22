@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { execFileSync, execSync } from 'child_process';
 import fs, { readFileSync } from 'fs';
+import test from 'node:test';
 import { homedir } from 'os';
 import path from 'path';
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
@@ -138,11 +139,7 @@ export const signAndExecute = async (txb: Transaction, network: Network) => {
 
 /// Builds a transaction (unsigned) and saves it on `setup/tx/tx-data.txt` (on production)
 /// or `setup/src/tx-data.local.txt` on mainnet.
-export const prepareMultisigTx = async (
-	tx: Transaction,
-	network: Network,
-	address?: string,
-) => {
+export const prepareMultisigTx = async (tx: Transaction, network: Network, address?: string) => {
 	const adminAddress = address ?? getActiveAddress();
 	const client = getClient(network);
 	const gasObjectId = process.env.GAS_OBJECT;
@@ -229,4 +226,15 @@ export const getAllObjectsByType = async (type: string, owner: string, client: S
 	}
 
 	return objects;
+};
+
+export const getCoinMetadataId = async ({ type }: { type: string }) => {
+	const suiClient = new SuiClient({
+		url: getFullnodeUrl('mainnet'),
+	});
+	const metadata = await suiClient.getCoinMetadata({ coinType: type });
+	if (!metadata || !metadata.id) {
+		throw new Error('Coin metadata or ID not found.');
+	}
+	return metadata.id;
 };
