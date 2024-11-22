@@ -194,7 +194,7 @@ export const newPaymentsConfig = ({
 }: {
 	txb: Transaction;
 	packageId: string;
-	coinTypeAndDiscount: [string, string, number][]; // Array of [coinType, discountPercentage] pairs
+	coinTypeAndDiscount: [string, string, number][]; // Array of [coinType, metadataId, discountPercentage] pairs
 	baseCurrencyType: string;
 	maxAge: number;
 }): TransactionArgument => {
