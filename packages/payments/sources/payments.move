@@ -9,6 +9,8 @@ use sui::vec_map::{Self, VecMap};
 use suins::payment::{Receipt, PaymentIntent};
 use suins::suins::SuiNS;
 
+use fun get_config_for_type as SuiNS.get_config_for_type;
+
 public struct PaymentsApp() has drop;
 
 #[error]
@@ -33,6 +35,8 @@ const ESafeguardViolation: vector<u8> =
 
 /// A buffer added to the exponent when calculating the target currency amount.
 const BUFFER: u8 = 10;
+/// The key for the payment discount in the payment intent.
+const PAYMENT_DISCOUNT_KEY: vector<u8> = b"payment_discount";
 
 /// Configuration for the payments module.
 /// Holds a VecMap that determines the configuration for each currency.
@@ -45,7 +49,7 @@ public struct PaymentsConfig has store, drop {
     max_age: u64,
 }
 
-public struct CoinTypeData has store, drop {
+public struct CoinTypeData has copy, store, drop {
     /// The coin's decimals.
     decimals: u8,
     // A discount can be applied if the user pays with this currency.
@@ -62,13 +66,15 @@ public struct CoinTypeData has store, drop {
 /// We do not need to check the price feed for the base currency.
 public fun handle_base_payment<T>(
     suins: &mut SuiNS,
-    intent: PaymentIntent,
+    mut intent: PaymentIntent,
     payment: Coin<T>,
 ): Receipt {
     let payment_type = type_name::get<T>();
     let config = suins.get_config<PaymentsConfig>();
 
     assert!(payment_type == config.base_currency, EInvalidPaymentType);
+
+    suins.get_config_for_type<T>().apply_discount_if_eligible(suins, &mut intent);
 
     let price = intent.request_data().base_amount();
     assert!(payment.value() == price, EInsufficientPayment);
@@ -92,16 +98,19 @@ public fun handle_base_payment<T>(
 /// (with a buffer determined by the FE).
 public fun handle_payment<T>(
     suins: &mut SuiNS,
-    intent: PaymentIntent,
+    mut intent: PaymentIntent,
     payment: Coin<T>,
     clock: &Clock,
     price_info_object: &PriceInfoObject,
     // TODO: Does this make sense? Need thoughts :)
     user_price_guard: u64,
 ): Receipt {
+    let type_config = suins.get_config_for_type<T>();
+    type_config.apply_discount_if_eligible(suins, &mut intent);
+
     let target_currency_amount = calculate_price<T>(
         suins,
-        &intent,
+        intent.request_data().base_amount(),
         clock,
         price_info_object,
     );
@@ -120,20 +129,18 @@ public fun handle_payment<T>(
 /// 4. handle_payment<SUI>(suins, intent, coin, ...);
 public fun calculate_price<T>(
     suins: &mut SuiNS,
-    intent: &PaymentIntent,
+    base_amount: u64,
     clock: &Clock,
     price_info_object: &PriceInfoObject,
 ): u64 {
-    let payment_type = type_name::get<T>();
     let config = suins.get_config<PaymentsConfig>();
+    let payment_type = type_name::get<T>();
+    let type_config = suins.get_config_for_type<T>();
 
-    assert!(config.currencies.contains(&payment_type), EInvalidPaymentType);
     assert!(
         config.base_currency != payment_type,
         ECannotUseOracleForBaseCurrency,
     );
-
-    let selected_currency = config.currencies.get(&payment_type);
 
     let price = pyth::get_price_no_older_than(
         price_info_object,
@@ -144,48 +151,22 @@ public fun calculate_price<T>(
 
     // verify that the price feed id matches the one we have in our config.
     assert!(
-        price_info.get_price_identifier().get_bytes() == selected_currency.price_feed_id,
+        price_info.get_price_identifier().get_bytes() == type_config.price_feed_id,
         EPriceFeedIdMismatch,
     );
 
-    // The amount that has to be paid in base currency.
-    let base_currency_amount = intent.request_data().base_amount();
-
-    let target_decimals = selected_currency.decimals;
+    let target_decimals = type_config.decimals;
     let base_decimals = config.currencies.get(&config.base_currency).decimals;
     let pyth_decimals = price.get_expo().get_magnitude_if_negative() as u8;
     let pyth_price = price.get_price().get_magnitude_if_positive();
 
     calculate_target_currency_amount(
-        base_currency_amount,
+        base_amount,
         target_decimals,
         base_decimals,
         pyth_price,
         pyth_decimals,
     )
-}
-
-public fun calculate_target_currency_amount(
-    base_currency_amount: u64,
-    target_decimals: u8,
-    base_decimals: u8,
-    pyth_price: u64,
-    pyth_decimals: u8,
-): u64 {
-    assert!(pyth_price > 0, EInvalidPythPrice);
-
-    // We use a buffer in the edge case where target_decimals + pyth_decimals <
-    // base_decimals
-    let exponent_with_buffer =
-        BUFFER + target_decimals + pyth_decimals - base_decimals;
-
-    // We cast to u128 to avoid overflow, which is very likely with the buffer
-    let target_currency_amount =
-        (base_currency_amount as u128 * 10u128.pow(exponent_with_buffer))
-            .divide_and_round_up(pyth_price as u128)
-            .divide_and_round_up(10u128.pow(BUFFER)) as u64;
-
-    target_currency_amount
 }
 
 /// Creates a new CoinTypeData struct.
@@ -225,4 +206,54 @@ public fun new_payments_config(
         base_currency,
         max_age,
     }
+}
+
+public(package) fun calculate_target_currency_amount(
+    base_currency_amount: u64,
+    target_decimals: u8,
+    base_decimals: u8,
+    pyth_price: u64,
+    pyth_decimals: u8,
+): u64 {
+    assert!(pyth_price > 0, EInvalidPythPrice);
+
+    // We use a buffer in the edge case where target_decimals + pyth_decimals <
+    // base_decimals
+    let exponent_with_buffer =
+        BUFFER + target_decimals + pyth_decimals - base_decimals;
+
+    // We cast to u128 to avoid overflow, which is very likely with the buffer
+    let target_currency_amount =
+        (base_currency_amount as u128 * 10u128.pow(exponent_with_buffer))
+            .divide_and_round_up(pyth_price as u128)
+            .divide_and_round_up(10u128.pow(BUFFER)) as u64;
+
+    target_currency_amount
+}
+
+/// Applies a discount to the payment intent,
+/// if the payment currency supports it.
+fun apply_discount_if_eligible(
+    coin_type_data: &CoinTypeData,
+    suins: &mut SuiNS,
+    intent: &mut PaymentIntent,
+) {
+    if (coin_type_data.discount_percentage == 0) return;
+
+    intent.apply_percentage_discount(
+        suins,
+        PaymentsApp(),
+        PAYMENT_DISCOUNT_KEY.to_string(),
+        coin_type_data.discount_percentage,
+        // payments package discount can be applied even if other discounts are applied.
+        true,
+    );
+}
+
+/// Gets the configuration for a given payment type.
+fun get_config_for_type<T>(suins: &SuiNS): CoinTypeData {
+    let config = suins.get_config<PaymentsConfig>();
+    let payment_type = type_name::get<T>();
+    assert!(config.currencies.contains(&payment_type), EInvalidPaymentType);
+    *config.currencies.get(&payment_type)
 }

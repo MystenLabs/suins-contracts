@@ -268,7 +268,7 @@ fun try_to_renew_using_invalid_receipt_version(){
     abort 1337
 }
 
-fun setup_suins(ctx: &mut TxContext): SuiNS {
+public fun setup_suins(ctx: &mut TxContext): SuiNS {
     let (mut suins, cap)= suins::new_for_testing(ctx);
 
     let renewal_config = pricing_config::new_renewal_config(

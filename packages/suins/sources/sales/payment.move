@@ -15,7 +15,8 @@
 /// useful for system-level discounts, or user-specific discounts.
 ///
 /// TODO: Consider re-using `RequestData` inside the `Receipt`.
-/// TODO: Add settings for max year of renewals / max duration of registration here? 
+/// TODO: Add settings for max year of renewals / max duration of registration
+/// here?
 /// (Maybe through an admin controlled config)
 module suins::payment;
 
@@ -192,30 +193,6 @@ public fun finalize_payment<A: drop, T>(
     }
 }
 
-/// Adjusts the amount based on the discount.
-fun adjust_discount(
-    data: &mut RequestData,
-    discount_key: String,
-    discount: u8,
-    allow_multiple_discounts: bool,
-) {
-    assert!(
-        !data.discounts_applied.contains(&discount_key),
-        EDiscountAlreadyApplied,
-    );
-    assert!(
-        allow_multiple_discounts || !data.discount_applied(),
-        ENotMultipleDiscountsAllowed,
-    );
-    assert!(discount <= 100, EInvalidDiscountPercentage);
-
-    let price = data.base_amount;
-    let discount_amount = (((price as u128) * (discount as u128) / 100) as u64);
-
-    data.base_amount = price - discount_amount;
-    data.discounts_applied.insert(discount_key, discount as u64);
-}
-
 /// Creates a `PaymentIntent` for registering a new domain.
 /// This is a hot-potato and can only be consumed in a single transaction.
 public fun init_registration(suins: &mut SuiNS, domain: String): PaymentIntent {
@@ -343,6 +320,18 @@ public fun discounts_applied(self: &RequestData): VecMap<String, u64> {
     self.discounts_applied
 }
 
+/// Public helper to calculate price after a percentage discount has been
+/// applied.
+public fun calculate_total_after_discount(
+    data: &RequestData,
+    discount: u8,
+): u64 {
+    let price = data.base_amount;
+    let discount_amount = (((price as u128) * (discount as u128) / 100) as u64);
+
+    price - discount_amount
+}
+
 /// Construct an event from a payment intent.
 fun to_event<A: drop, T>(
     intent: &PaymentIntent,
@@ -391,6 +380,27 @@ fun target_expiration(
         name_record.expiration_timestamp_ms() + (no_years as u64) * constants::year_ms();
 
     target
+}
+
+/// Adjusts the amount based on the discount.
+fun adjust_discount(
+    data: &mut RequestData,
+    discount_key: String,
+    discount: u8,
+    allow_multiple_discounts: bool,
+) {
+    assert!(
+        !data.discounts_applied.contains(&discount_key),
+        EDiscountAlreadyApplied,
+    );
+    assert!(
+        allow_multiple_discounts || !data.discount_applied(),
+        ENotMultipleDiscountsAllowed,
+    );
+    assert!(discount <= 100, EInvalidDiscountPercentage);
+
+    data.base_amount = data.calculate_total_after_discount(discount);
+    data.discounts_applied.insert(discount_key, discount as u64);
 }
 
 #[test_only]

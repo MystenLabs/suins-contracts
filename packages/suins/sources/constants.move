@@ -8,7 +8,7 @@
 /// single place of storing constants and proving convenient APIs for reading.
 module suins::constants;
 
-use std::string::{utf8, String};
+use std::string::String;
 
 /// Max value for basis points.
 const MAX_BPS: u16 = 10000;
@@ -46,10 +46,10 @@ const ALLOW_TIME_EXTENSION: vector<u8> = b"S_ATE";
 // === Public functions ===
 
 /// Top level domain for SUI as a String.
-public fun sui_tld(): String { utf8(SUI_TLD) }
+public fun sui_tld(): String { SUI_TLD.to_string() }
 
 /// Default value for the image_url.
-public fun default_image(): String { utf8(DEFAULT_IMAGE) }
+public fun default_image(): String { DEFAULT_IMAGE.to_string() }
 
 /// The amount of MIST in 1 SUI.
 public fun mist_per_sui(): u64 { MIST_PER_SUI }
@@ -71,11 +71,11 @@ public fun grace_period_ms(): u64 { GRACE_PERIOD_MS }
 
 /// Subdomain constants
 /// The NameRecord key that a subdomain can create child names.
-public fun subdomain_allow_creation_key(): String { utf8(ALLOW_CREATION) }
+public fun subdomain_allow_creation_key(): String { ALLOW_CREATION.to_string() }
 
 /// The NameRecord key that a subdomain can self-renew.
 public fun subdomain_allow_extension_key(): String {
-    utf8(ALLOW_TIME_EXTENSION)
+   ALLOW_TIME_EXTENSION.to_string()
 }
 
 /// A getter for a leaf name record's expiration timestamp.
