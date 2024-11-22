@@ -52,7 +52,7 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 
 			console.info(`Published ${key} with packageId: ${data.packageId}`);
 
-			if (key == 'SuiNS') {
+			if (key in ['SuiNS', 'DenyList']) {
 				writeFileSync(manifestFile, pkg.manifest(data.packageId)); // update the manifest with the published-at field.
 			}
 		}
