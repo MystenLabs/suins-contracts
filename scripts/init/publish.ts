@@ -35,7 +35,13 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 					console.info('Lock file removed');
 				}
 			}
-			if (key == 'SuiNS' || key == 'DenyList' || key == 'DayOne') {
+			if (
+				key == 'SuiNS' ||
+				key == 'DenyList' ||
+				key == 'DayOne' ||
+				key == 'Subdomains' ||
+				key == 'Utils'
+			) {
 				writeFileSync(manifestFile, pkg.manifest()); // save the manifest as is.
 			}
 
@@ -53,7 +59,13 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 
 			console.info(`Published ${key} with packageId: ${data.packageId}`);
 
-			if (key == 'SuiNS' || key == 'DenyList' || key == 'DayOne') {
+			if (
+				key == 'SuiNS' ||
+				key == 'DenyList' ||
+				key == 'DayOne' ||
+				key == 'Subdomains' ||
+				key == 'Utils'
+			) {
 				writeFileSync(manifestFile, pkg.manifest(data.packageId)); // update the manifest with the published-at field.
 			}
 		}
