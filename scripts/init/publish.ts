@@ -16,13 +16,16 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 	// split by ordering, and publish in batch.
 	const orderings = [...new Set([...Object.values(packages).map((x) => x.order)])];
 
-	// We do the publishing in batches, because some
+	// We do the publishing in batches, because some needs to be published before others
 	for (const ordering of orderings) {
 		const list = Object.entries(packages).filter((x) => x[1].order === ordering);
 
 		for (const [key, pkg] of list) {
+			console.log(`Publishing ${key}...`);
+			console.log(`Package folder: ${pkg.folder}`);
 			const packageFolder = path.resolve(contractsPath, pkg.folder);
 			const manifestFile = path.resolve(packageFolder + '/Move.toml');
+			const manifestLockFile = path.resolve(packageFolder + '/Move.lock');
 			// remove the lockfile on CI to allow fresh flows.
 			if (isCiJob) {
 				console.info('Removing lock file for CI job');
@@ -49,7 +52,9 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 
 			console.info(`Published ${key} with packageId: ${data.packageId}`);
 
-			// writeFileSync(manifestFile, pkg.manifest(data.packageId)); // update the manifest with the published-at field.
+			if (key == 'SuiNS') {
+				writeFileSync(manifestFile, pkg.manifest(data.packageId)); // update the manifest with the published-at field.
+			}
 		}
 	}
 	writeFileSync(
