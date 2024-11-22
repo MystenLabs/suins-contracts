@@ -33,7 +33,7 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 				}
 			}
 
-			writeFileSync(manifestFile, pkg.manifest()); // save the manifest as is.
+			// writeFileSync(manifestFile, pkg.manifest()); // save the manifest as is.
 
 			const txb = new Transaction();
 			publishPackage(txb, packageFolder, configPath);
@@ -49,7 +49,7 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 
 			console.info(`Published ${key} with packageId: ${data.packageId}`);
 
-			writeFileSync(manifestFile, pkg.manifest(data.packageId)); // update the manifest with the published-at field.
+			// writeFileSync(manifestFile, pkg.manifest(data.packageId)); // update the manifest with the published-at field.
 		}
 	}
 	writeFileSync(
