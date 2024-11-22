@@ -239,6 +239,33 @@ export const Packages = (network: Network) => {
 				setupApp({ txb, adminCap, suins, target: `${packageId}::coupon_house` });
 			},
 		},
+		Payments: {
+			order: 2,
+			folder: 'payments',
+			manifest: SuiNSDependentPackages(rev, 'payments'),
+			processPublish: (data: SuiTransactionBlockResponse) => {
+				const { packageId, upgradeCap } = parseCorePackageObjects(data);
+
+				return {
+					packageId,
+					upgradeCap,
+				};
+			},
+			authorizationType: (packageId: string) => `${packageId}::payments::PaymentsApp`,
+			// setupFunction: ({
+			// 	txb,
+			// 	packageId,
+			// 	adminCap,
+			// 	suins,
+			// }: {
+			// 	txb: Transaction;
+			// 	packageId: string;
+			// 	adminCap: string;
+			// 	suins: string;
+			// }) => {
+			// 	setupApp({ txb, adminCap, suins, target: `${packageId}::payments` });
+			// },
+		},
 		Subdomains: {
 			order: 3,
 			folder: 'subdomains',

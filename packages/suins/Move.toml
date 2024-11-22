@@ -1,12 +1,6 @@
 [package]
 name = "suins"
-version = "0.0.2"
-#mainnet
-published-at="0x00c2f85e07181b90c140b15c5ce27d863f93c4d9159d2a4e7bdaeb40e286d6f5"
 edition = "2024.beta"
-
-#testnet
-#published-at="0x67072134f0867b886c9541873d1cb327feb7e161cd56dd76cb6aa9e464410db1"
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/mainnet" }
