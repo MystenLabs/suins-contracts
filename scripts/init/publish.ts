@@ -35,8 +35,9 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 					console.info('Lock file removed');
 				}
 			}
-
-			// writeFileSync(manifestFile, pkg.manifest()); // save the manifest as is.
+			if (key in ['SuiNS', 'DenyList']) {
+				writeFileSync(manifestFile, pkg.manifest()); // save the manifest as is.
+			}
 
 			const txb = new Transaction();
 			publishPackage(txb, packageFolder, configPath);
