@@ -35,10 +35,11 @@ export type PackageInfo = {
 		packageId: string;
 	};
 	treasuryAddress?: string;
-	authorizedCoinType: {
-		SUI: string;
-		NS: string;
-		USDC: string;
+	coins: {
+		[key: string]: {
+			type: string;
+			metadataID: string;
+		};
 	};
 };
 
@@ -72,10 +73,19 @@ export const mainPackage: Config = {
 			packageId: '0x6d14ca3049be747ec87166e6dce5d0d9a30f3b3c281c55d6e518958a236f8b97',
 		},
 		treasuryAddress: '0x638791b625c4482bc1b917847cdf8aa76fe226c0f3e0a9b1aa595625989e98a1',
-		authorizedCoinType: {
-			SUI: '0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI',
-			NS: '0x5145494a5f5100e645e4b0aa950fa6b68f614e8c59e17bc5ded3495123a79178::ns::NS',
-			USDC: '0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC',
+		coins: {
+			SUI: {
+				type: '0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI',
+				metadataID: '0x9258181f5ceac8dbffb7030890243caed69a9599d2886d957a9cb7656af3bdb3',
+			},
+			NS: {
+				type: '0x5145494a5f5100e645e4b0aa950fa6b68f614e8c59e17bc5ded3495123a79178::ns::NS',
+				metadataID: '0x279adec041f8ec5c2d419abf2c32713ae7930a9a3a1ff244c88e5ceced40db6e',
+			},
+			USDC: {
+				type: '0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC',
+				metadataID: '0x69b7a7c3c200439c1b5f3b19d7d495d5966d5f08de66c69276152f8db3992ec6',
+			},
 		},
 	},
 	testnet: {
@@ -105,10 +115,22 @@ export const mainPackage: Config = {
 		coupons: {
 			packageId: '0x689a2d65a9666921e73ad4d59d13fee0d4be5df1ab5c0eeda8e0f7ebecb6f1b7',
 		},
-		authorizedCoinType: {
-			SUI: '0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI',
-			NS: '',
-			USDC: '',
+		coins: {
+			SUI: {
+				type: '0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI',
+				metadataID: '0x9258181f5ceac8dbffb7030890243caed69a9599d2886d957a9cb7656af3bdb3',
+			},
+			NS: {
+				type: '0x5145494a5f5100e645e4b0aa950fa6b68f614e8c59e17bc5ded3495123a79178::ns::NS',
+				metadataID: '0x279adec041f8ec5c2d419abf2c32713ae7930a9a3a1ff244c88e5ceced40db6e',
+			},
+			USDC: {
+				type: '0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC',
+				metadataID: '0x69b7a7c3c200439c1b5f3b19d7d495d5966d5f08de66c69276152f8db3992ec6',
+			},
 		},
 	},
 };
+
+export const MIST_PER_USDC = 1000000;
+export const MAX_AGE = 1000 * 60 * 60; // 1 Hour as max age for last price, can be updated

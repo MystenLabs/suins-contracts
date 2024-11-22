@@ -5,6 +5,7 @@ import { SuiTransactionBlockResponse } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
 import { MIST_PER_SUI } from '@mysten/sui/utils';
 
+import { Config, mainPackage, MAX_AGE, MIST_PER_USDC } from '../config/constants';
 import {
 	addConfig,
 	addRegistry,
@@ -18,16 +19,6 @@ import { createDisplay } from './display_tp';
 import { SuiNS, SuiNSDependentPackages, TempSubdomainProxy } from './manifests';
 
 export type Network = 'mainnet' | 'testnet' | 'devnet' | 'localnet';
-
-/// TODO: Move these constants to a constants file
-const MIST_PER_USDC = 1000000;
-const USDC_TYPE = '0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC';
-const USDC_METADATA = '0x69b7a7c3c200439c1b5f3b19d7d495d5966d5f08de66c69276152f8db3992ec6';
-const SUINS_TYPE = '0x5145494a5f5100e645e4b0aa950fa6b68f614e8c59e17bc5ded3495123a79178::ns::NS';
-const SUINS_METADATA = '0x279adec041f8ec5c2d419abf2c32713ae7930a9a3a1ff244c88e5ceced40db6e';
-const SUI_TYPE = '0x2::sui::SUI';
-const SUI_METADATA = '0x9258181f5ceac8dbffb7030890243caed69a9599d2886d957a9cb7656af3bdb3';
-const MAX_AGE = 1000 * 60 * 60; // 1 Hour as max age, can be updated
 
 const parseCorePackageObjects = (data: SuiTransactionBlockResponse) => {
 	const packageId = data.objectChanges!.find((x) => x.type === 'published');
@@ -298,15 +289,16 @@ export const Packages = (network: Network) => {
 				suins: string;
 				suinsPackageIdV1: string;
 			}) => {
+				const config = mainPackage[network as keyof Config];
 				const paymentsconfig = newPaymentsConfig({
 					txb,
 					packageId,
 					coinTypeAndDiscount: [
-						[USDC_TYPE, USDC_METADATA, 0],
-						[SUINS_TYPE, SUINS_METADATA, 10],
-						[SUI_TYPE, SUI_METADATA, 0],
+						[config.coins.USDC.type, config.coins.USDC.metadataID, 0],
+						[config.coins.SUI.type, config.coins.SUI.metadataID, 0],
+						[config.coins.NS.type, config.coins.NS.metadataID, 0],
 					],
-					baseCurrencyType: USDC_TYPE,
+					baseCurrencyType: config.coins.USDC.type,
 					maxAge: MAX_AGE,
 				});
 				addConfig({
