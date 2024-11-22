@@ -119,7 +119,7 @@ export const mainPackage: Config = {
 		coins: {
 			SUI: {
 				type: '0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI',
-				metadataID: '',
+				metadataID: '0x587c29de216efd4219573e08a1f6964d4fa7cb714518c2c8a0f29abfa264327d',
 			},
 			NS: {
 				type: '',

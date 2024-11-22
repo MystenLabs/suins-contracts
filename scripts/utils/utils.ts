@@ -228,7 +228,7 @@ export const getAllObjectsByType = async (type: string, owner: string, client: S
 	return objects;
 };
 
-export const getCoinMetadataId = async ({ type }: { type: string }) => {
+export const getCoinMetadataId = async (type: string) => {
 	const suiClient = new SuiClient({
 		url: getFullnodeUrl('mainnet'),
 	});
