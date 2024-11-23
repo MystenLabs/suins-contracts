@@ -25,7 +25,6 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 			console.log(`Package folder: ${pkg.folder}`);
 			const packageFolder = path.resolve(contractsPath, pkg.folder);
 			const manifestFile = path.resolve(packageFolder + '/Move.toml');
-			const manifestLockFile = path.resolve(packageFolder + '/Move.lock');
 			// remove the lockfile on CI to allow fresh flows.
 			if (isCiJob) {
 				console.info('Removing lock file for CI job');
@@ -36,11 +35,11 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 				}
 			}
 			if (
-				key == 'SuiNS' ||
-				key == 'DenyList' ||
-				key == 'DayOne' ||
-				key == 'Subdomains' ||
-				key == 'Utils'
+				key === 'SuiNS' ||
+				key === 'DenyList' ||
+				key === 'DayOne' ||
+				key === 'Subdomains' ||
+				key === 'Utils'
 			) {
 				writeFileSync(manifestFile, pkg.manifest()); // save the manifest as is.
 			}
@@ -60,11 +59,11 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 			console.info(`Published ${key} with packageId: ${data.packageId}`);
 
 			if (
-				key == 'SuiNS' ||
-				key == 'DenyList' ||
-				key == 'DayOne' ||
-				key == 'Subdomains' ||
-				key == 'Utils'
+				key === 'SuiNS' ||
+				key === 'DenyList' ||
+				key === 'DayOne' ||
+				key === 'Subdomains' ||
+				key === 'Utils'
 			) {
 				writeFileSync(manifestFile, pkg.manifest(data.packageId)); // update the manifest with the published-at field.
 			}
