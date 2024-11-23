@@ -294,9 +294,9 @@ export const Packages = (network: Network) => {
 					txb,
 					packageId,
 					coinTypeAndDiscount: [
-						[config.coins.USDC.type, config.coins.USDC.metadataID, 0],
-						[config.coins.SUI.type, config.coins.SUI.metadataID, 5],
-						[config.coins.NS.type, config.coins.NS.metadataID, 10],
+						[config.coins.USDC, 0],
+						[config.coins.SUI, 5],
+						[config.coins.NS, 10],
 					],
 					baseCurrencyType: config.coins.USDC.type,
 					maxAge: MAX_AGE,

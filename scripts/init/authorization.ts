@@ -194,13 +194,15 @@ export const newPaymentsConfig = ({
 }: {
 	txb: Transaction;
 	packageId: string;
-	coinTypeAndDiscount: [string, string, number][]; // Array of [coinType, metadataId, discountPercentage] pairs
+	coinTypeAndDiscount: [Record<string, string>, number][]; // Array of [{type: string, metadataId: string}, discountPercentage] pairs
 	baseCurrencyType: string;
 	maxAge: number;
 }): TransactionArgument => {
 	const coinTypeDataList: TransactionArgument[] = [];
 
-	for (const [coinType, coinMetadataId, discountPercentage] of coinTypeAndDiscount) {
+	for (const [coin, discountPercentage] of coinTypeAndDiscount) {
+		const coinType = coin['type'];
+		const coinMetadataId = coin['metadataId'];
 		coinTypeDataList.push(
 			newCoinTypeData({
 				txb,
