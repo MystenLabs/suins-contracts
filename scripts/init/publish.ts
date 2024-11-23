@@ -92,6 +92,7 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 				renewalPackageId: data.Renewal.packageId,
 				subNamesPackageId: data.Subdomains.packageId,
 				tempSubNamesProxyPackageId: data.TempSubdomainProxy.packageId,
+				paymentsPackageId: data.Payments.packageId,
 			},
 			null,
 			2,
