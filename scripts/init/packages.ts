@@ -113,7 +113,7 @@ export const Packages = (network: Network) => {
 							20 * Number(MIST_PER_USDC),
 						],
 					}),
-					type: `${packageId}::config::Config`,
+					type: `${packageId}::pricing_config::PricingConfig`,
 				});
 				// create display for names
 				createDisplay({
