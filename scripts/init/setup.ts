@@ -69,6 +69,13 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 		packageId: packageInfo.Coupons.packageId,
 	});
 
+	packages.Payments.setupFunction({
+		txb,
+		packageId: packageInfo.Payments.packageId,
+		adminCap: packageInfo.SuiNS.adminCap,
+		suins: packageInfo.SuiNS.suins,
+		suinsPackageIdV1: packageInfo.SuiNS.packageId,
+	});
 	let retries = 0;
 
 	try {
