@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { execFileSync, execSync } from 'child_process';
 import fs, { readFileSync } from 'fs';
-import test from 'node:test';
 import { homedir } from 'os';
 import path from 'path';
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
