@@ -5,6 +5,7 @@ import { getFullnodeUrl, SuiClient } from '@mysten/sui.js/client'; // Pinned to 
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { Transaction } from '@mysten/sui/transactions';
 import type { TransactionObjectArgument } from '@mysten/sui/transactions';
+import { MIST_PER_SUI } from '@mysten/sui/utils';
 import { SuiPriceServiceConnection, SuiPythClient } from '@pythnetwork/pyth-sui-js';
 
 import { mainPackage, MIST_PER_USDC, Network } from '../../config/constants';
@@ -101,7 +102,7 @@ export const handlePayment =
 				payment,
 				tx.object.clock(),
 				tx.object(priceInfoObjectId),
-				tx.pure.u64(5 * Number(MIST_PER_USDC)), // This is the maximum user is willing to pay in SUI (20 USDC = approx 7 SUI)
+				tx.pure.u64(5 * Number(MIST_PER_SUI)), // This is the maximum user is willing to pay in SUI (20 USDC = approx 7 SUI)
 			],
 			typeArguments: [paymentType],
 		});
