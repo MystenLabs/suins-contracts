@@ -38,6 +38,10 @@ export type PackageInfo = {
 	payments: {
 		packageId: string;
 	};
+	pyth: {
+		pythStateId: string;
+		wormholeStateId: string;
+	};
 	coins: {
 		[key: string]: {
 			type: string;
@@ -79,6 +83,10 @@ export const mainPackage: Config = {
 		treasuryAddress: '0x638791b625c4482bc1b917847cdf8aa76fe226c0f3e0a9b1aa595625989e98a1',
 		payments: {
 			packageId: '0xb2371aad051ae62e851b75bad0be0ab87af890851f57058c78ab75a203e9325c',
+		},
+		pyth: {
+			pythStateId: '0x1f9310238ee9298fb703c3419030b35b22bb1cc37113e3bb5007c99aec79e5b8',
+			wormholeStateId: '0xaeab97f96cf9877fee2883315d459552b2b921edc16d7ceac6eab944dd88919c',
 		},
 		coins: {
 			SUI: {
@@ -126,6 +134,10 @@ export const mainPackage: Config = {
 		},
 		payments: {
 			packageId: '0xb2371aad051ae62e851b75bad0be0ab87af890851f57058c78ab75a203e9325c',
+		},
+		pyth: {
+			pythStateId: '0x243759059f4c3111179da5878c12f68d612c21a8d54d85edc86164bb18be1c7c',
+			wormholeStateId: '0x31358d198147da50db32eda2562951d53973a0c0ad5ed738e9b17d88b213d790',
 		},
 		/// Testnet coins will be different here for testing purposes, we can publish our own
 		coins: {
