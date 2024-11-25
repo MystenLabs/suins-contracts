@@ -1,6 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 import { TransactionArgument, type Transaction } from '@mysten/sui/transactions';
+import { hexToBytes } from '@noble/hashes/utils';
 
 /**
  * A helper to authorize any app in the SuiNS object.
@@ -194,22 +195,25 @@ export const newPaymentsConfig = ({
 }: {
 	txb: Transaction;
 	packageId: string;
-	coinTypeAndDiscount: [Record<string, string>, number][]; // Array of [{type: string, metadataID: string}, discountPercentage] pairs
+	coinTypeAndDiscount: [Record<string, string>, number][]; // Array of [{type: string, metadataID: string, feed: string}, discountPercentage] pairs
 	baseCurrencyType: string;
 	maxAge: number;
 }): TransactionArgument => {
 	const coinTypeDataList: TransactionArgument[] = [];
 
 	for (const [coin, discountPercentage] of coinTypeAndDiscount) {
-		const coinType = coin['type'];
-		const coinMetadataId = coin['metadataID'];
 		coinTypeDataList.push(
 			newCoinTypeData({
 				txb,
 				packageId,
 				discountPercentage,
-				coinType,
-				coinMetadataId,
+				coinType: coin['type'],
+				coinMetadataId: coin['metadataID'],
+				priceFeed: coin['feed']
+					? new Uint8Array(
+							hexToBytes(coin['feed'].startsWith('0x') ? coin['feed'].slice(2) : coin['feed']),
+						)
+					: new Uint8Array(),
 			}),
 		);
 	}
@@ -246,14 +250,14 @@ export const newCoinTypeData = ({
 	discountPercentage,
 	coinType,
 	coinMetadataId,
-	priceFeed = [],
+	priceFeed,
 }: {
 	txb: Transaction;
 	packageId: string;
 	discountPercentage: number;
 	coinType: string;
 	coinMetadataId: string;
-	priceFeed?: number[];
+	priceFeed: Uint8Array;
 }): TransactionArgument => {
 	return txb.moveCall({
 		target: `${packageId}::payments::new_coin_type_data`,
