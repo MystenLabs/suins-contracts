@@ -104,7 +104,6 @@ public fun handle_payment<T>(
     payment: Coin<T>,
     clock: &Clock,
     price_info_object: &PriceInfoObject,
-    // TODO: Does this make sense? Need thoughts :)
     user_price_guard: u64,
 ): Receipt {
     let type_config = suins.get_config_for_type<T>();
@@ -117,7 +116,7 @@ public fun handle_payment<T>(
         price_info_object,
     );
     assert!(payment.value() == target_currency_amount, EInsufficientPayment);
-    assert!(user_price_guard <= target_currency_amount, ESafeguardViolation);
+    assert!(user_price_guard >= target_currency_amount, ESafeguardViolation); // price guard should be larger than the payment amount
 
     intent.finalize_payment(suins, PaymentsApp(), payment)
 }
