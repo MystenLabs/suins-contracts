@@ -4,7 +4,7 @@
 import { Transaction } from '@mysten/sui/transactions';
 import type { TransactionObjectArgument } from '@mysten/sui/transactions';
 
-import { mainPackage } from '../../config/constants';
+import { mainPackage, MIST_PER_USDC } from '../../config/constants';
 import { getActiveAddress, signAndExecute } from '../../utils/utils';
 
 const network = 'testnet';
@@ -50,7 +50,7 @@ export const applyPercentageDiscount =
 	};
 
 // This function is called through the authorized app
-export const finalizePayment =
+export const handleBasePayment =
 	(
 		paymentIntent: TransactionObjectArgument,
 		payment: TransactionObjectArgument,
@@ -58,9 +58,9 @@ export const finalizePayment =
 	) =>
 	(tx: Transaction) => {
 		return tx.moveCall({
-			target: `${config.packageId}::payment::finalize_payment`,
-			arguments: [paymentIntent, tx.object(config.suins), tx.object(''), payment],
-			typeArguments: ['Type_0', paymentType], // This should be the A type
+			target: `${config.payments.packageId}::payments::handle_base_payment`,
+			arguments: [tx.object(config.suins), paymentIntent, payment],
+			typeArguments: [paymentType],
 		});
 	};
 
@@ -73,13 +73,18 @@ export const register = (receipt: TransactionObjectArgument) => (tx: Transaction
 
 export const exampleRegisteration = async (domain: string) => {
 	const tx = new Transaction();
-	const payment = tx.object(''); // This should be the payment coin object
+	const coin = tx.object('0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46'); // This should be the payment coin object
+	const coinIdType = config.coins.USDC.type;
+	const coinAmount = 20 * Number(MIST_PER_USDC);
+	const payment = tx.splitCoins(coin, [coinAmount]);
 
 	const paymentIntent = tx.add(initRegistration(domain));
-	const receipt = tx.add(finalizePayment(paymentIntent, payment, config.coins.SUI.type));
+	const receipt = tx.add(handleBasePayment(paymentIntent, payment, coinIdType));
 	const nft = tx.add(register(receipt));
 
 	tx.transferObjects([nft], getActiveAddress());
 
 	return signAndExecute(tx, network);
 };
+
+exampleRegisteration('example.sui');
