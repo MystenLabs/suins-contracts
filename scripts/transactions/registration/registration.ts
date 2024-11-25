@@ -116,7 +116,7 @@ export const register = (receipt: TransactionObjectArgument) => (tx: Transaction
 
 export const exampleRegisterationBaseAsset = async (coinId: string, domain: string) => {
 	const tx = new Transaction();
-	const coin = tx.object(coinId); // This should be the payment coin object
+	const coin = tx.object(coinId);
 	const coinIdType = config.coins.USDC.type;
 	const price = 20 * Number(MIST_PER_USDC);
 	const payment = tx.splitCoins(coin, [price]);
