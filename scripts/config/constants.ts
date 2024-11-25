@@ -35,6 +35,9 @@ export type PackageInfo = {
 		packageId: string;
 	};
 	treasuryAddress?: string;
+	payments: {
+		packageId: string;
+	};
 	coins: {
 		[key: string]: {
 			type: string;
@@ -74,6 +77,9 @@ export const mainPackage: Config = {
 			packageId: '0x6d14ca3049be747ec87166e6dce5d0d9a30f3b3c281c55d6e518958a236f8b97',
 		},
 		treasuryAddress: '0x638791b625c4482bc1b917847cdf8aa76fe226c0f3e0a9b1aa595625989e98a1',
+		payments: {
+			packageId: '0xb2371aad051ae62e851b75bad0be0ab87af890851f57058c78ab75a203e9325c',
+		},
 		coins: {
 			SUI: {
 				type: '0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI',
@@ -93,31 +99,33 @@ export const mainPackage: Config = {
 		},
 	},
 	testnet: {
-		packageId: '0x22fa05f21b1ad71442491220bb9338f7b7095fe35000ef88d5400d28523bdd93',
-		registrationPackageId: '0x4255184a0143c0ce4394a3f16a6f5aa5d64507269e54e51ea396d569fe8f1ba5',
-		publisherId: '0x62d9690d7e6234bfd57170a89c9c8ec54604ea31cefaa3869e8be4912ee1a4ab',
-		adminAddress: '0xfe09cf0b3d77678b99250572624bf74fe3b12af915c5db95f0ed5d755612eb68',
+		packageId: '0xa614cb124daf339fc536efb0a2a8222051390dcf8fab9f111f4fec9bad3727f5',
+		registrationPackageId: '0xb7e14054d48f101b36a5f26a006cc4798b08efeac4951d275a356c4506705bdb',
+		publisherId: '0xb3d277c50f7b846a5f609a8d13428ae482b5826bb98437997373f3a0d60d280e',
+		adminAddress: '0xb3d277c50f7b846a5f609a8d13428ae482b5826bb98437997373f3a0d60d280e',
 		adminCap: normalizeSuiAddress(
-			'0x5def5bd9dc94b7d418d081a91c533ec619fb4350e6c4e4602aea96fd49331b15',
+			'0xc2022899a9b428b7d0d6afcaf68ed5c560d3293dd0c8c27d1de09f209710f52d',
 		),
-		suins: '0x300369e8909b9a6464da265b9a5a9ab6fe2158a040e84e808628cde7a07ee5a3',
-		directSetupPackageId: '0xb82c701b383df8e5e55e2c8f201ee5a9fe43fc252dad291d52cc7da32f44161f',
+		suins: '0x1d7962f4766850fec8cc30e9ca56bc98c4744f09ddccb6c4b33886bd13e1dccc',
+		directSetupPackageId: '',
 		discountsPackage: {
 			packageId: 'TODO: Fill this in...',
 			discountHouseId: 'TODO: Fill this in...',
 		},
-		renewalsPackageId: '0x54800ebb4606fd0c03b4554976264373b3374eeb3fd63e7ff69f31cac786ba8c',
-		subNamesPackageId: '0x3c272bc45f9157b7818ece4f7411bdfa8af46303b071aca4e18c03119c9ff636',
-		tempSubdomainsProxyPackageId:
-			'0x3489ab5dcd346afee8b681267bcab2583a5eba9855680ec9931355e50e21c148',
+		renewalsPackageId: '',
+		subNamesPackageId: '',
+		tempSubdomainsProxyPackageId: '',
 		discord: {
-			discordCap: '0x539810749d2f6f59f54606a6aaef0123f1568a8564b74e1eedff7ad768e0d0db',
-			discordObjectId: '0x2e10e61b53e17e89aef8f8137e8ed3207043410ac3b628294a1f09ef059fac09',
-			packageId: '0x8f01eb1378d53e62239f8cf4ca495c703eb346f35902cf5d7b7727cd6c0b39fc',
-			discordTableId: '0x594e2b06246d5c4112309a8549eb2cc21169a884c05a87ef35e42cda1f4d54a4',
+			discordCap: '',
+			discordObjectId: '',
+			packageId: '',
+			discordTableId: '',
 		},
 		coupons: {
-			packageId: '0x689a2d65a9666921e73ad4d59d13fee0d4be5df1ab5c0eeda8e0f7ebecb6f1b7',
+			packageId: '0x060ee862e245f88ef4f65f1578da8c49e66b713b39edd4ce5fe941f57e79a5bf',
+		},
+		payments: {
+			packageId: '0xb2371aad051ae62e851b75bad0be0ab87af890851f57058c78ab75a203e9325c',
 		},
 		/// Testnet coins will be different here for testing purposes, we can publish our own
 		coins: {
