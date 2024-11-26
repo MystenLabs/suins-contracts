@@ -10,7 +10,7 @@ import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { Secp256k1Keypair } from '@mysten/sui/keypairs/secp256k1';
 import { Secp256r1Keypair } from '@mysten/sui/keypairs/secp256r1';
 import { Transaction, UpgradePolicy } from '@mysten/sui/transactions';
-import { fromBase64, toB64, toBase64 } from '@mysten/sui/utils';
+import { fromBase64, toBase64 } from '@mysten/sui/utils';
 
 import { Network } from '../init/packages';
 

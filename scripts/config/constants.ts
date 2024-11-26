@@ -107,14 +107,14 @@ export const mainPackage: Config = {
 		},
 	},
 	testnet: {
-		packageId: '0x79ecbc41c6b8ca482aca18ab3238633449b67d8d7aba87db5f583f423de26ae8',
-		registrationPackageId: '0x70e3e6919ad0cf08cba8dc018fcb2ab1ab0e20289056d2f370f53cb2ae668c4a',
+		packageId: '0xb4e782ed7eecce37d6ad9ea06f455f8177d39a575bcbf76acbd0dec328337542',
+		registrationPackageId: '0xe94b5592c68c835ba615790a04db6a27152fe6301a0d25d40c25e60b4fbebf7c',
 		publisherId: '0xb3d277c50f7b846a5f609a8d13428ae482b5826bb98437997373f3a0d60d280e',
 		adminAddress: '0xb3d277c50f7b846a5f609a8d13428ae482b5826bb98437997373f3a0d60d280e',
 		adminCap: normalizeSuiAddress(
-			'0x2185a5adc776f7b4f2aca5caa05b3c51cfce9b2b39c32066ec9ef193f64a1c1a',
+			'0xf5b61e67cfb5d8122328b8957bd27d7914f880b93f32eebd9a6b36f9665faa2d',
 		),
-		suins: '0x749bd13ae52f344570f331169f070afe6ec048a560ed8e5c721df2e7fd14bfec',
+		suins: '0xd7b2788e2aaee27453e7005f3bd6088a03db7a566fb40d05d6b2970706e794f8',
 		directSetupPackageId: '',
 		discountsPackage: {
 			packageId: 'TODO: Fill this in...',
@@ -133,7 +133,7 @@ export const mainPackage: Config = {
 			packageId: '',
 		},
 		payments: {
-			packageId: '0x941617e3b854df61bd9bf787f21d613dfaf06f6e3741b99fa50a8af893b67f89',
+			packageId: '0x4288286417570cf36ff60e696e58719b9c9a8d424738bbdde09277ff8898878f',
 		},
 		pyth: {
 			pythStateId: '0x243759059f4c3111179da5878c12f68d612c21a8d54d85edc86164bb18be1c7c',

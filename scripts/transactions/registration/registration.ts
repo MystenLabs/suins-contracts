@@ -1,10 +1,8 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-import { getFullnodeUrl, SuiClient } from '@mysten/sui.js/client'; // Pinned to version 0.49.1 to be compatible with pyth
-import { TransactionBlock } from '@mysten/sui.js/transactions';
-import { Transaction } from '@mysten/sui/transactions';
-import type { TransactionObjectArgument } from '@mysten/sui/transactions';
+import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
+import { Transaction, TransactionObjectArgument } from '@mysten/sui/transactions';
 import { MIST_PER_SUI } from '@mysten/sui/utils';
 import { SuiPriceServiceConnection, SuiPythClient } from '@pythnetwork/pyth-sui-js';
 
@@ -28,8 +26,7 @@ export const initRenewal = (nft: string, years: number) => (tx: Transaction) => 
 	});
 };
 
-// This function is called through the authorized app
-export const getPriceInfoObject = async (feed: string) => {
+export const getPriceInfoObject = async (tx: Transaction, feed: string) => {
 	// Initialize connection to the Sui Price Service
 	const connection = new SuiPriceServiceConnection('https://hermes-beta.pyth.network');
 
@@ -50,8 +47,6 @@ export const getPriceInfoObject = async (feed: string) => {
 
 	const client = new SuiPythClient(suiClient, pythStateId, wormholeStateId);
 
-	const tx = new TransactionBlock();
-	// Update price feeds and get price info object IDs
 	return await client.updatePriceFeeds(tx, priceUpdateData, priceIDs); // returns priceInfoObjectIds
 };
 
@@ -102,7 +97,7 @@ export const handlePayment =
 				payment,
 				tx.object.clock(),
 				tx.object(priceInfoObjectId),
-				tx.pure.u64(5 * Number(MIST_PER_SUI)), // This is the maximum user is willing to pay in SUI (20 USDC = approx 7 SUI)
+				tx.pure.u64(10 * Number(MIST_PER_SUI)), // This is the maximum user is willing to pay in SUI (20 USDC = approx 7 SUI)
 			],
 			typeArguments: [paymentType],
 		});
@@ -119,7 +114,7 @@ export const exampleRegisterationBaseAsset = async (coinId: string, domain: stri
 	const tx = new Transaction();
 	const coin = tx.object(coinId);
 	const coinIdType = config.coins.USDC.type;
-	const price = 20 * Number(MIST_PER_USDC);
+	const price = 100 * Number(MIST_PER_USDC);
 	const payment = tx.splitCoins(coin, [price]);
 
 	const paymentIntent = tx.add(initRegistration(domain));
@@ -138,7 +133,7 @@ export const exampleRegisterationSUI = async (domain: string) => {
 	const coinAmount = 19 * Number(MIST_PER_USDC); // 5% discount using SUI
 
 	const paymentIntent = tx.add(initRegistration(domain));
-	const priceInfoObjectIds = await getPriceInfoObject(coin.feed);
+	const priceInfoObjectIds = await getPriceInfoObject(tx, coin.feed);
 	const price = tx.add(calculatePrice(coinAmount, coinIdType, priceInfoObjectIds[0]));
 	const payment = tx.splitCoins(tx.gas, [price]);
 	const receipt = tx.add(handlePayment(paymentIntent, payment, coinIdType, priceInfoObjectIds[0]));
@@ -151,6 +146,6 @@ export const exampleRegisterationSUI = async (domain: string) => {
 
 // exampleRegisterationBaseAsset(
 // 	'0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
-// 	'suiexample.sui',
+// 	'tony.sui',
 // );
-// exampleRegisterationSUI('suiexample.sui');
+exampleRegisterationSUI('manofdssl.sui');

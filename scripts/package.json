@@ -28,9 +28,8 @@
 	"dependencies": {
 		"@mysten/kiosk": "0.9.21",
 		"@mysten/sui": "^1.15.0",
-		"@mysten/sui.js": "0.49.1",
 		"@noble/hashes": "^1.6.1",
-		"@pythnetwork/pyth-sui-js": "2.0.0",
+		"@pythnetwork/pyth-sui-js": "^2.1.0",
 		"dotenv": "^16.4.5"
 	},
 	"devDependencies": {
