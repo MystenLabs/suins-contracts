@@ -107,14 +107,14 @@ export const mainPackage: Config = {
 		},
 	},
 	testnet: {
-		packageId: '0xa614cb124daf339fc536efb0a2a8222051390dcf8fab9f111f4fec9bad3727f5',
-		registrationPackageId: '0xb7e14054d48f101b36a5f26a006cc4798b08efeac4951d275a356c4506705bdb',
+		packageId: '0x79ecbc41c6b8ca482aca18ab3238633449b67d8d7aba87db5f583f423de26ae8',
+		registrationPackageId: '0x70e3e6919ad0cf08cba8dc018fcb2ab1ab0e20289056d2f370f53cb2ae668c4a',
 		publisherId: '0xb3d277c50f7b846a5f609a8d13428ae482b5826bb98437997373f3a0d60d280e',
 		adminAddress: '0xb3d277c50f7b846a5f609a8d13428ae482b5826bb98437997373f3a0d60d280e',
 		adminCap: normalizeSuiAddress(
-			'0xc2022899a9b428b7d0d6afcaf68ed5c560d3293dd0c8c27d1de09f209710f52d',
+			'0x2185a5adc776f7b4f2aca5caa05b3c51cfce9b2b39c32066ec9ef193f64a1c1a',
 		),
-		suins: '0x1d7962f4766850fec8cc30e9ca56bc98c4744f09ddccb6c4b33886bd13e1dccc',
+		suins: '0x749bd13ae52f344570f331169f070afe6ec048a560ed8e5c721df2e7fd14bfec',
 		directSetupPackageId: '',
 		discountsPackage: {
 			packageId: 'TODO: Fill this in...',
@@ -130,10 +130,10 @@ export const mainPackage: Config = {
 			discordTableId: '',
 		},
 		coupons: {
-			packageId: '0x060ee862e245f88ef4f65f1578da8c49e66b713b39edd4ce5fe941f57e79a5bf',
+			packageId: '',
 		},
 		payments: {
-			packageId: '0xb2371aad051ae62e851b75bad0be0ab87af890851f57058c78ab75a203e9325c',
+			packageId: '0x941617e3b854df61bd9bf787f21d613dfaf06f6e3741b99fa50a8af893b67f89',
 		},
 		pyth: {
 			pythStateId: '0x243759059f4c3111179da5878c12f68d612c21a8d54d85edc86164bb18be1c7c',
@@ -163,4 +163,4 @@ export const mainPackage: Config = {
 };
 
 export const MIST_PER_USDC = 1000000;
-export const MAX_AGE = 1000 * 60 * 60; // In seconds, 1 Hour as max age for last price, can be updated
+export const MAX_AGE = 60; // In seconds, 60 seconds as max age for last price, can be updated
