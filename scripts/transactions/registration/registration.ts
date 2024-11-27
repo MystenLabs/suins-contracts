@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
-import { coinWithBalance, Transaction, TransactionObjectArgument } from '@mysten/sui/transactions';
+import { Transaction, TransactionObjectArgument } from '@mysten/sui/transactions';
 import { MIST_PER_SUI } from '@mysten/sui/utils';
 import { SuiPriceServiceConnection, SuiPythClient } from '@pythnetwork/pyth-sui-js';
 
@@ -121,44 +121,45 @@ export const calculatePriceAfterDiscount =
 		});
 	};
 
-export const exampleRegisterationBaseAsset = async (domain: string, coinId: string) => {
-	const tx = new Transaction();
-	const coin = tx.object(coinId);
-	const coinIdType = config.coins.USDC.type;
-
-	const paymentIntent = tx.add(initRegistration(domain));
-	const payment = tx.splitCoins(coin, [
-		tx.add(calculatePriceAfterDiscount(paymentIntent, coinIdType)),
-	]);
-	const receipt = tx.add(handleBasePayment(paymentIntent, payment, coinIdType));
-	const nft = tx.add(register(receipt));
-
-	tx.transferObjects([nft], getActiveAddress());
-
-	return signAndExecute(tx, network);
-};
-
-export const exampleRegisterationSUI = async (
+export const exampleRegisteration = async (
 	domain: string,
-	coin: {
+	coinId: string,
+	coin?: {
 		type: string;
 		metadataID: string;
 		feed: string;
 	},
-	coinId: string,
 ) => {
 	const tx = new Transaction();
-	const coinIdType = coin.type;
+	const coinConfig = coin ? coin : config.coins.USDC;
 
 	const paymentIntent = tx.add(initRegistration(domain));
-	const priceInfoObjectIds = await getPriceInfoObject(tx, coin.feed);
-	const priceAfterDiscount = tx.add(calculatePriceAfterDiscount(paymentIntent, coinIdType));
-	const price = tx.add(calculatePrice(priceAfterDiscount, coinIdType, priceInfoObjectIds[0]));
-	const payment =
-		coin == config.coins.SUI
-			? tx.splitCoins(tx.gas, [price])
-			: tx.splitCoins(tx.object(coinId), [price]);
-	const receipt = tx.add(handlePayment(paymentIntent, payment, coinIdType, priceInfoObjectIds[0]));
+	const priceAfterDiscount = tx.add(calculatePriceAfterDiscount(paymentIntent, coinConfig.type));
+	const baseAssetPurchase = coinConfig.feed === ''; // True if payment in base asset, no price feed
+
+	const receipt = await (async () => {
+		if (baseAssetPurchase) {
+			// Handle base asset purchase
+			const payment = tx.splitCoins(tx.object(coinId), [priceAfterDiscount]);
+			return tx.add(handleBasePayment(paymentIntent, payment, coinConfig.type));
+		} else {
+			// Fetch price info object IDs asynchronously
+			const priceInfoObjectIds = await getPriceInfoObject(tx, coinConfig.feed);
+
+			// Calculate the price with discount and type adjustments
+			const price = tx.add(
+				calculatePrice(priceAfterDiscount, coinConfig.type, priceInfoObjectIds[0]),
+			);
+
+			// Handle payment based on the coin type
+			const payment =
+				coin === config.coins.SUI
+					? tx.splitCoins(tx.gas, [price]) // Use gas for SUI payments
+					: tx.splitCoins(tx.object(coinId), [price]); // Use coin object for other payments
+
+			return tx.add(handlePayment(paymentIntent, payment, coinConfig.type, priceInfoObjectIds[0]));
+		}
+	})();
 	const nft = tx.add(register(receipt));
 
 	tx.transferObjects([nft], getActiveAddress());
@@ -166,9 +167,9 @@ export const exampleRegisterationSUI = async (
 	return signAndExecute(tx, network);
 };
 
-// exampleRegisterationBaseAsset(
-// 	'ton.sui',
+// exampleRegisteration(
+// 	'ajasfdd.sui',
 // 	'0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
-// ); // Example registration using base (USDC)
-exampleRegisterationSUI('ajsdasd.sui', config.coins.SUI, ''); // Example registration using SUI
-// exampleRegisterationSUI('john.sui', config.coins.NS, ''); // Example registration using NS
+// ); // Example registration using USDC
+// exampleRegisteration('ajadsasssd.sui', '', config.coins.SUI); // Example registration using SUI
+// exampleRegisteration('john.sui', '', config.coins.NS); // Example registration using NS
