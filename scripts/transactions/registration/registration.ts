@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
-import { Transaction, TransactionObjectArgument } from '@mysten/sui/transactions';
+import { coinWithBalance, Transaction, TransactionObjectArgument } from '@mysten/sui/transactions';
 import { MIST_PER_SUI } from '@mysten/sui/utils';
 import { SuiPriceServiceConnection, SuiPythClient } from '@pythnetwork/pyth-sui-js';
 
-import { mainPackage, MIST_PER_USDC, Network } from '../../config/constants';
+import { mainPackage, Network } from '../../config/constants';
 import { getActiveAddress, signAndExecute } from '../../utils/utils';
 
 const network = (process.env.NETWORK as Network) || 'testnet';
@@ -48,7 +48,6 @@ export const getPriceInfoObject = async (tx: Transaction, feed: string) => {
 	const client = new SuiPythClient(suiClient, pythStateId, wormholeStateId);
 
 	// Implement this inside sdk
-	// await client.createPriceFeed(tx, priceUpdateData);
 	return await client.updatePriceFeeds(tx, priceUpdateData, priceIDs); // returns priceInfoObjectIds
 };
 
@@ -122,16 +121,15 @@ export const calculatePriceAfterDiscount =
 		});
 	};
 
-export const exampleRegisterationBaseAsset = async (coinId: string, domain: string) => {
+export const exampleRegisterationBaseAsset = async (domain: string, coinId: string) => {
 	const tx = new Transaction();
 	const coin = tx.object(coinId);
 	const coinIdType = config.coins.USDC.type;
 
 	const paymentIntent = tx.add(initRegistration(domain));
-	const payment = tx.splitCoins(
-		coin,
+	const payment = tx.splitCoins(coin, [
 		tx.add(calculatePriceAfterDiscount(paymentIntent, coinIdType)),
-	);
+	]);
 	const receipt = tx.add(handleBasePayment(paymentIntent, payment, coinIdType));
 	const nft = tx.add(register(receipt));
 
@@ -141,13 +139,13 @@ export const exampleRegisterationBaseAsset = async (coinId: string, domain: stri
 };
 
 export const exampleRegisterationSUI = async (
-	coinId: string,
+	domain: string,
 	coin: {
 		type: string;
 		metadataID: string;
 		feed: string;
 	},
-	domain: string,
+	coinId: string,
 ) => {
 	const tx = new Transaction();
 	const coinIdType = coin.type;
@@ -169,7 +167,8 @@ export const exampleRegisterationSUI = async (
 };
 
 // exampleRegisterationBaseAsset(
+// 	'ton.sui',
 // 	'0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
-// 	'tony.sui',
-// );
-exampleRegisterationSUI('', config.coins.SUI, 'tonylee.sui');
+// ); // Example registration using base (USDC)
+exampleRegisterationSUI('ajsdasd.sui', config.coins.SUI, ''); // Example registration using SUI
+// exampleRegisterationSUI('john.sui', config.coins.NS, ''); // Example registration using NS
