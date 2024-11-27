@@ -52,13 +52,14 @@ export const getPriceInfoObject = async (tx: Transaction, feed: string) => {
 };
 
 export const calculatePrice =
-	(baseAmount: number, paymentType: string, priceInfoObjectId: string) => (tx: Transaction) => {
+	(baseAmount: TransactionObjectArgument, paymentType: string, priceInfoObjectId: string) =>
+	(tx: Transaction) => {
 		// Perform the Move call
 		return tx.moveCall({
 			target: `${config.payments.packageId}::payments::calculate_price`,
 			arguments: [
 				tx.object(config.suins),
-				tx.pure.u64(baseAmount),
+				baseAmount,
 				tx.object.clock(),
 				tx.object(priceInfoObjectId),
 			],
@@ -111,14 +112,21 @@ export const register = (receipt: TransactionObjectArgument) => (tx: Transaction
 	});
 };
 
+export const calculatePriceAfterDiscount =
+	(paymentIntent: TransactionObjectArgument) => (tx: Transaction) => {
+		return tx.moveCall({
+			target: `${config.payments.packageId}::payments::calculate_price_after_discount`,
+			arguments: [tx.object(config.suins), paymentIntent],
+		});
+	};
+
 export const exampleRegisterationBaseAsset = async (coinId: string, domain: string) => {
 	const tx = new Transaction();
 	const coin = tx.object(coinId);
 	const coinIdType = config.coins.USDC.type;
-	// The amount should be based on discount and the length of the domain
-	const payment = tx.splitCoins(coin, [calculate_price_after_discount]);
 
 	const paymentIntent = tx.add(initRegistration(domain));
+	const payment = tx.splitCoins(coin, tx.add(calculatePriceAfterDiscount(paymentIntent)));
 	const receipt = tx.add(handleBasePayment(paymentIntent, payment, coinIdType));
 	const nft = tx.add(register(receipt));
 
@@ -127,15 +135,31 @@ export const exampleRegisterationBaseAsset = async (coinId: string, domain: stri
 	return signAndExecute(tx, network);
 };
 
-export const exampleRegisterationSUI = async (domain: string) => {
+export const exampleRegisterationSUI = async (
+	coinId: string,
+	coin: {
+		type: string;
+		metadataID: string;
+		feed: string;
+	},
+	domain: string,
+) => {
 	const tx = new Transaction();
-	const coin = config.coins.SUI;
 	const coinIdType = coin.type;
 
 	const paymentIntent = tx.add(initRegistration(domain));
 	const priceInfoObjectIds = await getPriceInfoObject(tx, coin.feed);
-	const price = tx.add(calculatePrice(calculate_price_after_discount, coinIdType, priceInfoObjectIds[0]));
-	const payment = tx.splitCoins(tx.gas, [price]);
+	const price = tx.add(
+		calculatePrice(
+			tx.add(calculatePriceAfterDiscount(paymentIntent)),
+			coinIdType,
+			priceInfoObjectIds[0],
+		),
+	);
+	const payment =
+		coin == config.coins.SUI
+			? tx.splitCoins(tx.gas, [price])
+			: tx.splitCoins(tx.object(coinId), [price]);
 	const receipt = tx.add(handlePayment(paymentIntent, payment, coinIdType, priceInfoObjectIds[0]));
 	const nft = tx.add(register(receipt));
 
@@ -148,4 +172,4 @@ export const exampleRegisterationSUI = async (domain: string) => {
 // 	'0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
 // 	'tony.sui',
 // );
-exampleRegisterationSUI('manofdssl.sui');
+exampleRegisterationSUI('', config.coins.NS, 'manofdssl.sui');
