@@ -48,6 +48,7 @@ export const getPriceInfoObject = async (tx: Transaction, feed: string) => {
 	const client = new SuiPythClient(suiClient, pythStateId, wormholeStateId);
 
 	// Implement this inside sdk
+	// await client.createPriceFeed(tx, priceUpdateData);
 	return await client.updatePriceFeeds(tx, priceUpdateData, priceIDs); // returns priceInfoObjectIds
 };
 
@@ -113,10 +114,11 @@ export const register = (receipt: TransactionObjectArgument) => (tx: Transaction
 };
 
 export const calculatePriceAfterDiscount =
-	(paymentIntent: TransactionObjectArgument) => (tx: Transaction) => {
+	(paymentIntent: TransactionObjectArgument, paymentType: string) => (tx: Transaction) => {
 		return tx.moveCall({
 			target: `${config.payments.packageId}::payments::calculate_price_after_discount`,
 			arguments: [tx.object(config.suins), paymentIntent],
+			typeArguments: [paymentType],
 		});
 	};
 
@@ -126,7 +128,10 @@ export const exampleRegisterationBaseAsset = async (coinId: string, domain: stri
 	const coinIdType = config.coins.USDC.type;
 
 	const paymentIntent = tx.add(initRegistration(domain));
-	const payment = tx.splitCoins(coin, tx.add(calculatePriceAfterDiscount(paymentIntent)));
+	const payment = tx.splitCoins(
+		coin,
+		tx.add(calculatePriceAfterDiscount(paymentIntent, coinIdType)),
+	);
 	const receipt = tx.add(handleBasePayment(paymentIntent, payment, coinIdType));
 	const nft = tx.add(register(receipt));
 
@@ -149,13 +154,8 @@ export const exampleRegisterationSUI = async (
 
 	const paymentIntent = tx.add(initRegistration(domain));
 	const priceInfoObjectIds = await getPriceInfoObject(tx, coin.feed);
-	const price = tx.add(
-		calculatePrice(
-			tx.add(calculatePriceAfterDiscount(paymentIntent)),
-			coinIdType,
-			priceInfoObjectIds[0],
-		),
-	);
+	const priceAfterDiscount = tx.add(calculatePriceAfterDiscount(paymentIntent, coinIdType));
+	const price = tx.add(calculatePrice(priceAfterDiscount, coinIdType, priceInfoObjectIds[0]));
 	const payment =
 		coin == config.coins.SUI
 			? tx.splitCoins(tx.gas, [price])
@@ -172,4 +172,4 @@ export const exampleRegisterationSUI = async (
 // 	'0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
 // 	'tony.sui',
 // );
-exampleRegisterationSUI('', config.coins.NS, 'manofdssl.sui');
+exampleRegisterationSUI('', config.coins.SUI, 'tonylee.sui');
