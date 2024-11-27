@@ -114,6 +114,7 @@ export const exampleRegisterationBaseAsset = async (coinId: string, domain: stri
 	const tx = new Transaction();
 	const coin = tx.object(coinId);
 	const coinIdType = config.coins.USDC.type;
+	// The amount should be based on discount and the length of the domain
 	const price = 100 * Number(MIST_PER_USDC);
 	const payment = tx.splitCoins(coin, [price]);
 
@@ -130,6 +131,7 @@ export const exampleRegisterationSUI = async (domain: string) => {
 	const tx = new Transaction();
 	const coin = config.coins.SUI;
 	const coinIdType = coin.type;
+	// The amount should be based on discount and the length of the domain
 	const coinAmount = 19 * Number(MIST_PER_USDC); // 5% discount using SUI
 
 	const paymentIntent = tx.add(initRegistration(domain));
