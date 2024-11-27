@@ -47,6 +47,7 @@ export const getPriceInfoObject = async (tx: Transaction, feed: string) => {
 
 	const client = new SuiPythClient(suiClient, pythStateId, wormholeStateId);
 
+	// Implement this inside sdk
 	return await client.updatePriceFeeds(tx, priceUpdateData, priceIDs); // returns priceInfoObjectIds
 };
 
@@ -115,8 +116,7 @@ export const exampleRegisterationBaseAsset = async (coinId: string, domain: stri
 	const coin = tx.object(coinId);
 	const coinIdType = config.coins.USDC.type;
 	// The amount should be based on discount and the length of the domain
-	const price = 100 * Number(MIST_PER_USDC);
-	const payment = tx.splitCoins(coin, [price]);
+	const payment = tx.splitCoins(coin, [calculate_price_after_discount]);
 
 	const paymentIntent = tx.add(initRegistration(domain));
 	const receipt = tx.add(handleBasePayment(paymentIntent, payment, coinIdType));
@@ -131,12 +131,10 @@ export const exampleRegisterationSUI = async (domain: string) => {
 	const tx = new Transaction();
 	const coin = config.coins.SUI;
 	const coinIdType = coin.type;
-	// The amount should be based on discount and the length of the domain
-	const coinAmount = 19 * Number(MIST_PER_USDC); // 5% discount using SUI
 
 	const paymentIntent = tx.add(initRegistration(domain));
 	const priceInfoObjectIds = await getPriceInfoObject(tx, coin.feed);
-	const price = tx.add(calculatePrice(coinAmount, coinIdType, priceInfoObjectIds[0]));
+	const price = tx.add(calculatePrice(calculate_price_after_discount, coinIdType, priceInfoObjectIds[0]));
 	const payment = tx.splitCoins(tx.gas, [price]);
 	const receipt = tx.add(handlePayment(paymentIntent, payment, coinIdType, priceInfoObjectIds[0]));
 	const nft = tx.add(register(receipt));
