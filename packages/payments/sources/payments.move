@@ -74,7 +74,9 @@ public fun handle_base_payment<T>(
 
     assert!(payment_type == config.base_currency, EInvalidPaymentType);
 
-    suins.get_config_for_type<T>().apply_discount_if_eligible(suins, &mut intent);
+    suins
+        .get_config_for_type<T>()
+        .apply_discount_if_eligible(suins, &mut intent);
 
     let price = intent.request_data().base_amount();
     assert!(payment.value() == price, EInsufficientPayment);
@@ -169,6 +171,17 @@ public fun calculate_price<T>(
     )
 }
 
+public fun calculate_price_after_discount<T>(
+    suins: &SuiNS,
+    intent: &PaymentIntent,
+): u64 {
+    let type_config = suins.get_config_for_type<T>();
+
+    intent
+        .request_data()
+        .calculate_total_after_discount(type_config.discount_percentage)
+}
+
 /// Creates a new CoinTypeData struct.
 public fun new_coin_type_data<T>(
     coin_metadata: &CoinMetadata<T>,
@@ -245,7 +258,8 @@ fun apply_discount_if_eligible(
         PaymentsApp(),
         PAYMENT_DISCOUNT_KEY.to_string(),
         coin_type_data.discount_percentage,
-        // payments package discount can be applied even if other discounts are applied.
+        // payments package discount can be applied even if other discounts are
+        // applied.
         true,
     );
 }
