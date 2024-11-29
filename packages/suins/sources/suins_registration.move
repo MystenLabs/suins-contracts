@@ -85,7 +85,8 @@ public(package) fun burn(self: SuinsRegistration) {
     id.delete();
 }
 
-// === Public methods ===
+// === Public methods ===]
+public fun id(self: &SuinsRegistration): ID { self.id.to_inner() }
 
 /// Check whether the `SuinsRegistration` has expired by comparing the
 /// expiration timeout with the current time.

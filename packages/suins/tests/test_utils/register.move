@@ -2,15 +2,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #[test_only]
-module suins::register_sample;
+module suins::register;
 
-use std::string::{Self, String};
+use std::string::String;
 use sui::clock::Clock;
-use sui::coin::{Self, Coin};
-use sui::sui::SUI;
-use suins::config::{Self, Config};
+use sui::coin::Coin;
+use suins::config;
 use suins::domain;
-use suins::registry::{Self, Registry};
+use suins::pricing_config::PricingConfig;
+use suins::registry::Registry;
 use suins::suins::{Self, SuiNS};
 use suins::suins_registration::SuinsRegistration;
 
@@ -30,36 +30,32 @@ public struct Register has drop {}
 // - the domain TLD is .sui
 // - the domain is not a subdomain
 // - number of years is within [1-5] interval
-public fun register(
+public fun register<T>(
     suins: &mut SuiNS,
     domain_name: String,
     no_years: u8,
-    payment: Coin<SUI>,
+    payment: Coin<T>,
     clock: &Clock,
     ctx: &mut TxContext,
 ): SuinsRegistration {
-    suins::assert_app_is_authorized<Register>(suins);
+    suins.assert_app_is_authorized<Register>();
 
-    let config = suins::get_config<Config>(suins);
+    let config = suins.get_config<PricingConfig>();
+    // If no PricingConfig of type T, add an error code
 
     let domain = domain::new(domain_name);
     config::assert_valid_user_registerable_domain(&domain);
 
     assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
 
-    let label = domain::sld(&domain);
-    let price = config::calculate_price(
-        config,
-        (string::length(label) as u8),
-        no_years,
-    );
+    let label = domain.sld();
+    let price = config.calculate_base_price(label.length()) * (no_years as u64);
+    assert!(payment.value() == price, EIncorrectAmount);
 
-    assert!(coin::value(&payment) == price, EIncorrectAmount);
-
-    suins::app_add_balance(Register {}, suins, coin::into_balance(payment));
+    suins.app_add_custom_balance<_, T>(Register {}, payment.into_balance());
     let registry = suins::app_registry_mut<Register, Registry>(
         Register {},
         suins,
     );
-    registry::add_record(registry, domain, no_years, clock, ctx)
+    registry.add_record(domain, no_years, clock, ctx)
 }

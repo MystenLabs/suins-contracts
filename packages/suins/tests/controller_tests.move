@@ -8,6 +8,7 @@ use std::option::{extract, some, none};
 use std::string::{utf8, String};
 use sui::clock::{Self, Clock};
 use sui::dynamic_field;
+use sui::sui::SUI;
 use sui::test_scenario::{Self, Scenario, ctx};
 use sui::test_utils::assert_eq;
 use sui::vec_map::VecMap;
@@ -22,8 +23,8 @@ use suins::controller::{
     unset_user_data_for_testing
 };
 use suins::domain::{Self, Domain};
-use suins::register_sample::Register;
-use suins::register_sample_tests::register_util;
+use suins::register::Register;
+use suins::register_utils::register_util;
 use suins::registry::{Self, Registry, lookup, reverse_lookup};
 use suins::suins::{Self, SuiNS, AdminCap};
 use suins::suins_registration::SuinsRegistration;
@@ -60,7 +61,7 @@ fun test_init(): Scenario {
 }
 
 fun setup(scenario: &mut Scenario, sender: address, clock_tick: u64) {
-    let nft = register_util(
+    let nft = register_util<SUI>(
         scenario,
         utf8(DOMAIN_NAME),
         1,
