@@ -8,74 +8,66 @@ use sui::clock::Clock;
 use sui::tx_context::sender;
 use suins::domain;
 use suins::registry::Registry;
+use suins::subdomain_registration::SubDomainRegistration;
 use suins::suins::{Self, SuiNS};
 use suins::suins_registration::SuinsRegistration;
 
 const AVATAR: vector<u8> = b"avatar";
 const CONTENT_HASH: vector<u8> = b"content_hash";
 
+use fun registry_mut as SuiNS.registry_mut;
+
 const EUnsupportedKey: u64 = 0;
 
-/// Authorization token for the controller.
-public struct Controller has drop {}
+/// Authorization token for the controller (v2) which
+/// is used to call protected functions.
+public struct ControllerV2() has drop;
 
-// === Update Records Functionality ===
-
-/// User-facing function (upgradable) - set the target address of a domain.
-entry fun set_target_address(
+/// Set the target address of a domain.
+public fun set_target_address(
     suins: &mut SuiNS,
     nft: &SuinsRegistration,
     new_target: Option<address>,
     clock: &Clock,
 ) {
-    let registry = suins::app_registry_mut<Controller, Registry>(
-        Controller {},
-        suins,
-    );
+    let registry = suins.registry_mut();
     registry.assert_nft_is_authorized(nft, clock);
 
     let domain = nft.domain();
     registry.set_target_address(domain, new_target);
 }
 
-/// User-facing function (upgradable) - set the reverse lookup address for the
-/// domain.
-entry fun set_reverse_lookup(
-    suins: &mut SuiNS,
-    domain_name: String,
-    ctx: &TxContext,
-) {
-    let domain = domain::new(domain_name);
-    let registry = suins::app_registry_mut<Controller, Registry>(
-        Controller {},
-        suins,
-    );
-    registry.set_reverse_lookup(sender(ctx), domain);
+/// Set the reverse lookup address for the domain
+public fun set_reverse_lookup(suins: &mut SuiNS, domain_name: String, ctx: &TxContext) {
+    suins.registry_mut().set_reverse_lookup(ctx.sender(), domain::new(domain_name));
 }
 
-/// User-facing function (upgradable) - unset the reverse lookup address for the
-/// domain.
-entry fun unset_reverse_lookup(suins: &mut SuiNS, ctx: &TxContext) {
-    let registry = suins::app_registry_mut<Controller, Registry>(
-        Controller {},
-        suins,
-    );
-    registry.unset_reverse_lookup(sender(ctx));
+/// User-facing function - unset the reverse lookup address for the domain.
+public fun unset_reverse_lookup(suins: &mut SuiNS, ctx: &TxContext) {
+    suins.registry_mut().unset_reverse_lookup(ctx.sender());
 }
 
-/// User-facing function (upgradable) - add a new key-value pair to the name
-/// record's data.
-entry fun set_user_data(
+/// Allows setting the reverse lookup address for an object.
+/// Expects a mutable reference of the object.
+public fun set_object_reverse_lookup<T: key>(suins: &mut SuiNS, obj: &mut T, domain_name: String) {
+    suins.registry_mut().set_reverse_lookup(object::id(obj).to_address(), domain::new(domain_name));
+}
+
+/// Allows unsetting the reverse lookup address for an object.
+/// Expects a mutable reference of the object.
+public fun unset_object_reverse_lookup<T: key>(suins: &mut SuiNS, obj: &mut T) {
+    suins.registry_mut().unset_reverse_lookup(object::id(obj).to_address());
+}
+
+/// User-facing function - add a new key-value pair to the name record's data.
+public fun set_user_data(
     suins: &mut SuiNS,
     nft: &SuinsRegistration,
     key: String,
     value: String,
     clock: &Clock,
 ) {
-    let registry = suins::app_registry_mut<Controller, Registry>(
-        Controller {},
-        suins,
-    );
+    let registry = suins.registry_mut();
     let mut data = *registry.get_data(nft.domain());
     let domain = nft.domain();
 
@@ -91,18 +83,9 @@ entry fun set_user_data(
     registry.set_data(domain, data);
 }
 
-/// User-facing function (upgradable) - remove a key from the name record's
-/// data.
-entry fun unset_user_data(
-    suins: &mut SuiNS,
-    nft: &SuinsRegistration,
-    key: String,
-    clock: &Clock,
-) {
-    let registry = suins::app_registry_mut<Controller, Registry>(
-        Controller {},
-        suins,
-    );
+/// User-facing function - remove a key from the name record's data.
+public fun unset_user_data(suins: &mut SuiNS, nft: &SuinsRegistration, key: String, clock: &Clock) {
+    let registry = suins.registry_mut();
     let mut data = *registry.get_data(nft.domain());
     let domain = nft.domain();
 
@@ -115,52 +98,19 @@ entry fun unset_user_data(
     registry.set_data(domain, data);
 }
 
-// === Testing ===
-
-#[test_only]
-public fun set_target_address_for_testing(
-    suins: &mut SuiNS,
-    nft: &SuinsRegistration,
-    new_target: Option<address>,
-    clock: &Clock,
-) {
-    set_target_address(suins, nft, new_target, clock)
+public fun burn_expired(suins: &mut SuiNS, nft: SuinsRegistration, clock: &Clock) {
+    suins.registry_mut().burn_registration_object(nft, clock);
 }
 
-#[test_only]
-public fun set_reverse_lookup_for_testing(
-    suins: &mut SuiNS,
-    domain_name: String,
-    ctx: &TxContext,
-) {
-    set_reverse_lookup(suins, domain_name, ctx)
+public fun burn_expired_subname(suins: &mut SuiNS, nft: SubDomainRegistration, clock: &Clock) {
+    suins.registry_mut().burn_subdomain_object(nft, clock);
 }
 
-#[test_only]
-public fun unset_reverse_lookup_for_testing(
-    suins: &mut SuiNS,
-    ctx: &TxContext,
-) {
-    unset_reverse_lookup(suins, ctx)
+/// Get a mutable reference to the registry, if the app is authorized.
+fun registry_mut(suins: &mut SuiNS): &mut Registry {
+    suins::app_registry_mut<_, Registry>(ControllerV2(), suins)
 }
 
-#[test_only]
-public fun set_user_data_for_testing(
-    suins: &mut SuiNS,
-    nft: &SuinsRegistration,
-    key: String,
-    value: String,
-    clock: &Clock,
-) {
-    set_user_data(suins, nft, key, value, clock);
-}
-
-#[test_only]
-public fun unset_user_data_for_testing(
-    suins: &mut SuiNS,
-    nft: &SuinsRegistration,
-    key: String,
-    clock: &Clock,
-) {
-    unset_user_data(suins, nft, key, clock);
-}
+/// Authorization token for the controller.
+#[deprecated(note = b"Use ControllerV2 instead")]
+public struct Controller has drop {}
