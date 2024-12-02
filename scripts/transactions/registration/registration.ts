@@ -171,5 +171,5 @@ export const exampleRegisteration = async (
 // 	'ajasfdd.sui',
 // 	'0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
 // ); // Example registration using USDC
-// exampleRegisteration('ajadsasssd.sui', '', config.coins.SUI); // Example registration using SUI
+exampleRegisteration('ajadsassfdsasd.sui', '', config.coins.SUI); // Example registration using SUI
 // exampleRegisteration('john.sui', '', config.coins.NS); // Example registration using NS
