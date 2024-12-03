@@ -13,6 +13,7 @@ import {
 	newPaymentsConfig,
 	newPriceConfigV1,
 	newPriceConfigV2,
+	newRenewalConfig,
 	setupApp,
 } from './authorization';
 import { createDisplay } from './display_tp';
@@ -115,6 +116,27 @@ export const Packages = (network: Network) => {
 					}),
 					type: `${packageId}::pricing_config::PricingConfig`,
 				});
+				addConfig({
+					txb,
+					adminCap,
+					suins,
+					suinsPackageIdV1: packageId,
+					config: newRenewalConfig({
+						txb,
+						packageId,
+						ranges: [
+							[3, 3],
+							[4, 4],
+							[5, 63],
+						],
+						prices: [
+							250 * Number(MIST_PER_USDC),
+							50 * Number(MIST_PER_USDC),
+							10 * Number(MIST_PER_USDC),
+						],
+					}),
+					type: `${packageId}::pricing_config::RenewalConfig`,
+				});
 				// create display for names
 				createDisplay({
 					txb,
@@ -179,48 +201,6 @@ export const Packages = (network: Network) => {
 				};
 			},
 			authorizationType: (packageId: string) => `${packageId}::register::Register`,
-		},
-		Renewal: {
-			order: 2,
-			folder: 'renewal',
-			manifest: SuiNSDependentPackages(rev, 'renewal'),
-			processPublish: (data: SuiTransactionBlockResponse) => {
-				const { packageId, upgradeCap } = parseCorePackageObjects(data);
-
-				return {
-					packageId,
-					upgradeCap,
-				};
-			},
-			authorizationType: (packageId: string) => `${packageId}::renew::Renew`,
-			setupFunction: ({
-				txb,
-				packageId,
-				adminCap,
-				suinsPackageIdV1,
-				suins,
-				priceList,
-			}: {
-				txb: Transaction;
-				packageId: string;
-				suinsPackageIdV1: string;
-				adminCap: string;
-				suins: string;
-				priceList: { [key: string]: number };
-			}) => {
-				const configuration = newPriceConfigV1({
-					txb,
-					suinsPackageIdV1,
-					priceList,
-				});
-				setupApp({
-					txb,
-					adminCap,
-					suins: suins,
-					target: `${packageId}::renew::setup`,
-					args: [configuration],
-				});
-			},
 		},
 		DayOne: {
 			order: 2,

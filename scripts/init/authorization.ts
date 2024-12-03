@@ -171,6 +171,23 @@ export const newPriceConfigV2 = ({
 	});
 };
 
+export const newRenewalConfig = ({
+	txb,
+	packageId,
+	ranges,
+	prices,
+}: {
+	txb: Transaction;
+	packageId: string;
+	ranges: number[][];
+	prices: number[];
+}): TransactionArgument => {
+	return txb.moveCall({
+		target: `${packageId}::pricing_config::new_renewal_config`,
+		arguments: [newPriceConfigV2({ txb, packageId, ranges, prices })],
+	});
+};
+
 export const newRange = ({
 	txb,
 	packageId,

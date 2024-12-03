@@ -49,19 +49,6 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 		packageInfo.SuiNS.suins,
 		packageInfo.SuiNS.publisher,
 	);
-	packages.Renewal.setupFunction({
-		txb,
-		adminCap: packageInfo.SuiNS.adminCap,
-		suins: packageInfo.SuiNS.suins,
-		packageId: packageInfo.Renewal.packageId,
-		suinsPackageIdV1: packageInfo.SuiNS.packageId,
-		priceList: {
-			three: 2 * Number(MIST_PER_SUI),
-			four: 1 * Number(MIST_PER_SUI),
-			fivePlus: 0.2 * Number(MIST_PER_SUI),
-		},
-	});
-
 	packages.Coupons.setupFunction({
 		txb,
 		adminCap: packageInfo.SuiNS.adminCap,
