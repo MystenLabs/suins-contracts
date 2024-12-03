@@ -107,14 +107,14 @@ export const mainPackage: Config = {
 		},
 	},
 	testnet: {
-		packageId: '0x3c0ea262c1d03e8bf9780ead928c2a0ed217babc03183bab0f3b2592614c3529',
+		packageId: '0x0c48ca7620b8d084ad7e50e5c9baa33ecce84870292da634ca3db3dec4eabbfa',
 		registrationPackageId: '',
 		publisherId: '0xb3d277c50f7b846a5f609a8d13428ae482b5826bb98437997373f3a0d60d280e',
 		adminAddress: '0xb3d277c50f7b846a5f609a8d13428ae482b5826bb98437997373f3a0d60d280e',
 		adminCap: normalizeSuiAddress(
-			'0xaa9280b411a391809abdbbe1288ee3e96f6f081b7dbd98a5ca5b19be55851de9',
+			'0xa99316831e457836390313abe49bac244a9680b41a5a5efa97c74c63fbd788d8',
 		),
-		suins: '0x929bbad446b6a8ffd3e7eb2e76c276fff0f96f0974dac6229353e97c3d9a5aeb',
+		suins: '0x23b460dbce7dd19d3e71e016c1d36f59fea10abeae21b3a1e98c4b43e95327c8',
 		directSetupPackageId: '',
 		discountsPackage: {
 			packageId: 'TODO: Fill this in...',
@@ -133,7 +133,7 @@ export const mainPackage: Config = {
 			packageId: '',
 		},
 		payments: {
-			packageId: '0xb9bf6df76767cf3ae40885243a92cbada8aec418009ae3441c2840399ac92ce3',
+			packageId: '0xab941e7f7518401e579d57f6f637385d35b12be44d8bf4f74910dcbfe94203d0',
 		},
 		pyth: {
 			pythStateId: '0x243759059f4c3111179da5878c12f68d612c21a8d54d85edc86164bb18be1c7c',
