@@ -107,14 +107,14 @@ export const mainPackage: Config = {
 		},
 	},
 	testnet: {
-		packageId: '0x0c48ca7620b8d084ad7e50e5c9baa33ecce84870292da634ca3db3dec4eabbfa',
+		packageId: '0xbd0d890177f0d51fbe5c9cfbe2bd7900af44271352a73d2cd5d14c1ec209d12b',
 		registrationPackageId: '',
-		publisherId: '0xb3d277c50f7b846a5f609a8d13428ae482b5826bb98437997373f3a0d60d280e',
+		publisherId: '0x3d1f4464a21966ec9e89bcebeabcea23a063de56a345e7c799734eb1ba258aa8',
 		adminAddress: '0xb3d277c50f7b846a5f609a8d13428ae482b5826bb98437997373f3a0d60d280e',
 		adminCap: normalizeSuiAddress(
-			'0xa99316831e457836390313abe49bac244a9680b41a5a5efa97c74c63fbd788d8',
+			'0x333411826d3a8e52696f9383c9eccb8b780d348abc206af07137346b1a58cf6e',
 		),
-		suins: '0x23b460dbce7dd19d3e71e016c1d36f59fea10abeae21b3a1e98c4b43e95327c8',
+		suins: '0x1cb341b135ce87b187f9676d14d348a9be89ce4e5863cb9788ba29fa21ea7580',
 		directSetupPackageId: '',
 		discountsPackage: {
 			packageId: 'TODO: Fill this in...',
@@ -130,10 +130,10 @@ export const mainPackage: Config = {
 			discordTableId: '',
 		},
 		coupons: {
-			packageId: '',
+			packageId: '0xd1eecdfd9c2a33f8315f4b89d5658fd73c6a4d866695769cb3a4519854571cd5',
 		},
 		payments: {
-			packageId: '0xab941e7f7518401e579d57f6f637385d35b12be44d8bf4f74910dcbfe94203d0',
+			packageId: '0x7ce9005c351c1849a18b80df5dd1c6c8c3dc81700083d6189b1f82f8b8d378fa',
 		},
 		pyth: {
 			pythStateId: '0x243759059f4c3111179da5878c12f68d612c21a8d54d85edc86164bb18be1c7c',
