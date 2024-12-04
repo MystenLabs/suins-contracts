@@ -173,13 +173,7 @@ export const exampleRegistration = async (
 		tx.add(applyCoupon(paymentIntent, options.couponCode));
 	}
 	if (options.discountNft) {
-		tx.add(
-			applyDiscount(
-				paymentIntent,
-				options.discountNft,
-				'0x1f38138944eaf52428d7bdfb5166902eab33081e3f2cab61e355a6c3e7b1b5a9::demo_bear::DemoBear',
-			),
-		);
+		await applyDiscount(paymentIntent, options.discountNft, network, tx);
 	}
 	const priceAfterDiscount = tx.add(calculatePriceAfterDiscount(paymentIntent, coinConfig.type));
 	const { receipt, priceInfoObjectId } = await generateReceipt(
@@ -235,13 +229,7 @@ export const exampleRenewal = async (
 		tx.add(applyCoupon(paymentIntent, options.couponCode));
 	}
 	if (options.discountNft) {
-		tx.add(
-			applyDiscount(
-				paymentIntent,
-				options.discountNft,
-				'0x1f38138944eaf52428d7bdfb5166902eab33081e3f2cab61e355a6c3e7b1b5a9::demo_bear::DemoBear',
-			),
-		);
+		await applyDiscount(paymentIntent, options.discountNft, network, tx);
 	}
 	const priceAfterDiscount = tx.add(calculatePriceAfterDiscount(paymentIntent, coinConfig.type));
 	const { receipt } = await generateReceipt(
@@ -263,10 +251,10 @@ export const exampleRenewal = async (
 	return signAndExecute(tx, network);
 };
 
-// Example registration using USDC
+/// Example registration using USDC
 // exampleRegistration(
-// 	'ajjdfksadsskdddsddddddsd.sui', // Domain to register
-// 	4,
+// 	'ajjdfksadsskdddddsddssddddsd.sui', // Domain to register
+// 	1,
 // 	config.coins.USDC,
 // 	'0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
 // 	{ discountNft: '0x6612ccfe862e62ff581cd886db1e61cc335ebcde6ec4e4a4a3bdfda9b92f0b28' },

@@ -237,3 +237,14 @@ export const getCoinMetadataId = async (type: string) => {
 	}
 	return metadata.id;
 };
+
+export const getObjectType = async (network: Network, objectId: string): Promise<string> => {
+	const suiClient = new SuiClient({
+		url: getFullnodeUrl(network),
+	});
+	const objectResponse = await suiClient.getObject({ id: objectId, options: { showType: true } });
+	if (objectResponse && objectResponse.data && objectResponse.data.type) {
+		return objectResponse.data.type;
+	}
+	throw new Error('Object data not found');
+};
