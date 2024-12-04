@@ -99,7 +99,7 @@ export const handlePayment =
 				payment,
 				tx.object.clock(),
 				tx.object(priceInfoObjectId),
-				tx.pure.u64(1000 * Number(MIST_PER_SUI)), // This is the maximum user is willing to pay in SUI (20 USDC = approx 7 SUI)
+				tx.pure.u64(1000 * Number(MIST_PER_SUI)), // This is the maximum user is willing to pay
 			],
 			typeArguments: [paymentType],
 		});
@@ -135,21 +135,24 @@ const generateReceipt = async (
 	priceAfterDiscount: TransactionObjectArgument,
 	coinConfig: { type: string; metadataID: string; feed: string },
 	coinId: string,
-): Promise<TransactionObjectArgument> => {
-	const baseAssetPurchase = coinConfig.feed === ''; // Base currency does not have feed
+	infoObjectId?: string,
+): Promise<{ receipt: TransactionObjectArgument; priceInfoObjectId?: string }> => {
+	const baseAssetPurchase = coinConfig.feed === '';
 	if (baseAssetPurchase) {
 		const payment = tx.splitCoins(tx.object(coinId), [priceAfterDiscount]);
-		return tx.add(handleBasePayment(paymentIntent, payment, coinConfig.type));
+		const receipt = tx.add(handleBasePayment(paymentIntent, payment, coinConfig.type));
+		return { receipt };
 	} else {
-		const priceInfoObjectIds = await getPriceInfoObject(tx, coinConfig.feed);
-		const price = tx.add(
-			calculatePrice(priceAfterDiscount, coinConfig.type, priceInfoObjectIds[0]),
-		);
+		const priceInfoObjectId = infoObjectId || (await getPriceInfoObject(tx, coinConfig.feed))[0];
+		const price = tx.add(calculatePrice(priceAfterDiscount, coinConfig.type, priceInfoObjectId));
 		const payment =
 			coinConfig === config.coins.SUI
-				? tx.splitCoins(tx.gas, [price]) // Use SUI as payment
-				: tx.splitCoins(tx.object(coinId), [price]); // Use currency outside of USDC and SUI
-		return tx.add(handlePayment(paymentIntent, payment, coinConfig.type, priceInfoObjectIds[0]));
+				? tx.splitCoins(tx.gas, [price])
+				: tx.splitCoins(tx.object(coinId), [price]);
+		const receipt = tx.add(
+			handlePayment(paymentIntent, payment, coinConfig.type, priceInfoObjectId),
+		);
+		return { receipt, priceInfoObjectId };
 	}
 };
 
@@ -163,11 +166,17 @@ export const exampleRegisteration = async (
 
 	const paymentIntent = tx.add(initRegistration(domain));
 	const priceAfterDiscount = tx.add(calculatePriceAfterDiscount(paymentIntent, coinConfig.type));
-	const receipt = await generateReceipt(tx, paymentIntent, priceAfterDiscount, coinConfig, coinId);
+	const { receipt, priceInfoObjectId } = await generateReceipt(
+		tx,
+		paymentIntent,
+		priceAfterDiscount,
+		coinConfig,
+		coinId,
+	);
 	const nft = tx.add(register(receipt));
 
 	if (years > 1) {
-		return exampleRenewal(nft, years - 1, coinConfig, coinId, tx);
+		return exampleRenewal(nft, years - 1, coinConfig, coinId, priceInfoObjectId, tx);
 	}
 
 	tx.transferObjects([nft], getActiveAddress());
@@ -179,6 +188,7 @@ export const exampleRenewal = async (
 	years: number,
 	coinConfig: { type: string; metadataID: string; feed: string },
 	coinId: string,
+	infoObjectId?: string,
 	tx?: Transaction,
 ) => {
 	let transferNft = true;
@@ -192,7 +202,14 @@ export const exampleRenewal = async (
 
 	const paymentIntent = tx.add(initRenewal(nft, years));
 	const priceAfterDiscount = tx.add(calculatePriceAfterDiscount(paymentIntent, coinConfig.type));
-	const receipt = await generateReceipt(tx, paymentIntent, priceAfterDiscount, coinConfig, coinId);
+	const { receipt } = await generateReceipt(
+		tx,
+		paymentIntent,
+		priceAfterDiscount,
+		coinConfig,
+		coinId,
+		infoObjectId,
+	);
 	tx.add(renew(receipt, nft));
 
 	/// Only transfer NFT if it was a renewal part of a registration PTB
@@ -209,10 +226,10 @@ export const exampleRenewal = async (
 // 	config.coins.USDC,
 // 	'0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
 // ); // Example registration using USDC
-// exampleRegisteration('ajadsadsdafdsaasd.sui', 3, config.coins.SUI, ''); // Example registration using SUI
+// exampleRegisteration('ajadsadsdafddssssaasd.sui', 1, config.coins.SUI, ''); // Example registration using SUI
 // exampleRenewal(
 // 	'0x457b8c01d45ced39bef481e474090ee04c8465323a44d19f44123cce1fbbab78', // NFT to renew
 // 	4,
 // 	config.coins.SUI,
-// 	'0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46', // USDC coin object
+// 	'',
 // ); // example renewal using SUI
