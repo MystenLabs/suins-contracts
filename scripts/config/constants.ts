@@ -107,18 +107,18 @@ export const mainPackage: Config = {
 		},
 	},
 	testnet: {
-		packageId: '0xbd0d890177f0d51fbe5c9cfbe2bd7900af44271352a73d2cd5d14c1ec209d12b',
+		packageId: '0xb4ab809c3cb1c9c802222da482198b04886595a2b1beec89399753bc88a81a5b',
 		registrationPackageId: '',
-		publisherId: '0x3d1f4464a21966ec9e89bcebeabcea23a063de56a345e7c799734eb1ba258aa8',
+		publisherId: '0xe1ae6d207bbee5ebe30de923abe666549c3eaeb2d0001faf6e64e0d13c86d46f',
 		adminAddress: '0xb3d277c50f7b846a5f609a8d13428ae482b5826bb98437997373f3a0d60d280e',
 		adminCap: normalizeSuiAddress(
-			'0x333411826d3a8e52696f9383c9eccb8b780d348abc206af07137346b1a58cf6e',
+			'0x623bd09eced2ceaad6054a788a78e684e0084a461f57643c824dfdb96281d5c6',
 		),
-		suins: '0x1cb341b135ce87b187f9676d14d348a9be89ce4e5863cb9788ba29fa21ea7580',
+		suins: '0xe55868f5adc5f84f946867635d3aba6bd02bedee2c54b5e76a1d88d530443d51',
 		directSetupPackageId: '',
 		discountsPackage: {
-			packageId: 'TODO: Fill this in...',
-			discountHouseId: 'TODO: Fill this in...',
+			packageId: '0xbfb60fc91c28c9ed67542c2cf7382466c749c534ed3fba5f58f69b4a1db2998b',
+			discountHouseId: '0x41f20c3960bd78d79c8663f2ac5221a2c131749246f5b3207cd2dcc3a34951e3',
 		},
 		renewalsPackageId: '',
 		subNamesPackageId: '',
@@ -130,10 +130,10 @@ export const mainPackage: Config = {
 			discordTableId: '',
 		},
 		coupons: {
-			packageId: '0xd1eecdfd9c2a33f8315f4b89d5658fd73c6a4d866695769cb3a4519854571cd5',
+			packageId: '0xdd98e9f8e8c71ac8f10649966c662e52cfff3cdc890b81996c746dc477c8767f',
 		},
 		payments: {
-			packageId: '0x7ce9005c351c1849a18b80df5dd1c6c8c3dc81700083d6189b1f82f8b8d378fa',
+			packageId: '0xe1c0778c7097e727a0dee47ce87a18671456ddbdb1b2dabc027c99dd0a6c2395',
 		},
 		pyth: {
 			pythStateId: '0x243759059f4c3111179da5878c12f68d612c21a8d54d85edc86164bb18be1c7c',

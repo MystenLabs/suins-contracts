@@ -337,7 +337,7 @@ export const Packages = (network: Network) => {
 					discountHouse,
 				};
 			},
-			authorizationType: (packageId: string) => `${packageId}::house::DiscountHouseApp`,
+			authorizationType: (packageId: string) => `${packageId}::discounts::RegularDiscountsApp`,
 		},
 		TempSubdomainProxy: {
 			order: 3,
