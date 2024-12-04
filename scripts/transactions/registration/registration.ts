@@ -12,6 +12,7 @@ import { getActiveAddress, signAndExecute } from '../../utils/utils';
 
 const network = (process.env.NETWORK as Network) || 'testnet';
 const config = mainPackage[network];
+const MAX_U64 = BigInt('18446744073709551615');
 
 export const initRegistration = (domain: string) => (tx: Transaction) => {
 	return tx.moveCall({
@@ -90,6 +91,7 @@ export const handlePayment =
 		payment: TransactionObjectArgument,
 		paymentType: string,
 		priceInfoObjectId: string,
+		maxAmount: bigint = MAX_U64,
 	) =>
 	(tx: Transaction) => {
 		return tx.moveCall({
@@ -100,7 +102,7 @@ export const handlePayment =
 				payment,
 				tx.object.clock(),
 				tx.object(priceInfoObjectId),
-				tx.pure.u64(1000 * Number(MIST_PER_SUI)), // This is the maximum user is willing to pay
+				tx.pure.u64(maxAmount), // This is the maximum user is willing to pay
 			],
 			typeArguments: [paymentType],
 		});
@@ -136,6 +138,7 @@ const generateReceipt = async (
 	priceAfterDiscount: TransactionObjectArgument,
 	coinConfig: { type: string; metadataID: string; feed: string },
 	coinId: string,
+	maxAmount?: bigint,
 	infoObjectId?: string,
 ): Promise<{ receipt: TransactionObjectArgument; priceInfoObjectId?: string }> => {
 	const baseAssetPurchase = coinConfig.feed === '';
@@ -151,24 +154,23 @@ const generateReceipt = async (
 				? tx.splitCoins(tx.gas, [price])
 				: tx.splitCoins(tx.object(coinId), [price]);
 		const receipt = tx.add(
-			handlePayment(paymentIntent, payment, coinConfig.type, priceInfoObjectId),
+			handlePayment(paymentIntent, payment, coinConfig.type, priceInfoObjectId, maxAmount),
 		);
 		return { receipt, priceInfoObjectId };
 	}
 };
-
-export const exampleRegisteration = async (
+export const exampleRegistration = async (
 	domain: string,
 	years: number,
 	coinConfig: { type: string; metadataID: string; feed: string },
 	coinId: string,
-	couponCode?: string,
+	options: { couponCode?: string; maxAmount?: bigint } = {},
 ) => {
 	const tx = new Transaction();
 
 	const paymentIntent = tx.add(initRegistration(domain));
-	if (couponCode) {
-		tx.add(applyCoupon(paymentIntent, couponCode));
+	if (options.couponCode) {
+		tx.add(applyCoupon(paymentIntent, options.couponCode));
 	}
 	const priceAfterDiscount = tx.add(calculatePriceAfterDiscount(paymentIntent, coinConfig.type));
 	const { receipt, priceInfoObjectId } = await generateReceipt(
@@ -177,11 +179,17 @@ export const exampleRegisteration = async (
 		priceAfterDiscount,
 		coinConfig,
 		coinId,
+		options.maxAmount,
 	);
 	const nft = tx.add(register(receipt));
 
 	if (years > 1) {
-		return exampleRenewal(nft, years - 1, coinConfig, coinId, couponCode, priceInfoObjectId, tx);
+		return exampleRenewal(nft, years - 1, coinConfig, coinId, {
+			couponCode: options.couponCode,
+			maxAmount: options.maxAmount,
+			infoObjectId: priceInfoObjectId,
+			tx,
+		});
 	}
 
 	tx.transferObjects([nft], getActiveAddress());
@@ -193,11 +201,16 @@ export const exampleRenewal = async (
 	years: number,
 	coinConfig: { type: string; metadataID: string; feed: string },
 	coinId: string,
-	couponCode?: string,
-	infoObjectId?: string,
-	tx?: Transaction,
+	options: {
+		couponCode?: string;
+		maxAmount?: bigint;
+		infoObjectId?: string;
+		tx?: Transaction;
+	} = {},
 ) => {
 	let transferNft = true;
+	let tx = options.tx;
+
 	if (!tx) {
 		tx = new Transaction();
 		transferNft = false;
@@ -207,8 +220,8 @@ export const exampleRenewal = async (
 	}
 
 	const paymentIntent = tx.add(initRenewal(nft, years));
-	if (couponCode) {
-		tx.add(applyCoupon(paymentIntent, couponCode));
+	if (options.couponCode) {
+		tx.add(applyCoupon(paymentIntent, options.couponCode));
 	}
 	const priceAfterDiscount = tx.add(calculatePriceAfterDiscount(paymentIntent, coinConfig.type));
 	const { receipt } = await generateReceipt(
@@ -217,7 +230,8 @@ export const exampleRenewal = async (
 		priceAfterDiscount,
 		coinConfig,
 		coinId,
-		infoObjectId,
+		options.maxAmount,
+		options.infoObjectId,
 	);
 	tx.add(renew(receipt, nft));
 
@@ -229,24 +243,34 @@ export const exampleRenewal = async (
 	return signAndExecute(tx, network);
 };
 
-// exampleRegisteration(
-// 	'ajjdfksadsskdsdsd.sui', // Domain to register
+/// Example registration using USDC
+// exampleRegistration(
+// 	'ajjdfksadsskdsddddsd.sui', // Domain to register
 // 	4,
 // 	config.coins.USDC,
 // 	'0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
-// 	'fiveplus15percentoff',
-// ); // Example registration using USDC
-// exampleRegisteration('ajadsadsdafddssssaasd.sui', 1, config.coins.SUI, '', 'fiveplus15percentoff'); // Example registration using SUI
+// 	{ couponCode: 'fiveplus15percentoff' },
+// );
+
+/// Example registration using SUI
+// exampleRegistration('ajadsadsdssafddssssaasd.sui', 1, config.coins.SUI, '', {
+// 	couponCode: 'fiveplus15percentoff',
+// });
+
+/// Example renewal using SUI
 // exampleRenewal(
-// 	'0x457b8c01d45ced39bef481e474090ee04c8465323a44d19f44123cce1fbbab78', // NFT to renew
-// 	4,
+// 	'0xda9b5b992633b30adcbb82c2480bae1bd69e1049fefe5fd1b0fec66660412651', // NFT to renew
+// 	2,
 // 	config.coins.SUI,
 // 	'',
-// ); // example renewal using SUI
+// 	{ couponCode: 'fiveplus15percentoff' },
+// );
+
+/// Example renewal using USDC
 // exampleRenewal(
 // 	'0xda9b5b992633b30adcbb82c2480bae1bd69e1049fefe5fd1b0fec66660412651', // NFT to renew
 // 	3,
 // 	config.coins.USDC,
 // 	'0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
-// 	'fiveplus15percentoff',
-// ); // example renewal using USDC
+// 	{ couponCode: 'fiveplus15percentoff' },
+// );
