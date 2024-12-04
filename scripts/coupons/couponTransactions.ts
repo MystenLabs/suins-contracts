@@ -1,14 +1,11 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
 import { Transaction, TransactionObjectArgument } from '@mysten/sui/transactions';
-import { MIST_PER_SUI } from '@mysten/sui/utils';
-import { SuiPriceServiceConnection, SuiPythClient } from '@pythnetwork/pyth-sui-js';
 
 import { mainPackage, Network } from '../config/constants';
-import { CouponType } from '../coupons/coupon';
-import { getActiveAddress, signAndExecute } from '../utils/utils';
+import { signAndExecute } from '../utils/utils';
+import { CouponType } from './coupon';
 
 const network = (process.env.NETWORK as Network) || 'testnet';
 const config = mainPackage[network];
@@ -26,4 +23,12 @@ export const createCoupon = () => {
 	return signAndExecute(tx, network);
 };
 
-createCoupon();
+export const applyCoupon =
+	(intent: TransactionObjectArgument, couponCode: string) => (tx: Transaction) => {
+		return tx.moveCall({
+			target: `${config.coupons.packageId}::coupon_house::apply_coupon`,
+			arguments: [tx.object(config.suins), intent, tx.pure.string(couponCode), tx.object.clock()],
+		});
+	};
+
+// createCoupon();

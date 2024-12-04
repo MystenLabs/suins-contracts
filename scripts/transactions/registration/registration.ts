@@ -7,6 +7,7 @@ import { MIST_PER_SUI } from '@mysten/sui/utils';
 import { SuiPriceServiceConnection, SuiPythClient } from '@pythnetwork/pyth-sui-js';
 
 import { mainPackage, Network } from '../../config/constants';
+import { applyCoupon } from '../../coupons/couponTransactions';
 import { getActiveAddress, signAndExecute } from '../../utils/utils';
 
 const network = (process.env.NETWORK as Network) || 'testnet';
@@ -161,10 +162,14 @@ export const exampleRegisteration = async (
 	years: number,
 	coinConfig: { type: string; metadataID: string; feed: string },
 	coinId: string,
+	couponCode?: string,
 ) => {
 	const tx = new Transaction();
 
 	const paymentIntent = tx.add(initRegistration(domain));
+	if (couponCode) {
+		tx.add(applyCoupon(paymentIntent, couponCode));
+	}
 	const priceAfterDiscount = tx.add(calculatePriceAfterDiscount(paymentIntent, coinConfig.type));
 	const { receipt, priceInfoObjectId } = await generateReceipt(
 		tx,
@@ -176,7 +181,7 @@ export const exampleRegisteration = async (
 	const nft = tx.add(register(receipt));
 
 	if (years > 1) {
-		return exampleRenewal(nft, years - 1, coinConfig, coinId, priceInfoObjectId, tx);
+		return exampleRenewal(nft, years - 1, coinConfig, coinId, couponCode, priceInfoObjectId, tx);
 	}
 
 	tx.transferObjects([nft], getActiveAddress());
@@ -188,6 +193,7 @@ export const exampleRenewal = async (
 	years: number,
 	coinConfig: { type: string; metadataID: string; feed: string },
 	coinId: string,
+	couponCode?: string,
 	infoObjectId?: string,
 	tx?: Transaction,
 ) => {
@@ -201,6 +207,9 @@ export const exampleRenewal = async (
 	}
 
 	const paymentIntent = tx.add(initRenewal(nft, years));
+	if (couponCode) {
+		tx.add(applyCoupon(paymentIntent, couponCode));
+	}
 	const priceAfterDiscount = tx.add(calculatePriceAfterDiscount(paymentIntent, coinConfig.type));
 	const { receipt } = await generateReceipt(
 		tx,
@@ -222,7 +231,7 @@ export const exampleRenewal = async (
 
 // exampleRegisteration(
 // 	'ajjdfksaljfddsskdsdsd.sui', // Domain to register
-// 	4,
+// 	1,
 // 	config.coins.USDC,
 // 	'0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
 // ); // Example registration using USDC
@@ -234,8 +243,9 @@ export const exampleRenewal = async (
 // 	'',
 // ); // example renewal using SUI
 // exampleRenewal(
-// 	'0x457b8c01d45ced39bef481e474090ee04c8465323a44d19f44123cce1fbbab78', // NFT to renew
-// 	4,
+// 	'0xda9b5b992633b30adcbb82c2480bae1bd69e1049fefe5fd1b0fec66660412651', // NFT to renew
+// 	3,
 // 	config.coins.USDC,
 // 	'0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
+// 	'fiveplus15percentoff',
 // ); // example renewal using USDC
