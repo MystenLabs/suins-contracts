@@ -3,7 +3,6 @@
 
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
 import { Transaction, TransactionObjectArgument } from '@mysten/sui/transactions';
-import { MIST_PER_SUI } from '@mysten/sui/utils';
 import { SuiPriceServiceConnection, SuiPythClient } from '@pythnetwork/pyth-sui-js';
 
 import { mainPackage, Network } from '../../config/constants';
