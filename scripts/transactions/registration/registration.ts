@@ -7,6 +7,7 @@ import { SuiPriceServiceConnection, SuiPythClient } from '@pythnetwork/pyth-sui-
 
 import { mainPackage, Network } from '../../config/constants';
 import { applyCoupon } from '../../coupons/couponTransactions';
+import { applyDiscount } from '../../discounts/discounts';
 import { getActiveAddress, signAndExecute } from '../../utils/utils';
 
 const network = (process.env.NETWORK as Network) || 'testnet';
@@ -131,7 +132,7 @@ export const calculatePriceAfterDiscount =
 		});
 	};
 
-const generateReceipt = async (
+export const generateReceipt = async (
 	tx: Transaction,
 	paymentIntent: TransactionObjectArgument,
 	priceAfterDiscount: TransactionObjectArgument,
@@ -163,13 +164,22 @@ export const exampleRegistration = async (
 	years: number,
 	coinConfig: { type: string; metadataID: string; feed: string },
 	coinId: string,
-	options: { couponCode?: string; maxAmount?: bigint } = {},
+	options: { couponCode?: string; discountNft?: string; maxAmount?: bigint } = {},
 ) => {
 	const tx = new Transaction();
 
 	const paymentIntent = tx.add(initRegistration(domain));
 	if (options.couponCode) {
 		tx.add(applyCoupon(paymentIntent, options.couponCode));
+	}
+	if (options.discountNft) {
+		tx.add(
+			applyDiscount(
+				paymentIntent,
+				options.discountNft,
+				'0x1f38138944eaf52428d7bdfb5166902eab33081e3f2cab61e355a6c3e7b1b5a9::demo_bear::DemoBear',
+			),
+		);
 	}
 	const priceAfterDiscount = tx.add(calculatePriceAfterDiscount(paymentIntent, coinConfig.type));
 	const { receipt, priceInfoObjectId } = await generateReceipt(
@@ -185,6 +195,7 @@ export const exampleRegistration = async (
 	if (years > 1) {
 		return exampleRenewal(nft, years - 1, coinConfig, coinId, {
 			couponCode: options.couponCode,
+			discountNft: options.discountNft,
 			maxAmount: options.maxAmount,
 			infoObjectId: priceInfoObjectId,
 			tx,
@@ -202,6 +213,7 @@ export const exampleRenewal = async (
 	coinId: string,
 	options: {
 		couponCode?: string;
+		discountNft?: string;
 		maxAmount?: bigint;
 		infoObjectId?: string;
 		tx?: Transaction;
@@ -221,6 +233,15 @@ export const exampleRenewal = async (
 	const paymentIntent = tx.add(initRenewal(nft, years));
 	if (options.couponCode) {
 		tx.add(applyCoupon(paymentIntent, options.couponCode));
+	}
+	if (options.discountNft) {
+		tx.add(
+			applyDiscount(
+				paymentIntent,
+				options.discountNft,
+				'0x1f38138944eaf52428d7bdfb5166902eab33081e3f2cab61e355a6c3e7b1b5a9::demo_bear::DemoBear',
+			),
+		);
 	}
 	const priceAfterDiscount = tx.add(calculatePriceAfterDiscount(paymentIntent, coinConfig.type));
 	const { receipt } = await generateReceipt(
@@ -242,21 +263,21 @@ export const exampleRenewal = async (
 	return signAndExecute(tx, network);
 };
 
-/// Example registration using USDC
+// Example registration using USDC
 // exampleRegistration(
-// 	'ajjdfksadsskdsddddsd.sui', // Domain to register
+// 	'ajjdfksadsskdddsddddddsd.sui', // Domain to register
 // 	4,
 // 	config.coins.USDC,
 // 	'0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
-// 	{ couponCode: 'fiveplus15percentoff' },
+// 	{ discountNft: '0x6612ccfe862e62ff581cd886db1e61cc335ebcde6ec4e4a4a3bdfda9b92f0b28' },
 // );
 
-/// Example registration using SUI
+//// Example registration using SUI
 // exampleRegistration('ajadsadsdssafddssssaasd.sui', 1, config.coins.SUI, '', {
 // 	couponCode: 'fiveplus15percentoff',
 // });
 
-/// Example renewal using SUI
+//// Example renewal using SUI
 // exampleRenewal(
 // 	'0xda9b5b992633b30adcbb82c2480bae1bd69e1049fefe5fd1b0fec66660412651', // NFT to renew
 // 	2,
@@ -265,7 +286,7 @@ export const exampleRenewal = async (
 // 	{ couponCode: 'fiveplus15percentoff' },
 // );
 
-/// Example renewal using USDC
+//// Example renewal using USDC
 // exampleRenewal(
 // 	'0xda9b5b992633b30adcbb82c2480bae1bd69e1049fefe5fd1b0fec66660412651', // NFT to renew
 // 	3,
