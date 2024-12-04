@@ -221,7 +221,7 @@ export const exampleRenewal = async (
 };
 
 // exampleRegisteration(
-// 	'ajjdfksaljfddsskdssd.sui', // Domain to register
+// 	'ajjdfksaljfddsskdsdsd.sui', // Domain to register
 // 	4,
 // 	config.coins.USDC,
 // 	'0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
@@ -233,3 +233,9 @@ export const exampleRenewal = async (
 // 	config.coins.SUI,
 // 	'',
 // ); // example renewal using SUI
+// exampleRenewal(
+// 	'0x457b8c01d45ced39bef481e474090ee04c8465323a44d19f44123cce1fbbab78', // NFT to renew
+// 	4,
+// 	config.coins.USDC,
+// 	'0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
+// ); // example renewal using USDC
