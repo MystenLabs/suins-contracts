@@ -132,18 +132,26 @@ export const calculatePriceAfterDiscount =
 		});
 	};
 
+export const zeroCoin = (type: string) => (tx: Transaction) => {
+	return tx.moveCall({
+		target: '0x2::coin::zero',
+		typeArguments: [type],
+	});
+};
+
 export const generateReceipt = async (
 	tx: Transaction,
 	paymentIntent: TransactionObjectArgument,
 	priceAfterDiscount: TransactionObjectArgument,
 	coinConfig: { type: string; metadataID: string; feed: string },
-	coinId: string,
+	coinId?: string,
 	maxAmount?: bigint,
 	infoObjectId?: string,
 ): Promise<{ receipt: TransactionObjectArgument; priceInfoObjectId?: string }> => {
 	const baseAssetPurchase = coinConfig.feed === '';
 	if (baseAssetPurchase) {
-		const payment = tx.splitCoins(tx.object(coinId), [priceAfterDiscount]);
+		const coinObject = coinId ? tx.object(coinId) : tx.add(zeroCoin(coinConfig.type));
+		const payment = tx.splitCoins(tx.object(coinObject), [priceAfterDiscount]);
 		const receipt = tx.add(handleBasePayment(paymentIntent, payment, coinConfig.type));
 		return { receipt };
 	} else {
@@ -152,7 +160,11 @@ export const generateReceipt = async (
 		const payment =
 			coinConfig === config.coins.SUI
 				? tx.splitCoins(tx.gas, [price])
-				: tx.splitCoins(tx.object(coinId), [price]);
+				: coinId
+					? tx.splitCoins(tx.object(coinId), [price])
+					: (() => {
+							throw new Error('coinId is not defined');
+						})();
 		const receipt = tx.add(
 			handlePayment(paymentIntent, payment, coinConfig.type, priceInfoObjectId, maxAmount),
 		);
@@ -163,8 +175,7 @@ export const exampleRegistration = async (
 	domain: string,
 	years: number,
 	coinConfig: { type: string; metadataID: string; feed: string },
-	coinId: string,
-	options: { couponCode?: string; discountNft?: string; maxAmount?: bigint } = {},
+	options: { coinId?: string; couponCode?: string; discountNft?: string; maxAmount?: bigint } = {},
 ) => {
 	const tx = new Transaction();
 
@@ -181,13 +192,14 @@ export const exampleRegistration = async (
 		paymentIntent,
 		priceAfterDiscount,
 		coinConfig,
-		coinId,
+		options.coinId,
 		options.maxAmount,
 	);
 	const nft = tx.add(register(receipt));
 
 	if (years > 1) {
-		return exampleRenewal(nft, years - 1, coinConfig, coinId, {
+		return exampleRenewal(nft, years - 1, coinConfig, {
+			coinId: options.coinId,
 			couponCode: options.couponCode,
 			discountNft: options.discountNft,
 			maxAmount: options.maxAmount,
@@ -204,8 +216,8 @@ export const exampleRenewal = async (
 	nft: string | TransactionObjectArgument,
 	years: number,
 	coinConfig: { type: string; metadataID: string; feed: string },
-	coinId: string,
 	options: {
+		coinId?: string;
 		couponCode?: string;
 		discountNft?: string;
 		maxAmount?: bigint;
@@ -237,7 +249,7 @@ export const exampleRenewal = async (
 		paymentIntent,
 		priceAfterDiscount,
 		coinConfig,
-		coinId,
+		options.coinId,
 		options.maxAmount,
 		options.infoObjectId,
 	);
@@ -251,34 +263,50 @@ export const exampleRenewal = async (
 	return signAndExecute(tx, network);
 };
 
-/// Example registration using USDC
+/// Note: For free registration/renewals, use SUI
+
+/// Example registration using USDC, with discountNft
 // exampleRegistration(
-// 	'ajjdfksadsskdddddsddssddddsd.sui', // Domain to register
-// 	1,
+// 	'ajjdfksadsskdddddsddssddddddsd.sui', // Domain to register
+// 	4,
 // 	config.coins.USDC,
-// 	'0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
-// 	{ discountNft: '0x6612ccfe862e62ff581cd886db1e61cc335ebcde6ec4e4a4a3bdfda9b92f0b28' },
+// 	{
+// 		coinId: '0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
+// 		discountNft: '0x6612ccfe862e62ff581cd886db1e61cc335ebcde6ec4e4a4a3bdfda9b92f0b28',
+// 	},
 // );
 
-//// Example registration using SUI
-// exampleRegistration('ajadsadsdssafddssssaasd.sui', 1, config.coins.SUI, '', {
+/// Example registration using USDC, with coupon code
+// exampleRegistration(
+// 	'ajjdfksadsskdddddsddssddddddsd.sui', // Domain to register
+// 	4,
+// 	config.coins.USDC,
+// 	{
+// 		coinId: '0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
+// 		couponCode: 'fiveplus15percentoff',
+// 	},
+// );
+
+// Example registration using SUI
+// exampleRegistration('ajadsadsdssafddddssssaasd.sui', 1, config.coins.SUI, {
 // 	couponCode: 'fiveplus15percentoff',
 // });
 
 //// Example renewal using SUI
 // exampleRenewal(
-// 	'0xda9b5b992633b30adcbb82c2480bae1bd69e1049fefe5fd1b0fec66660412651', // NFT to renew
+// 	'0xb62cbec397e8ca5249a1abd02befbf571d64b3e2d1d96e3a1c58ba6937859733', // NFT to renew
 // 	2,
 // 	config.coins.SUI,
-// 	'',
 // 	{ couponCode: 'fiveplus15percentoff' },
 // );
 
 //// Example renewal using USDC
 // exampleRenewal(
-// 	'0xda9b5b992633b30adcbb82c2480bae1bd69e1049fefe5fd1b0fec66660412651', // NFT to renew
+// 	'0xb62cbec397e8ca5249a1abd02befbf571d64b3e2d1d96e3a1c58ba6937859733', // NFT to renew
 // 	3,
 // 	config.coins.USDC,
-// 	'0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
-// 	{ couponCode: 'fiveplus15percentoff' },
+// 	{
+// 		coinId: '0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
+// 		couponCode: 'fiveplus15percentoff',
+// 	},
 // );
