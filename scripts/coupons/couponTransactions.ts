@@ -12,8 +12,9 @@ const config = mainPackage[network];
 
 export const createCoupon = () => {
 	const tx = new Transaction();
-	const couponConfig = new CouponType(15, 0); // type = 0 for percentage discount, 15% off
-	couponConfig.setName('fiveplus15percentoff');
+	const couponConfig = new CouponType(100, 0); // type = 0 for percentage discount, 15% off
+	// couponConfig.setName('fiveplus15percentoff');
+	couponConfig.setName('100percentoff');
 	couponConfig.setLengthRule([5, 63]);
 	couponConfig.setAvailableClaims(100);
 	couponConfig.setYears([1, 3]);

@@ -150,8 +150,9 @@ export const generateReceipt = async (
 ): Promise<{ receipt: TransactionObjectArgument; priceInfoObjectId?: string }> => {
 	const baseAssetPurchase = coinConfig.feed === '';
 	if (baseAssetPurchase) {
-		const coinObject = coinId ? tx.object(coinId) : tx.add(zeroCoin(coinConfig.type));
-		const payment = tx.splitCoins(tx.object(coinObject), [priceAfterDiscount]);
+		const payment = coinId
+			? tx.splitCoins(tx.object(coinId), [priceAfterDiscount])
+			: tx.add(zeroCoin(coinConfig.type));
 		const receipt = tx.add(handleBasePayment(paymentIntent, payment, coinConfig.type));
 		return { receipt };
 	} else {
@@ -286,6 +287,16 @@ export const exampleRenewal = async (
 // 		couponCode: 'fiveplus15percentoff',
 // 	},
 // );
+
+/// Example FREE registration (use USDC by default), with 100% off coupon code
+exampleRegistration(
+	'ajjdfksadsskdddddsdssdssddddddsd.sui', // Domain to register
+	4,
+	config.coins.USDC,
+	{
+		couponCode: '100percentoff',
+	},
+);
 
 // Example registration using SUI
 // exampleRegistration('ajadsadsdssafddddssssaasd.sui', 1, config.coins.SUI, {
