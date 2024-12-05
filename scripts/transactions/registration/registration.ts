@@ -144,34 +144,38 @@ export const generateReceipt = async (
 	paymentIntent: TransactionObjectArgument,
 	priceAfterDiscount: TransactionObjectArgument,
 	coinConfig: { type: string; metadataID: string; feed: string },
-	coinId?: string,
-	maxAmount?: bigint,
-	infoObjectId?: string,
+	options: {
+		coinId?: string;
+		maxAmount?: bigint;
+		infoObjectId?: string;
+	} = {},
 ): Promise<{ receipt: TransactionObjectArgument; priceInfoObjectId?: string }> => {
 	const baseAssetPurchase = coinConfig.feed === '';
 	if (baseAssetPurchase) {
-		const payment = coinId
-			? tx.splitCoins(tx.object(coinId), [priceAfterDiscount])
+		const payment = options.coinId
+			? tx.splitCoins(tx.object(options.coinId), [priceAfterDiscount])
 			: tx.add(zeroCoin(coinConfig.type));
 		const receipt = tx.add(handleBasePayment(paymentIntent, payment, coinConfig.type));
 		return { receipt };
 	} else {
-		const priceInfoObjectId = infoObjectId || (await getPriceInfoObject(tx, coinConfig.feed))[0];
+		const priceInfoObjectId =
+			options.infoObjectId || (await getPriceInfoObject(tx, coinConfig.feed))[0];
 		const price = tx.add(calculatePrice(priceAfterDiscount, coinConfig.type, priceInfoObjectId));
 		const payment =
 			coinConfig === config.coins.SUI
 				? tx.splitCoins(tx.gas, [price])
-				: coinId
-					? tx.splitCoins(tx.object(coinId), [price])
+				: options.coinId
+					? tx.splitCoins(tx.object(options.coinId), [price])
 					: (() => {
 							throw new Error('coinId is not defined');
 						})();
 		const receipt = tx.add(
-			handlePayment(paymentIntent, payment, coinConfig.type, priceInfoObjectId, maxAmount),
+			handlePayment(paymentIntent, payment, coinConfig.type, priceInfoObjectId, options.maxAmount),
 		);
 		return { receipt, priceInfoObjectId };
 	}
 };
+
 export const exampleRegistration = async (
 	domain: string,
 	years: number,
@@ -193,17 +197,13 @@ export const exampleRegistration = async (
 		paymentIntent,
 		priceAfterDiscount,
 		coinConfig,
-		options.coinId,
-		options.maxAmount,
+		options,
 	);
 	const nft = tx.add(register(receipt));
 
 	if (years > 1) {
 		return exampleRenewal(nft, years - 1, coinConfig, {
-			coinId: options.coinId,
-			couponCode: options.couponCode,
-			discountNft: options.discountNft,
-			maxAmount: options.maxAmount,
+			...options,
 			infoObjectId: priceInfoObjectId,
 			tx,
 		});
@@ -226,18 +226,12 @@ export const exampleRenewal = async (
 		tx?: Transaction;
 	} = {},
 ) => {
-	let transferNft = true;
-	let tx = options.tx;
+	const tx = options.tx || new Transaction();
+	const transferNft = options.tx;
 
-	if (!tx) {
-		tx = new Transaction();
-		transferNft = false;
-	}
-	if (typeof nft === 'string') {
-		nft = tx.object(nft);
-	}
+	const nftObject = typeof nft === 'string' ? tx.object(nft) : nft;
 
-	const paymentIntent = tx.add(initRenewal(nft, years));
+	const paymentIntent = tx.add(initRenewal(nftObject, years));
 	if (options.couponCode) {
 		tx.add(applyCoupon(paymentIntent, options.couponCode));
 	}
@@ -250,15 +244,12 @@ export const exampleRenewal = async (
 		paymentIntent,
 		priceAfterDiscount,
 		coinConfig,
-		options.coinId,
-		options.maxAmount,
-		options.infoObjectId,
+		options,
 	);
-	tx.add(renew(receipt, nft));
+	tx.add(renew(receipt, nftObject));
 
-	/// Only transfer NFT if it was a renewal part of a registration PTB
 	if (transferNft) {
-		tx.transferObjects([nft], getActiveAddress());
+		tx.transferObjects([nftObject], getActiveAddress());
 	}
 
 	return signAndExecute(tx, network);
@@ -268,7 +259,7 @@ export const exampleRenewal = async (
 
 /// Example registration using USDC, with discountNft
 // exampleRegistration(
-// 	'ajjdfksadsskdddddsddssddddddsd.sui', // Domain to register
+// 	'ajjdfksadsskdddddsddsssddddddsd.sui', // Domain to register
 // 	4,
 // 	config.coins.USDC,
 // 	{
@@ -279,7 +270,7 @@ export const exampleRenewal = async (
 
 /// Example registration using USDC, with coupon code
 // exampleRegistration(
-// 	'ajjdfksadsskdddddsddssddddddsd.sui', // Domain to register
+// 	'ajjdsskdddddsdassdssddddddsd.sui', // Domain to register
 // 	4,
 // 	config.coins.USDC,
 // 	{
@@ -289,17 +280,17 @@ export const exampleRenewal = async (
 // );
 
 /// Example FREE registration (use USDC by default), with 100% off coupon code
-exampleRegistration(
-	'ajjdfksadsskdddddsdssdssddddddsd.sui', // Domain to register
-	4,
-	config.coins.USDC,
-	{
-		couponCode: '100percentoff',
-	},
-);
+// exampleRegistration(
+// 	'ajjdfksadsskdddddsdssssdssddddddsd.sui', // Domain to register
+// 	4,
+// 	config.coins.USDC,
+// 	{
+// 		couponCode: '100percentoff',
+// 	},
+// );
 
 // Example registration using SUI
-// exampleRegistration('ajadsadsdssafddddssssaasd.sui', 1, config.coins.SUI, {
+// exampleRegistration('ajadsadsdssafddddssssssaasd.sui', 1, config.coins.SUI, {
 // 	couponCode: 'fiveplus15percentoff',
 // });
 
