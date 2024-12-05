@@ -26,7 +26,6 @@ use sui::balance::{Self, Balance};
 use sui::coin::{Self, Coin};
 use sui::dynamic_field as df;
 use sui::sui::SUI;
-use suins::pricing_config::{Self, new_range};
 
 use fun df::add as UID.add;
 use fun df::borrow as UID.borrow;
@@ -104,21 +103,13 @@ fun init(otw: SUINS, ctx: &mut TxContext) {
 /// same
 /// transaction. This is useful for the admin to withdraw funds from the SuiNS
 /// and then send them somewhere specific or keep at the address.
-public fun withdraw(
-    _: &AdminCap,
-    self: &mut SuiNS,
-    ctx: &mut TxContext,
-): Coin<SUI> {
+public fun withdraw(_: &AdminCap, self: &mut SuiNS, ctx: &mut TxContext): Coin<SUI> {
     let amount = self.balance.value();
     assert!(amount > 0, ENoProfits);
     coin::take(&mut self.balance, amount, ctx)
 }
 
-public fun withdraw_v2<T>(
-    self: &mut SuiNS,
-    _: &AdminCap,
-    ctx: &mut TxContext,
-): Coin<T> {
+public fun withdraw_v2<T>(self: &mut SuiNS, _: &AdminCap, ctx: &mut TxContext): Coin<T> {
     let balance_key = BalanceKey<T> {};
     assert!(self.id.exists_(balance_key), ENoProfitsInCoinType);
 
@@ -158,21 +149,13 @@ public fun assert_app_is_authorized<App: drop>(self: &SuiNS) {
 // === Protected features ===
 
 /// Adds balance to the SuiNS.
-public fun app_add_balance<App: drop>(
-    _: App,
-    self: &mut SuiNS,
-    balance: Balance<SUI>,
-) {
+public fun app_add_balance<App: drop>(_: App, self: &mut SuiNS, balance: Balance<SUI>) {
     self.assert_app_is_authorized<App>();
     self.balance.join(balance);
 }
 
 /// Adds a balance of type `T` to the SuiNS protocol as an authorized app.
-public fun app_add_custom_balance<App: drop, T>(
-    self: &mut SuiNS,
-    _: App,
-    balance: Balance<T>,
-) {
+public fun app_add_custom_balance<App: drop, T>(self: &mut SuiNS, _: App, balance: Balance<T>) {
     self.assert_app_is_authorized<App>();
     let key = BalanceKey<T> {};
     if (df::exists_(&self.id, key)) {
@@ -186,10 +169,7 @@ public fun app_add_custom_balance<App: drop, T>(
 /// Get a mutable access to the `Registry` object. Can only be performed by
 /// authorized
 /// applications.
-public fun app_registry_mut<App: drop, R: store>(
-    _: App,
-    self: &mut SuiNS,
-): &mut R {
+public fun app_registry_mut<App: drop, R: store>(_: App, self: &mut SuiNS): &mut R {
     self.assert_app_is_authorized<App>();
     self.pkg_registry_mut<R>()
 }
@@ -197,11 +177,7 @@ public fun app_registry_mut<App: drop, R: store>(
 // === Config management ===
 
 /// Attach dynamic configuration object to the application.
-public fun add_config<Config: store + drop>(
-    _: &AdminCap,
-    self: &mut SuiNS,
-    config: Config,
-) {
+public fun add_config<Config: store + drop>(_: &AdminCap, self: &mut SuiNS, config: Config) {
     self.id.add(ConfigKey<Config> {}, config);
 }
 
@@ -216,10 +192,7 @@ public fun get_config<Config: store + drop>(self: &SuiNS): &Config {
 /// from removing the configuration object and adding a new one.
 ///
 /// Fully taking the config also allows for edits within a transaction.
-public fun remove_config<Config: store + drop>(
-    _: &AdminCap,
-    self: &mut SuiNS,
-): Config {
+public fun remove_config<Config: store + drop>(_: &AdminCap, self: &mut SuiNS): Config {
     self.id.remove(ConfigKey<Config> {})
 }
 
@@ -244,16 +217,15 @@ public(package) fun pkg_registry_mut<R: store>(self: &mut SuiNS): &mut R {
 // === Testing ===
 
 #[test_only]
-use suins::config;
+use suins::core_config;
+#[test_only]
+use suins::pricing_config::{Self, new_range};
 #[test_only]
 public struct Test has drop {}
 
 #[test_only]
 public fun new_for_testing(ctx: &mut TxContext): (SuiNS, AdminCap) {
-    (
-        SuiNS { id: object::new(ctx), balance: balance::zero() },
-        AdminCap { id: object::new(ctx) },
-    )
+    (SuiNS { id: object::new(ctx), balance: balance::zero() }, AdminCap { id: object::new(ctx) })
 }
 
 #[test_only]
@@ -266,16 +238,8 @@ public fun init_for_testing(ctx: &mut TxContext): SuiNS {
     };
 
     authorize_app<Test>(&admin_cap, &mut suins);
-    add_config(
-        &admin_cap,
-        &mut suins,
-        config::new(
-            b"000000000000000000000000000000000",
-            1200 * suins::constants::mist_per_sui(),
-            200 * suins::constants::mist_per_sui(),
-            50 * suins::constants::mist_per_sui(),
-        ),
-    );
+    admin_cap.add_config(&mut suins, core_config::default());
+
     let range1 = new_range(vector[3, 3]);
     let range2 = new_range(vector[4, 4]);
     let range3 = new_range(vector[5, 63]);

@@ -8,7 +8,7 @@ module suins::admin;
 use std::string::String;
 use sui::clock::Clock;
 use sui::tx_context::sender;
-use suins::config;
+use suins::core_config::CoreConfig;
 use suins::domain;
 use suins::registry::Registry;
 use suins::suins::{Self, AdminCap, SuiNS};
@@ -34,7 +34,7 @@ public fun reserve_domain(
     ctx: &mut TxContext,
 ): SuinsRegistration {
     let domain = domain::new(domain_name);
-    config::assert_valid_user_registerable_domain(&domain);
+    suins.get_config<CoreConfig>().assert_is_valid_for_sale(&domain);
     let registry = suins::app_registry_mut<Admin, Registry>(Admin {}, suins);
     registry.add_record(domain, no_years, clock, ctx)
 }
@@ -49,10 +49,11 @@ entry fun reserve_domains(
     ctx: &mut TxContext,
 ) {
     let sender = sender(ctx);
+    let config = *suins.get_config<CoreConfig>();
     let registry = suins::app_registry_mut<Admin, Registry>(Admin {}, suins);
     while (!domains.is_empty()) {
         let domain = domain::new(domains.pop_back());
-        config::assert_valid_user_registerable_domain(&domain);
+        config.assert_is_valid_for_sale(&domain);
         let nft = registry.add_record(domain, no_years, clock, ctx);
         sui::transfer::public_transfer(nft, sender);
     };

@@ -7,7 +7,7 @@ module suins::register;
 use std::string::String;
 use sui::clock::Clock;
 use sui::coin::Coin;
-use suins::config;
+use suins::core_config::CoreConfig;
 use suins::domain;
 use suins::pricing_config::PricingConfig;
 use suins::registry::Registry;
@@ -44,7 +44,7 @@ public fun register<T>(
     // If no PricingConfig of type T, add an error code
 
     let domain = domain::new(domain_name);
-    config::assert_valid_user_registerable_domain(&domain);
+    suins.get_config<CoreConfig>().assert_is_valid_for_sale(&domain);
 
     assert!(0 < no_years && no_years <= 5, EInvalidYearsArgument);
 

@@ -80,3 +80,6 @@ public fun subdomain_allow_extension_key(): String {
 
 /// A getter for a leaf name record's expiration timestamp.
 public fun leaf_expiration_timestamp(): u64 { LEAF_EXPIRATION_TIMESTAMP }
+
+/// The `PaymentIntent` version that can be used by this package for payments.
+public macro fun payments_version(): u8 { 1 }
