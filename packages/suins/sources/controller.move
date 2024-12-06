@@ -49,14 +49,14 @@ public fun unset_reverse_lookup(suins: &mut SuiNS, ctx: &TxContext) {
 
 /// Allows setting the reverse lookup address for an object.
 /// Expects a mutable reference of the object.
-public fun set_object_reverse_lookup<T: key>(suins: &mut SuiNS, obj: &mut T, domain_name: String) {
-    suins.registry_mut().set_reverse_lookup(object::id(obj).to_address(), domain::new(domain_name));
+public fun set_object_reverse_lookup(suins: &mut SuiNS, obj: &mut UID, domain_name: String) {
+    suins.registry_mut().set_reverse_lookup(obj.to_address(), domain::new(domain_name));
 }
 
 /// Allows unsetting the reverse lookup address for an object.
 /// Expects a mutable reference of the object.
-public fun unset_object_reverse_lookup<T: key>(suins: &mut SuiNS, obj: &mut T) {
-    suins.registry_mut().unset_reverse_lookup(object::id(obj).to_address());
+public fun unset_object_reverse_lookup(suins: &mut SuiNS, obj: &mut UID) {
+    suins.registry_mut().unset_reverse_lookup(obj.to_address());
 }
 
 /// User-facing function - add a new key-value pair to the name record's data.
