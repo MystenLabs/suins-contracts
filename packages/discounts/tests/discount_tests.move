@@ -5,13 +5,14 @@
 module discounts::discount_tests;
 
 use day_one::day_one::{Self, DayOne};
-use discounts::discounts;
-use discounts::house::{Self, DiscountHouse, DiscountHouseApp};
-use std::string::{utf8, String};
-use sui::clock::{Self, Clock};
-use sui::coin::{Self, Coin};
-use sui::sui::SUI;
+use discounts::discounts::{Self, RegularDiscountsApp};
+use discounts::house::{Self, DiscountHouse};
+use sui::clock;
 use sui::test_scenario::{Self as ts, Scenario, ctx};
+use sui::test_utils::{destroy, assert_eq};
+use suins::constants;
+use suins::payment::{Self, PaymentIntent};
+use suins::pricing_config::{Self, PricingConfig};
 use suins::registry;
 use suins::suins::{Self, SuiNS, AdminCap};
 
@@ -27,14 +28,12 @@ public struct TestUnauthorized has copy, store, drop {}
 const SUINS_ADDRESS: address = @0xA001;
 const USER_ADDRESS: address = @0xA002;
 
-const MIST_PER_SUI: u64 = 1_000_000_000;
-
 fun test_init(): Scenario {
     let mut scenario_val = ts::begin(SUINS_ADDRESS);
     let scenario = &mut scenario_val;
     {
         let mut suins = suins::init_for_testing(scenario.ctx());
-        suins.authorize_app_for_testing<DiscountHouseApp>();
+        suins.authorize_app_for_testing<RegularDiscountsApp>();
         suins.share_for_testing();
         house::init_for_testing(scenario.ctx());
         let clock = clock::create_for_testing(scenario.ctx());
@@ -48,212 +47,158 @@ fun test_init(): Scenario {
 
         // a more expensive alternative.
         discounts::authorize_type<TestAuthorized>(
-            &admin_cap,
             &mut discount_house,
-            3*MIST_PER_SUI,
-            2*MIST_PER_SUI,
-            1*MIST_PER_SUI,
+            &admin_cap,
+            test_config(false), // we get 5, 3, 2% discounts for 3, 4, 5+ chars.
         );
         // a much cheaper price for another type.
         discounts::authorize_type<AnotherAuthorized>(
-            &admin_cap,
             &mut discount_house,
-            MIST_PER_SUI / 20,
-            MIST_PER_SUI / 10,
-            MIST_PER_SUI / 5,
+            &admin_cap,
+            test_config(true), // we get 50, 30, 20% discounts for 3, 4, 5+ chars.
         );
         discounts::authorize_type<DayOne>(
-            &admin_cap,
             &mut discount_house,
-            MIST_PER_SUI,
-            MIST_PER_SUI,
-            MIST_PER_SUI,
+            &admin_cap,
+            test_config(true), // we get 50, 30, 20% discounts for 3, 4, 5+ chars.
         );
 
         registry::init_for_testing(&admin_cap, &mut suins, scenario.ctx());
 
         ts::return_shared(discount_house);
         ts::return_shared(suins);
-        ts::return_to_sender(scenario, admin_cap);
+        scenario.return_to_sender(admin_cap);
     };
     scenario_val
 }
 
-fun register_with_type<T>(
-    item: &T,
-    scenario: &mut Scenario,
-    domain_name: String,
-    payment: Coin<SUI>,
-    user: address,
-) {
-    scenario.next_tx(user);
-    let mut suins = scenario.take_shared<SuiNS>();
-    let mut discount_house = scenario.take_shared<DiscountHouse>();
-    let clock = scenario.take_shared<Clock>();
+#[test]
+fun test_e2e() {
+    init_purchase!(USER_ADDRESS, b"fivel.sui", |discount_house, suins, intent, scenario| {
+        assert_eq(intent.request_data().base_amount(), 50 * constants::mist_per_sui());
 
-    let name = discounts::register<T>(
-        &mut discount_house,
-        &mut suins,
-        item,
-        domain_name,
-        payment,
-        &clock,
-        option::none(),
-        scenario.ctx(),
-    );
+        discounts::apply_percentage_discount(
+            discount_house,
+            intent,
+            suins,
+            &mut TestAuthorized {},
+            scenario.ctx(),
+        );
 
-    transfer::public_transfer(name, user);
-
-    ts::return_shared(discount_house);
-    ts::return_shared(suins);
-    ts::return_shared(clock);
-}
-
-fun register_with_day_one(
-    item: &DayOne,
-    scenario: &mut Scenario,
-    domain_name: String,
-    payment: Coin<SUI>,
-    user: address,
-) {
-    scenario.next_tx(user);
-    let mut suins = scenario.take_shared<SuiNS>();
-    let mut discount_house = scenario.take_shared<DiscountHouse>();
-    let clock = scenario.take_shared<Clock>();
-
-    let name = discounts::register_with_day_one(
-        &mut discount_house,
-        &mut suins,
-        item,
-        domain_name,
-        payment,
-        &clock,
-        option::none(),
-        scenario.ctx(),
-    );
-
-    transfer::public_transfer(name, user);
-
-    ts::return_shared(discount_house);
-    ts::return_shared(suins);
-    ts::return_shared(clock);
+        assert_eq(intent.request_data().base_amount(), 40 * constants::mist_per_sui());
+        assert_eq(intent.request_data().discounts_applied().size(), 1);
+        assert_eq(intent.request_data().discount_applied(), true);
+    });
 }
 
 #[test]
-fun test_e2e() {
-    let mut scenario_val = test_init();
-    let scenario = &mut scenario_val;
+fun register_day_one() {
+    init_purchase!(USER_ADDRESS, b"wow.sui", |discount_house, suins, intent, scenario| {
+        assert_eq(intent.request_data().base_amount(), 1200 * constants::mist_per_sui());
 
-    let test_item = TestAuthorized {};
-    let payment: Coin<SUI> = coin::mint_for_testing(
-        2*MIST_PER_SUI,
-        scenario.ctx(),
-    );
+        let mut day_one = day_one::mint_for_testing(scenario.ctx());
+        day_one.set_is_active_for_testing(true);
 
-    register_with_type<TestAuthorized>(
-        &test_item,
-        scenario,
-        utf8(b"test.sui"),
-        payment,
-        USER_ADDRESS,
-    );
+        discounts::apply_day_one_discount(
+            discount_house,
+            intent,
+            suins,
+            &mut day_one,
+            scenario.ctx(),
+        );
 
-    scenario_val.end();
+        assert_eq(intent.request_data().base_amount(), 840 * constants::mist_per_sui());
+        assert_eq(intent.request_data().discounts_applied().size(), 1);
+        assert_eq(intent.request_data().discount_applied(), true);
+
+        day_one.burn_for_testing();
+    });
 }
 
 #[test, expected_failure(abort_code = ::discounts::discounts::EConfigNotExists)]
 fun register_with_unauthorized_type() {
-    let mut scenario_val = test_init();
-    let scenario = &mut scenario_val;
-
-    let test_item = TestUnauthorized {};
-    let payment: Coin<SUI> = coin::mint_for_testing(
-        2*MIST_PER_SUI,
-        scenario.ctx(),
-    );
-
-    register_with_type<TestUnauthorized>(
-        &test_item,
-        scenario,
-        utf8(b"test.sui"),
-        payment,
-        USER_ADDRESS,
-    );
-    scenario_val.end();
+    init_purchase!(USER_ADDRESS, b"fivel.sui", |discount_house, suins, intent, scenario| {
+        discounts::apply_percentage_discount(
+            discount_house,
+            intent,
+            suins,
+            &mut TestUnauthorized {},
+            scenario.ctx(),
+        );
+    });
 }
 
-#[test]
-fun use_day_one() {
-    let mut scenario_val = test_init();
-    let scenario = &mut scenario_val;
-
-    let mut day_one = day_one::mint_for_testing(scenario.ctx());
-    day_one::set_is_active_for_testing(&mut day_one, true);
-    let payment: Coin<SUI> = coin::mint_for_testing(
-        MIST_PER_SUI,
-        scenario.ctx(),
-    );
-
-    register_with_day_one(
-        &day_one,
-        scenario,
-        utf8(b"test.sui"),
-        payment,
-        USER_ADDRESS,
-    );
-
-    day_one.burn_for_testing();
-    scenario_val.end();
-}
-
-#[
-    test,
-    expected_failure(
-        abort_code = ::discounts::discounts::ENotValidForDayOne,
-    ),
-]
+#[test, expected_failure(abort_code = ::discounts::discounts::ENotValidForDayOne)]
 fun use_day_one_for_casual_flow_failure() {
-    let mut scenario_val = test_init();
-    let scenario = &mut scenario_val;
+    init_purchase!(USER_ADDRESS, b"fivel.sui", |discount_house, suins, intent, scenario| {
+        let mut day_one = day_one::mint_for_testing(scenario.ctx());
 
-    let mut day_one = day_one::mint_for_testing(scenario.ctx());
-    day_one::set_is_active_for_testing(&mut day_one, true);
-    let payment: Coin<SUI> = coin::mint_for_testing(
-        MIST_PER_SUI,
-        scenario.ctx(),
-    );
-
-    register_with_type<DayOne>(
-        &day_one,
-        scenario,
-        utf8(b"test.sui"),
-        payment,
-        USER_ADDRESS,
-    );
-
-    day_one.burn_for_testing();
-    scenario_val.end();
+        discounts::apply_percentage_discount(
+            discount_house,
+            intent,
+            suins,
+            &mut day_one,
+            scenario.ctx(),
+        );
+        day_one.burn_for_testing();
+    });
 }
 
 #[test, expected_failure(abort_code = ::discounts::discounts::ENotActiveDayOne)]
 fun use_inactive_day_one_failure() {
-    let mut scenario_val = test_init();
-    let scenario = &mut scenario_val;
+    init_purchase!(USER_ADDRESS, b"fivel.sui", |discount_house, suins, intent, scenario| {
+        let mut day_one = day_one::mint_for_testing(scenario.ctx());
+        day_one.set_is_active_for_testing(false);
 
-    let day_one = day_one::mint_for_testing(scenario.ctx());
-    let payment: Coin<SUI> = coin::mint_for_testing(
-        MIST_PER_SUI,
-        scenario.ctx(),
-    );
+        discounts::apply_day_one_discount(
+            discount_house,
+            intent,
+            suins,
+            &mut day_one,
+            scenario.ctx(),
+        );
+        day_one.burn_for_testing();
+    });
+}
 
-    register_with_day_one(
-        &day_one,
-        scenario,
-        utf8(b"test.sui"),
-        payment,
-        USER_ADDRESS,
-    );
+macro fun init_purchase(
+    $addr: address,
+    $domain_name: vector<u8>,
+    $f: |&mut DiscountHouse, &mut SuiNS, &mut PaymentIntent, &mut Scenario|,
+) {
+    let addr = $addr;
+    let dm = $domain_name;
 
-    day_one.burn_for_testing();
-    scenario_val.end();
+    let mut scenario = test_init();
+    scenario.next_tx(addr);
+
+    // take the discount house
+    let mut discount_house = scenario.take_shared<DiscountHouse>();
+    let mut suins = scenario.take_shared<SuiNS>();
+    let mut intent = payment::init_registration(&mut suins, dm.to_string());
+
+    $f(&mut discount_house, &mut suins, &mut intent, &mut scenario);
+
+    destroy(intent);
+    destroy(discount_house);
+    destroy(suins);
+
+    scenario.end();
+}
+
+fun test_config(is_large: bool): PricingConfig {
+    let multiply = if (is_large) {
+        3
+    } else {
+        1
+    };
+
+    pricing_config::new(
+        vector[
+            pricing_config::new_range(vector[3, 3]),
+            pricing_config::new_range(vector[4, 4]),
+            pricing_config::new_range(vector[5, 63]),
+        ],
+        vector[10 * multiply, 15 * multiply, 20 * multiply],
+    )
 }

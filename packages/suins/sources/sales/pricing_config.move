@@ -30,9 +30,7 @@ public struct RenewalConfig has store, drop { config: PricingConfig }
 /// available ranges.
 public fun calculate_base_price(config: &PricingConfig, length: u64): u64 {
     let keys = config.pricing.keys();
-    let mut idx = keys.find_index!(
-        |range| range.0 <= length && range.1 >= length,
-    );
+    let mut idx = keys.find_index!(|range| range.is_between_inclusive(length));
 
     assert!(idx.is_some(), EPriceNotSet);
     let range = keys[idx.extract()];
@@ -73,6 +71,16 @@ public fun new_range(range: vector<u64>): Range {
     assert!(range[0] <= range[1], EInvalidRange);
 
     Range(range[0], range[1])
+}
+
+/// Checks if the value is between the range (inclusive).
+public fun is_between_inclusive(range: &Range, length: u64): bool {
+    length >= range.0 && length <= range.1
+}
+
+/// Returns the pricing config for usage in external apps.
+public fun pricing(config: &PricingConfig): &VecMap<Range, u64> {
+    &config.pricing
 }
 
 public fun config(renewal: &RenewalConfig): &PricingConfig {
