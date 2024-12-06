@@ -270,19 +270,19 @@ export const exampleRenewal = async (
 // );
 
 /// Example registration using USDC, with coupon code
-exampleRegistration(
-	'ajjdsskdddddsdassdssddddddddsd.sui', // Domain to register
-	4,
-	config.coins.USDC,
-	{
-		coinId: '0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
-		couponCode: 'fiveplus15percentoff',
-	},
-);
+// exampleRegistration(
+// 	'ajjdsskdddddsdassdssddddddddsd.sui', // Domain to register
+// 	4,
+// 	config.coins.USDC,
+// 	{
+// 		coinId: '0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
+// 		couponCode: 'fiveplus15percentoff',
+// 	},
+// );
 
 /// Example FREE registration (use USDC by default), with 100% off coupon code
 // exampleRegistration(
-// 	'ajjdfksadsskdddddsdssssdssddddddsd.sui', // Domain to register
+// 	'ajjdfksadsskdddddssssdssssdssddddddsd.sui', // Domain to register
 // 	4,
 // 	config.coins.USDC,
 // 	{
@@ -291,7 +291,7 @@ exampleRegistration(
 // );
 
 // Example registration using SUI
-// exampleRegistration('ajadsadsdssafddddssssssaasd.sui', 1, config.coins.SUI, {
+// exampleRegistration('ajadsadsdssafaaaddddssssssaasd.sui', 1, config.coins.SUI, {
 // 	couponCode: 'fiveplus15percentoff',
 // });
 
