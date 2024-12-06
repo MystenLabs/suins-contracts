@@ -6,7 +6,7 @@ use std::type_name::{Self, TypeName};
 use sui::clock::Clock;
 use sui::coin::{Coin, CoinMetadata};
 use sui::vec_map::{Self, VecMap};
-use suins::payment::{Receipt, PaymentIntent};
+use suins::payment::{Receipt, PaymentIntent, calculate_total_after_discount};
 use suins::suins::SuiNS;
 
 use fun get_config_for_type as SuiNS.get_config_for_type;
@@ -104,7 +104,6 @@ public fun handle_payment<T>(
     payment: Coin<T>,
     clock: &Clock,
     price_info_object: &PriceInfoObject,
-    // TODO: Does this make sense? Need thoughts :)
     user_price_guard: u64,
 ): Receipt {
     let type_config = suins.get_config_for_type<T>();
@@ -117,7 +116,7 @@ public fun handle_payment<T>(
         price_info_object,
     );
     assert!(payment.value() == target_currency_amount, EInsufficientPayment);
-    assert!(user_price_guard <= target_currency_amount, ESafeguardViolation);
+    assert!(user_price_guard >= target_currency_amount, ESafeguardViolation); // price guard should be larger than the payment amount
 
     intent.finalize_payment(suins, PaymentsApp(), payment)
 }
@@ -219,6 +218,18 @@ public fun new_payments_config(
         base_currency,
         max_age,
     }
+}
+
+public fun calculate_price_after_discount<T>(
+    suins: &SuiNS,
+    intent: &PaymentIntent,
+): u64 {
+    let type_config = suins.get_config_for_type<T>();
+
+    calculate_total_after_discount(
+        intent.request_data(),
+        type_config.discount_percentage,
+    )
 }
 
 public(package) fun calculate_target_currency_amount(

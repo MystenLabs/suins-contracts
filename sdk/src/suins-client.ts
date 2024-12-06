@@ -40,6 +40,7 @@ export class SuinsClient {
 	/**
 	 * Returns the price list for SuiNS names.
 	 */
+	/// modify this
 	async getPriceList(): Promise<SuinsPriceList> {
 		if (!this.constants.suinsObjectId) throw new Error('Suins object ID is not set');
 		if (!this.constants.suinsPackageId) throw new Error('Price list config not found');

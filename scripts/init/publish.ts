@@ -16,11 +16,13 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 	// split by ordering, and publish in batch.
 	const orderings = [...new Set([...Object.values(packages).map((x) => x.order)])];
 
-	// We do the publishing in batches, because some
+	// We do the publishing in batches, because some needs to be published before others
 	for (const ordering of orderings) {
 		const list = Object.entries(packages).filter((x) => x[1].order === ordering);
 
 		for (const [key, pkg] of list) {
+			console.log(`Publishing ${key}...`);
+			console.log(`Package folder: ${pkg.folder}`);
 			const packageFolder = path.resolve(contractsPath, pkg.folder);
 			const manifestFile = path.resolve(packageFolder + '/Move.toml');
 			// remove the lockfile on CI to allow fresh flows.
@@ -32,8 +34,15 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 					console.info('Lock file removed');
 				}
 			}
-
-			writeFileSync(manifestFile, pkg.manifest()); // save the manifest as is.
+			if (
+				key === 'SuiNS' ||
+				key === 'DenyList' ||
+				key === 'DayOne' ||
+				key === 'Subdomains' ||
+				key === 'Utils'
+			) {
+				writeFileSync(manifestFile, pkg.manifest()); // save the manifest as is.
+			}
 
 			const txb = new Transaction();
 			publishPackage(txb, packageFolder, configPath);
@@ -49,7 +58,15 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 
 			console.info(`Published ${key} with packageId: ${data.packageId}`);
 
-			writeFileSync(manifestFile, pkg.manifest(data.packageId)); // update the manifest with the published-at field.
+			if (
+				key === 'SuiNS' ||
+				key === 'DenyList' ||
+				key === 'DayOne' ||
+				key === 'Subdomains' ||
+				key === 'Utils'
+			) {
+				writeFileSync(manifestFile, pkg.manifest(data.packageId)); // update the manifest with the published-at field.
+			}
 		}
 	}
 	writeFileSync(
@@ -71,9 +88,9 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 				suinsObjectId: data.SuiNS.suins,
 				utilsPackageId: data.Utils.packageId,
 				registrationPackageId: data.Registration.packageId,
-				renewalPackageId: data.Renewal.packageId,
 				subNamesPackageId: data.Subdomains.packageId,
 				tempSubNamesProxyPackageId: data.TempSubdomainProxy.packageId,
+				paymentsPackageId: data.Payments.packageId,
 			},
 			null,
 			2,
