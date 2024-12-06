@@ -8,8 +8,8 @@ import { mainPackage, Network } from '../../config/constants';
 import { applyCoupon } from '../../coupons/couponTransactions';
 import { applyDiscount } from '../../discounts/discounts';
 import { getActiveAddress, signAndExecute } from '../../utils/utils';
-import { SuiPriceServiceConnection } from './SuiPriceServiceConnection';
-import { SuiPythClient } from './SuiPythClient';
+import { SuiPriceServiceConnection } from '../pyth/SuiPriceServiceConnection';
+import { SuiPythClient } from '../pyth/SuiPythClient';
 
 const network = (process.env.NETWORK as Network) || 'testnet';
 const config = mainPackage[network];
@@ -291,7 +291,7 @@ export const exampleRenewal = async (
 // );
 
 // Example registration using SUI
-// exampleRegistration('ajadsadsdssafaaaddddssssssaasd.sui', 1, config.coins.SUI, {
+// exampleRegistration('ajadsadsdssafaaaddddsssssssaasd.sui', 4, config.coins.SUI, {
 // 	couponCode: 'fiveplus15percentoff',
 // });
 
