@@ -114,7 +114,7 @@ public fun withdraw(
     coin::take(&mut self.balance, amount, ctx)
 }
 
-public fun withdraw_v2<T>(
+public fun withdraw_custom<T>(
     self: &mut SuiNS,
     _: &AdminCap,
     ctx: &mut TxContext,
@@ -135,12 +135,12 @@ public struct AppKey<phantom App: drop> has copy, store, drop {}
 
 /// Authorize an application to access protected features of the SuiNS.
 public fun authorize_app<App: drop>(_: &AdminCap, self: &mut SuiNS) {
-    df::add(&mut self.id, AppKey<App> {}, true);
+    self.id.add(AppKey<App> {}, true);
 }
 
 /// Deauthorize an application by removing its authorization key.
 public fun deauthorize_app<App: drop>(_: &AdminCap, self: &mut SuiNS): bool {
-    df::remove(&mut self.id, AppKey<App> {})
+    self.id.remove(AppKey<App> {})
 }
 
 /// Check if an application is authorized to access protected features of
@@ -175,11 +175,11 @@ public fun app_add_custom_balance<App: drop, T>(
 ) {
     self.assert_app_is_authorized<App>();
     let key = BalanceKey<T> {};
-    if (df::exists_(&self.id, key)) {
-        let balances: &mut Balance<T> = df::borrow_mut(&mut self.id, key);
+    if (self.id.exists_(key)) {
+        let balances: &mut Balance<T> = self.id.borrow_mut(key);
         balances.join(balance);
     } else {
-        df::add(&mut self.id, key, balance);
+        self.id.add(key, balance);
     }
 }
 
