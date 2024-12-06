@@ -1,16 +1,17 @@
 import { Tabs } from 'nextra/components'
 import { Callout } from 'nextra/components'
 
-# Typescript SDK plugin
+# Sui Typescript SDK Plugin
 
-The purpose of the MVR TypeScript SDK plugin is to offer developers a seamless experience when building PTBs with MVR names. 
-This plugin resolves MVR names to their respective addresses before constructing the PTB, caching the results during each runtime.
+The Move Registry (MVR, pronounced "mover") Sui TypeScript SDK plugin offers builders a seamless experience when constructing programmable transaction blocks (PTBs) using MVR names. 
+
+The plugin resolves MVR names to their respective addresses before constructing the PTB, caching the results during each runtime.
 
 This also applies to type names, especially across package upgrades.
 
 ## How to use
 
-The MVR plugin is exported directly from the @mysten/sui package. To enable the plugin, register it either globally or per PTB in your dApp.
+The MVR plugin is exported directly from the `@mysten/sui` package. To enable the plugin, register it either globally or per PTB in your dApp.
 
 [TODO: Add the public good endpoints]
 
@@ -34,8 +35,9 @@ Transaction.registerGlobalSerializationPlugin('namedPackagesPlugin', namedPackag
 
 
 ## Before / after example
+
 <Callout type="warning" emoji="ℹ️">
-    The examples in the tabs are simplified for clarity. Actual addresses or names may differ. 
+    The examples in the tabs are simplified for clarity. Actual addresses or names might differ. 
 </Callout>
 
 

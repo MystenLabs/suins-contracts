@@ -3,29 +3,80 @@ import { Callout } from 'nextra/components'
 
 # MVR CLI
 
-MVR CLI is used to manage your package dependencies and to interact with the Move Registry. It is a command-line tool that allows you to:
+Use the MVR CLI to manage your package dependencies and to interact with the Move Registry (MVR). The MVR CLI is a command line tool that enables:
 
-1. Add dependencies to your Move project.
-2. Build your Move project with MVR dependencies.
-
+- Adding dependencies to your Move project.
+- Building your Move project with MVR dependencies.
 
 ## Installation
 
-To install the MVR CLI, you can use the following command:
+Download the correct binary file for your OS and architecture from the [MVR GitHub release page](https://github.com/MystenLabs/mvr/releases/latest):
 
-```bash
-TODO: add installation command
-```
+After downloading the file, rename the binary to `mvr` and add its location to your system `PATH` variable.
+
+Use the following command to install the MVR CLI:
+
+<Tabs items={['Zsh', 'Bash', 'fish', 'Windows']}>
+  <Tabs.Tab>
+    1. Open your `.zshrc` file. This file is typically located at `~/.zshrc` in MacOS. If it doesn't exist, create it.
+        ```sh
+        $ nano ~/.zshrc
+        ```
+    1. Update or add the following `export PATH` command. Be sure to change `/path/to/your/folder` to match your folder path. Separate all paths using a colon, if necessary.
+        ```sh
+        export PATH="/path/to/your/folder:$PATH"
+        ```
+    1. Save the file and use the `source` command to apply changes.
+        ```sh
+        $ source ~/.zshrc
+        ```
+  </Tabs.Tab>
+  <Tabs.Tab>
+  1. Open your `.bashrc` file (or `.bash_profile` on macOS). This file is typically located at `~/.bashrc` in macOS. If it doesn't exist, create it.
+    ```sh
+    $ nano ~/.bashrc
+    ```
+  1. Update or add the following `export PATH` command. Be sure to change `/path/to/your/folder` to match your folder path. Separate all paths using a colon, if necessary.
+    ```sh
+    export PATH="/path/to/your/folder:$PATH"
+    ```
+  1. Save the file and use the `source` command to apply changes.
+    ```sh
+    $ source ~/.bashrc
+    ```
+  </Tabs.Tab>
+  <Tabs.Tab>
+  1. Open your fish configuration file. 
+    ```sh
+    $ nano ~/.config/fish/config.fish
+    ```
+  1. Add the following command to the configuration. Be sure to change `/path/to/your/folder` to match your folder path.
+    ```sh
+    set -Ux fish_user_paths /path/to/your/folder $fish_user_paths
+    ```
+  1. Save the file. 
+  </Tabs.Tab>
+  <Tabs.Tab>
+  1. In Search, search for and then select: **System (Control Panel)**.
+  1. Click the **Advanced system settings** link.
+  1. Click **Environment Variables**. In the section **System Variables** find the **PATH** environment variable and select it. Click **Edit**. If the **PATH** environment variable does not exist, click **New**.
+  1. In the **Edit System Variable** (or **New System Variable**) window, specify the value of the PATH environment variable. Click **OK**. Close all remaining windows by clicking **OK**.
+  </Tabs.Tab>
+</Tabs>
+
+<Callout>
+Use a terminal or console to verify installation by typing `mvr --help` and pressing <kbd>Enter</kbd>. If your operating system does not recognize the command, then retry the installation steps.
+</Callout>
 
 ## Adding dependencies
 
-To add a dependency to your move code, you can use the `mvr add` command. This command will add the dependency to your `Move.toml` file.
+To add a dependency to your Move code, use the `mvr add` command. This command adds the dependency to your `Move.toml` file.
 
-```bash
+```sh
 mvr add <package_name> --network <mainnet|testnet>
 ```
 
-Using this, a new entry will be added to your `Move.toml` file.
+MVR adds a new entry to your `Move.toml` file. The following shows an example of the information that MVR adds.
 
 ```toml
 [dependencies]
@@ -38,7 +89,7 @@ network = "mainnet"
 
 ## Building against MVR dependencies
 
-You can use `sui move build` as usual, and the MVR CLI will be automatically invoked to resolve dependencies and build your project.
+Use `sui move build` as usual when building Move packages. The command automatically invokes MVR CLI to resolve dependencies and build your project.
 
 ```bash
 sui move build

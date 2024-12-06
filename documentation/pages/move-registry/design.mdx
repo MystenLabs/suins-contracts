@@ -1,14 +1,17 @@
 # Design of the Move Registry
 
-Before diving into specifics, we first need to analyze the design. The Move Registry consists of two independent components:
+import { Callout } from 'nextra/components'
 
-1. Package Info registration: Exists independently on each network.
-2. Move Registry: A single source of truth located on mainnet.
+The Move Registry (MVR, pronounced "mover") consists of two independent components:
+
+- PackageInfo registration: Exists independently on each network.
+- Move Registry: A single source of truth located on Mainnet.
+
+The following diagram shows the Mover design at a high level.
 
 ![High level design](/images/mvr/mvr-overall.svg)
 
-
-## Package Info objects
+## PackageInfo objects
 
 The first step when publishing a package is to register its metadata object. This metadata object serves as a key source of information for:
 
@@ -21,16 +24,19 @@ It is designed to be indexable by Sui Indexers, as it cannot be stored within an
 ![Package Info Objects](/images/mvr/mvr-package-info.svg)
 
 
-## Move Registry
+## MVR registration
 
-Move Registry registration is separate from the PackageInfo registration process. This separation is necessary because the PackageInfo object acts as both the source of truth for package metadata and a proof of package ownership, whereas the Move Registry is used to register applications that can be resolved using MVR tooling.
+MVR registration is separate from the `PackageInfo` registration process. This separation is necessary because the `PackageInfo` object acts as both the source of truth for package metadata and a proof of package ownership, whereas MVR registers applications that MVR tooling can resolve.
 
-The steps to register a package are as follows:
+To register a package:
 
 1. Using your SuiNS name, register an application.
 2. Based on the network, associate the application name with a `PackageInfo` object:
-- **Mainnet**: Associate the application name with a complete PackageInfo object, which provides the full metadata and ownership proof.
-- **Other Networks**: Associate the application name with only the PackageInfo object ID, acting as a pointer without ensuring a full mapping.
-
+- **Mainnet:** Associate the application name with a complete `PackageInfo` object, which provides the full metadata and ownership proof.
+- **Other networks:** Associate the application name with the `PackageInfo` object ID, acting as a pointer without ensuring a full mapping.
 
 ![Move Registry](/images/mvr/mvr-registry.svg)
+
+<Callout type="info" emoji="ℹ️">
+The single source of truth for MVR exists on Mainnet.
+</Callout>

@@ -1,19 +1,16 @@
 # Move Registry
 
-Move Registry provides a name service for interacting and building with packages from the ecosystem.
+import { Callout } from 'nextra/components'
 
-Move Registry is currently used for the following scenarios: 
+Move Registry (MVR, pronounced "mover") provides a uniform naming service for interacting and building with packages from the Sui ecosystem. This means that you can reference packages by their names, and MVR resolves the package address for you, despite the network.
 
-1. To reference packages and types in PTBs using their names.
-2. To depend on other packages when developing with Move.
+Use MVR to: 
 
-## Why use the Move Registry?
+- Reference both packages and types by name in programmable transaction blocks (PTBs).
+- Depend on other packages when developing with Move.
 
-Move Registry provides a uniform (single source of truth) naming service for packages in the Move ecosystem. 
-This means that you can reference packages by their names, and the Move Registry will resolve the package address for you, despite the network*.
+Additionally, MVR can help you manage package versioning. With MVR, you call a specific version of a package without having to resolve the addresses yourself. You also don't need to worry about the package being updated, because if you use a name without a specified version, MVR automatically defaults to the latest version available.
 
-Additionally, Move Registry helps with working with versioning of packages. You can call a specific version of a package easily, without having to 
-resolve the addresses yourself, or worry about the package being updated (name without a specified version defaults to the latest).
-
-
-*Move Registry default service currently supports Mainnet and testnet.*
+<Callout type="info" emoji="ℹ️">
+MVR default service currently supports Mainnet and Testnet networks.
+</Callout>
