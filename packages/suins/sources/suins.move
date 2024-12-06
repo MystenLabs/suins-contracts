@@ -114,6 +114,7 @@ public fun withdraw(
     coin::take(&mut self.balance, amount, ctx)
 }
 
+/// Withdraw from the SuiNS balance of a custom coin type.
 public fun withdraw_custom<T>(
     self: &mut SuiNS,
     _: &AdminCap,
@@ -321,14 +322,4 @@ public fun authorize_app_for_testing<App: drop>(self: &mut SuiNS) {
 #[test_only]
 public fun total_balance(self: &SuiNS): u64 {
     self.balance.value()
-}
-
-#[test_only]
-public fun id(self: &SuiNS): &UID {
-    &self.id
-}
-
-#[test_only]
-public fun balance_key<T>(_: &SuiNS): BalanceKey<T> {
-    BalanceKey {}
 }
