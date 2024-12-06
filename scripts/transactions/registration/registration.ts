@@ -3,12 +3,13 @@
 
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
 import { Transaction, TransactionObjectArgument } from '@mysten/sui/transactions';
-import { SuiPriceServiceConnection, SuiPythClient } from '@pythnetwork/pyth-sui-js';
 
 import { mainPackage, Network } from '../../config/constants';
 import { applyCoupon } from '../../coupons/couponTransactions';
 import { applyDiscount } from '../../discounts/discounts';
 import { getActiveAddress, signAndExecute } from '../../utils/utils';
+import { SuiPriceServiceConnection } from './SuiPriceServiceConnection';
+import { SuiPythClient } from './SuiPythClient';
 
 const network = (process.env.NETWORK as Network) || 'testnet';
 const config = mainPackage[network];
@@ -269,15 +270,15 @@ export const exampleRenewal = async (
 // );
 
 /// Example registration using USDC, with coupon code
-// exampleRegistration(
-// 	'ajjdsskdddddsdassdssddddddsd.sui', // Domain to register
-// 	4,
-// 	config.coins.USDC,
-// 	{
-// 		coinId: '0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
-// 		couponCode: 'fiveplus15percentoff',
-// 	},
-// );
+exampleRegistration(
+	'ajjdsskdddddsdassdssddddddddsd.sui', // Domain to register
+	4,
+	config.coins.USDC,
+	{
+		coinId: '0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
+		couponCode: 'fiveplus15percentoff',
+	},
+);
 
 /// Example FREE registration (use USDC by default), with 100% off coupon code
 // exampleRegistration(

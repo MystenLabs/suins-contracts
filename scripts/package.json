@@ -30,9 +30,14 @@
 		"@mysten/sui": "^1.16.0",
 		"@noble/hashes": "^1.6.1",
 		"@pythnetwork/pyth-sui-js": "^2.1.0",
-		"dotenv": "^16.4.7"
+		"axios": "^1.7.9",
+		"axios-retry": "^3.9.1",
+		"dotenv": "^16.4.7",
+		"isomorphic-ws": "^5.0.0",
+		"ts-log": "^2.2.7"
 	},
 	"devDependencies": {
+		"@types/node": "^20.11.30",
 		"esbuild": "^0.20.2",
 		"ts-node": "^10.9.2"
 	}
