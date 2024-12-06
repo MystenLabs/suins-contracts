@@ -255,7 +255,7 @@ export const exampleRenewal = async (
 	return signAndExecute(tx, network);
 };
 
-/// Note: For free registration/renewals, use SUI
+/// Note: For free registration/renewals, use USDC
 
 /// Example registration using USDC, with discountNft
 // exampleRegistration(
