@@ -249,7 +249,7 @@ public fun set_expiration_timestamp_ms(
 ) {
     let record = &mut self.registry[domain];
 
-    assert!(nft.id() == record.nft_id(), EIdMismatch);
+    assert!(object::id(nft) == record.nft_id(), EIdMismatch);
     record.set_expiration_timestamp_ms(expiration_timestamp_ms);
     nft.set_expiration_timestamp_ms(expiration_timestamp_ms);
 }
