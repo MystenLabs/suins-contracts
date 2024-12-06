@@ -26,7 +26,7 @@ use sui::balance::{Self, Balance};
 use sui::coin::{Self, Coin};
 use sui::dynamic_field as df;
 use sui::sui::SUI;
-use suins::pricing_config::{Self, new_range};
+use suins::pricing_config::{Self, new_range, PricingConfig};
 
 use fun df::add as UID.add;
 use fun df::borrow as UID.borrow;
@@ -87,7 +87,7 @@ fun init(otw: SUINS, ctx: &mut TxContext) {
         AdminCap {
             id: object::new(ctx),
         },
-        tx_context::sender(ctx),
+        ctx.sender(),
     );
 
     let suins = SuiNS {
@@ -266,9 +266,8 @@ public fun init_for_testing(ctx: &mut TxContext): SuiNS {
         balance: balance::zero(),
     };
 
-    authorize_app<Test>(&admin_cap, &mut suins);
-    add_config(
-        &admin_cap,
+    admin_cap.authorize_app<Test>(&mut suins);
+    admin_cap.add_config(
         &mut suins,
         config::new(
             b"000000000000000000000000000000000",
@@ -277,6 +276,19 @@ public fun init_for_testing(ctx: &mut TxContext): SuiNS {
             50 * suins::constants::mist_per_sui(),
         ),
     );
+
+    admin_cap.add_config(&mut suins, new_pricing_config());
+    admin_cap.add_config(
+        &mut suins,
+        pricing_config::new_renewal_config(new_pricing_config()),
+    );
+    transfer::transfer(admin_cap, ctx.sender());
+
+    suins
+}
+
+#[test_only]
+public fun new_pricing_config(): PricingConfig {
     let range1 = new_range(vector[3, 3]);
     let range2 = new_range(vector[4, 4]);
     let range3 = new_range(vector[5, 63]);
@@ -286,14 +298,10 @@ public fun init_for_testing(ctx: &mut TxContext): SuiNS {
         50 * suins::constants::mist_per_sui(),
     ];
 
-    let pricing_config = pricing_config::new(
+    pricing_config::new(
         vector[range1, range2, range3],
         prices,
-    );
-    admin_cap.add_config(&mut suins, pricing_config);
-
-    transfer::transfer(admin_cap, tx_context::sender(ctx));
-    suins
+    )
 }
 
 #[test_only]
