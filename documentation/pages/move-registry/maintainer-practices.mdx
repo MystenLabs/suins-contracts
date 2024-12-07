@@ -1,9 +1,21 @@
 # Best Practices
 
-For package authors and maintainers, the following best practices are recommended when saving your source code. Following these tips ensures that other builders can use your package as intended.
+For package authors and maintainers, the following best practices are recommended for working with the Move Registry. Following these tips ensures that other builders can use your package as intended.
 
-1. Whenever you publish or upgrade a package, use the [Automated Address Management](https://docs.sui.io/concepts/sui-move-concepts/packages/automated-address-management) feature.
-1. Switch your `Sui` dependency to the correct network you're publishing or upgrading against (for example, `framework/testnet` for Testnet, `framework/mainnet` for Mainnet).
-1. After properly configuring your Automated Address Management, commit your changes to your git repository.
-1. Make sure this commit is also tagged, or is part of your main branch. A good practice is to tag your releases with `<network>/<verson>` (for example, `mainnet/v1`).
-1. If tagged, use the commit SHA or the tag to update the source code origin in the `PackageInfo` object.
+## Automated Address Management
+
+- Whenever you publish or upgrade a package, use the Sui Automated Address Management feature.
+- After properly configuring your Automated Address Management, commit and [tag](#tagging) your changes to your git repository.
+
+For more information, see [Automated Address Management](https://docs.sui.io/concepts/sui-move-concepts/packages/automated-address-management) in the Sui documentation. 
+
+## Sui dependency
+
+Switch your `Sui` dependency to the correct network you're publishing or upgrading against (for example, `framework/testnet` for Testnet, `framework/mainnet` for Mainnet).
+
+## Tagging
+
+Proper use of tags helps code maintanence.
+
+- Tag your releases with `<network>/<verson>` (for example, `mainnet/v1`). Make sure the commit you push after configuring [Automated Address Management](#automated-address-management) is also tagged, or is part of your `main` branch.
+- After applying a release tag, use the commit SHA or the tag to update the source code origin in the `PackageInfo` object.

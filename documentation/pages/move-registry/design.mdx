@@ -4,10 +4,10 @@ import { Callout } from 'nextra/components'
 
 The Move Registry (MVR, pronounced "mover") consists of two independent components:
 
-- PackageInfo registration: Exists independently on each network.
-- Move Registry: A single source of truth located on Mainnet.
+- `PackageInfo` registration: Exists independently on each network.
+- MVR registration: A single source of truth located on Mainnet.
 
-The following diagram shows the Mover design at a high level.
+The following diagram shows the MVR design at a high level.
 
 ![High level design](/images/mvr/mvr-overall.svg)
 
@@ -16,13 +16,14 @@ The following diagram shows the Mover design at a high level.
 The first step when publishing a package is to register its metadata object. This metadata object serves as a key source of information for:
 
 1. Locating the source code across different versions of the package.
-2. (Future) Providing text-based metadata (title, description, tags) for the package, which can be used in the MVR search engine.
+2. (Future) Providing text-based metadata (title, description, tags) for the package, which the MVR search engine can use.
 
 This metadata object can be reused when authorizing any package upgrades to supply source information for the new version. 
-It is designed to be indexable by Sui Indexers, as it cannot be stored within another object.
+Sui indexers can index the metadata as it cannot be stored within another object.
 
 ![Package Info Objects](/images/mvr/mvr-package-info.svg)
 
+See [Managing Package Metadata](./managing-package-info.mdx) for examples of working with `PackageInfo` objects. 
 
 ## MVR registration
 
@@ -40,3 +41,5 @@ To register a package:
 <Callout type="info" emoji="ℹ️">
 The single source of truth for MVR exists on Mainnet.
 </Callout>
+
+See [Managing MVR Names](./mvr-names.mdx) for examples of MVR registration.
