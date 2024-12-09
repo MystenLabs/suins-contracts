@@ -29,11 +29,7 @@
 		"@mysten/kiosk": "0.9.21",
 		"@mysten/sui": "^1.16.0",
 		"@noble/hashes": "^1.6.1",
-		"axios": "^1.7.9",
-		"axios-retry": "^3.9.1",
-		"dotenv": "^16.4.7",
-		"isomorphic-ws": "^5.0.0",
-		"ts-log": "^2.2.7"
+		"@pythnetwork/pyth-sui-js": "^2.1.0"
 	},
 	"devDependencies": {
 		"@types/node": "^20.17.9",

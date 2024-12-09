@@ -3,13 +3,12 @@
 
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
 import { Transaction, TransactionObjectArgument } from '@mysten/sui/transactions';
+import { SuiPriceServiceConnection, SuiPythClient } from '@pythnetwork/pyth-sui-js';
 
 import { mainPackage, Network } from '../../config/constants';
 import { applyCoupon } from '../../coupons/couponTransactions';
 import { applyDiscount } from '../../discounts/discounts';
 import { getActiveAddress, signAndExecute } from '../../utils/utils';
-import { SuiPriceServiceConnection } from '../pyth/SuiPriceServiceConnection';
-import { SuiPythClient } from '../pyth/SuiPythClient';
 
 const network = (process.env.NETWORK as Network) || 'testnet';
 const config = mainPackage[network];
@@ -290,8 +289,8 @@ export const exampleRenewal = async (
 // 	},
 // );
 
-// Example registration using SUI
-// exampleRegistration('ajadsadsdssafaaaddddsssssssaasd.sui', 4, config.coins.SUI, {
+/// Example registration using SUI
+// exampleRegistration('ajadsadddsdssafaaaddddsssssssaasd.sui', 4, config.coins.SUI, {
 // 	couponCode: 'fiveplus15percentoff',
 // });
 
