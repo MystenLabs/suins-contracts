@@ -1,6 +1,6 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-import type { SuiClient } from '@mysten/sui/client';
+import { SuiClient } from '@mysten/sui/client';
 import { isValidSuiNSName, normalizeSuiNSName } from '@mysten/sui/utils';
 
 import {
@@ -40,8 +40,14 @@ export class SuinsClient {
 	/**
 	 * Returns the price list for SuiNS names.
 	 */
-	/// modify this
-	async getPriceList(): Promise<SuinsPriceList> {
+
+	// Format:
+	// {
+	// 	[ 3, 3 ] => 500000000,
+	// 	[ 4, 4 ] => 100000000,
+	// 	[ 5, 63 ] => 20000000
+	// }
+	async getPriceList(): Promise<any> {
 		if (!this.constants.suinsObjectId) throw new Error('Suins object ID is not set');
 		if (!this.constants.suinsPackageId) throw new Error('Price list config not found');
 
@@ -49,8 +55,8 @@ export class SuinsClient {
 			parentId: this.constants.suinsObjectId,
 			name: {
 				type: getConfigType(
-					this.constants.suinsPackageId.v1,
-					getPricelistConfigType(this.constants.suinsPackageId.v1),
+					this.constants.suinsPackageId.latest,
+					getPricelistConfigType(this.constants.suinsPackageId.latest),
 				),
 				value: { dummy_field: false },
 			},
@@ -62,22 +68,31 @@ export class SuinsClient {
 		)
 			throw new Error('Price list not found');
 
-		const contents = priceList.data.content.fields.value as Record<string, any>;
+		const contentArray = priceList.data.content.fields.value.fields.pricing.fields.contents;
+		const priceMap = new Map();
 
-		return parsePriceListFromConfig(contents);
+		for (const entry of contentArray) {
+			const keyFields = entry.fields.key.fields;
+			const key = [Number(keyFields.pos0), Number(keyFields.pos1)];
+
+			const value = Number(entry.fields.value);
+
+			priceMap.set(key, value);
+		}
+
+		return priceMap;
 	}
 
-	async getRenewalPriceList(): Promise<SuinsPriceList> {
+	async getRenewalPriceList(): Promise<any> {
 		if (!this.constants.suinsObjectId) throw new Error('Suins object ID is not set');
 		if (!this.constants.suinsPackageId) throw new Error('Price list config not found');
-		if (!this.constants.renewalPackageId) throw new Error('Renewal package ID is not set');
 
 		const priceList = await this.#client.getDynamicFieldObject({
 			parentId: this.constants.suinsObjectId,
 			name: {
 				type: getConfigType(
 					this.constants.suinsPackageId.v1,
-					getRenewalPricelistConfigType(this.constants.renewalPackageId),
+					getRenewalPricelistConfigType(this.constants.suinsPackageId.latest),
 				),
 				value: { dummy_field: false },
 			},
@@ -87,14 +102,25 @@ export class SuinsClient {
 			!priceList ||
 			!priceList.data ||
 			!priceList.data.content ||
-			priceList.data.content.dataType !== 'moveObject' ||
-			!('value' in priceList.data.content.fields)
+			!('fields' in priceList.data.content)
 		)
 			throw new Error('Price list not found');
 
-		const contents = (priceList.data.content.fields.value as Record<string, any>)?.fields?.config;
+		const contentArray =
+			priceList.data.content.fields.value.fields.config.fields.pricing.fields.contents;
 
-		return parsePriceListFromConfig(contents);
+		const priceMap = new Map();
+
+		for (const entry of contentArray) {
+			const keyFields = entry.fields.key.fields;
+			const key = [Number(keyFields.pos0), Number(keyFields.pos1)];
+
+			const value = Number(entry.fields.value);
+
+			priceMap.set(key, value);
+		}
+
+		return priceMap;
 	}
 
 	async getNameRecord(name: string): Promise<NameRecord | null> {
@@ -164,3 +190,26 @@ export class SuinsClient {
 		return years * priceList.fivePlusLetters;
 	}
 }
+
+// Initialize and execute the SuinsClient to fetch the renewal price list
+(async () => {
+	// Step 1: Create a SuiClient instance
+	const suiClient = new SuiClient({
+		url: 'https://fullnode.testnet.sui.io', // Sui testnet endpoint
+	});
+
+	// Step 2: Create a SuinsClient instance using TESTNET_CONFIG
+	const suinsClient = new SuinsClient({
+		client: suiClient,
+		network: 'testnet',
+		packageIds: TESTNET_CONFIG, // Use predefined TESTNET_CONFIG
+	});
+
+	// Step 3: Fetch and log the renewal price list
+	try {
+		const renewalPriceList = await suinsClient.getRenewalPriceList();
+		console.log(renewalPriceList);
+	} catch (error) {
+		console.error('Error fetching renewal price list');
+	}
+})();

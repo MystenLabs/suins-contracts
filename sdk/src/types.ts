@@ -20,8 +20,6 @@ export type Constants = {
 	suinsObjectId?: string;
 	registryTableId?: string;
 	utilsPackageId?: string;
-	registrationPackageId?: string;
-	renewalPackageId?: string;
 	subNamesPackageId?: string;
 	tempSubNamesProxyPackageId?: string;
 };
