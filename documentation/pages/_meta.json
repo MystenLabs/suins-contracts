@@ -4,6 +4,7 @@
     "developer": "Developer",
     "user": "User",
     "node-operator": "Node Operator",
+    "move-registry": "Move Registry (Beta)",
     "dashboard": {
         "title": "SuiNS Dashboard ↗",
         "type": "page",
