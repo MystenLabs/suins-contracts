@@ -23,8 +23,8 @@ import { SuinsTransaction } from '../src/suins-transaction';
 
 	const suinsTx = new SuinsTransaction(suinsClient, new Transaction());
 	const nft = await suinsTx.registerPTB(
-		'ajadsadddsdssafaaaddddsssssssssaasd.sui',
-		4,
+		'ajadsaddksdssafaaaddddsssssssssaasd.sui',
+		1,
 		suinsClient.config.coins.SUI,
 		{
 			couponCode: 'fiveplus15percentoff',

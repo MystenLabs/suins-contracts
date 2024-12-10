@@ -200,7 +200,6 @@ export class SuinsTransaction {
 		// Initialize Sui Client and Pyth Client
 		const wormholeStateId = config.pyth.wormholeStateId;
 		const pythStateId = config.pyth.pythStateId;
-		console.log(wormholeStateId, pythStateId);
 
 		const client = new SuiPythClient(this.suinsClient.client, pythStateId, wormholeStateId);
 
