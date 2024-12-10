@@ -1,9 +1,23 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
+import { execFileSync, execSync } from 'child_process';
+import fs, { readFileSync } from 'fs';
+import { homedir } from 'os';
+import path from 'path';
 import { bcs } from '@mysten/sui/bcs';
+import { decodeSuiPrivateKey } from '@mysten/sui/cryptography';
+import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+import { Secp256k1Keypair } from '@mysten/sui/keypairs/secp256k1';
+import { Secp256r1Keypair } from '@mysten/sui/keypairs/secp256r1';
 import type { Transaction } from '@mysten/sui/transactions';
 import { TransactionObjectArgument } from '@mysten/sui/transactions';
-import { isValidSuiNSName, normalizeSuiNSName, SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
+import {
+	fromBase64,
+	isValidSuiNSName,
+	normalizeSuiNSName,
+	SUI_CLOCK_OBJECT_ID,
+	toBase64,
+} from '@mysten/sui/utils';
 import { SuiPriceServiceConnection, SuiPythClient } from '@pythnetwork/pyth-sui-js';
 
 import { ALLOWED_METADATA, MAX_U64 } from './constants.js';
@@ -86,13 +100,12 @@ export class SuinsTransaction {
 			tx.add(this.applyCoupon(paymentIntent, options.couponCode));
 		}
 		if (options.discountNft) {
-			await this.applyDiscount(paymentIntent, options.discountNft, tx);
+			await this.applyDiscount(paymentIntent, options.discountNft);
 		}
 		const priceAfterDiscount = tx.add(
 			this.calculatePriceAfterDiscount(paymentIntent, coinConfig.type),
 		);
 		const { receipt, priceInfoObjectId } = await this.generateReceipt(
-			tx,
 			paymentIntent,
 			priceAfterDiscount,
 			coinConfig,
@@ -108,7 +121,7 @@ export class SuinsTransaction {
 			});
 		}
 
-		return nft;
+		return nft as TransactionObjectArgument;
 	};
 
 	renewPTB = async (
@@ -134,13 +147,12 @@ export class SuinsTransaction {
 			tx.add(this.applyCoupon(paymentIntent, options.couponCode));
 		}
 		if (options.discountNft) {
-			await this.applyDiscount(paymentIntent, options.discountNft, tx);
+			await this.applyDiscount(paymentIntent, options.discountNft);
 		}
 		const priceAfterDiscount = tx.add(
 			this.calculatePriceAfterDiscount(paymentIntent, coinConfig.type),
 		);
 		const { receipt } = await this.generateReceipt(
-			tx,
 			paymentIntent,
 			priceAfterDiscount,
 			coinConfig,
@@ -151,6 +163,8 @@ export class SuinsTransaction {
 		if (transferNft) {
 			return nft;
 		}
+
+		return null;
 	};
 
 	initRegistration = (domain: string) => (tx: Transaction) => {
@@ -169,7 +183,8 @@ export class SuinsTransaction {
 		});
 	};
 
-	getPriceInfoObject = async (tx: Transaction, feed: string) => {
+	getPriceInfoObject = async (feed: string) => {
+		const tx = this.transaction;
 		const config = this.suinsClient.config;
 		// Initialize connection to the Sui Price Service
 		const connection = new SuiPriceServiceConnection('https://hermes-beta.pyth.network');
@@ -185,6 +200,7 @@ export class SuinsTransaction {
 		// Initialize Sui Client and Pyth Client
 		const wormholeStateId = config.pyth.wormholeStateId;
 		const pythStateId = config.pyth.pythStateId;
+		console.log(wormholeStateId, pythStateId);
 
 		const client = new SuiPythClient(this.suinsClient.client, pythStateId, wormholeStateId);
 
@@ -283,7 +299,6 @@ export class SuinsTransaction {
 	};
 
 	generateReceipt = async (
-		tx: Transaction,
 		paymentIntent: TransactionObjectArgument,
 		priceAfterDiscount: TransactionObjectArgument,
 		coinConfig: { type: string; metadataID: string; feed: string },
@@ -293,6 +308,7 @@ export class SuinsTransaction {
 			infoObjectId?: string;
 		} = {},
 	): Promise<{ receipt: TransactionObjectArgument; priceInfoObjectId?: string }> => {
+		const tx = this.transaction;
 		const config = this.suinsClient.config;
 		const baseAssetPurchase = coinConfig.feed === '';
 		if (baseAssetPurchase) {
@@ -303,7 +319,7 @@ export class SuinsTransaction {
 			return { receipt };
 		} else {
 			const priceInfoObjectId =
-				options.infoObjectId || (await this.getPriceInfoObject(tx, coinConfig.feed))[0];
+				options.infoObjectId || (await this.getPriceInfoObject(coinConfig.feed))[0];
 			const price = tx.add(
 				this.calculatePrice(priceAfterDiscount, coinConfig.type, priceInfoObjectId),
 			);
@@ -336,12 +352,9 @@ export class SuinsTransaction {
 		});
 	};
 
-	applyDiscount = async (
-		intent: TransactionObjectArgument,
-		discountNft: string,
-		tx: Transaction,
-	) => {
+	applyDiscount = async (intent: TransactionObjectArgument, discountNft: string) => {
 		const config = this.suinsClient.config;
+		const tx = this.transaction;
 		const discountNftType = await getObjectType(this.suinsClient.client, discountNft);
 
 		tx.moveCall({
@@ -456,6 +469,57 @@ export class SuinsTransaction {
 			],
 		});
 	}
+
+	signAndExecute = async () => {
+		const signer = this.getSigner();
+		return this.suinsClient.client.signAndExecuteTransaction({
+			transaction: this.transaction,
+			signer,
+			options: {
+				showEffects: true,
+				showObjectChanges: true,
+			},
+		});
+	};
+
+	getSigner = () => {
+		if (process.env.PRIVATE_KEY) {
+			console.log('Using supplied private key.');
+			const { schema, secretKey } = decodeSuiPrivateKey(process.env.PRIVATE_KEY);
+
+			if (schema === 'ED25519') return Ed25519Keypair.fromSecretKey(secretKey);
+			if (schema === 'Secp256k1') return Secp256k1Keypair.fromSecretKey(secretKey);
+			if (schema === 'Secp256r1') return Secp256r1Keypair.fromSecretKey(secretKey);
+
+			throw new Error('Keypair not supported.');
+		}
+
+		const sender = this.getActiveAddress();
+
+		const keystore = JSON.parse(
+			readFileSync(path.join(homedir(), '.sui', 'sui_config', 'sui.keystore'), 'utf8'),
+		);
+
+		for (const priv of keystore) {
+			const raw = fromBase64(priv);
+			if (raw[0] !== 0) {
+				continue;
+			}
+
+			const pair = Ed25519Keypair.fromSecretKey(raw.slice(1));
+			if (pair.getPublicKey().toSuiAddress() === sender) {
+				return pair;
+			}
+		}
+
+		throw new Error(`keypair not found for sender: ${sender}`);
+	};
+
+	getActiveAddress = () => {
+		const SUI = process.env.SUI_BINARY ?? `sui`;
+
+		return execSync(`${SUI} client active-address`, { encoding: 'utf8' }).trim();
+	};
 
 	// setTargetAddress({
 	// 	nft,

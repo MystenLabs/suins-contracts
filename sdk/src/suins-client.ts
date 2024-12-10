@@ -225,26 +225,3 @@ export class SuinsClient {
 		throw new Error('No price available for the given name length');
 	}
 }
-
-// Initialize and execute the SuinsClient to fetch the renewal price list
-(async () => {
-	// Step 1: Create a SuiClient instance
-	const suiClient = new SuiClient({
-		url: 'https://fullnode.testnet.sui.io', // Sui testnet endpoint
-	});
-
-	// Step 2: Create a SuinsClient instance using TESTNET_CONFIG
-	const suinsClient = new SuinsClient({
-		client: suiClient,
-		network: 'testnet',
-	});
-
-	// Step 3: Fetch and log the renewal price list
-	const renewalPriceList = await suinsClient.getPriceList();
-	const price = suinsClient.calculatePrice({
-		name: 'example.sui',
-		years: 2,
-		priceList: renewalPriceList,
-	});
-	console.log(price);
-})();

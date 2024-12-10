@@ -44,8 +44,8 @@
 		"node": ">=16"
 	},
 	"dependencies": {
-		"@mysten/sui": "^1.16.2",
-		"@pythnetwork/pyth-sui-js": "^2.1.0"
+		"@mysten/sui": "1.16.0",
+		"@pythnetwork/pyth-sui-js": "2.1.0"
 	},
 	"devDependencies": {
 		"@types/tmp": "^0.2.6",
