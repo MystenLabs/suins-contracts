@@ -11,7 +11,7 @@ import {
 	MAINNET_CONFIG,
 	TESTNET_CONFIG,
 } from './constants.js';
-import { isSubName, parsePriceListFromConfig, validateYears } from './helpers.js';
+import { isSubName, validateYears } from './helpers.js';
 import type { Constants, NameRecord, SuinsClientConfig, SuinsPriceList } from './types.js';
 
 /// The SuinsClient is the main entry point for the Suins SDK.
@@ -62,20 +62,28 @@ export class SuinsClient {
 			},
 		});
 
+		// Ensure the content exists and is a MoveStruct with expected fields
 		if (
-			priceList?.data?.content?.dataType !== 'moveObject' ||
-			!('value' in priceList.data.content.fields)
-		)
-			throw new Error('Price list not found');
+			!priceList?.data?.content ||
+			priceList.data.content.dataType !== 'moveObject' ||
+			!('fields' in priceList.data.content)
+		) {
+			throw new Error('Price list not found or content is invalid');
+		}
 
-		const contentArray = priceList.data.content.fields.value.fields.pricing.fields.contents;
+		// Safely extract fields
+		const fields = priceList.data.content.fields as Record<string, any>;
+		if (!fields.value || !fields.value.fields || !fields.value.fields.pricing) {
+			throw new Error('Pricing fields not found in the price list');
+		}
+
+		const contentArray = fields.value.fields.pricing.fields.contents;
 		const priceMap = new Map();
 
 		for (const entry of contentArray) {
 			const keyFields = entry.fields.key.fields;
-			const key = [Number(keyFields.pos0), Number(keyFields.pos1)];
-
-			const value = Number(entry.fields.value);
+			const key = [Number(keyFields.pos0), Number(keyFields.pos1)]; // Convert keys to numbers
+			const value = Number(entry.fields.value); // Convert value to a number
 
 			priceMap.set(key, value);
 		}
@@ -83,6 +91,16 @@ export class SuinsClient {
 		return priceMap;
 	}
 
+	/**
+	 * Returns the renewal price list for SuiNS names.
+	 */
+
+	// Format:
+	// {
+	// 	[ 3, 3 ] => 500000000,
+	// 	[ 4, 4 ] => 100000000,
+	// 	[ 5, 63 ] => 20000000
+	// }
 	async getRenewalPriceList(): Promise<any> {
 		if (!this.constants.suinsObjectId) throw new Error('Suins object ID is not set');
 		if (!this.constants.suinsPackageId) throw new Error('Price list config not found');
@@ -102,20 +120,31 @@ export class SuinsClient {
 			!priceList ||
 			!priceList.data ||
 			!priceList.data.content ||
+			priceList.data.content.dataType !== 'moveObject' ||
 			!('fields' in priceList.data.content)
-		)
-			throw new Error('Price list not found');
+		) {
+			throw new Error('Price list not found or content structure is invalid');
+		}
 
-		const contentArray =
-			priceList.data.content.fields.value.fields.config.fields.pricing.fields.contents;
+		// Safely extract fields
+		const fields = priceList.data.content.fields as Record<string, any>;
+		if (
+			!fields.value ||
+			!fields.value.fields ||
+			!fields.value.fields.config ||
+			!fields.value.fields.config.fields.pricing ||
+			!fields.value.fields.config.fields.pricing.fields.contents
+		) {
+			throw new Error('Pricing fields not found in the price list');
+		}
 
+		const contentArray = fields.value.fields.config.fields.pricing.fields.contents;
 		const priceMap = new Map();
 
 		for (const entry of contentArray) {
 			const keyFields = entry.fields.key.fields;
-			const key = [Number(keyFields.pos0), Number(keyFields.pos1)];
-
-			const value = Number(entry.fields.value);
+			const key = [Number(keyFields.pos0), Number(keyFields.pos1)]; // Convert keys to numbers
+			const value = Number(entry.fields.value); // Convert value to a number
 
 			priceMap.set(key, value);
 		}
@@ -191,25 +220,25 @@ export class SuinsClient {
 	}
 }
 
-// Initialize and execute the SuinsClient to fetch the renewal price list
-(async () => {
-	// Step 1: Create a SuiClient instance
-	const suiClient = new SuiClient({
-		url: 'https://fullnode.testnet.sui.io', // Sui testnet endpoint
-	});
+// // Initialize and execute the SuinsClient to fetch the renewal price list
+// (async () => {
+// 	// Step 1: Create a SuiClient instance
+// 	const suiClient = new SuiClient({
+// 		url: 'https://fullnode.testnet.sui.io', // Sui testnet endpoint
+// 	});
 
-	// Step 2: Create a SuinsClient instance using TESTNET_CONFIG
-	const suinsClient = new SuinsClient({
-		client: suiClient,
-		network: 'testnet',
-		packageIds: TESTNET_CONFIG, // Use predefined TESTNET_CONFIG
-	});
+// 	// Step 2: Create a SuinsClient instance using TESTNET_CONFIG
+// 	const suinsClient = new SuinsClient({
+// 		client: suiClient,
+// 		network: 'testnet',
+// 		packageIds: TESTNET_CONFIG, // Use predefined TESTNET_CONFIG
+// 	});
 
-	// Step 3: Fetch and log the renewal price list
-	try {
-		const renewalPriceList = await suinsClient.getRenewalPriceList();
-		console.log(renewalPriceList);
-	} catch (error) {
-		console.error('Error fetching renewal price list');
-	}
-})();
+// 	// Step 3: Fetch and log the renewal price list
+// 	try {
+// 		const renewalPriceList = await suinsClient.getRenewalPriceList();
+// 		console.log(renewalPriceList);
+// 	} catch (error) {
+// 		console.error('Error fetching renewal price list');
+// 	}
+// })();

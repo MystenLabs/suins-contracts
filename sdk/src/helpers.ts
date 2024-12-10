@@ -22,14 +22,3 @@ export function isNestedSubName(name: string): boolean {
 export function validateYears(years: number) {
 	if (!(years > 0 && years < 6)) throw new Error('Years must be between 1 and 5');
 }
-
-/**
- * A helper to parse the price list from the config object.
- */
-export function parsePriceListFromConfig(contents: Record<string, any>) {
-	return {
-		threeLetters: Number(contents?.fields?.three_char_price),
-		fourLetters: Number(contents?.fields?.four_char_price),
-		fivePlusLetters: Number(contents?.fields?.five_plus_char_price),
-	};
-}
