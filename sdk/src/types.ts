@@ -41,11 +41,7 @@ export type SuinsClientConfig = {
 /**
  * The price list for SuiNS names.
  */
-export type SuinsPriceList = {
-	threeLetters: number;
-	fourLetters: number;
-	fivePlusLetters: number;
-};
+export type SuinsPriceList = Map<[number, number], number>;
 
 /**
  * A NameRecord entry of SuiNS Names.

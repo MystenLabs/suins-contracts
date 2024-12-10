@@ -38,7 +38,7 @@ export class SuinsClient {
 	}
 
 	/**
-	 * Returns the price list for SuiNS names.
+	 * Returns the price list for SuiNS names in the base asset.
 	 */
 
 	// Format:
@@ -47,7 +47,7 @@ export class SuinsClient {
 	// 	[ 4, 4 ] => 100000000,
 	// 	[ 5, 63 ] => 20000000
 	// }
-	async getPriceList(): Promise<any> {
+	async getPriceList(): Promise<SuinsPriceList> {
 		if (!this.constants.suinsObjectId) throw new Error('Suins object ID is not set');
 		if (!this.constants.suinsPackageId) throw new Error('Price list config not found');
 
@@ -92,7 +92,7 @@ export class SuinsClient {
 	}
 
 	/**
-	 * Returns the renewal price list for SuiNS names.
+	 * Returns the renewal price list for SuiNS names in the base asset.
 	 */
 
 	// Format:
@@ -101,7 +101,7 @@ export class SuinsClient {
 	// 	[ 4, 4 ] => 100000000,
 	// 	[ 5, 63 ] => 20000000
 	// }
-	async getRenewalPriceList(): Promise<any> {
+	async getRenewalPriceList(): Promise<SuinsPriceList> {
 		if (!this.constants.suinsObjectId) throw new Error('Suins object ID is not set');
 		if (!this.constants.suinsPackageId) throw new Error('Price list config not found');
 
@@ -152,43 +152,44 @@ export class SuinsClient {
 		return priceMap;
 	}
 
-	async getNameRecord(name: string): Promise<NameRecord | null> {
-		if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
-		if (!this.constants.suinsPackageId) throw new Error('Suins package ID is not set');
-		if (!this.constants.registryTableId) throw new Error('Registry table ID is not set');
+	// async getNameRecord(name: string): Promise<any> {
+	// 	if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
+	// 	if (!this.constants.suinsPackageId) throw new Error('Suins package ID is not set');
 
-		const nameRecord = await this.#client.getDynamicFieldObject({
-			parentId: this.constants.registryTableId,
-			name: {
-				type: getDomainType(this.constants.suinsPackageId.v1),
-				value: normalizeSuiNSName(name, 'dot').split('.').reverse(),
-			},
-		});
-		const fields = nameRecord.data?.content;
+	// 	const nameRecord = await this.#client.getDynamicFieldObject({
+	// 		parentId: this.constants.suinsObjectId!,
+	// 		name: {
+	// 			type: getDomainType(this.constants.suinsPackageId.v1),
+	// 			value: normalizeSuiNSName(name, 'dot').split('.').reverse(),
+	// 		},
+	// 	});
 
-		// in case the name record is not found, return null
-		if (nameRecord.error?.code === 'dynamicFieldNotFound') return null;
+	// 	return nameRecord;
+	// 	// const fields = nameRecord.data?.content;
 
-		if (nameRecord.error || !fields || fields.dataType !== 'moveObject')
-			throw new Error('Name record not found. This domain is not registered.');
-		const content = fields.fields as Record<string, any>;
+	// 	// // in case the name record is not found, return null
+	// 	// if (nameRecord.error?.code === 'dynamicFieldNotFound') return null;
 
-		const data: Record<string, string> = {};
-		content.value.fields.data.fields.contents.forEach((item: any) => {
-			// @ts-ignore-next-line
-			data[item.fields.key as string] = item.fields.value;
-		});
+	// 	// if (nameRecord.error || !fields || fields.dataType !== 'moveObject')
+	// 	// 	throw new Error('Name record not found. This domain is not registered.');
+	// 	// const content = fields.fields as Record<string, any>;
 
-		return {
-			name,
-			nftId: content.value.fields?.nft_id,
-			targetAddress: content.value.fields?.target_address!,
-			expirationTimestampMs: content.value.fields?.expiration_timestamp_ms,
-			data,
-			avatar: data.avatar,
-			contentHash: data.content_hash,
-		};
-	}
+	// 	// const data: Record<string, string> = {};
+	// 	// content.value.fields.data.fields.contents.forEach((item: any) => {
+	// 	// 	// @ts-ignore-next-line
+	// 	// 	data[item.fields.key as string] = item.fields.value;
+	// 	// });
+
+	// 	// return {
+	// 	// 	name,
+	// 	// 	nftId: content.value.fields?.nft_id,
+	// 	// 	targetAddress: content.value.fields?.target_address!,
+	// 	// 	expirationTimestampMs: content.value.fields?.expiration_timestamp_ms,
+	// 	// 	data,
+	// 	// 	avatar: data.avatar,
+	// 	// 	contentHash: data.content_hash,
+	// 	// };
+	// }
 
 	/**
 	 * Calculates the registration or renewal price for an SLD (Second Level Domain).
@@ -209,14 +210,25 @@ export class SuinsClient {
 		years: number;
 		priceList: SuinsPriceList;
 	}) {
-		if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
+		if (!isValidSuiNSName(name)) {
+			throw new Error('Invalid SuiNS name');
+		}
 		validateYears(years);
-		if (isSubName(name)) throw new Error('Subdomains do not have a registration fee');
+
+		if (isSubName(name)) {
+			throw new Error('Subdomains do not have a registration fee');
+		}
 
 		const length = normalizeSuiNSName(name, 'dot').split('.')[0].length;
-		if (length === 3) return years * priceList.threeLetters;
-		if (length === 4) return years * priceList.fourLetters;
-		return years * priceList.fivePlusLetters;
+
+		for (const [[minLength, maxLength], pricePerYear] of priceList.entries()) {
+			if (length >= minLength && length <= maxLength) {
+				return years * pricePerYear;
+			}
+		}
+
+		// If no matching range is found, throw an error
+		throw new Error('No price available for the given name length');
 	}
 }
 
@@ -235,10 +247,11 @@ export class SuinsClient {
 // 	});
 
 // 	// Step 3: Fetch and log the renewal price list
-// 	try {
-// 		const renewalPriceList = await suinsClient.getRenewalPriceList();
-// 		console.log(renewalPriceList);
-// 	} catch (error) {
-// 		console.error('Error fetching renewal price list');
-// 	}
+// 	const renewalPriceList = await suinsClient.getPriceList();
+// 	const price = suinsClient.calculatePrice({
+// 		name: 'example.sui',
+// 		years: 2,
+// 		priceList: renewalPriceList,
+// 	});
+// 	console.log(price);
 // })();
