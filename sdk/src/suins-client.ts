@@ -8,32 +8,29 @@ import {
 	getDomainType,
 	getPricelistConfigType,
 	getRenewalPricelistConfigType,
-	MAINNET_CONFIG,
-	TESTNET_CONFIG,
+	mainPackage,
 } from './constants.js';
 import { isSubName, validateYears } from './helpers.js';
-import type { Constants, NameRecord, SuinsClientConfig, SuinsPriceList } from './types.js';
+import type { NameRecord, PackageInfo, SuinsClientConfig, SuinsPriceList } from './types.js';
+import { Network } from './types.js';
 
 /// The SuinsClient is the main entry point for the Suins SDK.
 /// It allows you to interact with SuiNS.
 export class SuinsClient {
-	#client: SuiClient;
-	constants: Constants = {};
+	client: SuiClient;
+	network: Network;
+	config: PackageInfo;
 
 	constructor(config: SuinsClientConfig) {
-		this.#client = config.client;
-		const network = config.network || 'mainnet';
+		this.client = config.client;
+		this.network = config.network || 'mainnet';
 
-		if (network === 'mainnet') {
-			this.constants = MAINNET_CONFIG;
-		}
-
-		if (network === 'testnet') {
-			this.constants = TESTNET_CONFIG;
-		}
-
-		if (config.packageIds) {
-			this.constants = { ...(this.constants || {}), ...config.packageIds };
+		if (this.network === 'mainnet') {
+			this.config = mainPackage.mainnet;
+		} else if (this.network === 'testnet') {
+			this.config = mainPackage.testnet;
+		} else {
+			throw new Error('Invalid network');
 		}
 	}
 
@@ -48,16 +45,13 @@ export class SuinsClient {
 	// 	[ 5, 63 ] => 20000000
 	// }
 	async getPriceList(): Promise<SuinsPriceList> {
-		if (!this.constants.suinsObjectId) throw new Error('Suins object ID is not set');
-		if (!this.constants.suinsPackageId) throw new Error('Price list config not found');
+		if (!this.config.suins) throw new Error('Suins object ID is not set');
+		if (!this.config.packageId) throw new Error('Price list config not found');
 
-		const priceList = await this.#client.getDynamicFieldObject({
-			parentId: this.constants.suinsObjectId,
+		const priceList = await this.client.getDynamicFieldObject({
+			parentId: this.config.suins,
 			name: {
-				type: getConfigType(
-					this.constants.suinsPackageId.latest,
-					getPricelistConfigType(this.constants.suinsPackageId.latest),
-				),
+				type: getConfigType(this.config.packageId, getPricelistConfigType(this.config.packageId)),
 				value: { dummy_field: false },
 			},
 		});
@@ -102,15 +96,15 @@ export class SuinsClient {
 	// 	[ 5, 63 ] => 20000000
 	// }
 	async getRenewalPriceList(): Promise<SuinsPriceList> {
-		if (!this.constants.suinsObjectId) throw new Error('Suins object ID is not set');
-		if (!this.constants.suinsPackageId) throw new Error('Price list config not found');
+		if (!this.config.suins) throw new Error('Suins object ID is not set');
+		if (!this.config.packageId) throw new Error('Price list config not found');
 
-		const priceList = await this.#client.getDynamicFieldObject({
-			parentId: this.constants.suinsObjectId,
+		const priceList = await this.client.getDynamicFieldObject({
+			parentId: this.config.suins,
 			name: {
 				type: getConfigType(
-					this.constants.suinsPackageId.v1,
-					getRenewalPricelistConfigType(this.constants.suinsPackageId.latest),
+					this.config.packageId,
+					getRenewalPricelistConfigType(this.config.packageId),
 				),
 				value: { dummy_field: false },
 			},
@@ -232,26 +226,25 @@ export class SuinsClient {
 	}
 }
 
-// // Initialize and execute the SuinsClient to fetch the renewal price list
-// (async () => {
-// 	// Step 1: Create a SuiClient instance
-// 	const suiClient = new SuiClient({
-// 		url: 'https://fullnode.testnet.sui.io', // Sui testnet endpoint
-// 	});
+// Initialize and execute the SuinsClient to fetch the renewal price list
+(async () => {
+	// Step 1: Create a SuiClient instance
+	const suiClient = new SuiClient({
+		url: 'https://fullnode.testnet.sui.io', // Sui testnet endpoint
+	});
 
-// 	// Step 2: Create a SuinsClient instance using TESTNET_CONFIG
-// 	const suinsClient = new SuinsClient({
-// 		client: suiClient,
-// 		network: 'testnet',
-// 		packageIds: TESTNET_CONFIG, // Use predefined TESTNET_CONFIG
-// 	});
+	// Step 2: Create a SuinsClient instance using TESTNET_CONFIG
+	const suinsClient = new SuinsClient({
+		client: suiClient,
+		network: 'testnet',
+	});
 
-// 	// Step 3: Fetch and log the renewal price list
-// 	const renewalPriceList = await suinsClient.getPriceList();
-// 	const price = suinsClient.calculatePrice({
-// 		name: 'example.sui',
-// 		years: 2,
-// 		priceList: renewalPriceList,
-// 	});
-// 	console.log(price);
-// })();
+	// Step 3: Fetch and log the renewal price list
+	const renewalPriceList = await suinsClient.getPriceList();
+	const price = suinsClient.calculatePrice({
+		name: 'example.sui',
+		years: 2,
+		priceList: renewalPriceList,
+	});
+	console.log(price);
+})();

@@ -14,14 +14,51 @@ export type VersionedPackageId = {
 	[key: string]: string;
 };
 
-// A list of constants
-export type Constants = {
-	suinsPackageId?: VersionedPackageId;
-	suinsObjectId?: string;
-	registryTableId?: string;
-	utilsPackageId?: string;
-	subNamesPackageId?: string;
-	tempSubNamesProxyPackageId?: string;
+export type Config = Record<'mainnet' | 'testnet', PackageInfo>;
+
+export type DiscordConfig = {
+	packageId: string;
+	discordCap: string;
+	discordObjectId: string;
+	discordTableId: string;
+};
+
+export type PackageInfo = {
+	packageId: string;
+	registrationPackageId: string;
+	upgradeCap?: string;
+	publisherId: string;
+	adminAddress: string;
+	adminCap: string;
+	suins: string;
+	displayObject?: string;
+	directSetupPackageId: string;
+	discountsPackage: {
+		packageId: string;
+		discountHouseId: string;
+	};
+	renewalsPackageId: string;
+	subNamesPackageId: string;
+	tempSubdomainsProxyPackageId: string;
+	discord: DiscordConfig | undefined;
+	coupons: {
+		packageId: string;
+	};
+	treasuryAddress?: string;
+	payments: {
+		packageId: string;
+	};
+	pyth: {
+		pythStateId: string;
+		wormholeStateId: string;
+	};
+	coins: {
+		[key: string]: {
+			type: string;
+			metadataID: string;
+			feed: string;
+		};
+	};
 };
 
 // The config for the SuinsClient.
@@ -35,7 +72,7 @@ export type SuinsClientConfig = {
 	 * We can pass in custom PackageIds if we want this to
 	 * be functional on localnet, devnet, or any other deployment.
 	 */
-	packageIds?: Constants;
+	config?: Config;
 };
 
 /**
