@@ -10,6 +10,18 @@ Use the MVR CLI to manage your package dependencies and to interact with the Mov
 
 ## Installation
 
+There are several ways to install the MVR CLI tool.
+
+### Cargo
+
+Use the following command to install using Cargo:
+
+```sh
+cargo install --locked --git https://github.com/mystenlabs/mvr --branch release mvr
+```
+
+### From binaries
+
 Download the correct binary file for your OS and architecture from the [MVR GitHub release page](https://github.com/MystenLabs/mvr/releases/latest):
 
 After downloading the file, rename the binary to `mvr` and add its location to your system `PATH` variable.
@@ -63,9 +75,28 @@ After downloading the file, rename the binary to `mvr` and add its location to y
   </Tabs.Tab>
 </Tabs>
 
+### From source
+
+To install from source:
+
+1. Clone the `mvr` repository.
+    ```sh
+    git clone https://github.com/mystenlabs/mvr.git
+    ```
+1. Open a console or terminal to the `mvr/mvr-cli` directory of the repo and install with the `cargo` command.
+    ```sh
+    cd mvr/mvr-cli && 
+    ```
+1. Use `cargo` to install from current directory.
+    ```sh
+    cargo install --path .
+    ```
+
+<div class="nx-pt-6">
 <Callout>
-Use a terminal or console to verify installation by typing `mvr --help` and pressing <kbd>Enter</kbd>. If your operating system does not recognize the command, then retry the installation steps.
+After completing your install from one of the above methods, use a terminal or console to verify installation by typing `mvr --help` and pressing <kbd>Enter</kbd>. If your operating system does not recognize the command, then retry the installation steps.
 </Callout>
+</div>
 
 ## Adding dependencies
 
