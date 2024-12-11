@@ -3,7 +3,7 @@
     "developer": "Developer",
     "user": "User",
     "node-operator": "Node Operator",
-    "move-registry": "Move Registry (Beta)",
+    "move-registry": "Move Registry (Experimental)",
     "dashboard": {
         "title": "SuiNS Dashboard ↗",
         "type": "page",
