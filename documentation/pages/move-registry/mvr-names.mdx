@@ -1,11 +1,88 @@
 import Beta from '../../components/beta'
+import { Callout } from 'nextra/components';
 
 <Beta/>
 
-# Managing MVR names
+# Managing MVR names (Mainnet only)
 
-[TODO!!!: Add sui client ptb commands to:
+<Callout type="warning">
+    These examples assume that you use the MVR plugin for the Sui Typescript SDK, as described in the  [`Typescript SDK`](/move-registry/tooling/typescript-sdk) section.
+</Callout>
 
-1. Create a new MVR app by presenting a SuiNS name and a package name.
-2. Linking a MVR app with a `PackageInfo` object.
-]
+## Creating a new application
+
+To create a new application, you must provide a SuiNS name and a package name, as long as it is not 
+already registered.
+
+```typescript
+const transaction = new Transaction();
+
+const appCap = transaction.moveCall({
+    target: `@mvr/core::move_registry::register`,
+    arguments: [
+        // the registry obj: Can also be resolved as `registry-obj@mvr` from mainnet SuiNS.
+        transaction.object('0x0e5d473a055b6b7d014af557a13ad9075157fdc19b6d51562a18511afd397727'),
+        transaction.object(suinsObjectId),
+        transaction.pure.string(name),
+        transaction.object.clock(),
+    ],
+});
+
+// we can then use the appCap to attach packages directly, or transfer (e.g. to a safe address)
+// and register packages later.
+```
+
+## Attaching a Mainnet package to an application
+
+When attaching a Mainnet package to an application, you must provide the `PackageInfo` object.
+This call is permanent, so after a `PackageInfo` object is attached to an application, it cannot be 
+detached in the future. Consequently, an app is always linked to a specific package.
+
+```typescript
+// we can then use the appCap to attach packages directly, or transfer (e.g. to a safe address)
+// and register packages later.
+
+const transaction = new Transaction();
+
+ transaction.moveCall({
+    target: `@mvr/core::move_registry::assign_package`,
+    arguments: [
+        // the registry obj: Can also be resolved as `registry-obj@mvr` from mainnet SuiNS.
+        transaction.object(`0x0e5d473a055b6b7d014af557a13ad9075157fdc19b6d51562a18511afd397727`),
+        transaction.object('<The AppCap object>'),
+        transaction.object('<The PackageInfo object on mainnet>'),
+    ],
+});
+```
+
+## Attaching a non-Mainnet package to an application
+
+For non-Mainnet networks, you only attach a "pointer" to the package, instead of strict binding (which wouldn't be possible).
+
+<Callout>
+You can always update an external network by first calling `@mvr/core::move_registry::unset_network`, and then calling `@mvr/core::move_registry::set_network` again.
+</Callout>
+
+```typescript
+const transaction = new Transaction();
+
+const appInfo = transaction.moveCall({
+    target: `@mvr/core::app_info::new`,
+    arguments: [
+        transaction.pure.option("address", '<The objectId of the `PackageInfo` object on the external network>'),
+        transaction.pure.option("address", '<The address of the package on the external network>'),
+        transaction.pure.option("address", null),
+    ],
+});
+
+transaction.moveCall({
+    target: `@mvr/core::move_registry::set_network`,
+    arguments: [
+        // the registry obj: Can also be resolved as `registry-obj@mvr` from mainnet SuiNS.
+        transaction.object('0x0e5d473a055b6b7d014af557a13ad9075157fdc19b6d51562a18511afd397727'),
+        transaction.object('<The AppCap object>'),
+        transaction.pure.string("<chain id of the network: use `4c78adac` for testnet>"),
+        appInfo,
+    ],
+});
+```
