@@ -1,0 +1,48 @@
+import Beta from '../../components/beta'
+import { Callout } from 'nextra/components'
+
+<Beta/>
+
+# Design of the Move Registry
+
+The Move Registry (MVR, pronounced "mover") consists of two independent components:
+
+- `PackageInfo` registration: Exists independently on each network.
+- MVR registration: A single source of truth located on Mainnet.
+
+The following diagram shows the MVR design at a high level.
+
+![High level design](/images/mvr/mvr-overall.svg)
+
+## PackageInfo objects
+
+The first step when publishing a package is to register its metadata object. This metadata object serves as a key source of information for:
+
+1. Locating the source code across different versions of the package.
+2. (Future) Providing text-based metadata (title, description, tags) for the package, which the MVR search engine can use.
+
+This metadata object can be reused when authorizing any package upgrades to supply source information for the new version. 
+Sui indexers can index the metadata as it cannot be stored within another object.
+
+![Package Info Objects](/images/mvr/mvr-package-info.svg)
+
+See [Managing Package Metadata](./managing-package-info.mdx) for examples of working with `PackageInfo` objects. 
+
+## MVR registration
+
+MVR registration is separate from the `PackageInfo` registration process. This separation is necessary because the `PackageInfo` object acts as both the source of truth for package metadata and a proof of package ownership, whereas MVR registers applications that MVR tooling can resolve.
+
+To register a package:
+
+1. Using your SuiNS name, register an application.
+2. Based on the network, associate the application name with a `PackageInfo` object:
+- **Mainnet:** Associate the application name with a complete `PackageInfo` object, which provides the full metadata and ownership proof.
+- **Other networks:** Associate the application name with the `PackageInfo` object ID, acting as a pointer without ensuring a full mapping.
+
+![Move Registry](/images/mvr/mvr-registry.svg)
+
+<Callout type="info" emoji="ℹ️">
+The registry that stores name resolution for MVR exists only on Mainnet
+</Callout>
+
+See [Managing MVR Names](./mvr-names.mdx) for examples of MVR registration.
