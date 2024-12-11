@@ -16,7 +16,16 @@ This also applies to type names, especially across package upgrades.
 
 The MVR plugin is exported directly from the `@mysten/sui` package. To enable the plugin, register it either globally or per PTB in your dApp.
 
-[TODO: Add the public good endpoints]
+### Endpoints
+
+MystenLabs provides a public good endpoint compatible with the MVR plugin.
+     
+```
+Mainnet: https://mvr-rpc.sui-mainnet.mystenlabs.com/graphql
+Testnet: https://mvr-rpc.sui-testnet.mystenlabs.com/graphql
+```
+
+### Register the plugin
 
 ```typescript
 import { namedPackagesPlugin, Transaction } from "@mysten/sui/transactions";
