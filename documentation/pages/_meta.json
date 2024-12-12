@@ -1,7 +1,6 @@
 {
     "index": "SuiNS Documentation",
-    "dao-constitution": "DAO Constitution",
-    "dao": "DAO Proposals and Voting Procedure",
+    "dao": "SuiNS DAO",
     "developer": "Developer",
     "user": "User",
     "node-operator": "Node Operator",
