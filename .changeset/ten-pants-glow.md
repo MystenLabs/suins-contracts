@@ -1,5 +1,5 @@
 ---
-"@mysten/sui": patch
+"@mysten/suins": patch
 ---
 
-Update `@mysten/sui` dependency to 1.17.0.
+Update sui dependency to 1.17.0.
