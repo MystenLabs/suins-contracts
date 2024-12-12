@@ -111,7 +111,7 @@ export const Packages = (network: Network) => {
 						prices: [
 							500 * Number(MIST_PER_USDC),
 							100 * Number(MIST_PER_USDC),
-							20 * Number(MIST_PER_USDC),
+							10 * Number(MIST_PER_USDC),
 						],
 					}),
 					type: `${packageId}::pricing_config::PricingConfig`,
@@ -130,9 +130,9 @@ export const Packages = (network: Network) => {
 							[5, 63],
 						],
 						prices: [
-							250 * Number(MIST_PER_USDC),
+							150 * Number(MIST_PER_USDC),
 							50 * Number(MIST_PER_USDC),
-							10 * Number(MIST_PER_USDC),
+							5 * Number(MIST_PER_USDC),
 						],
 					}),
 					type: `${packageId}::pricing_config::RenewalConfig`,
@@ -275,8 +275,8 @@ export const Packages = (network: Network) => {
 					packageId,
 					coinTypeAndDiscount: [
 						[config.coins.USDC, 0],
-						[config.coins.SUI, 5],
-						[config.coins.NS, 10],
+						[config.coins.SUI, 0],
+						[config.coins.NS, 25],
 					],
 					baseCurrencyType: config.coins.USDC.type,
 					maxAge: MAX_AGE,

@@ -163,4 +163,4 @@ export const mainPackage: Config = {
 };
 
 export const MIST_PER_USDC = 1000000;
-export const MAX_AGE = 60; // In seconds, 60 seconds as max age for last price, can be updated
+export const MAX_AGE = 300; // In seconds, 60 seconds as max age for last price, can be updated
