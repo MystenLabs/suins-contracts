@@ -82,7 +82,7 @@ export class SuinsTransaction {
 	// 	return nft;
 	// }
 
-	registerPTB = async (
+	register = async (
 		domain: string,
 		years: number,
 		coinConfig: { type: string; metadataID: string; feed: string },
@@ -111,10 +111,10 @@ export class SuinsTransaction {
 			coinConfig,
 			options,
 		);
-		const nft = tx.add(this.register(receipt));
+		const nft = tx.add(this.finalizeRegister(receipt));
 
 		if (years > 1) {
-			return this.renewPTB(nft, years - 1, coinConfig, {
+			return this.renew(nft, years - 1, coinConfig, {
 				...options,
 				infoObjectId: priceInfoObjectId,
 				tx,
@@ -124,7 +124,7 @@ export class SuinsTransaction {
 		return nft as TransactionObjectArgument;
 	};
 
-	renewPTB = async (
+	renew = async (
 		nft: string | TransactionObjectArgument,
 		years: number,
 		coinConfig: { type: string; metadataID: string; feed: string },
@@ -158,7 +158,7 @@ export class SuinsTransaction {
 			coinConfig,
 			options,
 		);
-		tx.add(this.renew(receipt, nftObject));
+		tx.add(this.finalizeRenew(receipt, nftObject));
 
 		if (transferNft) {
 			return nft;
@@ -187,7 +187,11 @@ export class SuinsTransaction {
 		const tx = this.transaction;
 		const config = this.suinsClient.config;
 		// Initialize connection to the Sui Price Service
-		const connection = new SuiPriceServiceConnection('https://hermes-beta.pyth.network');
+		const endpoint =
+			this.suinsClient.network === 'testnet'
+				? 'https://hermes-beta.pyth.network'
+				: 'https://hermes.pyth.network';
+		const connection = new SuiPriceServiceConnection(endpoint);
 
 		// List of price feed IDs
 		const priceIDs = [
@@ -263,7 +267,8 @@ export class SuinsTransaction {
 			});
 		};
 
-	register = (receipt: TransactionObjectArgument) => (tx: Transaction) => {
+	// rename to finalize
+	finalizeRegister = (receipt: TransactionObjectArgument) => (tx: Transaction) => {
 		const config = this.suinsClient.config;
 		return tx.moveCall({
 			target: `${config.packageId}::payment::register`,
@@ -271,7 +276,7 @@ export class SuinsTransaction {
 		});
 	};
 
-	renew =
+	finalizeRenew =
 		(receipt: TransactionObjectArgument, nft: TransactionObjectArgument) => (tx: Transaction) => {
 			const config = this.suinsClient.config;
 			return tx.moveCall({
