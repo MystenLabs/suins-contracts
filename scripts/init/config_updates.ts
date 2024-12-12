@@ -4,13 +4,19 @@
 import { Transaction } from '@mysten/sui/transactions';
 
 import { mainPackage, MIST_PER_USDC, Network } from '../config/constants';
-import { addConfig, newPriceConfigV2, newRenewalConfig, removeConfig } from '../init/authorization';
+import {
+	addConfig,
+	newPaymentsConfig,
+	newPriceConfigV2,
+	newRenewalConfig,
+	removeConfig,
+} from '../init/authorization';
 import { signAndExecute } from '../utils/utils';
 
 const network = (process.env.NETWORK as Network) || 'testnet';
 const config = mainPackage[network];
 
-const updateconfig = () => {
+const updateConfig = () => {
 	const tx = new Transaction();
 	const pricingType = `${config.packageId}::pricing_config::PricingConfig`;
 	const renewalType = `${config.packageId}::pricing_config::RenewalConfig`;
@@ -74,4 +80,40 @@ const updateconfig = () => {
 	return signAndExecute(tx, network);
 };
 
-updateconfig();
+const updatePaymentsConfig = () => {
+	const tx = new Transaction();
+	const paymentsType = `${config.payments.packageId}::payments::PaymentsConfig`;
+
+	removeConfig({
+		txb: tx,
+		adminCap: config.adminCap,
+		suins: config.suins,
+		type: paymentsType,
+		suinsPackageIdV1: config.packageId,
+	});
+
+	const paymentsconfig = newPaymentsConfig({
+		txb: tx,
+		packageId: config.payments.packageId,
+		coinTypeAndDiscount: [
+			[config.coins.USDC, 0],
+			[config.coins.SUI, 0],
+			[config.coins.NS, 25],
+		],
+		baseCurrencyType: config.coins.USDC.type,
+		maxAge: 300,
+	});
+	addConfig({
+		txb: tx,
+		adminCap: config.adminCap,
+		suins: config.suins,
+		suinsPackageIdV1: config.packageId,
+		config: paymentsconfig,
+		type: paymentsType,
+	});
+
+	return signAndExecute(tx, network);
+};
+
+// updateConfig();
+// updatePaymentsConfig();
