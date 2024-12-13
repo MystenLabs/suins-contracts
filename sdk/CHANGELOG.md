@@ -1,5 +1,11 @@
 # @mysten/suins
 
+## 0.4.2
+
+### Patch Changes
+
+- 1bc5c4e: Update sui dependency to 1.17.0.
+
 ## 0.4.1
 
 ### Patch Changes
