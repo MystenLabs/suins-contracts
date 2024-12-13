@@ -4,6 +4,7 @@ import { SuiClient } from '@mysten/sui/client';
 import { isValidSuiNSName, normalizeSuiNSName } from '@mysten/sui/utils';
 
 import {
+	getCoinDiscountConfigType,
 	getConfigType,
 	getDomainType,
 	getPricelistConfigType,
@@ -11,7 +12,13 @@ import {
 	mainPackage,
 } from './constants.js';
 import { isSubName, validateYears } from './helpers.js';
-import type { NameRecord, PackageInfo, SuinsClientConfig, SuinsPriceList } from './types.js';
+import type {
+	CoinTypeDiscount,
+	NameRecord,
+	PackageInfo,
+	SuinsClientConfig,
+	SuinsPriceList,
+} from './types.js';
 import { Network } from './types.js';
 
 /// The SuinsClient is the main entry point for the Suins SDK.
@@ -144,6 +151,72 @@ export class SuinsClient {
 		}
 
 		return priceMap;
+	}
+
+	/**
+	 * Returns the coin discount list for SuiNS names.
+	 */
+
+	// Format:
+	// {
+	// 	'b48aac3f53bab328e1eb4c5b3c34f55e760f2fb3f2305ee1a474878d80f650f0::TESTUSDC::TESTUSDC' => 0,
+	// 	'0000000000000000000000000000000000000000000000000000000000000002::sui::SUI' => 0,
+	// 	'b48aac3f53bab328e1eb4c5b3c34f55e760f2fb3f2305ee1a474878d80f650f0::TESTNS::TESTNS' => 25
+	// }
+	async getCoinTypeDiscount(): Promise<any> {
+		//Promise<CoinTypeDiscount> {
+		if (!this.config.suins) throw new Error('Suins object ID is not set');
+		if (!this.config.packageId) throw new Error('Price list config not found');
+
+		const dfValue = await this.client.getDynamicFieldObject({
+			parentId: this.config.suins,
+			name: {
+				type: getConfigType(
+					this.config.packageId,
+					getCoinDiscountConfigType(this.config.payments.packageId),
+				),
+				value: { dummy_field: false },
+			},
+		});
+
+		if (
+			!dfValue ||
+			!dfValue.data ||
+			!dfValue.data.content ||
+			dfValue.data.content.dataType !== 'moveObject' ||
+			!('fields' in dfValue.data.content)
+		) {
+			throw new Error('dfValue not found or content structure is invalid');
+		}
+
+		// Safely extract fields
+		const fields = dfValue.data.content.fields as Record<string, any>;
+		if (
+			!fields.value ||
+			!fields.value.fields ||
+			!fields.value.fields.base_currency ||
+			!fields.value.fields.base_currency.fields ||
+			!fields.value.fields.base_currency.fields.name ||
+			!fields.value.fields.currencies ||
+			!fields.value.fields.currencies.fields ||
+			!fields.value.fields.currencies.fields.contents
+		) {
+			throw new Error('Required fields are missing in dfValue');
+		}
+
+		// Safely extract content
+		const content = fields.value.fields;
+		const otherCurrenciesArray = content.currencies.fields.contents;
+		const discountMap = new Map();
+
+		for (const entry of otherCurrenciesArray) {
+			const key = entry.fields.key.fields.name;
+			const value = Number(entry.fields.value.fields.discount_percentage);
+
+			discountMap.set(key, value);
+		}
+
+		return discountMap;
 	}
 
 	// async getNameRecord(name: string): Promise<any> {

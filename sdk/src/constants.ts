@@ -25,6 +25,9 @@ export const getPricelistConfigType = (suinsPackageId: string) =>
 export const getRenewalPricelistConfigType = (suinsPackageId: string) =>
 	`${suinsPackageId}::pricing_config::RenewalConfig`;
 
+export const getCoinDiscountConfigType = (paymentPackageId: string) =>
+	`${paymentPackageId}::payments::PaymentsConfig`;
+
 export const mainPackage: Config = {
 	mainnet: {
 		packageId: '0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0',

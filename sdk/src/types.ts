@@ -81,6 +81,11 @@ export type SuinsClientConfig = {
 export type SuinsPriceList = Map<[number, number], number>;
 
 /**
+ * The coin type and discount for SuiNS names.
+ */
+export type CoinTypeDiscount = Map<string, number>;
+
+/**
  * A NameRecord entry of SuiNS Names.
  */
 export type NameRecord = {
