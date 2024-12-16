@@ -1,6 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+import * as fs from 'fs';
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
 import { Transaction, TransactionObjectArgument } from '@mysten/sui/transactions';
 import { SuiPriceServiceConnection, SuiPythClient } from '@pythnetwork/pyth-sui-js';
@@ -37,8 +38,29 @@ export const getPriceInfoObject = async (tx: Transaction, feed: string) => {
 		feed, // ASSET/USD price ID
 	];
 
+	// Initialize Sui Client and Pyth Client
+	const wormholeStateId = config.pyth.wormholeStateId;
+	const pythStateId = config.pyth.pythStateId;
+	const suiClient = new SuiClient({
+		url: getFullnodeUrl(network),
+	});
+
+	const client = new SuiPythClient(suiClient, pythStateId, wormholeStateId);
+
 	// Fetch price feed update data
 	const priceUpdateData = await connection.getPriceFeedsUpdateData(priceIDs);
+
+	return await client.updatePriceFeeds(tx, priceUpdateData, priceIDs); // returns priceInfoObjectIds
+};
+
+export const createPriceFeed = async (feed: string) => {
+	const tx = new Transaction();
+	const connection = new SuiPriceServiceConnection('https://hermes-beta.pyth.network');
+
+	// List of price feed IDs
+	const feeds = [
+		feed, // ASSET/USD price ID
+	];
 
 	// Initialize Sui Client and Pyth Client
 	const wormholeStateId = config.pyth.wormholeStateId;
@@ -49,8 +71,30 @@ export const getPriceInfoObject = async (tx: Transaction, feed: string) => {
 
 	const client = new SuiPythClient(suiClient, pythStateId, wormholeStateId);
 
-	// Implement this inside sdk
-	return await client.updatePriceFeeds(tx, priceUpdateData, priceIDs); // returns priceInfoObjectIds
+	// Fetch price feed update data
+	const newFeeds = [];
+	const existingFeeds = [];
+	let updateData;
+	for (const feed of feeds) {
+		if ((await client.getPriceFeedObjectId(feed)) == undefined) {
+			newFeeds.push(feed);
+		} else {
+			existingFeeds.push(feed);
+		}
+	}
+	console.log({
+		newFeeds,
+		existingFeeds,
+	});
+	if (existingFeeds.length > 0) {
+		updateData = await connection.getPriceFeedsUpdateData(existingFeeds);
+		await client.updatePriceFeeds(tx, updateData, existingFeeds);
+	}
+	if (newFeeds.length > 0) {
+		updateData = await connection.getPriceFeedsUpdateData(newFeeds);
+		await client.createPriceFeed(tx, updateData);
+	}
+	return signAndExecute(tx, network);
 };
 
 export const calculatePrice =
@@ -257,25 +301,25 @@ export const exampleRenewal = async (
 
 /// Note: For free registration/renewals, use USDC
 
-/// Example registration using USDC, with discountNft
+// / Example registration using USDC, with discountNft
 // exampleRegistration(
-// 	'ajjdfksadsskdddddsddsssddddddsd.sui', // Domain to register
+// 	'ajjdfksadsskdddddsddsssssddddddsd.sui', // Domain to register
 // 	4,
 // 	config.coins.USDC,
 // 	{
 // 		coinId: '0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
-// 		discountNft: '0x6612ccfe862e62ff581cd886db1e61cc335ebcde6ec4e4a4a3bdfda9b92f0b28',
+// 		discountNft: '0x2e6b7c80e311c579d5a73496086a43145c7d3f314211d733e20eb0749e67b734',
 // 	},
 // );
 
 /// Example registration using USDC, with coupon code
 // exampleRegistration(
-// 	'ajjdsskdddddsdassdssddddddddsd.sui', // Domain to register
-// 	4,
+// 	'aba.sui', // Domain to register
+// 	2,
 // 	config.coins.USDC,
 // 	{
 // 		coinId: '0xbdebb008a4434884fa799cda40ed3c26c69b2345e0643f841fe3f8e78ecdac46',
-// 		couponCode: 'fiveplus15percentoff',
+// 		// couponCode: 'fiveplus15percentoff',
 // 	},
 // );
 
@@ -290,8 +334,11 @@ export const exampleRenewal = async (
 // );
 
 /// Example registration using SUI
-// exampleRegistration('ajadsadddsdssafaaaddddsssssssaasd.sui', 4, config.coins.SUI, {
-// 	couponCode: 'fiveplus15percentoff',
+// exampleRegistration('ajasdsssssmmdaaaadsafsaaaaaddsssaaasd.sui', 2, config.coins.SUI);
+
+/// Example registration using NS
+// exampleRegistration('ajasddsafaaaddsssddssaaaasd.sui', 3, config.coins.NS, {
+// 	coinId: '0x8211160f8d782d11bdcfbe625880bc3d944ddb09b4a815278263260b037cd509',
 // });
 
 //// Example renewal using SUI
