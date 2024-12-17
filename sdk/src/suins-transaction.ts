@@ -478,11 +478,11 @@ export class SuinsTransaction {
 	};
 
 	setTargetAddress({
-		nft,
+		nft, // Can be string or argument
 		address,
 		isSubname,
 	}: {
-		nft: TransactionObjectArgument;
+		nft: any;
 		address?: string;
 		isSubname?: boolean;
 	}) {
@@ -491,13 +491,15 @@ export class SuinsTransaction {
 		if (isSubname && !this.suinsClient.config.tempSubdomainsProxyPackageId)
 			throw new Error('Subnames proxy package ID not found');
 
+		const nftObject = typeof nft === 'string' ? this.transaction.object(nft) : nft;
+
 		this.transaction.moveCall({
 			target: isSubname
 				? `${this.suinsClient.config.tempSubdomainsProxyPackageId}::subdomain_proxy::set_target_address`
 				: `${this.suinsClient.config.utils.packageId}::direct_setup::set_target_address`,
 			arguments: [
 				this.transaction.object(this.suinsClient.config.suins),
-				nft,
+				nftObject,
 				this.transaction.pure(bcs.option(bcs.Address).serialize(address).toBytes()),
 				this.transaction.object(SUI_CLOCK_OBJECT_ID),
 			],
@@ -574,38 +576,40 @@ export class SuinsTransaction {
 		});
 	}
 
-	// setUserData({
-	// 	nft,
-	// 	value,
-	// 	key,
-	// 	isSubname,
-	// }: {
-	// 	nft: ObjectArgument;
-	// 	value: string;
-	// 	key: string;
-	// 	isSubname?: boolean;
-	// }) {
-	// 	if (!this.suinsClient.config.suins) throw new Error('SuiNS Object ID not found');
-	// 	if (!isSubname && !this.suinsClient.config.utilsPackageId)
-	// 		throw new Error('Utils package ID not found');
-	// 	if (isSubname && !this.suinsClient.config.tempSubNamesProxyPackageId)
-	// 		throw new Error('Subnames proxy package ID not found');
+	setUserData({
+		nft,
+		value,
+		key,
+		isSubname,
+	}: {
+		nft: any;
+		value: string;
+		key: string;
+		isSubname?: boolean;
+	}) {
+		if (!this.suinsClient.config.suins) throw new Error('SuiNS Object ID not found');
+		if (!isSubname && !this.suinsClient.config.utils?.packageId)
+			throw new Error('Utils package ID not found');
+		if (isSubname && !this.suinsClient.config.tempSubdomainsProxyPackageId)
+			throw new Error('Subnames proxy package ID not found');
 
-	// 	if (!Object.values(ALLOWED_METADATA).some((x) => x === key)) throw new Error('Invalid key');
+		const nftObject = typeof nft === 'string' ? this.transaction.object(nft) : nft;
 
-	// 	this.transaction.moveCall({
-	// 		target: isSubname
-	// 			? `${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::set_user_data`
-	// 			: `${this.#suinsClient.constants.utilsPackageId}::direct_setup::set_user_data`,
-	// 		arguments: [
-	// 			this.transaction.object(this.#suinsClient.constants.suinsObjectId),
-	// 			this.transaction.object(nft),
-	// 			this.transaction.pure.string(key),
-	// 			this.transaction.pure.string(value),
-	// 			this.transaction.object(SUI_CLOCK_OBJECT_ID),
-	// 		],
-	// 	});
-	// }
+		if (!Object.values(ALLOWED_METADATA).some((x) => x === key)) throw new Error('Invalid key');
+
+		this.transaction.moveCall({
+			target: isSubname
+				? `${this.suinsClient.config.tempSubdomainsProxyPackageId}::subdomain_proxy::set_user_data`
+				: `${this.suinsClient.config.utils?.packageId}::direct_setup::set_user_data`,
+			arguments: [
+				this.transaction.object(this.suinsClient.config.suins),
+				nftObject,
+				this.transaction.pure.string(key),
+				this.transaction.pure.string(value),
+				this.transaction.object(SUI_CLOCK_OBJECT_ID),
+			],
+		});
+	}
 
 	/**
 	 * Burns an expired NFT to collect storage rebates.
