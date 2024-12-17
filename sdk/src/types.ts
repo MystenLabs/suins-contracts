@@ -52,6 +52,9 @@ export type PackageInfo = {
 		pythStateId: string;
 		wormholeStateId: string;
 	};
+	utils?: {
+		packageId: string;
+	};
 	coins: {
 		[key: string]: {
 			type: string;

@@ -206,10 +206,10 @@ export class SuinsClient {
 
 		// Safely extract content
 		const content = fields.value.fields;
-		const otherCurrenciesArray = content.currencies.fields.contents;
+		const currencyDiscounts = content.currencies.fields.contents;
 		const discountMap = new Map();
 
-		for (const entry of otherCurrenciesArray) {
+		for (const entry of currencyDiscounts) {
 			const key = entry.fields.key.fields.name;
 			const value = Number(entry.fields.value.fields.discount_percentage);
 

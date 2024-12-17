@@ -525,48 +525,47 @@ export class SuinsTransaction {
 		return execSync(`${SUI} client active-address`, { encoding: 'utf8' }).trim();
 	};
 
-	// setTargetAddress({
-	// 	nft,
-	// 	address,
-	// 	isSubname,
-	// }: {
-	// 	nft: ObjectArgument;
-	// 	address?: string;
-	// 	isSubname?: boolean;
-	// }) {
-	// 	if (!this.suinsClient.config.suinsObjectId) throw new Error('SuiNS Object ID not found');
-	// 	if (!this.suinsClient.config.utilsPackageId) throw new Error('Utils package ID not found');
+	setTargetAddress({
+		nft,
+		address,
+		isSubname,
+	}: {
+		nft: ObjectArgument;
+		address?: string;
+		isSubname?: boolean;
+	}) {
+		if (!this.suinsClient.config.suins) throw new Error('SuiNS Object ID not found');
 
-	// 	if (isSubname && !this.suinsClient.config.tempSubNamesProxyPackageId)
-	// 		throw new Error('Subnames proxy package ID not found');
+		if (isSubname && !this.suinsClient.config.tempSubdomainsProxyPackageId)
+			throw new Error('Subnames proxy package ID not found');
 
-	// 	this.transaction.moveCall({
-	// 		target: isSubname
-	// 			? `${this.suinsClient.config.tempSubdomainsProxyPackageId}::subdomain_proxy::set_target_address`
-	// 			: `${this.suinsClient.config.utilsPackageId}::direct_setup::set_target_address`,
-	// 		arguments: [
-	// 			this.transaction.object(this.suinsClient.config.suins),
-	// 			this.transaction.object(nft),
-	// 			this.transaction.pure(bcs.option(bcs.Address).serialize(address).toBytes()),
-	// 			this.transaction.object(SUI_CLOCK_OBJECT_ID),
-	// 		],
-	// 	});
-	// }
+		this.transaction.moveCall({
+			target: isSubname
+				? `${this.suinsClient.config.tempSubdomainsProxyPackageId}::subdomain_proxy::set_target_address`
+				: `${this.suinsClient.config.packageId}::controller::set_target_address`,
+			arguments: [
+				this.transaction.object(this.suinsClient.config.suins),
+				this.transaction.object(nft),
+				this.transaction.pure(bcs.option(bcs.Address).serialize(address).toBytes()),
+				this.transaction.object(SUI_CLOCK_OBJECT_ID),
+			],
+		});
+	}
 
-	// /** Marks a name as default */
-	// setDefault(name: string) {
-	// 	if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
-	// 	if (!this.suinsClient.config.suins) throw new Error('SuiNS Object ID not found');
-	// 	if (!this.suinsClient.config.) throw new Error('Utils package ID not found');
+	/** Marks a name as default */
+	setDefault(name: string) {
+		if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
+		if (!this.suinsClient.config.suins) throw new Error('SuiNS Object ID not found');
+		if (!this.suinsClient.config.utils) throw new Error('Utils package ID not found');
 
-	// 	this.transaction.moveCall({
-	// 		target: `${this.suinsClient.config.utilsPackageId}::direct_setup::set_reverse_lookup`,
-	// 		arguments: [
-	// 			this.transaction.object(this.suinsClient.config.suins),
-	// 			this.transaction.pure.string(normalizeSuiNSName(name, 'dot')),
-	// 		],
-	// 	});
-	// }
+		this.transaction.moveCall({
+			target: `${this.suinsClient.config.packageId}::controller::set_reverse_lookup`,
+			arguments: [
+				this.transaction.object(this.suinsClient.config.suins),
+				this.transaction.pure.string(normalizeSuiNSName(name, 'dot')),
+			],
+		});
+	}
 
 	editSetup({
 		parentNft,
