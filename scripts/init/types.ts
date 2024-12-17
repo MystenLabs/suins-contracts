@@ -12,6 +12,7 @@ export type PackageInfo = {
 	Discounts: Package & {
 		discountHouse: string;
 	};
+	Payments: Package;
 	TempSubdomainProxy: Package;
 };
 

@@ -5,11 +5,15 @@ import { SuiTransactionBlockResponse } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
 import { MIST_PER_SUI } from '@mysten/sui/utils';
 
+import { Config, mainPackage, MAX_AGE, MIST_PER_USDC } from '../config/constants';
 import {
 	addConfig,
 	addRegistry,
 	newLookupRegistry,
-	newPriceConfig,
+	newPaymentsConfig,
+	newPriceConfigV1,
+	newPriceConfigV2,
+	newRenewalConfig,
 	setupApp,
 } from './authorization';
 import { createDisplay } from './display_tp';
@@ -80,7 +84,7 @@ export const Packages = (network: Network) => {
 					adminCap,
 					suins,
 					suinsPackageIdV1: packageId,
-					config: newPriceConfig({
+					config: newPriceConfigV1({
 						txb,
 						suinsPackageIdV1: packageId,
 						priceList: {
@@ -90,6 +94,48 @@ export const Packages = (network: Network) => {
 						},
 					}),
 					type: `${packageId}::config::Config`,
+				});
+				addConfig({
+					txb,
+					adminCap,
+					suins,
+					suinsPackageIdV1: packageId,
+					config: newPriceConfigV2({
+						txb,
+						packageId,
+						ranges: [
+							[3, 3],
+							[4, 4],
+							[5, 63],
+						],
+						prices: [
+							500 * Number(MIST_PER_USDC),
+							100 * Number(MIST_PER_USDC),
+							10 * Number(MIST_PER_USDC),
+						],
+					}),
+					type: `${packageId}::pricing_config::PricingConfig`,
+				});
+				addConfig({
+					txb,
+					adminCap,
+					suins,
+					suinsPackageIdV1: packageId,
+					config: newRenewalConfig({
+						txb,
+						packageId,
+						ranges: [
+							[3, 3],
+							[4, 4],
+							[5, 63],
+						],
+						prices: [
+							150 * Number(MIST_PER_USDC),
+							50 * Number(MIST_PER_USDC),
+							5 * Number(MIST_PER_USDC),
+						],
+					}),
+					type: `${packageId}::pricing_config::RenewalConfig`,
 				});
 				// create display for names
 				createDisplay({
@@ -156,48 +202,6 @@ export const Packages = (network: Network) => {
 			},
 			authorizationType: (packageId: string) => `${packageId}::register::Register`,
 		},
-		Renewal: {
-			order: 2,
-			folder: 'renewal',
-			manifest: SuiNSDependentPackages(rev, 'renewal'),
-			processPublish: (data: SuiTransactionBlockResponse) => {
-				const { packageId, upgradeCap } = parseCorePackageObjects(data);
-
-				return {
-					packageId,
-					upgradeCap,
-				};
-			},
-			authorizationType: (packageId: string) => `${packageId}::renew::Renew`,
-			setupFunction: ({
-				txb,
-				packageId,
-				adminCap,
-				suinsPackageIdV1,
-				suins,
-				priceList,
-			}: {
-				txb: Transaction;
-				packageId: string;
-				suinsPackageIdV1: string;
-				adminCap: string;
-				suins: string;
-				priceList: { [key: string]: number };
-			}) => {
-				const configuration = newPriceConfig({
-					txb,
-					suinsPackageIdV1,
-					priceList,
-				});
-				setupApp({
-					txb,
-					adminCap,
-					suins: suins,
-					target: `${packageId}::renew::setup`,
-					args: [configuration],
-				});
-			},
-		},
 		DayOne: {
 			order: 2,
 			folder: 'day_one',
@@ -237,6 +241,54 @@ export const Packages = (network: Network) => {
 				suins: string;
 			}) => {
 				setupApp({ txb, adminCap, suins, target: `${packageId}::coupon_house` });
+			},
+		},
+		Payments: {
+			order: 2,
+			folder: 'payments',
+			manifest: SuiNSDependentPackages(rev, 'payments'),
+			processPublish: (data: SuiTransactionBlockResponse) => {
+				const { packageId, upgradeCap } = parseCorePackageObjects(data);
+
+				return {
+					packageId,
+					upgradeCap,
+				};
+			},
+			authorizationType: (packageId: string) => `${packageId}::payments::PaymentsApp`,
+			setupFunction: ({
+				txb,
+				packageId,
+				adminCap,
+				suins,
+				suinsPackageIdV1,
+			}: {
+				txb: Transaction;
+				packageId: string;
+				adminCap: string;
+				suins: string;
+				suinsPackageIdV1: string;
+			}) => {
+				const config = mainPackage[network as keyof Config];
+				const paymentsconfig = newPaymentsConfig({
+					txb,
+					packageId,
+					coinTypeAndDiscount: [
+						[config.coins.USDC, 0],
+						[config.coins.SUI, 0],
+						[config.coins.NS, 25],
+					],
+					baseCurrencyType: config.coins.USDC.type,
+					maxAge: MAX_AGE,
+				});
+				addConfig({
+					txb,
+					adminCap,
+					suins,
+					suinsPackageIdV1,
+					config: paymentsconfig,
+					type: `${packageId}::payments::PaymentsConfig`,
+				});
 			},
 		},
 		Subdomains: {
@@ -285,7 +337,7 @@ export const Packages = (network: Network) => {
 					discountHouse,
 				};
 			},
-			authorizationType: (packageId: string) => `${packageId}::house::DiscountHouseApp`,
+			authorizationType: (packageId: string) => `${packageId}::discounts::RegularDiscountsApp`,
 		},
 		TempSubdomainProxy: {
 			order: 3,
