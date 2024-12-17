@@ -34,54 +34,6 @@ export class SuinsTransaction {
 		this.transaction = transaction;
 	}
 
-	/**
-	 * Constructs the transaction to renew a name.
-	 * Expects the nftId (or a transactionArgument), the number of years to renew
-	 * as well as the length category of the domain.
-	 *
-	 * This only applies for SLDs (Second Level Domains) (e.g. example.sui, test.sui).
-	 * You can use `getSecondLevelDomainCategory` to get the category of a domain.
-	 */
-	// renew({ nftId, price, years }: { nftId: ObjectArgument; price: number; years: number }) {
-	// 	if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
-	// 	validateYears(years);
-
-	// 	this.transaction.moveCall({
-	// 		target: `${this.#suinsClient.constants.renewalPackageId}::renew::renew`,
-	// 		arguments: [
-	// 			this.transaction.object(this.#suinsClient.constants.suinsObjectId),
-	// 			this.transaction.object(nftId),
-	// 			this.transaction.pure.u8(years),
-	// 			this.transaction.splitCoins(this.transaction.gas, [this.transaction.pure.u64(price)]),
-	// 			this.transaction.object(SUI_CLOCK_OBJECT_ID),
-	// 		],
-	// 	});
-	// }
-
-	/**
-	 * Registers a new SLD name.
-	 *
-	 * You can get the price by calling `getPrice` on the SuinsClient.
-	 */
-	// register({ name, price, years }: { name: string; price: number; years: number }) {
-	// 	if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
-	// 	if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
-	// 	validateYears(years);
-
-	// 	const nft = this.transaction.moveCall({
-	// 		target: `${this.#suinsClient.constants.registrationPackageId}::register::register`,
-	// 		arguments: [
-	// 			this.transaction.object(this.#suinsClient.constants.suinsObjectId),
-	// 			this.transaction.pure.string(normalizeSuiNSName(name, 'dot')),
-	// 			this.transaction.pure.u8(years),
-	// 			this.transaction.splitCoins(this.transaction.gas, [this.transaction.pure.u64(price)]),
-	// 			this.transaction.object(SUI_CLOCK_OBJECT_ID),
-	// 		],
-	// 	});
-
-	// 	return nft;
-	// }
-
 	register = async (
 		domain: string,
 		years: number,
