@@ -219,44 +219,43 @@ export class SuinsClient {
 		return discountMap;
 	}
 
-	// async getNameRecord(name: string): Promise<any> {
-	// 	if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
-	// 	if (!this.constants.suinsPackageId) throw new Error('Suins package ID is not set');
+	async getNameRecord(name: string): Promise<any> {
+		if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
+		if (!this.config.registryTableId) throw new Error('Suins package ID is not set');
 
-	// 	const nameRecord = await this.#client.getDynamicFieldObject({
-	// 		parentId: this.constants.suinsObjectId!,
-	// 		name: {
-	// 			type: getDomainType(this.constants.suinsPackageId.v1),
-	// 			value: normalizeSuiNSName(name, 'dot').split('.').reverse(),
-	// 		},
-	// 	});
+		const nameRecord = await this.client.getDynamicFieldObject({
+			parentId: this.config.registryTableId,
+			name: {
+				type: getDomainType(this.config.packageId),
+				value: normalizeSuiNSName(name, 'dot').split('.').reverse(),
+			},
+		});
 
-	// 	return nameRecord;
-	// 	// const fields = nameRecord.data?.content;
+		const fields = nameRecord.data?.content;
 
-	// 	// // in case the name record is not found, return null
-	// 	// if (nameRecord.error?.code === 'dynamicFieldNotFound') return null;
+		// in case the name record is not found, return null
+		if (nameRecord.error?.code === 'dynamicFieldNotFound') return null;
 
-	// 	// if (nameRecord.error || !fields || fields.dataType !== 'moveObject')
-	// 	// 	throw new Error('Name record not found. This domain is not registered.');
-	// 	// const content = fields.fields as Record<string, any>;
+		if (nameRecord.error || !fields || fields.dataType !== 'moveObject')
+			throw new Error('Name record not found. This domain is not registered.');
+		const content = fields.fields as Record<string, any>;
 
-	// 	// const data: Record<string, string> = {};
-	// 	// content.value.fields.data.fields.contents.forEach((item: any) => {
-	// 	// 	// @ts-ignore-next-line
-	// 	// 	data[item.fields.key as string] = item.fields.value;
-	// 	// });
+		const data: Record<string, string> = {};
+		content.value.fields.data.fields.contents.forEach((item: any) => {
+			// @ts-ignore-next-line
+			data[item.fields.key as string] = item.fields.value;
+		});
 
-	// 	// return {
-	// 	// 	name,
-	// 	// 	nftId: content.value.fields?.nft_id,
-	// 	// 	targetAddress: content.value.fields?.target_address!,
-	// 	// 	expirationTimestampMs: content.value.fields?.expiration_timestamp_ms,
-	// 	// 	data,
-	// 	// 	avatar: data.avatar,
-	// 	// 	contentHash: data.content_hash,
-	// 	// };
-	// }
+		return {
+			name,
+			nftId: content.value.fields?.nft_id,
+			targetAddress: content.value.fields?.target_address!,
+			expirationTimestampMs: content.value.fields?.expiration_timestamp_ms,
+			data,
+			avatar: data.avatar,
+			contentHash: data.content_hash,
+		};
+	}
 
 	/**
 	 * Calculates the registration or renewal price for an SLD (Second Level Domain).

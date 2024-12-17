@@ -607,22 +607,22 @@ export class SuinsTransaction {
 	// 	});
 	// }
 
-	// /**
-	//  * Burns an expired NFT to collect storage rebates.
-	//  */
-	// burnExpired({ nft, isSubname }: { nft: ObjectArgument; isSubname?: boolean }) {
-	// 	if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
-	// 	if (!this.#suinsClient.constants.utilsPackageId) throw new Error('Utils package ID not found');
+	/**
+	 * Burns an expired NFT to collect storage rebates.
+	 */
+	burnExpired({ nft, isSubname }: { nft: ObjectArgument; isSubname?: boolean }) {
+		if (!this.suinsClient.config.suins) throw new Error('SuiNS Object ID not found');
+		if (!this.suinsClient.config.utils?.packageId) throw new Error('Utils package ID not found');
 
-	// 	this.transaction.moveCall({
-	// 		target: `${this.#suinsClient.constants.utilsPackageId}::direct_setup::${
-	// 			isSubname ? 'burn_expired_subname' : 'burn_expired'
-	// 		}`,
-	// 		arguments: [
-	// 			this.transaction.object(this.#suinsClient.constants.suinsObjectId),
-	// 			this.transaction.object(nft),
-	// 			this.transaction.object(SUI_CLOCK_OBJECT_ID),
-	// 		],
-	// 	});
-	// }
+		this.transaction.moveCall({
+			target: `${this.suinsClient.config.utils.packageId}::direct_setup::${
+				isSubname ? 'burn_expired_subname' : 'burn_expired'
+			}`,
+			arguments: [
+				this.transaction.object(this.suinsClient.config.suins),
+				this.transaction.object(nft),
+				this.transaction.object(SUI_CLOCK_OBJECT_ID),
+			],
+		});
+	}
 }

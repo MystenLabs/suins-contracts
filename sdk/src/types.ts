@@ -48,6 +48,7 @@ export type PackageInfo = {
 	payments: {
 		packageId: string;
 	};
+	registryTableId?: string;
 	pyth: {
 		pythStateId: string;
 		wormholeStateId: string;

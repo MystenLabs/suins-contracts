@@ -113,6 +113,7 @@ export const mainPackage: Config = {
 		payments: {
 			packageId: '0xe1c0778c7097e727a0dee47ce87a18671456ddbdb1b2dabc027c99dd0a6c2395',
 		},
+		registryTableId: '0xa353bcf5adea89def84920513cf888c9d78f304cfd8476a1d831d72c0f92309d',
 		pyth: {
 			pythStateId: '0x243759059f4c3111179da5878c12f68d612c21a8d54d85edc86164bb18be1c7c',
 			wormholeStateId: '0x31358d198147da50db32eda2562951d53973a0c0ad5ed738e9b17d88b213d790',
