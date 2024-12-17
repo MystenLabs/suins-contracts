@@ -219,7 +219,7 @@ export class SuinsClient {
 		return discountMap;
 	}
 
-	async getNameRecord(name: string): Promise<any> {
+	async getNameRecord(name: string): Promise<NameRecord | null> {
 		if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
 		if (!this.config.registryTableId) throw new Error('Suins package ID is not set');
 
