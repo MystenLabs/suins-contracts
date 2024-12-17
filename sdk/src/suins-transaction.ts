@@ -113,7 +113,7 @@ export class SuinsTransaction {
 		tx.add(this.finalizeRenew(receipt, nftObject));
 
 		if (transferNft) {
-			return nft;
+			return nft as TransactionObjectArgument;
 		}
 
 		return null;
@@ -482,11 +482,11 @@ export class SuinsTransaction {
 		address,
 		isSubname,
 	}: {
-		nft: ObjectArgument;
+		nft: TransactionObjectArgument;
 		address?: string;
 		isSubname?: boolean;
 	}) {
-		if (!this.suinsClient.config.suins) throw new Error('SuiNS Object ID not found');
+		if (!this.suinsClient.config.utils?.packageId) throw new Error('SuiNS Object ID not found');
 
 		if (isSubname && !this.suinsClient.config.tempSubdomainsProxyPackageId)
 			throw new Error('Subnames proxy package ID not found');
@@ -494,10 +494,10 @@ export class SuinsTransaction {
 		this.transaction.moveCall({
 			target: isSubname
 				? `${this.suinsClient.config.tempSubdomainsProxyPackageId}::subdomain_proxy::set_target_address`
-				: `${this.suinsClient.config.packageId}::controller::set_target_address`,
+				: `${this.suinsClient.config.utils.packageId}::direct_setup::set_target_address`,
 			arguments: [
 				this.transaction.object(this.suinsClient.config.suins),
-				this.transaction.object(nft),
+				nft,
 				this.transaction.pure(bcs.option(bcs.Address).serialize(address).toBytes()),
 				this.transaction.object(SUI_CLOCK_OBJECT_ID),
 			],
@@ -508,10 +508,10 @@ export class SuinsTransaction {
 	setDefault(name: string) {
 		if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
 		if (!this.suinsClient.config.suins) throw new Error('SuiNS Object ID not found');
-		if (!this.suinsClient.config.utils) throw new Error('Utils package ID not found');
+		if (!this.suinsClient.config.utils?.packageId) throw new Error('Utils package ID not found');
 
 		this.transaction.moveCall({
-			target: `${this.suinsClient.config.packageId}::controller::set_reverse_lookup`,
+			target: `${this.suinsClient.config.utils?.packageId}::direct_setup::set_reverse_lookup`,
 			arguments: [
 				this.transaction.object(this.suinsClient.config.suins),
 				this.transaction.pure.string(normalizeSuiNSName(name, 'dot')),
