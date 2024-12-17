@@ -131,7 +131,7 @@ fun validate_labels(labels: &vector<String>) {
 
 fun is_valid_label(label: &String): bool {
     let len = label.length();
-    let label_bytes = label.bytes();
+    let label_bytes = label.as_bytes();
     let mut index = 0;
 
     if (!(len >= MIN_LABEL_LENGTH && len <= MAX_LABEL_LENGTH)) {
@@ -162,7 +162,7 @@ fun split_by_dot(mut s: String): vector<String> {
     let mut parts: vector<String> = vector[];
     while (!s.is_empty()) {
         let index_of_next_dot = s.index_of(&dot);
-        let part = s.sub_string(0, index_of_next_dot);
+        let part = s.substring(0, index_of_next_dot);
         parts.push_back(part);
 
         let len = s.length();
@@ -172,7 +172,7 @@ fun split_by_dot(mut s: String): vector<String> {
             index_of_next_dot + 1
         };
 
-        s = s.sub_string(start_of_next_part, len);
+        s = s.substring(start_of_next_part, len);
     };
 
     parts

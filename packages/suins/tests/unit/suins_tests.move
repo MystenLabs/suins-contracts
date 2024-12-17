@@ -14,6 +14,7 @@ use suins::suins::{Self, AdminCap, SuiNS};
 // === Config management ===
 
 public struct TestConfig has store, drop { a: u8 }
+public struct USDC has drop {}
 
 #[test]
 /// Add a configuration; get it back; remove it.
@@ -123,6 +124,47 @@ fun balance_and_withdraw_fail_no_profits() {
     let mut ctx = tx_context::dummy();
     let (mut suins, cap) = suins::new_for_testing(&mut ctx);
     let _withdrawn = suins::withdraw(&cap, &mut suins, &mut ctx);
+
+    abort 1337
+}
+
+#[test]
+fun balance_and_withdraw_v2() {
+    let mut ctx = tx_context::dummy();
+    let (mut suins, cap) = suins::new_for_testing(&mut ctx);
+    suins::authorize_app<TestApp>(&cap, &mut suins);
+
+    let paid = balance::create_for_testing<SUI>(1000);
+    suins.app_add_custom_balance<TestApp, SUI>(TestApp {}, paid);
+
+    let withdrawn = suins.withdraw_custom<SUI>(&cap, &mut ctx);
+    assert_eq(coin::burn_for_testing(withdrawn), 1000);
+
+    wrapup(suins, cap);
+}
+
+#[test, expected_failure(abort_code = ::suins::suins::ENoProfitsInCoinType)]
+/// 1. Authorize TestApp and add to balance;
+/// 2. Admin tries to withdraw an empty balance.
+fun balance_and_withdraw_fail_no_profits_in_type_v2() {
+    let mut ctx = tx_context::dummy();
+    let (mut suins, cap) = suins::new_for_testing(&mut ctx);
+    suins::authorize_app<TestApp>(&cap, &mut suins);
+
+    let paid = balance::create_for_testing<SUI>(1000);
+    suins.app_add_custom_balance<TestApp, SUI>(TestApp {}, paid);
+    let _withdrawn = suins.withdraw_custom<USDC>(&cap, &mut ctx);
+
+    abort 1337
+}
+
+#[test, expected_failure(abort_code = ::suins::suins::ENoProfitsInCoinType)]
+/// 1. Authorize TestApp and add to balance;
+/// 2. Admin tries to withdraw an empty balance.
+fun balance_and_withdraw_fail_no_profits_v2() {
+    let mut ctx = tx_context::dummy();
+    let (mut suins, cap) = suins::new_for_testing(&mut ctx);
+    let _withdrawn = suins.withdraw_custom<SUI>(&cap, &mut ctx);
 
     abort 1337
 }
