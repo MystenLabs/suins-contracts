@@ -122,7 +122,8 @@ export const mainPackage: Config = {
 		},
 		renewalsPackageId: '',
 		subNamesPackageId: '',
-		tempSubdomainsProxyPackageId: '',
+		tempSubdomainsProxyPackageId:
+			'0x5085d1276fecfa9619155c79f28312f3aa62953fe2da6f86a9e9a96d4a6c28f7',
 		discord: {
 			discordCap: '',
 			discordObjectId: '',
