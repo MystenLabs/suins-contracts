@@ -257,6 +257,7 @@ export class SuinsClient {
 		};
 	}
 
+	/// TODO: update this function
 	/**
 	 * Calculates the registration or renewal price for an SLD (Second Level Domain).
 	 * It expects a domain name, the number of years and a `SuinsPriceList` object,
@@ -267,14 +268,14 @@ export class SuinsClient {
 	 * 2. if the name is not a valid SuiNS name
 	 * 3. if the years are not between 1 and 5
 	 */
-	calculatePrice({
+	async calculatePrice({
 		name,
 		years,
-		priceList,
+		isRegistration = true,
 	}: {
 		name: string;
 		years: number;
-		priceList: SuinsPriceList;
+		isRegistration: boolean;
 	}) {
 		if (!isValidSuiNSName(name)) {
 			throw new Error('Invalid SuiNS name');
@@ -286,14 +287,28 @@ export class SuinsClient {
 		}
 
 		const length = normalizeSuiNSName(name, 'dot').split('.')[0].length;
+		const priceList = await this.getPriceList();
+		const renewalPriceList = await this.getRenewalPriceList();
+		let yearsRemain = years;
+		let price = 0;
 
-		for (const [[minLength, maxLength], pricePerYear] of priceList.entries()) {
+		if (isRegistration) {
+			for (const [[minLength, maxLength], pricePerYear] of priceList.entries()) {
+				if (length >= minLength && length <= maxLength) {
+					price += pricePerYear; // Registration is always 1 year
+					break;
+				}
+			}
+			yearsRemain -= 1;
+		}
+
+		for (const [[minLength, maxLength], pricePerYear] of renewalPriceList.entries()) {
 			if (length >= minLength && length <= maxLength) {
-				return years * pricePerYear;
+				price += yearsRemain * pricePerYear;
+				break;
 			}
 		}
 
-		// If no matching range is found, throw an error
-		throw new Error('No price available for the given name length');
+		return price;
 	}
 }
