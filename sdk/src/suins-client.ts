@@ -296,10 +296,10 @@ export class SuinsClient {
 			for (const [[minLength, maxLength], pricePerYear] of priceList.entries()) {
 				if (length >= minLength && length <= maxLength) {
 					price += pricePerYear; // Registration is always 1 year
+					yearsRemain -= 1;
 					break;
 				}
 			}
-			yearsRemain -= 1;
 		}
 
 		for (const [[minLength, maxLength], pricePerYear] of renewalPriceList.entries()) {
