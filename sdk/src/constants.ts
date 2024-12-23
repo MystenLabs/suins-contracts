@@ -98,7 +98,7 @@ export const mainPackage: Config = {
 			discountHouseId: '0x41f20c3960bd78d79c8663f2ac5221a2c131749246f5b3207cd2dcc3a34951e3',
 		},
 		renewalsPackageId: '',
-		subNamesPackageId: '',
+		subNamesPackageId: '0xdbece460aea8e694a0258f6b06bead15db0aa3e71b7e962ea278544cd212f405',
 		tempSubdomainsProxyPackageId:
 			'0x5085d1276fecfa9619155c79f28312f3aa62953fe2da6f86a9e9a96d4a6c28f7',
 		discord: {
