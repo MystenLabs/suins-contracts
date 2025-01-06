@@ -6,7 +6,7 @@ import { Transaction } from '@mysten/sui/transactions';
 import { MIST_PER_SUI } from '@mysten/sui/utils';
 
 import { getClient, signAndExecute } from '../utils/utils';
-import { authorizeApp } from './authorization';
+import { authorizeApp, deauthorizeApp } from './authorization';
 import { Network, Packages } from './packages';
 import { queryRegistryTable } from './queries';
 import { PackageInfo } from './types';
@@ -24,6 +24,15 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 				adminCap: packageInfo.SuiNS.adminCap,
 				suins: packageInfo.SuiNS.suins,
 				type: data.authorizationType(pkg.packageId),
+				suinsPackageIdV1: packageInfo.SuiNS.packageId,
+			});
+		}
+		if (data && 'deAuthorizationType' in data) {
+			deauthorizeApp({
+				txb,
+				adminCap: packageInfo.SuiNS.adminCap,
+				suins: packageInfo.SuiNS.suins,
+				type: data.deAuthorizationType(),
 				suinsPackageIdV1: packageInfo.SuiNS.packageId,
 			});
 		}

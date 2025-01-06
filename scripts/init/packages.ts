@@ -200,20 +200,22 @@ export const Packages = (network: Network) => {
 		// 		setupApp({ txb, adminCap, suins, target: `${packageId}::denylist` });
 		// 	},
 		// },
-		// Registration: {
-		// 	order: 2,
-		// 	folder: 'registration',
-		// 	manifest: SuiNSDependentPackages(rev, 'registration'),
-		// 	processPublish: (data: SuiTransactionBlockResponse) => {
-		// 		const { packageId, upgradeCap } = parseCorePackageObjects(data);
-
-		// 		return {
-		// 			packageId,
-		// 			upgradeCap,
-		// 		};
-		// 	},
-		// 	authorizationType: (packageId: string) => `${packageId}::register::Register`,
-		// },
+		Registration: {
+			order: 2,
+			folder: 'registration',
+			manifest: SuiNSDependentPackages(rev, 'registration'),
+			prevPackageId: null,
+			processPublish: null,
+			deAuthorizationType: () => `${TESTNET_CONFIG.registrationPackageId}::register::Register`,
+		},
+		Renewal: {
+			order: 2,
+			folder: 'renewal',
+			manifest: SuiNSDependentPackages(rev, 'renewal'),
+			prevPackageId: null,
+			processPublish: null,
+			deAuthorizationType: () => `${TESTNET_CONFIG.renewalPackageId}::renew::Renew`,
+		},
 		// DayOne: {
 		// 	order: 2,
 		// 	folder: 'day_one',

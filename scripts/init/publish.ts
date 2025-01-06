@@ -48,7 +48,7 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 				results[key] = data;
 
 				console.info(`Upgraded ${key} with packageId: ${data.packageId}`);
-			} else {
+			} else if (pkg.processPublish) {
 				console.log(`Publishing ${key}...`);
 				console.log(`Package folder: ${pkg.folder}`);
 				const packageFolder = path.resolve(contractsPath, pkg.folder);
