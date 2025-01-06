@@ -166,3 +166,23 @@ export const mainPackage: Config = {
 
 export const MIST_PER_USDC = 1000000;
 export const MAX_AGE = 300; // In seconds, 60 seconds as max age for last price, can be updated
+
+export const TESTNET_CONFIG = {
+	suinsPackageId: {
+		latest: '0x67072134f0867b886c9541873d1cb327feb7e161cd56dd76cb6aa9e464410db1',
+		v1: '0x22fa05f21b1ad71442491220bb9338f7b7095fe35000ef88d5400d28523bdd93',
+		upgradeCap: '0x3cc8afb9eacb68ef64bc1dd4ccfe53fd61284e93c51d7bb93b0371cd12fca8e6',
+		adminCap: '0x5def5bd9dc94b7d418d081a91c533ec619fb4350e6c4e4602aea96fd49331b15',
+	},
+	suinsObjectId: '0x300369e8909b9a6464da265b9a5a9ab6fe2158a040e84e808628cde7a07ee5a3',
+	utilsPackageId: '0x7954ae683314ec7e156acbf0c0fc964ce035fd7f456fe7576848226502cfde1b',
+	registrationPackageId: '0x4255184a0143c0ce4394a3f16a6f5aa5d64507269e54e51ea396d569fe8f1ba5', // Need to be deauthorized
+	renewalPackageId: '0x54800ebb4606fd0c03b4554976264373b3374eeb3fd63e7ff69f31cac786ba8c', // Need to be deauthorized
+	subNamesPackageId: '0x3c272bc45f9157b7818ece4f7411bdfa8af46303b071aca4e18c03119c9ff636',
+	tempSubNamesProxyPackageId: '0xfd5ad004acbd5e3dd4fc0de4f1f1d465f8db5bb2ec1de63694ce6dc887fe1c89',
+	registryTableId: '0xb120c0d55432630fce61f7854795a3463deb6e3b443cc4ae72e1282073ff56e4',
+	coupons: {
+		id: '0x689a2d65a9666921e73ad4d59d13fee0d4be5df1ab5c0eeda8e0f7ebecb6f1b7',
+		upgradeCap: '', // What's the upgradecap for this?
+	},
+};

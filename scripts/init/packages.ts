@@ -5,7 +5,7 @@ import { SuiTransactionBlockResponse } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
 import { MIST_PER_SUI } from '@mysten/sui/utils';
 
-import { Config, mainPackage, MAX_AGE, MIST_PER_USDC } from '../config/constants';
+import { Config, mainPackage, MAX_AGE, MIST_PER_USDC, TESTNET_CONFIG } from '../config/constants';
 import {
 	addConfig,
 	addRegistry,
@@ -21,10 +21,12 @@ import { SuiNS, SuiNSDependentPackages, TempSubdomainProxy } from './manifests';
 
 export type Network = 'mainnet' | 'testnet' | 'devnet' | 'localnet';
 
-const parseCorePackageObjects = (data: SuiTransactionBlockResponse) => {
+const parseCorePackageObjects = (data: SuiTransactionBlockResponse, isUpgrade = false) => {
 	const packageId = data.objectChanges!.find((x) => x.type === 'published');
 	if (!packageId || packageId.type !== 'published') throw new Error('Expected Published object');
-	const upgradeCap = parseCreatedObject(data, '0x2::package::UpgradeCap');
+	const upgradeCap = !isUpgrade
+		? parseCreatedObject(data, '0x2::package::UpgradeCap')
+		: parseMutatedObject(data, '0x2::package::UpgradeCap');
 
 	return {
 		packageId: packageId.packageId,
@@ -39,6 +41,13 @@ const parseCreatedObject = (data: SuiTransactionBlockResponse, objectType: strin
 	return obj.objectId;
 };
 
+const parseMutatedObject = (data: SuiTransactionBlockResponse, objectType: string) => {
+	const obj = data.objectChanges!.find((x) => x.type === 'mutated' && x.objectType === objectType);
+	if (!obj || obj.type !== 'mutated') throw new Error(`Expected ${objectType} object`);
+
+	return obj.objectId;
+};
+
 export const Packages = (network: Network) => {
 	const rev = network === 'localnet' ? 'main' : `framework/${network}`;
 	const subdomainExtraDependencies = `denylist = { local = "../denylist" }`;
@@ -47,17 +56,19 @@ export const Packages = (network: Network) => {
 		SuiNS: {
 			order: 1,
 			folder: 'suins',
+			prevPackageId: TESTNET_CONFIG.suinsPackageId.v1,
+			upgradeCapId: TESTNET_CONFIG.suinsPackageId.upgradeCap,
 			manifest: SuiNS(rev),
 			processPublish: (data: SuiTransactionBlockResponse) => {
-				const { packageId, upgradeCap } = parseCorePackageObjects(data);
-				const publisher = parseCreatedObject(data, '0x2::package::Publisher');
-				const suins = parseCreatedObject(data, `${packageId}::suins::SuiNS`);
-				const adminCap = parseCreatedObject(data, `${packageId}::suins::AdminCap`);
+				const { packageId, upgradeCap } = parseCorePackageObjects(data, true);
+				// const publisher = parseCreatedObject(data, '0x2::package::Publisher');
+				const suins = TESTNET_CONFIG.suinsObjectId;
+				const adminCap = TESTNET_CONFIG.suinsPackageId.adminCap;
 
 				return {
 					packageId,
 					upgradeCap,
-					publisher,
+					// publisher,
 					suins,
 					adminCap,
 				};
@@ -67,34 +78,34 @@ export const Packages = (network: Network) => {
 				packageId: string,
 				adminCap: string,
 				suins: string,
-				publisher: string,
+				// publisher: string,
 			) => {
 				// Adds the default registry where name records and reverse records will live
-				addRegistry({
-					txb,
-					adminCap,
-					suins,
-					suinsPackageIdV1: packageId,
-					registry: newLookupRegistry({ txb, suinsPackageIdV1: packageId, adminCap: adminCap }),
-					type: `${packageId}::registry::Registry`,
-				});
+				// addRegistry({
+				// 	txb,
+				// 	adminCap,
+				// 	suins,
+				// 	suinsPackageIdV1: packageId,
+				// 	registry: newLookupRegistry({ txb, suinsPackageIdV1: packageId, adminCap: adminCap }),
+				// 	type: `${packageId}::registry::Registry`,
+				// });
 				// Adds the configuration file (pricelist and public key)
-				addConfig({
-					txb,
-					adminCap,
-					suins,
-					suinsPackageIdV1: packageId,
-					config: newPriceConfigV1({
-						txb,
-						suinsPackageIdV1: packageId,
-						priceList: {
-							three: 5 * Number(MIST_PER_SUI),
-							four: 2 * Number(MIST_PER_SUI),
-							fivePlus: 0.5 * Number(MIST_PER_SUI),
-						},
-					}),
-					type: `${packageId}::config::Config`,
-				});
+				// addConfig({
+				// 	txb,
+				// 	adminCap,
+				// 	suins,
+				// 	suinsPackageIdV1: packageId,
+				// 	config: newPriceConfigV1({
+				// 		txb,
+				// 		suinsPackageIdV1: packageId,
+				// 		priceList: {
+				// 			three: 5 * Number(MIST_PER_SUI),
+				// 			four: 2 * Number(MIST_PER_SUI),
+				// 			fivePlus: 0.5 * Number(MIST_PER_SUI),
+				// 		},
+				// 	}),
+				// 	type: `${packageId}::config::Config`,
+				// });
 				addConfig({
 					txb,
 					adminCap,
@@ -137,91 +148,94 @@ export const Packages = (network: Network) => {
 					}),
 					type: `${packageId}::pricing_config::RenewalConfig`,
 				});
-				// create display for names
-				createDisplay({
-					txb,
-					publisher,
-					isSubdomain: false,
-					suinsPackageIdV1: packageId,
-					network: 'testnet',
-					subdomainsPackageId: packageId,
-				});
-				// create display for subnames
-				createDisplay({
-					txb,
-					publisher,
-					isSubdomain: true,
-					suinsPackageIdV1: packageId,
-					network: 'testnet',
-					subdomainsPackageId: packageId,
-				});
+				// // create display for names
+				// createDisplay({
+				// 	txb,
+				// 	publisher,
+				// 	isSubdomain: false,
+				// 	suinsPackageIdV1: packageId,
+				// 	network: 'testnet',
+				// 	subdomainsPackageId: packageId,
+				// });
+				// // create display for subnames
+				// createDisplay({
+				// 	txb,
+				// 	publisher,
+				// 	isSubdomain: true,
+				// 	suinsPackageIdV1: packageId,
+				// 	network: 'testnet',
+				// 	subdomainsPackageId: packageId,
+				// });
 			},
+			authorizationType: (packageId: string) => `${packageId}::controller::Controller`, // Authorize the suins controller
 		},
-		Utils: {
-			order: 2,
-			folder: 'utils',
-			manifest: SuiNSDependentPackages(rev, 'utils'),
-			processPublish: (data: SuiTransactionBlockResponse) => {
-				const { packageId, upgradeCap } = parseCorePackageObjects(data);
+		// Utils: {
+		// 	order: 2,
+		// 	folder: 'utils',
+		// 	manifest: SuiNSDependentPackages(rev, 'utils'),
+		// 	processPublish: (data: SuiTransactionBlockResponse) => {
+		// 		const { packageId, upgradeCap } = parseCorePackageObjects(data);
 
-				return {
-					packageId,
-					upgradeCap,
-				};
-			},
-			authorizationType: (packageId: string) => `${packageId}::direct_setup::DirectSetup`,
-		},
-		DenyList: {
-			order: 2,
-			folder: 'denylist',
-			manifest: SuiNSDependentPackages(rev, 'denylist'),
-			processPublish: (data: SuiTransactionBlockResponse) => {
-				const { packageId, upgradeCap } = parseCorePackageObjects(data);
+		// 		return {
+		// 			packageId,
+		// 			upgradeCap,
+		// 		};
+		// 	},
+		// 	authorizationType: (packageId: string) => `${packageId}::direct_setup::DirectSetup`,
+		// },
+		// DenyList: {
+		// 	order: 2,
+		// 	folder: 'denylist',
+		// 	manifest: SuiNSDependentPackages(rev, 'denylist'),
+		// 	processPublish: (data: SuiTransactionBlockResponse) => {
+		// 		const { packageId, upgradeCap } = parseCorePackageObjects(data);
 
-				return {
-					packageId,
-					upgradeCap,
-				};
-			},
-			authorizationType: (packageId: string) => `${packageId}::denylist::DenyListAuth`,
-			setupFunction: (txb: Transaction, packageId: string, adminCap: string, suins: string) => {
-				setupApp({ txb, adminCap, suins, target: `${packageId}::denylist` });
-			},
-		},
-		Registration: {
-			order: 2,
-			folder: 'registration',
-			manifest: SuiNSDependentPackages(rev, 'registration'),
-			processPublish: (data: SuiTransactionBlockResponse) => {
-				const { packageId, upgradeCap } = parseCorePackageObjects(data);
+		// 		return {
+		// 			packageId,
+		// 			upgradeCap,
+		// 		};
+		// 	},
+		// 	authorizationType: (packageId: string) => `${packageId}::denylist::DenyListAuth`,
+		// 	setupFunction: (txb: Transaction, packageId: string, adminCap: string, suins: string) => {
+		// 		setupApp({ txb, adminCap, suins, target: `${packageId}::denylist` });
+		// 	},
+		// },
+		// Registration: {
+		// 	order: 2,
+		// 	folder: 'registration',
+		// 	manifest: SuiNSDependentPackages(rev, 'registration'),
+		// 	processPublish: (data: SuiTransactionBlockResponse) => {
+		// 		const { packageId, upgradeCap } = parseCorePackageObjects(data);
 
-				return {
-					packageId,
-					upgradeCap,
-				};
-			},
-			authorizationType: (packageId: string) => `${packageId}::register::Register`,
-		},
-		DayOne: {
-			order: 2,
-			folder: 'day_one',
-			manifest: SuiNSDependentPackages(rev, 'day_one'),
-			processPublish: (data: SuiTransactionBlockResponse) => {
-				const { packageId, upgradeCap } = parseCorePackageObjects(data);
+		// 		return {
+		// 			packageId,
+		// 			upgradeCap,
+		// 		};
+		// 	},
+		// 	authorizationType: (packageId: string) => `${packageId}::register::Register`,
+		// },
+		// DayOne: {
+		// 	order: 2,
+		// 	folder: 'day_one',
+		// 	manifest: SuiNSDependentPackages(rev, 'day_one'),
+		// 	processPublish: (data: SuiTransactionBlockResponse) => {
+		// 		const { packageId, upgradeCap } = parseCorePackageObjects(data);
 
-				return {
-					packageId,
-					upgradeCap,
-				};
-			},
-			authorizationType: (packageId: string) => `${packageId}::bogo::BogoApp`,
-		},
+		// 		return {
+		// 			packageId,
+		// 			upgradeCap,
+		// 		};
+		// 	},
+		// 	authorizationType: (packageId: string) => `${packageId}::bogo::BogoApp`,
+		// },
 		Coupons: {
 			order: 2,
 			folder: 'coupons',
+			prevPackageId: TESTNET_CONFIG.coupons.id,
+			upgradeCapId: TESTNET_CONFIG.coupons.upgradeCap,
 			manifest: SuiNSDependentPackages(rev, 'coupons'),
 			processPublish: (data: SuiTransactionBlockResponse) => {
-				const { packageId, upgradeCap } = parseCorePackageObjects(data);
+				const { packageId, upgradeCap } = parseCorePackageObjects(data, true);
 
 				return {
 					packageId,
@@ -246,6 +260,8 @@ export const Packages = (network: Network) => {
 		Payments: {
 			order: 2,
 			folder: 'payments',
+			prevPackageId: null,
+			upgradeCapId: null,
 			manifest: SuiNSDependentPackages(rev, 'payments'),
 			processPublish: (data: SuiTransactionBlockResponse) => {
 				const { packageId, upgradeCap } = parseCorePackageObjects(data);
@@ -291,41 +307,43 @@ export const Packages = (network: Network) => {
 				});
 			},
 		},
-		Subdomains: {
-			order: 3,
-			folder: 'subdomains',
-			manifest: SuiNSDependentPackages(rev, 'subdomains', subdomainExtraDependencies),
-			processPublish: (data: SuiTransactionBlockResponse) => {
-				const { packageId, upgradeCap } = parseCorePackageObjects(data);
+		// Subdomains: {
+		// 	order: 3,
+		// 	folder: 'subdomains',
+		// 	manifest: SuiNSDependentPackages(rev, 'subdomains', subdomainExtraDependencies),
+		// 	processPublish: (data: SuiTransactionBlockResponse) => {
+		// 		const { packageId, upgradeCap } = parseCorePackageObjects(data);
 
-				return {
-					packageId,
-					upgradeCap,
-				};
-			},
-			setupFunction: (
-				txb: Transaction,
-				packageId: string,
-				adminCap: string,
-				suins: string,
-				suinsPackageIdV1: string,
-			) => {
-				addConfig({
-					txb,
-					adminCap,
-					suins,
-					suinsPackageIdV1,
-					config: txb.moveCall({
-						target: `${packageId}::config::default`,
-					}),
-					type: `${packageId}::config::SubDomainConfig`,
-				});
-			},
-			authorizationType: (packageId: string) => `${packageId}::subdomains::SubDomains`,
-		},
+		// 		return {
+		// 			packageId,
+		// 			upgradeCap,
+		// 		};
+		// 	},
+		// 	setupFunction: (
+		// 		txb: Transaction,
+		// 		packageId: string,
+		// 		adminCap: string,
+		// 		suins: string,
+		// 		suinsPackageIdV1: string,
+		// 	) => {
+		// 		addConfig({
+		// 			txb,
+		// 			adminCap,
+		// 			suins,
+		// 			suinsPackageIdV1,
+		// 			config: txb.moveCall({
+		// 				target: `${packageId}::config::default`,
+		// 			}),
+		// 			type: `${packageId}::config::SubDomainConfig`,
+		// 		});
+		// 	},
+		// 	authorizationType: (packageId: string) => `${packageId}::subdomains::SubDomains`,
+		// },
 		Discounts: {
 			order: 3,
 			folder: 'discounts',
+			prevPackageId: null,
+			upgradeCapId: null,
 			manifest: SuiNSDependentPackages(rev, 'discounts', 'day_one = { local = "../day_one" }'),
 			processPublish: (data: SuiTransactionBlockResponse) => {
 				const { packageId, upgradeCap } = parseCorePackageObjects(data);
@@ -339,17 +357,17 @@ export const Packages = (network: Network) => {
 			},
 			authorizationType: (packageId: string) => `${packageId}::discounts::RegularDiscountsApp`,
 		},
-		TempSubdomainProxy: {
-			order: 3,
-			folder: 'temp_subdomain_proxy',
-			manifest: TempSubdomainProxy(rev),
-			processPublish: (data: SuiTransactionBlockResponse) => {
-				const { packageId, upgradeCap } = parseCorePackageObjects(data);
-				return {
-					packageId,
-					upgradeCap,
-				};
-			},
-		},
+		// TempSubdomainProxy: {
+		// 	order: 3,
+		// 	folder: 'temp_subdomain_proxy',
+		// 	manifest: TempSubdomainProxy(rev),
+		// 	processPublish: (data: SuiTransactionBlockResponse) => {
+		// 		const { packageId, upgradeCap } = parseCorePackageObjects(data);
+		// 		return {
+		// 			packageId,
+		// 			upgradeCap,
+		// 		};
+		// 	},
+		// },
 	};
 };
