@@ -29,25 +29,25 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 		}
 	}
 	// Call setup functions for our packages.
-	packages.Subdomains.setupFunction(
-		txb,
-		packageInfo.Subdomains.packageId,
-		packageInfo.SuiNS.adminCap,
-		packageInfo.SuiNS.suins,
-		packageInfo.SuiNS.packageId,
-	);
-	packages.DenyList.setupFunction(
-		txb,
-		packageInfo.DenyList.packageId,
-		packageInfo.SuiNS.adminCap,
-		packageInfo.SuiNS.suins,
-	);
+	// packages.Subdomains.setupFunction(
+	// 	txb,
+	// 	packageInfo.Subdomains.packageId,
+	// 	packageInfo.SuiNS.adminCap,
+	// 	packageInfo.SuiNS.suins,
+	// 	packageInfo.SuiNS.packageId,
+	// );
+	// packages.DenyList.setupFunction(
+	// 	txb,
+	// 	packageInfo.DenyList.packageId,
+	// 	packageInfo.SuiNS.adminCap,
+	// 	packageInfo.SuiNS.suins,
+	// );
 	packages.SuiNS.setupFunction(
 		txb,
 		packageInfo.SuiNS.packageId,
 		packageInfo.SuiNS.adminCap,
 		packageInfo.SuiNS.suins,
-		packageInfo.SuiNS.publisher,
+		// packageInfo.SuiNS.publisher,
 	);
 	packages.Coupons.setupFunction({
 		txb,
