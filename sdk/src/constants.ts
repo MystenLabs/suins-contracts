@@ -31,6 +31,7 @@ export const getCoinDiscountConfigType = (paymentPackageId: string) =>
 export const mainPackage: Config = {
 	mainnet: {
 		packageId: '0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0',
+		packageIdV1: '',
 		registrationPackageId: '0x9d451fa0139fef8f7c1f0bd5d7e45b7fa9dbb84c2e63c2819c7abd0a7f7d749d',
 		upgradeCap: '0x9cda28244a0d0de294d2b271e772a9c33eb47d316c59913d7369b545b4af098c',
 		publisherId: '0x7339f23f06df3601167d67a31752781d307136fd18304c48c928778e752caae1',
@@ -85,6 +86,7 @@ export const mainPackage: Config = {
 	},
 	testnet: {
 		packageId: '0xb4ab809c3cb1c9c802222da482198b04886595a2b1beec89399753bc88a81a5b',
+		packageIdV1: '0x22fa05f21b1ad71442491220bb9338f7b7095fe35000ef88d5400d28523bdd93',
 		registrationPackageId: '',
 		publisherId: '0xe1ae6d207bbee5ebe30de923abe666549c3eaeb2d0001faf6e64e0d13c86d46f',
 		adminAddress: '0xb3d277c50f7b846a5f609a8d13428ae482b5826bb98437997373f3a0d60d280e',
@@ -156,14 +158,16 @@ export const mainPackage: Config = {
 // 	registryTableId: '0xe64cd9db9f829c6cc405d9790bd71567ae07259855f4fba6f02c84f52298c106',
 // };
 
-// export const TESTNET_CONFIG: Constants = {
+// export const TESTNET_CONFIG = {
 // 	suinsPackageId: {
-// 		latest: '0xb4ab809c3cb1c9c802222da482198b04886595a2b1beec89399753bc88a81a5b',
-// 		v1: '0xb4ab809c3cb1c9c802222da482198b04886595a2b1beec89399753bc88a81a5b',
+// 		latest: '0x67072134f0867b886c9541873d1cb327feb7e161cd56dd76cb6aa9e464410db1',
+// 		v1: '0x22fa05f21b1ad71442491220bb9338f7b7095fe35000ef88d5400d28523bdd93',
 // 	},
-// 	suinsObjectId: '0xe55868f5adc5f84f946867635d3aba6bd02bedee2c54b5e76a1d88d530443d51',
-// 	utilsPackageId: '',
-// 	subNamesPackageId: '',
-// 	tempSubNamesProxyPackageId: '',
-// 	registryTableId: '',
+// 	suinsObjectId: '0x300369e8909b9a6464da265b9a5a9ab6fe2158a040e84e808628cde7a07ee5a3',
+// 	utilsPackageId: '0x7954ae683314ec7e156acbf0c0fc964ce035fd7f456fe7576848226502cfde1b',
+// 	registrationPackageId: '0x4255184a0143c0ce4394a3f16a6f5aa5d64507269e54e51ea396d569fe8f1ba5',
+// 	renewalPackageId: '0x54800ebb4606fd0c03b4554976264373b3374eeb3fd63e7ff69f31cac786ba8c',
+// 	subNamesPackageId: '0x3c272bc45f9157b7818ece4f7411bdfa8af46303b071aca4e18c03119c9ff636',
+// 	tempSubNamesProxyPackageId: '0xfd5ad004acbd5e3dd4fc0de4f1f1d465f8db5bb2ec1de63694ce6dc887fe1c89',
+// 	registryTableId: '0xb120c0d55432630fce61f7854795a3463deb6e3b443cc4ae72e1282073ff56e4',
 // };
