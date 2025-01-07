@@ -83,16 +83,6 @@ public fun new_range(range: vector<u64>): Range {
     Range(range[0], range[1])
 }
 
-/// Checks if the value is between the range (inclusive).
-public fun is_between_inclusive(range: &Range, length: u64): bool {
-    length >= range.0 && length <= range.1
-}
-
-/// Returns the pricing config for usage in external apps.
-public fun pricing(config: &PricingConfig): &VecMap<Range, u64> {
-    &config.pricing
-}
-
 public fun config(renewal: &RenewalConfig): &PricingConfig {
     &renewal.config
 }
