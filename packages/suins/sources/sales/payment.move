@@ -13,6 +13,11 @@
 ///
 /// Authorized apps can also apply discounts to the payment intent. This is
 /// useful for system-level discounts, or user-specific discounts.
+///
+/// TODO: Consider re-using `RequestData` inside the `Receipt`.
+/// TODO: Add settings for max year of renewals / max duration of registration
+/// here?
+/// (Maybe through an admin controlled config)
 module suins::payment;
 
 use std::string::String;
@@ -21,13 +26,23 @@ use sui::clock::Clock;
 use sui::coin::Coin;
 use sui::event;
 use sui::vec_map::{Self, VecMap};
+use suins::config;
 use suins::constants;
-use suins::core_config::CoreConfig;
 use suins::domain::{Self, Domain};
 use suins::pricing_config::{PricingConfig, RenewalConfig};
 use suins::registry::Registry;
 use suins::suins::SuiNS;
 use suins::suins_registration::SuinsRegistration;
+
+/// The version of the payment module. Can be used by authorized apps
+/// to ensure that they are only interacting with a `PaymentIntent`
+/// of the correct version.
+///
+/// Also used by the register/renew functions to ensure that the receipt
+/// can match the intent.
+///
+/// This will only be incremented if we have any breaking changes.
+const PAYMENT_VERSION: u8 = 1;
 
 #[error]
 const ENotMultipleDiscountsAllowed: vector<u8> =
@@ -55,9 +70,6 @@ const ECannotRenewSubdomain: vector<u8> =
 #[error]
 const EDiscountAlreadyApplied: vector<u8> =
     b"This discount key has already been applied to the payment intent.";
-#[error]
-const ECannotExceedMaxYears: vector<u8> =
-    b"Cannot exceed the maximum number of years.";
 
 /// The data required to complete a payment request.
 public struct RequestData has drop {
@@ -149,10 +161,6 @@ public fun apply_percentage_discount<A: drop>(
 
 /// Allow an authorized app to finalize a payment.
 /// Returns a receipt that can be used to register or renew a domain.
-///
-/// SAFETY: Only authorized packages can call this.
-/// We do not check the amount of funds in this helper.
-/// This is the responsibility of the `payments` app.
 public fun finalize_payment<A: drop, T>(
     intent: PaymentIntent,
     suins: &mut SuiNS,
@@ -189,7 +197,7 @@ public fun finalize_payment<A: drop, T>(
 /// This is a hot-potato and can only be consumed in a single transaction.
 public fun init_registration(suins: &mut SuiNS, domain: String): PaymentIntent {
     let domain = domain::new(domain);
-    suins.get_config<CoreConfig>().assert_is_valid_for_sale(&domain);
+    config::assert_valid_user_registerable_domain(&domain);
 
     let price = suins
         .get_config<PricingConfig>()
@@ -201,7 +209,7 @@ public fun init_registration(suins: &mut SuiNS, domain: String): PaymentIntent {
         base_amount: price,
         discounts_applied: vec_map::empty(),
         metadata: vec_map::empty(),
-        version: constants::payments_version!(),
+        version: PAYMENT_VERSION,
     })
 }
 
@@ -214,10 +222,6 @@ public fun init_renewal(
 ): PaymentIntent {
     let domain = nft.domain();
     assert!(!domain.is_subdomain(), ECannotRenewSubdomain);
-    assert!(
-        years <= suins.get_config<CoreConfig>().max_years(),
-        ECannotExceedMaxYears,
-    );
 
     let price = suins
         .get_config<RenewalConfig>()
@@ -230,7 +234,7 @@ public fun init_renewal(
         base_amount: price * (years as u64),
         discounts_applied: vec_map::empty(),
         metadata: vec_map::empty(),
-        version: constants::payments_version!(),
+        version: PAYMENT_VERSION,
     })
 }
 
@@ -242,12 +246,9 @@ public fun register(
     clock: &Clock,
     ctx: &mut TxContext,
 ): SuinsRegistration {
-    let config = suins.get_config<CoreConfig>();
-
     match (receipt) {
         Receipt::Registration { domain, years, version } => {
-            assert!(version == config.payments_version(), EVersionMismatch);
-            config.assert_is_valid_for_sale(&domain); // sanity check. We also check on `init_registration`.
+            assert!(version == PAYMENT_VERSION, EVersionMismatch);
             suins
                 .pkg_registry_mut<Registry>()
                 .add_record(domain, years, clock, ctx)
@@ -269,10 +270,7 @@ public fun renew(
 ) {
     match (receipt) {
         Receipt::Renewal { domain, years, version } => {
-            let config = suins.get_config<CoreConfig>();
-            let max_years = config.max_years();
-
-            assert!(version == config.payments_version(), EVersionMismatch);
+            assert!(version == PAYMENT_VERSION, EVersionMismatch);
             assert!(nft.domain() == domain, EReceiptDomainMissmatch);
             let registry = suins.pkg_registry_mut<Registry>();
             // Calculate target expiration. Aborts if expiration or selected
@@ -284,13 +282,6 @@ public fun renew(
                 years,
             );
 
-            // Check target_expiration is within the max years.
-            assert!(
-                target_expiration <= (
-                clock.timestamp_ms() + ((max_years + 1 as u64) * constants::year_ms())
-            ),
-                ECannotExceedMaxYears,
-            );
             // set the expiration of the NFT + the registry's name record.
             registry.set_expiration_timestamp_ms(
                 nft,
