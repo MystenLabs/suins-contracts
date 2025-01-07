@@ -12,167 +12,131 @@ module discounts::discounts;
 
 use day_one::day_one::{DayOne, is_active};
 use discounts::house::{Self, DiscountHouse};
-use std::string::String;
-use std::type_name as `type`;
-use sui::clock::Clock;
-use sui::coin::Coin;
+use std::type_name;
 use sui::dynamic_field as df;
-use sui::sui::SUI;
-use suins::domain;
-use suins::suins::{Self, AdminCap, SuiNS};
-use suins::suins_registration::SuinsRegistration;
+use suins::payment::PaymentIntent;
+use suins::pricing_config::PricingConfig;
+use suins::suins::{AdminCap, SuiNS};
 
-/// A configuration already exists
-const EConfigExists: u64 = 1;
-/// A configuration doesn't exist
-const EConfigNotExists: u64 = 2;
-/// Invalid payment value
-const EIncorrectAmount: u64 = 3;
-/// Tries to use DayOne on regular register flow.
-const ENotValidForDayOne: u64 = 4;
-/// Tries to claim with a non active DayOne
-const ENotActiveDayOne: u64 = 5;
+use fun internal_apply_discount as DiscountHouse.internal_apply_discount;
+use fun assert_config_exists as DiscountHouse.assert_config_exists;
+use fun config as DiscountHouse.config;
+use fun df::add as UID.add;
+use fun df::exists_with_type as UID.exists_with_type;
+use fun df::exists_ as UID.exists_;
+use fun df::borrow as UID.borrow;
 
-/// A key that opens up discounts for type T.
-public struct DiscountKey<phantom T> has copy, store, drop {}
+#[error]
+const EConfigAlreadyExists: vector<u8> = b"Config already exists";
+#[error]
+const EConfigNotExists: vector<u8> = b"Config does not exist";
+#[error]
+const EIncorrectAmount: vector<u8> = b"Incorrect amount";
+#[error]
+const ENotActiveDayOne: vector<u8> = b"DayOne is not active";
+#[error]
+const ENotValidForDayOne: vector<u8> = b"DayOne is not valid for this type";
 
-/// The Discount config for type T.
-/// We save the sale price for each letter configuration (3 chars, 4 chars, 5+
-/// chars)
-public struct DiscountConfig has copy, store, drop {
-    three_char_price: u64,
-    four_char_price: u64,
-    five_plus_char_price: u64,
-}
+/// A key allowing DiscountHouse to apply discounts.
+public struct RegularDiscountsApp() has drop;
+
+/// A key that determins the discounts for a type `T`.
+public struct DiscountKey<phantom T>() has copy, store, drop;
 
 /// A function to register a name with a discount using type `T`.
-public fun register<T>(
+public fun apply_percentage_discount<T>(
     self: &mut DiscountHouse,
+    intent: &mut PaymentIntent,
     suins: &mut SuiNS,
-    _: &T,
-    domain_name: String,
-    payment: Coin<SUI>,
-    clock: &Clock,
-    _reseller: Option<String>,
+    _: &mut T, // proof of owning the type T mutably.
     ctx: &mut TxContext,
-): SuinsRegistration {
-    // For normal flow, we do not allow DayOne to be used.
-    // DayOne can only be used on `register_with_day_one` function.
+) {
+    // We can only use this discount for types other than DayOne, because we
+    // always check
+    // that the `DayOne` object is active.
     assert!(
-        `type`::into_string(`type`::get<T>()) != `type`::into_string(`type`::get<DayOne>()),
+        type_name::get<T>() != type_name::get<DayOne>(),
         ENotValidForDayOne,
     );
-    internal_register_name<T>(self, suins, domain_name, payment, clock, ctx)
+
+    self.internal_apply_discount<T>(intent, suins, ctx);
 }
 
 /// A special function for DayOne registration.
 /// We separate it from the normal registration flow because we only want it to
 /// be usable
 /// for activated DayOnes.
-public fun register_with_day_one(
+public fun apply_day_one_discount(
     self: &mut DiscountHouse,
+    intent: &mut PaymentIntent,
     suins: &mut SuiNS,
-    day_one: &DayOne,
-    domain_name: String,
-    payment: Coin<SUI>,
-    clock: &Clock,
-    _reseller: Option<String>,
+    day_one: &mut DayOne, // proof of owning the type T mutably.
     ctx: &mut TxContext,
-): SuinsRegistration {
-    assert!(is_active(day_one), ENotActiveDayOne);
-    internal_register_name<DayOne>(
-        self,
-        suins,
-        domain_name,
-        payment,
-        clock,
-        ctx,
-    )
-}
-
-/// Calculate the price of a label.
-public fun calculate_price(self: &DiscountConfig, length: u8): u64 {
-    let price = if (length == 3) {
-        self.three_char_price
-    } else if (length == 4) {
-        self.four_char_price
-    } else {
-        self.five_plus_char_price
-    };
-
-    price
+) {
+    assert!(day_one.is_active(), ENotActiveDayOne);
+    self.internal_apply_discount<DayOne>(intent, suins, ctx);
 }
 
 /// An admin action to authorize a type T for special pricing.
+///
+/// When authorizing, we reuse the core `PricingConfig` struct,
+/// and only accept it if all the values are in the [0, 100] range.
 public fun authorize_type<T>(
-    _: &AdminCap,
     self: &mut DiscountHouse,
-    three_char_price: u64,
-    four_char_price: u64,
-    five_plus_char_price: u64,
+    _: &AdminCap,
+    pricing_config: PricingConfig,
 ) {
-    self.assert_version_is_valid();
-    assert!(
-        !df::exists_(house::uid_mut(self), DiscountKey<T> {}),
-        EConfigExists,
-    );
+    assert!(!self.uid_mut().exists_(DiscountKey<T>()), EConfigAlreadyExists);
+    let (_, values) = (*pricing_config.pricing()).into_keys_values();
+    // make sure that all the percentages are in the [0, 99] range. We can use
+    // `free_claims` to giveaway free names.
+    assert!(!values.any!(|percentage| *percentage > 99), EIncorrectAmount);
 
-    df::add(
-        house::uid_mut(self),
-        DiscountKey<T> {},
-        DiscountConfig {
-            three_char_price,
-            four_char_price,
-            five_plus_char_price,
-        },
-    );
+    self.uid_mut().add(DiscountKey<T>(), pricing_config);
 }
 
 /// An admin action to deauthorize type T from getting discounts.
 public fun deauthorize_type<T>(_: &AdminCap, self: &mut DiscountHouse) {
     self.assert_version_is_valid();
-    assert_config_exists<T>(self);
-    df::remove<DiscountKey<T>, DiscountConfig>(
+    self.assert_config_exists<T>();
+    df::remove<_, PricingConfig>(
         self.uid_mut(),
-        DiscountKey<T> {},
+        DiscountKey<T>(),
     );
 }
 
-/// Internal helper to handle the registration process
-fun internal_register_name<T>(
+fun internal_apply_discount<T>(
     self: &mut DiscountHouse,
+    intent: &mut PaymentIntent,
     suins: &mut SuiNS,
-    domain_name: String,
-    payment: Coin<SUI>,
-    clock: &Clock,
-    ctx: &mut TxContext,
-): SuinsRegistration {
-    self.assert_version_is_valid();
-    // validate that there's a configuration for type T.
-    assert_config_exists<T>(self);
+    _ctx: &mut TxContext,
+) {
+    let config = self.config<T>();
 
-    let domain = domain::new(domain_name);
-    let price = calculate_price(
-        df::borrow(self.uid_mut(), DiscountKey<T> {}),
-        (domain.sld().length() as u8),
-    );
+    let discount_percent = config.calculate_base_price(intent
+        .request_data()
+        .domain()
+        .sld()
+        .length());
 
-    assert!(payment.value() == price, EIncorrectAmount);
-    suins::app_add_balance(
-        house::suins_app_auth(),
+    intent.apply_percentage_discount(
         suins,
-        payment.into_balance(),
+        RegularDiscountsApp(),
+        house::discount_house_key!(),
+        // SAFETY: We know that the discount percentage is in the [0, 99] range.
+        discount_percent as u8,
+        false,
     );
+}
 
-    house::friend_add_registry_entry(suins, domain, clock, ctx)
+fun config<T>(self: &mut DiscountHouse): &PricingConfig {
+    self.assert_config_exists<T>();
+    self.uid_mut().borrow<_, PricingConfig>(DiscountKey<T>())
 }
 
 fun assert_config_exists<T>(self: &mut DiscountHouse) {
     assert!(
-        df::exists_with_type<DiscountKey<T>, DiscountConfig>(
-            house::uid_mut(self),
-            DiscountKey<T> {},
-        ),
+        self.uid_mut().exists_with_type<_, PricingConfig>(DiscountKey<T>()),
         EConfigNotExists,
     );
 }
