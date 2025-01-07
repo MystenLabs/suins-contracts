@@ -3,6 +3,7 @@
 
 /// Implementation of auction module.
 /// More information in: ../../../docs
+#[deprecated(note = b"There is no usable auction module anymore after the initial auction.")]
 module suins::auction;
 
 use std::option::{none, some, is_some};
@@ -13,8 +14,9 @@ use sui::coin::{Self, Coin};
 use sui::event;
 use sui::linked_table::{Self, LinkedTable};
 use sui::sui::SUI;
-use suins::config::{Self, Config};
+use suins::core_config::CoreConfig;
 use suins::domain::{Self, Domain};
+use suins::pricing_config::PricingConfig;
 use suins::registry::Registry;
 use suins::suins::{Self, AdminCap, SuiNS};
 use suins::suins_registration::SuinsRegistration;
@@ -52,6 +54,7 @@ public struct AuctionHouse has key, store {
 }
 
 /// The Auction application.
+#[allow(lint(coin_field))]
 public struct Auction has store {
     domain: Domain,
     start_timestamp_ms: u64,
@@ -82,18 +85,11 @@ public fun start_auction_and_place_bid(
 
     let domain = domain::new(domain_name);
 
-    // make sure the domain is a .sui domain and not a subdomain
-    config::assert_valid_user_registerable_domain(&domain);
+    suins.get_config<CoreConfig>().assert_is_valid_for_sale(&domain);
 
     assert!(!self.auctions.contains(domain), EAuctionStarted);
 
-    // The minimum price only applies to newly created auctions
-    let config = suins.get_config<Config>();
-    let label = domain.sld();
-    let min_price = config.calculate_price(
-        (label.length() as u8),
-        DEFAULT_DURATION,
-    );
+    let min_price = suins.get_config<PricingConfig>().calculate_base_price(domain.sld().length());
     assert!(bid.value() >= min_price, EInvalidBidValue);
 
     let registry = suins::app_registry_mut<App, Registry>(App {}, suins);
@@ -176,8 +172,7 @@ public fun place_bid(
     // `AUCTION_MIN_QUIET_PERIOD_MS`
     // time where there are no bids.
     if (end_timestamp_ms - clock.timestamp_ms() < AUCTION_MIN_QUIET_PERIOD_MS) {
-        let new_end_timestamp_ms =
-            clock.timestamp_ms() + AUCTION_MIN_QUIET_PERIOD_MS;
+        let new_end_timestamp_ms = clock.timestamp_ms() + AUCTION_MIN_QUIET_PERIOD_MS;
 
         // Only extend the auction if the new auction end time is before
         // the NFT's expiration timestamp
@@ -283,10 +278,7 @@ public fun collect_winning_auction_fund(
     let domain = domain::new(domain_name);
     let auction = &mut self.auctions[domain];
     // Ensure that the auction is over
-    assert!(
-        clock.timestamp_ms() > auction.end_timestamp_ms,
-        EAuctionNotEndedYet,
-    );
+    assert!(clock.timestamp_ms() > auction.end_timestamp_ms, EAuctionNotEndedYet);
 
     let amount = auction.current_bid.value();
     self.balance.join(auction.current_bid.split(amount, ctx).into_balance());
