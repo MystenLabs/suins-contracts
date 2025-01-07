@@ -30,7 +30,8 @@ use suins::suins::SuiNS;
 use suins::suins_registration::SuinsRegistration;
 
 #[error]
-const ENotMultipleDiscountsAllowed: vector<u8> = b"Multiple discounts are not allowed";
+const ENotMultipleDiscountsAllowed: vector<u8> =
+    b"Multiple discounts are not allowed";
 #[error]
 const ENotSupportedType: vector<u8> =
     b"Renewal is not supported in this function call. Call `renew` instead.";
@@ -38,7 +39,8 @@ const ENotSupportedType: vector<u8> =
 const ERecordNotFound: vector<u8> =
     b"Tries to renew a name that does not exist in the registry (has expired + has been burned)";
 #[error]
-const ERecordExpired: vector<u8> = b"Tries to renew an expired name (post grace period).";
+const ERecordExpired: vector<u8> =
+    b"Tries to renew an expired name (post grace period).";
 #[error]
 const EReceiptDomainMissmatch: vector<u8> =
     b"The receipt domain does not match the domain of the NFT.";
@@ -48,12 +50,14 @@ const EVersionMismatch: vector<u8> =
 #[error]
 const EInvalidDiscountPercentage: vector<u8> = b"Discount range is [0, 100].";
 #[error]
-const ECannotRenewSubdomain: vector<u8> = b"Cannot renew a subdomain using the payment system.";
+const ECannotRenewSubdomain: vector<u8> =
+    b"Cannot renew a subdomain using the payment system.";
 #[error]
 const EDiscountAlreadyApplied: vector<u8> =
     b"This discount key has already been applied to the payment intent.";
 #[error]
-const ECannotExceedMaxYears: vector<u8> = b"Cannot exceed the maximum number of years.";
+const ECannotExceedMaxYears: vector<u8> =
+    b"Cannot exceed the maximum number of years.";
 
 /// The data required to complete a payment request.
 public struct RequestData has drop {
@@ -187,7 +191,9 @@ public fun init_registration(suins: &mut SuiNS, domain: String): PaymentIntent {
     let domain = domain::new(domain);
     suins.get_config<CoreConfig>().assert_is_valid_for_sale(&domain);
 
-    let price = suins.get_config<PricingConfig>().calculate_base_price(domain.sld().length());
+    let price = suins
+        .get_config<PricingConfig>()
+        .calculate_base_price(domain.sld().length());
 
     PaymentIntent::Registration(RequestData {
         domain,
@@ -201,10 +207,17 @@ public fun init_registration(suins: &mut SuiNS, domain: String): PaymentIntent {
 
 /// Creates a `PaymentIntent` for renewing an existing domain.
 /// This is a hot-potato and can only be consumed in a single transaction.
-public fun init_renewal(suins: &mut SuiNS, nft: &SuinsRegistration, years: u8): PaymentIntent {
+public fun init_renewal(
+    suins: &mut SuiNS,
+    nft: &SuinsRegistration,
+    years: u8,
+): PaymentIntent {
     let domain = nft.domain();
     assert!(!domain.is_subdomain(), ECannotRenewSubdomain);
-    assert!(years <= suins.get_config<CoreConfig>().max_years(), ECannotExceedMaxYears);
+    assert!(
+        years <= suins.get_config<CoreConfig>().max_years(),
+        ECannotExceedMaxYears,
+    );
 
     let price = suins
         .get_config<RenewalConfig>()
@@ -235,7 +248,9 @@ public fun register(
         Receipt::Registration { domain, years, version } => {
             assert!(version == config.payments_version(), EVersionMismatch);
             config.assert_is_valid_for_sale(&domain); // sanity check. We also check on `init_registration`.
-            suins.pkg_registry_mut<Registry>().add_record(domain, years, clock, ctx)
+            suins
+                .pkg_registry_mut<Registry>()
+                .add_record(domain, years, clock, ctx)
         },
         Receipt::Renewal { domain: _, years: _, version: _ } => {
             abort ENotSupportedType
@@ -316,7 +331,10 @@ public fun discounts_applied(self: &RequestData): VecMap<String, u64> {
 
 /// Public helper to calculate price after a percentage discount has been
 /// applied.
-public fun calculate_total_after_discount(data: &RequestData, discount: u8): u64 {
+public fun calculate_total_after_discount(
+    data: &RequestData,
+    discount: u8,
+): u64 {
     let price = data.base_amount;
     let discount_amount = (((price as u128) * (discount as u128) / 100) as u64);
 
@@ -324,7 +342,10 @@ public fun calculate_total_after_discount(data: &RequestData, discount: u8): u64
 }
 
 /// Construct an event from a payment intent.
-fun to_event<A: drop, T>(intent: &PaymentIntent, currency_amount: u64): TransactionEvent {
+fun to_event<A: drop, T>(
+    intent: &PaymentIntent,
+    currency_amount: u64,
+): TransactionEvent {
     let data = intent.request_data();
     let is_renewal = match (intent) {
         PaymentIntent::Registration(_) => false,
@@ -352,8 +373,14 @@ fun adjust_discount(
     discount: u8,
     allow_multiple_discounts: bool,
 ) {
-    assert!(!data.discounts_applied.contains(&discount_key), EDiscountAlreadyApplied);
-    assert!(allow_multiple_discounts || !data.discount_applied(), ENotMultipleDiscountsAllowed);
+    assert!(
+        !data.discounts_applied.contains(&discount_key),
+        EDiscountAlreadyApplied,
+    );
+    assert!(
+        allow_multiple_discounts || !data.discount_applied(),
+        ENotMultipleDiscountsAllowed,
+    );
     assert!(discount <= 100, EInvalidDiscountPercentage);
 
     let price = data.base_amount;
@@ -365,7 +392,12 @@ fun adjust_discount(
 
 /// Calculate the target expiration for a domain,
 /// or abort if the domain or the expiration setup is invalid.
-fun target_expiration(registry: &Registry, domain: Domain, clock: &Clock, no_years: u8): u64 {
+fun target_expiration(
+    registry: &Registry,
+    domain: Domain,
+    clock: &Clock,
+    no_years: u8,
+): u64 {
     let name_record_option = registry.lookup(domain);
     // validate that the name_record still exists in the registry.
     assert!(name_record_option.is_some(), ERecordNotFound);
@@ -377,13 +409,39 @@ fun target_expiration(registry: &Registry, domain: Domain, clock: &Clock, no_yea
     assert!(!name_record.has_expired_past_grace_period(clock), ERecordExpired);
 
     // Calculate the target expiration!
-    let target = name_record.expiration_timestamp_ms() + (no_years as u64) * constants::year_ms();
+    let target =
+        name_record.expiration_timestamp_ms() + (no_years as u64) * constants::year_ms();
 
     target
 }
 
+/// Adjusts the amount based on the discount.
+fun adjust_discount(
+    data: &mut RequestData,
+    discount_key: String,
+    discount: u8,
+    allow_multiple_discounts: bool,
+) {
+    assert!(
+        !data.discounts_applied.contains(&discount_key),
+        EDiscountAlreadyApplied,
+    );
+    assert!(
+        allow_multiple_discounts || !data.discount_applied(),
+        ENotMultipleDiscountsAllowed,
+    );
+    assert!(discount <= 100, EInvalidDiscountPercentage);
+
+    data.base_amount = data.calculate_total_after_discount(discount);
+    data.discounts_applied.insert(discount_key, discount as u64);
+}
+
 #[test_only]
-public(package) fun test_registration_receipt(name: String, years: u8, version: u8): Receipt {
+public(package) fun test_registration_receipt(
+    name: String,
+    years: u8,
+    version: u8,
+): Receipt {
     Receipt::Registration {
         domain: domain::new(name),
         years,
@@ -392,7 +450,11 @@ public(package) fun test_registration_receipt(name: String, years: u8, version: 
 }
 
 #[test_only]
-public(package) fun test_renewal_receipt(name: String, years: u8, version: u8): Receipt {
+public(package) fun test_renewal_receipt(
+    name: String,
+    years: u8,
+    version: u8,
+): Receipt {
     Receipt::Renewal {
         domain: domain::new(name),
         years,
