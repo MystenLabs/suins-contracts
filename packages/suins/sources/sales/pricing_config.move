@@ -2,7 +2,7 @@ module suins::pricing_config;
 
 use sui::vec_map::{Self, VecMap};
 
-// Tries to create a range with more than 2 values
+/// Tries to create a range with more than 2 values
 const EInvalidLength: u64 = 1;
 /// Tries to create a range with the first value greater than the second
 const EInvalidRange: u64 = 2;
@@ -13,15 +13,15 @@ const ELengthMissmatch: u64 = 3;
 const EPriceNotSet: u64 = 4;
 
 /// A range struct that holds the start and end of a range (inclusive).
-public struct Range(u64, u64) has copy, store, drop;
+public struct Range(u64, u64) has copy, drop, store;
 
 /// A struct that holds the length range and the price of a service.
-public struct PricingConfig has store, drop { pricing: VecMap<Range, u64> }
+public struct PricingConfig has drop, store { pricing: VecMap<Range, u64> }
 
 /// A struct that holds the renewal configuration. Exposed from base pricing
 /// module
 /// to allow easy access to the pricing config by external packages.
-public struct RenewalConfig has store, drop { config: PricingConfig }
+public struct RenewalConfig has drop, store { config: PricingConfig }
 
 /// Calculates the base price for a given length.
 /// - Base price type is abstracted away. We can switch to a different base.
@@ -30,9 +30,7 @@ public struct RenewalConfig has store, drop { config: PricingConfig }
 /// available ranges.
 public fun calculate_base_price(config: &PricingConfig, length: u64): u64 {
     let keys = config.pricing.keys();
-    let mut idx = keys.find_index!(
-        |range| range.0 <= length && range.1 >= length,
-    );
+    let mut idx = keys.find_index!(|range| range.is_between_inclusive(length));
 
     assert!(idx.is_some(), EPriceNotSet);
     let range = keys[idx.extract()];
@@ -61,6 +59,16 @@ public fun new(ranges: vector<Range>, prices: vector<u64>): PricingConfig {
     PricingConfig {
         pricing: vec_map::from_keys_values(ranges, prices),
     }
+}
+
+/// Checks if the value is between the range (inclusive).
+public fun is_between_inclusive(range: &Range, length: u64): bool {
+    length >= range.0 && length <= range.1
+}
+
+/// Returns the pricing config for usage in external apps.
+public fun pricing(config: &PricingConfig): &VecMap<Range, u64> {
+    &config.pricing
 }
 
 /// Constructor for Renewal<T> that initializes it with a PricingConfig.

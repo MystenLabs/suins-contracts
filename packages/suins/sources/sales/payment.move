@@ -93,7 +93,7 @@ public enum Receipt {
 
 /// An event that is emitted after a successful payment for
 /// a `PaymentIntent`
-public struct TransactionEvent has copy, store, drop {
+public struct TransactionEvent has copy, drop, store {
     app: TypeName,
     domain: Domain,
     years: u8,
@@ -179,24 +179,6 @@ public fun finalize_payment<A: drop, T>(
             }
         },
     }
-}
-
-/// Adjusts the amount based on the discount.
-fun adjust_discount(
-    data: &mut RequestData,
-    discount_key: String,
-    discount: u8,
-    allow_multiple_discounts: bool,
-) {
-    assert!(!data.discounts_applied.contains(&discount_key), EDiscountAlreadyApplied);
-    assert!(allow_multiple_discounts || !data.discount_applied(), ENotMultipleDiscountsAllowed);
-    assert!(discount <= 100, EInvalidDiscountPercentage);
-
-    let price = data.base_amount;
-    let discount_amount = (((price as u128) * (discount as u128) / 100) as u64);
-
-    data.base_amount = price - discount_amount;
-    data.discounts_applied.insert(discount_key, discount as u64);
 }
 
 /// Creates a `PaymentIntent` for registering a new domain.
@@ -332,6 +314,15 @@ public fun discounts_applied(self: &RequestData): VecMap<String, u64> {
     self.discounts_applied
 }
 
+/// Public helper to calculate price after a percentage discount has been
+/// applied.
+public fun calculate_total_after_discount(data: &RequestData, discount: u8): u64 {
+    let price = data.base_amount;
+    let discount_amount = (((price as u128) * (discount as u128) / 100) as u64);
+
+    price - discount_amount
+}
+
 /// Construct an event from a payment intent.
 fun to_event<A: drop, T>(intent: &PaymentIntent, currency_amount: u64): TransactionEvent {
     let data = intent.request_data();
@@ -352,6 +343,24 @@ fun to_event<A: drop, T>(intent: &PaymentIntent, currency_amount: u64): Transact
         currency: type_name::get<T>(),
         currency_amount,
     }
+}
+
+/// Adjusts the amount based on the discount.
+fun adjust_discount(
+    data: &mut RequestData,
+    discount_key: String,
+    discount: u8,
+    allow_multiple_discounts: bool,
+) {
+    assert!(!data.discounts_applied.contains(&discount_key), EDiscountAlreadyApplied);
+    assert!(allow_multiple_discounts || !data.discount_applied(), ENotMultipleDiscountsAllowed);
+    assert!(discount <= 100, EInvalidDiscountPercentage);
+
+    let price = data.base_amount;
+    let discount_amount = (((price as u128) * (discount as u128) / 100) as u64);
+
+    data.base_amount = price - discount_amount;
+    data.discounts_applied.insert(discount_key, discount as u64);
 }
 
 /// Calculate the target expiration for a domain,

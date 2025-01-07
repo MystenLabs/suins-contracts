@@ -86,7 +86,7 @@ fun init(otw: SUINS, ctx: &mut TxContext) {
         AdminCap {
             id: object::new(ctx),
         },
-        tx_context::sender(ctx),
+        ctx.sender(),
     );
 
     let suins = SuiNS {
