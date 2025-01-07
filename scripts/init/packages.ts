@@ -244,7 +244,8 @@ export const Packages = (network: Network) => {
 					upgradeCap,
 				};
 			},
-			// authorizationType: (packageId: string) => `${packageId}::coupon_house::CouponsApp`,
+			deAuthorizationType: () => `${TESTNET_CONFIG.coupons}::coupon_house::CouponsApp`,
+			authorizationType: (packageId: string) => `${packageId}::coupon_house::CouponsApp`,
 			setupFunction: ({
 				txb,
 				packageId,
