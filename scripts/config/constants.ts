@@ -169,7 +169,7 @@ export const MAX_AGE = 60; // In seconds, 60 seconds as max age for last price, 
 
 export const TESTNET_CONFIG = {
 	suinsPackageId: {
-		latest: '0x67072134f0867b886c9541873d1cb327feb7e161cd56dd76cb6aa9e464410db1',
+		latest: '0x8a4df604a449ccb9ef2efb9747046b78f78ba60fc8d88df098d0dd47619df5a4',
 		v1: '0x22fa05f21b1ad71442491220bb9338f7b7095fe35000ef88d5400d28523bdd93',
 		upgradeCap: '0x3cc8afb9eacb68ef64bc1dd4ccfe53fd61284e93c51d7bb93b0371cd12fca8e6',
 		adminCap: '0x5def5bd9dc94b7d418d081a91c533ec619fb4350e6c4e4602aea96fd49331b15',
