@@ -14,16 +14,56 @@ export type VersionedPackageId = {
 	[key: string]: string;
 };
 
-// A list of constants
-export type Constants = {
-	suinsPackageId?: VersionedPackageId;
-	suinsObjectId?: string;
+export type Config = Record<'mainnet' | 'testnet', PackageInfo>;
+
+export type DiscordConfig = {
+	packageId: string;
+	discordCap: string;
+	discordObjectId: string;
+	discordTableId: string;
+};
+
+export type PackageInfo = {
+	packageId: string;
+	packageIdV1: string;
+	registrationPackageId: string;
+	upgradeCap?: string;
+	publisherId: string;
+	adminAddress: string;
+	adminCap: string;
+	suins: string;
+	displayObject?: string;
+	directSetupPackageId: string;
+	discountsPackage: {
+		packageId: string;
+		discountHouseId: string;
+	};
+	renewalsPackageId: string;
+	subNamesPackageId: string;
+	tempSubdomainsProxyPackageId: string;
+	discord: DiscordConfig | undefined;
+	coupons: {
+		packageId: string;
+	};
+	treasuryAddress?: string;
+	payments: {
+		packageId: string;
+	};
 	registryTableId?: string;
-	utilsPackageId?: string;
-	registrationPackageId?: string;
-	renewalPackageId?: string;
-	subNamesPackageId?: string;
-	tempSubNamesProxyPackageId?: string;
+	pyth: {
+		pythStateId: string;
+		wormholeStateId: string;
+	};
+	utils?: {
+		packageId: string;
+	};
+	coins: {
+		[key: string]: {
+			type: string;
+			metadataID: string;
+			feed: string;
+		};
+	};
 };
 
 // The config for the SuinsClient.
@@ -37,17 +77,18 @@ export type SuinsClientConfig = {
 	 * We can pass in custom PackageIds if we want this to
 	 * be functional on localnet, devnet, or any other deployment.
 	 */
-	packageIds?: Constants;
+	config?: Config;
 };
 
 /**
  * The price list for SuiNS names.
  */
-export type SuinsPriceList = {
-	threeLetters: number;
-	fourLetters: number;
-	fivePlusLetters: number;
-};
+export type SuinsPriceList = Map<[number, number], number>;
+
+/**
+ * The coin type and discount for SuiNS names.
+ */
+export type CoinTypeDiscount = Map<string, number>;
 
 /**
  * A NameRecord entry of SuiNS Names.
