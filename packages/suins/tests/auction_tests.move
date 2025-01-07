@@ -1,6 +1,6 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-
+#[allow(deprecated_usage)]
 #[test_only]
 module suins::auction_tests;
 
@@ -22,7 +22,7 @@ use suins::auction::{
     admin_withdraw_funds,
     collect_winning_auction_fund
 };
-use suins::config;
+use suins::core_config;
 use suins::constants::{Self, mist_per_sui};
 use suins::domain;
 use suins::registry;
@@ -73,8 +73,7 @@ public fun start_auction_and_place_bid_util(
     let payment = coin::mint_for_testing<SUI>(amount, ctx(scenario));
     let clock = scenario.take_shared<Clock>();
 
-    start_auction_and_place_bid(
-        &mut auction_house,
+    auction_house.start_auction_and_place_bid(
         &mut suins,
         domain_name,
         payment,
@@ -100,7 +99,7 @@ fun place_bid_util(
     let mut clock = scenario.take_shared<Clock>();
 
     clock.increment_for_testing(clock_tick);
-    place_bid(&mut auction_house, domain_name, payment, &clock, ctx(scenario));
+    auction_house.place_bid(domain_name, payment, &clock, ctx(scenario));
 
     test_scenario::return_shared(clock);
     test_scenario::return_shared(auction_house);
@@ -117,7 +116,7 @@ public fun claim_util(
     let mut clock = scenario.take_shared<Clock>();
 
     clock.increment_for_testing(clock_tick);
-    let nft = claim(&mut auction_house, domain_name, &clock, ctx(scenario));
+    let nft = auction_house.claim(domain_name, &clock, ctx(scenario));
 
     test_scenario::return_shared(clock);
     test_scenario::return_shared(auction_house);
@@ -582,7 +581,7 @@ fun test_admin_withdraw_funds_aborts_if_no_profits() {
     scenario_val.end();
 }
 
-#[test, expected_failure(abort_code = config::EInvalidTld)]
+#[test, expected_failure(abort_code = core_config::EInvalidTld)]
 fun test_start_auction_aborts_with_wrong_tld() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -595,7 +594,7 @@ fun test_start_auction_aborts_with_wrong_tld() {
     scenario_val.end();
 }
 
-#[test, expected_failure(abort_code = config::ELabelTooShort)]
+#[test, expected_failure(abort_code = core_config::EInvalidLength)]
 fun test_start_auction_aborts_if_domain_name_too_short() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;

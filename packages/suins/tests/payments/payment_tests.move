@@ -5,13 +5,14 @@ use sui::clock;
 use sui::coin;
 use sui::sui::SUI;
 use sui::test_utils::{assert_eq, destroy};
+use suins::constants;
+use suins::core_config;
+use suins::domain;
 use suins::payment::{Self, PaymentIntent, Receipt};
 use suins::pricing_config::{Self, PricingConfig};
+use suins::registry::{Self, Registry};
 use suins::suins::{Self, SuiNS};
-use suins::registry;
-use suins::constants;
 use suins::suins_registration;
-use suins::domain;
 
 public struct PaymentsApp() has drop;
 public struct DiscountsApp() has drop;
@@ -89,7 +90,7 @@ fun test_e2e() {
 }
 
 #[test, expected_failure(abort_code = ::suins::payment::ENotMultipleDiscountsAllowed)]
-fun try_apply_two_discounts_while_both_require_single(){
+fun try_apply_two_discounts_while_both_require_single() {
     let mut ctx = tx_context::dummy();
     let mut suins = setup_suins(&mut ctx);
 
@@ -117,7 +118,7 @@ fun try_apply_two_discounts_while_both_require_single(){
 }
 
 #[test, expected_failure(abort_code = ::suins::payment::EDiscountAlreadyApplied)]
-fun try_apply_second_discount_twice(){
+fun try_apply_second_discount_twice() {
     let mut ctx = tx_context::dummy();
     let mut suins = setup_suins(&mut ctx);
 
@@ -145,7 +146,7 @@ fun try_apply_second_discount_twice(){
 }
 
 #[test, expected_failure(abort_code = ::suins::payment::EInvalidDiscountPercentage)]
-fun discount_overflow(){
+fun discount_overflow() {
     let mut ctx = tx_context::dummy();
     let mut suins = setup_suins(&mut ctx);
 
@@ -165,7 +166,7 @@ fun discount_overflow(){
 }
 
 #[test, expected_failure(abort_code = ::suins::payment::ENotSupportedType)]
-fun try_to_register_using_renewal_receipt(){
+fun try_to_register_using_renewal_receipt() {
     let mut ctx = tx_context::dummy();
     let mut suins = setup_suins(&mut ctx);
     let clock = clock::create_for_testing(&mut ctx);
@@ -182,7 +183,7 @@ fun try_to_register_using_renewal_receipt(){
 }
 
 #[test, expected_failure(abort_code = ::suins::payment::ENotSupportedType)]
-fun try_to_renew_using_registration_receipt(){
+fun try_to_renew_using_registration_receipt() {
     let mut ctx = tx_context::dummy();
     let mut suins = setup_suins(&mut ctx);
     let clock = clock::create_for_testing(&mut ctx);
@@ -191,7 +192,7 @@ fun try_to_renew_using_registration_receipt(){
         domain::new(b"test.sui".to_string()),
         1,
         &clock,
-        &mut ctx
+        &mut ctx,
     );
 
     let receipt = payment::test_registration_receipt(
@@ -205,7 +206,7 @@ fun try_to_renew_using_registration_receipt(){
 }
 
 #[test, expected_failure(abort_code = ::suins::payment::EReceiptDomainMissmatch)]
-fun try_to_renew_with_other_name_receipt(){
+fun try_to_renew_with_other_name_receipt() {
     let mut ctx = tx_context::dummy();
     let mut suins = setup_suins(&mut ctx);
     let clock = clock::create_for_testing(&mut ctx);
@@ -214,13 +215,13 @@ fun try_to_renew_with_other_name_receipt(){
         domain::new(b"test2.sui".to_string()),
         1,
         &clock,
-        &mut ctx
+        &mut ctx,
     );
 
     let receipt = payment::test_renewal_receipt(
         b"test.sui".to_string(),
         1,
-        1, // version should be valid here.
+        constants::payments_version!(), // version should be valid here.
     );
 
     receipt.renew(&mut suins, &mut nft, &clock, &mut ctx);
@@ -228,7 +229,7 @@ fun try_to_renew_with_other_name_receipt(){
 }
 
 #[test, expected_failure(abort_code = ::suins::payment::EVersionMismatch)]
-fun try_to_register_using_invalid_receipt_version(){
+fun try_to_register_using_invalid_receipt_version() {
     let mut ctx = tx_context::dummy();
     let mut suins = setup_suins(&mut ctx);
     let clock = clock::create_for_testing(&mut ctx);
@@ -245,22 +246,22 @@ fun try_to_register_using_invalid_receipt_version(){
 }
 
 #[test, expected_failure(abort_code = ::suins::payment::EVersionMismatch)]
-fun try_to_renew_using_invalid_receipt_version(){
+fun try_to_renew_using_invalid_receipt_version() {
     let mut ctx = tx_context::dummy();
     let mut suins = setup_suins(&mut ctx);
     let clock = clock::create_for_testing(&mut ctx);
 
-   let mut nft = suins_registration::new_for_testing(
+    let mut nft = suins_registration::new_for_testing(
         domain::new(b"test.sui".to_string()),
         1,
         &clock,
-        &mut ctx
+        &mut ctx,
     );
 
     let receipt = payment::test_renewal_receipt(
         b"test.sui".to_string(),
         1,
-        2, // version should be valid here.
+        255, // version should be valid here.
     );
 
     receipt.renew(&mut suins, &mut nft, &clock, &mut ctx);
@@ -268,8 +269,115 @@ fun try_to_renew_using_invalid_receipt_version(){
     abort 1337
 }
 
+#[test, expected_failure(abort_code = ::suins::payment::ECannotRenewSubdomain)]
+fun try_to_renew_subdomain() {
+    let mut ctx = tx_context::dummy();
+    let mut suins = setup_suins(&mut ctx);
+    let clock = clock::create_for_testing(&mut ctx);
+
+    let registry = suins.pkg_registry_mut<Registry>();
+    // forceful scenario, cannot add a subdomain like that.
+    let nft = registry.add_record(
+        domain::new(b"inner.test.sui".to_string()),
+        1,
+        &clock,
+        &mut ctx,
+    );
+
+    let _receipt = payment::init_renewal(&mut suins, &nft, 1);
+    abort 1337
+}
+
+#[test, expected_failure(abort_code = ::suins::payment::ERecordExpired)]
+fun try_renewing_expired_name() {
+    let mut ctx = tx_context::dummy();
+    let mut suins = setup_suins(&mut ctx);
+    let mut clock = clock::create_for_testing(&mut ctx);
+
+    let registry = suins.pkg_registry_mut<Registry>();
+    // forceful scenario, cannot add a subdomain like that.
+    let mut nft = registry.add_record(
+        domain::new(b"test.sui".to_string()),
+        1,
+        &clock,
+        &mut ctx,
+    );
+
+    let receipt = payment::test_renewal_receipt(
+        b"test.sui".to_string(),
+        1,
+        constants::payments_version!(), // version should be valid here.
+    );
+
+    clock.increment_for_testing(constants::year_ms() + constants::grace_period_ms() + 1);
+    receipt.renew(&mut suins, &mut nft, &clock, &mut ctx);
+
+    abort 1337
+}
+
+#[test, expected_failure(abort_code = ::suins::payment::ERecordNotFound)]
+fun try_renewing_non_existent_name() {
+    let mut ctx = tx_context::dummy();
+    let mut suins = setup_suins(&mut ctx);
+    let clock = clock::create_for_testing(&mut ctx);
+
+    let mut nft = suins_registration::new_for_testing(
+        domain::new(b"test.sui".to_string()),
+        1,
+        &clock,
+        &mut ctx,
+    );
+
+    let receipt = payment::test_renewal_receipt(
+        b"test.sui".to_string(),
+        1,
+        constants::payments_version!(), // version should be valid here.
+    );
+
+    receipt.renew(&mut suins, &mut nft, &clock, &mut ctx);
+
+    abort 1337
+}
+
+#[test, expected_failure(abort_code = ::suins::payment::ECannotExceedMaxYears)]
+fun try_to_renew_for_too_long() {
+    let mut ctx = tx_context::dummy();
+    let mut suins = setup_suins(&mut ctx);
+    let clock = clock::create_for_testing(&mut ctx);
+
+    let domain = b"test.sui".to_string();
+
+    let intent = payment::init_registration(&mut suins, domain);
+    let receipt = handle_payment(intent, &mut suins, &mut ctx);
+    let mut nft = receipt.register(&mut suins, &clock, &mut ctx);
+
+    let receipt = payment::test_renewal_receipt(domain, 6, constants::payments_version!());
+
+    receipt.renew(&mut suins, &mut nft, &clock, &mut ctx);
+
+    abort 1337
+}
+
+#[test, expected_failure(abort_code = ::suins::payment::ECannotExceedMaxYears)]
+fun try_renewal_process_longer_than_max_years() {
+    let mut ctx = tx_context::dummy();
+    let mut suins = setup_suins(&mut ctx);
+    let clock = clock::create_for_testing(&mut ctx);
+
+    let nft = suins_registration::new_for_testing(
+        domain::new(b"test.sui".to_string()),
+        1,
+        &clock,
+        &mut ctx,
+    );
+
+    let _intent = payment::init_renewal(&mut suins, &nft, 6);
+
+    abort 1337
+}
+
 fun setup_suins(ctx: &mut TxContext): SuiNS {
-    let (mut suins, cap)= suins::new_for_testing(ctx);
+    let (mut suins, cap) = suins::new_for_testing(ctx);
 
     let renewal_config = pricing_config::new_renewal_config(
         test_pricing_config(true),
@@ -278,6 +386,7 @@ fun setup_suins(ctx: &mut TxContext): SuiNS {
     cap.add_config(&mut suins, test_pricing_config(false));
     // add a renewal config.
     cap.add_config(&mut suins, renewal_config);
+    cap.add_config(&mut suins, core_config::default());
 
     // authorize a "payments" app that is responsible for handling payments and
     // issuing receipts.
@@ -292,11 +401,7 @@ fun setup_suins(ctx: &mut TxContext): SuiNS {
 }
 
 // handles the payment, and if successful (always in this e2e test), issues the receipt.
-fun handle_payment(
-    intent: PaymentIntent,
-    suins: &mut SuiNS,
-    ctx: &mut TxContext,
-): Receipt {
+fun handle_payment(intent: PaymentIntent, suins: &mut SuiNS, ctx: &mut TxContext): Receipt {
     // the amount the user needs to pay.
     let amount = intent.request_data().base_amount();
     let coin = coin::mint_for_testing<SUI>(amount, ctx);
