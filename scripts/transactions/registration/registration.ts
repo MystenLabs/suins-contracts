@@ -347,8 +347,8 @@ export const exampleRenewal = async (
 // 	},
 // );
 
-/// Example registration using SUI
-// exampleRegistration('ajasdsssssmmdaaaadsafsaaaaaddsssaaasd.sui', 2, config.coins.SUI);
+// Example registration using SUI
+exampleRegistration('ajasdsssssmmdaaaadsafsaaaaaddsssaaasd.sui', 2, config.coins.SUI);
 
 /// Example registration using NS
 // exampleRegistration('ajasddsafaaaddsssddssaaaasd.sui', 3, config.coins.NS, {

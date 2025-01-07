@@ -114,7 +114,7 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 					v1: data.SuiNS.packageId,
 				},
 				suinsObjectId: data.SuiNS.suins,
-				utilsPackageId: data.Utils.packageId,
+				// utilsPackageId: data.Utils.packageId,
 				registrationPackageId: data.Registration.packageId,
 				subNamesPackageId: data.Subdomains.packageId,
 				tempSubNamesProxyPackageId: data.TempSubdomainProxy.packageId,

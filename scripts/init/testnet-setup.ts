@@ -15,6 +15,7 @@ import {
 	newPriceConfigV1,
 	newPriceConfigV2,
 	newRenewalConfig,
+	removeConfig,
 	setupApp,
 } from './authorization';
 
