@@ -4,7 +4,7 @@ import { existsSync, unlinkSync, writeFileSync } from 'fs';
 import path from 'path';
 import { Transaction } from '@mysten/sui/transactions';
 
-import { getClient, publishPackage, signAndExecute } from '../utils/utils';
+import { getClient, publishPackage, signAndExecute, upgradePackage } from '../utils/utils';
 import { Network, Packages } from './packages';
 import { PackageInfo } from './types';
 
@@ -16,40 +16,85 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 	// split by ordering, and publish in batch.
 	const orderings = [...new Set([...Object.values(packages).map((x) => x.order)])];
 
-	// We do the publishing in batches, because some
+	// We do the publishing in batches, because some needs to be published before others
 	for (const ordering of orderings) {
 		const list = Object.entries(packages).filter((x) => x[1].order === ordering);
 
 		for (const [key, pkg] of list) {
-			const packageFolder = path.resolve(contractsPath, pkg.folder);
-			const manifestFile = path.resolve(packageFolder + '/Move.toml');
-			// remove the lockfile on CI to allow fresh flows.
-			if (isCiJob) {
-				console.info('Removing lock file for CI job');
-				const lockFile = path.resolve(packageFolder + '/Move.lock');
-				if (existsSync(lockFile)) {
-					unlinkSync(lockFile);
-					console.info('Lock file removed');
+			if (pkg.prevPackageId) {
+				console.log(`Upgrading ${key}...`);
+				console.log(`Package folder: ${pkg.folder}`);
+				const packageFolder = path.resolve(contractsPath, pkg.folder);
+				// remove the lockfile on CI to allow fresh flows.
+				if (isCiJob) {
+					console.info('Removing lock file for CI job');
+					const lockFile = path.resolve(packageFolder + '/Move.lock');
+					if (existsSync(lockFile)) {
+						unlinkSync(lockFile);
+						console.info('Lock file removed');
+					}
 				}
+
+				const txb = new Transaction();
+				upgradePackage(txb, packageFolder, pkg.prevPackageId, pkg.upgradeCapId);
+				const res = await signAndExecute(txb, network);
+
+				await getClient(network).waitForTransaction({
+					digest: res.digest,
+				});
+
+				// @ts-ignore-next-line
+				const data = pkg.processPublish(res);
+				results[key] = data;
+
+				console.info(`Upgraded ${key} with packageId: ${data.packageId}`);
+			} else if (pkg.processPublish) {
+				console.log(`Publishing ${key}...`);
+				console.log(`Package folder: ${pkg.folder}`);
+				const packageFolder = path.resolve(contractsPath, pkg.folder);
+				// remove the lockfile on CI to allow fresh flows.
+				if (isCiJob) {
+					console.info('Removing lock file for CI job');
+					const lockFile = path.resolve(packageFolder + '/Move.lock');
+					if (existsSync(lockFile)) {
+						unlinkSync(lockFile);
+						console.info('Lock file removed');
+					}
+				}
+				// if (
+				// 	key === 'SuiNS' ||
+				// 	key === 'DenyList' ||
+				// 	key === 'DayOne' ||
+				// 	key === 'Subdomains' ||
+				// 	key === 'Utils'
+				// ) {
+				// 	writeFileSync(manifestFile, pkg.manifest()); // save the manifest as is.
+				// }
+
+				const txb = new Transaction();
+				publishPackage(txb, packageFolder, configPath);
+				const res = await signAndExecute(txb, network);
+
+				await getClient(network).waitForTransaction({
+					digest: res.digest,
+				});
+
+				// @ts-ignore-next-line
+				const data = pkg.processPublish(res);
+				results[key] = data;
+
+				console.info(`Published ${key} with packageId: ${data.packageId}`);
+
+				// if (
+				// 	key === 'SuiNS' ||
+				// 	key === 'DenyList' ||
+				// 	key === 'DayOne' ||
+				// 	key === 'Subdomains' ||
+				// 	key === 'Utils'
+				// ) {
+				// 	writeFileSync(manifestFile, pkg.manifest(data.packageId)); // update the manifest with the published-at field.
+				// }
 			}
-
-			writeFileSync(manifestFile, pkg.manifest()); // save the manifest as is.
-
-			const txb = new Transaction();
-			publishPackage(txb, packageFolder, configPath);
-			const res = await signAndExecute(txb, network);
-
-			await getClient(network).waitForTransaction({
-				digest: res.digest,
-			});
-
-			// @ts-ignore-next-line
-			const data = pkg.processPublish(res);
-			results[key] = data;
-
-			console.info(`Published ${key} with packageId: ${data.packageId}`);
-
-			writeFileSync(manifestFile, pkg.manifest(data.packageId)); // update the manifest with the published-at field.
 		}
 	}
 	writeFileSync(
@@ -71,9 +116,9 @@ export const publishPackages = async (network: Network, isCiJob = false, configP
 				suinsObjectId: data.SuiNS.suins,
 				utilsPackageId: data.Utils.packageId,
 				registrationPackageId: data.Registration.packageId,
-				renewalPackageId: data.Renewal.packageId,
 				subNamesPackageId: data.Subdomains.packageId,
 				tempSubNamesProxyPackageId: data.TempSubdomainProxy.packageId,
+				paymentsPackageId: data.Payments.packageId,
 			},
 			null,
 			2,

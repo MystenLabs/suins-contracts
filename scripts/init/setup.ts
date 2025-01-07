@@ -6,7 +6,7 @@ import { Transaction } from '@mysten/sui/transactions';
 import { MIST_PER_SUI } from '@mysten/sui/utils';
 
 import { getClient, signAndExecute } from '../utils/utils';
-import { authorizeApp } from './authorization';
+import { authorizeApp, deauthorizeApp } from './authorization';
 import { Network, Packages } from './packages';
 import { queryRegistryTable } from './queries';
 import { PackageInfo } from './types';
@@ -27,41 +27,37 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 				suinsPackageIdV1: packageInfo.SuiNS.packageId,
 			});
 		}
+		if (data && 'deAuthorizationType' in data) {
+			deauthorizeApp({
+				txb,
+				adminCap: packageInfo.SuiNS.adminCap,
+				suins: packageInfo.SuiNS.suins,
+				type: data.deAuthorizationType(),
+				suinsPackageIdV1: packageInfo.SuiNS.packageId,
+			});
+		}
 	}
 	// Call setup functions for our packages.
-	packages.Subdomains.setupFunction(
-		txb,
-		packageInfo.Subdomains.packageId,
-		packageInfo.SuiNS.adminCap,
-		packageInfo.SuiNS.suins,
-		packageInfo.SuiNS.packageId,
-	);
-	packages.DenyList.setupFunction(
-		txb,
-		packageInfo.DenyList.packageId,
-		packageInfo.SuiNS.adminCap,
-		packageInfo.SuiNS.suins,
-	);
+	// packages.Subdomains.setupFunction(
+	// 	txb,
+	// 	packageInfo.Subdomains.packageId,
+	// 	packageInfo.SuiNS.adminCap,
+	// 	packageInfo.SuiNS.suins,
+	// 	packageInfo.SuiNS.packageId,
+	// );
+	// packages.DenyList.setupFunction(
+	// 	txb,
+	// 	packageInfo.DenyList.packageId,
+	// 	packageInfo.SuiNS.adminCap,
+	// 	packageInfo.SuiNS.suins,
+	// );
 	packages.SuiNS.setupFunction(
 		txb,
 		packageInfo.SuiNS.packageId,
 		packageInfo.SuiNS.adminCap,
 		packageInfo.SuiNS.suins,
-		packageInfo.SuiNS.publisher,
+		// packageInfo.SuiNS.publisher,
 	);
-	packages.Renewal.setupFunction({
-		txb,
-		adminCap: packageInfo.SuiNS.adminCap,
-		suins: packageInfo.SuiNS.suins,
-		packageId: packageInfo.Renewal.packageId,
-		suinsPackageIdV1: packageInfo.SuiNS.packageId,
-		priceList: {
-			three: 2 * Number(MIST_PER_SUI),
-			four: 1 * Number(MIST_PER_SUI),
-			fivePlus: 0.2 * Number(MIST_PER_SUI),
-		},
-	});
-
 	packages.Coupons.setupFunction({
 		txb,
 		adminCap: packageInfo.SuiNS.adminCap,
@@ -69,6 +65,13 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 		packageId: packageInfo.Coupons.packageId,
 	});
 
+	packages.Payments.setupFunction({
+		txb,
+		packageId: packageInfo.Payments.packageId,
+		adminCap: packageInfo.SuiNS.adminCap,
+		suins: packageInfo.SuiNS.suins,
+		suinsPackageIdV1: packageInfo.SuiNS.packageId,
+	});
 	let retries = 0;
 
 	try {

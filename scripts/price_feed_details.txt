@@ -1,0 +1,6 @@
+Price Feed ID: ad0f7fb0bdefc9ec569499a1382b8404153deeff7f9e2fa1c7210dc245877160
+Details: {"emaPrice":{"conf":"280405","expo":-8,"price":"652943020","publishTime":1734030143},"id":"ad0f7fb0bdefc9ec569499a1382b8404153deeff7f9e2fa1c7210dc245877160","price":{"conf":"412481","expo":-8,"price":"651428032","publishTime":1734030143}}
+
+Price Feed ID: 99137a18354efa7fb6840889d059fdb04c46a6ce21be97ab60d9ad93e91ac758
+Details: {"emaPrice":{"conf":"14347","expo":-8,"price":"31277683","publishTime":1734030143},"id":"99137a18354efa7fb6840889d059fdb04c46a6ce21be97ab60d9ad93e91ac758","price":{"conf":"8882","expo":-8,"price":"31075118","publishTime":1734030143}}
+
