@@ -1,0 +1,46 @@
+{
+  "SuiNS": {
+    "packageId": "0xb4ab809c3cb1c9c802222da482198b04886595a2b1beec89399753bc88a81a5b",
+    "upgradeCap": "0x83013593a9c98f3841c783a587d28b46e4fe717e1db12547587bff38de75057c",
+    "publisher": "0xe1ae6d207bbee5ebe30de923abe666549c3eaeb2d0001faf6e64e0d13c86d46f",
+    "suins": "0xe55868f5adc5f84f946867635d3aba6bd02bedee2c54b5e76a1d88d530443d51",
+    "adminCap": "0x623bd09eced2ceaad6054a788a78e684e0084a461f57643c824dfdb96281d5c6"
+  },
+  "Utils": {
+    "packageId": "0xd79fd8f79a2c9d139cb9944d5ee99158f5bff7205b14e23a09e86a1e7f45d7fe",
+    "upgradeCap": "0x04f68fc7844bf9796736ade09172fecade46973828b6d45ccd4201ce6db7fe09"
+  },
+  "DenyList": {
+    "packageId": "0xd163a78994c426cdbdf6f6bb6d3c571b072dff7008e2d1fc0533a9e0c0bb59cc",
+    "upgradeCap": "0x42eb110a316040bc7f9bb25fe3e56495d8a7f5e220f610b3c474363ce45e9f1f"
+  },
+  "Registration": {
+    "packageId": "0x6c00eb8a3e24f34db6fed2702761e26ec3cf1f9164c4a9001e21337e2b89a254",
+    "upgradeCap": "0x4cfe9b9a7b2e904b43fceced0c05c0fa6fb67a6dcee80b4708f01293d8e01026"
+  },
+  "DayOne": {
+    "packageId": "0x5d9d899022bf5fe90efd63e65569a2d95f9c4ebd348989c7173f973d35813e7a",
+    "upgradeCap": "0xc7c0df0bd706a131368df80b306099e1c736c758ea280e4da04f5ece2f8f4b50"
+  },
+  "Coupons": {
+    "packageId": "0xdd98e9f8e8c71ac8f10649966c662e52cfff3cdc890b81996c746dc477c8767f",
+    "upgradeCap": "0x9f2c5830867434b2c8901376d8413d5c1180e828a978a14543222ecc428e24ba"
+  },
+  "Payments": {
+    "packageId": "0xe1c0778c7097e727a0dee47ce87a18671456ddbdb1b2dabc027c99dd0a6c2395",
+    "upgradeCap": "0xf385c5fb44be872301d9ea2f12f63514b2e59a14e5ea1531d8637a9127ceb877"
+  },
+  "Subdomains": {
+    "packageId": "0xdbece460aea8e694a0258f6b06bead15db0aa3e71b7e962ea278544cd212f405",
+    "upgradeCap": "0xd5ee238cda12168def605aecfe2ba6aa6f4f58ac7b14f85e6924fa2bb55761b8"
+  },
+  "Discounts": {
+    "packageId": "0xbfb60fc91c28c9ed67542c2cf7382466c749c534ed3fba5f58f69b4a1db2998b",
+    "upgradeCap": "0x0bca8b48c53b53efd7ce1b76ed40c29dcc3c04033eb8305f42d6f8c773fde4f1",
+    "discountHouse": "0x41f20c3960bd78d79c8663f2ac5221a2c131749246f5b3207cd2dcc3a34951e3"
+  },
+  "TempSubdomainProxy": {
+    "packageId": "0x5085d1276fecfa9619155c79f28312f3aa62953fe2da6f86a9e9a96d4a6c28f7",
+    "upgradeCap": "0x4779b2c898aa865b70c8eba49d16db259d7a18e6815a0625775ba9b5d4f1ce16"
+  }
+}
