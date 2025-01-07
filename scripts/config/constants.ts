@@ -107,23 +107,23 @@ export const mainPackage: Config = {
 		},
 	},
 	testnet: {
-		packageId: '0xb4ab809c3cb1c9c802222da482198b04886595a2b1beec89399753bc88a81a5b',
+		packageId: '0x8a4df604a449ccb9ef2efb9747046b78f78ba60fc8d88df098d0dd47619df5a4',
 		registrationPackageId: '',
-		publisherId: '0xe1ae6d207bbee5ebe30de923abe666549c3eaeb2d0001faf6e64e0d13c86d46f',
-		adminAddress: '0xb3d277c50f7b846a5f609a8d13428ae482b5826bb98437997373f3a0d60d280e',
+		publisherId: '0xfe09cf0b3d77678b99250572624bf74fe3b12af915c5db95f0ed5d755612eb68',
+		adminAddress: '0xfe09cf0b3d77678b99250572624bf74fe3b12af915c5db95f0ed5d755612eb68',
 		adminCap: normalizeSuiAddress(
-			'0x623bd09eced2ceaad6054a788a78e684e0084a461f57643c824dfdb96281d5c6',
+			'0x5def5bd9dc94b7d418d081a91c533ec619fb4350e6c4e4602aea96fd49331b15',
 		),
-		suins: '0xe55868f5adc5f84f946867635d3aba6bd02bedee2c54b5e76a1d88d530443d51',
+		suins: '0x300369e8909b9a6464da265b9a5a9ab6fe2158a040e84e808628cde7a07ee5a3',
 		directSetupPackageId: '',
 		discountsPackage: {
-			packageId: '0xbfb60fc91c28c9ed67542c2cf7382466c749c534ed3fba5f58f69b4a1db2998b',
-			discountHouseId: '0x41f20c3960bd78d79c8663f2ac5221a2c131749246f5b3207cd2dcc3a34951e3',
+			packageId: '0x7976f9bfe81dcbdbb635efb0ecb02844cd79109d3a698d05c06ca9fd2f97d262',
+			discountHouseId: '0x9f1ac0f49ddaec4fd2248ae1cc63ed91946f43a236b333439efb9126f31f8e9b',
 		},
 		renewalsPackageId: '',
-		subNamesPackageId: '0xdbece460aea8e694a0258f6b06bead15db0aa3e71b7e962ea278544cd212f405',
+		subNamesPackageId: '0x3c272bc45f9157b7818ece4f7411bdfa8af46303b071aca4e18c03119c9ff636',
 		tempSubdomainsProxyPackageId:
-			'0x5085d1276fecfa9619155c79f28312f3aa62953fe2da6f86a9e9a96d4a6c28f7',
+			'0xfd5ad004acbd5e3dd4fc0de4f1f1d465f8db5bb2ec1de63694ce6dc887fe1c89',
 		discord: {
 			discordCap: '',
 			discordObjectId: '',
@@ -131,10 +131,10 @@ export const mainPackage: Config = {
 			discordTableId: '',
 		},
 		coupons: {
-			packageId: '0xdd98e9f8e8c71ac8f10649966c662e52cfff3cdc890b81996c746dc477c8767f',
+			packageId: '0x63029aae8abbefae4f4ac6c5e3e0021159ea93a94ba648681fd64caf5b40677a',
 		},
 		payments: {
-			packageId: '0xe1c0778c7097e727a0dee47ce87a18671456ddbdb1b2dabc027c99dd0a6c2395',
+			packageId: '0x9e8b85270cf5e7ec0ae44c745abe000b6dd7d8b54ca2d367e044d8baccefc10c',
 		},
 		pyth: {
 			pythStateId: '0x243759059f4c3111179da5878c12f68d612c21a8d54d85edc86164bb18be1c7c',
