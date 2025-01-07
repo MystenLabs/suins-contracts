@@ -173,19 +173,23 @@ export const TESTNET_CONFIG = {
 		v1: '0x22fa05f21b1ad71442491220bb9338f7b7095fe35000ef88d5400d28523bdd93',
 		upgradeCap: '0x3cc8afb9eacb68ef64bc1dd4ccfe53fd61284e93c51d7bb93b0371cd12fca8e6',
 		adminCap: '0x5def5bd9dc94b7d418d081a91c533ec619fb4350e6c4e4602aea96fd49331b15',
+		oldid: '0x67072134f0867b886c9541873d1cb327feb7e161cd56dd76cb6aa9e464410db1',
 	},
 	suinsObjectId: '0x300369e8909b9a6464da265b9a5a9ab6fe2158a040e84e808628cde7a07ee5a3',
 	utilsPackageId: '0x7954ae683314ec7e156acbf0c0fc964ce035fd7f456fe7576848226502cfde1b',
-	registrationPackageId: '0x4255184a0143c0ce4394a3f16a6f5aa5d64507269e54e51ea396d569fe8f1ba5', // Need to be deauthorized
-	renewalPackageId: '0x54800ebb4606fd0c03b4554976264373b3374eeb3fd63e7ff69f31cac786ba8c', // Need to be deauthorized
+	registrationPackageId: '', // Need to be deauthorized
+	renewalPackageId: '', // Need to be deauthorized
 	subNamesPackageId: '0x3c272bc45f9157b7818ece4f7411bdfa8af46303b071aca4e18c03119c9ff636',
 	tempSubNamesProxyPackageId: '0xfd5ad004acbd5e3dd4fc0de4f1f1d465f8db5bb2ec1de63694ce6dc887fe1c89',
 	registryTableId: '0xb120c0d55432630fce61f7854795a3463deb6e3b443cc4ae72e1282073ff56e4',
 	coupons: {
 		oldid: '0x689a2d65a9666921e73ad4d59d13fee0d4be5df1ab5c0eeda8e0f7ebecb6f1b7',
 		upgradeCap: '', // What's the upgradecap for this?
-		id: '',
+		id: '0x63029aae8abbefae4f4ac6c5e3e0021159ea93a94ba648681fd64caf5b40677a',
 	},
-	paymentsId: '',
-	discountsPackageId: '',
+	paymentsId: '0x9e8b85270cf5e7ec0ae44c745abe000b6dd7d8b54ca2d367e044d8baccefc10c',
+	discountsPackage: {
+		oldid: '',
+		id: '0x7976f9bfe81dcbdbb635efb0ecb02844cd79109d3a698d05c06ca9fd2f97d262',
+	},
 };

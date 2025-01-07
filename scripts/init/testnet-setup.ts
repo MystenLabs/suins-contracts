@@ -63,6 +63,13 @@ const setupSuins = async () => {
 		}),
 		type: `${packageId}::pricing_config::RenewalConfig`,
 	});
+	deauthorizeApp({
+		txb,
+		adminCap,
+		suins,
+		type: `${TESTNET_CONFIG.suinsPackageId.oldid}::controller::Controller`,
+		suinsPackageIdV1: packageId,
+	});
 	authorizeApp({
 		txb,
 		adminCap,
@@ -82,6 +89,13 @@ const couponsSetup = async () => {
 	const couponsPackageId = TESTNET_CONFIG.coupons.id;
 	const packageId = TESTNET_CONFIG.suinsPackageId.latest;
 
+	deauthorizeApp({
+		txb,
+		adminCap,
+		suins,
+		type: `${TESTNET_CONFIG.coupons.oldid}::coupon_house::CouponsApp`,
+		suinsPackageIdV1: packageId,
+	});
 	authorizeApp({
 		txb,
 		adminCap,
@@ -91,6 +105,8 @@ const couponsSetup = async () => {
 	});
 
 	setupApp({ txb, adminCap, suins, target: `${couponsPackageId}::coupon_house` });
+
+	await signAndExecute(txb, 'testnet');
 };
 
 // Publish discounts new
@@ -98,7 +114,7 @@ const discountsSetup = async () => {
 	const txb = new Transaction();
 	const adminCap = TESTNET_CONFIG.suinsPackageId.adminCap;
 	const suins = TESTNET_CONFIG.suinsObjectId;
-	const discountsPackageId = TESTNET_CONFIG.discountsPackageId;
+	const discountsPackageId = TESTNET_CONFIG.discountsPackage.id;
 	const packageId = TESTNET_CONFIG.suinsPackageId.latest;
 
 	authorizeApp({
@@ -108,6 +124,8 @@ const discountsSetup = async () => {
 		type: `${discountsPackageId}::discounts::RegularDiscountsApp`,
 		suinsPackageIdV1: packageId,
 	});
+
+	await signAndExecute(txb, 'testnet');
 };
 
 // Publish payments new
@@ -123,7 +141,7 @@ const paymentsSetup = async () => {
 		txb,
 		adminCap,
 		suins,
-		type: `${paymentsPackageId}::payments::Payments`,
+		type: `${paymentsPackageId}::payments::PaymentsApp`,
 		suinsPackageIdV1: packageId,
 	});
 
@@ -146,6 +164,8 @@ const paymentsSetup = async () => {
 		config: paymentsconfig,
 		type: `${paymentsPackageId}::payments::PaymentsConfig`,
 	});
+
+	await signAndExecute(txb, 'testnet');
 };
 
 const deAuthorize = async () => {
@@ -176,3 +196,7 @@ const deAuthorize = async () => {
 };
 
 // setupSuins();
+// couponsSetup();
+// discountsSetup();
+// paymentsSetup();
+// deAuthorize();
