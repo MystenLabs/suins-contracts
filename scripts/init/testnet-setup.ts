@@ -3,7 +3,7 @@
 
 import { Transaction } from '@mysten/sui/transactions';
 
-import { mainPackage, MIST_PER_USDC, TESTNET_CONFIG } from '../config/constants.js';
+import { mainPackage, MAX_AGE, MIST_PER_USDC, TESTNET_CONFIG } from '../config/constants.js';
 import { prepareMultisigTx, signAndExecute } from '../utils/utils.js';
 import {
 	addConfig,
@@ -18,7 +18,8 @@ import {
 	setupApp,
 } from './authorization';
 
-const craftTx = async () => {
+// Upgrade Suins
+const setupSuins = async () => {
 	const txb = new Transaction();
 	const adminCap = TESTNET_CONFIG.suinsPackageId.adminCap;
 	const suins = TESTNET_CONFIG.suinsObjectId;
@@ -73,4 +74,105 @@ const craftTx = async () => {
 	await signAndExecute(txb, 'testnet');
 };
 
-craftTx();
+// Publish coupons new
+const couponsSetup = async () => {
+	const txb = new Transaction();
+	const adminCap = TESTNET_CONFIG.suinsPackageId.adminCap;
+	const suins = TESTNET_CONFIG.suinsObjectId;
+	const couponsPackageId = TESTNET_CONFIG.coupons.id;
+	const packageId = TESTNET_CONFIG.suinsPackageId.latest;
+
+	authorizeApp({
+		txb,
+		adminCap,
+		suins,
+		type: `${couponsPackageId}::coupon_house::CouponsApp`,
+		suinsPackageIdV1: packageId,
+	});
+
+	setupApp({ txb, adminCap, suins, target: `${couponsPackageId}::coupon_house` });
+};
+
+// Publish discounts new
+const discountsSetup = async () => {
+	const txb = new Transaction();
+	const adminCap = TESTNET_CONFIG.suinsPackageId.adminCap;
+	const suins = TESTNET_CONFIG.suinsObjectId;
+	const discountsPackageId = TESTNET_CONFIG.discountsPackageId;
+	const packageId = TESTNET_CONFIG.suinsPackageId.latest;
+
+	authorizeApp({
+		txb,
+		adminCap,
+		suins,
+		type: `${discountsPackageId}::discounts::RegularDiscountsApp`,
+		suinsPackageIdV1: packageId,
+	});
+};
+
+// Publish payments new
+const paymentsSetup = async () => {
+	const txb = new Transaction();
+	const adminCap = TESTNET_CONFIG.suinsPackageId.adminCap;
+	const suins = TESTNET_CONFIG.suinsObjectId;
+	const paymentsPackageId = TESTNET_CONFIG.paymentsId;
+	const packageId = TESTNET_CONFIG.suinsPackageId.latest;
+	const config = mainPackage['testnet'];
+
+	authorizeApp({
+		txb,
+		adminCap,
+		suins,
+		type: `${paymentsPackageId}::payments::Payments`,
+		suinsPackageIdV1: packageId,
+	});
+
+	const paymentsconfig = newPaymentsConfig({
+		txb,
+		packageId: paymentsPackageId,
+		coinTypeAndDiscount: [
+			[config.coins.USDC, 0],
+			[config.coins.SUI, 0],
+			[config.coins.NS, 25],
+		],
+		baseCurrencyType: config.coins.USDC.type,
+		maxAge: MAX_AGE,
+	});
+	addConfig({
+		txb,
+		adminCap,
+		suins,
+		suinsPackageIdV1: packageId,
+		config: paymentsconfig,
+		type: `${paymentsPackageId}::payments::PaymentsConfig`,
+	});
+};
+
+const deAuthorize = async () => {
+	const txb = new Transaction();
+	const registrationPackageId = TESTNET_CONFIG.registrationPackageId;
+	const renewalPackageId = TESTNET_CONFIG.renewalPackageId;
+	const adminCap = TESTNET_CONFIG.suinsPackageId.adminCap;
+	const suins = TESTNET_CONFIG.suinsObjectId;
+	const packageId = TESTNET_CONFIG.suinsPackageId.latest;
+
+	deauthorizeApp({
+		txb,
+		adminCap,
+		suins,
+		type: `${registrationPackageId}::register::Register`,
+		suinsPackageIdV1: packageId,
+	});
+
+	deauthorizeApp({
+		txb,
+		adminCap,
+		suins,
+		type: `${renewalPackageId}::renew::Renew`,
+		suinsPackageIdV1: packageId,
+	});
+
+	await signAndExecute(txb, 'testnet');
+};
+
+// setupSuins();

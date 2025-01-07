@@ -165,7 +165,7 @@ export const mainPackage: Config = {
 };
 
 export const MIST_PER_USDC = 1000000;
-export const MAX_AGE = 300; // In seconds, 60 seconds as max age for last price, can be updated
+export const MAX_AGE = 60; // In seconds, 60 seconds as max age for last price, can be updated
 
 export const TESTNET_CONFIG = {
 	suinsPackageId: {
@@ -182,7 +182,10 @@ export const TESTNET_CONFIG = {
 	tempSubNamesProxyPackageId: '0xfd5ad004acbd5e3dd4fc0de4f1f1d465f8db5bb2ec1de63694ce6dc887fe1c89',
 	registryTableId: '0xb120c0d55432630fce61f7854795a3463deb6e3b443cc4ae72e1282073ff56e4',
 	coupons: {
-		id: '0x689a2d65a9666921e73ad4d59d13fee0d4be5df1ab5c0eeda8e0f7ebecb6f1b7',
+		oldid: '0x689a2d65a9666921e73ad4d59d13fee0d4be5df1ab5c0eeda8e0f7ebecb6f1b7',
 		upgradeCap: '', // What's the upgradecap for this?
+		id: '',
 	},
+	paymentsId: '',
+	discountsPackageId: '',
 };

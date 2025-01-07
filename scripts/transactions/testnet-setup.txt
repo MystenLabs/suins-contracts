@@ -1,6 +1,6 @@
 Suins Upgrade, Add renewal/registration pricing configs, authorize controller
 Deauthorize Reg/renewal
-Coupons Upgrade, deauhorize/authorize (mainnet)
+          Coupons Upgrade, deauhorize/authorize (mainnet)
 Coupons Publish, deauhorize/authorize (testnet)
 Payments Publish, add payments config, authorize
 Discounts Publish, deauthorize/authorize
