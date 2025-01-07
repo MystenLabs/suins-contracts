@@ -382,6 +382,27 @@ fun target_expiration(registry: &Registry, domain: Domain, clock: &Clock, no_yea
     target
 }
 
+/// Adjusts the amount based on the discount.
+fun adjust_discount(
+    data: &mut RequestData,
+    discount_key: String,
+    discount: u8,
+    allow_multiple_discounts: bool,
+) {
+    assert!(
+        !data.discounts_applied.contains(&discount_key),
+        EDiscountAlreadyApplied,
+    );
+    assert!(
+        allow_multiple_discounts || !data.discount_applied(),
+        ENotMultipleDiscountsAllowed,
+    );
+    assert!(discount <= 100, EInvalidDiscountPercentage);
+
+    data.base_amount = data.calculate_total_after_discount(discount);
+    data.discounts_applied.insert(discount_key, discount as u64);
+}
+
 #[test_only]
 public(package) fun test_registration_receipt(name: String, years: u8, version: u8): Receipt {
     Receipt::Registration {
