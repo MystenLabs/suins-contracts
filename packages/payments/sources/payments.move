@@ -220,18 +220,6 @@ public fun new_payments_config(
     }
 }
 
-public fun calculate_price_after_discount<T>(
-    suins: &SuiNS,
-    intent: &PaymentIntent,
-): u64 {
-    let type_config = suins.get_config_for_type<T>();
-
-    calculate_total_after_discount(
-        intent.request_data(),
-        type_config.discount_percentage,
-    )
-}
-
 public(package) fun calculate_target_currency_amount(
     base_currency_amount: u64,
     target_decimals: u8,
