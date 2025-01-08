@@ -144,6 +144,8 @@ export const mainPackage: Config = {
 	},
 };
 
+export const MIST_PER_USDC = 1000000;
+
 // export const MAINNET_CONFIG: Constants = {
 // 	suinsPackageId: {
 // 		latest: '0xb7004c7914308557f7afbaf0dca8dd258e18e306cb7a45b28019f3d0a693f162',
