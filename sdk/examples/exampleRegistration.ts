@@ -29,7 +29,6 @@ import { SuinsTransaction } from '../src/suins-transaction';
 	/* Following can be used to fetch the domain record */
 	// console.log('Domain Record: ', await suinsClient.getNameRecord('tont.testing12345.sui'));
 
-	/* Following can be used to fetch the domain record */
 	const suinsTx = new SuinsTransaction(suinsClient, new Transaction());
 
 	/* Registration Example Using SUI */
