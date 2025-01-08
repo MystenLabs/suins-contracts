@@ -60,7 +60,7 @@ export class SuinsClient {
 			name: {
 				type: getConfigType(
 					this.config.packageIdV1,
-					getPricelistConfigType(this.config.packageIdPayment),
+					getPricelistConfigType(this.config.packageIdPricing),
 				),
 				value: { dummy_field: false },
 			},
@@ -114,7 +114,7 @@ export class SuinsClient {
 			name: {
 				type: getConfigType(
 					this.config.packageIdV1,
-					getRenewalPricelistConfigType(this.config.packageIdPayment),
+					getRenewalPricelistConfigType(this.config.packageIdPricing),
 				),
 				value: { dummy_field: false },
 			},
