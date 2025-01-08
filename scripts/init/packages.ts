@@ -56,14 +56,12 @@ export const Packages = (network: Network) => {
 		SuiNS: {
 			order: 1,
 			folder: 'suins',
-			prevPackageId: TESTNET_CONFIG.suinsPackageId.v1, // Latest
-			upgradeCapId: TESTNET_CONFIG.suinsPackageId.upgradeCap,
 			manifest: SuiNS(rev),
 			processPublish: (data: SuiTransactionBlockResponse) => {
-				const { packageId, upgradeCap } = parseCorePackageObjects(data, true);
+				const { packageId, upgradeCap } = parseCorePackageObjects(data);
 				const publisher = parseCreatedObject(data, '0x2::package::Publisher');
-				const suins = TESTNET_CONFIG.suinsObjectId;
-				const adminCap = TESTNET_CONFIG.suinsPackageId.adminCap;
+				const suins = parseCreatedObject(data, `${packageId}::suins::SuiNS`);
+				const adminCap = parseCreatedObject(data, `${packageId}::suins::AdminCap`);
 
 				return {
 					packageId,
@@ -201,11 +199,9 @@ export const Packages = (network: Network) => {
 		Coupons: {
 			order: 2,
 			folder: 'coupons',
-			prevPackageId: TESTNET_CONFIG.coupons.id,
-			upgradeCapId: TESTNET_CONFIG.coupons.upgradeCap,
 			manifest: SuiNSDependentPackages(rev, 'coupons'),
 			processPublish: (data: SuiTransactionBlockResponse) => {
-				const { packageId, upgradeCap } = parseCorePackageObjects(data, true);
+				const { packageId, upgradeCap } = parseCorePackageObjects(data);
 
 				return {
 					packageId,
@@ -230,8 +226,6 @@ export const Packages = (network: Network) => {
 		Payments: {
 			order: 2,
 			folder: 'payments',
-			prevPackageId: null,
-			upgradeCapId: null,
 			manifest: SuiNSDependentPackages(rev, 'payments'),
 			processPublish: (data: SuiTransactionBlockResponse) => {
 				const { packageId, upgradeCap } = parseCorePackageObjects(data);
@@ -312,8 +306,6 @@ export const Packages = (network: Network) => {
 		Discounts: {
 			order: 3,
 			folder: 'discounts',
-			prevPackageId: null,
-			upgradeCapId: null,
 			manifest: SuiNSDependentPackages(rev, 'discounts', 'day_one = { local = "../day_one" }'),
 			processPublish: (data: SuiTransactionBlockResponse) => {
 				const { packageId, upgradeCap } = parseCorePackageObjects(data);

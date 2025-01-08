@@ -27,14 +27,15 @@ import { SuinsTransaction } from '../src/suins-transaction';
 	// console.log(await suinsClient.getRenewalPriceList());
 
 	/* Following can be used to fetch the domain record */
-	// console.log('Domain Record: ', await suinsClient.getNameRecord('tont.testing12345.sui'));
+	// console.log('Domain Record: ', await suinsClient.getNameRecord('testing12345.sui'));
+	// console.log('Domain Record: ', await suinsClient.getNameRecord('tony.testing12345.sui'));
 
 	const suinsTx = new SuinsTransaction(suinsClient, new Transaction());
 
 	/* Registration Example Using SUI */
-	const nft = await suinsTx.register('tony123888.sui', 2, suinsClient.config.coins.SUI, {
-		couponCode: 'fiveplus15percentoff',
-	});
+	// const nft = await suinsTx.register('tony123888.sui', 2, suinsClient.config.coins.SUI, {
+	// 	couponCode: 'fiveplus15percentoff',
+	// });
 
 	/* Registration Example Using USDC */
 	// const nft = await suinsTx.register('testing123456.sui', 2, suinsClient.config.coins.USDC, {
@@ -50,8 +51,8 @@ import { SuinsTransaction } from '../src/suins-transaction';
 
 	/* Renew Example */
 	// const nft = await suinsTx.renew(
-	// 	'0x122a6701488cf2cb73f8a2ba659f1f9b2b66017381236e06eeb60540f568d4d6',
-	// 	2,
+	// 	'0x8d4af9dc54023182ae8ca78717587f4d99b10458821fc94be7716681f164507b',
+	// 	1,
 	// 	suinsClient.config.coins.SUI,
 	// 	{
 	// 		couponCode: 'fiveplus15percentoff',
@@ -59,22 +60,22 @@ import { SuinsTransaction } from '../src/suins-transaction';
 	// 	},
 	// );
 
-	if (nft) {
-		/* Optionally set target address */
-		// suinsTx.setTargetAddress({ nft, address: suinsTx.getActiveAddress() });
+	// if (nft) {
+	// 	/* Optionally set target address */
+	// 	// suinsTx.setTargetAddress({ nft, address: suinsTx.getActiveAddress() });
 
-		/* Optionally set default */
-		// suinsTx.setDefault('testing12345.sui');
+	// 	/* Optionally set default */
+	// 	// suinsTx.setDefault('testing12345.sui');
 
-		/* Optionally set user data */
-		// suinsTx.setUserData({
-		// 	nft,
-		// 	value: 'hello',
-		// 	key: 'avatar',
-		// });
+	// 	/* Optionally set user data */
+	// 	// suinsTx.setUserData({
+	// 	// 	nft,
+	// 	// 	value: 'hello',
+	// 	// 	key: 'avatar',
+	// 	// });
 
-		suinsTx.transaction.transferObjects([nft], suinsTx.getActiveAddress());
-	}
+	// 	suinsTx.transaction.transferObjects([nft], suinsTx.getActiveAddress());
+	// }
 
 	/* Subname Example */
 	// const subnameNft = suinsTx.createSubName({
@@ -85,6 +86,12 @@ import { SuinsTransaction } from '../src/suins-transaction';
 	// 	allowTimeExtension: true,
 	// });
 	// suinsTx.transaction.transferObjects([subnameNft], suinsTx.getActiveAddress());
+
+	/* Extend Subname Expiration */
+	suinsTx.extendSubNameExpiration({
+		nft: '0x8d4af9dc54023182ae8ca78717587f4d99b10458821fc94be7716681f164507b',
+		expirationTimestampMs: 1862511339394,
+	});
 
 	return suinsTx.signAndExecute();
 })();
