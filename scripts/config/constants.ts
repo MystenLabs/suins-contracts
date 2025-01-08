@@ -15,7 +15,8 @@ export type DiscordConfig = {
 
 export type PackageInfo = {
 	packageId: string;
-	registrationPackageId: string;
+	packageIdV1: string;
+	packageIdPricing: string;
 	upgradeCap?: string;
 	publisherId: string;
 	adminAddress: string;
@@ -27,7 +28,6 @@ export type PackageInfo = {
 		packageId: string;
 		discountHouseId: string;
 	};
-	renewalsPackageId: string;
 	subNamesPackageId: string;
 	tempSubdomainsProxyPackageId: string;
 	discord: DiscordConfig | undefined;
@@ -49,12 +49,15 @@ export type PackageInfo = {
 			feed: string;
 		};
 	};
+	registryTableId: string;
 };
 
 export const mainPackage: Config = {
 	mainnet: {
 		packageId: '0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0',
-		registrationPackageId: '0x9d451fa0139fef8f7c1f0bd5d7e45b7fa9dbb84c2e63c2819c7abd0a7f7d749d',
+		packageIdV1: '',
+		packageIdPricing: '',
+		// registrationPackageId: '0x9d451fa0139fef8f7c1f0bd5d7e45b7fa9dbb84c2e63c2819c7abd0a7f7d749d',
 		upgradeCap: '0x9cda28244a0d0de294d2b271e772a9c33eb47d316c59913d7369b545b4af098c',
 		publisherId: '0x7339f23f06df3601167d67a31752781d307136fd18304c48c928778e752caae1',
 		adminAddress: normalizeSuiAddress(
@@ -68,7 +71,7 @@ export const mainPackage: Config = {
 			discountHouseId: '0x7fdd883c0b7427f18cdb498c4c87a4a79d6bec4783cb3f21aa3816bbc64ce8ef',
 		},
 		directSetupPackageId: '0xdac22652eb400beb1f5e2126459cae8eedc116b73b8ad60b71e3e8d7fdb317e2',
-		renewalsPackageId: '0xd5e5f74126e7934e35991643b0111c3361827fc0564c83fa810668837c6f0b0f',
+		// renewalsPackageId: '0xd5e5f74126e7934e35991643b0111c3361827fc0564c83fa810668837c6f0b0f',
 		subNamesPackageId: 'TODO: Fill this in...',
 		tempSubdomainsProxyPackageId: 'TODO: Fill this in...',
 		discord: {
@@ -105,10 +108,12 @@ export const mainPackage: Config = {
 				feed: '',
 			},
 		},
+		registryTableId: '',
 	},
 	testnet: {
 		packageId: '0xd8d4b4adc145abe4f12933274de57ba904b4df9bdedac49538eb443054fcd099',
-		registrationPackageId: '',
+		packageIdV1: '0x22fa05f21b1ad71442491220bb9338f7b7095fe35000ef88d5400d28523bdd93',
+		packageIdPricing: '0x8a4df604a449ccb9ef2efb9747046b78f78ba60fc8d88df098d0dd47619df5a4',
 		publisherId: '0xfe09cf0b3d77678b99250572624bf74fe3b12af915c5db95f0ed5d755612eb68',
 		adminAddress: '0xfe09cf0b3d77678b99250572624bf74fe3b12af915c5db95f0ed5d755612eb68',
 		adminCap: normalizeSuiAddress(
@@ -120,7 +125,6 @@ export const mainPackage: Config = {
 			packageId: '0x7976f9bfe81dcbdbb635efb0ecb02844cd79109d3a698d05c06ca9fd2f97d262',
 			discountHouseId: '0x9f1ac0f49ddaec4fd2248ae1cc63ed91946f43a236b333439efb9126f31f8e9b',
 		},
-		renewalsPackageId: '',
 		subNamesPackageId: '0x3c272bc45f9157b7818ece4f7411bdfa8af46303b071aca4e18c03119c9ff636',
 		tempSubdomainsProxyPackageId:
 			'0xfd5ad004acbd5e3dd4fc0de4f1f1d465f8db5bb2ec1de63694ce6dc887fe1c89',
@@ -161,9 +165,9 @@ export const mainPackage: Config = {
 				feed: '',
 			},
 		},
+		registryTableId: '0xb120c0d55432630fce61f7854795a3463deb6e3b443cc4ae72e1282073ff56e4',
 	},
 };
-
 export const MIST_PER_USDC = 1000000;
 export const MAX_AGE = 60; // In seconds, 60 seconds as max age for last price, can be updated
 
