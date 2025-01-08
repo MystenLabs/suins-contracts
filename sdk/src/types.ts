@@ -26,6 +26,7 @@ export type DiscordConfig = {
 export type PackageInfo = {
 	packageId: string;
 	packageIdV1: string;
+	packageIdPayment: string;
 	registrationPackageId: string;
 	upgradeCap?: string;
 	publisherId: string;

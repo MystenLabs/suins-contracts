@@ -107,7 +107,7 @@ export const mainPackage: Config = {
 		},
 	},
 	testnet: {
-		packageId: '0x8a4df604a449ccb9ef2efb9747046b78f78ba60fc8d88df098d0dd47619df5a4',
+		packageId: '0xd8d4b4adc145abe4f12933274de57ba904b4df9bdedac49538eb443054fcd099',
 		registrationPackageId: '',
 		publisherId: '0xfe09cf0b3d77678b99250572624bf74fe3b12af915c5db95f0ed5d755612eb68',
 		adminAddress: '0xfe09cf0b3d77678b99250572624bf74fe3b12af915c5db95f0ed5d755612eb68',
@@ -169,11 +169,11 @@ export const MAX_AGE = 60; // In seconds, 60 seconds as max age for last price, 
 
 export const TESTNET_CONFIG = {
 	suinsPackageId: {
-		latest: '0x8a4df604a449ccb9ef2efb9747046b78f78ba60fc8d88df098d0dd47619df5a4',
+		latest: '0xd8d4b4adc145abe4f12933274de57ba904b4df9bdedac49538eb443054fcd099',
 		v1: '0x22fa05f21b1ad71442491220bb9338f7b7095fe35000ef88d5400d28523bdd93',
 		upgradeCap: '0x3cc8afb9eacb68ef64bc1dd4ccfe53fd61284e93c51d7bb93b0371cd12fca8e6',
 		adminCap: '0x5def5bd9dc94b7d418d081a91c533ec619fb4350e6c4e4602aea96fd49331b15',
-		oldid: '0x67072134f0867b886c9541873d1cb327feb7e161cd56dd76cb6aa9e464410db1',
+		oldid: '0x8a4df604a449ccb9ef2efb9747046b78f78ba60fc8d88df098d0dd47619df5a4',
 	},
 	suinsObjectId: '0x300369e8909b9a6464da265b9a5a9ab6fe2158a040e84e808628cde7a07ee5a3',
 	utilsPackageId: '0x7954ae683314ec7e156acbf0c0fc964ce035fd7f456fe7576848226502cfde1b',

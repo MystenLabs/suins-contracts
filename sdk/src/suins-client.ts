@@ -58,7 +58,10 @@ export class SuinsClient {
 		const priceList = await this.client.getDynamicFieldObject({
 			parentId: this.config.suins,
 			name: {
-				type: getConfigType(this.config.packageId, getPricelistConfigType(this.config.packageId)),
+				type: getConfigType(
+					this.config.packageIdV1,
+					getPricelistConfigType(this.config.packageIdPayment),
+				),
 				value: { dummy_field: false },
 			},
 		});
@@ -110,8 +113,8 @@ export class SuinsClient {
 			parentId: this.config.suins,
 			name: {
 				type: getConfigType(
-					this.config.packageId,
-					getRenewalPricelistConfigType(this.config.packageId),
+					this.config.packageIdV1,
+					getRenewalPricelistConfigType(this.config.packageIdPayment),
 				),
 				value: { dummy_field: false },
 			},
@@ -163,8 +166,7 @@ export class SuinsClient {
 	// 	'0000000000000000000000000000000000000000000000000000000000000002::sui::SUI' => 0,
 	// 	'b48aac3f53bab328e1eb4c5b3c34f55e760f2fb3f2305ee1a474878d80f650f0::TESTNS::TESTNS' => 25
 	// }
-	async getCoinTypeDiscount(): Promise<any> {
-		//Promise<CoinTypeDiscount> {
+	async getCoinTypeDiscount(): Promise<CoinTypeDiscount> {
 		if (!this.config.suins) throw new Error('Suins object ID is not set');
 		if (!this.config.packageId) throw new Error('Price list config not found');
 
@@ -172,7 +174,7 @@ export class SuinsClient {
 			parentId: this.config.suins,
 			name: {
 				type: getConfigType(
-					this.config.packageId,
+					this.config.packageIdV1,
 					getCoinDiscountConfigType(this.config.payments.packageId),
 				),
 				value: { dummy_field: false },
@@ -226,7 +228,7 @@ export class SuinsClient {
 		const nameRecord = await this.client.getDynamicFieldObject({
 			parentId: this.config.registryTableId,
 			name: {
-				type: getDomainType(this.config.packageId),
+				type: getDomainType(this.config.packageIdV1),
 				value: normalizeSuiNSName(name, 'dot').split('.').reverse(),
 			},
 		});

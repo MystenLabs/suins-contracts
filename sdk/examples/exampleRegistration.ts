@@ -21,45 +21,60 @@ import { SuinsTransaction } from '../src/suins-transaction';
 		network,
 	});
 
+	/* Following can be used to fetch the coin type discount, registration price, and renewal price */
 	// console.log(await suinsClient.getCoinTypeDiscount());
-	// console.log('asd2.asdasd1.sui', await suinsClient.getNameRecord('asd2.asdasd1.sui'));
-	// console.log('asdasd1.sui', await suinsClient.getNameRecord('asdasd1.sui'));
-	// console.log(await suinsClient.getNameRecord('testingtesting.sui'));
-	// console.log(await suinsClient.getNameRecord('testt.testingtesting.sui'));
+	// console.log(await suinsClient.getPriceList());
+	// console.log(await suinsClient.getRenewalPriceList());
 
+	/* Following can be used to fetch the domain record */
+	// console.log('Domain Record: ', await suinsClient.getNameRecord('testing12345.sui'));
+
+	/* Following can be used to fetch the domain record */
 	const suinsTx = new SuinsTransaction(suinsClient, new Transaction());
 
-	/* Register a new SuiNS name */
-	const nft = await suinsTx.register('testisssngtesting.sui', 1, suinsClient.config.coins.USDC, {
-		// couponCode: 'fiveplus15percentoff',
-		coinId: '0x3a6f32a201ad7f7491a56a1f513c97ec24995494019ba02a586fa181c5d266c5',
-	});
-
-	if (nft) {
-		/* Set target address */
-		// const nft = '0x1f7c9f5c34b43ce71cf2a5bb42f0b91dc7971ef0256bb6dea28a33bd9ab4cfe1';
-		const address = '0xb3d277c50f7b846a5f609a8d13428ae482b5826bb98437997373f3a0d60d280e';
-		// suinsTx.setTargetAddress({ nft, address });
-
-		// suinsTx.setDefault('tonysstddondytony.sui');
-		// suinsTx.setUserData({
-		// 	nft,
-		// 	value: 'hello',
-		// 	key: 'avatar',
-		// });
-
-		suinsTx.transaction.transferObjects([nft], suinsTx.getActiveAddress());
-	}
-
-	// Creating a subname
-	// const subnameNft = suinsTx.createSubName({
-	// 	parentNft: '0x64b3f07fa11658117764108ef1232c9ca00c289f77e57bc56f1fba1cd6d30b41',
-	// 	name: 'testt.testingtesting.sui',
-	// 	expirationTimestampMs: 1766510698047,
-	// 	allowChildCreation: true,
-	// 	allowTimeExtension: true,
+	/* Registration Example */
+	// const nft = await suinsTx.register('testing12345.sui', 2, suinsClient.config.coins.SUI, {
+	// couponCode: 'fiveplus15percentoff',
+	// coinId: '0x3a6f32a201ad7f7491a56a1f513c97ec24995494019ba02a586fa181c5d266c5',
 	// });
-	// suinsTx.transaction.transferObjects([subnameNft], suinsTx.getActiveAddress());
+
+	/* Renew Example */
+	// const nft = await suinsTx.renew(
+	// 	'0x122a6701488cf2cb73f8a2ba659f1f9b2b66017381236e06eeb60540f568d4d6',
+	// 	2,
+	// 	suinsClient.config.coins.SUI,
+	// 	{
+	// 		couponCode: 'fiveplus15percentoff',
+	// 		// coinId: '0x3a6f32a201ad7f7491a56a1f513c97ec24995494019ba02a586fa181c5d266c5',
+	// 	},
+	// );
+
+	// if (nft) {
+	// 	/* Optionally set target address */
+	// 	// suinsTx.setTargetAddress({ nft, address: suinsTx.getActiveAddress() });
+
+	// 	/* Optionally set default */
+	// 	// suinsTx.setDefault('testing12345.sui');
+
+	// 	/* Optionally set user data */
+	// 	// suinsTx.setUserData({
+	// 	// 	nft,
+	// 	// 	value: 'hello',
+	// 	// 	key: 'avatar',
+	// 	// });
+
+	// 	suinsTx.transaction.transferObjects([nft], suinsTx.getActiveAddress());
+	// }
+
+	// // Creating a subname
+	// // const subnameNft = suinsTx.createSubName({
+	// // 	parentNft: '0x64b3f07fa11658117764108ef1232c9ca00c289f77e57bc56f1fba1cd6d30b41',
+	// // 	name: 'testt.testingtesting.sui',
+	// // 	expirationTimestampMs: 1766510698047,
+	// // 	allowChildCreation: true,
+	// // 	allowTimeExtension: true,
+	// // });
+	// // suinsTx.transaction.transferObjects([subnameNft], suinsTx.getActiveAddress());
 
 	return suinsTx.signAndExecute();
 })();

@@ -1,6 +1,6 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-import { TransactionArgument, type Transaction } from '@mysten/sui/transactions';
+import { Transaction, TransactionArgument } from '@mysten/sui/transactions';
 import { hexToBytes } from '@noble/hashes/utils';
 
 /**
@@ -167,6 +167,31 @@ export const newPriceConfigV2 = ({
 		arguments: [
 			txb.makeMoveVec({ elements: rangesList, type: `${packageId}::pricing_config::Range` }),
 			txb.pure.vector('u64', prices),
+		],
+	});
+};
+
+export const addCoreConfig = ({
+	txb,
+	latestPackageId,
+}: {
+	txb: Transaction;
+	latestPackageId: string;
+}) => {
+	// Result types: [0x22fa05f21b1ad71442491220bb9338f7b7095fe35000ef88d5400d28523bdd93::core_config::CoreConfig]
+	return txb.moveCall({
+		target: `${latestPackageId}::core_config::new`,
+		arguments: [
+			txb.pure.vector('string', []), // vector<U8>
+			txb.pure.u8(3),
+			txb.pure.u8(63),
+			txb.pure.u8(1),
+			txb.pure.u8(5),
+			txb.pure.vector('string', ['sui']), // vector<0x1::string::String>
+			txb.moveCall({
+				target: '0x2::vec_map::empty',
+				typeArguments: ['0x1::string::String', '0x1::string::String'],
+			}), // 0x2::vec_map::VecMap<0x1::string::String,0x1::string::String>
 		],
 	});
 };

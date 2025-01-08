@@ -85,7 +85,9 @@ export const mainPackage: any = {
 		},
 	},
 	testnet: {
-		packageId: '0x8a4df604a449ccb9ef2efb9747046b78f78ba60fc8d88df098d0dd47619df5a4',
+		packageId: '0xd8d4b4adc145abe4f12933274de57ba904b4df9bdedac49538eb443054fcd099',
+		packageIdV1: '0x22fa05f21b1ad71442491220bb9338f7b7095fe35000ef88d5400d28523bdd93',
+		packageIdPayment: '0x8a4df604a449ccb9ef2efb9747046b78f78ba60fc8d88df098d0dd47619df5a4',
 		registrationPackageId: '',
 		publisherId: '0xfe09cf0b3d77678b99250572624bf74fe3b12af915c5db95f0ed5d755612eb68',
 		adminAddress: '0xfe09cf0b3d77678b99250572624bf74fe3b12af915c5db95f0ed5d755612eb68',
