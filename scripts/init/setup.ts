@@ -27,36 +27,27 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 				suinsPackageIdV1: packageInfo.SuiNS.packageId,
 			});
 		}
-		if (data && 'deAuthorizationType' in data) {
-			deauthorizeApp({
-				txb,
-				adminCap: packageInfo.SuiNS.adminCap,
-				suins: packageInfo.SuiNS.suins,
-				type: data.deAuthorizationType(),
-				suinsPackageIdV1: packageInfo.SuiNS.packageId,
-			});
-		}
 	}
 	// Call setup functions for our packages.
-	// packages.Subdomains.setupFunction(
-	// 	txb,
-	// 	packageInfo.Subdomains.packageId,
-	// 	packageInfo.SuiNS.adminCap,
-	// 	packageInfo.SuiNS.suins,
-	// 	packageInfo.SuiNS.packageId,
-	// );
-	// packages.DenyList.setupFunction(
-	// 	txb,
-	// 	packageInfo.DenyList.packageId,
-	// 	packageInfo.SuiNS.adminCap,
-	// 	packageInfo.SuiNS.suins,
-	// );
+	packages.Subdomains.setupFunction(
+		txb,
+		packageInfo.Subdomains.packageId,
+		packageInfo.SuiNS.adminCap,
+		packageInfo.SuiNS.suins,
+		packageInfo.SuiNS.packageId,
+	);
+	packages.DenyList.setupFunction(
+		txb,
+		packageInfo.DenyList.packageId,
+		packageInfo.SuiNS.adminCap,
+		packageInfo.SuiNS.suins,
+	);
 	packages.SuiNS.setupFunction(
 		txb,
 		packageInfo.SuiNS.packageId,
 		packageInfo.SuiNS.adminCap,
 		packageInfo.SuiNS.suins,
-		// packageInfo.SuiNS.publisher,
+		packageInfo.SuiNS.publisher,
 	);
 	packages.Coupons.setupFunction({
 		txb,
@@ -64,7 +55,6 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 		suins: packageInfo.SuiNS.suins,
 		packageId: packageInfo.Coupons.packageId,
 	});
-
 	packages.Payments.setupFunction({
 		txb,
 		packageId: packageInfo.Payments.packageId,
