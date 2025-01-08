@@ -501,14 +501,12 @@ export class SuinsTransaction {
 		address,
 		isSubname,
 	}: {
-		nft: any;
+		nft: ObjectArgument;
 		address?: string;
 		isSubname?: boolean;
 	}) {
 		if (isSubname && !this.suinsClient.config.tempSubdomainsProxyPackageId)
 			throw new Error('Subnames proxy package ID not found');
-
-		const nftObject = typeof nft === 'string' ? this.transaction.object(nft) : nft;
 
 		this.transaction.moveCall({
 			target: isSubname
@@ -516,7 +514,7 @@ export class SuinsTransaction {
 				: `${this.suinsClient.config.packageId}::controller::set_target_address`,
 			arguments: [
 				this.transaction.object(this.suinsClient.config.suins),
-				nftObject,
+				this.transaction.object(nft),
 				this.transaction.pure(bcs.option(bcs.Address).serialize(address).toBytes()),
 				this.transaction.object(SUI_CLOCK_OBJECT_ID),
 			],
@@ -598,7 +596,7 @@ export class SuinsTransaction {
 		key,
 		isSubname,
 	}: {
-		nft: any;
+		nft: ObjectArgument;
 		value: string;
 		key: string;
 		isSubname?: boolean;
@@ -606,8 +604,6 @@ export class SuinsTransaction {
 		if (!this.suinsClient.config.suins) throw new Error('SuiNS Object ID not found');
 		if (isSubname && !this.suinsClient.config.tempSubdomainsProxyPackageId)
 			throw new Error('Subnames proxy package ID not found');
-
-		const nftObject = typeof nft === 'string' ? this.transaction.object(nft) : nft;
 
 		if (!Object.values(ALLOWED_METADATA).some((x) => x === key)) throw new Error('Invalid key');
 
@@ -617,7 +613,7 @@ export class SuinsTransaction {
 				: `${this.suinsClient.config.packageId}::controller::set_user_data`,
 			arguments: [
 				this.transaction.object(this.suinsClient.config.suins),
-				nftObject,
+				this.transaction.object(nft),
 				this.transaction.pure.string(key),
 				this.transaction.pure.string(value),
 				this.transaction.object(SUI_CLOCK_OBJECT_ID),
