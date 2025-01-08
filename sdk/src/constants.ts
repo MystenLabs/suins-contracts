@@ -18,7 +18,6 @@ export const getConfigType = (suinsPackageV1: string, innerType: string) =>
 	`${suinsPackageV1}::suins::ConfigKey<${innerType}>`;
 
 export const getDomainType = (suinsPackageV1: string) => `${suinsPackageV1}::domain::Domain`;
-export const getSubdomainType = (suinsPackageV1: string) => `${suinsPackageV1}::domain::Domain`;
 
 export const getPricelistConfigType = (suinsPackageId: string) =>
 	`${suinsPackageId}::pricing_config::PricingConfig`;

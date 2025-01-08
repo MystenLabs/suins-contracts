@@ -9,8 +9,7 @@ import { decodeSuiPrivateKey } from '@mysten/sui/cryptography';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { Secp256k1Keypair } from '@mysten/sui/keypairs/secp256k1';
 import { Secp256r1Keypair } from '@mysten/sui/keypairs/secp256r1';
-import type { Transaction } from '@mysten/sui/transactions';
-import { TransactionObjectArgument } from '@mysten/sui/transactions';
+import { Transaction, TransactionObjectArgument } from '@mysten/sui/transactions';
 import {
 	fromBase64,
 	isValidSuiNSName,
@@ -361,6 +360,24 @@ export class SuinsTransaction {
 		});
 
 		return subNft;
+	}
+
+	extendSubNameExpiration({
+		nft,
+		expirationTimestampMs,
+	}: {
+		nft: string;
+		expirationTimestampMs: number;
+	}) {
+		const tx = this.transaction;
+		tx.moveCall({
+			target: `${this.suinsClient.config.subNamesPackageId}::subdomains::extend_expiration`,
+			arguments: [
+				tx.object(this.suinsClient.config.suins),
+				tx.object(nft),
+				tx.pure.u64(expirationTimestampMs),
+			],
+		});
 	}
 
 	/**
