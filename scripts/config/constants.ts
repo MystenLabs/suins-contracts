@@ -54,10 +54,10 @@ export type PackageInfo = {
 
 export const mainPackage: Config = {
 	mainnet: {
-		packageId: '0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0',
-		packageIdV1: '',
+		packageId: '0x00c2f85e07181b90c140b15c5ce27d863f93c4d9159d2a4e7bdaeb40e286d6f5',
+		packageIdV1: '0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0',
 		packageIdPricing: '',
-		// registrationPackageId: '0x9d451fa0139fef8f7c1f0bd5d7e45b7fa9dbb84c2e63c2819c7abd0a7f7d749d',
+		// registrationPackageId: '0x9d451fa0139fef8f7c1f0bd5d7e45b7fa9dbb84c2e63c2819c7abd0a7f7d749d', // Need to be deauthorized
 		upgradeCap: '0x9cda28244a0d0de294d2b271e772a9c33eb47d316c59913d7369b545b4af098c',
 		publisherId: '0x7339f23f06df3601167d67a31752781d307136fd18304c48c928778e752caae1',
 		adminAddress: normalizeSuiAddress(
@@ -71,7 +71,7 @@ export const mainPackage: Config = {
 			discountHouseId: '0x7fdd883c0b7427f18cdb498c4c87a4a79d6bec4783cb3f21aa3816bbc64ce8ef',
 		},
 		directSetupPackageId: '0xdac22652eb400beb1f5e2126459cae8eedc116b73b8ad60b71e3e8d7fdb317e2',
-		// renewalsPackageId: '0xd5e5f74126e7934e35991643b0111c3361827fc0564c83fa810668837c6f0b0f',
+		// renewalsPackageId: '0xd5e5f74126e7934e35991643b0111c3361827fc0564c83fa810668837c6f0b0f', // Need to be deauthorized
 		subNamesPackageId: 'TODO: Fill this in...',
 		tempSubdomainsProxyPackageId: 'TODO: Fill this in...',
 		discord: {
