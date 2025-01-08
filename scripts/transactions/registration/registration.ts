@@ -45,7 +45,10 @@ export const initRenewal = (nft: TransactionObjectArgument, years: number) => (t
 
 export const getPriceInfoObject = async (tx: Transaction, feed: string) => {
 	// Initialize connection to the Sui Price Service
-	const connection = new SuiPriceServiceConnection('https://hermes-beta.pyth.network');
+	const connection =
+		network == 'testnet'
+			? new SuiPriceServiceConnection('https://hermes-beta.pyth.network')
+			: new SuiPriceServiceConnection('https://hermes.pyth.network');
 
 	// List of price feed IDs
 	const priceIDs = [
@@ -69,7 +72,10 @@ export const getPriceInfoObject = async (tx: Transaction, feed: string) => {
 
 export const createPriceFeed = async (feed: string) => {
 	const tx = new Transaction();
-	const connection = new SuiPriceServiceConnection('https://hermes-beta.pyth.network');
+	const connection =
+		network == 'testnet'
+			? new SuiPriceServiceConnection('https://hermes-beta.pyth.network')
+			: new SuiPriceServiceConnection('https://hermes.pyth.network');
 
 	// List of price feed IDs
 	const feeds = [
@@ -315,7 +321,7 @@ export const exampleRenewal = async (
 
 /// Note: For free registration/renewals, use USDC
 
-// / Example registration using USDC, with discountNft
+/* Example registration using USDC, with discountNft */
 // exampleRegistration(
 // 	'ajjdfksadsskdddddsddsssssddddddsd.sui', // Domain to register
 // 	4,
@@ -326,7 +332,7 @@ export const exampleRenewal = async (
 // 	},
 // );
 
-/// Example registration using USDC, with coupon code
+/*  Example registration using USDC, with coupon code */
 // exampleRegistration(
 // 	'aba.sui', // Domain to register
 // 	2,
@@ -337,7 +343,7 @@ export const exampleRenewal = async (
 // 	},
 // );
 
-/// Example FREE registration (use USDC by default), with 100% off coupon code
+/*  Example FREE registration (use USDC by default), with 100% off coupon code */
 // exampleRegistration(
 // 	'ajjdfksadsskdddddssssdssssdssddddddsd.sui', // Domain to register
 // 	4,
@@ -347,15 +353,15 @@ export const exampleRenewal = async (
 // 	},
 // );
 
-// Example registration using SUI
-exampleRegistration('ajasdsssssmmdaaaadsafsaaaaaddsssaaasd.sui', 2, config.coins.SUI);
+/*  Example registration using SUI */
+// exampleRegistration('ajasdsssssmmdaaaadsafsaaaaaddsssaaasd.sui', 2, config.coins.SUI);
 
-/// Example registration using NS
+/*  Example registration using NS */
 // exampleRegistration('ajasddsafaaaddsssddssaaaasd.sui', 3, config.coins.NS, {
 // 	coinId: '0x8211160f8d782d11bdcfbe625880bc3d944ddb09b4a815278263260b037cd509',
 // });
 
-//// Example renewal using SUI
+/*  Example renewal using SUI */
 // exampleRenewal(
 // 	'0xb62cbec397e8ca5249a1abd02befbf571d64b3e2d1d96e3a1c58ba6937859733', // NFT to renew
 // 	2,
@@ -363,7 +369,7 @@ exampleRegistration('ajasdsssssmmdaaaadsafsaaaaaddsssaaasd.sui', 2, config.coins
 // 	{ couponCode: 'fiveplus15percentoff' },
 // );
 
-//// Example renewal using USDC
+/*  Example renewal using USDC */
 // exampleRenewal(
 // 	'0xb62cbec397e8ca5249a1abd02befbf571d64b3e2d1d96e3a1c58ba6937859733', // NFT to renew
 // 	3,
@@ -373,3 +379,6 @@ exampleRegistration('ajasdsssssmmdaaaadsafsaaaaaddsssaaasd.sui', 2, config.coins
 // 		couponCode: 'fiveplus15percentoff',
 // 	},
 // );
+
+/* Example creating a new price feed */
+// createPriceFeed(config.coins.NS.feed);

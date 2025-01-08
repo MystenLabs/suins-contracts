@@ -116,4 +116,4 @@ const updatePaymentsConfig = () => {
 };
 
 // updateConfig();
-// updatePaymentsConfig();
+updatePaymentsConfig();
