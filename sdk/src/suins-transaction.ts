@@ -425,6 +425,7 @@ export class SuinsTransaction {
 		});
 	}
 
+	// Testing Only
 	signAndExecute = async () => {
 		const signer = this.getSigner();
 		return this.suinsClient.client.signAndExecuteTransaction({
@@ -437,6 +438,7 @@ export class SuinsTransaction {
 		});
 	};
 
+	// Testing Only
 	getSigner = () => {
 		if (process.env.PRIVATE_KEY) {
 			console.log('Using supplied private key.');
@@ -470,6 +472,7 @@ export class SuinsTransaction {
 		throw new Error(`keypair not found for sender: ${sender}`);
 	};
 
+	// Testing Only
 	getActiveAddress = () => {
 		const SUI = process.env.SUI_BINARY ?? `sui`;
 
