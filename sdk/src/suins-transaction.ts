@@ -366,7 +366,7 @@ export class SuinsTransaction {
 		nft,
 		expirationTimestampMs,
 	}: {
-		nft: string;
+		nft: ObjectArgument;
 		expirationTimestampMs: number;
 	}) {
 		const tx = this.transaction;
