@@ -1,7 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-import { execFileSync, execSync } from 'child_process';
-import fs, { readFileSync } from 'fs';
+import { execSync } from 'child_process';
+import { readFileSync } from 'fs';
 import { homedir } from 'os';
 import path from 'path';
 import { bcs } from '@mysten/sui/bcs';
@@ -16,12 +16,11 @@ import {
 	isValidSuiNSName,
 	normalizeSuiNSName,
 	SUI_CLOCK_OBJECT_ID,
-	toBase64,
 } from '@mysten/sui/utils';
 import { SuiPriceServiceConnection, SuiPythClient } from '@pythnetwork/pyth-sui-js';
 
 import { ALLOWED_METADATA, MAX_U64 } from './constants.js';
-import { getObjectType, isNestedSubName, isSubName, validateYears } from './helpers.js';
+import { getObjectType, isNestedSubName, isSubName } from './helpers.js';
 import type { SuinsClient } from './suins-client.js';
 import type { ObjectArgument } from './types.js';
 
