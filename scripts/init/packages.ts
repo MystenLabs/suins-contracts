@@ -21,12 +21,10 @@ import { SuiNS, SuiNSDependentPackages, TempSubdomainProxy } from './manifests';
 
 export type Network = 'mainnet' | 'testnet' | 'devnet' | 'localnet';
 
-const parseCorePackageObjects = (data: SuiTransactionBlockResponse, isUpgrade = false) => {
+const parseCorePackageObjects = (data: SuiTransactionBlockResponse) => {
 	const packageId = data.objectChanges!.find((x) => x.type === 'published');
 	if (!packageId || packageId.type !== 'published') throw new Error('Expected Published object');
-	const upgradeCap = !isUpgrade
-		? parseCreatedObject(data, '0x2::package::UpgradeCap')
-		: parseMutatedObject(data, '0x2::package::UpgradeCap');
+	const upgradeCap = parseCreatedObject(data, '0x2::package::UpgradeCap');
 
 	return {
 		packageId: packageId.packageId,
