@@ -27,7 +27,6 @@ export type PackageInfo = {
 	packageId: string;
 	packageIdV1: string;
 	packageIdPricing: string;
-	registrationPackageId: string;
 	upgradeCap?: string;
 	publisherId: string;
 	adminAddress: string;
@@ -39,7 +38,6 @@ export type PackageInfo = {
 		packageId: string;
 		discountHouseId: string;
 	};
-	renewalsPackageId: string;
 	subNamesPackageId: string;
 	tempSubdomainsProxyPackageId: string;
 	discord: DiscordConfig | undefined;
