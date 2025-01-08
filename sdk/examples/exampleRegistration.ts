@@ -27,13 +27,13 @@ import { SuinsTransaction } from '../src/suins-transaction';
 	// console.log(await suinsClient.getRenewalPriceList());
 
 	/* Following can be used to fetch the domain record */
-	// console.log('Domain Record: ', await suinsClient.getNameRecord('testing12345.sui'));
+	// console.log('Domain Record: ', await suinsClient.getNameRecord('tont.testing12345.sui'));
 
 	/* Following can be used to fetch the domain record */
 	const suinsTx = new SuinsTransaction(suinsClient, new Transaction());
 
 	/* Registration Example Using SUI */
-	const nft = await suinsTx.register('tony123.sui', 2, suinsClient.config.coins.SUI, {
+	const nft = await suinsTx.register('tony123888.sui', 2, suinsClient.config.coins.SUI, {
 		couponCode: 'fiveplus15percentoff',
 	});
 
@@ -79,9 +79,9 @@ import { SuinsTransaction } from '../src/suins-transaction';
 
 	/* Subname Example */
 	// const subnameNft = suinsTx.createSubName({
-	// 	parentNft: '0x64b3f07fa11658117764108ef1232c9ca00c289f77e57bc56f1fba1cd6d30b41',
-	// 	name: 'testt.testingtesting.sui',
-	// 	expirationTimestampMs: 1766510698047,
+	// 	parentNft: '0x122a6701488cf2cb73f8a2ba659f1f9b2b66017381236e06eeb60540f568d4d6',
+	// 	name: 'tony.testing12345.sui',
+	// 	expirationTimestampMs: 1862491339394,
 	// 	allowChildCreation: true,
 	// 	allowTimeExtension: true,
 	// });
