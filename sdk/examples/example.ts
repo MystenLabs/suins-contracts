@@ -62,7 +62,7 @@ import { SuinsTransaction } from '../src/suins-transaction';
 
 	if (nft) {
 		/* Optionally set target address */
-		suinsTx.setTargetAddress({ nft, address: '0x0' });
+		suinsTx.setTargetAddress({ nft, address: 'YOUR_ADDRESS' });
 
 		/* Optionally set default */
 		suinsTx.setDefault('name123.sui');
@@ -74,7 +74,7 @@ import { SuinsTransaction } from '../src/suins-transaction';
 			key: 'walrus_site_id',
 		});
 
-		suinsTx.transaction.transferObjects([nft], '0x0');
+		suinsTx.transaction.transferObjects([nft], 'YOUR_ADDRESS');
 	}
 
 	/* Subname Example */
