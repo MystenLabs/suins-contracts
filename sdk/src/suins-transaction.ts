@@ -1,21 +1,9 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-import { execSync } from 'child_process';
-import { readFileSync } from 'fs';
-import { homedir } from 'os';
-import path from 'path';
+
 import { bcs } from '@mysten/sui/bcs';
-import { decodeSuiPrivateKey } from '@mysten/sui/cryptography';
-import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
-import { Secp256k1Keypair } from '@mysten/sui/keypairs/secp256k1';
-import { Secp256r1Keypair } from '@mysten/sui/keypairs/secp256r1';
 import { Transaction, TransactionObjectArgument } from '@mysten/sui/transactions';
-import {
-	fromBase64,
-	isValidSuiNSName,
-	normalizeSuiNSName,
-	SUI_CLOCK_OBJECT_ID,
-} from '@mysten/sui/utils';
+import { isValidSuiNSName, normalizeSuiNSName, SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import { SuiPriceServiceConnection, SuiPythClient } from '@pythnetwork/pyth-sui-js';
 
 import { ALLOWED_METADATA, MAX_U64 } from './constants.js';
@@ -32,6 +20,9 @@ export class SuinsTransaction {
 		this.transaction = transaction;
 	}
 
+	/**
+	 * Registers a domain for a number of years.
+	 */
 	register = async (
 		domain: string,
 		years: number,
@@ -41,16 +32,18 @@ export class SuinsTransaction {
 			couponCode?: string;
 			discountNft?: string;
 			maxAmount?: bigint;
+			kioskNftTxnArgs?: TransactionObjectArgument;
 		} = {},
 	) => {
 		const tx = this.transaction;
 
 		const paymentIntent = tx.add(this.initRegistration(domain));
+
 		if (options.couponCode) {
 			tx.add(this.applyCoupon(paymentIntent, options.couponCode));
 		}
 		if (options.discountNft) {
-			await this.applyDiscount(paymentIntent, options.discountNft);
+			await this.applyDiscount(paymentIntent, options.discountNft, options.kioskNftTxnArgs);
 		}
 		const priceAfterDiscount = tx.add(
 			this.calculatePriceAfterDiscount(paymentIntent, coinConfig.type),
@@ -67,13 +60,16 @@ export class SuinsTransaction {
 			return this.renew(nft, years - 1, coinConfig, {
 				...options,
 				infoObjectId: priceInfoObjectId,
-				tx,
+				transferNft: true,
 			});
 		}
 
 		return nft as TransactionObjectArgument;
 	};
 
+	/**
+	 * Renews an NFT for a number of years.
+	 */
 	renew = async (
 		nft: string | TransactionObjectArgument,
 		years: number,
@@ -84,20 +80,21 @@ export class SuinsTransaction {
 			discountNft?: string;
 			maxAmount?: bigint;
 			infoObjectId?: string;
-			tx?: Transaction;
+			transferNft?: boolean;
+			kioskNftTxnArgs?: TransactionObjectArgument;
 		} = {},
 	) => {
-		const tx = options.tx || this.transaction;
-		const transferNft = options.tx;
+		const tx = this.transaction;
 
 		const nftObject = typeof nft === 'string' ? tx.object(nft) : nft;
 
 		const paymentIntent = tx.add(this.initRenewal(nftObject, years));
+
 		if (options.couponCode) {
 			tx.add(this.applyCoupon(paymentIntent, options.couponCode));
 		}
 		if (options.discountNft) {
-			await this.applyDiscount(paymentIntent, options.discountNft);
+			await this.applyDiscount(paymentIntent, options.discountNft, options.kioskNftTxnArgs);
 		}
 		const priceAfterDiscount = tx.add(
 			this.calculatePriceAfterDiscount(paymentIntent, coinConfig.type),
@@ -110,7 +107,7 @@ export class SuinsTransaction {
 		);
 		tx.add(this.finalizeRenew(receipt, nftObject));
 
-		if (transferNft) {
+		if (options.transferNft) {
 			return nft as TransactionObjectArgument;
 		}
 
@@ -298,6 +295,9 @@ export class SuinsTransaction {
 		}
 	};
 
+	/**
+	 * Applies a coupon to the payment intent.
+	 */
 	applyCoupon = (intent: TransactionObjectArgument, couponCode: string) => (tx: Transaction) => {
 		const config = this.suinsClient.config;
 		return tx.moveCall({
@@ -306,7 +306,14 @@ export class SuinsTransaction {
 		});
 	};
 
-	applyDiscount = async (intent: TransactionObjectArgument, discountNft: string) => {
+	/**
+	 * Applies a discount to the payment intent.
+	 */
+	applyDiscount = async (
+		intent: TransactionObjectArgument,
+		discountNft: string,
+		kioskNftTxnArgs?: TransactionObjectArgument,
+	) => {
 		const config = this.suinsClient.config;
 		const tx = this.transaction;
 		const discountNftType = await getObjectType(this.suinsClient.client, discountNft);
@@ -317,12 +324,15 @@ export class SuinsTransaction {
 				tx.object(config.discountsPackage.discountHouseId),
 				intent,
 				tx.object(config.suins),
-				tx.object(discountNft),
+				kioskNftTxnArgs || tx.object(discountNft),
 			],
 			typeArguments: [discountNftType],
 		});
 	};
 
+	/**
+	 * Creates a subdomain.
+	 */
 	createSubName({
 		parentNft,
 		name,
@@ -360,24 +370,6 @@ export class SuinsTransaction {
 		});
 
 		return subNft;
-	}
-
-	extendSubNameExpiration({
-		nft,
-		expirationTimestampMs,
-	}: {
-		nft: ObjectArgument;
-		expirationTimestampMs: number;
-	}) {
-		const tx = this.transaction;
-		tx.moveCall({
-			target: `${this.suinsClient.config.subNamesPackageId}::subdomains::extend_expiration`,
-			arguments: [
-				tx.object(this.suinsClient.config.suins),
-				tx.object(nft),
-				tx.pure.u64(expirationTimestampMs),
-			],
-		});
 	}
 
 	/**
@@ -442,60 +434,9 @@ export class SuinsTransaction {
 		});
 	}
 
-	// Testing Only
-	signAndExecute = async () => {
-		const signer = this.getSigner();
-		return this.suinsClient.client.signAndExecuteTransaction({
-			transaction: this.transaction,
-			signer,
-			options: {
-				showEffects: true,
-				showObjectChanges: true,
-			},
-		});
-	};
-
-	// Testing Only
-	getSigner = () => {
-		if (process.env.PRIVATE_KEY) {
-			console.log('Using supplied private key.');
-			const { schema, secretKey } = decodeSuiPrivateKey(process.env.PRIVATE_KEY);
-
-			if (schema === 'ED25519') return Ed25519Keypair.fromSecretKey(secretKey);
-			if (schema === 'Secp256k1') return Secp256k1Keypair.fromSecretKey(secretKey);
-			if (schema === 'Secp256r1') return Secp256r1Keypair.fromSecretKey(secretKey);
-
-			throw new Error('Keypair not supported.');
-		}
-
-		const sender = this.getActiveAddress();
-
-		const keystore = JSON.parse(
-			readFileSync(path.join(homedir(), '.sui', 'sui_config', 'sui.keystore'), 'utf8'),
-		);
-
-		for (const priv of keystore) {
-			const raw = fromBase64(priv);
-			if (raw[0] !== 0) {
-				continue;
-			}
-
-			const pair = Ed25519Keypair.fromSecretKey(raw.slice(1));
-			if (pair.getPublicKey().toSuiAddress() === sender) {
-				return pair;
-			}
-		}
-
-		throw new Error(`keypair not found for sender: ${sender}`);
-	};
-
-	// Testing Only
-	getActiveAddress = () => {
-		const SUI = process.env.SUI_BINARY ?? `sui`;
-
-		return execSync(`${SUI} client active-address`, { encoding: 'utf8' }).trim();
-	};
-
+	/**
+	 * Sets the target address of an NFT.
+	 */
 	setTargetAddress({
 		nft, // Can be string or argument
 		address,
@@ -521,7 +462,9 @@ export class SuinsTransaction {
 		});
 	}
 
-	/** Marks a name as default */
+	/**
+	 * Sets a default name for the user.
+	 */
 	setDefault(name: string) {
 		if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
 		if (!this.suinsClient.config.suins) throw new Error('SuiNS Object ID not found');
@@ -535,6 +478,9 @@ export class SuinsTransaction {
 		});
 	}
 
+	/**
+	 * Edits the setup of a subname.
+	 */
 	editSetup({
 		parentNft,
 		name,
@@ -569,6 +515,9 @@ export class SuinsTransaction {
 		});
 	}
 
+	/**
+	 * Extends the expiration of a subname.
+	 */
 	extendExpiration({
 		nft,
 		expirationTimestampMs,
@@ -590,6 +539,9 @@ export class SuinsTransaction {
 		});
 	}
 
+	/**
+	 * Sets the user data of an NFT.
+	 */
 	setUserData({
 		nft,
 		value,
