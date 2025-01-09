@@ -100,4 +100,5 @@ export type NameRecord = {
 	data: Record<string, string>;
 	avatar?: string;
 	contentHash?: string;
+	walrusSiteId?: string;
 };
