@@ -111,7 +111,7 @@ export const mainPackage: Config = {
 		registryTableId: '',
 	},
 	testnet: {
-		packageId: '0xd8d4b4adc145abe4f12933274de57ba904b4df9bdedac49538eb443054fcd099',
+		packageId: '0x40eee27b014a872f5c3330dcd5329aa55c7fe0fcc6e70c6498852e2e3727172e',
 		packageIdV1: '0x22fa05f21b1ad71442491220bb9338f7b7095fe35000ef88d5400d28523bdd93',
 		packageIdPricing: '0x8a4df604a449ccb9ef2efb9747046b78f78ba60fc8d88df098d0dd47619df5a4',
 		publisherId: '0xfe09cf0b3d77678b99250572624bf74fe3b12af915c5db95f0ed5d755612eb68',
