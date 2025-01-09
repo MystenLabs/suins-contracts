@@ -85,7 +85,7 @@ import { SuinsTransaction } from '../src/suins-transaction';
 		allowChildCreation: true,
 		allowTimeExtension: true,
 	});
-	suinsTx.transaction.transferObjects([subnameNft], '0x0');
+	suinsTx.transaction.transferObjects([subnameNft], 'YOUR_ADDRESS');
 
 	/* Extend Subname Expiration */
 	suinsTx.extendExpiration({
