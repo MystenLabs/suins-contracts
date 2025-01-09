@@ -57,10 +57,9 @@ export class SuinsTransaction {
 		const nft = tx.add(this.finalizeRegister(receipt));
 
 		if (years > 1) {
-			return this.renew(nft, years - 1, coinConfig, {
+			this.renew(nft, years - 1, coinConfig, {
 				...options,
 				infoObjectId: priceInfoObjectId,
-				transferNft: true,
 			});
 		}
 
@@ -80,7 +79,6 @@ export class SuinsTransaction {
 			discountNft?: string;
 			maxAmount?: bigint;
 			infoObjectId?: string;
-			transferNft?: boolean;
 			kioskNftTxnArgs?: TransactionObjectArgument;
 		} = {},
 	) => {
@@ -106,10 +104,6 @@ export class SuinsTransaction {
 			options,
 		);
 		tx.add(this.finalizeRenew(receipt, nftObject));
-
-		if (options.transferNft) {
-			return nft as TransactionObjectArgument;
-		}
 
 		return null;
 	};
@@ -214,7 +208,6 @@ export class SuinsTransaction {
 			});
 		};
 
-	// rename to finalize
 	finalizeRegister = (receipt: TransactionObjectArgument) => (tx: Transaction) => {
 		const config = this.suinsClient.config;
 		return tx.moveCall({
