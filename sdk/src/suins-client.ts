@@ -256,6 +256,7 @@ export class SuinsClient {
 			data,
 			avatar: data.avatar,
 			contentHash: data.content_hash,
+			walrusSiteId: data.walrus_site_id,
 		};
 	}
 
