@@ -51,8 +51,8 @@ public fun setup(ctx: &mut TxContext): (SuiNS, AdminCap) {
 fun base_currency_not_in_list_e() {
     let mut test = ts::begin(SUINS_ADDRESS);
     let (_suins, _admin_cap) = setup(test.ctx());
-    test.next_tx(SUINS_ADDRESS);
 
+    test.next_tx(SUINS_ADDRESS);
     let usdc_metadata = test.take_from_sender<CoinMetadata<USDC>>();
     let usdc_type_data = new_coin_type_data<USDC>(
         &usdc_metadata,
@@ -66,6 +66,50 @@ fun base_currency_not_in_list_e() {
         setups,
         type_name::get<SPAM>(),
         60,
+    );
+
+    abort 1337
+}
+
+#[
+    test,
+    expected_failure(
+        abort_code = ::payments::payments::EInsufficientPayment,
+    ),
+]
+fun payment_insufficient_e() {
+    let mut test = ts::begin(SUINS_ADDRESS);
+    let (mut suins, admin_cap) = setup(test.ctx());
+
+    test.next_tx(SUINS_ADDRESS);
+    let usdc_metadata = test.take_from_sender<CoinMetadata<USDC>>();
+    let usdc_type_data = new_coin_type_data<USDC>(
+        &usdc_metadata,
+        0,
+        vector[],
+    );
+    let mut setups = vector[];
+    setups.push_back(usdc_type_data);
+
+    let config = new_payments_config(
+        setups,
+        type_name::get<USDC>(),
+        60,
+    );
+
+    admin_cap.add_config<PaymentsConfig>(&mut suins, config);
+
+    test.next_tx(SUINS_ADDRESS);
+    let intent = payment::init_registration(
+        &mut suins,
+        std::string::utf8(b"helloworld.sui"),
+    );
+
+    // 20 is required for registration, only 10 is minted
+    let receipt = payments::payments::handle_base_payment<USDC>(
+        &mut suins,
+        intent,
+        coin::mint_for_testing<USDC>(10, test.ctx()),
     );
 
     abort 1337
