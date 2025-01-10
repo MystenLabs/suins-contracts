@@ -104,8 +104,6 @@ export class SuinsTransaction {
 			options,
 		);
 		tx.add(this.finalizeRenew(receipt, nftObject));
-
-		return null;
 	};
 
 	initRegistration = (domain: string) => (tx: Transaction) => {
