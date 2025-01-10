@@ -57,7 +57,7 @@ export class SuinsTransaction {
 		const nft = tx.add(this.finalizeRegister(receipt));
 
 		if (years > 1) {
-			this.renew(nft, years - 1, coinConfig, {
+			await this.renew(nft, years - 1, coinConfig, {
 				...options,
 				infoObjectId: priceInfoObjectId,
 			});
