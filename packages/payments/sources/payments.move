@@ -117,7 +117,7 @@ public fun handle_payment<T>(
         price_info_object,
     );
     assert!(payment.value() == target_currency_amount, EInsufficientPayment);
-    assert!(user_price_guard <= target_currency_amount, ESafeguardViolation);
+    assert!(user_price_guard >= target_currency_amount, ESafeguardViolation); // price guard should be larger than the payment amount
 
     intent.finalize_payment(suins, PaymentsApp(), payment)
 }
