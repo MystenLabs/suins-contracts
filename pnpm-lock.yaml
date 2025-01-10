@@ -118,8 +118,8 @@ importers:
   sdk:
     dependencies:
       '@mysten/sui':
-        specifier: ^1.17.0
-        version: 1.17.0(svelte@4.2.15)(typescript@5.4.5)
+        specifier: ^1.18.1
+        version: 1.18.1(svelte@4.2.15)(typescript@5.4.5)
     devDependencies:
       '@types/tmp':
         specifier: ^0.2.3
@@ -1334,8 +1334,8 @@ packages:
   '@mysten/bcs@1.1.0':
     resolution: {integrity: sha512-yy9/1Y4d0FlRywS1+9ze/T7refCbrvwFwJIOKs9M3QBK1njbcHZp+LkVeLqBvIJA5eZ3ZCzmhQ1Xq4Sed5mEBA==}
 
-  '@mysten/bcs@1.2.0':
-    resolution: {integrity: sha512-LuKonrGdGW7dq/EM6U2L9/as7dFwnhZnsnINzB/vu08Xfrj0qzWwpLOiXagAa5yZOPLK7anRZydMonczFkUPzA==}
+  '@mysten/bcs@1.2.1':
+    resolution: {integrity: sha512-RMSaUsNb8oR0rTRVIOOcyoEVJqQi6DLvMXN+7mvDcki12FJFQ0lF89zQa7AV7cIurWlDQfJ8VIbCuRDyK+955A==}
 
   '@mysten/kiosk@0.9.21':
     resolution: {integrity: sha512-W1X1oGzkB46gipyxlFs9qRnaiXW5jePgTjl0e4swQ6Ux0pZe2/B9TvCHeO9NYUVp2imSggqf2F6tQTdDzL3tvg==}
@@ -1350,8 +1350,8 @@ packages:
     resolution: {integrity: sha512-DrSyja04xyGrTGlIQKMwZ6MywxNPkjyIcDLm915Zisoy1/uIgPoHc4cx53JyiG92z/HgowTVGGCCIzH53DIYXA==}
     engines: {node: '>=18'}
 
-  '@mysten/sui@1.17.0':
-    resolution: {integrity: sha512-vL6QrH3l10dTatimPmz/feqMbYfEjvh8MPf3Xwn5tjuwDwBCS0ha1kdN+4vUpu6t0aCFviK+Df/vanORS8cbGQ==}
+  '@mysten/sui@1.18.1':
+    resolution: {integrity: sha512-ccMVOHM4KQhUvbBirE1rkn9THDJUX7y7W1cDMoCKnlPsIwTtQifZc7ysyBNjCMAS42y8Kq4VpiRagPjf13Am5A==}
     engines: {node: '>=18'}
 
   '@napi-rs/simple-git-android-arm-eabi@0.1.16':
@@ -6525,7 +6525,7 @@ snapshots:
     dependencies:
       bs58: 6.0.0
 
-  '@mysten/bcs@1.2.0':
+  '@mysten/bcs@1.2.1':
     dependencies:
       bs58: 6.0.0
 
@@ -6565,10 +6565,10 @@ snapshots:
       - svelte
       - typescript
 
-  '@mysten/sui@1.17.0(svelte@4.2.15)(typescript@5.4.5)':
+  '@mysten/sui@1.18.1(svelte@4.2.15)(typescript@5.4.5)':
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.9.0)
-      '@mysten/bcs': 1.2.0
+      '@mysten/bcs': 1.2.1
       '@noble/curves': 1.4.2
       '@noble/hashes': 1.4.0
       '@scure/bip32': 1.4.0
@@ -6580,7 +6580,6 @@ snapshots:
       graphql: 16.9.0
       jose: 5.9.6
       poseidon-lite: 0.2.1
-      tweetnacl: 1.0.3
       valibot: 0.36.0
     transitivePeerDependencies:
       - svelte
