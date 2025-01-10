@@ -9,7 +9,7 @@ use std::type_name::{Self, TypeName};
 use sui::clock::Clock;
 use sui::coin::{Coin, CoinMetadata};
 use sui::vec_map::{Self, VecMap};
-use suins::payment::{Receipt, PaymentIntent, calculate_total_after_discount};
+use suins::payment::{Receipt, PaymentIntent};
 use suins::suins::SuiNS;
 
 use fun get_config_for_type as SuiNS.get_config_for_type;
