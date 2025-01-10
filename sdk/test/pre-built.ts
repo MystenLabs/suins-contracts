@@ -22,15 +22,9 @@ export const e2eLiveNetworkDryRunFlow = async (network: 'mainnet' | 'testnet') =
 		(Date.now().toString(36) + Math.random().toString(36).substring(2)).repeat(2) + '.sui';
 
 	const priceList = await suinsClient.getPriceList();
-	// const _renewalPriceList = await suinsClient.getRenewalPriceList();
-	const years = 1;
 
 	// register test.sui for a year.
-	const nft = suinsTx.register({
-		name: uniqueName,
-		years,
-		price: suinsClient.calculatePrice({ name: uniqueName, years, priceList }),
-	});
+	const nft = await suinsTx.register(uniqueName, 1, suinsClient.config.coins.SUI);
 	// Sets the target address of the NFT.
 	suinsTx.setTargetAddress({
 		nft,
@@ -51,6 +45,12 @@ export const e2eLiveNetworkDryRunFlow = async (network: 'mainnet' | 'testnet') =
 		nft,
 		key: ALLOWED_METADATA.contentHash,
 		value: '0x1',
+	});
+
+	suinsTx.setUserData({
+		nft,
+		key: ALLOWED_METADATA.walrusSiteId,
+		value: '0x2',
 	});
 
 	const subNft = suinsTx.createSubName({
