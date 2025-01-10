@@ -51,9 +51,13 @@ public fun apply_percentage_discount<T>(
     _: &mut T, // proof of owning the type T mutably.
     ctx: &mut TxContext,
 ) {
-    // We can only use this discount for types other than DayOne, because we always check
+    // We can only use this discount for types other than DayOne, because we
+    // always check
     // that the `DayOne` object is active.
-    assert!(type_name::get<T>() != type_name::get<DayOne>(), ENotValidForDayOne);
+    assert!(
+        type_name::get<T>() != type_name::get<DayOne>(),
+        ENotValidForDayOne,
+    );
 
     self.internal_apply_discount<T>(intent, suins, ctx);
 }
@@ -77,6 +81,8 @@ public fun apply_day_one_discount(
 ///
 /// When authorizing, we reuse the core `PricingConfig` struct,
 /// and only accept it if all the values are in the [0, 100] range.
+/// make sure that all the percentages are in the [0, 99] range.
+/// We can use `free_claims` to giveaway free names.
 public fun authorize_type<T>(
     self: &mut DiscountHouse,
     _: &AdminCap,
@@ -84,8 +90,7 @@ public fun authorize_type<T>(
 ) {
     assert!(!self.uid_mut().exists_(DiscountKey<T>()), EConfigAlreadyExists);
     let (_, values) = (*pricing_config.pricing()).into_keys_values();
-    // make sure that all the percentages are in the [0, 99] range. We can use
-    // `free_claims` to giveaway free names.
+
     assert!(!values.any!(|percentage| *percentage > 99), EIncorrectAmount);
 
     self.uid_mut().add(DiscountKey<T>(), pricing_config);

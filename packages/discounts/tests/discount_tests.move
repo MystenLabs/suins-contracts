@@ -55,12 +55,16 @@ fun test_init(): Scenario {
         discounts::authorize_type<AnotherAuthorized>(
             &mut discount_house,
             &admin_cap,
-            test_config(true), // we get 50, 30, 20% discounts for 3, 4, 5+ chars.
+            test_config(
+                true,
+            ), // we get 50, 30, 20% discounts for 3, 4, 5+ chars.
         );
         discounts::authorize_type<DayOne>(
             &mut discount_house,
             &admin_cap,
-            test_config(true), // we get 50, 30, 20% discounts for 3, 4, 5+ chars.
+            test_config(
+                true,
+            ), // we get 50, 30, 20% discounts for 3, 4, 5+ chars.
         );
 
         registry::init_for_testing(&admin_cap, &mut suins, scenario.ctx());
@@ -74,91 +78,128 @@ fun test_init(): Scenario {
 
 #[test]
 fun test_e2e() {
-    init_purchase!(USER_ADDRESS, b"fivel.sui", |discount_house, suins, intent, scenario| {
-        assert_eq(intent.request_data().base_amount(), 50 * constants::mist_per_sui());
+    init_purchase!(
+        USER_ADDRESS,
+        b"fivel.sui",
+        |discount_house, suins, intent, scenario| {
+            assert_eq(
+                intent.request_data().base_amount(),
+                50 * constants::mist_per_sui(),
+            );
 
-        discounts::apply_percentage_discount(
-            discount_house,
-            intent,
-            suins,
-            &mut TestAuthorized {},
-            scenario.ctx(),
-        );
+            discounts::apply_percentage_discount(
+                discount_house,
+                intent,
+                suins,
+                &mut TestAuthorized {},
+                scenario.ctx(),
+            );
 
-        assert_eq(intent.request_data().base_amount(), 40 * constants::mist_per_sui());
-        assert_eq(intent.request_data().discounts_applied().size(), 1);
-        assert_eq(intent.request_data().discount_applied(), true);
-    });
+            assert_eq(
+                intent.request_data().base_amount(),
+                40 * constants::mist_per_sui(),
+            );
+            assert_eq(intent.request_data().discounts_applied().size(), 1);
+            assert_eq(intent.request_data().discount_applied(), true);
+        },
+    );
 }
 
 #[test]
 fun register_day_one() {
-    init_purchase!(USER_ADDRESS, b"wow.sui", |discount_house, suins, intent, scenario| {
-        assert_eq(intent.request_data().base_amount(), 1200 * constants::mist_per_sui());
+    init_purchase!(
+        USER_ADDRESS,
+        b"wow.sui",
+        |discount_house, suins, intent, scenario| {
+            assert_eq(
+                intent.request_data().base_amount(),
+                1200 * constants::mist_per_sui(),
+            );
 
-        let mut day_one = day_one::mint_for_testing(scenario.ctx());
-        day_one.set_is_active_for_testing(true);
+            let mut day_one = day_one::mint_for_testing(scenario.ctx());
+            day_one.set_is_active_for_testing(true);
 
-        discounts::apply_day_one_discount(
-            discount_house,
-            intent,
-            suins,
-            &mut day_one,
-            scenario.ctx(),
-        );
+            discounts::apply_day_one_discount(
+                discount_house,
+                intent,
+                suins,
+                &mut day_one,
+                scenario.ctx(),
+            );
 
-        assert_eq(intent.request_data().base_amount(), 840 * constants::mist_per_sui());
-        assert_eq(intent.request_data().discounts_applied().size(), 1);
-        assert_eq(intent.request_data().discount_applied(), true);
+            assert_eq(
+                intent.request_data().base_amount(),
+                840 * constants::mist_per_sui(),
+            );
+            assert_eq(intent.request_data().discounts_applied().size(), 1);
+            assert_eq(intent.request_data().discount_applied(), true);
 
-        day_one.burn_for_testing();
-    });
+            day_one.burn_for_testing();
+        },
+    );
 }
 
 #[test, expected_failure(abort_code = ::discounts::discounts::EConfigNotExists)]
 fun register_with_unauthorized_type() {
-    init_purchase!(USER_ADDRESS, b"fivel.sui", |discount_house, suins, intent, scenario| {
-        discounts::apply_percentage_discount(
-            discount_house,
-            intent,
-            suins,
-            &mut TestUnauthorized {},
-            scenario.ctx(),
-        );
-    });
+    init_purchase!(
+        USER_ADDRESS,
+        b"fivel.sui",
+        |discount_house, suins, intent, scenario| {
+            discounts::apply_percentage_discount(
+                discount_house,
+                intent,
+                suins,
+                &mut TestUnauthorized {},
+                scenario.ctx(),
+            );
+        },
+    );
 }
 
-#[test, expected_failure(abort_code = ::discounts::discounts::ENotValidForDayOne)]
+#[
+    test,
+    expected_failure(
+        abort_code = ::discounts::discounts::ENotValidForDayOne,
+    ),
+]
 fun use_day_one_for_casual_flow_failure() {
-    init_purchase!(USER_ADDRESS, b"fivel.sui", |discount_house, suins, intent, scenario| {
-        let mut day_one = day_one::mint_for_testing(scenario.ctx());
+    init_purchase!(
+        USER_ADDRESS,
+        b"fivel.sui",
+        |discount_house, suins, intent, scenario| {
+            let mut day_one = day_one::mint_for_testing(scenario.ctx());
 
-        discounts::apply_percentage_discount(
-            discount_house,
-            intent,
-            suins,
-            &mut day_one,
-            scenario.ctx(),
-        );
-        day_one.burn_for_testing();
-    });
+            discounts::apply_percentage_discount(
+                discount_house,
+                intent,
+                suins,
+                &mut day_one,
+                scenario.ctx(),
+            );
+            day_one.burn_for_testing();
+        },
+    );
 }
 
 #[test, expected_failure(abort_code = ::discounts::discounts::ENotActiveDayOne)]
 fun use_inactive_day_one_failure() {
-    init_purchase!(USER_ADDRESS, b"fivel.sui", |discount_house, suins, intent, scenario| {
-        let mut day_one = day_one::mint_for_testing(scenario.ctx());
-        day_one.set_is_active_for_testing(false);
+    init_purchase!(
+        USER_ADDRESS,
+        b"fivel.sui",
+        |discount_house, suins, intent, scenario| {
+            let mut day_one = day_one::mint_for_testing(scenario.ctx());
+            day_one.set_is_active_for_testing(false);
 
-        discounts::apply_day_one_discount(
-            discount_house,
-            intent,
-            suins,
-            &mut day_one,
-            scenario.ctx(),
-        );
-        day_one.burn_for_testing();
-    });
+            discounts::apply_day_one_discount(
+                discount_house,
+                intent,
+                suins,
+                &mut day_one,
+                scenario.ctx(),
+            );
+            day_one.burn_for_testing();
+        },
+    );
 }
 
 macro fun init_purchase(

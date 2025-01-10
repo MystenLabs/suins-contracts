@@ -19,7 +19,8 @@ use suins::payment::PaymentIntent;
 use suins::pricing_config::Range;
 use suins::suins::{AdminCap, SuiNS};
 
-use fun internal_apply_full_discount as DiscountHouse.internal_apply_full_discount;
+use fun internal_apply_full_discount as
+    DiscountHouse.internal_apply_full_discount;
 use fun assert_config_exists as DiscountHouse.assert_config_exists;
 use fun config_mut as DiscountHouse.config_mut;
 use fun df::add as UID.add;
@@ -66,9 +67,16 @@ public fun free_claim<T: key>(
 ) {
     // For normal flow, we do not allow DayOne to be used.
     // DayOne can only be used on `register_with_day_one` function.
-    assert!(type_name::get<T>() != type_name::get<DayOne>(), ENotValidForDayOne);
-    // Apply the discount.
-    self.internal_apply_full_discount<T>(suins, intent, object::id(object), ctx);
+    assert!(
+        type_name::get<T>() != type_name::get<DayOne>(),
+        ENotValidForDayOne,
+    );
+    self.internal_apply_full_discount<T>(
+        suins,
+        intent,
+        object::id(object),
+        ctx,
+    );
 }
 
 // A function to register a free name using `DayOne`.
@@ -80,12 +88,16 @@ public fun free_claim_with_day_one(
     ctx: &mut TxContext,
 ) {
     assert!(day_one.is_active(), ENotActiveDayOne);
-    self.internal_apply_full_discount<DayOne>(suins, intent, object::id(day_one), ctx);
+    self.internal_apply_full_discount<DayOne>(
+        suins,
+        intent,
+        object::id(day_one),
+        ctx,
+    );
 }
 
 /// An admin action to authorize a type T for free claiming of names by
-/// presenting
-/// an object of type `T`.
+/// presenting an object of type `T`.
 public fun authorize_type<T: key>(
     self: &mut DiscountHouse,
     _: &AdminCap,
@@ -108,7 +120,10 @@ public fun authorize_type<T: key>(
 
 /// Force-deauthorize type T from free claims.
 /// Drops the linked_table.
-public fun deauthorize_type<T>(self: &mut DiscountHouse, _: &AdminCap): LinkedTable<ID, bool> {
+public fun deauthorize_type<T>(
+    self: &mut DiscountHouse,
+    _: &AdminCap,
+): LinkedTable<ID, bool> {
     self.assert_version_is_valid();
     self.assert_config_exists<T>();
 
@@ -144,7 +159,11 @@ fun internal_apply_full_discount<T: key>(
     assert!(
         config
             .domain_length_range
-            .is_between_inclusive(intent.request_data().domain().sld().length()),
+            .is_between_inclusive(intent
+                .request_data()
+                .domain()
+                .sld()
+                .length()),
         EInvalidCharacterRange,
     );
 
@@ -165,7 +184,9 @@ fun config_mut<T>(self: &mut DiscountHouse): &mut FreeClaimsConfig {
 // Validate that there is a config for `T`
 fun assert_config_exists<T>(self: &mut DiscountHouse) {
     assert!(
-        self.uid_mut().exists_with_type<_, FreeClaimsConfig>(FreeClaimsKey<T>()),
+        self
+            .uid_mut()
+            .exists_with_type<_, FreeClaimsConfig>(FreeClaimsKey<T>()),
         EConfigNotExists,
     );
 }
