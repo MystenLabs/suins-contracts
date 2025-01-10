@@ -1,3 +1,6 @@
+// Copyright (c) Mysten Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 module payments::payments;
 
 use pyth::price_info::PriceInfoObject;
@@ -91,13 +94,11 @@ public fun handle_base_payment<T>(
 /// price feed.
 ///
 /// The `user_price_guard` is a value that the user expects to pay. If the
-/// payment
-/// amount is higher than this value, the payment will be rejected. This is to
-/// protect
-/// the user from paying more than they expected on their FEs. Ideally this
-/// number should be
-/// calcualated on the FE based on the price that is being displayed to the user
-/// (with a buffer determined by the FE).
+/// payment amount is higher than this value, the payment will be rejected.
+/// This is to protect the user from paying more than they expected on their
+/// FEs.
+/// Ideally, this number should be calculated on the FE based on the price
+/// that is being displayed to the user (with a buffer determined by the FE).
 public fun handle_payment<T>(
     suins: &mut SuiNS,
     mut intent: PaymentIntent,
@@ -182,11 +183,10 @@ public fun calculate_price_after_discount<T>(
 }
 
 /// Creates a new CoinTypeData struct.
+/// Leave price_feed_id empty for base currency.
 public fun new_coin_type_data<T>(
     coin_metadata: &CoinMetadata<T>,
     discount_percentage: u8,
-    // Pyth's price feed id for the given currency.
-    // Leave empty for base currency.
     price_feed_id: vector<u8>,
 ): CoinTypeData {
     let type_name = type_name::get<T>();
