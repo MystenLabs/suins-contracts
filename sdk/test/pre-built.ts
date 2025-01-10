@@ -23,8 +23,8 @@ export const e2eLiveNetworkDryRunFlow = async (network: 'mainnet' | 'testnet') =
 
 	const priceList = await suinsClient.getPriceList();
 
-	// register test.sui for a year.
-	const nft = await suinsTx.register(uniqueName, 1, suinsClient.config.coins.SUI);
+	// register test.sui for 2 years.
+	const nft = await suinsTx.register(uniqueName, 2, suinsClient.config.coins.SUI);
 	// Sets the target address of the NFT.
 	suinsTx.setTargetAddress({
 		nft,
