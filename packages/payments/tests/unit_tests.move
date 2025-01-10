@@ -1,3 +1,6 @@
+// Copyright (c) Mysten Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 module payments::unit_tests;
 
 use payments::payments::calculate_target_currency_amount;
