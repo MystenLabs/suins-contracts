@@ -1,12 +1,12 @@
 #[test_only]
-module payments::usdc;
+module payments::testns;
 
 use sui::coin;
 
-public struct USDC has drop {}
+public struct TESTNS has drop {}
 
-fun init(witness: USDC, ctx: &mut TxContext) {
-    let (treasury_cap, metadata) = coin::create_currency<USDC>(
+fun init(witness: TESTNS, ctx: &mut TxContext) {
+    let (treasury_cap, metadata) = coin::create_currency<TESTNS>(
         witness,
         6,
         vector[],
@@ -21,5 +21,5 @@ fun init(witness: USDC, ctx: &mut TxContext) {
 }
 
 public fun test_init(ctx: &mut TxContext) {
-    init(USDC {}, ctx);
+    init(TESTNS {}, ctx);
 }
