@@ -8,6 +8,7 @@ export {
 	getDomainType,
 	getPricelistConfigType,
 	getRenewalPricelistConfigType,
+	getCoinDiscountConfigType,
 	ALLOWED_METADATA,
 } from './constants.js';
 export { isSubName, isNestedSubName } from './helpers.js';
