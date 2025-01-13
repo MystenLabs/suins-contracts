@@ -44,7 +44,7 @@ export class SuinsTransaction {
 			paymentIntent,
 			params.coinConfig.type,
 		);
-		const { receipt } = this.generateReceipt({
+		const receipt = this.generateReceipt({
 			paymentIntent,
 			priceAfterDiscount,
 			coinConfig: params.coinConfig,
@@ -89,7 +89,7 @@ export class SuinsTransaction {
 			paymentIntent,
 			params.coinConfig.type,
 		);
-		const { receipt } = this.generateReceipt({
+		const receipt = this.generateReceipt({
 			paymentIntent,
 			priceAfterDiscount,
 			coinConfig: params.coinConfig,
@@ -204,9 +204,7 @@ export class SuinsTransaction {
 		});
 	};
 
-	generateReceipt = (
-		params: ReceiptParams,
-	): { receipt: TransactionObjectArgument; priceInfoObjectId?: string } => {
+	generateReceipt = (params: ReceiptParams): TransactionObjectArgument => {
 		const config = this.suinsClient.config;
 		const baseAssetPurchase = params.coinConfig.feed === '';
 		const isSui = params.coinConfig === config.coins.SUI;
@@ -217,7 +215,7 @@ export class SuinsTransaction {
 					])
 				: zeroCoin(this.transaction, params.coinConfig.type);
 			const receipt = this.handleBasePayment(params.paymentIntent, payment, params.coinConfig.type);
-			return { receipt };
+			return receipt;
 		} else {
 			const priceInfoObjectId = params.priceInfoObjectId;
 			if (!priceInfoObjectId)
@@ -240,7 +238,7 @@ export class SuinsTransaction {
 				priceInfoObjectId,
 				params.maxAmount,
 			);
-			return { receipt };
+			return receipt;
 		}
 	};
 
