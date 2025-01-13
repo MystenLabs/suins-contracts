@@ -146,7 +146,6 @@ export class SuinsTransaction {
 
 		const client = new SuiPythClient(this.suinsClient.client, pythStateId, wormholeStateId);
 
-		// Implement this inside sdk
 		return await client.updatePriceFeeds(tx, priceUpdateData, priceIDs); // returns priceInfoObjectIds
 	};
 
