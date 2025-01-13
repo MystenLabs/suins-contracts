@@ -27,33 +27,32 @@ import { SuinsTransaction } from '../src/suins-transaction';
 	console.log(await suinsClient.getRenewalPriceList());
 	console.log(await suinsClient.getCoinTypeDiscount());
 
-	// /* Following can be used to fetch the domain record */
-	// console.log('Domain Record: ', await suinsClient.getNameRecord('names123.sui'));
-	// console.log('Domain Record: ', await suinsClient.getNameRecord('name.name123.sui'));
+	/* Following can be used to fetch the domain record */
+	console.log('Domain Record: ', await suinsClient.getNameRecord('testing12345.sui'));
 
-	// const tx = new Transaction();
-	// const coinConfig = suinsClient.config.coins.NS; // Specify the coin type used for the transaction
-	// const priceInfoObjectId =
-	// 	coinConfig !== suinsClient.config.coins.USDC
-	// 		? (await suinsClient.getPriceInfoObject(tx, coinConfig.feed))[0]
-	// 		: null;
+	const tx = new Transaction();
+	const coinConfig = suinsClient.config.coins.NS; // Specify the coin type used for the transaction
+	const priceInfoObjectId =
+		coinConfig !== suinsClient.config.coins.USDC
+			? (await suinsClient.getPriceInfoObject(tx, coinConfig.feed))[0]
+			: null;
 
 	// If discount NFT is used
 	// const discountNft = '0xd047f37bbf8f21dc0a9422c5e99fd208c19bb58884b2671a09c0e1c1cbac6983'; // This can be a string or a kioskTransactionArgument
 	// const discountNftType = await getObjectType(suinsClient.client, discountNft);
 
 	/* Registration Example Using SUI */
-	// const suinsTx = new SuinsTransaction(suinsClient, tx);
-	// const nft = suinsTx.register({
-	// 	domain: 'tonyddjfddssassdadkssdddfsadlajk.sui',
-	// 	years: 3,
-	// 	coinConfig,
-	// 	discountInfo: {
-	// 		discountNft,
-	// 		type: discountNftType,
-	// 	},
-	// 	priceInfoObjectId,
-	// });
+	const suinsTx = new SuinsTransaction(suinsClient, tx);
+	const nft = suinsTx.register({
+		domain: 'testing12345.sui',
+		years: 3,
+		coinConfig,
+		// discountInfo: {
+		// 	discountNft,
+		// 	type: discountNftType,
+		// },
+		priceInfoObjectId,
+	});
 
 	// /* Registration Example Using USDC */
 	// const nft = suinsTx.register({
@@ -84,39 +83,38 @@ import { SuinsTransaction } from '../src/suins-transaction';
 	// 	priceInfoObjectId,
 	// });
 
-	// if (nft) {
 	/* Optionally set target address */
-	// suinsTx.setTargetAddress({ nft, address: 'YOUR_ADDRESS' });
+	suinsTx.setTargetAddress({ nft, address: 'YOUR_ADDRESS' });
 
-	// /* Optionally set default */
-	// suinsTx.setDefault('name123.sui');
+	/* Optionally set default */
+	suinsTx.setDefault('name123.sui');
 
-	// /* Optionally set user data */
-	// suinsTx.setUserData({
-	// 	nft,
-	// 	value: 'hello',
-	// 	key: 'walrus_site_id',
-	// });
+	/* Optionally set user data */
+	suinsTx.setUserData({
+		nft,
+		value: 'hello',
+		key: 'walrus_site_id',
+	});
 
-	// 	suinsTx.transaction.transferObjects(
-	// 		[nft],
-	// 		'0xb3d277c50f7b846a5f609a8d13428ae482b5826bb98437997373f3a0d60d280e',
-	// 	);
-	// }
+	/* Optionally transfer the NFT */
+	suinsTx.transaction.transferObjects(
+		[nft],
+		'0xb3d277c50f7b846a5f609a8d13428ae482b5826bb98437997373f3a0d60d280e',
+	);
 
-	// /* Subname Example */
-	// const subnameNft = suinsTx.createSubName({
-	// 	parentNft: '0x0',
-	// 	name: 'name.name123.sui',
-	// 	expirationTimestampMs: 1862491339394,
-	// 	allowChildCreation: true,
-	// 	allowTimeExtension: true,
-	// });
-	// suinsTx.transaction.transferObjects([subnameNft], 'YOUR_ADDRESS');
+	/* Subname Example */
+	const subnameNft = suinsTx.createSubName({
+		parentNft: '0x0',
+		name: 'name.name123.sui',
+		expirationTimestampMs: 1862491339394,
+		allowChildCreation: true,
+		allowTimeExtension: true,
+	});
+	suinsTx.transaction.transferObjects([subnameNft], 'YOUR_ADDRESS');
 
-	// /* Extend Subname Expiration */
-	// suinsTx.extendExpiration({
-	// 	nft: '0x0',
-	// 	expirationTimestampMs: 1862511339394,
-	// });
+	/* Extend Subname Expiration */
+	suinsTx.extendExpiration({
+		nft: '0x0',
+		expirationTimestampMs: 1862511339394,
+	});
 })();
