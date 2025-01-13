@@ -162,7 +162,7 @@ const publishSetup = async () => {
 	setupSuins(tx);
 
 	// Prepare multisig tx
-	return await prepareMultisigTx(tx, 'mainnet', config.adminAddress);
+	await prepareMultisigTx(tx, 'mainnet', config.adminAddress);
 };
 
 publishSetup();
