@@ -23,7 +23,9 @@ use sui::clock::Clock;
 use sui::coin::Coin;
 use sui::dynamic_field as df;
 use sui::sui::SUI;
-use suins::payment::PaymentIntent;
+use suins::config::{Self, Config};
+use suins::domain;
+use suins::registry::Registry;
 use suins::suins::{Self, AdminCap, SuiNS};
 use suins::suins_registration::SuinsRegistration;
 
@@ -33,12 +35,15 @@ const EAppNotAuthorized: u64 = 1;
 const EInvalidVersion: u64 = 2;
 
 /// These errors are claim errors.
+/// Number of years passed is not within [1-5] interval.
+const EInvalidYearsArgument: u64 = 3;
+/// The payment does not match the price for the domain.
+const EIncorrectAmount: u64 = 4;
 /// Coupon doesn't exist.
-const ECouponNotExists: u64 = 3;
+const ECouponNotExists: u64 = 5;
 
 /// Our versioning of the coupons package.
-const VERSION: u8 = 2;
-const COUPON_DISCOUNT_KEY: vector<u8> = b"coupon";
+const VERSION: u8 = 1;
 
 // Authorization for the Coupons on SuiNS, to be able to register names on the
 // app.
@@ -52,7 +57,7 @@ public struct AppKey<phantom A: drop> has copy, store, drop {}
 /// for claim.
 public struct CouponHouse has store {
     data: Data,
-    version: u8, // needs to be updated after publish
+    version: u8,
     storage: UID,
 }
 
@@ -68,13 +73,28 @@ public fun setup(suins: &mut SuiNS, cap: &AdminCap, ctx: &mut TxContext) {
     );
 }
 
-public fun apply_coupon(
+/// Register a name using a coupon code.
+public fun register_with_coupon(
     suins: &mut SuiNS,
-    intent: &mut PaymentIntent,
     coupon_code: String,
+    domain_name: String,
+    no_years: u8,
+    payment: Coin<SUI>,
     clock: &Clock,
     ctx: &mut TxContext,
-) {
+): SuinsRegistration {
+    // Validate registration years are in [0,5] range.
+    assert!(no_years > 0 && no_years <= 5, EInvalidYearsArgument);
+
+    let config = suins.get_config<Config>();
+    let domain = domain::new(domain_name);
+    let label = domain.sld();
+    let domain_length = (label.length() as u8);
+    let original_price = config.calculate_price(domain_length, no_years);
+    // Validate name can be registered (is main domain (no subdomain) and length
+    // is valid)
+    config::assert_valid_user_registerable_domain(&domain);
+
     // Verify coupon house is authorized to get the registry / register names.
     let coupon_house = coupon_house_mut(suins);
 
@@ -86,17 +106,12 @@ public fun apply_coupon(
 
     // Borrow coupon from the table.
     let coupon: &mut Coupon = &mut coupon_house.data.coupons_mut()[coupon_code];
-    let percentage = coupon.discount_percentage();
 
     // We need to do a total of 5 checks, based on `CouponRules`
     // Our checks work with `AND`, all of the conditions must pass for a coupon
     // to be used.
     // 1. Validate domain size.
-    coupon
-        .rules()
-        .assert_coupon_valid_for_domain_size(
-            intent.request_data().domain().sld().length() as u8,
-        );
+    coupon.rules().assert_coupon_valid_for_domain_size(domain_length);
     // 2. Decrease available claims. Will ABORT if the coupon doesn't have
     // enough available claims.
     coupon.rules_mut().decrease_available_claims();
@@ -105,9 +120,10 @@ public fun apply_coupon(
     // 4. Validate the coupon hasn't expired (Based on clock)
     coupon.rules().assert_coupon_is_not_expired(clock);
     // 5. Validate years are valid for the coupon.
-    coupon
-        .rules()
-        .assert_coupon_valid_for_domain_years(intent.request_data().years());
+    coupon.rules().assert_coupon_valid_for_domain_years(no_years);
+
+    let sale_price = coupon.calculate_sale_price(original_price);
+    assert!(payment.value() == sale_price, EIncorrectAmount);
 
     // Clean up our registry by removing the coupon if no more available claims!
     if (!coupon.rules().has_available_claims()) {
@@ -115,35 +131,32 @@ public fun apply_coupon(
         coupon_house.data.remove_coupon(coupon_code);
     };
 
-    intent.apply_percentage_discount(
-        suins,
-        CouponsApp {},
-        COUPON_DISCOUNT_KEY.to_string(),
-        percentage as u8,
-        false,
-    );
+    suins::app_add_balance(CouponsApp {}, suins, payment.into_balance());
+    let registry: &mut Registry = suins::app_registry_mut(CouponsApp {}, suins);
+    registry.add_record(domain, no_years, clock, ctx)
 }
 
-#[deprecated]
-public fun register_with_coupon(
-    _suins: &mut SuiNS,
-    _coupon_code: String,
-    _domain_name: String,
-    _no_years: u8,
-    _payment: Coin<SUI>,
-    _clock: &Clock,
-    _ctx: &mut TxContext,
-): SuinsRegistration {
-    abort 1337
-}
-
-#[deprecated]
+// A convenient helper to calculate the price in a PTB.
+// Important: This function doesn't check the validity of the coupon (Whether
+// the user can indeed use it)
+// Nor does it calculate the original price. This is part of the Frontend
+// anyways.
 public fun calculate_sale_price(
-    _suins: &SuiNS,
-    _price: u64,
-    _coupon_code: String,
+    suins: &SuiNS,
+    price: u64,
+    coupon_code: String,
 ): u64 {
-    abort 1337
+    let coupon_house = coupon_house(suins);
+    // Validate that specified coupon is valid.
+    assert!(
+        coupon_house.data.coupons().contains(coupon_code),
+        ECouponNotExists,
+    );
+
+    // Borrow coupon from the table.
+    let coupon: &Coupon = &coupon_house.data.coupons()[coupon_code];
+
+    coupon.calculate_sale_price(price)
 }
 
 // Get `Data` as an authorized app.
@@ -231,6 +244,15 @@ fun is_app_authorized<A: drop>(coupon_house: &CouponHouse): bool {
 /// Aborts with `EAppNotAuthorized` if not.
 fun assert_app_is_authorized<A: drop>(coupon_house: &CouponHouse) {
     assert!(coupon_house.is_app_authorized<A>(), EAppNotAuthorized);
+}
+
+/// local helper to get the `coupon house` object from the SuiNS object.
+fun coupon_house(suins: &SuiNS): &CouponHouse {
+    // Verify coupon house is authorized to get the registry / register names.
+    suins.assert_app_is_authorized<CouponsApp>();
+    let coupons = suins.registry<CouponHouse>();
+    coupons.assert_version_is_valid();
+    coupons
 }
 
 /// Gets a mutable reference to the coupon's house

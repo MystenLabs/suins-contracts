@@ -8,8 +8,11 @@ module coupons::rules;
 use coupons::constants;
 use coupons::range::Range;
 use sui::clock::Clock;
+use suins::constants as suins_constants;
 
 // Errors
+/// Error when you try to create a DomainLengthRule with invalid type.
+const EInvalidLengthRule: u64 = 0;
 /// Error when you try to use a coupon that isn't valid for these years.
 const ENotValidYears: u64 = 1;
 /// Error when you try to use a coupon which doesn't match to the domain's size.
@@ -25,8 +28,10 @@ const EInvalidType: u64 = 5;
 const EInvalidUser: u64 = 6;
 /// Error when coupon has expired
 const ECouponExpired: u64 = 7;
+/// Error when creating years range.
+const EInvalidYears: u64 = 8;
 /// Available claims can't be 0.
-const EInvalidAvailableClaims: u64 = 8;
+const EInvalidAvailableClaims: u64 = 9;
 
 /// The Struct that holds the coupon's rules.
 /// All rules are combined in `AND` fashion.
@@ -54,6 +59,8 @@ public fun new_coupon_rules(
     expiration: Option<u64>,
     years: Option<Range>,
 ): CouponRules {
+    assert!(is_valid_years_range(&years), EInvalidYears);
+    assert!(is_valid_length_range(&length), EInvalidLengthRule);
     assert!(
         available_claims.is_none() || (*available_claims.borrow() > 0),
         EInvalidAvailableClaims,
@@ -130,9 +137,11 @@ public fun assert_is_valid_discount_type(`type`: u8) {
 
 // verify that we are creating the coupons correctly (based on amount & type).
 // for amounts, if we have a percentage discount, our max num is 100.
-public fun assert_is_valid_amount(_: u8, amount: u64) {
+public fun assert_is_valid_amount(`type`: u8, amount: u64) {
     assert!(amount > 0, EInvalidAmount); // protect from division by 0. 0 doesn't make sense in any scenario.
-    assert!(amount <= 100, EInvalidAmount);
+    if (`type` == constants::percentage_discount_type()) {
+        assert!(amount<=100, EInvalidAmount)
+    }
 }
 
 // We check a DomainSize Rule against the length of a domain.
@@ -186,4 +195,16 @@ public fun is_coupon_expired(rules: &CouponRules, clock: &Clock): bool {
     };
 
     clock.timestamp_ms() > *rules.expiration.borrow()
+}
+
+fun is_valid_years_range(range: &Option<Range>): bool {
+    if (range.is_none()) return true;
+    let range = range.borrow();
+    range.from() >= 1 && range.to() <= 5
+}
+
+fun is_valid_length_range(range: &Option<Range>): bool {
+    if (range.is_none()) return true;
+    let range = range.borrow();
+    range.from() >= suins_constants::min_domain_length() && range.to() <= suins_constants::max_domain_length()
 }

@@ -6,14 +6,29 @@
 /// and exports some package utilities for the 2 systems to use.
 module discounts::house;
 
-use std::string::String;
-use suins::suins::AdminCap;
+use sui::clock::Clock;
+use suins::config;
+use suins::domain::Domain;
+use suins::registry::Registry;
+use suins::suins::{Self, AdminCap, SuiNS};
+use suins::suins_registration::SuinsRegistration;
 
-#[error]
-const EInvalidVersion: vector<u8> = b"Invalid version";
+// The `free_claims` module can use the shared object to attach configuration & claim names.
+/* friend discounts::free_claims; */
+// The `discounts` module can use the shared object to attach configuration & claim names.
+/* friend discounts::discounts; */
 
-/// The version of the DiscountHouse.
+/// Tries to register with invalid version of the app
+const ENotValidVersion: u64 = 1;
+
+/// A version handler that allows us to upgrade the app in the future.
 const VERSION: u8 = 1;
+
+/// All promotions in this package are valid only for 1 year
+const REGISTRATION_YEARS: u8 = 1;
+
+/// A key to authorize DiscountHouse to register names on SuiNS.
+public struct DiscountHouseApp has drop {}
 
 // The Shared object responsible for the discounts.
 public struct DiscountHouse has key, store {
@@ -30,32 +45,50 @@ fun init(ctx: &mut TxContext) {
     })
 }
 
-public fun set_version(self: &mut DiscountHouse, _: &AdminCap, version: u8) {
+/// An admin helper to set the version of the shared object.
+/// Registrations are only possible if the latest version is being used.
+public fun set_version(_: &AdminCap, self: &mut DiscountHouse, version: u8) {
     self.version = version;
 }
 
-public(package) macro fun discount_house_key(): String {
-    b"object_discount".to_string()
+/// Validate that the version of the app is the latest.
+public fun assert_version_is_valid(self: &DiscountHouse) {
+    assert!(self.version == VERSION, ENotValidVersion);
 }
 
-public(package) fun assert_version_is_valid(self: &DiscountHouse) {
-    assert!(self.version == VERSION, EInvalidVersion);
+/// A function to save a new SuiNS name in the registry.
+/// Helps re-use the same code for all discounts based on type T of the package.
+public(package) fun friend_add_registry_entry(
+    suins: &mut SuiNS,
+    domain: Domain,
+    clock: &Clock,
+    ctx: &mut TxContext,
+): SuinsRegistration {
+    // Verify that app is authorized to register names.
+    suins.assert_app_is_authorized<DiscountHouseApp>();
+
+    // Validate that the name can be registered.
+    config::assert_valid_user_registerable_domain(&domain);
+
+    let registry = suins::app_registry_mut<DiscountHouseApp, Registry>(
+        DiscountHouseApp {},
+        suins,
+    );
+    registry.add_record(domain, REGISTRATION_YEARS, clock, ctx)
 }
 
-/// A helper function to get a mutable reference to the UID.
+/// Returns the UID of the shared object so we can add custom configuration.
+/// from different modules we have. but keep using the same shared object.
 public(package) fun uid_mut(self: &mut DiscountHouse): &mut UID {
     &mut self.id
+}
+
+/// Allows the friend modules to call functions to the SuiNS registry.
+public(package) fun suins_app_auth(): DiscountHouseApp {
+    DiscountHouseApp {}
 }
 
 #[test_only]
 public fun init_for_testing(ctx: &mut TxContext) {
     init(ctx);
-}
-
-#[test_only]
-public fun house_for_testing(ctx: &mut TxContext): DiscountHouse {
-    DiscountHouse {
-        id: object::new(ctx),
-        version: VERSION,
-    }
 }

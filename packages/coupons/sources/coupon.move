@@ -1,8 +1,7 @@
 module coupons::coupon;
 
+use coupons::constants;
 use coupons::rules::{Self, CouponRules};
-
-const EInvalidDiscountPercentage: u64 = 1;
 
 /// A Coupon has a type, a value and a ruleset.
 /// - `Rules` are defined on the module `rules`, and covers a variety of
@@ -41,11 +40,16 @@ public(package) fun rules_mut(coupon: &mut Coupon): &mut CouponRules {
     &mut coupon.rules
 }
 
-public(package) fun discount_percentage(coupon: &Coupon): u64 {
-    assert!(
-        coupon.amount > 0 && coupon.amount <= 100,
-        EInvalidDiscountPercentage,
-    );
+/// A helper to calculate the final price after the discount.
+public(package) fun calculate_sale_price(coupon: &Coupon, price: u64): u64 {
+    // If it's fixed price, we just deduce the amount.
+    if (coupon.kind == constants::fixed_price_discount_type()) {
+        if (coupon.amount > price) return 0; // protect underflow case.
+        return price - coupon.amount
+    };
 
-    coupon.amount
+    // If it's discount price, we calculate the discount
+    let discount = (((price as u128) * (coupon.amount as u128) / 100) as u64);
+    // then remove it from the sale price.
+    price - discount
 }
