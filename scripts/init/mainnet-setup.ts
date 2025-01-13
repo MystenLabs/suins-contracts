@@ -114,9 +114,6 @@ const setupSuins = (txb: Transaction) => {
 		config: paymentsconfig,
 		type: `${config.payments.packageId}::payments::PaymentsConfig`,
 	});
-
-	// remove some more auths
-	// Also republish temp_subdomain_proxy
 };
 
 const deauthorize = (txb: Transaction) => {
@@ -154,6 +151,7 @@ const deauthorize = (txb: Transaction) => {
 		type: `${config.packageIdV1}::controller::Controller`,
 		suinsPackageIdV1: config.packageIdV1,
 	});
+	// remove some more auths not needed
 };
 
 const deauthorizePackages = async () => {
