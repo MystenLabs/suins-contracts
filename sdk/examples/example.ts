@@ -23,27 +23,27 @@ import { SuinsTransaction } from '../src/suins-transaction';
 	});
 
 	/* Following can be used to fetch the coin type discount, registration price, and renewal price */
-	// console.log(await suinsClient.getCoinTypeDiscount());
-	// console.log(await suinsClient.getPriceList());
-	// console.log(await suinsClient.getRenewalPriceList());
+	console.log(await suinsClient.getPriceList());
+	console.log(await suinsClient.getRenewalPriceList());
+	console.log(await suinsClient.getCoinTypeDiscount());
 
 	// /* Following can be used to fetch the domain record */
 	// console.log('Domain Record: ', await suinsClient.getNameRecord('names123.sui'));
 	// console.log('Domain Record: ', await suinsClient.getNameRecord('name.name123.sui'));
 
-	const tx = new Transaction();
-	const coinConfig = suinsClient.config.coins.NS; // Specify the coin type used for the transaction
-	const priceInfoObjectId =
-		coinConfig !== suinsClient.config.coins.USDC
-			? (await suinsClient.getPriceInfoObject(tx, coinConfig.feed))[0]
-			: null;
+	// const tx = new Transaction();
+	// const coinConfig = suinsClient.config.coins.NS; // Specify the coin type used for the transaction
+	// const priceInfoObjectId =
+	// 	coinConfig !== suinsClient.config.coins.USDC
+	// 		? (await suinsClient.getPriceInfoObject(tx, coinConfig.feed))[0]
+	// 		: null;
 
 	// If discount NFT is used
 	// const discountNft = '0xd047f37bbf8f21dc0a9422c5e99fd208c19bb58884b2671a09c0e1c1cbac6983'; // This can be a string or a kioskTransactionArgument
 	// const discountNftType = await getObjectType(suinsClient.client, discountNft);
 
 	/* Registration Example Using SUI */
-	const suinsTx = new SuinsTransaction(suinsClient, tx);
+	// const suinsTx = new SuinsTransaction(suinsClient, tx);
 	// const nft = suinsTx.register({
 	// 	domain: 'tonyddjfddssassdadkssdddfsadlajk.sui',
 	// 	years: 3,

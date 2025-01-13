@@ -96,7 +96,7 @@ export const mainPackage: Config = {
 		},
 		subNamesPackageId: '0x3c272bc45f9157b7818ece4f7411bdfa8af46303b071aca4e18c03119c9ff636',
 		tempSubdomainsProxyPackageId:
-			'0xfd5ad004acbd5e3dd4fc0de4f1f1d465f8db5bb2ec1de63694ce6dc887fe1c89',
+			'0x295a0749dae0e76126757c305f218f929df0656df66a6361f8b6c6480a943f12',
 		coupons: {
 			packageId: '0x63029aae8abbefae4f4ac6c5e3e0021159ea93a94ba648681fd64caf5b40677a',
 		},

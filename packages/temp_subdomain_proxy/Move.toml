@@ -5,7 +5,6 @@ edition = "2024.beta"
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/mainnet", override=true }
 subdomains = { local = "../subdomains" }
-utils = { local = "../utils" }
 
 [addresses]
 temp_subdomain_proxy = "0x0"

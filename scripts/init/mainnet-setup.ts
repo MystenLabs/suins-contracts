@@ -20,15 +20,6 @@ import {
 const setupSuins = (txb: Transaction) => {
 	const config = mainPackage['mainnet'];
 
-	// Remove old core/price config
-	removeConfig({
-		txb,
-		adminCap: config.adminCap,
-		suins: config.suins,
-		type: `${config.packageIdV1}::config::Config`,
-		suinsPackageIdV1: config.packageIdV1,
-	});
-
 	// Add new core config
 	addConfig({
 		txb,
@@ -79,14 +70,6 @@ const setupSuins = (txb: Transaction) => {
 		type: `${config.packageIdPricing}::pricing_config::RenewalConfig`,
 	});
 
-	// Deauthorize old controller, authorize new controller
-	deauthorizeApp({
-		txb,
-		adminCap: config.adminCap,
-		suins: config.suins,
-		type: `${config.packageIdV1}::controller::Controller`,
-		suinsPackageIdV1: config.packageIdV1,
-	});
 	authorizeApp({
 		txb,
 		adminCap: config.adminCap,
@@ -132,7 +115,13 @@ const setupSuins = (txb: Transaction) => {
 		type: `${config.payments.packageId}::payments::PaymentsConfig`,
 	});
 
-	// deauthorize old registration and renewal packages
+	// remove some more auths
+	// Also republish temp_subdomain_proxy
+};
+
+const deauthorize = (txb: Transaction) => {
+	const config = mainPackage['mainnet'];
+
 	deauthorizeApp({
 		txb,
 		adminCap: config.adminCap,
@@ -147,6 +136,35 @@ const setupSuins = (txb: Transaction) => {
 		type: `0xd5e5f74126e7934e35991643b0111c3361827fc0564c83fa810668837c6f0b0f::renew::Renew`,
 		suinsPackageIdV1: config.packageIdV1,
 	});
+
+	// Remove old core/price config
+	removeConfig({
+		txb,
+		adminCap: config.adminCap,
+		suins: config.suins,
+		type: `${config.packageIdV1}::config::Config`,
+		suinsPackageIdV1: config.packageIdV1,
+	});
+
+	// Deauthorize old controller, authorize new controller
+	deauthorizeApp({
+		txb,
+		adminCap: config.adminCap,
+		suins: config.suins,
+		type: `${config.packageIdV1}::controller::Controller`,
+		suinsPackageIdV1: config.packageIdV1,
+	});
+};
+
+const deauthorizePackages = async () => {
+	const config = mainPackage['mainnet'];
+	const tx = new Transaction();
+
+	// Setup Suins
+	deauthorize(tx);
+
+	// Prepare multisig tx
+	await prepareMultisigTx(tx, 'mainnet', config.adminAddress);
 };
 
 const publishSetup = async () => {
@@ -161,3 +179,4 @@ const publishSetup = async () => {
 };
 
 publishSetup();
+// deauthorize();
