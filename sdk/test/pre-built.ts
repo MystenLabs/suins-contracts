@@ -15,16 +15,30 @@ export const e2eLiveNetworkDryRunFlow = async (network: 'mainnet' | 'testnet') =
 		network,
 	});
 
+	// Getting price lists accurately
+	const priceList = await suinsClient.getPriceList();
+	const renewalPriceList = await suinsClient.getRenewalPriceList();
+	const coinDiscount = await suinsClient.getCoinTypeDiscount();
+
 	const tx = new Transaction();
+	const coinConfig = suinsClient.config.coins.SUI; // Specify the coin type used for the transaction
+	const priceInfoObjectId =
+		coinConfig !== suinsClient.config.coins.USDC
+			? (await suinsClient.getPriceInfoObject(tx, coinConfig.feed))[0]
+			: null;
+
 	const suinsTx = new SuinsTransaction(suinsClient, tx);
 
 	const uniqueName =
 		(Date.now().toString(36) + Math.random().toString(36).substring(2)).repeat(2) + '.sui';
 
-	const priceList = await suinsClient.getPriceList();
-
 	// register test.sui for 2 years.
-	const nft = await suinsTx.register(uniqueName, 2, suinsClient.config.coins.SUI);
+	const nft = suinsTx.register({
+		domain: uniqueName,
+		years: 2,
+		coinConfig: suinsClient.config.coins.SUI,
+		priceInfoObjectId,
+	});
 	// Sets the target address of the NFT.
 	suinsTx.setTargetAddress({
 		nft,
