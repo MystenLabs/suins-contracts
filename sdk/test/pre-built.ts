@@ -3,6 +3,7 @@
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
 import { normalizeSuiAddress } from '@mysten/sui/utils';
+import { expect } from 'vitest';
 
 import { ALLOWED_METADATA, SuinsClient, SuinsTransaction } from '../src';
 
@@ -19,6 +20,28 @@ export const e2eLiveNetworkDryRunFlow = async (network: 'mainnet' | 'testnet') =
 	const priceList = await suinsClient.getPriceList();
 	const renewalPriceList = await suinsClient.getRenewalPriceList();
 	const coinDiscount = await suinsClient.getCoinTypeDiscount();
+
+	// Expected lists
+	const expectedPriceList = new Map([
+		[[3, 3], 500000000],
+		[[4, 4], 100000000],
+		[[5, 63], 10000000],
+	]);
+
+	const expectedRenewalPriceList = new Map([
+		[[3, 3], 150000000],
+		[[4, 4], 50000000],
+		[[5, 63], 5000000],
+	]);
+
+	const expectedCoinDiscount = new Map([
+		[suinsClient.config.coins.USDC.type.slice(2), 0],
+		[suinsClient.config.coins.SUI.type.slice(2), 0],
+		[suinsClient.config.coins.NS.type.slice(2), 25],
+	]);
+	expect(priceList).toEqual(expectedPriceList);
+	expect(renewalPriceList).toEqual(expectedRenewalPriceList);
+	expect(coinDiscount).toEqual(expectedCoinDiscount);
 
 	const tx = new Transaction();
 	const coinConfig = suinsClient.config.coins.SUI; // Specify the coin type used for the transaction
