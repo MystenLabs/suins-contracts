@@ -25,7 +25,7 @@ export const authorizeDiscountType = (type: string) => {
 					[4, 4],
 					[5, 63],
 				],
-				prices: [30, 30, 30],
+				prices: [30, 30, 30], // Discount percentages
 			}),
 		],
 		typeArguments: [type],
