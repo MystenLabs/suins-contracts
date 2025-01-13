@@ -3,9 +3,8 @@
 
 import { SuiTransactionBlockResponse } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
-import { MIST_PER_SUI } from '@mysten/sui/utils';
 
-import { Config, mainPackage, MAX_AGE, MIST_PER_USDC, TESTNET_CONFIG } from '../config/constants';
+import { Config, mainPackage, MAX_AGE, MIST_PER_USDC } from '../config/constants';
 import {
 	addConfig,
 	addRegistry,
