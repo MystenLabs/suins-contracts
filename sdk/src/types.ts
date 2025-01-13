@@ -33,7 +33,6 @@ export type PackageInfo = {
 	adminCap: string;
 	suins: string;
 	displayObject?: string;
-	directSetupPackageId: string;
 	discountsPackage: {
 		packageId: string;
 		discountHouseId: string;
