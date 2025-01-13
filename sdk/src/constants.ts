@@ -50,12 +50,6 @@ export const mainPackage: Config = {
 		subNamesPackageId: '0xe177697e191327901637f8d2c5ffbbde8b1aaac27ec1024c4b62d1ebd1cd7430',
 		tempSubdomainsProxyPackageId:
 			'0xdacfd7c1176a68137b38a875d76a2f65d277596d2c632881931d926b16de2698',
-		discord: {
-			discordCap: '0xd369c89ef88534b5ba9a78f16fec6adb3b5bc5d2ae72c990fd8aaccae1f2c56b',
-			discordObjectId: '0x20eb3a33886f6cfb62600881207dd9acf0de125a40006bb7661898eb8426fae9',
-			packageId: '0x408d22066775f20e0c13617c1f157a110d9a5b0873b878692b78aba92b1a46e1',
-			discordTableId: '0x118167416475935cd8f98e104faa99302b72a85c8b9ae4ebb7d22fbd269ed8db',
-		},
 		coupons: {
 			packageId: '0x6d14ca3049be747ec87166e6dce5d0d9a30f3b3c281c55d6e518958a236f8b97',
 		},
@@ -103,12 +97,6 @@ export const mainPackage: Config = {
 		subNamesPackageId: '0x3c272bc45f9157b7818ece4f7411bdfa8af46303b071aca4e18c03119c9ff636',
 		tempSubdomainsProxyPackageId:
 			'0xfd5ad004acbd5e3dd4fc0de4f1f1d465f8db5bb2ec1de63694ce6dc887fe1c89',
-		discord: {
-			discordCap: '',
-			discordObjectId: '',
-			packageId: '',
-			discordTableId: '',
-		},
 		coupons: {
 			packageId: '0x63029aae8abbefae4f4ac6c5e3e0021159ea93a94ba648681fd64caf5b40677a',
 		},

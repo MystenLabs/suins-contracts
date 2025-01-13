@@ -1,7 +1,9 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 import { SuiClient } from '@mysten/sui/client';
+import { Transaction } from '@mysten/sui/transactions';
 import { isValidSuiNSName, normalizeSuiNSName } from '@mysten/sui/utils';
+import { SuiPriceServiceConnection, SuiPythClient } from '@pythnetwork/pyth-sui-js';
 
 import {
 	getCoinDiscountConfigType,
@@ -312,5 +314,30 @@ export class SuinsClient {
 		}
 
 		return price;
+	}
+
+	async getPriceInfoObject(tx: Transaction, feed: string) {
+		// Initialize connection to the Sui Price Service
+		const endpoint =
+			this.network === 'testnet'
+				? 'https://hermes-beta.pyth.network'
+				: 'https://hermes.pyth.network';
+		const connection = new SuiPriceServiceConnection(endpoint);
+
+		// List of price feed IDs
+		const priceIDs = [
+			feed, // ASSET/USD price ID
+		];
+
+		// Fetch price feed update data
+		const priceUpdateData = await connection.getPriceFeedsUpdateData(priceIDs);
+
+		// Initialize Sui Client and Pyth Client
+		const wormholeStateId = this.config.pyth.wormholeStateId;
+		const pythStateId = this.config.pyth.pythStateId;
+
+		const client = new SuiPythClient(this.client, pythStateId, wormholeStateId);
+
+		return await client.updatePriceFeeds(tx, priceUpdateData, priceIDs); // returns priceInfoObjectIds
 	}
 }

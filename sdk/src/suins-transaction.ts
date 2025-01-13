@@ -4,12 +4,17 @@
 import { bcs } from '@mysten/sui/bcs';
 import { Transaction, TransactionObjectArgument } from '@mysten/sui/transactions';
 import { isValidSuiNSName, normalizeSuiNSName, SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
-import { SuiPriceServiceConnection, SuiPythClient } from '@pythnetwork/pyth-sui-js';
 
 import { ALLOWED_METADATA, MAX_U64 } from './constants.js';
-import { getObjectType, isNestedSubName, isSubName } from './helpers.js';
+import { isNestedSubName, isSubName, zeroCoin } from './helpers.js';
 import type { SuinsClient } from './suins-client.js';
-import type { ObjectArgument } from './types.js';
+import type {
+	DiscountInfo,
+	ObjectArgument,
+	ReceiptParams,
+	RegistrationParams,
+	RenewalParams,
+} from './types.js';
 
 export class SuinsTransaction {
 	suinsClient: SuinsClient;
@@ -23,43 +28,42 @@ export class SuinsTransaction {
 	/**
 	 * Registers a domain for a number of years.
 	 */
-	register = async (
-		domain: string,
-		years: number,
-		coinConfig: { type: string; metadataID: string; feed: string },
-		options: {
-			coinId?: string;
-			couponCode?: string;
-			discountNft?: string;
-			maxAmount?: bigint;
-			kioskNftTxnArgs?: TransactionObjectArgument;
-		} = {},
-	) => {
-		const tx = this.transaction;
-
-		const paymentIntent = tx.add(this.initRegistration(domain));
-
-		if (options.couponCode) {
-			tx.add(this.applyCoupon(paymentIntent, options.couponCode));
+	register = (params: RegistrationParams) => {
+		if (params.couponCode && params.discountInfo) {
+			throw new Error('Cannot apply both coupon and discount NFT');
 		}
-		if (options.discountNft) {
-			await this.applyDiscount(paymentIntent, options.discountNft, options.kioskNftTxnArgs);
+
+		const paymentIntent = this.initRegistration(params.domain);
+		if (params.couponCode) {
+			this.applyCoupon(paymentIntent, params.couponCode);
 		}
-		const priceAfterDiscount = tx.add(
-			this.calculatePriceAfterDiscount(paymentIntent, coinConfig.type),
+		if (params.discountInfo) {
+			this.applyDiscount(paymentIntent, params.discountInfo);
+		}
+		const priceAfterDiscount = this.calculatePriceAfterDiscount(
+			paymentIntent,
+			params.coinConfig.type,
 		);
-		const { receipt, priceInfoObjectId } = await this.generateReceipt(
+		const { receipt } = this.generateReceipt({
 			paymentIntent,
 			priceAfterDiscount,
-			coinConfig,
-			options,
-		);
-		const nft = tx.add(this.finalizeRegister(receipt));
+			coinConfig: params.coinConfig,
+			coinId: params.coinId,
+			maxAmount: params.maxAmount,
+			priceInfoObjectId: params.priceInfoObjectId,
+		});
+		const nft = this.finalizeRegister(receipt);
 
-		if (years > 1) {
-			await this.renew(nft, years - 1, coinConfig, {
-				...options,
-				infoObjectId: priceInfoObjectId,
+		if (params.years > 1) {
+			this.renew({
+				nft,
+				years: params.years - 1,
+				coinConfig: params.coinConfig,
+				coinId: params.coinId,
+				couponCode: params.couponCode,
+				discountInfo: params.discountInfo,
+				maxAmount: params.maxAmount,
+				priceInfoObjectId: params.priceInfoObjectId,
 			});
 		}
 
@@ -69,254 +73,208 @@ export class SuinsTransaction {
 	/**
 	 * Renews an NFT for a number of years.
 	 */
-	renew = async (
-		nft: string | TransactionObjectArgument,
-		years: number,
-		coinConfig: { type: string; metadataID: string; feed: string },
-		options: {
-			coinId?: string;
-			couponCode?: string;
-			discountNft?: string;
-			maxAmount?: bigint;
-			infoObjectId?: string;
-			kioskNftTxnArgs?: TransactionObjectArgument;
-		} = {},
-	) => {
-		const tx = this.transaction;
-
-		const nftObject = typeof nft === 'string' ? tx.object(nft) : nft;
-
-		const paymentIntent = tx.add(this.initRenewal(nftObject, years));
-
-		if (options.couponCode) {
-			tx.add(this.applyCoupon(paymentIntent, options.couponCode));
+	renew = (params: RenewalParams) => {
+		if (params.couponCode && params.discountInfo) {
+			throw new Error('Cannot apply both coupon and discount NFT');
 		}
-		if (options.discountNft) {
-			await this.applyDiscount(paymentIntent, options.discountNft, options.kioskNftTxnArgs);
+
+		const paymentIntent = this.initRenewal(params.nft, params.years);
+		if (params.couponCode) {
+			this.applyCoupon(paymentIntent, params.couponCode);
 		}
-		const priceAfterDiscount = tx.add(
-			this.calculatePriceAfterDiscount(paymentIntent, coinConfig.type),
+		if (params.discountInfo) {
+			this.applyDiscount(paymentIntent, params.discountInfo);
+		}
+		const priceAfterDiscount = this.calculatePriceAfterDiscount(
+			paymentIntent,
+			params.coinConfig.type,
 		);
-		const { receipt } = await this.generateReceipt(
+		const { receipt } = this.generateReceipt({
 			paymentIntent,
 			priceAfterDiscount,
-			coinConfig,
-			options,
-		);
-		tx.add(this.finalizeRenew(receipt, nftObject));
+			coinConfig: params.coinConfig,
+			coinId: params.coinId,
+			maxAmount: params.maxAmount,
+			priceInfoObjectId: params.priceInfoObjectId,
+		});
+		this.finalizeRenew(receipt, params.nft);
 	};
 
-	initRegistration = (domain: string) => (tx: Transaction) => {
+	initRegistration = (domain: string) => {
 		const config = this.suinsClient.config;
-		return tx.moveCall({
+		return this.transaction.moveCall({
 			target: `${config.packageId}::payment::init_registration`,
-			arguments: [tx.object(config.suins), tx.pure.string(domain)],
+			arguments: [this.transaction.object(config.suins), this.transaction.pure.string(domain)],
 		});
 	};
 
-	initRenewal = (nft: TransactionObjectArgument, years: number) => (tx: Transaction) => {
+	initRenewal = (nft: ObjectArgument, years: number) => {
 		const config = this.suinsClient.config;
-		return tx.moveCall({
+		return this.transaction.moveCall({
 			target: `${config.packageId}::payment::init_renewal`,
-			arguments: [tx.object(config.suins), nft, tx.pure.u8(years)],
+			arguments: [
+				this.transaction.object(config.suins),
+				this.transaction.object(nft),
+				this.transaction.pure.u8(years),
+			],
 		});
 	};
 
-	getPriceInfoObject = async (feed: string) => {
-		const tx = this.transaction;
+	calculatePrice = (
+		baseAmount: TransactionObjectArgument,
+		paymentType: string,
+		priceInfoObjectId: string,
+	) => {
 		const config = this.suinsClient.config;
-		// Initialize connection to the Sui Price Service
-		const endpoint =
-			this.suinsClient.network === 'testnet'
-				? 'https://hermes-beta.pyth.network'
-				: 'https://hermes.pyth.network';
-		const connection = new SuiPriceServiceConnection(endpoint);
-
-		// List of price feed IDs
-		const priceIDs = [
-			feed, // ASSET/USD price ID
-		];
-
-		// Fetch price feed update data
-		const priceUpdateData = await connection.getPriceFeedsUpdateData(priceIDs);
-
-		// Initialize Sui Client and Pyth Client
-		const wormholeStateId = config.pyth.wormholeStateId;
-		const pythStateId = config.pyth.pythStateId;
-
-		const client = new SuiPythClient(this.suinsClient.client, pythStateId, wormholeStateId);
-
-		return await client.updatePriceFeeds(tx, priceUpdateData, priceIDs); // returns priceInfoObjectIds
-	};
-
-	calculatePrice =
-		(baseAmount: TransactionObjectArgument, paymentType: string, priceInfoObjectId: string) =>
-		(tx: Transaction) => {
-			const config = this.suinsClient.config;
-			// Perform the Move call
-			return tx.moveCall({
-				target: `${config.payments.packageId}::payments::calculate_price`,
-				arguments: [
-					tx.object(config.suins),
-					baseAmount,
-					tx.object.clock(),
-					tx.object(priceInfoObjectId),
-				],
-				typeArguments: [paymentType],
-			});
-		};
-
-	handleBasePayment =
-		(
-			paymentIntent: TransactionObjectArgument,
-			payment: TransactionObjectArgument,
-			paymentType: string,
-		) =>
-		(tx: Transaction) => {
-			const config = this.suinsClient.config;
-			return tx.moveCall({
-				target: `${config.payments.packageId}::payments::handle_base_payment`,
-				arguments: [tx.object(config.suins), paymentIntent, payment],
-				typeArguments: [paymentType],
-			});
-		};
-
-	handlePayment =
-		(
-			paymentIntent: TransactionObjectArgument,
-			payment: TransactionObjectArgument,
-			paymentType: string,
-			priceInfoObjectId: string,
-			maxAmount: bigint = MAX_U64,
-		) =>
-		(tx: Transaction) => {
-			const config = this.suinsClient.config;
-			return tx.moveCall({
-				target: `${config.payments.packageId}::payments::handle_payment`,
-				arguments: [
-					tx.object(config.suins),
-					paymentIntent,
-					payment,
-					tx.object.clock(),
-					tx.object(priceInfoObjectId),
-					tx.pure.u64(maxAmount), // This is the maximum user is willing to pay
-				],
-				typeArguments: [paymentType],
-			});
-		};
-
-	finalizeRegister = (receipt: TransactionObjectArgument) => (tx: Transaction) => {
-		const config = this.suinsClient.config;
-		return tx.moveCall({
-			target: `${config.packageId}::payment::register`,
-			arguments: [receipt, tx.object(config.suins), tx.object.clock()],
+		// Perform the Move call
+		return this.transaction.moveCall({
+			target: `${config.payments.packageId}::payments::calculate_price`,
+			arguments: [
+				this.transaction.object(config.suins),
+				baseAmount,
+				this.transaction.object.clock(),
+				this.transaction.object(priceInfoObjectId),
+			],
+			typeArguments: [paymentType],
 		});
 	};
 
-	finalizeRenew =
-		(receipt: TransactionObjectArgument, nft: TransactionObjectArgument) => (tx: Transaction) => {
-			const config = this.suinsClient.config;
-			return tx.moveCall({
-				target: `${config.packageId}::payment::renew`,
-				arguments: [receipt, tx.object(config.suins), nft, tx.object.clock()],
-			});
-		};
-
-	calculatePriceAfterDiscount =
-		(paymentIntent: TransactionObjectArgument, paymentType: string) => (tx: Transaction) => {
-			const config = this.suinsClient.config;
-			return tx.moveCall({
-				target: `${config.payments.packageId}::payments::calculate_price_after_discount`,
-				arguments: [tx.object(config.suins), paymentIntent],
-				typeArguments: [paymentType],
-			});
-		};
-
-	zeroCoin = (type: string) => (tx: Transaction) => {
-		return tx.moveCall({
-			target: '0x2::coin::zero',
-			typeArguments: [type],
-		});
-	};
-
-	generateReceipt = async (
+	handleBasePayment = (
 		paymentIntent: TransactionObjectArgument,
-		priceAfterDiscount: TransactionObjectArgument,
-		coinConfig: { type: string; metadataID: string; feed: string },
-		options: {
-			coinId?: string;
-			maxAmount?: bigint;
-			infoObjectId?: string;
-		} = {},
-	): Promise<{ receipt: TransactionObjectArgument; priceInfoObjectId?: string }> => {
-		const tx = this.transaction;
+		payment: TransactionObjectArgument,
+		paymentType: string,
+	) => {
 		const config = this.suinsClient.config;
-		const baseAssetPurchase = coinConfig.feed === '';
+		return this.transaction.moveCall({
+			target: `${config.payments.packageId}::payments::handle_base_payment`,
+			arguments: [this.transaction.object(config.suins), paymentIntent, payment],
+			typeArguments: [paymentType],
+		});
+	};
+
+	handlePayment = (
+		paymentIntent: TransactionObjectArgument,
+		payment: TransactionObjectArgument,
+		paymentType: string,
+		priceInfoObjectId: string,
+		maxAmount: bigint = MAX_U64,
+	) => {
+		const config = this.suinsClient.config;
+		return this.transaction.moveCall({
+			target: `${config.payments.packageId}::payments::handle_payment`,
+			arguments: [
+				this.transaction.object(config.suins),
+				paymentIntent,
+				payment,
+				this.transaction.object.clock(),
+				this.transaction.object(priceInfoObjectId),
+				this.transaction.pure.u64(maxAmount), // This is the maximum user is willing to pay
+			],
+			typeArguments: [paymentType],
+		});
+	};
+
+	finalizeRegister = (receipt: TransactionObjectArgument) => {
+		const config = this.suinsClient.config;
+		return this.transaction.moveCall({
+			target: `${config.packageId}::payment::register`,
+			arguments: [receipt, this.transaction.object(config.suins), this.transaction.object.clock()],
+		});
+	};
+
+	finalizeRenew = (receipt: TransactionObjectArgument, nft: ObjectArgument) => {
+		const config = this.suinsClient.config;
+		return this.transaction.moveCall({
+			target: `${config.packageId}::payment::renew`,
+			arguments: [
+				receipt,
+				this.transaction.object(config.suins),
+				this.transaction.object(nft),
+				this.transaction.object.clock(),
+			],
+		});
+	};
+
+	calculatePriceAfterDiscount = (paymentIntent: TransactionObjectArgument, paymentType: string) => {
+		const config = this.suinsClient.config;
+		return this.transaction.moveCall({
+			target: `${config.payments.packageId}::payments::calculate_price_after_discount`,
+			arguments: [this.transaction.object(config.suins), paymentIntent],
+			typeArguments: [paymentType],
+		});
+	};
+
+	generateReceipt = (
+		params: ReceiptParams,
+	): { receipt: TransactionObjectArgument; priceInfoObjectId?: string } => {
+		const config = this.suinsClient.config;
+		const baseAssetPurchase = params.coinConfig.feed === '';
+		const isSui = params.coinConfig === config.coins.SUI;
 		if (baseAssetPurchase) {
-			const payment = options.coinId
-				? tx.splitCoins(tx.object(options.coinId), [priceAfterDiscount])
-				: tx.add(this.zeroCoin(coinConfig.type));
-			const receipt = tx.add(this.handleBasePayment(paymentIntent, payment, coinConfig.type));
+			const payment = params.coinId
+				? this.transaction.splitCoins(this.transaction.object(params.coinId), [
+						params.priceAfterDiscount,
+					])
+				: zeroCoin(this.transaction, params.coinConfig.type);
+			const receipt = this.handleBasePayment(params.paymentIntent, payment, params.coinConfig.type);
 			return { receipt };
 		} else {
-			const priceInfoObjectId =
-				options.infoObjectId || (await this.getPriceInfoObject(coinConfig.feed))[0];
-			const price = tx.add(
-				this.calculatePrice(priceAfterDiscount, coinConfig.type, priceInfoObjectId),
+			const priceInfoObjectId = params.priceInfoObjectId;
+			if (!priceInfoObjectId)
+				throw new Error('Price info object ID is required for non-base asset purchases');
+			const price = this.calculatePrice(
+				params.priceAfterDiscount,
+				params.coinConfig.type,
+				priceInfoObjectId,
 			);
-			const payment =
-				coinConfig === config.coins.SUI
-					? tx.splitCoins(tx.gas, [price])
-					: options.coinId
-						? tx.splitCoins(tx.object(options.coinId), [price])
-						: (() => {
-								throw new Error('coinId is not defined');
-							})();
-			const receipt = tx.add(
-				this.handlePayment(
-					paymentIntent,
-					payment,
-					coinConfig.type,
-					priceInfoObjectId,
-					options.maxAmount,
-				),
+			if (!isSui && !params.coinId) throw new Error('coinId is required for non-SUI payments');
+			const payment = isSui
+				? this.transaction.splitCoins(this.transaction.gas, [price])
+				: this.transaction.splitCoins(this.transaction.object(params.coinId!), [price]);
+			const receipt = this.handlePayment(
+				// Change to object style input
+				// Adding removed, perform transaction as is
+				params.paymentIntent,
+				payment,
+				params.coinConfig.type,
+				priceInfoObjectId,
+				params.maxAmount,
 			);
-			return { receipt, priceInfoObjectId };
+			return { receipt };
 		}
 	};
 
 	/**
 	 * Applies a coupon to the payment intent.
 	 */
-	applyCoupon = (intent: TransactionObjectArgument, couponCode: string) => (tx: Transaction) => {
+	applyCoupon = (intent: TransactionObjectArgument, couponCode: string) => {
 		const config = this.suinsClient.config;
-		return tx.moveCall({
+		return this.transaction.moveCall({
 			target: `${config.coupons.packageId}::coupon_house::apply_coupon`,
-			arguments: [tx.object(config.suins), intent, tx.pure.string(couponCode), tx.object.clock()],
+			arguments: [
+				this.transaction.object(config.suins),
+				intent,
+				this.transaction.pure.string(couponCode),
+				this.transaction.object.clock(),
+			],
 		});
 	};
 
 	/**
 	 * Applies a discount to the payment intent.
 	 */
-	applyDiscount = async (
-		intent: TransactionObjectArgument,
-		discountNft: string,
-		kioskNftTxnArgs?: TransactionObjectArgument,
-	) => {
+	applyDiscount = (intent: TransactionObjectArgument, discountInfo: DiscountInfo) => {
 		const config = this.suinsClient.config;
-		const tx = this.transaction;
-		const discountNftType = await getObjectType(this.suinsClient.client, discountNft);
 
-		tx.moveCall({
+		this.transaction.moveCall({
 			target: `${config.discountsPackage.packageId}::discounts::apply_percentage_discount`,
 			arguments: [
-				tx.object(config.discountsPackage.discountHouseId),
+				this.transaction.object(config.discountsPackage.discountHouseId),
 				intent,
-				tx.object(config.suins),
-				kioskNftTxnArgs || tx.object(discountNft),
+				this.transaction.object(config.suins),
+				this.transaction.object(discountInfo.discountNft),
 			],
-			typeArguments: [discountNftType],
+			typeArguments: [discountInfo.type],
 		});
 	};
 

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SuiClient } from '@mysten/sui/client';
+import { Transaction } from '@mysten/sui/transactions';
 import { normalizeSuiNSName } from '@mysten/sui/utils';
 
 export function isSubName(name: string): boolean {
@@ -33,4 +34,11 @@ export const getObjectType = async (suiClient: SuiClient, objectId: string): Pro
 		return objectResponse.data.type;
 	}
 	throw new Error('Object data not found');
+};
+
+export const zeroCoin = (tx: Transaction, type: string) => {
+	return tx.moveCall({
+		target: '0x2::coin::zero',
+		typeArguments: [type],
+	});
 };

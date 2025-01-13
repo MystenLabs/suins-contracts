@@ -16,11 +16,46 @@ export type VersionedPackageId = {
 
 export type Config = Record<'mainnet' | 'testnet', PackageInfo>;
 
-export type DiscordConfig = {
-	packageId: string;
-	discordCap: string;
-	discordObjectId: string;
-	discordTableId: string;
+export type CoinConfigType = {
+	type: string;
+	metadataID: string;
+	feed: string;
+};
+
+export type DiscountInfo = {
+	discountNft: ObjectArgument;
+	type: string;
+};
+
+export type RegistrationParams = {
+	domain: string;
+	years: number;
+	coinConfig: CoinConfigType;
+	coinId?: string;
+	couponCode?: string;
+	discountInfo?: DiscountInfo;
+	maxAmount?: bigint;
+	priceInfoObjectId?: string | null;
+};
+
+export type RenewalParams = {
+	nft: ObjectArgument;
+	years: number;
+	coinConfig: CoinConfigType;
+	coinId?: string;
+	couponCode?: string;
+	discountInfo?: DiscountInfo;
+	maxAmount?: bigint;
+	priceInfoObjectId?: string | null;
+};
+
+export type ReceiptParams = {
+	paymentIntent: TransactionObjectArgument;
+	priceAfterDiscount: TransactionObjectArgument;
+	coinConfig: CoinConfigType;
+	coinId?: string;
+	maxAmount?: bigint;
+	priceInfoObjectId?: string | null;
 };
 
 export type PackageInfo = {
@@ -39,7 +74,6 @@ export type PackageInfo = {
 	};
 	subNamesPackageId: string;
 	tempSubdomainsProxyPackageId: string;
-	discord: DiscordConfig | undefined;
 	coupons: {
 		packageId: string;
 	};
@@ -56,11 +90,7 @@ export type PackageInfo = {
 		packageId: string;
 	};
 	coins: {
-		[key: string]: {
-			type: string;
-			metadataID: string;
-			feed: string;
-		};
+		[key: string]: CoinConfigType;
 	};
 };
 
