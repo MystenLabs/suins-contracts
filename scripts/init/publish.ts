@@ -4,7 +4,7 @@ import { existsSync, unlinkSync, writeFileSync } from 'fs';
 import path from 'path';
 import { Transaction } from '@mysten/sui/transactions';
 
-import { getClient, publishPackage, signAndExecute, upgradePackage } from '../utils/utils';
+import { getClient, publishPackage, signAndExecute } from '../utils/utils';
 import { Network, Packages } from './packages';
 import { PackageInfo } from './types';
 
