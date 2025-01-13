@@ -8,23 +8,17 @@ import { prepareMultisigTx } from '../utils/utils';
 import {
 	addConfig,
 	addCoreConfig,
-	addRegistry,
 	authorizeApp,
 	deauthorizeApp,
-	newLookupRegistry,
 	newPaymentsConfig,
-	newPriceConfigV1,
 	newPriceConfigV2,
 	newRenewalConfig,
 	removeConfig,
-	setupApp,
 } from './authorization';
 
 // Upgrade Suins
 const setupSuins = (txb: Transaction) => {
 	const config = mainPackage['mainnet'];
-
-	// TODO: Remove old core config?
 
 	// Add new core config
 	addConfig({
