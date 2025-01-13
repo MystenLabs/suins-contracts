@@ -20,6 +20,15 @@ import {
 const setupSuins = (txb: Transaction) => {
 	const config = mainPackage['mainnet'];
 
+	// Remove old core/price config
+	removeConfig({
+		txb,
+		adminCap: config.adminCap,
+		suins: config.suins,
+		type: `${config.packageIdV1}::config::Config`,
+		suinsPackageIdV1: config.packageIdV1,
+	});
+
 	// Add new core config
 	addConfig({
 		txb,
@@ -30,14 +39,6 @@ const setupSuins = (txb: Transaction) => {
 		type: `${config.packageId}::core_config::CoreConfig`,
 	});
 
-	// Remove old price config
-	removeConfig({
-		txb,
-		adminCap: config.adminCap,
-		suins: config.suins,
-		type: `${config.packageIdV1}::config::Config`,
-		suinsPackageIdV1: config.packageIdV1,
-	});
 	// Add new price configs
 	addConfig({
 		txb,
