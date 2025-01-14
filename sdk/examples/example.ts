@@ -117,6 +117,4 @@ import { SuinsTransaction } from '../src/suins-transaction';
 	// 	nft: '0x0',
 	// 	expirationTimestampMs: 1862511339394,
 	// });
-
-	await suinsTx.signAndExecute();
 })();
