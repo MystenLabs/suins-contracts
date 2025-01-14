@@ -18,15 +18,25 @@ const network = (process.env.NETWORK as Network) || 'mainnet';
 // Github actions are always on mainnet.
 const mainPackageUpgrade = async () => {
 	if (!gasObject) throw new Error('Gas Object not supplied for a mainnet transaction');
+	const gasObjectId = process.env.GAS_OBJECT;
 
-	// on GH Action, the sui binary is located on root. Referencing that as `/` doesn't work.
-	const suiFolder = process.env.ORIGIN === 'gh_action' ? '../../sui' : 'sui';
-	const upgradeCall = `${suiFolder} client upgrade --upgrade-capability ${mainPackage[network].upgradeCap} --gas-budget 3000000000 --gas ${gasObject} --serialize-unsigned-transaction`;
+	// Enabling the gas Object check only on mainnet, to allow testnet multisig tests.
+	if (!gasObjectId) throw new Error('No gas object supplied for a mainnet transaction');
 
-	// we execute this on `setup/package.json` so we go one level back, access packages folder -> suins -> upgrade.
-	// we go from scripts/(base)/packages/suins, we run the upgrade and then we save the transaction data
-	// to suins/..(packages)/..(base)/scripts/tx/tx-data.txt
-	execSync(`cd $PWD/../packages/suins && ${upgradeCall} > $PWD/../../scripts/tx/tx-data.txt`);
+	const upgradeCall = `sui client upgrade --upgrade-capability ${mainPackage[network].upgradeCap} --gas-budget 3000000000 --gas ${gasObjectId} --skip-dependency-verification --serialize-unsigned-transaction`;
+
+	try {
+		// Execute the command with the specified working directory and capture the output
+		execSync(`cd $PWD/../packages/suins && ${upgradeCall} > $PWD/../../scripts/tx/tx-data.txt`);
+
+		console.log('Upgrade transaction successfully created and saved to tx-data.txt');
+	} catch (error: any) {
+		console.error('Error during protocol upgrade:', error.message);
+		console.error('stderr:', error.stderr?.toString());
+		console.error('stdout:', error.stdout?.toString());
+		console.error('Command:', error.cmd);
+		process.exit(1); // Exit with an error code
+	}
 };
 
 // const upgradePackages = async () => {
