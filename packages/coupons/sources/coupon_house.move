@@ -37,7 +37,7 @@ const EInvalidVersion: u64 = 2;
 const ECouponNotExists: u64 = 3;
 
 /// Our versioning of the coupons package.
-const VERSION: u8 = 2;
+const VERSION: u8 = 1;
 const COUPON_DISCOUNT_KEY: vector<u8> = b"coupon";
 
 // Authorization for the Coupons on SuiNS, to be able to register names on the
