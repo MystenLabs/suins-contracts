@@ -1,13 +1,6 @@
 [package]
 name = "subdomains"
-version = "0.0.1"
 edition = "2024.beta"
-
-#mainnet
-published-at="0xe177697e191327901637f8d2c5ffbbde8b1aaac27ec1024c4b62d1ebd1cd7430"
-
-#testnet
-#published-at="0x3c272bc45f9157b7818ece4f7411bdfa8af46303b071aca4e18c03119c9ff636"
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/mainnet", override=true }
@@ -15,9 +8,4 @@ suins = { local = "../suins" }
 denylist = { local = "../denylist" }
 
 [addresses]
-
-#mainnet 
-subdomains="0xe177697e191327901637f8d2c5ffbbde8b1aaac27ec1024c4b62d1ebd1cd7430"
-
-#testnet
-#subdomains = "0x3c272bc45f9157b7818ece4f7411bdfa8af46303b071aca4e18c03119c9ff636"
+subdomains="0x0"

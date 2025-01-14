@@ -14,16 +14,75 @@ export type VersionedPackageId = {
 	[key: string]: string;
 };
 
-// A list of constants
-export type Constants = {
-	suinsPackageId?: VersionedPackageId;
-	suinsObjectId?: string;
+export type Config = Record<'mainnet' | 'testnet', PackageInfo>;
+
+export type CoinConfigType = {
+	type: string;
+	metadataId: string;
+	feed: string;
+};
+
+export type DiscountInfo = {
+	discountNft: ObjectArgument;
+	type: string;
+};
+
+export type BaseParams = {
+	years: number;
+	coinConfig: CoinConfigType;
+	coinId?: string;
+	couponCode?: string;
+	discountInfo?: DiscountInfo;
+	maxAmount?: bigint;
+	priceInfoObjectId?: string | null;
+};
+
+export type RegistrationParams = BaseParams & {
+	domain: string;
+};
+
+export type RenewalParams = BaseParams & {
+	nft: ObjectArgument;
+};
+
+export type ReceiptParams = {
+	paymentIntent: TransactionObjectArgument;
+	priceAfterDiscount: TransactionObjectArgument;
+	coinConfig: CoinConfigType;
+	coinId?: string;
+	maxAmount?: bigint;
+	priceInfoObjectId?: string | null;
+};
+
+export type PackageInfo = {
+	packageId: string;
+	packageIdV1: string;
+	packageIdPricing: string;
+	suins: string;
+	displayObject?: string;
+	discountsPackage: {
+		packageId: string;
+		discountHouseId: string;
+	};
+	subNamesPackageId: string;
+	tempSubdomainsProxyPackageId: string;
+	coupons: {
+		packageId: string;
+	};
+	payments: {
+		packageId: string;
+	};
 	registryTableId?: string;
-	utilsPackageId?: string;
-	registrationPackageId?: string;
-	renewalPackageId?: string;
-	subNamesPackageId?: string;
-	tempSubNamesProxyPackageId?: string;
+	pyth: {
+		pythStateId: string;
+		wormholeStateId: string;
+	};
+	utils?: {
+		packageId: string;
+	};
+	coins: {
+		[key: string]: CoinConfigType;
+	};
 };
 
 // The config for the SuinsClient.
@@ -37,17 +96,18 @@ export type SuinsClientConfig = {
 	 * We can pass in custom PackageIds if we want this to
 	 * be functional on localnet, devnet, or any other deployment.
 	 */
-	packageIds?: Constants;
+	config?: Config;
 };
 
 /**
  * The price list for SuiNS names.
  */
-export type SuinsPriceList = {
-	threeLetters: number;
-	fourLetters: number;
-	fivePlusLetters: number;
-};
+export type SuinsPriceList = Map<[number, number], number>;
+
+/**
+ * The coin type and discount for SuiNS names.
+ */
+export type CoinTypeDiscount = Map<string, number>;
 
 /**
  * A NameRecord entry of SuiNS Names.
@@ -60,4 +120,5 @@ export type NameRecord = {
 	data: Record<string, string>;
 	avatar?: string;
 	contentHash?: string;
+	walrusSiteId?: string;
 };

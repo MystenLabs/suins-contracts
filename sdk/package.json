@@ -44,17 +44,18 @@
 		"node": ">=16"
 	},
 	"dependencies": {
-		"@mysten/sui": "^1.12.0"
+		"@mysten/sui": "1.18.1",
+		"@pythnetwork/pyth-sui-js": "2.1.0"
 	},
 	"devDependencies": {
-		"@types/tmp": "^0.2.3",
+		"@types/tmp": "^0.2.6",
 		"cross-env": "^7.0.3",
-		"tmp": "^0.2.1",
-		"ts-retry-promise": "^0.7.0",
-		"typescript": "^5.4.5",
-		"vite": "^4.4.4",
+		"tmp": "^0.2.3",
+		"ts-retry-promise": "^0.7.1",
+		"typescript": "^5.7.3",
+		"vite": "^4.5.5",
 		"vitest": "^0.33.0",
-		"wait-on": "^7.0.1"
+		"wait-on": "^7.2.0"
 	},
 	"repository": {
 		"type": "git",

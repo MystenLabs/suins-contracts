@@ -3,6 +3,7 @@
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
 import { normalizeSuiAddress } from '@mysten/sui/utils';
+import { expect } from 'vitest';
 
 import { ALLOWED_METADATA, SuinsClient, SuinsTransaction } from '../src';
 
@@ -15,21 +16,51 @@ export const e2eLiveNetworkDryRunFlow = async (network: 'mainnet' | 'testnet') =
 		network,
 	});
 
+	// Getting price lists accurately
+	const priceList = await suinsClient.getPriceList();
+	const renewalPriceList = await suinsClient.getRenewalPriceList();
+	const coinDiscount = await suinsClient.getCoinTypeDiscount();
+
+	// Expected lists
+	const expectedPriceList = new Map([
+		[[3, 3], 500000000],
+		[[4, 4], 100000000],
+		[[5, 63], 10000000],
+	]);
+
+	const expectedRenewalPriceList = new Map([
+		[[3, 3], 150000000],
+		[[4, 4], 50000000],
+		[[5, 63], 5000000],
+	]);
+
+	const expectedCoinDiscount = new Map([
+		[suinsClient.config.coins.USDC.type.slice(2), 0],
+		[suinsClient.config.coins.SUI.type.slice(2), 0],
+		[suinsClient.config.coins.NS.type.slice(2), 25],
+	]);
+	expect(priceList).toEqual(expectedPriceList);
+	expect(renewalPriceList).toEqual(expectedRenewalPriceList);
+	expect(coinDiscount).toEqual(expectedCoinDiscount);
+
 	const tx = new Transaction();
+	const coinConfig = suinsClient.config.coins.SUI; // Specify the coin type used for the transaction
+	const priceInfoObjectId =
+		coinConfig !== suinsClient.config.coins.USDC
+			? (await suinsClient.getPriceInfoObject(tx, coinConfig.feed))[0]
+			: null;
+
 	const suinsTx = new SuinsTransaction(suinsClient, tx);
 
 	const uniqueName =
 		(Date.now().toString(36) + Math.random().toString(36).substring(2)).repeat(2) + '.sui';
 
-	const priceList = await suinsClient.getPriceList();
-	// const _renewalPriceList = await suinsClient.getRenewalPriceList();
-	const years = 1;
-
-	// register test.sui for a year.
+	// register test.sui for 2 years.
 	const nft = suinsTx.register({
-		name: uniqueName,
-		years,
-		price: suinsClient.calculatePrice({ name: uniqueName, years, priceList }),
+		domain: uniqueName,
+		years: 2,
+		coinConfig: suinsClient.config.coins.SUI,
+		priceInfoObjectId,
 	});
 	// Sets the target address of the NFT.
 	suinsTx.setTargetAddress({
@@ -51,6 +82,12 @@ export const e2eLiveNetworkDryRunFlow = async (network: 'mainnet' | 'testnet') =
 		nft,
 		key: ALLOWED_METADATA.contentHash,
 		value: '0x1',
+	});
+
+	suinsTx.setUserData({
+		nft,
+		key: ALLOWED_METADATA.walrusSiteId,
+		value: '0x2',
 	});
 
 	const subNft = suinsTx.createSubName({

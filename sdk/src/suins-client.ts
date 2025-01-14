@@ -1,82 +1,122 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-import type { SuiClient } from '@mysten/sui/client';
+import { SuiClient } from '@mysten/sui/client';
+import { Transaction } from '@mysten/sui/transactions';
 import { isValidSuiNSName, normalizeSuiNSName } from '@mysten/sui/utils';
+import { SuiPriceServiceConnection, SuiPythClient } from '@pythnetwork/pyth-sui-js';
 
 import {
+	getCoinDiscountConfigType,
 	getConfigType,
 	getDomainType,
 	getPricelistConfigType,
 	getRenewalPricelistConfigType,
-	MAINNET_CONFIG,
-	TESTNET_CONFIG,
+	mainPackage,
 } from './constants.js';
-import { isSubName, parsePriceListFromConfig, validateYears } from './helpers.js';
-import type { Constants, NameRecord, SuinsClientConfig, SuinsPriceList } from './types.js';
+import { isSubName, validateYears } from './helpers.js';
+import type {
+	CoinTypeDiscount,
+	NameRecord,
+	PackageInfo,
+	SuinsClientConfig,
+	SuinsPriceList,
+} from './types.js';
+import { Network } from './types.js';
 
 /// The SuinsClient is the main entry point for the Suins SDK.
 /// It allows you to interact with SuiNS.
 export class SuinsClient {
-	#client: SuiClient;
-	constants: Constants = {};
+	client: SuiClient;
+	network: Network;
+	config: PackageInfo;
 
 	constructor(config: SuinsClientConfig) {
-		this.#client = config.client;
-		const network = config.network || 'mainnet';
+		this.client = config.client;
+		this.network = config.network || 'mainnet';
 
-		if (network === 'mainnet') {
-			this.constants = MAINNET_CONFIG;
-		}
-
-		if (network === 'testnet') {
-			this.constants = TESTNET_CONFIG;
-		}
-
-		if (config.packageIds) {
-			this.constants = { ...(this.constants || {}), ...config.packageIds };
+		if (this.network === 'mainnet') {
+			this.config = mainPackage.mainnet;
+		} else if (this.network === 'testnet') {
+			this.config = mainPackage.testnet;
+		} else {
+			throw new Error('Invalid network');
 		}
 	}
 
 	/**
-	 * Returns the price list for SuiNS names.
+	 * Returns the price list for SuiNS names in the base asset.
 	 */
-	async getPriceList(): Promise<SuinsPriceList> {
-		if (!this.constants.suinsObjectId) throw new Error('Suins object ID is not set');
-		if (!this.constants.suinsPackageId) throw new Error('Price list config not found');
 
-		const priceList = await this.#client.getDynamicFieldObject({
-			parentId: this.constants.suinsObjectId,
+	// Format:
+	// {
+	// 	[ 3, 3 ] => 500000000,
+	// 	[ 4, 4 ] => 100000000,
+	// 	[ 5, 63 ] => 20000000
+	// }
+	async getPriceList(): Promise<SuinsPriceList> {
+		if (!this.config.suins) throw new Error('Suins object ID is not set');
+		if (!this.config.packageId) throw new Error('Price list config not found');
+
+		const priceList = await this.client.getDynamicFieldObject({
+			parentId: this.config.suins,
 			name: {
 				type: getConfigType(
-					this.constants.suinsPackageId.v1,
-					getPricelistConfigType(this.constants.suinsPackageId.v1),
+					this.config.packageIdV1,
+					getPricelistConfigType(this.config.packageIdPricing),
 				),
 				value: { dummy_field: false },
 			},
 		});
 
+		// Ensure the content exists and is a MoveStruct with expected fields
 		if (
-			priceList?.data?.content?.dataType !== 'moveObject' ||
-			!('value' in priceList.data.content.fields)
-		)
-			throw new Error('Price list not found');
+			!priceList?.data?.content ||
+			priceList.data.content.dataType !== 'moveObject' ||
+			!('fields' in priceList.data.content)
+		) {
+			throw new Error('Price list not found or content is invalid');
+		}
 
-		const contents = priceList.data.content.fields.value as Record<string, any>;
+		// Safely extract fields
+		const fields = priceList.data.content.fields as Record<string, any>;
+		if (!fields.value || !fields.value.fields || !fields.value.fields.pricing) {
+			throw new Error('Pricing fields not found in the price list');
+		}
 
-		return parsePriceListFromConfig(contents);
+		const contentArray = fields.value.fields.pricing.fields.contents;
+		const priceMap = new Map();
+
+		for (const entry of contentArray) {
+			const keyFields = entry.fields.key.fields;
+			const key = [Number(keyFields.pos0), Number(keyFields.pos1)]; // Convert keys to numbers
+			const value = Number(entry.fields.value); // Convert value to a number
+
+			priceMap.set(key, value);
+		}
+
+		return priceMap;
 	}
 
-	async getRenewalPriceList(): Promise<SuinsPriceList> {
-		if (!this.constants.suinsObjectId) throw new Error('Suins object ID is not set');
-		if (!this.constants.suinsPackageId) throw new Error('Price list config not found');
-		if (!this.constants.renewalPackageId) throw new Error('Renewal package ID is not set');
+	/**
+	 * Returns the renewal price list for SuiNS names in the base asset.
+	 */
 
-		const priceList = await this.#client.getDynamicFieldObject({
-			parentId: this.constants.suinsObjectId,
+	// Format:
+	// {
+	// 	[ 3, 3 ] => 500000000,
+	// 	[ 4, 4 ] => 100000000,
+	// 	[ 5, 63 ] => 20000000
+	// }
+	async getRenewalPriceList(): Promise<SuinsPriceList> {
+		if (!this.config.suins) throw new Error('Suins object ID is not set');
+		if (!this.config.packageId) throw new Error('Price list config not found');
+
+		const priceList = await this.client.getDynamicFieldObject({
+			parentId: this.config.suins,
 			name: {
 				type: getConfigType(
-					this.constants.suinsPackageId.v1,
-					getRenewalPricelistConfigType(this.constants.renewalPackageId),
+					this.config.packageIdV1,
+					getRenewalPricelistConfigType(this.config.packageIdPricing),
 				),
 				value: { dummy_field: false },
 			},
@@ -87,27 +127,114 @@ export class SuinsClient {
 			!priceList.data ||
 			!priceList.data.content ||
 			priceList.data.content.dataType !== 'moveObject' ||
-			!('value' in priceList.data.content.fields)
-		)
-			throw new Error('Price list not found');
+			!('fields' in priceList.data.content)
+		) {
+			throw new Error('Price list not found or content structure is invalid');
+		}
 
-		const contents = (priceList.data.content.fields.value as Record<string, any>)?.fields?.config;
+		// Safely extract fields
+		const fields = priceList.data.content.fields as Record<string, any>;
+		if (
+			!fields.value ||
+			!fields.value.fields ||
+			!fields.value.fields.config ||
+			!fields.value.fields.config.fields.pricing ||
+			!fields.value.fields.config.fields.pricing.fields.contents
+		) {
+			throw new Error('Pricing fields not found in the price list');
+		}
 
-		return parsePriceListFromConfig(contents);
+		const contentArray = fields.value.fields.config.fields.pricing.fields.contents;
+		const priceMap = new Map();
+
+		for (const entry of contentArray) {
+			const keyFields = entry.fields.key.fields;
+			const key = [Number(keyFields.pos0), Number(keyFields.pos1)]; // Convert keys to numbers
+			const value = Number(entry.fields.value); // Convert value to a number
+
+			priceMap.set(key, value);
+		}
+
+		return priceMap;
+	}
+
+	/**
+	 * Returns the coin discount list for SuiNS names.
+	 */
+
+	// Format:
+	// {
+	// 	'b48aac3f53bab328e1eb4c5b3c34f55e760f2fb3f2305ee1a474878d80f650f0::TESTUSDC::TESTUSDC' => 0,
+	// 	'0000000000000000000000000000000000000000000000000000000000000002::sui::SUI' => 0,
+	// 	'b48aac3f53bab328e1eb4c5b3c34f55e760f2fb3f2305ee1a474878d80f650f0::TESTNS::TESTNS' => 25
+	// }
+	async getCoinTypeDiscount(): Promise<CoinTypeDiscount> {
+		if (!this.config.suins) throw new Error('Suins object ID is not set');
+		if (!this.config.packageId) throw new Error('Price list config not found');
+
+		const dfValue = await this.client.getDynamicFieldObject({
+			parentId: this.config.suins,
+			name: {
+				type: getConfigType(
+					this.config.packageIdV1,
+					getCoinDiscountConfigType(this.config.payments.packageId),
+				),
+				value: { dummy_field: false },
+			},
+		});
+
+		if (
+			!dfValue ||
+			!dfValue.data ||
+			!dfValue.data.content ||
+			dfValue.data.content.dataType !== 'moveObject' ||
+			!('fields' in dfValue.data.content)
+		) {
+			throw new Error('dfValue not found or content structure is invalid');
+		}
+
+		// Safely extract fields
+		const fields = dfValue.data.content.fields as Record<string, any>;
+		if (
+			!fields.value ||
+			!fields.value.fields ||
+			!fields.value.fields.base_currency ||
+			!fields.value.fields.base_currency.fields ||
+			!fields.value.fields.base_currency.fields.name ||
+			!fields.value.fields.currencies ||
+			!fields.value.fields.currencies.fields ||
+			!fields.value.fields.currencies.fields.contents
+		) {
+			throw new Error('Required fields are missing in dfValue');
+		}
+
+		// Safely extract content
+		const content = fields.value.fields;
+		const currencyDiscounts = content.currencies.fields.contents;
+		const discountMap = new Map();
+
+		for (const entry of currencyDiscounts) {
+			const key = entry.fields.key.fields.name;
+			const value = Number(entry.fields.value.fields.discount_percentage);
+
+			discountMap.set(key, value);
+		}
+
+		return discountMap;
 	}
 
 	async getNameRecord(name: string): Promise<NameRecord | null> {
 		if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
-		if (!this.constants.suinsPackageId) throw new Error('Suins package ID is not set');
-		if (!this.constants.registryTableId) throw new Error('Registry table ID is not set');
+		if (!this.config.registryTableId) throw new Error('Suins package ID is not set');
 
-		const nameRecord = await this.#client.getDynamicFieldObject({
-			parentId: this.constants.registryTableId,
+		const nameRecord = await this.client.getDynamicFieldObject({
+			parentId: this.config.registryTableId,
 			name: {
-				type: getDomainType(this.constants.suinsPackageId.v1),
+				type: getDomainType(this.config.packageIdV1),
 				value: normalizeSuiNSName(name, 'dot').split('.').reverse(),
 			},
 		});
+
 		const fields = nameRecord.data?.content;
 
 		// in case the name record is not found, return null
@@ -131,6 +258,7 @@ export class SuinsClient {
 			data,
 			avatar: data.avatar,
 			contentHash: data.content_hash,
+			walrusSiteId: data.walrus_site_id,
 		};
 	}
 
@@ -144,22 +272,72 @@ export class SuinsClient {
 	 * 2. if the name is not a valid SuiNS name
 	 * 3. if the years are not between 1 and 5
 	 */
-	calculatePrice({
+	async calculatePrice({
 		name,
 		years,
-		priceList,
+		isRegistration = true,
 	}: {
 		name: string;
 		years: number;
-		priceList: SuinsPriceList;
+		isRegistration: boolean;
 	}) {
-		if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
+		if (!isValidSuiNSName(name)) {
+			throw new Error('Invalid SuiNS name');
+		}
 		validateYears(years);
-		if (isSubName(name)) throw new Error('Subdomains do not have a registration fee');
+
+		if (isSubName(name)) {
+			throw new Error('Subdomains do not have a registration fee');
+		}
 
 		const length = normalizeSuiNSName(name, 'dot').split('.')[0].length;
-		if (length === 3) return years * priceList.threeLetters;
-		if (length === 4) return years * priceList.fourLetters;
-		return years * priceList.fivePlusLetters;
+		const priceList = await this.getPriceList();
+		const renewalPriceList = await this.getRenewalPriceList();
+		let yearsRemain = years;
+		let price = 0;
+
+		if (isRegistration) {
+			for (const [[minLength, maxLength], pricePerYear] of priceList.entries()) {
+				if (length >= minLength && length <= maxLength) {
+					price += pricePerYear; // Registration is always 1 year
+					yearsRemain -= 1;
+					break;
+				}
+			}
+		}
+
+		for (const [[minLength, maxLength], pricePerYear] of renewalPriceList.entries()) {
+			if (length >= minLength && length <= maxLength) {
+				price += yearsRemain * pricePerYear;
+				break;
+			}
+		}
+
+		return price;
+	}
+
+	async getPriceInfoObject(tx: Transaction, feed: string) {
+		// Initialize connection to the Sui Price Service
+		const endpoint =
+			this.network === 'testnet'
+				? 'https://hermes-beta.pyth.network'
+				: 'https://hermes.pyth.network';
+		const connection = new SuiPriceServiceConnection(endpoint);
+
+		// List of price feed IDs
+		const priceIDs = [
+			feed, // ASSET/USD price ID
+		];
+
+		// Fetch price feed update data
+		const priceUpdateData = await connection.getPriceFeedsUpdateData(priceIDs);
+
+		// Initialize Sui Client and Pyth Client
+		const wormholeStateId = this.config.pyth.wormholeStateId;
+		const pythStateId = this.config.pyth.pythStateId;
+
+		const client = new SuiPythClient(this.client, pythStateId, wormholeStateId);
+
+		return await client.updatePriceFeeds(tx, priceUpdateData, priceIDs); // returns priceInfoObjectIds
 	}
 }

@@ -6,7 +6,7 @@ import { Transaction } from '@mysten/sui/transactions';
 import { MIST_PER_SUI } from '@mysten/sui/utils';
 
 import { getClient, signAndExecute } from '../utils/utils';
-import { authorizeApp } from './authorization';
+import { authorizeApp, deauthorizeApp } from './authorization';
 import { Network, Packages } from './packages';
 import { queryRegistryTable } from './queries';
 import { PackageInfo } from './types';
@@ -49,26 +49,19 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 		packageInfo.SuiNS.suins,
 		packageInfo.SuiNS.publisher,
 	);
-	packages.Renewal.setupFunction({
-		txb,
-		adminCap: packageInfo.SuiNS.adminCap,
-		suins: packageInfo.SuiNS.suins,
-		packageId: packageInfo.Renewal.packageId,
-		suinsPackageIdV1: packageInfo.SuiNS.packageId,
-		priceList: {
-			three: 2 * Number(MIST_PER_SUI),
-			four: 1 * Number(MIST_PER_SUI),
-			fivePlus: 0.2 * Number(MIST_PER_SUI),
-		},
-	});
-
 	packages.Coupons.setupFunction({
 		txb,
 		adminCap: packageInfo.SuiNS.adminCap,
 		suins: packageInfo.SuiNS.suins,
 		packageId: packageInfo.Coupons.packageId,
 	});
-
+	packages.Payments.setupFunction({
+		txb,
+		packageId: packageInfo.Payments.packageId,
+		adminCap: packageInfo.SuiNS.adminCap,
+		suins: packageInfo.SuiNS.suins,
+		suinsPackageIdV1: packageInfo.SuiNS.packageId,
+	});
 	let retries = 0;
 
 	try {

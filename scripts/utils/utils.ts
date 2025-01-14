@@ -10,7 +10,7 @@ import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { Secp256k1Keypair } from '@mysten/sui/keypairs/secp256k1';
 import { Secp256r1Keypair } from '@mysten/sui/keypairs/secp256r1';
 import { Transaction, UpgradePolicy } from '@mysten/sui/transactions';
-import { fromBase64, toB64, toBase64 } from '@mysten/sui/utils';
+import { fromBase64, toBase64 } from '@mysten/sui/utils';
 
 import { Network } from '../init/packages';
 
@@ -138,11 +138,7 @@ export const signAndExecute = async (txb: Transaction, network: Network) => {
 
 /// Builds a transaction (unsigned) and saves it on `setup/tx/tx-data.txt` (on production)
 /// or `setup/src/tx-data.local.txt` on mainnet.
-export const prepareMultisigTx = async (
-	tx: Transaction,
-	network: Network,
-	address?: string,
-) => {
+export const prepareMultisigTx = async (tx: Transaction, network: Network, address?: string) => {
 	const adminAddress = address ?? getActiveAddress();
 	const client = getClient(network);
 	const gasObjectId = process.env.GAS_OBJECT;
@@ -229,4 +225,26 @@ export const getAllObjectsByType = async (type: string, owner: string, client: S
 	}
 
 	return objects;
+};
+
+export const getCoinMetadataId = async (type: string) => {
+	const suiClient = new SuiClient({
+		url: getFullnodeUrl('mainnet'),
+	});
+	const metadata = await suiClient.getCoinMetadata({ coinType: type });
+	if (!metadata || !metadata.id) {
+		throw new Error('Coin metadata or ID not found.');
+	}
+	return metadata.id;
+};
+
+export const getObjectType = async (network: Network, objectId: string): Promise<string> => {
+	const suiClient = new SuiClient({
+		url: getFullnodeUrl(network),
+	});
+	const objectResponse = await suiClient.getObject({ id: objectId, options: { showType: true } });
+	if (objectResponse && objectResponse.data && objectResponse.data.type) {
+		return objectResponse.data.type;
+	}
+	throw new Error('Object data not found');
 };
