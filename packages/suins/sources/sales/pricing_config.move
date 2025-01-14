@@ -1,3 +1,6 @@
+// Copyright (c) Mysten Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 module suins::pricing_config;
 
 use sui::vec_map::{Self, VecMap};
