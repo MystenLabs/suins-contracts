@@ -68,7 +68,6 @@ export const mainPackage: Config = {
 			packageId: '0x6a6ea140e095ddd82f7c745905054b3203129dd04a09d0375416c31161932d2d',
 			discountHouseId: '0x7fdd883c0b7427f18cdb498c4c87a4a79d6bec4783cb3f21aa3816bbc64ce8ef',
 		},
-		// directSetupPackageId: '0xdac22652eb400beb1f5e2126459cae8eedc116b73b8ad60b71e3e8d7fdb317e2',
 		subNamesPackageId: '0xe177697e191327901637f8d2c5ffbbde8b1aaac27ec1024c4b62d1ebd1cd7430',
 		tempSubdomainsProxyPackageId:
 			'0xdacfd7c1176a68137b38a875d76a2f65d277596d2c632881931d926b16de2698',
