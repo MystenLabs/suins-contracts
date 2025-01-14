@@ -14,6 +14,7 @@ use suins::suins_registration::SuinsRegistration;
 
 const AVATAR: vector<u8> = b"avatar";
 const CONTENT_HASH: vector<u8> = b"content_hash";
+const WALRUS_SITE_ID: vector<u8> = b"walrus_site_id";
 
 use fun registry_mut as SuiNS.registry_mut;
 
@@ -73,7 +74,7 @@ public fun set_user_data(
 
     registry.assert_nft_is_authorized(nft, clock);
     let key_bytes = *key.as_bytes();
-    assert!(key_bytes == AVATAR || key_bytes == CONTENT_HASH, EUnsupportedKey);
+    assert!(key_bytes == AVATAR || key_bytes == CONTENT_HASH || key_bytes == WALRUS_SITE_ID, EUnsupportedKey);
 
     if (data.contains(&key)) {
         data.remove(&key);
