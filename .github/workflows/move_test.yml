@@ -22,14 +22,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install Homebrew
-        run: |
-          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
-
-      - name: Install Sui using Homebrew
-        run: brew install sui
-
       - name: Add swap memory
         run: |
           sudo fallocate -l 4G /swapfile
@@ -37,9 +29,21 @@ jobs:
           sudo mkswap /swapfile
           sudo swapon /swapfile
 
+      - name: Install Homebrew
+        run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
+
+      - name: Install Sui CLI
+        run: |
+          brew install sui@1.40.2
+
+      - name: Clear cached dependencies
+        run: rm -rf ~/.move
+
       - name: Run move tests in all package subdirectories, with exclusions
         run: |
-          included_dirs=(suins) # Define excluded directories as an array
+          included_dirs=(suins) # Define included directories as an array
           for dir in packages/*; do
             dir_name=$(basename "$dir")
             if [[ " ${included_dirs[*]} " =~ (^|[[:space:]])${dir_name}($|[[:space:]]) ]] && [ -d "$dir" ]; then
