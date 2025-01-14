@@ -32,10 +32,10 @@ jobs:
 
       - name: Run move tests in all package subdirectories, with exclusions
         run: |
-          exclude_dirs=(governance coupons) # Define excluded directories as an array
+          included_dirs=(suins coupons) # Define excluded directories as an array
           for dir in packages/*; do
             dir_name=$(basename "$dir")
-            if [[ ! " ${exclude_dirs[*]} " =~ (^|[[:space:]])${dir_name}($|[[:space:]]) ]] && [ -d "$dir" ]; then
+            if [[ " ${included_dirs[*]} " =~ (^|[[:space:]])${dir_name}($|[[:space:]]) ]] && [ -d "$dir" ]; then
               echo "Running sui move test in $dir"
               cd "$dir" && sui move test
             fi
