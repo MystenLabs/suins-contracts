@@ -143,6 +143,32 @@ const deauthorize = (txb: Transaction) => {
 		suinsPackageIdV1: config.packageIdV1,
 	});
 
+	// Remoe old direct setup configs
+	removeConfig({
+		txb,
+		adminCap: config.adminCap,
+		suins: config.suins,
+		type: `0xf7854c81cf500d60a4437f4599f7ff3b89abd13f645ae08f62345c7a25317bee::direct_setup::DirectSetup`,
+		suinsPackageIdV1: config.packageIdV1,
+	});
+
+	removeConfig({
+		txb,
+		adminCap: config.adminCap,
+		suins: config.suins,
+		type: `0xdac22652eb400beb1f5e2126459cae8eedc116b73b8ad60b71e3e8d7fdb317e2::direct_setup::DirectSetup`,
+		suinsPackageIdV1: config.packageIdV1,
+	});
+
+	// Remove the old discount house app
+	removeConfig({
+		txb,
+		adminCap: config.adminCap,
+		suins: config.suins,
+		type: `0x6a6ea140e095ddd82f7c745905054b3203129dd04a09d0375416c31161932d2d::house::DiscountHouseApp`,
+		suinsPackageIdV1: config.packageIdV1,
+	});
+
 	// Deauthorize old controller, authorize new controller
 	deauthorizeApp({
 		txb,
