@@ -19,6 +19,7 @@ const mainPackageUpgrade = async () => {
 
 	const upgradeCall = `sui client upgrade --upgrade-capability ${mainPackage[network].upgradeCap} --gas-budget 2000000000 --gas ${gasObjectId} --skip-dependency-verification --serialize-unsigned-transaction`;
 
+	console.log(upgradeCall);
 	try {
 		// Execute the command with the specified working directory and capture the output
 		execSync(`cd $PWD/../packages/suins && ${upgradeCall} > $PWD/../../scripts/tx/tx-data.txt`);
