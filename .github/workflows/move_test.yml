@@ -30,6 +30,13 @@ jobs:
       - name: Install Sui using Homebrew
         run: brew install sui
 
+      - name: Add swap memory
+        run: |
+          sudo fallocate -l 4G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+
       - name: Run move tests in all package subdirectories, with exclusions
         run: |
           included_dirs=(suins) # Define excluded directories as an array
