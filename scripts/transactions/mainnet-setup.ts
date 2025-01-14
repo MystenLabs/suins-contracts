@@ -4,7 +4,6 @@
 import { Transaction } from '@mysten/sui/transactions';
 
 import { mainPackage, MAX_AGE, MIST_PER_USDC } from '../config/constants';
-import { prepareMultisigTx } from '../utils/utils';
 import {
 	addConfig,
 	addCoreConfig,
@@ -14,7 +13,8 @@ import {
 	newPriceConfigV2,
 	newRenewalConfig,
 	removeConfig,
-} from './authorization';
+} from '../init/authorization';
+import { prepareMultisigTx } from '../utils/utils';
 
 // Upgrade Suins
 const setupSuins = (txb: Transaction) => {
