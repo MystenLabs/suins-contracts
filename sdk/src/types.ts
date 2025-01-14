@@ -27,8 +27,7 @@ export type DiscountInfo = {
 	type: string;
 };
 
-export type RegistrationParams = {
-	domain: string;
+export type BaseParams = {
 	years: number;
 	coinConfig: CoinConfigType;
 	coinId?: string;
@@ -38,15 +37,12 @@ export type RegistrationParams = {
 	priceInfoObjectId?: string | null;
 };
 
-export type RenewalParams = {
+export type RegistrationParams = BaseParams & {
+	domain: string;
+};
+
+export type RenewalParams = BaseParams & {
 	nft: ObjectArgument;
-	years: number;
-	coinConfig: CoinConfigType;
-	coinId?: string;
-	couponCode?: string;
-	discountInfo?: DiscountInfo;
-	maxAmount?: bigint;
-	priceInfoObjectId?: string | null;
 };
 
 export type ReceiptParams = {
@@ -62,10 +58,6 @@ export type PackageInfo = {
 	packageId: string;
 	packageIdV1: string;
 	packageIdPricing: string;
-	upgradeCap?: string;
-	publisherId: string;
-	adminAddress: string;
-	adminCap: string;
 	suins: string;
 	displayObject?: string;
 	discountsPackage: {
@@ -77,7 +69,6 @@ export type PackageInfo = {
 	coupons: {
 		packageId: string;
 	};
-	treasuryAddress?: string;
 	payments: {
 		packageId: string;
 	};
