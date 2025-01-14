@@ -11,20 +11,20 @@ const network = (process.env.NETWORK as Network) || 'mainnet';
 // Active env of sui has to be the same with the env we're publishing to.
 // if upgradeCap & gasObject is on mainnet, it has to be on mainnet.
 // Github actions are always on mainnet.
-const mainPackageUpgrade = async () => {
+const couponsUpgrade = async () => {
 	const gasObjectId = process.env.GAS_OBJECT;
 
 	// Enabling the gas Object check only on mainnet, to allow testnet multisig tests.
 	if (!gasObjectId) throw new Error('No gas object supplied for a mainnet transaction');
 
 	const currentDir = process.cwd();
-	const suinsDir = `${currentDir}/../packages/suins`;
+	const couponsDir = `${currentDir}/../packages/coupons`;
 	const txFilePath = `${currentDir}/tx/tx-data.txt`;
-	const upgradeCall = `sui client upgrade --upgrade-capability ${mainPackage[network].upgradeCap} --gas-budget 2000000000 --gas ${gasObjectId} --skip-dependency-verification --serialize-unsigned-transaction`;
+	const upgradeCall = `sui client upgrade --upgrade-capability ${mainPackage[network].coupons.upgradeCap} --gas-budget 2000000000 --gas ${gasObjectId} --skip-dependency-verification --serialize-unsigned-transaction`;
 
 	try {
 		// Execute the command with the specified working directory and capture the output
-		const output = execSync(upgradeCall, { cwd: suinsDir, stdio: 'pipe' }).toString();
+		const output = execSync(upgradeCall, { cwd: couponsDir, stdio: 'pipe' }).toString();
 
 		writeFileSync(txFilePath, output);
 		console.log('Upgrade transaction successfully created and saved to tx-data.txt');
@@ -37,4 +37,4 @@ const mainPackageUpgrade = async () => {
 	}
 };
 
-mainPackageUpgrade();
+couponsUpgrade();
