@@ -18,6 +18,7 @@ export type PackageInfo = {
 	packageIdV1: string;
 	packageIdPricing: string;
 	upgradeCap?: string;
+	upgradeCapOwner?: string;
 	publisherId: string;
 	adminAddress: string;
 	adminCap: string;
@@ -32,6 +33,8 @@ export type PackageInfo = {
 	discord: DiscordConfig | undefined;
 	coupons: {
 		packageId: string;
+		upgradeCap?: string;
+		upgradeCapOwner?: string;
 	};
 	treasuryAddress?: string;
 	payments: {
@@ -57,6 +60,7 @@ export const mainPackage: Config = {
 		packageIdV1: '0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0',
 		packageIdPricing: '',
 		upgradeCap: '0x9cda28244a0d0de294d2b271e772a9c33eb47d316c59913d7369b545b4af098c',
+		upgradeCapOwner: '0x9b388a6da9dd4f73e0b13abc6100f1141782ef105f6f5e9d986fb6e00f0b2591',
 		publisherId: '0x7339f23f06df3601167d67a31752781d307136fd18304c48c928778e752caae1',
 		adminAddress: normalizeSuiAddress(
 			'0xa81a2328b7bbf70ab196d6aca400b5b0721dec7615bf272d95e0b0df04517e72',
@@ -79,6 +83,7 @@ export const mainPackage: Config = {
 		},
 		coupons: {
 			packageId: '0x6d14ca3049be747ec87166e6dce5d0d9a30f3b3c281c55d6e518958a236f8b97',
+			upgradeCap: '0x8773a3f2642c73fc1e418d70915b9fc26cd2647ecb3dac6b4040992ca6cc91b0',
 		},
 		treasuryAddress: '0x638791b625c4482bc1b917847cdf8aa76fe226c0f3e0a9b1aa595625989e98a1',
 		payments: {

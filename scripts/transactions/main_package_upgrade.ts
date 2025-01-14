@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { execSync } from 'child_process';
+import { Transaction } from '@mysten/sui/transactions';
 import dotenv from 'dotenv';
 
 import { mainPackage, Network } from '../config/constants';
+import { prepareMultisigTx, upgradePackage } from '../utils/utils';
 
 dotenv.config();
 
@@ -27,4 +29,18 @@ const mainPackageUpgrade = async () => {
 	execSync(`cd $PWD/../packages/suins && ${upgradeCall} > $PWD/../../scripts/tx/tx-data.txt`);
 };
 
+// const upgradePackages = async () => {
+// 	const tx = new Transaction();
+
+// 	upgradePackage(
+// 		tx,
+// 		'packages/coupons',
+// 		mainPackage[network].packageId,
+// 		mainPackage[network].upgradeCap!,
+// 	);
+
+// 	await prepareMultisigTx(tx, network, mainPackage[network].upgradeCapOwner!);
+// };
+
 mainPackageUpgrade();
+// upgradePackages();

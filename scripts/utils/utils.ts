@@ -60,12 +60,15 @@ export const upgradePackage = (
 			encoding: 'utf-8',
 		}),
 	);
+	console.log(digest);
+	console.log(packageId);
+	console.log(upgradeCapId);
 
 	const cap = txb.object(upgradeCapId);
 
 	const ticket = txb.moveCall({
 		target: '0x2::package::authorize_upgrade',
-		arguments: [cap, txb.pure.u8(UpgradePolicy.COMPATIBLE), txb.pure(digest)],
+		arguments: [cap, txb.pure.u8(UpgradePolicy.COMPATIBLE), txb.pure.vector('u8', digest)],
 	});
 
 	const receipt = txb.upgrade({

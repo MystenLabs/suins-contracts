@@ -14,6 +14,7 @@ on:
           - Transfer Admin Caps
           - Free Coupons
           - Create Coupons
+          - Upgrade SuiNS
       sui_tools_image:
         description: 'image reference of sui_tools'
         default: 'mysten/sui-tools:mainnet'
@@ -136,6 +137,17 @@ jobs:
           RPC_URL: ${{ inputs.rpc }}
         run: |
           cd scripts && pnpm ts-node transactions/create-bulk-coupons.ts
+
+      - name: Upgrade SuiNS
+        if: ${{ inputs.transaction_type == 'Upgrade SuiNS' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+          RPC_URL: ${{ inputs.rpc }}
+        run: |
+          cd scripts && pnpm ts-node transactions/main_package_upgrade.ts
 
       - name: Show Transaction Data (To sign)
         run: |
