@@ -37,8 +37,6 @@ jobs:
             dir_name=$(basename "$dir")
             if [[ ! " ${exclude_dirs[@]} " =~ " ${dir_name} " ]] && [ -d "$dir" ]; then
               echo "Running sui move test in $dir"
-              echo "Directory: $dir"
-              ls -la "$dir"
               cd "$dir" && sui move test
             fi
           done
