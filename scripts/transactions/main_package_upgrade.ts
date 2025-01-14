@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { execSync } from 'child_process';
+import { writeFileSync } from 'fs';
 
 import { mainPackage, Network } from '../config/constants';
 
@@ -26,8 +27,9 @@ const mainPackageUpgrade = async () => {
 	console.log(upgradeCall);
 	try {
 		// Execute the command with the specified working directory and capture the output
-		execSync(`cd ${suinsDir} && ${upgradeCall} > ${txFilePath}`);
+		const output = execSync(upgradeCall, { cwd: suinsDir, stdio: 'pipe' }).toString();
 
+		writeFileSync(txFilePath, output);
 		console.log('Upgrade transaction successfully created and saved to tx-data.txt');
 	} catch (error: any) {
 		console.error('Error during protocol upgrade:', error.message);
