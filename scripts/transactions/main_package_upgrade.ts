@@ -5,7 +5,6 @@ import { execSync } from 'child_process';
 
 import { mainPackage, Network } from '../config/constants';
 
-const gasObject = process.env.GAS_OBJECT;
 const network = (process.env.NETWORK as Network) || 'mainnet';
 
 // Active env of sui has to be the same with the env we're publishing to.
@@ -18,13 +17,16 @@ const mainPackageUpgrade = async () => {
 	if (!gasObjectId) throw new Error('No gas object supplied for a mainnet transaction');
 
 	const currentDir = process.cwd();
-	console.log('Current working directory:', currentDir);
+	const suinsDir = `${currentDir}/../packages/suins`;
+	const txFilePath = `${currentDir}/tx/tx-data.txt`;
+	console.log(suinsDir);
+	console.log(txFilePath);
 	const upgradeCall = `sui client upgrade --upgrade-capability ${mainPackage[network].upgradeCap} --gas-budget 2000000000 --gas ${gasObjectId} --skip-dependency-verification --serialize-unsigned-transaction`;
 
 	console.log(upgradeCall);
 	try {
 		// Execute the command with the specified working directory and capture the output
-		execSync(`cd $PWD/../packages/suins && ${upgradeCall} > $PWD/../../scripts/tx/tx-data.txt`);
+		execSync(`cd ${suinsDir} && ${upgradeCall} > ${txFilePath}`);
 
 		console.log('Upgrade transaction successfully created and saved to tx-data.txt');
 	} catch (error: any) {
