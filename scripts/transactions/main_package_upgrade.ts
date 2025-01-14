@@ -2,11 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { execSync } from 'child_process';
-import dotenv from 'dotenv';
 
 import { mainPackage, Network } from '../config/constants';
-
-dotenv.config();
 
 const gasObject = process.env.GAS_OBJECT;
 const network = (process.env.NETWORK as Network) || 'mainnet';
@@ -15,7 +12,6 @@ const network = (process.env.NETWORK as Network) || 'mainnet';
 // if upgradeCap & gasObject is on mainnet, it has to be on mainnet.
 // Github actions are always on mainnet.
 const mainPackageUpgrade = async () => {
-	if (!gasObject) throw new Error('Gas Object not supplied for a mainnet transaction');
 	const gasObjectId = process.env.GAS_OBJECT;
 
 	// Enabling the gas Object check only on mainnet, to allow testnet multisig tests.
