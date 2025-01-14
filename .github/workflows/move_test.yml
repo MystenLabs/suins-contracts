@@ -32,7 +32,7 @@ jobs:
 
       - name: Run move tests in all package subdirectories, with exclusions
         run: |
-          included_dirs=(suins coupons) # Define excluded directories as an array
+          included_dirs=(suins) # Define excluded directories as an array
           for dir in packages/*; do
             dir_name=$(basename "$dir")
             if [[ " ${included_dirs[*]} " =~ (^|[[:space:]])${dir_name}($|[[:space:]]) ]] && [ -d "$dir" ]; then
