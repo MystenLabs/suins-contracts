@@ -143,7 +143,7 @@ const deauthorize = (txb: Transaction) => {
 		suinsPackageIdV1: config.packageIdV1,
 	});
 
-	// Remoe old direct setup configs
+	// Remove old direct setup configs
 	removeConfig({
 		txb,
 		adminCap: config.adminCap,
