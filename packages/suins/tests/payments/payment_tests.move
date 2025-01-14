@@ -376,7 +376,7 @@ fun try_renewal_process_longer_than_max_years() {
     abort 1337
 }
 
-fun setup_suins(ctx: &mut TxContext): SuiNS {
+public fun setup_suins(ctx: &mut TxContext): SuiNS {
     let (mut suins, cap) = suins::new_for_testing(ctx);
 
     let renewal_config = pricing_config::new_renewal_config(

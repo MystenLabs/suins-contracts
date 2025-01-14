@@ -75,7 +75,7 @@ public fun subdomain_allow_creation_key(): String { ALLOW_CREATION.to_string() }
 
 /// The NameRecord key that a subdomain can self-renew.
 public fun subdomain_allow_extension_key(): String {
-    ALLOW_TIME_EXTENSION.to_string()
+   ALLOW_TIME_EXTENSION.to_string()
 }
 
 /// A getter for a leaf name record's expiration timestamp.
