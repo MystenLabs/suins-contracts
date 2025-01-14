@@ -17,7 +17,7 @@ const mainPackageUpgrade = async () => {
 	// Enabling the gas Object check only on mainnet, to allow testnet multisig tests.
 	if (!gasObjectId) throw new Error('No gas object supplied for a mainnet transaction');
 
-	const upgradeCall = `sui client upgrade --upgrade-capability ${mainPackage[network].upgradeCap} --gas-budget 2000000000 --gas ${gasObjectId} --skip-dependency-verification --serialize-unsigned-transaction`;
+	const upgradeCall = `../../sui client upgrade --upgrade-capability ${mainPackage[network].upgradeCap} --gas-budget 2000000000 --gas ${gasObjectId} --skip-dependency-verification --serialize-unsigned-transaction`;
 
 	console.log(upgradeCall);
 	try {
