@@ -27,7 +27,7 @@ on:
         description: 'object id to get gas from for multisig transaction'
         required: true
         type: string
-        default: '0xae841028e9c704badbeb0f3f837b371f663bf647e6f9c984ce47284869a8754e'
+        default: '0xe9ec5ccdecddddcb82f813651d268398c713b11e681e4e9f9674d04fb4f64709'
 
 jobs:
   suins:
@@ -147,7 +147,7 @@ jobs:
           ORIGIN: gh_action
           RPC_URL: ${{ inputs.rpc }}
         run: |
-          cd scripts && pnpm ts-node transactions/main_package_upgrade.ts
+          cd scripts && pnpm install && pnpm ts-node transactions/main_package_upgrade.ts
 
       - name: Show Transaction Data (To sign)
         run: |
