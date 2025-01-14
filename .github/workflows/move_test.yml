@@ -37,6 +37,6 @@ jobs:
             dir_name=$(basename "$dir")
             if [[ " ${included_dirs[*]} " =~ (^|[[:space:]])${dir_name}($|[[:space:]]) ]] && [ -d "$dir" ]; then
               echo "Running sui move test in $dir"
-              sui move test --path dir
+              sui move test --path "$dir"
             fi
           done
