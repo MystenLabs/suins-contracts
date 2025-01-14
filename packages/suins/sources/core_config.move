@@ -1,3 +1,6 @@
+// Copyright (c) Mysten Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 /// Core configuration of the SuiNS application.
 ///
 /// This configuration is used to validate domains for registration and renewal.
@@ -26,8 +29,6 @@ public struct CoreConfig has copy, drop, store {
     public_key: vector<u8>,
     /// Minimum length of the label part of the domain. This is different from
     /// the base `domain` checks. This is our minimum acceptable length (for sales).
-    /// TODO: Shoudl we consider removing this? Our range is [1,63] by design, and
-    /// the `PricingConfig` won't have 1,2 digits if we don't want to have.
     min_label_length: u8,
     /// Maximum length of the label part of the domain.
     max_label_length: u8,

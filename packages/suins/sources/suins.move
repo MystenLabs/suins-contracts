@@ -64,15 +64,15 @@ public struct SUINS has drop {}
 /// Key under which a configuration is stored. It is type dependent, so
 /// that different configurations can be stored at the same time. Eg
 /// currently we store application `Config` (and `Promotion` configuration).
-public struct ConfigKey<phantom Config> has copy, store, drop {}
+public struct ConfigKey<phantom Config> has copy, drop, store {}
 
 /// Key under which the Registry object is stored.
 ///
 /// In the V1, the object stored under this key is `Registry`, however, for
 /// future migration purposes (if we ever need to change the Registry), we
 /// keep the phantom parameter so two different Registries can co-exist.
-public struct RegistryKey<phantom Config> has copy, store, drop {}
-public struct BalanceKey<phantom T> has store, copy, drop {}
+public struct RegistryKey<phantom Config> has copy, drop, store {}
+public struct BalanceKey<phantom T> has copy, drop, store {}
 
 /// Module initializer:
 /// - create SuiNS object
@@ -123,7 +123,7 @@ public fun withdraw_custom<T>(self: &mut SuiNS, _: &AdminCap, ctx: &mut TxContex
 /// protected features of the SuiNS (such as app_add_balance, etc.)
 /// The `App` type parameter is a witness which should be defined in the
 /// original module (Controller, Registry, Registrar - whatever).
-public struct AppKey<phantom App: drop> has copy, store, drop {}
+public struct AppKey<phantom App: drop> has copy, drop, store {}
 
 /// Authorize an application to access protected features of the SuiNS.
 public fun authorize_app<App: drop>(_: &AdminCap, self: &mut SuiNS) {
@@ -220,7 +220,7 @@ public(package) fun pkg_registry_mut<R: store>(self: &mut SuiNS): &mut R {
 #[test_only]
 use suins::core_config;
 #[test_only]
-use suins::pricing_config::{Self, new_range};
+use suins::pricing_config::{Self, new_range, PricingConfig};
 #[test_only]
 public struct Test has drop {}
 
@@ -238,9 +238,21 @@ public fun init_for_testing(ctx: &mut TxContext): SuiNS {
         balance: balance::zero(),
     };
 
-    authorize_app<Test>(&admin_cap, &mut suins);
     admin_cap.add_config(&mut suins, core_config::default());
 
+    admin_cap.authorize_app<Test>(&mut suins);
+    admin_cap.add_config(&mut suins, new_pricing_config());
+    admin_cap.add_config(
+        &mut suins,
+        pricing_config::new_renewal_config(new_pricing_config()),
+    );
+    transfer::transfer(admin_cap, ctx.sender());
+
+    suins
+}
+
+#[test_only]
+public fun new_pricing_config(): PricingConfig {
     let range1 = new_range(vector[3, 3]);
     let range2 = new_range(vector[4, 4]);
     let range3 = new_range(vector[5, 63]);
@@ -250,14 +262,10 @@ public fun init_for_testing(ctx: &mut TxContext): SuiNS {
         50 * suins::constants::mist_per_sui(),
     ];
 
-    let pricing_config = pricing_config::new(
+    pricing_config::new(
         vector[range1, range2, range3],
         prices,
-    );
-    admin_cap.add_config(&mut suins, pricing_config);
-
-    transfer::transfer(admin_cap, tx_context::sender(ctx));
-    suins
+    )
 }
 
 #[test_only]

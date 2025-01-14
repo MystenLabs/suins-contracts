@@ -41,6 +41,7 @@ const SECOND_ADDRESS: address = @0xB002;
 const DOMAIN_NAME: vector<u8> = b"abc.sui";
 const AVATAR: vector<u8> = b"avatar";
 const CONTENT_HASH: vector<u8> = b"content_hash";
+const WALRUS_SITE_ID: vector<u8> = b"walrus_site_id";
 
 fun test_init(): Scenario {
     let mut scenario_val = test_scenario::begin(SUINS_ADDRESS);
@@ -441,6 +442,19 @@ fun test_set_user_data() {
     assert_eq(*data.get(&AVATAR.to_string()), b"value_avatar".to_string());
     assert_eq(*data.get(&utf8(CONTENT_HASH)), b"value_content_hash".to_string());
 
+    set_user_data_util(
+        scenario,
+        FIRST_ADDRESS,
+        utf8(WALRUS_SITE_ID),
+        b"value_walrus_site_id".to_string(),
+        0,
+    );
+    let data = &scenario.get_user_data(DOMAIN_NAME.to_string());
+    assert_eq(data.size(), 3);
+    assert_eq(*data.get(&AVATAR.to_string()), b"value_avatar".to_string());
+    assert_eq(*data.get(&utf8(CONTENT_HASH)), b"value_content_hash".to_string());
+    assert_eq(*data.get(&WALRUS_SITE_ID.to_string()), b"value_walrus_site_id".to_string());
+
     scenario_val.end();
 }
 
@@ -562,7 +576,19 @@ fun test_unset_user_data() {
         b"value_avatar".to_string(),
         0,
     );
+    scenario.set_user_data_util(
+        FIRST_ADDRESS,
+        WALRUS_SITE_ID.to_string(),
+        b"value_walrus_site_id".to_string(),
+        0,
+    );
     scenario.unset_user_data_util(FIRST_ADDRESS, utf8(CONTENT_HASH), 0);
+    let data = &scenario.get_user_data(DOMAIN_NAME.to_string());
+    assert_eq(data.size(), 2);
+    assert_eq(*data.get(&AVATAR.to_string()), b"value_avatar".to_string());
+    assert_eq(*data.get(&WALRUS_SITE_ID.to_string()), b"value_walrus_site_id".to_string());
+
+    scenario.unset_user_data_util(FIRST_ADDRESS, WALRUS_SITE_ID.to_string(), 0);
     let data = &scenario.get_user_data(DOMAIN_NAME.to_string());
     assert_eq(data.size(), 1);
     assert_eq(*data.get(&AVATAR.to_string()), b"value_avatar".to_string());

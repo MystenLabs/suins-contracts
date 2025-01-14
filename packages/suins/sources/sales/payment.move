@@ -1,18 +1,20 @@
+// Copyright (c) Mysten Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 /// This module is used to streamline our payment flows.
-///
-/// Whenever a registration or renewal request comes in, we issue a
-/// `PaymentIntent` that holds the data required to complete the payment,
-/// nominated in the base price units (will be USDC in our case).
-///
-/// Authorized apps are required to finalize any payment, so we can ensure that
-/// we can keep
-/// our payment flows upgradeable, without the need to upgrade the packages
-/// whenever the
-/// core protocol has a change, as well as gated
-/// (so we can turn registrations/renewals off in case of an emergency).
-///
-/// Authorized apps can also apply discounts to the payment intent. This is
-/// useful for system-level discounts, or user-specific discounts.
+/*
+   Whenever a registration or renewal request comes in, we issue a
+   `PaymentIntent` that holds the data required to complete the payment,
+   nominated in the base price units (will be USDC in our case).
+
+   Authorized apps are required to finalize any payment, so we can ensure that
+   we can keep our payment flows upgradeable, without the need to upgrade the
+   packages whenever the core protocol has a change, as well as gated
+   (so we can turn registrations/renewals off in case of an emergency).
+
+   Authorized apps can also apply discounts to the payment intent. This is
+   useful for system-level discounts, or user-specific discounts.
+*/
 module suins::payment;
 
 use std::string::String;
@@ -109,6 +111,8 @@ public struct TransactionEvent has copy, drop, store {
 
 /// Allow an authorized app to apply a percentage discount to
 /// the payment intent.
+/// E.g. an NS payment can apply a 10% discount on top of a user's 20%
+/// discount if allow_multiple_discounts is true
 public fun apply_percentage_discount<A: drop>(
     intent: &mut PaymentIntent,
     suins: &mut SuiNS,
@@ -116,11 +120,7 @@ public fun apply_percentage_discount<A: drop>(
     discount_key: String,
     // discount can be in range [1, 100]
     discount: u8,
-    // whether multiple discounts can be applied. This is here to allow for
-    // system-level
-    // discounts to be applied on top of user discounts.
-    // E.g. an NS payment can apply a 10% discount on top of a user's 20%
-    // discount.
+    // whether multiple discounts can be applied
     allow_multiple_discounts: bool,
 ) {
     suins.assert_app_is_authorized<A>();
@@ -153,14 +153,10 @@ public fun finalize_payment<A: drop, T>(
     intent: PaymentIntent,
     suins: &mut SuiNS,
     app: A,
-    // could also be a 0 balance coin if the app offers a free registration.
     coin: Coin<T>,
 ): Receipt {
-    // Ensure the app is authorized to finalize the payment.
     suins.assert_app_is_authorized<A>();
-    // Emit an event for the payment.
     event::emit(intent.to_event<A, T>(coin.value()));
-    // add funds to SuiNS balance.
     suins.app_add_custom_balance(app, coin.into_balance());
 
     match (intent) {
