@@ -207,7 +207,7 @@ export const generateReceipt = async (
 	tx: Transaction,
 	paymentIntent: TransactionObjectArgument,
 	priceAfterDiscount: TransactionObjectArgument,
-	coinConfig: { type: string; metadataID: string; feed: string },
+	coinConfig: { type: string; metadataId: string; feed: string },
 	options: {
 		coinId?: string;
 		maxAmount?: bigint;
@@ -243,7 +243,7 @@ export const generateReceipt = async (
 export const exampleRegistration = async (
 	domain: string,
 	years: number,
-	coinConfig: { type: string; metadataID: string; feed: string },
+	coinConfig: { type: string; metadataId: string; feed: string },
 	options: { coinId?: string; couponCode?: string; discountNft?: string; maxAmount?: bigint } = {},
 ) => {
 	const tx = new Transaction();
@@ -280,7 +280,7 @@ export const exampleRegistration = async (
 export const exampleRenewal = async (
 	nft: string | TransactionObjectArgument,
 	years: number,
-	coinConfig: { type: string; metadataID: string; feed: string },
+	coinConfig: { type: string; metadataId: string; feed: string },
 	options: {
 		coinId?: string;
 		couponCode?: string;

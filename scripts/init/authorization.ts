@@ -236,7 +236,7 @@ export const newPaymentsConfig = ({
 }: {
 	txb: Transaction;
 	packageId: string;
-	coinTypeAndDiscount: [Record<string, string>, number][]; // Array of [{type: string, metadataID: string, feed: string}, discountPercentage] pairs
+	coinTypeAndDiscount: [Record<string, string>, number][]; // Array of [{type: string, metadataId: string, feed: string}, discountPercentage] pairs
 	baseCurrencyType: string;
 	maxAge: number;
 }): TransactionArgument => {
@@ -249,7 +249,7 @@ export const newPaymentsConfig = ({
 				packageId,
 				discountPercentage,
 				coinType: coin['type'],
-				coinMetadataId: coin['metadataID'],
+				coinMetadataId: coin['metadataId'],
 				priceFeed: coin['feed']
 					? new Uint8Array(
 							hexToBytes(coin['feed'].startsWith('0x') ? coin['feed'].slice(2) : coin['feed']),
