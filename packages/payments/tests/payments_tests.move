@@ -13,6 +13,7 @@ use payments::payments::{
 };
 use payments::testns::TESTNS;
 use payments::testusdc::TESTUSDC;
+use std::string::utf8;
 use std::type_name;
 use sui::coin::{Self, CoinMetadata};
 use sui::test_scenario::{Self as ts, ctx};
@@ -97,7 +98,7 @@ fun payment_insufficient_e() {
     test.next_tx(SUINS_ADDRESS);
     let intent = payment::init_registration(
         &mut suins,
-        std::string::utf8(b"helloworld.sui"),
+        utf8(b"helloworld.sui"),
     );
 
     // 20 is required for registration, only 10 is minted
@@ -141,7 +142,7 @@ fun invalid_payment_type_e() {
     test.next_tx(SUINS_ADDRESS);
     let intent = payment::init_registration(
         &mut suins,
-        std::string::utf8(b"helloworld.sui"),
+        utf8(b"helloworld.sui"),
     );
 
     // 20 is required for registration, paying with SPAM fails
@@ -187,7 +188,7 @@ fun test_add_payment_config() {
     test.next_tx(SUINS_ADDRESS);
     let intent = payment::init_registration(
         &mut suins,
-        std::string::utf8(b"helloworld.sui"),
+        utf8(b"helloworld.sui"),
     );
 
     // 20 is required for registration, paying with 20 usdc is successful

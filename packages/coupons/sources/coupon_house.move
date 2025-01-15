@@ -52,7 +52,7 @@ public struct AppKey<phantom A: drop> has copy, store, drop {}
 /// for claim.
 public struct CouponHouse has store {
     data: Data,
-    version: u8,
+    version: u8, // needs to be updated after publish
     storage: UID,
 }
 

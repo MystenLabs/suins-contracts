@@ -1,75 +1,297 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
+
 import { bcs } from '@mysten/sui/bcs';
-import type { Transaction } from '@mysten/sui/transactions';
+import { Transaction, TransactionObjectArgument } from '@mysten/sui/transactions';
 import { isValidSuiNSName, normalizeSuiNSName, SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 
-import { ALLOWED_METADATA } from './constants.js';
-import { isNestedSubName, isSubName, validateYears } from './helpers.js';
+import { ALLOWED_METADATA, MAX_U64 } from './constants.js';
+import { isNestedSubName, isSubName, zeroCoin } from './helpers.js';
 import type { SuinsClient } from './suins-client.js';
-import type { ObjectArgument } from './types.js';
+import type {
+	DiscountInfo,
+	ObjectArgument,
+	ReceiptParams,
+	RegistrationParams,
+	RenewalParams,
+} from './types.js';
 
 export class SuinsTransaction {
-	#suinsClient: SuinsClient;
+	suinsClient: SuinsClient;
 	transaction: Transaction;
 
 	constructor(client: SuinsClient, transaction: Transaction) {
-		this.#suinsClient = client;
+		this.suinsClient = client;
 		this.transaction = transaction;
 	}
 
 	/**
-	 * Constructs the transaction to renew a name.
-	 * Expects the nftId (or a transactionArgument), the number of years to renew
-	 * as well as the length category of the domain.
-	 *
-	 * This only applies for SLDs (Second Level Domains) (e.g. example.sui, test.sui).
-	 * You can use `getSecondLevelDomainCategory` to get the category of a domain.
+	 * Registers a domain for a number of years.
 	 */
-	renew({ nftId, price, years }: { nftId: ObjectArgument; price: number; years: number }) {
-		if (!this.#suinsClient.constants.renewalPackageId)
-			throw new Error('Renewal package id not found');
-		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
-		validateYears(years);
+	register = (params: RegistrationParams) => {
+		if (params.couponCode && params.discountInfo) {
+			throw new Error('Cannot apply both coupon and discount NFT');
+		}
 
-		this.transaction.moveCall({
-			target: `${this.#suinsClient.constants.renewalPackageId}::renew::renew`,
-			arguments: [
-				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
-				this.transaction.object(nftId),
-				this.transaction.pure.u8(years),
-				this.transaction.splitCoins(this.transaction.gas, [this.transaction.pure.u64(price)]),
-				this.transaction.object(SUI_CLOCK_OBJECT_ID),
-			],
+		const paymentIntent = this.initRegistration(params.domain);
+		if (params.couponCode) {
+			this.applyCoupon(paymentIntent, params.couponCode);
+		}
+		if (params.discountInfo) {
+			this.applyDiscount(paymentIntent, params.discountInfo);
+		}
+		const priceAfterDiscount = this.calculatePriceAfterDiscount(
+			paymentIntent,
+			params.coinConfig.type,
+		);
+		const receipt = this.generateReceipt({
+			paymentIntent,
+			priceAfterDiscount,
+			coinConfig: params.coinConfig,
+			coinId: params.coinId,
+			maxAmount: params.maxAmount,
+			priceInfoObjectId: params.priceInfoObjectId,
 		});
-	}
+		const nft = this.finalizeRegister(receipt);
+
+		if (params.years > 1) {
+			this.renew({
+				nft,
+				years: params.years - 1,
+				coinConfig: params.coinConfig,
+				coinId: params.coinId,
+				couponCode: params.couponCode,
+				discountInfo: params.discountInfo,
+				maxAmount: params.maxAmount,
+				priceInfoObjectId: params.priceInfoObjectId,
+			});
+		}
+
+		return nft as TransactionObjectArgument;
+	};
 
 	/**
-	 * Registers a new SLD name.
-	 *
-	 * You can get the price by calling `getPrice` on the SuinsClient.
+	 * Renews an NFT for a number of years.
 	 */
-	register({ name, price, years }: { name: string; price: number; years: number }) {
-		if (!this.#suinsClient.constants.registrationPackageId)
-			throw new Error('Registration package id not found');
-		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
-		if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
-		validateYears(years);
+	renew = (params: RenewalParams) => {
+		if (params.couponCode && params.discountInfo) {
+			throw new Error('Cannot apply both coupon and discount NFT');
+		}
 
-		const nft = this.transaction.moveCall({
-			target: `${this.#suinsClient.constants.registrationPackageId}::register::register`,
+		const paymentIntent = this.initRenewal(params.nft, params.years);
+		if (params.couponCode) {
+			this.applyCoupon(paymentIntent, params.couponCode);
+		}
+		if (params.discountInfo) {
+			this.applyDiscount(paymentIntent, params.discountInfo);
+		}
+		const priceAfterDiscount = this.calculatePriceAfterDiscount(
+			paymentIntent,
+			params.coinConfig.type,
+		);
+		const receipt = this.generateReceipt({
+			paymentIntent,
+			priceAfterDiscount,
+			coinConfig: params.coinConfig,
+			coinId: params.coinId,
+			maxAmount: params.maxAmount,
+			priceInfoObjectId: params.priceInfoObjectId,
+		});
+		this.finalizeRenew(receipt, params.nft);
+	};
+
+	initRegistration = (domain: string) => {
+		const config = this.suinsClient.config;
+		return this.transaction.moveCall({
+			target: `${config.packageId}::payment::init_registration`,
+			arguments: [this.transaction.object(config.suins), this.transaction.pure.string(domain)],
+		});
+	};
+
+	initRenewal = (nft: ObjectArgument, years: number) => {
+		const config = this.suinsClient.config;
+		return this.transaction.moveCall({
+			target: `${config.packageId}::payment::init_renewal`,
 			arguments: [
-				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
-				this.transaction.pure.string(normalizeSuiNSName(name, 'dot')),
+				this.transaction.object(config.suins),
+				this.transaction.object(nft),
 				this.transaction.pure.u8(years),
-				this.transaction.splitCoins(this.transaction.gas, [this.transaction.pure.u64(price)]),
-				this.transaction.object(SUI_CLOCK_OBJECT_ID),
 			],
 		});
+	};
 
-		return nft;
-	}
+	calculatePrice = (
+		baseAmount: TransactionObjectArgument,
+		paymentType: string,
+		priceInfoObjectId: string,
+	) => {
+		const config = this.suinsClient.config;
+		// Perform the Move call
+		return this.transaction.moveCall({
+			target: `${config.payments.packageId}::payments::calculate_price`,
+			arguments: [
+				this.transaction.object(config.suins),
+				baseAmount,
+				this.transaction.object.clock(),
+				this.transaction.object(priceInfoObjectId),
+			],
+			typeArguments: [paymentType],
+		});
+	};
 
+	handleBasePayment = (
+		paymentIntent: TransactionObjectArgument,
+		payment: TransactionObjectArgument,
+		paymentType: string,
+	) => {
+		const config = this.suinsClient.config;
+		return this.transaction.moveCall({
+			target: `${config.payments.packageId}::payments::handle_base_payment`,
+			arguments: [this.transaction.object(config.suins), paymentIntent, payment],
+			typeArguments: [paymentType],
+		});
+	};
+
+	handlePayment = (
+		paymentIntent: TransactionObjectArgument,
+		payment: TransactionObjectArgument,
+		paymentType: string,
+		priceInfoObjectId: string,
+		maxAmount: bigint = MAX_U64,
+	) => {
+		const config = this.suinsClient.config;
+		return this.transaction.moveCall({
+			target: `${config.payments.packageId}::payments::handle_payment`,
+			arguments: [
+				this.transaction.object(config.suins),
+				paymentIntent,
+				payment,
+				this.transaction.object.clock(),
+				this.transaction.object(priceInfoObjectId),
+				this.transaction.pure.u64(maxAmount), // This is the maximum user is willing to pay
+			],
+			typeArguments: [paymentType],
+		});
+	};
+
+	finalizeRegister = (receipt: TransactionObjectArgument) => {
+		const config = this.suinsClient.config;
+		return this.transaction.moveCall({
+			target: `${config.packageId}::payment::register`,
+			arguments: [receipt, this.transaction.object(config.suins), this.transaction.object.clock()],
+		});
+	};
+
+	finalizeRenew = (receipt: TransactionObjectArgument, nft: ObjectArgument) => {
+		const config = this.suinsClient.config;
+		return this.transaction.moveCall({
+			target: `${config.packageId}::payment::renew`,
+			arguments: [
+				receipt,
+				this.transaction.object(config.suins),
+				this.transaction.object(nft),
+				this.transaction.object.clock(),
+			],
+		});
+	};
+
+	calculatePriceAfterDiscount = (paymentIntent: TransactionObjectArgument, paymentType: string) => {
+		const config = this.suinsClient.config;
+		return this.transaction.moveCall({
+			target: `${config.payments.packageId}::payments::calculate_price_after_discount`,
+			arguments: [this.transaction.object(config.suins), paymentIntent],
+			typeArguments: [paymentType],
+		});
+	};
+
+	generateReceipt = (params: ReceiptParams): TransactionObjectArgument => {
+		const config = this.suinsClient.config;
+		const baseAssetPurchase = params.coinConfig.feed === '';
+		const isSui = params.coinConfig === config.coins.SUI;
+		if (baseAssetPurchase) {
+			const payment = params.coinId
+				? this.transaction.splitCoins(this.transaction.object(params.coinId), [
+						params.priceAfterDiscount,
+					])
+				: zeroCoin(this.transaction, params.coinConfig.type);
+			const receipt = this.handleBasePayment(params.paymentIntent, payment, params.coinConfig.type);
+			return receipt;
+		} else {
+			const priceInfoObjectId = params.priceInfoObjectId;
+			if (!priceInfoObjectId)
+				throw new Error('Price info object ID is required for non-base asset purchases');
+			const price = this.calculatePrice(
+				params.priceAfterDiscount,
+				params.coinConfig.type,
+				priceInfoObjectId,
+			);
+			if (!isSui && !params.coinId) throw new Error('coinId is required for non-SUI payments');
+			const payment = isSui
+				? this.transaction.splitCoins(this.transaction.gas, [price])
+				: this.transaction.splitCoins(this.transaction.object(params.coinId!), [price]);
+			const receipt = this.handlePayment(
+				// Change to object style input
+				// Adding removed, perform transaction as is
+				params.paymentIntent,
+				payment,
+				params.coinConfig.type,
+				priceInfoObjectId,
+				params.maxAmount,
+			);
+			return receipt;
+		}
+	};
+
+	/**
+	 * Applies a coupon to the payment intent.
+	 */
+	applyCoupon = (intent: TransactionObjectArgument, couponCode: string) => {
+		const config = this.suinsClient.config;
+		return this.transaction.moveCall({
+			target: `${config.coupons.packageId}::coupon_house::apply_coupon`,
+			arguments: [
+				this.transaction.object(config.suins),
+				intent,
+				this.transaction.pure.string(couponCode),
+				this.transaction.object.clock(),
+			],
+		});
+	};
+
+	/**
+	 * Applies a discount to the payment intent.
+	 */
+	applyDiscount = (intent: TransactionObjectArgument, discountInfo: DiscountInfo) => {
+		const config = this.suinsClient.config;
+
+		if (discountInfo.isFreeClaim) {
+			this.transaction.moveCall({
+				target: `${config.discountsPackage.packageId}::free_claims::free_claim`,
+				arguments: [
+					this.transaction.object(config.discountsPackage.discountHouseId),
+					this.transaction.object(config.suins),
+					intent,
+					this.transaction.object(discountInfo.discountNft),
+				],
+				typeArguments: [discountInfo.type],
+			});
+		} else {
+			this.transaction.moveCall({
+				target: `${config.discountsPackage.packageId}::discounts::apply_percentage_discount`,
+				arguments: [
+					this.transaction.object(config.discountsPackage.discountHouseId),
+					intent,
+					this.transaction.object(config.suins),
+					this.transaction.object(discountInfo.discountNft),
+				],
+				typeArguments: [discountInfo.type],
+			});
+		}
+	};
+
+	/**
+	 * Creates a subdomain.
+	 */
 	createSubName({
 		parentNft,
 		name,
@@ -85,18 +307,18 @@ export class SuinsTransaction {
 	}) {
 		if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
 		const isParentSubdomain = isNestedSubName(name);
-		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
-		if (!this.#suinsClient.constants.subNamesPackageId)
+		if (!this.suinsClient.config.suins) throw new Error('SuiNS Object ID not found');
+		if (!this.suinsClient.config.subNamesPackageId)
 			throw new Error('Subnames package ID not found');
-		if (isParentSubdomain && !this.#suinsClient.constants.tempSubNamesProxyPackageId)
+		if (isParentSubdomain && !this.suinsClient.config.tempSubdomainsProxyPackageId)
 			throw new Error('Subnames proxy package ID not found');
 
 		const subNft = this.transaction.moveCall({
 			target: isParentSubdomain
-				? `${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::new`
-				: `${this.#suinsClient.constants.subNamesPackageId}::subdomains::new`,
+				? `${this.suinsClient.config.tempSubdomainsProxyPackageId}::subdomain_proxy::new`
+				: `${this.suinsClient.config.subNamesPackageId}::subdomains::new`,
 			arguments: [
-				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
+				this.transaction.object(this.suinsClient.config.suins),
 				this.transaction.object(parentNft),
 				this.transaction.object(SUI_CLOCK_OBJECT_ID),
 				this.transaction.pure.string(normalizeSuiNSName(name, 'dot')),
@@ -125,18 +347,18 @@ export class SuinsTransaction {
 	}) {
 		if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
 		const isParentSubdomain = isNestedSubName(name);
-		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
-		if (!this.#suinsClient.constants.subNamesPackageId)
+		if (!this.suinsClient.config.suins) throw new Error('SuiNS Object ID not found');
+		if (!this.suinsClient.config.subNamesPackageId)
 			throw new Error('Subnames package ID not found');
-		if (isParentSubdomain && !this.#suinsClient.constants.tempSubNamesProxyPackageId)
+		if (isParentSubdomain && !this.suinsClient.config.tempSubdomainsProxyPackageId)
 			throw new Error('Subnames proxy package ID not found');
 
 		this.transaction.moveCall({
 			target: isParentSubdomain
-				? `${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::new_leaf`
-				: `${this.#suinsClient.constants.subNamesPackageId}::subdomains::new_leaf`,
+				? `${this.suinsClient.config.tempSubdomainsProxyPackageId}::subdomain_proxy::new_leaf`
+				: `${this.suinsClient.config.subNamesPackageId}::subdomains::new_leaf`,
 			arguments: [
-				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
+				this.transaction.object(this.suinsClient.config.suins),
 				this.transaction.object(parentNft),
 				this.transaction.object(SUI_CLOCK_OBJECT_ID),
 				this.transaction.pure.string(normalizeSuiNSName(name, 'dot')),
@@ -152,18 +374,18 @@ export class SuinsTransaction {
 		if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
 		const isParentSubdomain = isNestedSubName(name);
 		if (!isSubName(name)) throw new Error('This can only be invoked for subnames');
-		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
-		if (!this.#suinsClient.constants.subNamesPackageId)
+		if (!this.suinsClient.config.suins) throw new Error('SuiNS Object ID not found');
+		if (!this.suinsClient.config.subNamesPackageId)
 			throw new Error('Subnames package ID not found');
-		if (isParentSubdomain && !this.#suinsClient.constants.tempSubNamesProxyPackageId)
+		if (isParentSubdomain && !this.suinsClient.config.tempSubdomainsProxyPackageId)
 			throw new Error('Subnames proxy package ID not found');
 
 		this.transaction.moveCall({
 			target: isParentSubdomain
-				? `${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::remove_leaf`
-				: `${this.#suinsClient.constants.subNamesPackageId}::subdomains::remove_leaf`,
+				? `${this.suinsClient.config.tempSubdomainsProxyPackageId}::subdomain_proxy::remove_leaf`
+				: `${this.suinsClient.config.subNamesPackageId}::subdomains::remove_leaf`,
 			arguments: [
-				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
+				this.transaction.object(this.suinsClient.config.suins),
 				this.transaction.object(parentNft),
 				this.transaction.object(SUI_CLOCK_OBJECT_ID),
 				this.transaction.pure.string(normalizeSuiNSName(name, 'dot')),
@@ -171,8 +393,11 @@ export class SuinsTransaction {
 		});
 	}
 
+	/**
+	 * Sets the target address of an NFT.
+	 */
 	setTargetAddress({
-		nft,
+		nft, // Can be string or argument
 		address,
 		isSubname,
 	}: {
@@ -180,18 +405,15 @@ export class SuinsTransaction {
 		address?: string;
 		isSubname?: boolean;
 	}) {
-		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
-		if (!this.#suinsClient.constants.utilsPackageId) throw new Error('Utils package ID not found');
-
-		if (isSubname && !this.#suinsClient.constants.tempSubNamesProxyPackageId)
+		if (isSubname && !this.suinsClient.config.tempSubdomainsProxyPackageId)
 			throw new Error('Subnames proxy package ID not found');
 
 		this.transaction.moveCall({
 			target: isSubname
-				? `${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::set_target_address`
-				: `${this.#suinsClient.constants.utilsPackageId}::direct_setup::set_target_address`,
+				? `${this.suinsClient.config.tempSubdomainsProxyPackageId}::subdomain_proxy::set_target_address`
+				: `${this.suinsClient.config.packageId}::controller::set_target_address`,
 			arguments: [
-				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
+				this.transaction.object(this.suinsClient.config.suins),
 				this.transaction.object(nft),
 				this.transaction.pure(bcs.option(bcs.Address).serialize(address).toBytes()),
 				this.transaction.object(SUI_CLOCK_OBJECT_ID),
@@ -199,21 +421,25 @@ export class SuinsTransaction {
 		});
 	}
 
-	/** Marks a name as default */
+	/**
+	 * Sets a default name for the user.
+	 */
 	setDefault(name: string) {
 		if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
-		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
-		if (!this.#suinsClient.constants.utilsPackageId) throw new Error('Utils package ID not found');
+		if (!this.suinsClient.config.suins) throw new Error('SuiNS Object ID not found');
 
 		this.transaction.moveCall({
-			target: `${this.#suinsClient.constants.utilsPackageId}::direct_setup::set_reverse_lookup`,
+			target: `${this.suinsClient.config.packageId}::controller::set_reverse_lookup`,
 			arguments: [
-				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
+				this.transaction.object(this.suinsClient.config.suins),
 				this.transaction.pure.string(normalizeSuiNSName(name, 'dot')),
 			],
 		});
 	}
 
+	/**
+	 * Edits the setup of a subname.
+	 */
 	editSetup({
 		parentNft,
 		name,
@@ -227,18 +453,18 @@ export class SuinsTransaction {
 	}) {
 		if (!isValidSuiNSName(name)) throw new Error('Invalid SuiNS name');
 		const isParentSubdomain = isNestedSubName(name);
-		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
-		if (!isParentSubdomain && !this.#suinsClient.constants.subNamesPackageId)
+		if (!this.suinsClient.config.suins) throw new Error('SuiNS Object ID not found');
+		if (!isParentSubdomain && !this.suinsClient.config.subNamesPackageId)
 			throw new Error('Subnames package ID not found');
-		if (isParentSubdomain && !this.#suinsClient.constants.tempSubNamesProxyPackageId)
+		if (isParentSubdomain && !this.suinsClient.config.tempSubdomainsProxyPackageId)
 			throw new Error('Subnames proxy package ID not found');
 
 		this.transaction.moveCall({
 			target: isParentSubdomain
-				? `${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::edit_setup`
-				: `${this.#suinsClient.constants.subNamesPackageId}::subdomains::edit_setup`,
+				? `${this.suinsClient.config.tempSubdomainsProxyPackageId}::subdomain_proxy::edit_setup`
+				: `${this.suinsClient.config.subNamesPackageId}::subdomains::edit_setup`,
 			arguments: [
-				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
+				this.transaction.object(this.suinsClient.config.suins),
 				this.transaction.object(parentNft),
 				this.transaction.object(SUI_CLOCK_OBJECT_ID),
 				this.transaction.pure.string(normalizeSuiNSName(name, 'dot')),
@@ -248,6 +474,9 @@ export class SuinsTransaction {
 		});
 	}
 
+	/**
+	 * Extends the expiration of a subname.
+	 */
 	extendExpiration({
 		nft,
 		expirationTimestampMs,
@@ -255,20 +484,23 @@ export class SuinsTransaction {
 		nft: ObjectArgument;
 		expirationTimestampMs: number;
 	}) {
-		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
-		if (!this.#suinsClient.constants.subNamesPackageId)
+		if (!this.suinsClient.config.suins) throw new Error('SuiNS Object ID not found');
+		if (!this.suinsClient.config.subNamesPackageId)
 			throw new Error('Subnames package ID not found');
 
 		this.transaction.moveCall({
-			target: `${this.#suinsClient.constants.subNamesPackageId}::subdomains::extend_expiration`,
+			target: `${this.suinsClient.config.subNamesPackageId}::subdomains::extend_expiration`,
 			arguments: [
-				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
+				this.transaction.object(this.suinsClient.config.suins),
 				this.transaction.object(nft),
 				this.transaction.pure.u64(expirationTimestampMs),
 			],
 		});
 	}
 
+	/**
+	 * Sets the user data of an NFT.
+	 */
 	setUserData({
 		nft,
 		value,
@@ -280,20 +512,18 @@ export class SuinsTransaction {
 		key: string;
 		isSubname?: boolean;
 	}) {
-		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
-		if (!isSubname && !this.#suinsClient.constants.utilsPackageId)
-			throw new Error('Utils package ID not found');
-		if (isSubname && !this.#suinsClient.constants.tempSubNamesProxyPackageId)
+		if (!this.suinsClient.config.suins) throw new Error('SuiNS Object ID not found');
+		if (isSubname && !this.suinsClient.config.tempSubdomainsProxyPackageId)
 			throw new Error('Subnames proxy package ID not found');
 
 		if (!Object.values(ALLOWED_METADATA).some((x) => x === key)) throw new Error('Invalid key');
 
 		this.transaction.moveCall({
 			target: isSubname
-				? `${this.#suinsClient.constants.tempSubNamesProxyPackageId}::subdomain_proxy::set_user_data`
-				: `${this.#suinsClient.constants.utilsPackageId}::direct_setup::set_user_data`,
+				? `${this.suinsClient.config.tempSubdomainsProxyPackageId}::subdomain_proxy::set_user_data`
+				: `${this.suinsClient.config.packageId}::controller::set_user_data`,
 			arguments: [
-				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
+				this.transaction.object(this.suinsClient.config.suins),
 				this.transaction.object(nft),
 				this.transaction.pure.string(key),
 				this.transaction.pure.string(value),
@@ -306,15 +536,14 @@ export class SuinsTransaction {
 	 * Burns an expired NFT to collect storage rebates.
 	 */
 	burnExpired({ nft, isSubname }: { nft: ObjectArgument; isSubname?: boolean }) {
-		if (!this.#suinsClient.constants.suinsObjectId) throw new Error('SuiNS Object ID not found');
-		if (!this.#suinsClient.constants.utilsPackageId) throw new Error('Utils package ID not found');
+		if (!this.suinsClient.config.suins) throw new Error('SuiNS Object ID not found');
 
 		this.transaction.moveCall({
-			target: `${this.#suinsClient.constants.utilsPackageId}::direct_setup::${
+			target: `${this.suinsClient.config.packageId}::controller::${
 				isSubname ? 'burn_expired_subname' : 'burn_expired'
-			}`,
+			}`, // Update this
 			arguments: [
-				this.transaction.object(this.#suinsClient.constants.suinsObjectId),
+				this.transaction.object(this.suinsClient.config.suins),
 				this.transaction.object(nft),
 				this.transaction.object(SUI_CLOCK_OBJECT_ID),
 			],
