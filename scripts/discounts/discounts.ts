@@ -70,3 +70,5 @@ const setupFreeClaim = () => {
 
 	return signAndExecute(tx, network);
 };
+
+// setupFreeClaim();
