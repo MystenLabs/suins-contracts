@@ -8,25 +8,32 @@ use std::option::{extract, some, none};
 use std::string::{utf8, String};
 use sui::clock::{Self, Clock};
 use sui::dynamic_field;
+use sui::sui::SUI;
 use sui::test_scenario::{Self, Scenario, ctx};
-use sui::test_utils::assert_eq;
+use sui::test_utils::{assert_eq, destroy};
 use sui::vec_map::VecMap;
 use suins::constants::{mist_per_sui, year_ms};
-use suins::controller::{
-    Self,
-    Controller,
-    set_target_address_for_testing,
-    set_reverse_lookup_for_testing,
-    unset_reverse_lookup_for_testing,
-    set_user_data_for_testing,
-    unset_user_data_for_testing
-};
+use suins::controller::{Self, ControllerV2};
 use suins::domain::{Self, Domain};
-use suins::register_sample::Register;
-use suins::register_sample_tests::register_util;
+use suins::register::Register;
+use suins::register_utils::register_util;
 use suins::registry::{Self, Registry, lookup, reverse_lookup};
+use suins::subdomain_registration;
 use suins::suins::{Self, SuiNS, AdminCap};
-use suins::suins_registration::SuinsRegistration;
+use suins::suins_registration::{Self, SuinsRegistration};
+
+use fun set_target_address_util as Scenario.set_target_address_util;
+use fun set_reverse_lookup_util as Scenario.set_reverse_lookup_util;
+use fun unset_reverse_lookup_util as Scenario.unset_reverse_lookup_util;
+use fun set_user_data_util as Scenario.set_user_data_util;
+use fun unset_user_data_util as Scenario.unset_user_data_util;
+use fun lookup_util as Scenario.lookup_util;
+use fun get_user_data as Scenario.get_user_data;
+use fun setup as Scenario.setup;
+use fun deauthorize_app_util as Scenario.deauthorize_app_util;
+use fun reverse_lookup_util as Scenario.reverse_lookup_util;
+use fun set_object_reverse_lookup_util as Scenario.set_object_reverse_lookup_util;
+use fun unset_object_reverse_lookup_util as Scenario.unset_object_reverse_lookup_util;
 
 const SUINS_ADDRESS: address = @0xA001;
 const FIRST_ADDRESS: address = @0xB001;
@@ -34,16 +41,17 @@ const SECOND_ADDRESS: address = @0xB002;
 const DOMAIN_NAME: vector<u8> = b"abc.sui";
 const AVATAR: vector<u8> = b"avatar";
 const CONTENT_HASH: vector<u8> = b"content_hash";
+const WALRUS_SITE_ID: vector<u8> = b"walrus_site_id";
 
 fun test_init(): Scenario {
     let mut scenario_val = test_scenario::begin(SUINS_ADDRESS);
     let scenario = &mut scenario_val;
     {
-        let mut suins = suins::init_for_testing(ctx(scenario));
+        let mut suins = suins::init_for_testing(scenario.ctx());
         suins.authorize_app_for_testing<Register>();
-        suins::authorize_app_for_testing<Controller>(&mut suins);
-        suins::share_for_testing(suins);
-        let clock = clock::create_for_testing(ctx(scenario));
+        suins.authorize_app_for_testing<ControllerV2>();
+        suins.share_for_testing();
+        let clock = clock::create_for_testing(scenario.ctx());
         clock.share_for_testing();
     };
     {
@@ -51,18 +59,18 @@ fun test_init(): Scenario {
         let admin_cap = scenario.take_from_sender<AdminCap>();
         let mut suins = scenario.take_shared<SuiNS>();
 
-        registry::init_for_testing(&admin_cap, &mut suins, ctx(scenario));
+        registry::init_for_testing(&admin_cap, &mut suins, scenario.ctx());
 
         test_scenario::return_shared(suins);
-        test_scenario::return_to_sender(scenario, admin_cap);
+        scenario.return_to_sender(admin_cap);
     };
     scenario_val
 }
 
 fun setup(scenario: &mut Scenario, sender: address, clock_tick: u64) {
-    let nft = register_util(
+    let nft = register_util<SUI>(
         scenario,
-        utf8(DOMAIN_NAME),
+        DOMAIN_NAME.to_string(),
         1,
         1200 * mist_per_sui(),
         clock_tick,
@@ -82,23 +90,44 @@ public fun set_target_address_util(
     let mut clock = scenario.take_shared<Clock>();
 
     clock.increment_for_testing(clock_tick);
-    set_target_address_for_testing(&mut suins, &nft, target, &clock);
+    controller::set_target_address(&mut suins, &nft, target, &clock);
 
     test_scenario::return_shared(clock);
-    test_scenario::return_to_sender(scenario, nft);
+    scenario.return_to_sender(nft);
     test_scenario::return_shared(suins);
 }
 
-public fun set_reverse_lookup_util(
+public fun set_reverse_lookup_util(scenario: &mut Scenario, sender: address, domain_name: String) {
+    scenario.next_tx(sender);
+    let mut suins = scenario.take_shared<SuiNS>();
+
+    controller::set_reverse_lookup(&mut suins, domain_name, ctx(scenario));
+
+    test_scenario::return_shared(suins);
+}
+
+public fun set_object_reverse_lookup_util(
     scenario: &mut Scenario,
+    id: &mut UID,
     sender: address,
     domain_name: String,
 ) {
     scenario.next_tx(sender);
     let mut suins = scenario.take_shared<SuiNS>();
 
-    set_reverse_lookup_for_testing(&mut suins, domain_name, ctx(scenario));
+    controller::set_object_reverse_lookup(&mut suins, id, domain_name);
+    test_scenario::return_shared(suins);
+}
 
+public fun unset_object_reverse_lookup_util(
+    scenario: &mut Scenario,
+    id: &mut UID,
+    sender: address,
+) {
+    scenario.next_tx(sender);
+    let mut suins = scenario.take_shared<SuiNS>();
+
+    controller::unset_object_reverse_lookup(&mut suins, id);
     test_scenario::return_shared(suins);
 }
 
@@ -106,7 +135,7 @@ public fun unset_reverse_lookup_util(scenario: &mut Scenario, sender: address) {
     scenario.next_tx(sender);
     let mut suins = scenario.take_shared<SuiNS>();
 
-    unset_reverse_lookup_for_testing(&mut suins, ctx(scenario));
+    controller::unset_reverse_lookup(&mut suins, ctx(scenario));
 
     test_scenario::return_shared(suins);
 }
@@ -124,11 +153,11 @@ public fun set_user_data_util(
     let mut clock = scenario.take_shared<Clock>();
 
     clock.increment_for_testing(clock_tick);
-    set_user_data_for_testing(&mut suins, &nft, key, value, &clock);
+    controller::set_user_data(&mut suins, &nft, key, value, &clock);
 
     test_scenario::return_shared(clock);
-    test_scenario::return_to_sender(scenario, nft);
     test_scenario::return_shared(suins);
+    scenario.return_to_sender(nft);
 }
 
 public fun unset_user_data_util(
@@ -143,10 +172,10 @@ public fun unset_user_data_util(
     let mut clock = scenario.take_shared<Clock>();
 
     clock.increment_for_testing(clock_tick);
-    unset_user_data_for_testing(&mut suins, &nft, key, &clock);
+    controller::unset_user_data(&mut suins, &nft, key, &clock);
 
     test_scenario::return_shared(clock);
-    test_scenario::return_to_sender(scenario, nft);
+    scenario.return_to_sender(nft);
     test_scenario::return_shared(suins);
 }
 
@@ -165,10 +194,7 @@ fun lookup_util(
     test_scenario::return_shared(suins);
 }
 
-fun get_user_data(
-    scenario: &mut Scenario,
-    domain_name: String,
-): VecMap<String, String> {
+fun get_user_data(scenario: &mut Scenario, domain_name: String): VecMap<String, String> {
     scenario.next_tx(SUINS_ADDRESS);
     let suins = scenario.take_shared<SuiNS>();
 
@@ -189,7 +215,7 @@ fun reverse_lookup_util(
     let suins = scenario.take_shared<SuiNS>();
 
     let registry = suins.registry<Registry>();
-    let domain_name = reverse_lookup(registry, addr);
+    let domain_name = registry.reverse_lookup(addr);
     assert_eq(domain_name, expected_domain_name);
 
     test_scenario::return_shared(suins);
@@ -200,24 +226,24 @@ fun deauthorize_app_util(scenario: &mut Scenario) {
     let admin_cap = scenario.take_from_sender<AdminCap>();
     let mut suins = scenario.take_shared<SuiNS>();
 
-    suins::deauthorize_app<Controller>(&admin_cap, &mut suins);
+    admin_cap.deauthorize_app<ControllerV2>(&mut suins);
 
     test_scenario::return_shared(suins);
-    test_scenario::return_to_sender(scenario, admin_cap);
+    scenario.return_to_sender(admin_cap);
 }
 
 #[test]
 fun test_set_target_address() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
+    scenario.setup(FIRST_ADDRESS, 0);
 
-    set_target_address_util(scenario, FIRST_ADDRESS, some(SECOND_ADDRESS), 0);
-    lookup_util(scenario, utf8(DOMAIN_NAME), some(SECOND_ADDRESS));
-    set_target_address_util(scenario, FIRST_ADDRESS, some(FIRST_ADDRESS), 0);
-    lookup_util(scenario, utf8(DOMAIN_NAME), some(FIRST_ADDRESS));
-    set_target_address_util(scenario, FIRST_ADDRESS, none(), 0);
-    lookup_util(scenario, utf8(DOMAIN_NAME), none());
+    scenario.set_target_address_util(FIRST_ADDRESS, some(SECOND_ADDRESS), 0);
+    scenario.lookup_util(DOMAIN_NAME.to_string(), some(SECOND_ADDRESS));
+    scenario.set_target_address_util(FIRST_ADDRESS, some(FIRST_ADDRESS), 0);
+    scenario.lookup_util(DOMAIN_NAME.to_string(), some(FIRST_ADDRESS));
+    scenario.set_target_address_util(FIRST_ADDRESS, none(), 0);
+    scenario.lookup_util(DOMAIN_NAME.to_string(), none());
 
     scenario_val.end();
 }
@@ -226,10 +252,9 @@ fun test_set_target_address() {
 fun test_set_target_address_aborts_if_nft_expired() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
+    scenario.setup(FIRST_ADDRESS, 0);
 
-    set_target_address_util(
-        scenario,
+    scenario.set_target_address_util(
         FIRST_ADDRESS,
         some(SECOND_ADDRESS),
         2 * year_ms(),
@@ -242,10 +267,10 @@ fun test_set_target_address_aborts_if_nft_expired() {
 fun test_set_target_address_aborts_if_nft_expired_2() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
-    setup(scenario, SECOND_ADDRESS, 2 * year_ms());
+    scenario.setup(FIRST_ADDRESS, 0);
+    scenario.setup(SECOND_ADDRESS, 2 * year_ms());
 
-    set_target_address_util(scenario, FIRST_ADDRESS, some(SECOND_ADDRESS), 0);
+    scenario.set_target_address_util(FIRST_ADDRESS, some(SECOND_ADDRESS), 0);
 
     scenario_val.end();
 }
@@ -254,11 +279,11 @@ fun test_set_target_address_aborts_if_nft_expired_2() {
 fun test_set_target_address_works_if_domain_is_registered_again() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
-    setup(scenario, SECOND_ADDRESS, 2 * year_ms());
+    scenario.setup(FIRST_ADDRESS, 0);
+    scenario.setup(SECOND_ADDRESS, 2 * year_ms());
 
-    set_target_address_util(scenario, SECOND_ADDRESS, some(SECOND_ADDRESS), 0);
-    lookup_util(scenario, utf8(DOMAIN_NAME), some(SECOND_ADDRESS));
+    scenario.set_target_address_util(SECOND_ADDRESS, some(SECOND_ADDRESS), 0);
+    scenario.lookup_util(DOMAIN_NAME.to_string(), some(SECOND_ADDRESS));
 
     scenario_val.end();
 }
@@ -267,10 +292,10 @@ fun test_set_target_address_works_if_domain_is_registered_again() {
 fun test_set_target_address_aborts_if_controller_is_deauthorized() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
+    scenario.setup(FIRST_ADDRESS, 0);
 
-    deauthorize_app_util(scenario);
-    set_target_address_util(scenario, FIRST_ADDRESS, some(SECOND_ADDRESS), 0);
+    scenario.deauthorize_app_util();
+    scenario.set_target_address_util(FIRST_ADDRESS, some(SECOND_ADDRESS), 0);
 
     scenario_val.end();
 }
@@ -279,27 +304,27 @@ fun test_set_target_address_aborts_if_controller_is_deauthorized() {
 fun test_set_reverse_lookup() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
+    scenario.setup(FIRST_ADDRESS, 0);
 
-    set_target_address_util(scenario, FIRST_ADDRESS, some(SECOND_ADDRESS), 0);
-    reverse_lookup_util(scenario, SECOND_ADDRESS, none());
-    set_reverse_lookup_util(scenario, SECOND_ADDRESS, utf8(DOMAIN_NAME));
+    scenario.set_target_address_util(FIRST_ADDRESS, some(SECOND_ADDRESS), 0);
+    scenario.reverse_lookup_util(SECOND_ADDRESS, none());
+    scenario.set_reverse_lookup_util(SECOND_ADDRESS, DOMAIN_NAME.to_string());
     reverse_lookup_util(
         scenario,
         SECOND_ADDRESS,
-        some(domain::new(utf8(DOMAIN_NAME))),
+        some(domain::new(DOMAIN_NAME.to_string())),
     );
 
-    set_target_address_util(scenario, FIRST_ADDRESS, some(FIRST_ADDRESS), 0);
-    reverse_lookup_util(scenario, FIRST_ADDRESS, none());
-    reverse_lookup_util(scenario, SECOND_ADDRESS, none());
-    set_reverse_lookup_util(scenario, FIRST_ADDRESS, utf8(DOMAIN_NAME));
+    scenario.set_target_address_util(FIRST_ADDRESS, some(FIRST_ADDRESS), 0);
+    scenario.reverse_lookup_util(FIRST_ADDRESS, none());
+    scenario.reverse_lookup_util(SECOND_ADDRESS, none());
+    scenario.set_reverse_lookup_util(FIRST_ADDRESS, DOMAIN_NAME.to_string());
     reverse_lookup_util(
         scenario,
         FIRST_ADDRESS,
-        some(domain::new(utf8(DOMAIN_NAME))),
+        some(domain::new(DOMAIN_NAME.to_string())),
     );
-    reverse_lookup_util(scenario, SECOND_ADDRESS, none());
+    scenario.reverse_lookup_util(SECOND_ADDRESS, none());
 
     scenario_val.end();
 }
@@ -308,10 +333,10 @@ fun test_set_reverse_lookup() {
 fun test_set_reverse_lookup_aborts_if_target_address_not_set() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
+    scenario.setup(FIRST_ADDRESS, 0);
 
-    reverse_lookup_util(scenario, SECOND_ADDRESS, none());
-    set_reverse_lookup_util(scenario, SECOND_ADDRESS, utf8(DOMAIN_NAME));
+    scenario.reverse_lookup_util(SECOND_ADDRESS, none());
+    scenario.set_reverse_lookup_util(SECOND_ADDRESS, DOMAIN_NAME.to_string());
 
     scenario_val.end();
 }
@@ -320,11 +345,11 @@ fun test_set_reverse_lookup_aborts_if_target_address_not_set() {
 fun test_set_reverse_lookup_aborts_if_target_address_not_match() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
+    scenario.setup(FIRST_ADDRESS, 0);
 
-    set_target_address_util(scenario, FIRST_ADDRESS, some(FIRST_ADDRESS), 0);
-    reverse_lookup_util(scenario, SECOND_ADDRESS, none());
-    set_reverse_lookup_util(scenario, SECOND_ADDRESS, utf8(DOMAIN_NAME));
+    scenario.set_target_address_util(FIRST_ADDRESS, some(FIRST_ADDRESS), 0);
+    scenario.reverse_lookup_util(SECOND_ADDRESS, none());
+    scenario.set_reverse_lookup_util(SECOND_ADDRESS, DOMAIN_NAME.to_string());
 
     scenario_val.end();
 }
@@ -333,11 +358,11 @@ fun test_set_reverse_lookup_aborts_if_target_address_not_match() {
 fun test_set_reverse_lookup_aborts_if_controller_is_deauthorized() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
+    scenario.setup(FIRST_ADDRESS, 0);
 
-    set_target_address_util(scenario, FIRST_ADDRESS, some(SECOND_ADDRESS), 0);
-    deauthorize_app_util(scenario);
-    set_reverse_lookup_util(scenario, SECOND_ADDRESS, utf8(DOMAIN_NAME));
+    scenario.set_target_address_util(FIRST_ADDRESS, some(SECOND_ADDRESS), 0);
+    scenario.deauthorize_app_util();
+    scenario.set_reverse_lookup_util(SECOND_ADDRESS, DOMAIN_NAME.to_string());
 
     scenario_val.end();
 }
@@ -346,17 +371,17 @@ fun test_set_reverse_lookup_aborts_if_controller_is_deauthorized() {
 fun test_unset_reverse_lookup() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
+    scenario.setup(FIRST_ADDRESS, 0);
 
-    set_target_address_util(scenario, FIRST_ADDRESS, some(SECOND_ADDRESS), 0);
-    set_reverse_lookup_util(scenario, SECOND_ADDRESS, utf8(DOMAIN_NAME));
+    scenario.set_target_address_util(FIRST_ADDRESS, some(SECOND_ADDRESS), 0);
+    scenario.set_reverse_lookup_util(SECOND_ADDRESS, DOMAIN_NAME.to_string());
     reverse_lookup_util(
         scenario,
         SECOND_ADDRESS,
-        some(domain::new(utf8(DOMAIN_NAME))),
+        some(domain::new(DOMAIN_NAME.to_string())),
     );
-    unset_reverse_lookup_util(scenario, SECOND_ADDRESS);
-    reverse_lookup_util(scenario, SECOND_ADDRESS, none());
+    scenario.unset_reverse_lookup_util(SECOND_ADDRESS);
+    scenario.reverse_lookup_util(SECOND_ADDRESS, none());
 
     scenario_val.end();
 }
@@ -365,12 +390,12 @@ fun test_unset_reverse_lookup() {
 fun test_unset_reverse_lookup_if_controller_is_deauthorized() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
+    scenario.setup(FIRST_ADDRESS, 0);
 
-    set_target_address_util(scenario, FIRST_ADDRESS, some(SECOND_ADDRESS), 0);
-    set_reverse_lookup_util(scenario, SECOND_ADDRESS, utf8(DOMAIN_NAME));
-    deauthorize_app_util(scenario);
-    unset_reverse_lookup_util(scenario, SECOND_ADDRESS);
+    scenario.set_target_address_util(FIRST_ADDRESS, some(SECOND_ADDRESS), 0);
+    scenario.set_reverse_lookup_util(SECOND_ADDRESS, DOMAIN_NAME.to_string());
+    scenario.deauthorize_app_util();
+    scenario.unset_reverse_lookup_util(SECOND_ADDRESS);
 
     scenario_val.end();
 }
@@ -379,9 +404,9 @@ fun test_unset_reverse_lookup_if_controller_is_deauthorized() {
 fun test_unset_reverse_lookup_aborts_if_not_set() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
+    scenario.setup(FIRST_ADDRESS, 0);
 
-    unset_reverse_lookup_util(scenario, SECOND_ADDRESS);
+    scenario.unset_reverse_lookup_util(SECOND_ADDRESS);
 
     scenario_val.end();
 }
@@ -390,32 +415,45 @@ fun test_unset_reverse_lookup_aborts_if_not_set() {
 fun test_set_user_data() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
+    scenario.setup(FIRST_ADDRESS, 0);
 
-    let data = &get_user_data(scenario, utf8(DOMAIN_NAME));
+    let data = &scenario.get_user_data(DOMAIN_NAME.to_string());
     assert_eq(data.size(), 0);
     set_user_data_util(
         scenario,
         FIRST_ADDRESS,
-        utf8(AVATAR),
-        utf8(b"value_avatar"),
+        AVATAR.to_string(),
+        b"value_avatar".to_string(),
         0,
     );
-    let data = &get_user_data(scenario, utf8(DOMAIN_NAME));
+    let data = &scenario.get_user_data(DOMAIN_NAME.to_string());
     assert_eq(data.size(), 1);
-    assert_eq(*data.get(&utf8(AVATAR)), utf8(b"value_avatar"));
+    assert_eq(*data.get(&AVATAR.to_string()), b"value_avatar".to_string());
 
     set_user_data_util(
         scenario,
         FIRST_ADDRESS,
         utf8(CONTENT_HASH),
-        utf8(b"value_content_hash"),
+        b"value_content_hash".to_string(),
         0,
     );
-    let data = &get_user_data(scenario, utf8(DOMAIN_NAME));
+    let data = &scenario.get_user_data(DOMAIN_NAME.to_string());
     assert_eq(data.size(), 2);
-    assert_eq(*data.get(&utf8(AVATAR)), utf8(b"value_avatar"));
-    assert_eq(*data.get(&utf8(CONTENT_HASH)), utf8(b"value_content_hash"));
+    assert_eq(*data.get(&AVATAR.to_string()), b"value_avatar".to_string());
+    assert_eq(*data.get(&utf8(CONTENT_HASH)), b"value_content_hash".to_string());
+
+    set_user_data_util(
+        scenario,
+        FIRST_ADDRESS,
+        utf8(WALRUS_SITE_ID),
+        b"value_walrus_site_id".to_string(),
+        0,
+    );
+    let data = &scenario.get_user_data(DOMAIN_NAME.to_string());
+    assert_eq(data.size(), 3);
+    assert_eq(*data.get(&AVATAR.to_string()), b"value_avatar".to_string());
+    assert_eq(*data.get(&utf8(CONTENT_HASH)), b"value_content_hash".to_string());
+    assert_eq(*data.get(&WALRUS_SITE_ID.to_string()), b"value_walrus_site_id".to_string());
 
     scenario_val.end();
 }
@@ -424,13 +462,13 @@ fun test_set_user_data() {
 fun test_set_user_data_aborts_if_key_is_unsupported() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
+    scenario.setup(FIRST_ADDRESS, 0);
 
     set_user_data_util(
         scenario,
         FIRST_ADDRESS,
-        utf8(b"key"),
-        utf8(b"value"),
+        b"key".to_string(),
+        b"value".to_string(),
         0,
     );
 
@@ -441,13 +479,13 @@ fun test_set_user_data_aborts_if_key_is_unsupported() {
 fun test_set_user_data_aborts_if_nft_expired() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
+    scenario.setup(FIRST_ADDRESS, 0);
 
     set_user_data_util(
         scenario,
         FIRST_ADDRESS,
-        utf8(AVATAR),
-        utf8(b"value"),
+        AVATAR.to_string(),
+        b"value".to_string(),
         2 * year_ms(),
     );
 
@@ -458,14 +496,14 @@ fun test_set_user_data_aborts_if_nft_expired() {
 fun test_set_user_data_aborts_if_nft_expired_2() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
-    setup(scenario, SECOND_ADDRESS, 2 * year_ms());
+    scenario.setup(FIRST_ADDRESS, 0);
+    scenario.setup(SECOND_ADDRESS, 2 * year_ms());
 
     set_user_data_util(
         scenario,
         FIRST_ADDRESS,
-        utf8(AVATAR),
-        utf8(b"value"),
+        AVATAR.to_string(),
+        b"value".to_string(),
         0,
     );
 
@@ -476,19 +514,19 @@ fun test_set_user_data_aborts_if_nft_expired_2() {
 fun test_set_user_data_works_if_domain_is_registered_again() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
-    setup(scenario, SECOND_ADDRESS, 2 * year_ms());
+    scenario.setup(FIRST_ADDRESS, 0);
+    scenario.setup(SECOND_ADDRESS, 2 * year_ms());
 
     set_user_data_util(
         scenario,
         SECOND_ADDRESS,
-        utf8(AVATAR),
-        utf8(b"value"),
+        AVATAR.to_string(),
+        b"value".to_string(),
         0,
     );
-    let data = &get_user_data(scenario, utf8(DOMAIN_NAME));
+    let data = &scenario.get_user_data(DOMAIN_NAME.to_string());
     assert_eq(data.size(), 1);
-    assert_eq(*data.get(&utf8(AVATAR)), utf8(b"value"));
+    assert_eq(*data.get(&AVATAR.to_string()), b"value".to_string());
 
     scenario_val.end();
 }
@@ -497,14 +535,13 @@ fun test_set_user_data_works_if_domain_is_registered_again() {
 fun test_set_user_data_aborts_if_controller_is_deauthorized() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
+    scenario.setup(FIRST_ADDRESS, 0);
 
-    deauthorize_app_util(scenario);
-    set_user_data_util(
-        scenario,
+    scenario.deauthorize_app_util();
+    scenario.set_user_data_util(
         FIRST_ADDRESS,
-        utf8(AVATAR),
-        utf8(b"value_avatar"),
+        AVATAR.to_string(),
+        b"value_avatar".to_string(),
         0,
     );
 
@@ -515,37 +552,46 @@ fun test_set_user_data_aborts_if_controller_is_deauthorized() {
 fun test_unset_user_data() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
+    scenario.setup(FIRST_ADDRESS, 0);
 
-    set_user_data_util(
-        scenario,
+    scenario.set_user_data_util(
         FIRST_ADDRESS,
-        utf8(AVATAR),
-        utf8(b"value_avatar"),
+        AVATAR.to_string(),
+        b"value_avatar".to_string(),
         0,
     );
-    unset_user_data_util(scenario, FIRST_ADDRESS, utf8(AVATAR), 0);
-    let data = &get_user_data(scenario, utf8(DOMAIN_NAME));
+    scenario.unset_user_data_util(FIRST_ADDRESS, AVATAR.to_string(), 0);
+    let data = &scenario.get_user_data(DOMAIN_NAME.to_string());
     assert_eq(data.size(), 0);
 
-    set_user_data_util(
-        scenario,
+    scenario.set_user_data_util(
         FIRST_ADDRESS,
         utf8(CONTENT_HASH),
-        utf8(b"value_content_hash"),
+        b"value_content_hash".to_string(),
         0,
     );
-    set_user_data_util(
-        scenario,
+    scenario.set_user_data_util(
         FIRST_ADDRESS,
-        utf8(AVATAR),
-        utf8(b"value_avatar"),
+        AVATAR.to_string(),
+        b"value_avatar".to_string(),
         0,
     );
-    unset_user_data_util(scenario, FIRST_ADDRESS, utf8(CONTENT_HASH), 0);
-    let data = &get_user_data(scenario, utf8(DOMAIN_NAME));
+    scenario.set_user_data_util(
+        FIRST_ADDRESS,
+        WALRUS_SITE_ID.to_string(),
+        b"value_walrus_site_id".to_string(),
+        0,
+    );
+    scenario.unset_user_data_util(FIRST_ADDRESS, utf8(CONTENT_HASH), 0);
+    let data = &scenario.get_user_data(DOMAIN_NAME.to_string());
+    assert_eq(data.size(), 2);
+    assert_eq(*data.get(&AVATAR.to_string()), b"value_avatar".to_string());
+    assert_eq(*data.get(&WALRUS_SITE_ID.to_string()), b"value_walrus_site_id".to_string());
+
+    scenario.unset_user_data_util(FIRST_ADDRESS, WALRUS_SITE_ID.to_string(), 0);
+    let data = &scenario.get_user_data(DOMAIN_NAME.to_string());
     assert_eq(data.size(), 1);
-    assert_eq(*data.get(&utf8(AVATAR)), utf8(b"value_avatar"));
+    assert_eq(*data.get(&AVATAR.to_string()), b"value_avatar".to_string());
 
     scenario_val.end();
 }
@@ -554,9 +600,9 @@ fun test_unset_user_data() {
 fun test_unset_user_data_works_if_key_not_exists() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
+    scenario.setup(FIRST_ADDRESS, 0);
 
-    unset_user_data_util(scenario, FIRST_ADDRESS, utf8(AVATAR), 0);
+    scenario.unset_user_data_util(FIRST_ADDRESS, AVATAR.to_string(), 0);
 
     scenario_val.end();
 }
@@ -565,9 +611,9 @@ fun test_unset_user_data_works_if_key_not_exists() {
 fun test_unset_user_data_aborts_if_nft_expired() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
+    scenario.setup(FIRST_ADDRESS, 0);
 
-    unset_user_data_util(scenario, FIRST_ADDRESS, utf8(AVATAR), 2 * year_ms());
+    scenario.unset_user_data_util(FIRST_ADDRESS, AVATAR.to_string(), 2 * year_ms());
 
     scenario_val.end();
 }
@@ -576,10 +622,108 @@ fun test_unset_user_data_aborts_if_nft_expired() {
 fun test_unset_user_data_works_if_controller_is_deauthorized() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
-    setup(scenario, FIRST_ADDRESS, 0);
+    scenario.setup(FIRST_ADDRESS, 0);
 
-    deauthorize_app_util(scenario);
-    unset_user_data_util(scenario, FIRST_ADDRESS, utf8(AVATAR), 0);
+    scenario.deauthorize_app_util();
+    scenario.unset_user_data_util(FIRST_ADDRESS, AVATAR.to_string(), 0);
 
+    scenario_val.end();
+}
+
+#[test]
+fun test_burn_expired() {
+    // Only testing the surface with burning, as most logic is enforced/tested on the registry level.
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+    scenario.next_tx(SUINS_ADDRESS);
+
+    let mut clock = scenario.take_shared<Clock>();
+    let mut suins = scenario.take_shared<SuiNS>();
+
+    let ns_registration = suins_registration::new_for_testing(
+        domain::new(b"test.sui".to_string()),
+        1,
+        &clock,
+        scenario.ctx(),
+    );
+
+    clock.increment_for_testing(year_ms() * 2);
+    controller::burn_expired(&mut suins, ns_registration, &clock);
+
+    test_scenario::return_shared(clock);
+    test_scenario::return_shared(suins);
+
+    scenario_val.end();
+}
+
+#[test]
+fun test_burn_subname_expired() {
+    // Only testing the surface with burning, as most logic is enforced/tested on the registry level.
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+    scenario.next_tx(SUINS_ADDRESS);
+
+    let mut clock = scenario.take_shared<Clock>();
+    let mut suins = scenario.take_shared<SuiNS>();
+
+    let ns_registration = suins_registration::new_for_testing(
+        domain::new(b"inner.test.sui".to_string()),
+        1,
+        &clock,
+        scenario.ctx(),
+    );
+
+    let subname = subdomain_registration::new(ns_registration, &clock, scenario.ctx());
+
+    clock.increment_for_testing(year_ms() * 2);
+    controller::burn_expired_subname(&mut suins, subname, &clock);
+
+    test_scenario::return_shared(clock);
+    test_scenario::return_shared(suins);
+
+    scenario_val.end();
+}
+
+#[test]
+fun test_object_reverse_lookup() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+
+    let mut uid = object::new(scenario.ctx());
+
+    scenario.setup(FIRST_ADDRESS, 0);
+
+    scenario.set_target_address_util(FIRST_ADDRESS, some(uid.to_address()), 0);
+    scenario.set_object_reverse_lookup_util(&mut uid, FIRST_ADDRESS, DOMAIN_NAME.to_string());
+    scenario.lookup_util(DOMAIN_NAME.to_string(), some(uid.to_address()));
+    scenario.reverse_lookup_util(uid.to_address(), some(domain::new(DOMAIN_NAME.to_string())));
+
+    // now let's remove this reverse lookup
+    scenario.unset_object_reverse_lookup_util(&mut uid, FIRST_ADDRESS);
+    scenario.reverse_lookup_util(uid.to_address(), none());
+
+    destroy(uid);
+    scenario_val.end();
+}
+
+#[test]
+fun test_reverse_reset_when_target_address_changes() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+
+    let mut uid = object::new(scenario.ctx());
+
+    scenario.setup(FIRST_ADDRESS, 0);
+
+    scenario.set_target_address_util(FIRST_ADDRESS, some(uid.to_address()), 0);
+    scenario.set_object_reverse_lookup_util(&mut uid, FIRST_ADDRESS, DOMAIN_NAME.to_string());
+    scenario.lookup_util(DOMAIN_NAME.to_string(), some(uid.to_address()));
+    scenario.reverse_lookup_util(uid.to_address(), some(domain::new(DOMAIN_NAME.to_string())));
+
+
+    scenario.set_target_address_util(FIRST_ADDRESS, some(FIRST_ADDRESS), 0);
+    scenario.reverse_lookup_util(uid.to_address(), none());
+
+    destroy(uid);
     scenario_val.end();
 }
