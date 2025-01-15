@@ -18,7 +18,6 @@ export type PackageInfo = {
 	packageIdV1: string;
 	packageIdPricing: string;
 	upgradeCap?: string;
-	upgradeCapOwner?: string;
 	publisherId: string;
 	adminAddress: string;
 	adminCap: string;
@@ -34,7 +33,6 @@ export type PackageInfo = {
 	coupons: {
 		packageId: string;
 		upgradeCap?: string;
-		upgradeCapOwner?: string;
 	};
 	treasuryAddress?: string;
 	payments: {
@@ -60,10 +58,9 @@ export const mainPackage: Config = {
 		packageIdV1: '0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0',
 		packageIdPricing: '',
 		upgradeCap: '0x9cda28244a0d0de294d2b271e772a9c33eb47d316c59913d7369b545b4af098c',
-		upgradeCapOwner: '0x9b388a6da9dd4f73e0b13abc6100f1141782ef105f6f5e9d986fb6e00f0b2591',
 		publisherId: '0x7339f23f06df3601167d67a31752781d307136fd18304c48c928778e752caae1',
 		adminAddress: normalizeSuiAddress(
-			'0xa81a2328b7bbf70ab196d6aca400b5b0721dec7615bf272d95e0b0df04517e72',
+			'0x9b388a6da9dd4f73e0b13abc6100f1141782ef105f6f5e9d986fb6e00f0b2591',
 		),
 		adminCap: '0x3f8d702d90c572b60ac692fb5074f7a7ac350b80d9c59eab4f6b7692786cae0a',
 		suins: '0x6e0ddefc0ad98889c04bab9639e512c21766c5e6366f89e696956d9be6952871',

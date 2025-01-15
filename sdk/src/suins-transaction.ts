@@ -264,16 +264,29 @@ export class SuinsTransaction {
 	applyDiscount = (intent: TransactionObjectArgument, discountInfo: DiscountInfo) => {
 		const config = this.suinsClient.config;
 
-		this.transaction.moveCall({
-			target: `${config.discountsPackage.packageId}::discounts::apply_percentage_discount`,
-			arguments: [
-				this.transaction.object(config.discountsPackage.discountHouseId),
-				intent,
-				this.transaction.object(config.suins),
-				this.transaction.object(discountInfo.discountNft),
-			],
-			typeArguments: [discountInfo.type],
-		});
+		if (discountInfo.isFreeClaim) {
+			this.transaction.moveCall({
+				target: `${config.discountsPackage.packageId}::free_claims::free_claim`,
+				arguments: [
+					this.transaction.object(config.discountsPackage.discountHouseId),
+					this.transaction.object(config.suins),
+					intent,
+					this.transaction.object(discountInfo.discountNft),
+				],
+				typeArguments: [discountInfo.type],
+			});
+		} else {
+			this.transaction.moveCall({
+				target: `${config.discountsPackage.packageId}::discounts::apply_percentage_discount`,
+				arguments: [
+					this.transaction.object(config.discountsPackage.discountHouseId),
+					intent,
+					this.transaction.object(config.suins),
+					this.transaction.object(discountInfo.discountNft),
+				],
+				typeArguments: [discountInfo.type],
+			});
+		}
 	};
 
 	/**

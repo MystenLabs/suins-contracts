@@ -25,6 +25,7 @@ export type CoinConfigType = {
 export type DiscountInfo = {
 	discountNft: ObjectArgument;
 	type: string;
+	isFreeClaim?: boolean;
 };
 
 export type BaseParams = {

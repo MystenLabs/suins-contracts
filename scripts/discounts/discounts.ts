@@ -4,6 +4,7 @@
 import { Transaction, TransactionObjectArgument } from '@mysten/sui/transactions';
 
 import { mainPackage, Network } from '../config/constants';
+import { setupFreeClaimsForType } from '../config/discounts';
 import { newPriceConfigV2 } from '../init/authorization';
 import { getObjectType, signAndExecute } from '../utils/utils';
 
@@ -57,3 +58,15 @@ export const applyDiscount = async (
 // authorizeDiscountType(
 // 	'0x80d7de9c4a56194087e0ba0bf59492aa8e6a5ee881606226930827085ddf2332::suifrens::SuiFren<0x80d7de9c4a56194087e0ba0bf59492aa8e6a5ee881606226930827085ddf2332::capy::Capy>',
 // );
+
+const setupFreeClaim = () => {
+	const tx = new Transaction();
+	setupFreeClaimsForType(
+		tx,
+		config,
+		'0x80d7de9c4a56194087e0ba0bf59492aa8e6a5ee881606226930827085ddf2332::suifrens::SuiFren<0x80d7de9c4a56194087e0ba0bf59492aa8e6a5ee881606226930827085ddf2332::capy::Capy>',
+		{ from: 4, to: 5 },
+	);
+
+	return signAndExecute(tx, network);
+};
