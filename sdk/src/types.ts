@@ -18,7 +18,6 @@ export type Config = Record<'mainnet' | 'testnet', PackageInfo>;
 
 export type CoinConfigType = {
 	type: string;
-	metadataId: string;
 	feed: string;
 };
 
