@@ -159,7 +159,7 @@ jobs:
           cat scripts/tx/tx-data.txt
 
       - name: Upload Transaction Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: transaction-data
           path: scripts/tx

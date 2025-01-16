@@ -106,7 +106,7 @@ jobs:
       - name: Combine tx
         if: ${{ !inputs.test_data_only }}
         run: |
-          set -x 
+          set -x
           ALL_PKS="${{ inputs.all_pks }}"
           ALL_SIGS="${{ inputs.all_sigs }}"
           echo "debug"
@@ -134,7 +134,7 @@ jobs:
           cat scripts/tx/result.txt
 
       - name: Upload Transaction Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: combine-and-execute-transaction
           path: scripts/tx
