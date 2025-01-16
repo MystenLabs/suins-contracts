@@ -169,7 +169,7 @@ fun internal_apply_full_discount<T: key>(
         EInvalidCharacterRange,
     );
 
-    assert!(intent.request_data().year() == 1, EFreeClaimMustBeOneYear);
+    assert!(intent.request_data().years() == 1, EFreeClaimMustBeOneYear);
 
     // applies 100% discount to the intent (so payment cost becomes 0).
     intent.apply_percentage_discount(
