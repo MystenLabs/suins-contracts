@@ -41,6 +41,8 @@ const EAlreadyClaimed: u64 = 4;
 const ENotValidForDayOne: u64 = 5;
 /// Tries to claim with a non active DayOne
 const ENotActiveDayOne: u64 = 6;
+/// Tries to use free claim more than one year
+const EFreeClaimMustBeOneYear: u64 = 7;
 
 /// A key that allows DiscountHouse to apply free claims.
 public struct FreeClaimsApp() has drop;
@@ -166,6 +168,8 @@ fun internal_apply_full_discount<T: key>(
                 .length()),
         EInvalidCharacterRange,
     );
+
+    assert!(intent.request_data().year() == 1, EFreeClaimMustBeOneYear);
 
     // applies 100% discount to the intent (so payment cost becomes 0).
     intent.apply_percentage_discount(
