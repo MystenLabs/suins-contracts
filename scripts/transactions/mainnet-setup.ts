@@ -74,7 +74,7 @@ const setupSuins = (txb: Transaction) => {
 		txb,
 		adminCap: config.adminCap,
 		suins: config.suins,
-		type: `${config.packageId}::controller::ControllerV2`,
+		type: `${config.packageIdPricing}::controller::ControllerV2`,
 		suinsPackageIdV1: config.packageIdV1,
 	});
 
