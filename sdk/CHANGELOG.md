@@ -1,5 +1,11 @@
 # @mysten/suins
 
+## 0.5.3
+
+### Patch Changes
+
+- 7fc789b: Coin can be passed in as argument
+
 ## 0.5.2
 
 ### Patch Changes
