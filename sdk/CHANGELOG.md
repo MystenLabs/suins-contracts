@@ -1,5 +1,11 @@
 # @mysten/suins
 
+## 0.5.4
+
+### Patch Changes
+
+- aa425a0: Update example
+
 ## 0.5.3
 
 ### Patch Changes
