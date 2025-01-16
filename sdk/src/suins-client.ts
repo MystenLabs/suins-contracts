@@ -340,4 +340,20 @@ export class SuinsClient {
 
 		return await client.updatePriceFeeds(tx, priceUpdateData, priceIDs); // returns priceInfoObjectIds
 	}
+
+	async getObjectType(objectId: string) {
+		// Fetch the object details from the Sui client
+		const objectResponse = await this.client.getObject({
+			id: objectId,
+			options: { showType: true },
+		});
+
+		// Extract and return the type if available
+		if (objectResponse && objectResponse.data && objectResponse.data.type) {
+			return objectResponse.data.type;
+		}
+
+		// Throw an error if the type is not found
+		throw new Error(`Type information not found for object ID: ${objectId}`);
+	}
 }

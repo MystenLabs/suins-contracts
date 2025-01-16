@@ -1,7 +1,6 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-import { SuiClient } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
 import { normalizeSuiNSName } from '@mysten/sui/utils';
 
@@ -24,17 +23,6 @@ export function isNestedSubName(name: string): boolean {
 export function validateYears(years: number) {
 	if (!(years > 0 && years < 6)) throw new Error('Years must be between 1 and 5');
 }
-
-export const getObjectType = async (suiClient: SuiClient, objectId: string): Promise<string> => {
-	const objectResponse = await suiClient.getObject({
-		id: objectId,
-		options: { showType: true },
-	});
-	if (objectResponse && objectResponse.data && objectResponse.data.type) {
-		return objectResponse.data.type;
-	}
-	throw new Error('Object data not found');
-};
 
 export const zeroCoin = (tx: Transaction, type: string) => {
 	return tx.moveCall({
