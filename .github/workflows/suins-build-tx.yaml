@@ -15,6 +15,8 @@ on:
           - Free Coupons
           - Create Coupons
           - Upgrade SuiNS
+          - Upgrade Coupons
+          - Authorize Packages
       sui_tools_image:
         description: 'image reference of sui_tools'
         default: 'mysten/sui-tools:mainnet'
@@ -154,12 +156,34 @@ jobs:
         run: |
           cd scripts && pnpm ts-node transactions/main_package_upgrade.ts
 
+      - name: Upgrade Coupons
+        if: ${{ inputs.transaction_type == 'Upgrade Coupons' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+          RPC_URL: ${{ inputs.rpc }}
+        run: |
+          cd scripts && pnpm ts-node transactions/coupons_upgrade.ts
+
+      - name: Authorize Packages
+        if: ${{ inputs.transaction_type == 'Authorize Packages' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+          RPC_URL: ${{ inputs.rpc }}
+        run: |
+          cd scripts && pnpm ts-node transactions/mainnet-setup.ts
+
       - name: Show Transaction Data (To sign)
         run: |
           cat scripts/tx/tx-data.txt
 
       - name: Upload Transaction Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: transaction-data
           path: scripts/tx

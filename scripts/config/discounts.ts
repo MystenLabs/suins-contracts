@@ -1,6 +1,6 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-import { Transaction } from '@mysten/sui/transactions';
+import { Transaction, TransactionArgument } from '@mysten/sui/transactions';
 
 import { Network, PackageInfo } from './constants';
 
@@ -64,6 +64,21 @@ export const removeDiscountForType = (txb: Transaction, setup: PackageInfo, type
 	});
 };
 
+export const newRange = ({
+	txb,
+	setup,
+	range,
+}: {
+	txb: Transaction;
+	setup: PackageInfo;
+	range: number[];
+}): TransactionArgument => {
+	return txb.moveCall({
+		target: `${setup.packageId}::pricing_config::new_range`,
+		arguments: [txb.pure.vector('u64', range)],
+	});
+};
+
 // Sets up free claims for type.
 export const setupFreeClaimsForType = (
 	txb: Transaction,
@@ -74,9 +89,9 @@ export const setupFreeClaimsForType = (
 	txb.moveCall({
 		target: `${setup.discountsPackage.packageId}::free_claims::authorize_type`,
 		arguments: [
-			txb.object(setup.adminCap),
 			txb.object(setup.discountsPackage.discountHouseId),
-			txb.pure.vector('u8', [characters.from, characters.to]),
+			txb.object(setup.adminCap),
+			newRange({ txb, setup, range: [characters.from, characters.to] }),
 		],
 		typeArguments: [type],
 	});
