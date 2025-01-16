@@ -30,7 +30,7 @@ export type DiscountInfo = {
 export type BaseParams = {
 	years: number;
 	coinConfig: CoinConfigType;
-	coinId?: string;
+	coin?: string;
 	couponCode?: string;
 	discountInfo?: DiscountInfo;
 	maxAmount?: bigint;
@@ -49,7 +49,7 @@ export type ReceiptParams = {
 	paymentIntent: TransactionObjectArgument;
 	priceAfterDiscount: TransactionObjectArgument;
 	coinConfig: CoinConfigType;
-	coinId?: string;
+	coin?: ObjectArgument;
 	maxAmount?: bigint;
 	priceInfoObjectId?: string | null;
 };

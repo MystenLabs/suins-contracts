@@ -48,7 +48,7 @@ export class SuinsTransaction {
 			paymentIntent,
 			priceAfterDiscount,
 			coinConfig: params.coinConfig,
-			coinId: params.coinId,
+			coin: params.coin,
 			maxAmount: params.maxAmount,
 			priceInfoObjectId: params.priceInfoObjectId,
 		});
@@ -59,7 +59,7 @@ export class SuinsTransaction {
 				nft,
 				years: params.years - 1,
 				coinConfig: params.coinConfig,
-				coinId: params.coinId,
+				coin: params.coin,
 				couponCode: params.couponCode,
 				discountInfo: params.discountInfo,
 				maxAmount: params.maxAmount,
@@ -93,7 +93,7 @@ export class SuinsTransaction {
 			paymentIntent,
 			priceAfterDiscount,
 			coinConfig: params.coinConfig,
-			coinId: params.coinId,
+			coin: params.coin,
 			maxAmount: params.maxAmount,
 			priceInfoObjectId: params.priceInfoObjectId,
 		});
@@ -209,8 +209,8 @@ export class SuinsTransaction {
 		const baseAssetPurchase = params.coinConfig.feed === '';
 		const isSui = params.coinConfig === config.coins.SUI;
 		if (baseAssetPurchase) {
-			const payment = params.coinId
-				? this.transaction.splitCoins(this.transaction.object(params.coinId), [
+			const payment = params.coin
+				? this.transaction.splitCoins(this.transaction.object(params.coin), [
 						params.priceAfterDiscount,
 					])
 				: zeroCoin(this.transaction, params.coinConfig.type);
@@ -225,10 +225,10 @@ export class SuinsTransaction {
 				params.coinConfig.type,
 				priceInfoObjectId,
 			);
-			if (!isSui && !params.coinId) throw new Error('coinId is required for non-SUI payments');
+			if (!isSui && !params.coin) throw new Error('coin is required for non-SUI payments');
 			const payment = isSui
 				? this.transaction.splitCoins(this.transaction.gas, [price])
-				: this.transaction.splitCoins(this.transaction.object(params.coinId!), [price]);
+				: this.transaction.splitCoins(this.transaction.object(params.coin!), [price]);
 			const receipt = this.handlePayment(
 				// Change to object style input
 				// Adding removed, perform transaction as is
