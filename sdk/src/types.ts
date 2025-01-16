@@ -30,7 +30,7 @@ export type DiscountInfo = {
 export type BaseParams = {
 	years: number;
 	coinConfig: CoinConfigType;
-	coin?: string;
+	coin?: ObjectArgument;
 	couponCode?: string;
 	discountInfo?: DiscountInfo;
 	maxAmount?: bigint;
