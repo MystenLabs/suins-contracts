@@ -4,7 +4,6 @@
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
 
-import { getObjectType } from '../src/helpers.js';
 import { SuinsClient } from '../src/suins-client';
 import { SuinsTransaction } from '../src/suins-transaction';
 
@@ -39,7 +38,7 @@ import { SuinsTransaction } from '../src/suins-transaction';
 
 	// If discount NFT is used
 	const discountNft = '0xd047f37bbf8f21dc0a9422c5e99fd208c19bb58884b2671a09c0e1c1cbac6983'; // This can be a string or a kioskTransactionArgument
-	const discountNftType = await getObjectType(suinsClient.client, discountNft);
+	const discountNftType = await suinsClient.getObjectType(discountNft);
 
 	/* Registration Example Using SUI */
 	const suinsTx = new SuinsTransaction(suinsClient, tx);
@@ -60,7 +59,7 @@ import { SuinsTransaction } from '../src/suins-transaction';
 		years: 2,
 		coinConfig,
 		couponCode: 'fiveplus15percentoff',
-		coinId: '0x3a6f32a201ad7f7491a56a1f513c97ec24995494019ba02a586fa181c5d266c5',
+		coin: '0x3a6f32a201ad7f7491a56a1f513c97ec24995494019ba02a586fa181c5d266c5',
 	});
 
 	// /* Registration Example Using NS */
@@ -69,7 +68,7 @@ import { SuinsTransaction } from '../src/suins-transaction';
 	// 	years: 2,
 	// 	coinConfig,
 	// 	couponCode: 'fiveplus15percentoff',
-	// 	coinId: '0x8211160f8d782d11bdcfbe625880bc3d944ddb09b4a815278263260b037cd509',
+	// 	coin: '0x8211160f8d782d11bdcfbe625880bc3d944ddb09b4a815278263260b037cd509',
 	// 	priceInfoObjectId,
 	// });
 
@@ -79,7 +78,7 @@ import { SuinsTransaction } from '../src/suins-transaction';
 	// 	years: 2,
 	// 	coinConfig,
 	// 	couponCode: 'fiveplus15percentoff',
-	// 	coinId: '0x8211160f8d782d11bdcfbe625880bc3d944ddb09b4a815278263260b037cd509',
+	// 	coin: '0x8211160f8d782d11bdcfbe625880bc3d944ddb09b4a815278263260b037cd509',
 	// 	priceInfoObjectId,
 	// });
 
