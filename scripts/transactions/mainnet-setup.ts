@@ -150,8 +150,8 @@ const deauthorize = (txb: Transaction) => {
 		suinsPackageIdV1: config.packageIdV1,
 	});
 
-	// Remove old direct setup configs
-	removeConfig({
+	// Deauthorize DirectSetup deprecated package
+	deauthorizeApp({
 		txb,
 		adminCap: config.adminCap,
 		suins: config.suins,
@@ -159,7 +159,7 @@ const deauthorize = (txb: Transaction) => {
 		suinsPackageIdV1: config.packageIdV1,
 	});
 
-	removeConfig({
+	deauthorizeApp({
 		txb,
 		adminCap: config.adminCap,
 		suins: config.suins,
@@ -167,8 +167,8 @@ const deauthorize = (txb: Transaction) => {
 		suinsPackageIdV1: config.packageIdV1,
 	});
 
-	// Remove the old discount house app
-	removeConfig({
+	// Deauthorize old Discounts package
+	deauthorizeApp({
 		txb,
 		adminCap: config.adminCap,
 		suins: config.suins,
@@ -176,7 +176,7 @@ const deauthorize = (txb: Transaction) => {
 		suinsPackageIdV1: config.packageIdV1,
 	});
 
-	// Deauthorize old controller, authorize new controller
+	// Deauthorize old controller
 	deauthorizeApp({
 		txb,
 		adminCap: config.adminCap,
@@ -184,7 +184,6 @@ const deauthorize = (txb: Transaction) => {
 		type: `${config.packageIdV1}::controller::Controller`,
 		suinsPackageIdV1: config.packageIdV1,
 	});
-	// remove some more auths not needed
 };
 
 const deauthorizePackages = async () => {
@@ -209,5 +208,5 @@ const publishSetup = async () => {
 	await prepareMultisigTx(tx, 'mainnet', config.adminAddress);
 };
 
-publishSetup();
-// deauthorize();
+// publishSetup();
+deauthorizePackages();
