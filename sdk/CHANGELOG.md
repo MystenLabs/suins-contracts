@@ -1,5 +1,11 @@
 # @mysten/suins
 
+## 0.5.1
+
+### Patch Changes
+
+- 69fdab1: Export constants
+
 ## 0.5.0
 
 ### Minor Changes
