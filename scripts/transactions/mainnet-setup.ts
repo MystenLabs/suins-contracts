@@ -114,6 +114,13 @@ const setupSuins = (txb: Transaction) => {
 		config: paymentsconfig,
 		type: `${config.payments.packageId}::payments::PaymentsConfig`,
 	});
+	authorizeApp({
+		txb,
+		adminCap: config.adminCap,
+		suins: config.suins,
+		type: `${config.discountsPackage.packageId}::free_claims::FreeClaimsApp`,
+		suinsPackageIdV1: config.packageIdV1,
+	});
 };
 
 const deauthorize = (txb: Transaction) => {
