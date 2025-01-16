@@ -1,5 +1,11 @@
 # @mysten/suins
 
+## 0.5.2
+
+### Patch Changes
+
+- 5435241: Bump mysten/sui version
+
 ## 0.5.1
 
 ### Patch Changes
