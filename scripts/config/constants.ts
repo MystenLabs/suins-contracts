@@ -54,9 +54,9 @@ export type PackageInfo = {
 
 export const mainPackage: Config = {
 	mainnet: {
-		packageId: '0x00c2f85e07181b90c140b15c5ce27d863f93c4d9159d2a4e7bdaeb40e286d6f5',
+		packageId: '0x71af035413ed499710980ed8adb010bbf2cc5cacf4ab37c7710a4bb87eb58ba5',
 		packageIdV1: '0xd22b24490e0bae52676651b4f56660a5ff8022a2576e0089f79b3c88d44e08f0',
-		packageIdPricing: '',
+		packageIdPricing: '0x71af035413ed499710980ed8adb010bbf2cc5cacf4ab37c7710a4bb87eb58ba5',
 		upgradeCap: '0x9cda28244a0d0de294d2b271e772a9c33eb47d316c59913d7369b545b4af098c',
 		publisherId: '0x7339f23f06df3601167d67a31752781d307136fd18304c48c928778e752caae1',
 		adminAddress: normalizeSuiAddress(
