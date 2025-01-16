@@ -14,6 +14,7 @@ on:
           - Transfer Admin Caps
           - Free Coupons
           - Create Coupons
+          - Upgrade SuiNS
       sui_tools_image:
         description: 'image reference of sui_tools'
         default: 'mysten/sui-tools:mainnet'
@@ -26,12 +27,12 @@ on:
         description: 'object id to get gas from for multisig transaction'
         required: true
         type: string
-        default: '0xae841028e9c704badbeb0f3f837b371f663bf647e6f9c984ce47284869a8754e'
+        default: '0xe9ec5ccdecddddcb82f813651d268398c713b11e681e4e9f9674d04fb4f64709'
 
 jobs:
   suins:
     name: suins create tx
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - name: Selected transaction type
@@ -49,6 +50,11 @@ jobs:
 
       - name: Install Sui using Homebrew
         run: brew install sui
+
+      - name: YAML Setup
+        run: |
+          sui client --yes new-env --rpc https://fullnode.mainnet.sui.io:443 --alias mainnet
+          sui client switch --env mainnet
 
       - name: NPM BUILD TX Environment
         uses: actions/setup-node@v4
@@ -136,6 +142,17 @@ jobs:
           RPC_URL: ${{ inputs.rpc }}
         run: |
           cd scripts && pnpm ts-node transactions/create-bulk-coupons.ts
+
+      - name: Upgrade SuiNS
+        if: ${{ inputs.transaction_type == 'Upgrade SuiNS' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+          RPC_URL: ${{ inputs.rpc }}
+        run: |
+          cd scripts && pnpm ts-node transactions/main_package_upgrade.ts
 
       - name: Show Transaction Data (To sign)
         run: |
