@@ -83,7 +83,7 @@ const setupSuins = (txb: Transaction) => {
 		txb,
 		adminCap: config.adminCap,
 		suins: config.suins,
-		type: `${config.discountsPackage}::discounts::RegularDiscountsApp`,
+		type: `${config.discountsPackage.packageId}::discounts::RegularDiscountsApp`,
 		suinsPackageIdV1: config.packageIdV1,
 	});
 
