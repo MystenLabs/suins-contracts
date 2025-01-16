@@ -1,5 +1,11 @@
 # @mysten/suins
 
+## 0.5.0
+
+### Minor Changes
+
+- 5d1b245: SuiNS Payments Upgrade
+
 ## 0.4.1
 
 ### Patch Changes
