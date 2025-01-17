@@ -1,5 +1,11 @@
 # @mysten/suins
 
+## 0.6.1
+
+### Patch Changes
+
+- c450280: SDK support for multiple coin inputs
+
 ## 0.6.0
 
 ### Minor Changes
