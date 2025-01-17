@@ -67,7 +67,7 @@ export class SuinsTransaction {
 			});
 		}
 
-		return nft as TransactionObjectArgument;
+		return { nft, coin: params.coin };
 	};
 
 	/**
@@ -98,6 +98,8 @@ export class SuinsTransaction {
 			priceInfoObjectId: params.priceInfoObjectId,
 		});
 		this.finalizeRenew(receipt, params.nft);
+
+		return { nft: params.nft, coin: params.coin };
 	};
 
 	initRegistration = (domain: string) => {
