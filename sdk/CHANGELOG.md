@@ -1,5 +1,11 @@
 # @mysten/suins
 
+## 0.6.3
+
+### Patch Changes
+
+- dd7ed25: Simplify functions
+
 ## 0.6.2
 
 ### Patch Changes
