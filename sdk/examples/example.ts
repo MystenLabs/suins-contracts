@@ -37,21 +37,12 @@ import { SuinsTransaction } from '../src/suins-transaction';
 			: null;
 
 	// If discount NFT is used
-	const discountNft = '0xd047f37bbf8f21dc0a9422c5e99fd208c19bb58884b2671a09c0e1c1cbac6983'; // This can be a string or a kioskTransactionArgument
-	const discountNftType = await suinsClient.getObjectType(discountNft);
+	// const discountNft = '0xd047f37bbf8f21dc0a9422c5e99fd208c19bb58884b2671a09c0e1c1cbac6983'; // This can be a string or a kioskTransactionArgument
+	// const discountNftType = await suinsClient.getObjectType(discountNft);
 
 	/* Registration Example Using SUI */
 	const suinsTx = new SuinsTransaction(suinsClient, tx);
-	// const nft = suinsTx.register({
-	// 	domain: 'testinsssg1ddd2345.sui',
-	// 	years: 3,
-	// 	coinConfig,
-	// 	discountInfo: {
-	// 		discountNft,
-	// 		type: discountNftType,
-	// 	},
-	// 	priceInfoObjectId,
-	// });
+	const [coin] = suinsTx.transaction.splitCoins();
 
 	// /* Registration Example Using USDC */
 	const nft = suinsTx.register({
