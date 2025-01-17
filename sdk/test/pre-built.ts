@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
-import { normalizeSuiAddress } from '@mysten/sui/utils';
+import { MIST_PER_SUI, normalizeSuiAddress } from '@mysten/sui/utils';
 import { expect } from 'vitest';
 
 import { ALLOWED_METADATA, SuinsClient, SuinsTransaction } from '../src';
@@ -55,11 +55,13 @@ export const e2eLiveNetworkDryRunFlow = async (network: 'mainnet' | 'testnet') =
 	const uniqueName =
 		(Date.now().toString(36) + Math.random().toString(36).substring(2)).repeat(2) + '.sui';
 
+	const [coinInput] = suinsTx.transaction.splitCoins(suinsTx.transaction.gas, [10 * 1_000_000_000]);
 	// register test.sui for 2 years.
-	const { nft } = suinsTx.register({
+	const { nft, coin } = suinsTx.register({
 		domain: uniqueName,
 		years: 2,
 		coinConfig: suinsClient.config.coins.SUI,
+		coin: coinInput,
 		priceInfoObjectId,
 	});
 	// Sets the target address of the NFT.
@@ -144,7 +146,7 @@ export const e2eLiveNetworkDryRunFlow = async (network: 'mainnet' | 'testnet') =
 	});
 
 	// do it for sub nft too
-	tx.transferObjects([moreNestedNft, subNft, nft], tx.pure.address(sender));
+	tx.transferObjects([moreNestedNft, subNft, nft, coin], tx.pure.address(sender));
 
 	tx.setSender(sender);
 
