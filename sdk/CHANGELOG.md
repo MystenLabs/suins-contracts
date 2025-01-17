@@ -1,5 +1,11 @@
 # @mysten/suins
 
+## 0.6.0
+
+### Minor Changes
+
+- 74f634f: Minor bump
+
 ## 0.5.5
 
 ### Patch Changes
