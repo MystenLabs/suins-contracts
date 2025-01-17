@@ -32,7 +32,7 @@ const register = async (name: string, years: number) => {
 	});
 
     // Transfer the name's NFT
-    transaction.transferObjects([nft, coin], transaction.pure.address('0xMyAddress'));
+    transaction.transferObjects([nft], transaction.pure.address('0xMyAddress'));
 
     // ... sign and execute the transaction
 }
@@ -60,7 +60,6 @@ const renew = async (nftId: string, name: string, years: number) => {
         coin,
 		priceInfoObjectId, // Only required for SUI/NS
 	});
-    transaction.transferObjects([coin], transaction.pure.address('0xMyAddress'));
 
     // ... sign and execute the transaction
 }

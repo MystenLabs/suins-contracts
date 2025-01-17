@@ -35,7 +35,7 @@ Call the `getPricelist` method on the `SuinsClient` instance to query the active
 const priceList = await suinsClient.getPriceList();
 console.log(priceList);
 
-// ([domain_length_from, domain_length_to]: price. Prices are in MIST; 1 USDC = 1_000_000 MIST)
+// ([domain_length_from, domain_length_to]: price. Prices are in USDC MIST; 1 USDC = 1_000_000 MIST)
 // Example output:
 // {
 // 	[ 3, 3 ] => 500000000,
@@ -52,7 +52,7 @@ Call the `getRenewalPricelist` method on the `SuinsClient` instance to query the
 const renewalPriceList = await suinsClient.getRenewalPricelist();
 console.log(renewalPriceList);
 
-// ([domain_length_from, domain_length_to]: price. Prices are in MIST; 1 USDC = 1_000_000 MIST)
+// ([domain_length_from, domain_length_to]: price. Prices are in USDC MIST; 1 USDC = 1_000_000 MIST)
 // Example output:
 // {
 // 	[ 3, 3 ] => 500000000,
