@@ -55,7 +55,7 @@ export const e2eLiveNetworkDryRunFlow = async (network: 'mainnet' | 'testnet') =
 	const uniqueName =
 		(Date.now().toString(36) + Math.random().toString(36).substring(2)).repeat(2) + '.sui';
 
-	const [coinInput] = suinsTx.transaction.splitCoins(suinsTx.transaction.gas, [10 * 1_000_000_000]);
+	const [coinInput] = suinsTx.transaction.splitCoins(suinsTx.transaction.gas, [10n * MIST_PER_SUI]);
 	// register test.sui for 2 years.
 	const { nft, coin } = suinsTx.register({
 		domain: uniqueName,
