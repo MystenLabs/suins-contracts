@@ -1,5 +1,11 @@
 # @mysten/suins
 
+## 0.5.5
+
+### Patch Changes
+
+- 3e705e1: Downgrade sui dependency
+
 ## 0.5.4
 
 ### Patch Changes
