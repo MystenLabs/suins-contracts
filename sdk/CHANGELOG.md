@@ -1,5 +1,11 @@
 # @mysten/suins
 
+## 0.6.2
+
+### Patch Changes
+
+- b55dc9f: Add support for sui
+
 ## 0.6.1
 
 ### Patch Changes
