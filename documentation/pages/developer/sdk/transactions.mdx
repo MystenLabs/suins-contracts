@@ -27,12 +27,12 @@ const register = async (name: string, years: number) => {
 		domain: 'myname.sui',
 		years: 3,
 		coinConfig,
-        coinId: '0xMyCoinObject', // Only required for NS/USDC
+        coin,
 		priceInfoObjectId, // Only required for SUI/NS
 	});
 
     // Transfer the name's NFT
-    transaction.transferObjects([nft], transaction.pure.address('0xMyAddress'));
+    transaction.transferObjects([nft, coin], transaction.pure.address('0xMyAddress'));
 
     // ... sign and execute the transaction
 }
@@ -57,9 +57,10 @@ const renew = async (nftId: string, name: string, years: number) => {
 		nft: '0xMyNftObject',
 		years: 3,
 		coinConfig,
-        coinId: '0x0', // Only required for NS/USDC
+        coin,
 		priceInfoObjectId, // Only required for SUI/NS
 	});
+    transaction.transferObjects([coin], transaction.pure.address('0xMyAddress'));
 
     // ... sign and execute the transaction
 }
