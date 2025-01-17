@@ -1,6 +1,6 @@
 {
 	"name": "@mysten/suins",
-	"version": "0.5.4",
+	"version": "0.5.5",
 	"description": "An SDK to simplify SuiNS integration.",
 	"license": "Apache-2.0",
 	"private": false,
