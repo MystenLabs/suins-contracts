@@ -57,7 +57,7 @@ export const e2eLiveNetworkDryRunFlow = async (network: 'mainnet' | 'testnet') =
 
 	const [coinInput] = suinsTx.transaction.splitCoins(suinsTx.transaction.gas, [10n * MIST_PER_SUI]);
 	// register test.sui for 2 years.
-	const { nft, coin } = suinsTx.register({
+	const nft = suinsTx.register({
 		domain: uniqueName,
 		years: 2,
 		coinConfig: suinsClient.config.coins.SUI,
@@ -146,7 +146,7 @@ export const e2eLiveNetworkDryRunFlow = async (network: 'mainnet' | 'testnet') =
 	});
 
 	// do it for sub nft too
-	tx.transferObjects([moreNestedNft, subNft, nft, coin!], tx.pure.address(sender));
+	tx.transferObjects([moreNestedNft, subNft, nft, coinInput], tx.pure.address(sender));
 
 	tx.setSender(sender);
 
