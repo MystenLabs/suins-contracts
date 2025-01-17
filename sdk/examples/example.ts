@@ -28,7 +28,7 @@ import { SuinsTransaction } from '../src/suins-transaction';
 	console.log(await suinsClient.getCoinTypeDiscount());
 
 	/* Following can be used to fetch the domain record */
-	console.log('Domain Record: ', await suinsClient.getNameRecord('testing12345.sui'));
+	console.log('Domain Record: ', await suinsClient.getNameRecord('myname.sui'));
 
 	/* If discount NFT is used */
 	// const discountNft = '0xMyDiscountNft'; // This can be a string or a kioskTransactionArgument
@@ -58,7 +58,6 @@ import { SuinsTransaction } from '../src/suins-transaction';
 	// 	domain: 'myname.sui',
 	// 	years: 2,
 	// 	coinConfig,
-	// 	couponCode: 'fiveplus15percentoff',
 	// 	coin,
 	// });
 
@@ -69,16 +68,15 @@ import { SuinsTransaction } from '../src/suins-transaction';
 	// 	nft: '0xMyNft',
 	// 	years: 2,
 	// 	coinConfig,
-	// 	couponCode: 'fiveplus15percentoff',
-	// 	coin: '0x8211160f8d782d11bdcfbe625880bc3d944ddb09b4a815278263260b037cd509',
+	// 	coin,
 	// 	priceInfoObjectId,
 	// });
 
 	/* Optionally set target address */
-	suinsTx.setTargetAddress({ nft, address: 'YOUR_ADDRESS' });
+	suinsTx.setTargetAddress({ nft, address: '0xMyAddress' });
 
 	/* Optionally set default */
-	suinsTx.setDefault('name123.sui');
+	suinsTx.setDefault('myname.sui');
 
 	/* Optionally set user data */
 	suinsTx.setUserData({
@@ -95,8 +93,8 @@ import { SuinsTransaction } from '../src/suins-transaction';
 
 	/* Subname Example */
 	// const subnameNft = suinsTx.createSubName({
-	// 	parentNft: '0x0',
-	// 	name: 'name.name123.sui',
+	// 	parentNft: '0xMyParentNft',
+	// 	name: 'name.myname.sui',
 	// 	expirationTimestampMs: 1862491339394,
 	// 	allowChildCreation: true,
 	// 	allowTimeExtension: true,
@@ -105,7 +103,7 @@ import { SuinsTransaction } from '../src/suins-transaction';
 
 	/* Extend Subname Expiration */
 	// suinsTx.extendExpiration({
-	// 	nft: '0x0',
+	// 	nft: '0xMySubnameNft',
 	// 	expirationTimestampMs: 1862511339394,
 	// });
 })();

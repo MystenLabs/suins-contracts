@@ -24,12 +24,12 @@ const register = async (name: string, years: number) => {
 
     // Build the transaction to register the name, specifying a year from 1 to 5.
     const nft = suinsTx.register({
-    	domain: 'myname.sui',
-    	years: 3,
-    	coinConfig,
-		coin,
-		priceInfoObjectId, // Only required for SUI/NS
-	});
+        domain: 'myname.sui',
+        years: 3,
+        coinConfig,
+        coin,
+        priceInfoObjectId, // Only required for SUI/NS
+    });
 
     // Transfer the name's NFT
     transaction.transferObjects([nft], transaction.pure.address('0xMyAddress'));
@@ -47,19 +47,19 @@ const renew = async (nftId: string, name: string, years: number) => {
     // Pass in the transaction block & the app's global SuinsClient.
     const suinsTransaction = new SuinsTransaction(suinsClient, transaction);
     // Specify the coin type used for the transaction, can be SUI/NS/USDC
-	const coinConfig = suinsClient.config.coins.USDC;
+    const coinConfig = suinsClient.config.coins.USDC;
 
     // priceInfoObjectId is required for SUI/NS
-	const priceInfoObjectId = await suinsClient.getPriceInfoObject(tx, coinConfig.feed)[0];
+    const priceInfoObjectId = await suinsClient.getPriceInfoObject(tx, coinConfig.feed)[0];
 
-	// Build the transaction to register the name, specifying a year from 1 to 5.
-	suinsTx.renew({
-		nft: '0xMyNftObject',
-		years: 3,
-		coinConfig,
+    // Build the transaction to renew the name, specifying a year from 1 to 5.
+    suinsTx.renew({
+        nft: '0xMyNftObject',
+        years: 3,
+        coinConfig,
         coin,
-		priceInfoObjectId, // Only required for SUI/NS
-	});
+        priceInfoObjectId, // Only required for SUI/NS
+    });
 
     // ... sign and execute the transaction
 }
@@ -301,22 +301,22 @@ const composedExample = async (name: string, years: number) => {
     // Pass in the transaction block & the app's global SuinsClient.
     const suinsTransaction = new SuinsTransaction(suinsClient, transaction);
     // Specify the coin type used for the transaction, can be SUI/NS/USDC
-	const coinConfig = suinsClient.config.coins.NS;
+    const coinConfig = suinsClient.config.coins.NS;
 
     // priceInfoObjectId is required for SUI/NS
-	const priceInfoObjectId = await suinsClient.getPriceInfoObject(tx, coinConfig.feed)[0];
+    const priceInfoObjectId = await suinsClient.getPriceInfoObject(tx, coinConfig.feed)[0];
 
-	// Build the transaction to register the name, specifying a year from 1 to 5.
-	const nft = suinsTx.register({
-		domain: 'myname.sui',
-		years,
-		coinConfig,
+    // Build the transaction to register the name, specifying a year from 1 to 5.
+    const nft = suinsTx.register({
+        domain: 'myname.sui',
+        years,
+        coinConfig,
         coinId: '0xMyCoinObject', // Only required for NS/USDC
-		priceInfoObjectId, // Only required for SUI/NS
-	});
+        priceInfoObjectId, // Only required for SUI/NS
+    });
 
     // You can now use this NFT, for instance to set its target address.
-	suinsTransaction.setTargetAddress({
+    suinsTransaction.setTargetAddress({
         nft,
         address,
         isSubname: false,
@@ -324,7 +324,7 @@ const composedExample = async (name: string, years: number) => {
 
     // And you could also set this name as the default name for `0xMyAddress`.
     // This is only possible if the address signs and executes the transaction.
-	suinsTransaction.setDefault(name);
+    suinsTransaction.setDefault(name);
 
     // Transfer the name's NFT to the address.
     transaction.transferObjects([nft], transaction.pure.address('0xMyAddress'));
