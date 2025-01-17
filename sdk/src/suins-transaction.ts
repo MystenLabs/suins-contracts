@@ -207,9 +207,7 @@ export class SuinsTransaction {
 	};
 
 	generateReceipt = (params: ReceiptParams): TransactionObjectArgument => {
-		const config = this.suinsClient.config;
 		const baseAssetPurchase = params.coinConfig.feed === '';
-		const isSui = params.coinConfig === config.coins.SUI;
 		if (baseAssetPurchase) {
 			const payment = params.coin
 				? this.transaction.splitCoins(this.transaction.object(params.coin), [
@@ -227,13 +225,9 @@ export class SuinsTransaction {
 				params.coinConfig.type,
 				priceInfoObjectId,
 			);
-			if (!isSui && !params.coin) throw new Error('coin is required for non-SUI payments');
-			const payment = isSui
-				? this.transaction.splitCoins(this.transaction.gas, [price])
-				: this.transaction.splitCoins(this.transaction.object(params.coin!), [price]);
+			if (!params.coin) throw new Error('coin input is required');
+			const payment = this.transaction.splitCoins(this.transaction.object(params.coin!), [price]);
 			const receipt = this.handlePayment(
-				// Change to object style input
-				// Adding removed, perform transaction as is
 				params.paymentIntent,
 				payment,
 				params.coinConfig.type,
