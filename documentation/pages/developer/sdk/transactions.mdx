@@ -17,17 +17,17 @@ const register = async (name: string, years: number) => {
     // Pass in the transaction block & the app's global SuinsClient.
     const suinsTransaction = new SuinsTransaction(suinsClient, transaction);
     // Specify the coin type used for the transaction, can be SUI/NS/USDC
-	const coinConfig = suinsClient.config.coins.USDC;
+    const coinConfig = suinsClient.config.coins.USDC;
 
     // priceInfoObjectId is required for SUI/NS
-	const priceInfoObjectId = await suinsClient.getPriceInfoObject(tx, coinConfig.feed)[0];
+    const priceInfoObjectId = await suinsClient.getPriceInfoObject(tx, coinConfig.feed)[0];
 
-	// Build the transaction to register the name, specifying a year from 1 to 5.
-	const nft = suinsTx.register({
-		domain: 'myname.sui',
-		years: 3,
-		coinConfig,
-        coin,
+    // Build the transaction to register the name, specifying a year from 1 to 5.
+    const nft = suinsTx.register({
+    	domain: 'myname.sui',
+    	years: 3,
+    	coinConfig,
+		coin,
 		priceInfoObjectId, // Only required for SUI/NS
 	});
 
