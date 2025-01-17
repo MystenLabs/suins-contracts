@@ -146,7 +146,7 @@ export const e2eLiveNetworkDryRunFlow = async (network: 'mainnet' | 'testnet') =
 	});
 
 	// do it for sub nft too
-	tx.transferObjects([moreNestedNft, subNft, nft, coin], tx.pure.address(sender));
+	tx.transferObjects([moreNestedNft, subNft, nft, coin!], tx.pure.address(sender));
 
 	tx.setSender(sender);
 
