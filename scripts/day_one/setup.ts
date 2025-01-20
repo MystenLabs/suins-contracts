@@ -54,7 +54,7 @@ export const createDayOneTransferPolicy = async (tx: Transaction, network: Netwo
 	const existingPolicy = await kioskClient.getTransferPolicies({ type: dayOneType(config) });
 
 	if (existingPolicy.length > 0) {
-		console.warn(`Type ${dayOneType} already had a tranfer policy so the transaction was skipped.`);
+		console.warn(`Type ${dayOneType} already had a transfer policy so the transaction was skipped.`);
 		return false;
 	}
 
