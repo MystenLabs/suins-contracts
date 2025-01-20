@@ -16,7 +16,7 @@ const EInvalidDiscountPercentage: u64 = 1;
 /// discount percentage, or any value > 0 for fixed price.
 public struct Coupon has copy, store, drop {
     kind: u8, // 0 -> Percentage Discount | 1 -> Fixed Discount
-    amount: u64, // if type == 0, we need it to be between 0, 100. We only allow int stlye (not 0.5% discount).
+    amount: u64, // if type == 0, we need it to be between 0, 100. We only allow int style (not 0.5% discount).
     rules: CouponRules, // A list of base Rules for the coupon.
 }
 

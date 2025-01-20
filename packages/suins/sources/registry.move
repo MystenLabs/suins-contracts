@@ -54,7 +54,7 @@ public fun new(_: &AdminCap, ctx: &mut TxContext): Registry {
     }
 }
 
-/// Attemps to add a new record to the registry without looking at the grace
+/// Attempts to add a new record to the registry without looking at the grace
 /// period.
 /// Currently used for subdomains where there's no grace period to respect.
 /// Returns a `SuinsRegistration` upon success.
