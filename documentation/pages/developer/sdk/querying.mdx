@@ -10,13 +10,20 @@ You can query a name record's latest state by calling the `getNameRecord` method
 const nameRecord = await suinsClient.getNameRecord('demo.sui');
 console.log(nameRecord);
 
-// Example output 
+// Example output
 // {
 //   name: 'demo.sui',
-//   nftId: '0x1309c4b6fefb38127333eba70ac9ed63e211ac44e92695d423e51baf655e42e2',
-//   targetAddress: '0xfe09cf0b3d77678b99250572624bf74fe3b12af915c5db95f0ed5d755612eb68',
+//   nftId: '0xMyNftId',
+//   targetAddress: '0xTargetAddress',
 //   expirationTimestampMs: '1746018571863',
-//   data: {},
+//   data: {
+//      avatar: '0xAvatarObjectId',
+//      contentHash: 'content',
+//      walrusSiteId: '0xWalrusSiteId',
+//   },
+//   avatar: '0xAvatarObjectId',
+//   contentHash: 'content',
+//   walrusSiteId: '0xWalrusSiteId',
 // }
 ```
 
@@ -28,11 +35,12 @@ Call the `getPricelist` method on the `SuinsClient` instance to query the active
 const priceList = await suinsClient.getPriceList();
 console.log(priceList);
 
-// Example output (Prices are in MIST; 1 SUI = 1_000_000_000 MIST)
+// ([domain_length_from, domain_length_to]: price. Prices are in USDC MIST; 1 USDC = 1_000_000 MIST)
+// Example output:
 // {
-//   threeLetters: 500000000000,
-//   fourLetters: 100000000000,
-//   fivePlusLetters: 20000000000
+// 	[ 3, 3 ] => 500000000,
+// 	[ 4, 4 ] => 100000000,
+// 	[ 5, 63 ] => 20000000
 // }
 ```
 
@@ -44,11 +52,11 @@ Call the `getRenewalPricelist` method on the `SuinsClient` instance to query the
 const renewalPriceList = await suinsClient.getRenewalPricelist();
 console.log(renewalPriceList);
 
-// Example output (Prices are in MIST; 1 SUI = 1_000_000_000 MIST)
+// ([domain_length_from, domain_length_to]: price. Prices are in USDC MIST; 1 USDC = 1_000_000 MIST)
+// Example output:
 // {
-//   threeLetters: 50000000000,
-//   fourLetters: 10000000000,
-//   fivePlusLetters: 2000000000
+// 	[ 3, 3 ] => 500000000,
+// 	[ 4, 4 ] => 100000000,
+// 	[ 5, 63 ] => 20000000
 // }
 ```
-
