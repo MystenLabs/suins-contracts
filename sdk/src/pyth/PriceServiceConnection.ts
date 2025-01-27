@@ -11,11 +11,9 @@ export type PriceFeedRequestConfig = {
 export type PriceServiceConnectionConfig = {
 	timeout?: number;
 	httpRetries?: number;
-	priceFeedRequestConfig?: PriceFeedRequestConfig;
 };
 export class PriceServiceConnection {
 	private httpClient: AxiosInstance;
-	private priceFeedRequestConfig: PriceFeedRequestConfig;
 	/**
 	 * Constructs a new Connection.
 	 *
@@ -31,10 +29,6 @@ export class PriceServiceConnection {
 			retries: config?.httpRetries || 3,
 			retryDelay: axiosRetry.exponentialDelay,
 		});
-		this.priceFeedRequestConfig = {
-			verbose: config?.priceFeedRequestConfig?.verbose ?? false,
-			binary: config?.priceFeedRequestConfig?.binary ?? false,
-		};
 	}
 	/**
 	 * Fetch latest VAAs of given price IDs.
