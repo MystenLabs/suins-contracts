@@ -45,7 +45,9 @@
 	},
 	"dependencies": {
 		"@mysten/sui": "1.18.1",
-		"@pythnetwork/pyth-sui-js": "2.1.0"
+		"axios": "^0.24.0",
+		"axios-retry": "^3.9.1",
+		"buffer": "^6.0.3"
 	},
 	"devDependencies": {
 		"@types/tmp": "^0.2.6",

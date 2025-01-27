@@ -3,8 +3,8 @@
 import { SuiClient } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
 import { isValidSuiNSName, normalizeSuiNSName } from '@mysten/sui/utils';
-import { SuiPriceServiceConnection, SuiPythClient } from '@pythnetwork/pyth-sui-js';
 
+import { SuiPriceServiceConnection, SuiPythClient } from '../src/pyth/pyth';
 import {
 	getCoinDiscountConfigType,
 	getConfigType,

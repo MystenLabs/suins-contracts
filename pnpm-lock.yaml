@@ -120,9 +120,15 @@ importers:
       '@mysten/sui':
         specifier: 1.18.1
         version: 1.18.1(svelte@4.2.15)(typescript@5.7.3)
-      '@pythnetwork/pyth-sui-js':
-        specifier: 2.1.0
-        version: 2.1.0(svelte@4.2.15)(typescript@5.7.3)
+      axios:
+        specifier: ^0.24.0
+        version: 0.24.0
+      axios-retry:
+        specifier: ^3.9.1
+        version: 3.9.1
+      buffer:
+        specifier: ^6.0.3
+        version: 6.0.3
     devDependencies:
       '@types/tmp':
         specifier: ^0.2.6
@@ -1999,6 +2005,9 @@ packages:
 
   axios-retry@3.9.1:
     resolution: {integrity: sha512-8PJDLJv7qTTMMwdnbMvrLYuvB47M81wRtxQmEdV5w4rgbTXTt+vtPkXwajOfOdSyv/wZICJOC+/UhXH4aQ/R+w==}
+
+  axios@0.24.0:
+    resolution: {integrity: sha512-Q6cWsys88HoPgAaFAVUb0WpPk0O8iTeisR9IMqy9G8AbO4NlpVknrnQS03zzF9PGAWgO3cgletO3VjV/P7VztA==}
 
   axios@1.6.8:
     resolution: {integrity: sha512-v/ZHtJDU39mDpyBoFVkETcd/uNdxrWRrg3bKpOKzXFA6Bvqopts6ALSMU3y6ijYxbw2B+wPrIv46egTzJXCLGQ==}
@@ -7269,6 +7278,12 @@ snapshots:
     dependencies:
       '@babel/runtime': 7.24.5
       is-retry-allowed: 2.2.0
+
+  axios@0.24.0:
+    dependencies:
+      follow-redirects: 1.15.6
+    transitivePeerDependencies:
+      - debug
 
   axios@1.6.8:
     dependencies:
