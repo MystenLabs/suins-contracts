@@ -41,7 +41,7 @@ import { SuinsTransaction } from '../src/suins-transaction';
 
 	/* Registration Example Using NS */
 	const coinConfig = suinsClient.config.coins.NS; // Specify the coin type used for the transaction
-	const priceInfoObjectId = await suinsClient.getPriceInfoObject(tx, coinConfig.feed)[0];
+	const priceInfoObjectId = (await suinsClient.getPriceInfoObject(tx, coinConfig.feed))[0];
 	const nft = suinsTx.register({
 		domain: 'myname.sui',
 		years: 2,
