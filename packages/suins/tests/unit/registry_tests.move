@@ -117,7 +117,7 @@ fun override_leaf_record_after_change_of_parent_owner() {
         &mut ctx,
     );
 
-    // override both leaf records, one with a node subdomain, the other iwth a
+    // override both leaf records, one with a node subdomain, the other with a
     // leaf subdomain
     let normal_subdomain_override = registry.add_record_ignoring_grace_period(
         domain::new(utf8(b"test.test.sui")),

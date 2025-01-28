@@ -109,7 +109,7 @@ module day_one::day_one {
 
     /// Private helper to activate the DayOne object
     /// Will only be called by the `bogo` module (friend), which marks the
-    /// beggining of the DayOne promotions.
+    /// beginning of the DayOne promotions.
     public(package) fun activate(self: &mut DayOne) {
         self.active = true
     }

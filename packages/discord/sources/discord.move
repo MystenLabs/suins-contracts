@@ -124,7 +124,7 @@ module discord::discord {
         // The signed message should contain a valid `discord_id : roles` mapping
         assert!(ecdsa_k1::secp256k1_verify(&signature, &discord.public_key, &msg_bytes, 1), ESignatureNotMatch);
 
-        // if the table doens't contain that discord membership,add it.
+        // if the table doesn't contain that discord membership,add it.
         if (!discord.users.contains(discord_id)) {
             discord.users.add(discord_id, new_member());
         };
@@ -195,7 +195,7 @@ module discord::discord {
 
     /// We allow adding discord roles, but not removing one.
     /// This way we make sure that unique role_ids are mapped per Member.
-    /// We can simply ignore (not sign) any messages tht include this role.
+    /// We can simply ignore (not sign) any messages that include this role.
     public fun add_discord_role(_: &DiscordCap, discord: &mut Discord, role_id: u8, discount: u8) {
         // check if discount amount is valid.
         assert_is_valid_discount(discount);

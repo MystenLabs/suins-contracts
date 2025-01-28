@@ -20,7 +20,7 @@ use suins::registry;
 use suins::suins;
 
 #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
-fun try_unathorized_fail() {
+fun try_unauthorized_fail() {
     let mut ctx = tx_context::dummy();
     let mut suins = suins::init_for_testing(&mut ctx);
     let cap = suins::create_admin_cap_for_testing(&mut ctx);
