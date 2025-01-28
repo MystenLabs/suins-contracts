@@ -121,8 +121,8 @@ module suins::day_one_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = bogo::ESizeMissMatch)]
-    fun failure_test_length_missmatch() {
+    #[expected_failure(abort_code = bogo::ESizeMismatch)]
+    fun failure_test_length_mismatch() {
       // Tries to register a 4 letter domain while presenting a 3 letter one.
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -171,8 +171,8 @@ module suins::day_one_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = bogo::ESizeMissMatch)]
-    fun failure_test_length_missmatch_2() {
+    #[expected_failure(abort_code = bogo::ESizeMismatch)]
+    fun failure_test_length_mismatch_2() {
         // Tries to claim a 3 letter name using a 4 letter domain.
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -194,8 +194,8 @@ module suins::day_one_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = bogo::ESizeMissMatch)]
-    fun failure_test_length_missmatch_3() {
+    #[expected_failure(abort_code = bogo::ESizeMismatch)]
+    fun failure_test_length_mismatch_3() {
         // tries to get a 4 digit name using a 5 digit one.
         let mut scenario_val = test_init();
         let scenario = &mut scenario_val;
@@ -216,8 +216,8 @@ module suins::day_one_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = bogo::ESizeMissMatch)]
-    fun failure_test_length_missmatch_4() {
+    #[expected_failure(abort_code = bogo::ESizeMismatch)]
+    fun failure_test_length_mismatch_4() {
         // tries to get an 8 digit name using a 3 digit one.
         // protects the user from mistakes.
         let mut scenario_val = test_init();
@@ -239,7 +239,7 @@ module suins::day_one_tests {
     }
 
     #[test]
-    fun test_acceptable_length_missmatch() {
+    fun test_acceptable_length_mismatch() {
         // We allow purchasing a domain of size 5+ if we pass a 5 length domain.
         // we only care about 3 & 4 digits.
         let mut scenario_val = test_init();

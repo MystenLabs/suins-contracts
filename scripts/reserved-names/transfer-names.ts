@@ -93,7 +93,7 @@ const prepareTx = () => {
 	return prepareMultisigTx(txb, 'mainnet', pkg.adminAddress);
 };
 
-// parses all owned OBjects from `json` file.
+// parses all owned Objects from `json` file.
 // If you want to refresh the owned data for the SuiNS admin, re-run `ts-node objects.ts`.
 parseOwnedObjects();
 // Parses the `transfers.csv` file, and creates the list of object transfers
