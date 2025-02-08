@@ -73,7 +73,7 @@ module subdomains::config {
     }
 
     /// Validates that the TLD of the domain is supported for subdomains.
-    /// In the beggining, only .sui names will be supported but we might 
+    /// In the beginning, only .sui names will be supported but we might 
     /// want to add support for others (or not allow).
     /// (E.g., with `.move` service, we might want to restrict how subdomains are created)
     public fun is_valid_tld(domain: &Domain, config: &SubDomainConfig): bool {

@@ -170,7 +170,7 @@ public fun add_leaf_record(
 
     // Make sure that the parent isn't expired (because leaf record is invalid
     // in that case).
-    // Ignores grace period is it's only there so you don't accidently forget to
+    // Ignores grace period is it's only there so you don't accidentally forget to
     // renew your name.
     assert!(!parent_name_record.has_expired(clock), ERecordExpired);
 
@@ -256,7 +256,7 @@ public fun set_expiration_timestamp_ms(
 
 /// Update the `data` of the given `NameRecord` using a `SuinsRegistration`.
 /// Use with caution and validate(!!) that any system fields are not removed
-/// (accidently),
+/// (accidentally),
 /// when building authorized packages that can write the metadata field.
 public fun set_data(
     self: &mut Registry,
