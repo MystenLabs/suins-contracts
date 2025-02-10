@@ -108,7 +108,7 @@ module subdomains::subdomains {
     /// 3. Validates that the parent can create subdomains (based on the on-chain setup). [all 2nd level names with valid tld can create names]
     /// 4. Validates the subdomain validity.
     ///     2.1 Checks that the TLD is in the list of supported tlds.
-    ///     2.2 Checks that the length of the new label has the min lenth.
+    ///     2.2 Checks that the length of the new label has the min length.
     ///     2.3 Validates that this subdomain can indeed be registered by that parent.
     ///     2.4 Validates that the subdomain's expiration timestamp is less or equal to the parents.
     ///     2.5 Checks if this subdomain already exists. [If it does, it aborts if it's not expired, overrides otherwise]
