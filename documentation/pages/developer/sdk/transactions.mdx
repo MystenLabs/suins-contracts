@@ -20,7 +20,7 @@ const register = async (name: string, years: number) => {
     const coinConfig = suinsClient.config.coins.USDC;
 
     // priceInfoObjectId is required for SUI/NS
-    const priceInfoObjectId = await suinsClient.getPriceInfoObject(tx, coinConfig.feed)[0];
+    const priceInfoObjectId = (await suinsClient.getPriceInfoObject(tx, coinConfig.feed))[0];
 
     // Build the transaction to register the name, specifying a year from 1 to 5.
     const nft = suinsTx.register({
@@ -50,7 +50,7 @@ const renew = async (nftId: string, name: string, years: number) => {
     const coinConfig = suinsClient.config.coins.USDC;
 
     // priceInfoObjectId is required for SUI/NS
-    const priceInfoObjectId = await suinsClient.getPriceInfoObject(tx, coinConfig.feed)[0];
+    const priceInfoObjectId = (await suinsClient.getPriceInfoObject(tx, coinConfig.feed))[0];
 
     // Build the transaction to renew the name, specifying a year from 1 to 5.
     suinsTx.renew({
@@ -304,7 +304,7 @@ const composedExample = async (name: string, years: number) => {
     const coinConfig = suinsClient.config.coins.NS;
 
     // priceInfoObjectId is required for SUI/NS
-    const priceInfoObjectId = await suinsClient.getPriceInfoObject(tx, coinConfig.feed)[0];
+    const priceInfoObjectId = (await suinsClient.getPriceInfoObject(tx, coinConfig.feed))[0];
 
     // Build the transaction to register the name, specifying a year from 1 to 5.
     const nft = suinsTx.register({
