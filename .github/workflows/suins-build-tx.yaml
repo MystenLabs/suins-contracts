@@ -11,12 +11,11 @@ on:
           - Multi Purpose Operation
           - Profits to Treasury
           - Transfer Reserved Names
-          - Transfer Admin Caps
           - Free Coupons
           - Create Coupons
           - Upgrade SuiNS
           - Upgrade Coupons
-          - Authorize Packages
+          - Create MVR Names
       sui_tools_image:
         description: 'image reference of sui_tools'
         default: 'mysten/sui-tools:mainnet'
@@ -91,16 +90,6 @@ jobs:
         run: |
           cd scripts && pnpm transfer::names
 
-      - name: Transfer Admin Caps
-        if: ${{ inputs.transaction_type == 'Transfer Admin Caps' }}
-        env:
-          NODE_ENV: production
-          GAS_OBJECT: ${{ inputs.gas_object_id }}
-          NETWORK: mainnet
-          ORIGIN: gh_action
-        run: |
-          cd scripts && pnpm transfer::caps
-
       - name: Multi Purpose Operation
         if: ${{ inputs.transaction_type == 'Multi Purpose Operation' }}
         env:
@@ -167,8 +156,8 @@ jobs:
         run: |
           cd scripts && pnpm ts-node transactions/coupons_upgrade.ts
 
-      - name: Authorize Packages
-        if: ${{ inputs.transaction_type == 'Authorize Packages' }}
+      - name: Create MVR Names
+        if: ${{ inputs.transaction_type == 'Create MVR Names' }}
         env:
           NODE_ENV: production
           GAS_OBJECT: ${{ inputs.gas_object_id }}
@@ -176,7 +165,7 @@ jobs:
           ORIGIN: gh_action
           RPC_URL: ${{ inputs.rpc }}
         run: |
-          cd scripts && pnpm ts-node transactions/mainnet-setup.ts
+          cd scripts && pnpm ts-node transactions/register-mvr-tx.ts
 
       - name: Show Transaction Data (To sign)
         run: |
