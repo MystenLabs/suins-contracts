@@ -20,6 +20,7 @@ export type PackageInfo = {
 	upgradeCap?: string;
 	publisherId: string;
 	adminAddress: string;
+	previousAdminAddress?: string;
 	adminCap: string;
 	suins: string;
 	displayObject?: string;
@@ -62,6 +63,7 @@ export const mainPackage: Config = {
 		adminAddress: normalizeSuiAddress(
 			'0x9b388a6da9dd4f73e0b13abc6100f1141782ef105f6f5e9d986fb6e00f0b2591',
 		),
+		previousAdminAddress: '0xa81a2328b7bbf70ab196d6aca400b5b0721dec7615bf272d95e0b0df04517e72',
 		adminCap: '0x3f8d702d90c572b60ac692fb5074f7a7ac350b80d9c59eab4f6b7692786cae0a',
 		suins: '0x6e0ddefc0ad98889c04bab9639e512c21766c5e6366f89e696956d9be6952871',
 		displayObject: '0x866fbd8e51b6637c25f0e811ece9a85eb417f3987ecdfefb80f15d1192d72b4c',

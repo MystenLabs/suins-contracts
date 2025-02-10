@@ -147,7 +147,7 @@ export const prepareMultisigTx = async (tx: Transaction, network: Network, addre
 	const gasObjectId = process.env.GAS_OBJECT;
 
 	// enabling the gas Object check only on mainnet, to allow testnet multisig tests.
-	if (!gasObjectId) throw new Error('No gas object supplied for a mainnet transaction');
+	if (!gasObjectId) throw new Error('No gas object supplied for a mainnet transaction. Export it using GAS_OBJECT');
 
 	// Prevent any possible RGP changes across epoch change, which would invalidate the transaction.
 	tx.setGasPrice(1_000);
