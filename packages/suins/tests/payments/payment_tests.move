@@ -208,7 +208,7 @@ fun try_to_renew_using_registration_receipt() {
     abort 1337
 }
 
-#[test, expected_failure(abort_code = ::suins::payment::EReceiptDomainMissmatch)]
+#[test, expected_failure(abort_code = ::suins::payment::EReceiptDomainMismatch)]
 fun try_to_renew_with_other_name_receipt() {
     let mut ctx = tx_context::dummy();
     let mut suins = setup_suins(&mut ctx);

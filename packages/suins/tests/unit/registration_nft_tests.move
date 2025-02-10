@@ -8,7 +8,7 @@
 /// - make sure that new NFTs get correct a expiration setting
 /// - IMPORTANT: test expiration timestamps and the grace period
 ///
-module suins::registation_nft_tests;
+module suins::registration_nft_tests;
 
 use std::string::{utf8, String};
 use sui::clock::{Self, Clock};

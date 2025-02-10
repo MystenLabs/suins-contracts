@@ -11,7 +11,7 @@ const EInvalidLength: u64 = 1;
 const EInvalidRange: u64 = 2;
 /// Tries to create a pricing config with different lengths for ranges and
 /// prices
-const ELengthMissmatch: u64 = 3;
+const ELengthMismatch: u64 = 3;
 /// Tries to calculate the price for a given length
 const EPriceNotSet: u64 = 4;
 
@@ -47,7 +47,7 @@ public fun calculate_base_price(config: &PricingConfig, length: u64): u64 {
 ///
 /// All the ranges are inclusive (e.g. [3,5]: includes 3, 4, and 5).
 public fun new(ranges: vector<Range>, prices: vector<u64>): PricingConfig {
-    assert!(ranges.length() == prices.length(), ELengthMissmatch);
+    assert!(ranges.length() == prices.length(), ELengthMismatch);
     // Validate that our ranges are passed in the correct order
     // we expect them to be sorted in ascending order, and we expect them
     // to not have any overlaps.

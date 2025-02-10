@@ -42,7 +42,7 @@ const ERecordNotFound: vector<u8> =
 #[error]
 const ERecordExpired: vector<u8> = b"Tries to renew an expired name (post grace period).";
 #[error]
-const EReceiptDomainMissmatch: vector<u8> =
+const EReceiptDomainMismatch: vector<u8> =
     b"The receipt domain does not match the domain of the NFT.";
 #[error]
 const EVersionMismatch: vector<u8> =
@@ -254,7 +254,7 @@ public fun renew(
             let max_years = config.max_years();
 
             assert!(version == config.payments_version(), EVersionMismatch);
-            assert!(nft.domain() == domain, EReceiptDomainMissmatch);
+            assert!(nft.domain() == domain, EReceiptDomainMismatch);
             let registry = suins.pkg_registry_mut<Registry>();
             // Calculate target expiration. Aborts if expiration or selected
             // years are invalid.
