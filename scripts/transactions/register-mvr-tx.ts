@@ -83,7 +83,7 @@ export const registerMvrApps = async () => {
 			// the registry obj: Can also be resolved as `registry-obj@mvr` from mainnet SuiNS.
 			transaction.object('0x0e5d473a055b6b7d014af557a13ad9075157fdc19b6d51562a18511afd397727'),
 			transaction.object(domainNft.data.objectId),
-			transaction.pure.string('temp-subdomains-proxy'),
+			transaction.pure.string('temp-subnames-proxy'),
 			transaction.object.clock(),
 		],
 	});
