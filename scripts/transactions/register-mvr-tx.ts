@@ -59,7 +59,7 @@ const AppsMetadata = {
 	coupons: {
 		title: 'SuiNS - Coupons Metadata',
 		versions: [
-			{ version: 1, repository: DefaultRepository, path: 'packages/coupons', sha: '5d1b2459dfde3447b12704cff5ae6f9149baaeaa' },
+			{ version: 2, repository: DefaultRepository, path: 'packages/coupons', sha: 'c33b0742cca13911357f7f9a07727c89e3f515e1' },
 		],
 		testnetPackageInfo: '',
 		testnetAddress: '',
