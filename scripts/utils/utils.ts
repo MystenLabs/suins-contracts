@@ -139,6 +139,12 @@ export const signAndExecute = async (txb: Transaction, network: Network) => {
 	});
 };
 
+export const sender = (tx: Transaction) => {
+	return tx.moveCall({
+		target: '0x2::tx_context::sender',
+	});
+};
+
 /// Builds a transaction (unsigned) and saves it on `setup/tx/tx-data.txt` (on production)
 /// or `setup/src/tx-data.local.txt` on mainnet.
 export const prepareMultisigTx = async (tx: Transaction, network: Network, address?: string) => {
@@ -147,7 +153,8 @@ export const prepareMultisigTx = async (tx: Transaction, network: Network, addre
 	const gasObjectId = process.env.GAS_OBJECT;
 
 	// enabling the gas Object check only on mainnet, to allow testnet multisig tests.
-	if (!gasObjectId) throw new Error('No gas object supplied for a mainnet transaction. Export it using GAS_OBJECT');
+	if (!gasObjectId)
+		throw new Error('No gas object supplied for a mainnet transaction. Export it using GAS_OBJECT');
 
 	// Prevent any possible RGP changes across epoch change, which would invalidate the transaction.
 	tx.setGasPrice(1_000);
