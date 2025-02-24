@@ -66,10 +66,8 @@ const publishSetup = async () => {
 	const config = mainPackage['testnet'];
 	const tx = new Transaction();
 
-	// Setup Suins
 	setupSuins(tx, config);
 
-	// Prepare multisig tx
 	console.log(await signAndExecute(tx, 'testnet'));
 };
 
