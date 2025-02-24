@@ -7,7 +7,6 @@ import { mainPackage, MIST_PER_USDC, PackageInfo } from '../config/constants';
 import { addConfig, newPriceConfigV2, newRenewalConfig, removeConfig } from '../init/authorization';
 import { signAndExecute } from '../utils/utils';
 
-// Upgrade Suins
 const setupSuins = (txb: Transaction, config: PackageInfo) => {
 	removeConfig({
 		txb,
