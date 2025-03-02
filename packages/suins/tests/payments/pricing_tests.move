@@ -80,8 +80,8 @@ fun test_range_overlap_4() {
     pricing_config::new(ranges, vector[10, 20, 30]);
 }
 
-#[test, expected_failure(abort_code = ::suins::pricing_config::ELengthMissmatch)]
-fun test_length_missmatch() {
+#[test, expected_failure(abort_code = ::suins::pricing_config::ELengthMismatch)]
+fun test_length_mismatch() {
     let ranges = vector[pricing_config::new_range(vector[10, 20])];
 
     pricing_config::new(ranges, vector[10, 20]);

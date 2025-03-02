@@ -40,7 +40,7 @@ const ENotValidForDayOne: vector<u8> = b"DayOne is not valid for this type";
 /// A key allowing DiscountHouse to apply discounts.
 public struct RegularDiscountsApp() has drop;
 
-/// A key that determins the discounts for a type `T`.
+/// A key that determines the discounts for a type `T`.
 public struct DiscountKey<phantom T>() has copy, store, drop;
 
 /// A function to register a name with a discount using type `T`.

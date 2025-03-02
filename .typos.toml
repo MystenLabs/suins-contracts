@@ -1,0 +1,5 @@
+[files]
+extend-exclude = [
+    "scripts/reserved-names/owned-objects.json",
+    "scripts/owned-objects.json",
+]
