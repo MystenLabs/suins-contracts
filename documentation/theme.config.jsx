@@ -14,7 +14,7 @@ export default {
   ),
   docsRepositoryBase: 'https://github.com/MystenLabs/suins-contracts/tree/main/documentation',
   project: {
-    link: 'https://github.com/MystenLabs/suins-contracts',
+    link: 'https://github.com/MystenLabs/suins-contracts'
   },
   useNextSeoProps() {
     const { asPath } = useRouter();
@@ -30,13 +30,13 @@ export default {
     };
   },
   feedback: {
-    content: '',
+    content: ""
   },
   editLink: {
-    component: null,
+    component: null
   },
   footer: {
-    component: Footer,
-  },
-};
+    component: Footer
+  }
+// 
 
