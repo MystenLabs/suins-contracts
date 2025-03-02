@@ -15,29 +15,27 @@ export default {
         link: 'https://github.com/MystenLabs/suins-contracts'
     },
     useNextSeoProps() {
-      const { asPath } = useRouter();
-  
-      return {
-        titleTemplate: asPath !== '/' ? '%s | SuiNS Docs' : 'SuiNS Docs',
-        description:
-          'Sui Name Space Documentation. Integrate SuiNS in your projects for the Sui blockchain.',
-        openGraph: {
-          title: 'SuiNS Docs',
-          description:
-            'Sui Name Space Documentation. Integrate SuiNS in your projects for the Sui blockchain.',
-          site_name: 'Sui Name Space Docs',
-        },
-        additionalMetaTags: [{ content: 'Sui Name Space Docs', name: 'apple-mobile-web-app-title' }],
-      };
+        const { asPath } = useRouter();
+        return {
+            titleTemplate: asPath !== '/' ? '%s | SuiNS Docs' : 'SuiNS Docs',
+            description:
+                'Sui Name Space Documentation. Integrate SuiNS in your projects for the Sui blockchain.',
+            openGraph: {
+                title: 'SuiNS Docs',
+                description:
+                    'Sui Name Space Documentation. Integrate SuiNS in your projects for the Sui blockchain.',
+                site_name: 'Sui Name Space Docs',
+            },
+            additionalMetaTags: [{ content: 'Sui Name Space Docs', name: 'apple-mobile-web-app-title' }],
+        };
     },
     feedback: {
-      content: ""
+        content: ""
     },
     editLink: {
-      component: null
+        component: null
     },
     footer: {
-      component: Footer,
+        component: Footer,
     }
-    // ... other theme options
-  }
+};
