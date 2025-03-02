@@ -40,4 +40,4 @@ export default {
     component: Footer,
   },
   // ... other theme options
-}; //
+}; 
