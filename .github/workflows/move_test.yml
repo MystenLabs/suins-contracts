@@ -27,36 +27,36 @@ jobs:
           /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
           echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
 
-          - name: Install Sui 1.43.1
-          run: |
-            echo "Installing Sui 1.43.1..."
-            mkdir -p $HOME/sui-bin
+      - name: Install Sui 1.43.1
+        run: |
+          echo "Installing Sui 1.43.1..."
+          mkdir -p $HOME/sui-bin
 
-            # Verify URL before downloading
-            SUI_URL="https://github.com/MystenLabs/sui/releases/download/v1.43.1/sui-macos-x86_64.tar.gz"
-            echo "Downloading Sui from $SUI_URL"
+          # Verify URL before downloading
+          SUI_URL="https://github.com/MystenLabs/sui/releases/download/v1.43.1/sui-macos-x86_64.tar.gz"
+          echo "Downloading Sui from $SUI_URL"
 
-            # Use curl with fail flag and check response
-            HTTP_STATUS=$(curl -o sui.tar.gz -w "%{http_code}" -L $SUI_URL)
+          # Use curl with fail flag and check response
+          HTTP_STATUS=$(curl -o sui.tar.gz -w "%{http_code}" -L $SUI_URL)
 
-            if [[ "$HTTP_STATUS" -ne 200 ]]; then
-              echo "Error: Failed to download Sui. HTTP Status: $HTTP_STATUS"
-              exit 1
-            fi
+          if [[ "$HTTP_STATUS" -ne 200 ]]; then
+            echo "Error: Failed to download Sui. HTTP Status: $HTTP_STATUS"
+            exit 1
+          fi
 
-            # Check file integrity
-            if ! file sui.tar.gz | grep -q "gzip compressed"; then
-              echo "Error: Downloaded file is not a valid tar.gz archive."
-              exit 1
-            fi
+          # Check file integrity
+          if ! file sui.tar.gz | grep -q "gzip compressed"; then
+            echo "Error: Downloaded file is not a valid tar.gz archive."
+            exit 1
+          fi
 
-            tar -xvzf sui.tar.gz -C $HOME/sui-bin
-            chmod +x $HOME/sui-bin/sui
-            echo "$HOME/sui-bin" >> $GITHUB_PATH
-            export PATH="$HOME/sui-bin:$PATH"
+          tar -xvzf sui.tar.gz -C $HOME/sui-bin
+          chmod +x $HOME/sui-bin/sui
+          echo "$HOME/sui-bin" >> $GITHUB_PATH
+          export PATH="$HOME/sui-bin:$PATH"
 
-            # Verify installation
-            sui --version
+          # Verify installation
+          sui --version
 
       - name: Run Move tests in all package subdirectories, with exclusions
         run: |
