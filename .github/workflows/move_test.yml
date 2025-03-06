@@ -33,7 +33,7 @@ jobs:
           mkdir -p $HOME/sui-bin
 
           # Verify URL before downloading
-          SUI_URL="https://github.com/MystenLabs/sui/archive/refs/tags/mainnet-v1.43.1.tar.gz"
+          SUI_URL="https://github.com/MystenLabs/sui/releases/download/mainnet-v1.43.1/sui-mainnet-v1.43.1-macos-x86_64.tgz"
           echo "Downloading Sui from $SUI_URL"
 
           # Use curl with fail flag and check response
