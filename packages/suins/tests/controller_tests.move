@@ -4,23 +4,26 @@
 #[test_only]
 module suins::controller_tests;
 
-use std::option::{extract, some, none};
-use std::string::{utf8, String};
-use sui::clock::{Self, Clock};
-use sui::dynamic_field;
-use sui::sui::SUI;
-use sui::test_scenario::{Self, Scenario, ctx};
-use sui::test_utils::{assert_eq, destroy};
-use sui::vec_map::VecMap;
-use suins::constants::{mist_per_sui, year_ms};
-use suins::controller::{Self, ControllerV2};
-use suins::domain::{Self, Domain};
-use suins::register::Register;
-use suins::register_utils::register_util;
-use suins::registry::{Self, Registry, lookup, reverse_lookup};
-use suins::subdomain_registration;
-use suins::suins::{Self, SuiNS, AdminCap};
-use suins::suins_registration::{Self, SuinsRegistration};
+use std::{option::{extract, some, none}, string::{utf8, String}};
+use sui::{
+    clock::{Self, Clock},
+    dynamic_field,
+    sui::SUI,
+    test_scenario::{Self, Scenario, ctx},
+    test_utils::{assert_eq, destroy},
+    vec_map::VecMap
+};
+use suins::{
+    constants::{mist_per_sui, year_ms},
+    controller::{Self, ControllerV2},
+    domain::{Self, Domain},
+    register::Register,
+    register_utils::register_util,
+    registry::{Self, Registry, lookup, reverse_lookup},
+    subdomain_registration,
+    suins::{Self, SuiNS, AdminCap},
+    suins_registration::{Self, SuinsRegistration}
+};
 
 use fun set_target_address_util as Scenario.set_target_address_util;
 use fun set_reverse_lookup_util as Scenario.set_reverse_lookup_util;
@@ -719,7 +722,6 @@ fun test_reverse_reset_when_target_address_changes() {
     scenario.set_object_reverse_lookup_util(&mut uid, FIRST_ADDRESS, DOMAIN_NAME.to_string());
     scenario.lookup_util(DOMAIN_NAME.to_string(), some(uid.to_address()));
     scenario.reverse_lookup_util(uid.to_address(), some(domain::new(DOMAIN_NAME.to_string())));
-
 
     scenario.set_target_address_util(FIRST_ADDRESS, some(FIRST_ADDRESS), 0);
     scenario.reverse_lookup_util(uid.to_address(), none());

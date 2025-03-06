@@ -6,9 +6,7 @@ module suins::sub_name_tests;
 
 use std::string::utf8;
 use sui::clock;
-use suins::domain;
-use suins::subdomain_registration as subdomain;
-use suins::suins_registration;
+use suins::{domain, subdomain_registration as subdomain, suins_registration};
 
 #[test]
 fun test_wrap_and_destroy() {
@@ -39,12 +37,7 @@ fun test_wrap_and_destroy() {
     clock.destroy_for_testing();
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = suins::subdomain_registration::ENotSubdomain,
-    ),
-]
+#[test, expected_failure(abort_code = suins::subdomain_registration::ENotSubdomain)]
 fun try_wrap_non_subdomain() {
     let mut ctx = tx_context::dummy();
     let clock = clock::create_for_testing(&mut ctx);
@@ -81,12 +74,7 @@ fun try_wrap_expired_subname() {
     abort 1337
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = suins::subdomain_registration::ENameNotExpired,
-    ),
-]
+#[test, expected_failure(abort_code = suins::subdomain_registration::ENameNotExpired)]
 fun try_unwrap_non_expired_subdomain() {
     let mut ctx = tx_context::dummy();
     let clock = clock::create_for_testing(&mut ctx);
