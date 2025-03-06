@@ -3,16 +3,15 @@
 
 module suins::registry;
 
-use std::option::{none, some};
-use std::string::String;
-use sui::clock::Clock;
-use sui::table::{Self, Table};
-use sui::vec_map::VecMap;
-use suins::domain::Domain;
-use suins::name_record::{Self, NameRecord};
-use suins::subdomain_registration::{Self, SubDomainRegistration};
-use suins::suins::AdminCap;
-use suins::suins_registration::{Self as nft, SuinsRegistration};
+use std::{option::{none, some}, string::String};
+use sui::{clock::Clock, table::{Self, Table}, vec_map::VecMap};
+use suins::{
+    domain::Domain,
+    name_record::{Self, NameRecord},
+    subdomain_registration::{Self, SubDomainRegistration},
+    suins::AdminCap,
+    suins_registration::{Self as nft, SuinsRegistration}
+};
 
 /// The `SuinsRegistration` has expired.
 const ENftExpired: u64 = 0;
@@ -84,11 +83,7 @@ public fun add_record(
 
 /// Attempts to burn an NFT and get storage rebates.
 /// Only works if the NFT has expired.
-public fun burn_registration_object(
-    self: &mut Registry,
-    nft: SuinsRegistration,
-    clock: &Clock,
-) {
+public fun burn_registration_object(self: &mut Registry, nft: SuinsRegistration, clock: &Clock) {
     // First we make sure that the SuinsRegistration object has expired.
     assert!(nft.has_expired(clock), ERecordNotExpired);
 
@@ -125,11 +120,7 @@ public fun wrap_subdomain(
 
 /// Attempts to burn a subdomain registration object,
 /// and also invalidates any records in the registry / reverse registry.
-public fun burn_subdomain_object(
-    self: &mut Registry,
-    nft: SubDomainRegistration,
-    clock: &Clock,
-) {
+public fun burn_subdomain_object(self: &mut Registry, nft: SubDomainRegistration, clock: &Clock) {
     let nft = nft.burn(clock);
     self.burn_registration_object(nft, clock);
 }
@@ -203,11 +194,7 @@ public fun remove_leaf_record(self: &mut Registry, domain: Domain) {
     self.handle_invalidate_reverse_record(&domain, old_target_address, none());
 }
 
-public fun set_target_address(
-    self: &mut Registry,
-    domain: Domain,
-    new_target: Option<address>,
-) {
+public fun set_target_address(self: &mut Registry, domain: Domain, new_target: Option<address>) {
     let record = &mut self.registry[domain];
     let old_target = record.target_address();
 
@@ -220,11 +207,7 @@ public fun unset_reverse_lookup(self: &mut Registry, address: address) {
 }
 
 /// Reverse lookup can only be set for the record that has the target address.
-public fun set_reverse_lookup(
-    self: &mut Registry,
-    address: address,
-    domain: Domain,
-) {
+public fun set_reverse_lookup(self: &mut Registry, address: address, domain: Domain) {
     let record = &self.registry[domain];
     let target = record.target_address();
 
@@ -258,11 +241,7 @@ public fun set_expiration_timestamp_ms(
 /// Use with caution and validate(!!) that any system fields are not removed
 /// (accidentally),
 /// when building authorized packages that can write the metadata field.
-public fun set_data(
-    self: &mut Registry,
-    domain: Domain,
-    data: VecMap<String, String>,
-) {
+public fun set_data(self: &mut Registry, domain: Domain, data: VecMap<String, String>) {
     let record = &mut self.registry[domain];
     record.set_data(data);
 }
@@ -296,11 +275,7 @@ public fun reverse_lookup(self: &Registry, address: address): Option<Domain> {
 /// Asserts that the provided NFT:
 /// 1. Matches the ID in the corresponding `Record`
 /// 2. Has not expired (does not take into account the grace period)
-public fun assert_nft_is_authorized(
-    self: &Registry,
-    nft: &SuinsRegistration,
-    clock: &Clock,
-) {
+public fun assert_nft_is_authorized(self: &Registry, nft: &SuinsRegistration, clock: &Clock) {
     let domain = nft.domain();
     let record = &self.registry[domain];
 
@@ -399,10 +374,7 @@ fun remove_existing_record_if_exists_and_expired(
             // We need to first remove + then call create (to protect accidental
             // overrides).
             if (parent_name_record.nft_id() == record.nft_id()) {
-                assert!(
-                    parent_name_record.has_expired(clock),
-                    ERecordNotExpired,
-                );
+                assert!(parent_name_record.has_expired(clock), ERecordNotExpired);
             };
         }
     } else if (with_grace_period) {
@@ -445,11 +417,7 @@ fun handle_invalidate_reverse_record(
 use suins::suins::{add_registry, SuiNS};
 
 #[test_only]
-public fun init_for_testing(
-    cap: &AdminCap,
-    suins: &mut SuiNS,
-    ctx: &mut TxContext,
-) {
+public fun init_for_testing(cap: &AdminCap, suins: &mut SuiNS, ctx: &mut TxContext) {
     add_registry(cap, suins, new(cap, ctx));
 }
 
@@ -463,10 +431,7 @@ public fun new_for_testing(ctx: &mut TxContext): Registry {
 }
 
 #[test_only]
-public fun remove_record_for_testing(
-    self: &mut Registry,
-    domain: Domain,
-): NameRecord {
+public fun remove_record_for_testing(self: &mut Registry, domain: Domain): NameRecord {
     self.registry.remove(domain)
 }
 

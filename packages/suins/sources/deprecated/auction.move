@@ -6,20 +6,23 @@
 #[deprecated(note = b"There is no usable auction module anymore after the initial auction.")]
 module suins::auction;
 
-use std::option::{none, some, is_some};
-use std::string::String;
-use sui::balance::{Self, Balance};
-use sui::clock::Clock;
-use sui::coin::{Self, Coin};
-use sui::event;
-use sui::linked_table::{Self, LinkedTable};
-use sui::sui::SUI;
-use suins::core_config::CoreConfig;
-use suins::domain::{Self, Domain};
-use suins::pricing_config::PricingConfig;
-use suins::registry::Registry;
-use suins::suins::{Self, AdminCap, SuiNS};
-use suins::suins_registration::SuinsRegistration;
+use std::{option::{none, some, is_some}, string::String};
+use sui::{
+    balance::{Self, Balance},
+    clock::Clock,
+    coin::{Self, Coin},
+    event,
+    linked_table::{Self, LinkedTable},
+    sui::SUI
+};
+use suins::{
+    core_config::CoreConfig,
+    domain::{Self, Domain},
+    pricing_config::PricingConfig,
+    registry::Registry,
+    suins::{Self, AdminCap, SuiNS},
+    suins_registration::SuinsRegistration
+};
 
 /// One year is the default duration for a domain.
 const DEFAULT_DURATION: u8 = 1;

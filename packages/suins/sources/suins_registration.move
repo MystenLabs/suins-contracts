@@ -15,8 +15,7 @@ module suins::suins_registration;
 
 use std::string::String;
 use sui::clock::{timestamp_ms, Clock};
-use suins::constants;
-use suins::domain::Domain;
+use suins::{constants, domain::Domain};
 
 /* friend suins::registry; */
 /* friend suins::update_image; */
@@ -63,10 +62,7 @@ public(package) fun set_expiration_timestamp_ms(
 
 /// Updates the `image_url` field for this NFT. Is only called in the
 /// `update_image` for now.
-public(package) fun update_image_url(
-    self: &mut SuinsRegistration,
-    image_url: String,
-) {
+public(package) fun update_image_url(self: &mut SuinsRegistration, image_url: String) {
     self.image_url = image_url;
 }
 
@@ -96,10 +92,7 @@ public fun has_expired(self: &SuinsRegistration, clock: &Clock): bool {
 /// Check whether the `SuinsRegistration` has expired by comparing the
 /// expiration timeout with the current time. This function also takes into
 /// account the grace period.
-public fun has_expired_past_grace_period(
-    self: &SuinsRegistration,
-    clock: &Clock,
-): bool {
+public fun has_expired_past_grace_period(self: &SuinsRegistration, clock: &Clock): bool {
     (self.expiration_timestamp_ms + constants::grace_period_ms()) < timestamp_ms(clock)
 }
 
@@ -146,10 +139,7 @@ public fun set_expiration_timestamp_ms_for_testing(
 }
 
 #[test_only]
-public fun update_image_url_for_testing(
-    self: &mut SuinsRegistration,
-    image_url: String,
-) {
+public fun update_image_url_for_testing(self: &mut SuinsRegistration, image_url: String) {
     update_image_url(self, image_url);
 }
 

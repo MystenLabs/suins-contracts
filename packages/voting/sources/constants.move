@@ -1,3 +1,6 @@
+// Copyright (c) Mysten Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 module suins_voting::constants;
 
 /// The minimum voting period in milliseconds. (1 day)

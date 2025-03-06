@@ -1,19 +1,17 @@
+// Copyright (c) Mysten Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 module suins_voting::proposal_tests;
 
-use sui::clock::{Self, Clock};
-use sui::coin;
-use sui::vec_set;
-use suins_voting::constants::{min_voting_period_ms, max_voting_period_ms};
-use suins_voting::proposal::{Self, Proposal};
-use suins_voting::voting_option::{Self, threshold_not_reached};
+use sui::{clock::{Self, Clock}, coin, vec_set};
+use suins_voting::{
+    constants::{min_voting_period_ms, max_voting_period_ms},
+    proposal::{Self, Proposal},
+    voting_option::{Self, threshold_not_reached}
+};
 use token::ns::NS;
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::suins_voting::proposal::ETooShortVotingPeriod,
-    ),
-]
+#[test, expected_failure(abort_code = ::suins_voting::proposal::ETooShortVotingPeriod)]
 fun try_create_outside_min_range() {
     let mut ctx = tx_context::dummy();
     let clock = clock::create_for_testing(&mut ctx);
@@ -27,12 +25,7 @@ fun try_create_outside_min_range() {
     abort 1337
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::suins_voting::proposal::ETooLongVotingPeriod,
-    ),
-]
+#[test, expected_failure(abort_code = ::suins_voting::proposal::ETooLongVotingPeriod)]
 fun try_create_outside_max_range() {
     let mut ctx = tx_context::dummy();
     let clock = clock::create_for_testing(&mut ctx);
@@ -46,12 +39,7 @@ fun try_create_outside_max_range() {
     abort 1337
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::suins_voting::proposal::EEndTimeNotReached,
-    ),
-]
+#[test, expected_failure(abort_code = ::suins_voting::proposal::EEndTimeNotReached)]
 fun try_finalize_before_endtime() {
     let mut ctx = tx_context::dummy();
     let clock = clock::create_for_testing(&mut ctx);
@@ -65,12 +53,7 @@ fun try_finalize_before_endtime() {
     abort 1337
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::suins_voting::proposal::EEndTimeNotReached,
-    ),
-]
+#[test, expected_failure(abort_code = ::suins_voting::proposal::EEndTimeNotReached)]
 fun try_claim_tokens_back_before_endtime() {
     let mut ctx = tx_context::dummy();
     let clock = clock::create_for_testing(&mut ctx);
@@ -84,12 +67,7 @@ fun try_claim_tokens_back_before_endtime() {
     abort 1337
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::suins_voting::proposal::EEndTimeNotReached,
-    ),
-]
+#[test, expected_failure(abort_code = ::suins_voting::proposal::EEndTimeNotReached)]
 fun try_self_finalize_before_end_time() {
     let mut ctx = tx_context::dummy();
     let clock = clock::create_for_testing(&mut ctx);
@@ -103,12 +81,7 @@ fun try_self_finalize_before_end_time() {
     abort 1337
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::suins_voting::proposal::EProposalAlreadyFinalized,
-    ),
-]
+#[test, expected_failure(abort_code = ::suins_voting::proposal::EProposalAlreadyFinalized)]
 fun try_finalize_twice() {
     let mut ctx = tx_context::dummy();
     let mut clock = clock::create_for_testing(&mut ctx);
@@ -125,11 +98,7 @@ fun try_finalize_twice() {
     assert!(!proposal.is_threshold_reached());
 
     // our chance to test the non-reached threshold result too.
-    assert!(
-        proposal
-            .winning_option()
-            .is_some_and!(|opt| opt == threshold_not_reached()),
-    );
+    assert!(proposal.winning_option().is_some_and!(|opt| opt == threshold_not_reached()));
 
     proposal.finalize(&clock, &mut ctx);
 
@@ -153,12 +122,7 @@ fun try_to_claim_without_having_voted() {
     abort 1337
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::suins_voting::proposal::EVotingPeriodExpired,
-    ),
-]
+#[test, expected_failure(abort_code = ::suins_voting::proposal::EVotingPeriodExpired)]
 fun try_to_vote_on_expired_proposal() {
     let mut ctx = tx_context::dummy();
     let mut clock = clock::create_for_testing(&mut ctx);
@@ -177,12 +141,7 @@ fun try_to_vote_on_expired_proposal() {
     abort 1337
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::suins_voting::proposal::ENotAvailableOption,
-    ),
-]
+#[test, expected_failure(abort_code = ::suins_voting::proposal::ENotAvailableOption)]
 fun vote_non_existing_option() {
     let mut ctx = tx_context::dummy();
     let clock = clock::create_for_testing(&mut ctx);
@@ -199,12 +158,7 @@ fun vote_non_existing_option() {
     abort 1337
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::suins_voting::proposal::ENotEnoughOptions,
-    ),
-]
+#[test, expected_failure(abort_code = ::suins_voting::proposal::ENotEnoughOptions)]
 fun create_proposal_without_enough_options() {
     let mut ctx = tx_context::dummy();
     let clock = clock::create_for_testing(&mut ctx);
@@ -221,11 +175,7 @@ fun create_proposal_without_enough_options() {
     abort 1337
 }
 
-public fun test_proposal(
-    clock: &Clock,
-    end_time_ms: Option<u64>,
-    ctx: &mut TxContext,
-): Proposal {
+public fun test_proposal(clock: &Clock, end_time_ms: Option<u64>, ctx: &mut TxContext): Proposal {
     let options = voting_option::default_options();
     let title = b"Test Proposal".to_string();
     let description = b"Test Proposal Description".to_string();
@@ -233,9 +183,7 @@ public fun test_proposal(
     proposal::new(
         title,
         description,
-        end_time_ms.destroy_or!(
-            clock.timestamp_ms() + min_voting_period_ms!() + 1,
-        ),
+        end_time_ms.destroy_or!(clock.timestamp_ms() + min_voting_period_ms!() + 1),
         options,
         clock,
         ctx,

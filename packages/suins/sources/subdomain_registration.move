@@ -51,18 +51,11 @@ public(package) fun new(
 
 /// Destroys the wrapper and returns the SuinsRegistration object.
 /// Fails if the subname is not expired.
-public(package) fun burn(
-    name: SubDomainRegistration,
-    clock: &Clock,
-): SuinsRegistration {
+public(package) fun burn(name: SubDomainRegistration, clock: &Clock): SuinsRegistration {
     // tries to unwrap a non-expired subname.
     assert!(name.nft.has_expired(clock), ENameNotExpired);
 
-    let SubDomainRegistration {
-        id,
-        nft,
-    } = name;
-
+    let SubDomainRegistration { id, nft } = name;
     id.delete();
     nft
 }

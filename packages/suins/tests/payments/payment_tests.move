@@ -4,18 +4,17 @@
 #[test_only]
 module suins::payment_tests;
 
-use sui::clock;
-use sui::coin;
-use sui::sui::SUI;
-use sui::test_utils::{assert_eq, destroy};
-use suins::constants;
-use suins::core_config;
-use suins::domain;
-use suins::payment::{Self, PaymentIntent, Receipt};
-use suins::pricing_config::{Self, PricingConfig};
-use suins::registry::{Self, Registry};
-use suins::suins::{Self, SuiNS};
-use suins::suins_registration;
+use sui::{clock, coin, sui::SUI, test_utils::{assert_eq, destroy}};
+use suins::{
+    constants,
+    core_config,
+    domain,
+    payment::{Self, PaymentIntent, Receipt},
+    pricing_config::{Self, PricingConfig},
+    registry::{Self, Registry},
+    suins::{Self, SuiNS},
+    suins_registration
+};
 
 public struct PaymentsApp() has drop;
 public struct DiscountsApp() has drop;

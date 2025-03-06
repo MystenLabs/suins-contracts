@@ -9,7 +9,7 @@ module coupons::range;
 const EInvalidRange: u64 = 0;
 
 /// A Range for u8 helper
-public struct Range has copy, store, drop {
+public struct Range has copy, drop, store {
     vec: vector<u8>,
 }
 

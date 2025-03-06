@@ -1,3 +1,6 @@
+// Copyright (c) Mysten Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 module suins_voting::voting_option;
 
 use std::string::String;
@@ -10,7 +13,7 @@ const ABSTAIN_OPTION: vector<u8> = b"Abstain";
 const THRESHOLD_NOT_REACHED: vector<u8> = b"Threshold not reached";
 const TIE_REJECTED: vector<u8> = b"Vote rejected due to tie";
 
-public struct VotingOption(String) has copy, store, drop;
+public struct VotingOption(String) has copy, drop, store;
 
 /// The default voting is YES, NO, Abstain.
 public fun default_options(): VecSet<VotingOption> {

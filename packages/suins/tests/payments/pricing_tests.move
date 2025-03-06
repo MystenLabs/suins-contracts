@@ -16,7 +16,7 @@ fun test_e2e() {
 
     let pricing_config = pricing_config::new(
         ranges,
-        vector[10, 20, 30, 45]
+        vector[10, 20, 30, 45],
     );
 
     // test internal values

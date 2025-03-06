@@ -22,10 +22,7 @@
 /// the registry and the balance.
 module suins::suins;
 
-use sui::balance::{Self, Balance};
-use sui::coin::{Self, Coin};
-use sui::dynamic_field as df;
-use sui::sui::SUI;
+use sui::{balance::{Self, Balance}, coin::{Self, Coin}, dynamic_field as df, sui::SUI};
 
 use fun df::add as UID.add;
 use fun df::borrow as UID.borrow;

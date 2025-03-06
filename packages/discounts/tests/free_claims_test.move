@@ -5,16 +5,15 @@
 module discounts::free_claims_test;
 
 use day_one::day_one::{Self, DayOne};
-use discounts::free_claims::{Self, FreeClaimsApp};
-use discounts::house::{Self, DiscountHouse};
-use sui::clock;
-use sui::test_scenario::{Self as ts, Scenario, ctx};
-use sui::test_utils::{destroy, assert_eq};
-use suins::constants;
-use suins::payment::{Self, PaymentIntent};
-use suins::pricing_config;
-use suins::registry;
-use suins::suins::{Self, SuiNS, AdminCap};
+use discounts::{free_claims::{Self, FreeClaimsApp}, house::{Self, DiscountHouse}};
+use sui::{clock, test_scenario::{Self as ts, Scenario, ctx}, test_utils::{destroy, assert_eq}};
+use suins::{
+    constants,
+    payment::{Self, PaymentIntent},
+    pricing_config,
+    registry,
+    suins::{Self, SuiNS, AdminCap}
+};
 
 // an authorized type to test.
 public struct TestAuthorized has key, store {
@@ -62,10 +61,7 @@ fun test_init(): Scenario {
         free_claims::authorize_type<AnotherAuthorized>(
             &mut discount_house,
             &admin_cap,
-            pricing_config::new_range(vector[
-                3,
-                4,
-            ]), // only 3 and 4 letter names
+            pricing_config::new_range(vector[3, 4]), // only 3 and 4 letter names
             scenario.ctx(),
         );
 
@@ -87,62 +83,54 @@ fun test_init(): Scenario {
 
 #[test]
 fun test_e2e() {
-    init_purchase!(
-        USER_ADDRESS,
-        b"fivel.sui",
-        |discount_house, suins, intent, scenario| {
-            assert_eq(
-                intent.request_data().base_amount(),
-                50 * constants::mist_per_sui(),
-            );
+    init_purchase!(USER_ADDRESS, b"fivel.sui", |discount_house, suins, intent, scenario| {
+        assert_eq(
+            intent.request_data().base_amount(),
+            50 * constants::mist_per_sui(),
+        );
 
-            let obj = TestAuthorized { id: object::new(scenario.ctx()) };
+        let obj = TestAuthorized { id: object::new(scenario.ctx()) };
 
-            free_claims::free_claim(
-                discount_house,
-                suins,
-                intent,
-                &obj,
-                scenario.ctx(),
-            );
+        free_claims::free_claim(
+            discount_house,
+            suins,
+            intent,
+            &obj,
+            scenario.ctx(),
+        );
 
-            assert_eq(intent.request_data().base_amount(), 0);
-            assert_eq(intent.request_data().discounts_applied().size(), 1);
-            assert_eq(intent.request_data().discount_applied(), true);
-            destroy(obj);
-        },
-    );
+        assert_eq(intent.request_data().base_amount(), 0);
+        assert_eq(intent.request_data().discounts_applied().size(), 1);
+        assert_eq(intent.request_data().discount_applied(), true);
+        destroy(obj);
+    });
 }
 
 #[test]
 fun register_day_one() {
-    init_purchase!(
-        USER_ADDRESS,
-        b"wow.sui",
-        |discount_house, suins, intent, scenario| {
-            assert_eq(
-                intent.request_data().base_amount(),
-                1200 * constants::mist_per_sui(),
-            );
+    init_purchase!(USER_ADDRESS, b"wow.sui", |discount_house, suins, intent, scenario| {
+        assert_eq(
+            intent.request_data().base_amount(),
+            1200 * constants::mist_per_sui(),
+        );
 
-            let mut day_one = day_one::mint_for_testing(scenario.ctx());
-            day_one.set_is_active_for_testing(true);
+        let mut day_one = day_one::mint_for_testing(scenario.ctx());
+        day_one.set_is_active_for_testing(true);
 
-            free_claims::free_claim_with_day_one(
-                discount_house,
-                suins,
-                intent,
-                &day_one,
-                scenario.ctx(),
-            );
+        free_claims::free_claim_with_day_one(
+            discount_house,
+            suins,
+            intent,
+            &day_one,
+            scenario.ctx(),
+        );
 
-            assert_eq(intent.request_data().base_amount(), 0);
-            assert_eq(intent.request_data().discounts_applied().size(), 1);
-            assert_eq(intent.request_data().discount_applied(), true);
+        assert_eq(intent.request_data().base_amount(), 0);
+        assert_eq(intent.request_data().discounts_applied().size(), 1);
+        assert_eq(intent.request_data().discount_applied(), true);
 
-            day_one.burn_for_testing();
-        },
-    );
+        day_one.burn_for_testing();
+    });
 }
 
 #[test]
@@ -164,96 +152,69 @@ fun test_deauthorize_discount() {
     scenario.end();
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::discounts::free_claims::EConfigNotExists,
-    ),
-]
+#[test, expected_failure(abort_code = ::discounts::free_claims::EConfigNotExists)]
 fun register_with_unauthorized_type() {
-    init_purchase!(
-        USER_ADDRESS,
-        b"fivel.sui",
-        |discount_house, suins, intent, scenario| {
-            let unauthorized = TestUnauthorized {
-                id: object::new(scenario.ctx()),
-            };
-            free_claims::free_claim(
-                discount_house,
-                suins,
-                intent,
-                &unauthorized,
-                scenario.ctx(),
-            );
-            destroy(unauthorized);
-        },
-    );
+    init_purchase!(USER_ADDRESS, b"fivel.sui", |discount_house, suins, intent, scenario| {
+        let unauthorized = TestUnauthorized {
+            id: object::new(scenario.ctx()),
+        };
+        free_claims::free_claim(
+            discount_house,
+            suins,
+            intent,
+            &unauthorized,
+            scenario.ctx(),
+        );
+        destroy(unauthorized);
+    });
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::discounts::free_claims::EAlreadyClaimed,
-    ),
-]
+#[test, expected_failure(abort_code = ::discounts::free_claims::EAlreadyClaimed)]
 #[allow(dead_code)]
 fun test_already_claimed() {
-    init_purchase!(
-        USER_ADDRESS,
-        b"fivel.sui",
-        |discount_house, suins, intent, scenario| {
-            assert_eq(
-                intent.request_data().base_amount(),
-                50 * constants::mist_per_sui(),
-            );
+    init_purchase!(USER_ADDRESS, b"fivel.sui", |discount_house, suins, intent, scenario| {
+        assert_eq(
+            intent.request_data().base_amount(),
+            50 * constants::mist_per_sui(),
+        );
 
-            let obj = TestAuthorized { id: object::new(scenario.ctx()) };
+        let obj = TestAuthorized { id: object::new(scenario.ctx()) };
 
-            free_claims::free_claim(
-                discount_house,
-                suins,
-                intent,
-                &obj,
-                scenario.ctx(),
-            );
+        free_claims::free_claim(
+            discount_house,
+            suins,
+            intent,
+            &obj,
+            scenario.ctx(),
+        );
 
-            free_claims::free_claim(
-                discount_house,
-                suins,
-                intent,
-                &obj,
-                scenario.ctx(),
-            );
-            abort 1337
-        },
-    );
+        free_claims::free_claim(
+            discount_house,
+            suins,
+            intent,
+            &obj,
+            scenario.ctx(),
+        );
+        abort 1337
+    });
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::discounts::free_claims::EInvalidCharacterRange,
-    ),
-]
+#[test, expected_failure(abort_code = ::discounts::free_claims::EInvalidCharacterRange)]
 #[allow(dead_code)]
 fun test_domain_out_of_range() {
-    init_purchase!(
-        USER_ADDRESS,
-        b"fiv.sui",
-        |discount_house, suins, intent, scenario| {
-            let obj = TestAuthorized { id: object::new(scenario.ctx()) };
+    init_purchase!(USER_ADDRESS, b"fiv.sui", |discount_house, suins, intent, scenario| {
+        let obj = TestAuthorized { id: object::new(scenario.ctx()) };
 
-            free_claims::free_claim(
-                discount_house,
-                suins,
-                intent,
-                &obj,
-                scenario.ctx(),
-            );
+        free_claims::free_claim(
+            discount_house,
+            suins,
+            intent,
+            &obj,
+            scenario.ctx(),
+        );
 
-            abort 1337
-        },
-    );
+        abort 1337
+    });
 }
 
 #[test, expected_failure(abort_code = ::discounts::free_claims::EConfigExists)]
@@ -287,12 +248,7 @@ fun test_version_togge() {
     abort 1337
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::discounts::free_claims::EConfigNotExists,
-    ),
-]
+#[test, expected_failure(abort_code = ::discounts::free_claims::EConfigNotExists)]
 fun test_deauthorize_non_existing_config() {
     let mut scenario = test_init();
     scenario.next_tx(SUINS_ADDRESS);
@@ -307,55 +263,37 @@ fun test_deauthorize_non_existing_config() {
     abort 1337
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::discounts::free_claims::ENotValidForDayOne,
-    ),
-]
+#[test, expected_failure(abort_code = ::discounts::free_claims::ENotValidForDayOne)]
 fun use_day_one_for_casual_flow_failure() {
-    init_purchase!(
-        USER_ADDRESS,
-        b"fivel.sui",
-        |discount_house, suins, intent, scenario| {
-            let day_one = day_one::mint_for_testing(scenario.ctx());
+    init_purchase!(USER_ADDRESS, b"fivel.sui", |discount_house, suins, intent, scenario| {
+        let day_one = day_one::mint_for_testing(scenario.ctx());
 
-            free_claims::free_claim(
-                discount_house,
-                suins,
-                intent,
-                &day_one,
-                scenario.ctx(),
-            );
-            day_one.burn_for_testing();
-        },
-    );
+        free_claims::free_claim(
+            discount_house,
+            suins,
+            intent,
+            &day_one,
+            scenario.ctx(),
+        );
+        day_one.burn_for_testing();
+    });
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::discounts::free_claims::ENotActiveDayOne,
-    ),
-]
+#[test, expected_failure(abort_code = ::discounts::free_claims::ENotActiveDayOne)]
 fun use_inactive_day_one_failure() {
-    init_purchase!(
-        USER_ADDRESS,
-        b"fivel.sui",
-        |discount_house, suins, intent, scenario| {
-            let mut day_one = day_one::mint_for_testing(scenario.ctx());
-            day_one.set_is_active_for_testing(false);
+    init_purchase!(USER_ADDRESS, b"fivel.sui", |discount_house, suins, intent, scenario| {
+        let mut day_one = day_one::mint_for_testing(scenario.ctx());
+        day_one.set_is_active_for_testing(false);
 
-            free_claims::free_claim_with_day_one(
-                discount_house,
-                suins,
-                intent,
-                &day_one,
-                scenario.ctx(),
-            );
-            day_one.burn_for_testing();
-        },
-    );
+        free_claims::free_claim_with_day_one(
+            discount_house,
+            suins,
+            intent,
+            &day_one,
+            scenario.ctx(),
+        );
+        day_one.burn_for_testing();
+    });
 }
 
 macro fun init_purchase(

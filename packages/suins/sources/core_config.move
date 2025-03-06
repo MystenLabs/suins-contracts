@@ -10,10 +10,8 @@
 module suins::core_config;
 
 use std::string::String;
-use sui::vec_map::{Self, VecMap};
-use sui::vec_set::{Self, VecSet};
-use suins::constants;
-use suins::domain::Domain;
+use sui::{vec_map::{Self, VecMap}, vec_set::{Self, VecSet}};
+use suins::{constants, domain::Domain};
 
 #[error]
 const EInvalidLength: vector<u8> = b"Invalid length for the label part of the domain.";
