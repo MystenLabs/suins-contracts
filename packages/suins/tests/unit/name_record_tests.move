@@ -10,13 +10,9 @@
 ///
 module suins::name_record_tests;
 
-use std::option::{none, some};
-use std::string::utf8;
-use sui::clock;
-use sui::test_utils::assert_eq;
-use sui::vec_map;
-use suins::constants;
-use suins::name_record as record;
+use std::{option::{none, some}, string::utf8};
+use sui::{clock, test_utils::assert_eq, vec_map};
+use suins::{constants, name_record as record};
 
 #[test]
 /// Make sure that the fields are empty by default. That they are updated

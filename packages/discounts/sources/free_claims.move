@@ -13,14 +13,10 @@ module discounts::free_claims;
 use day_one::day_one::{DayOne, is_active};
 use discounts::house::{Self, DiscountHouse};
 use std::type_name;
-use sui::dynamic_field as df;
-use sui::linked_table::{Self, LinkedTable};
-use suins::payment::PaymentIntent;
-use suins::pricing_config::Range;
-use suins::suins::{AdminCap, SuiNS};
+use sui::{dynamic_field as df, linked_table::{Self, LinkedTable}};
+use suins::{payment::PaymentIntent, pricing_config::Range, suins::{AdminCap, SuiNS}};
 
-use fun internal_apply_full_discount as
-    DiscountHouse.internal_apply_full_discount;
+use fun internal_apply_full_discount as DiscountHouse.internal_apply_full_discount;
 use fun assert_config_exists as DiscountHouse.assert_config_exists;
 use fun config_mut as DiscountHouse.config_mut;
 use fun df::add as UID.add;
@@ -48,7 +44,7 @@ const EFreeClaimMustBeOneYear: u64 = 7;
 public struct FreeClaimsApp() has drop;
 
 /// A key that opens up free claims for type T.
-public struct FreeClaimsKey<phantom T>() has copy, store, drop;
+public struct FreeClaimsKey<phantom T>() has copy, drop, store;
 
 /// We hold the configuration for the promotion
 /// We only allow 1 claim / per configuration / per promotion.
@@ -69,10 +65,7 @@ public fun free_claim<T: key>(
 ) {
     // For normal flow, we do not allow DayOne to be used.
     // DayOne can only be used on `register_with_day_one` function.
-    assert!(
-        type_name::get<T>() != type_name::get<DayOne>(),
-        ENotValidForDayOne,
-    );
+    assert!(type_name::get<T>() != type_name::get<DayOne>(), ENotValidForDayOne);
     self.internal_apply_full_discount<T>(
         suins,
         intent,
@@ -122,10 +115,7 @@ public fun authorize_type<T: key>(
 
 /// Force-deauthorize type T from free claims.
 /// Drops the linked_table.
-public fun deauthorize_type<T>(
-    self: &mut DiscountHouse,
-    _: &AdminCap,
-): LinkedTable<ID, bool> {
+public fun deauthorize_type<T>(self: &mut DiscountHouse, _: &AdminCap): LinkedTable<ID, bool> {
     self.assert_version_is_valid();
     self.assert_config_exists<T>();
 
@@ -161,11 +151,7 @@ fun internal_apply_full_discount<T: key>(
     assert!(
         config
             .domain_length_range
-            .is_between_inclusive(intent
-                .request_data()
-                .domain()
-                .sld()
-                .length()),
+            .is_between_inclusive(intent.request_data().domain().sld().length()),
         EInvalidCharacterRange,
     );
 
@@ -188,9 +174,7 @@ fun config_mut<T>(self: &mut DiscountHouse): &mut FreeClaimsConfig {
 // Validate that there is a config for `T`
 fun assert_config_exists<T>(self: &mut DiscountHouse) {
     assert!(
-        self
-            .uid_mut()
-            .exists_with_type<_, FreeClaimsConfig>(FreeClaimsKey<T>()),
+        self.uid_mut().exists_with_type<_, FreeClaimsConfig>(FreeClaimsKey<T>()),
         EConfigNotExists,
     );
 }

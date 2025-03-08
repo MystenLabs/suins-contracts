@@ -5,29 +5,28 @@
 module suins::auction_tests;
 
 use std::string::{String, utf8};
-use sui::clock::{Self, Clock};
-use sui::coin::{Self, Coin};
-use sui::sui::SUI;
-use sui::test_scenario::{Self, Scenario, ctx};
-use suins::auction::{
-    Self,
-    App as AuctionApp,
-    place_bid,
-    claim,
-    AuctionHouse,
-    start_auction_and_place_bid,
-    total_balance,
-    admin_finalize_auction,
-    admin_try_finalize_auctions,
-    admin_withdraw_funds,
-    collect_winning_auction_fund
+use sui::{clock::{Self, Clock}, coin::{Self, Coin}, sui::SUI, test_scenario::{Self, Scenario, ctx}};
+use suins::{
+    auction::{
+        Self,
+        App as AuctionApp,
+        place_bid,
+        claim,
+        AuctionHouse,
+        start_auction_and_place_bid,
+        total_balance,
+        admin_finalize_auction,
+        admin_try_finalize_auctions,
+        admin_withdraw_funds,
+        collect_winning_auction_fund
+    },
+    constants::{Self, mist_per_sui},
+    core_config,
+    domain,
+    registry,
+    suins::{Self, SuiNS, AdminCap},
+    suins_registration::SuinsRegistration
 };
-use suins::core_config;
-use suins::constants::{Self, mist_per_sui};
-use suins::domain;
-use suins::registry;
-use suins::suins::{Self, SuiNS, AdminCap};
-use suins::suins_registration::SuinsRegistration;
 
 const SUINS_ADDRESS: address = @0xA001;
 const FIRST_ADDRESS: address = @0xB001;
@@ -129,11 +128,7 @@ fun withdraw_util(scenario: &mut Scenario, sender: address): Coin<SUI> {
     returned_payment
 }
 
-fun admin_collect_fund_util(
-    scenario: &mut Scenario,
-    domain_name: String,
-    clock_tick: u64,
-) {
+fun admin_collect_fund_util(scenario: &mut Scenario, domain_name: String, clock_tick: u64) {
     scenario.next_tx(SUINS_ADDRESS);
     let mut auction_house = scenario.take_shared<AuctionHouse>();
     let mut clock = scenario.take_shared<Clock>();
@@ -150,11 +145,7 @@ fun admin_collect_fund_util(
     test_scenario::return_shared(auction_house);
 }
 
-fun admin_try_finalize_auction_util(
-    scenario: &mut Scenario,
-    domain: String,
-    clock_tick: u64,
-) {
+fun admin_try_finalize_auction_util(scenario: &mut Scenario, domain: String, clock_tick: u64) {
     scenario.next_tx(SUINS_ADDRESS);
     let admin_cap = scenario.take_from_sender<AdminCap>();
     let mut auction_house = scenario.take_shared<AuctionHouse>();

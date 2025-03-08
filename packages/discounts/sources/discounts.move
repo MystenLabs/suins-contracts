@@ -14,9 +14,7 @@ use day_one::day_one::{DayOne, is_active};
 use discounts::house::{Self, DiscountHouse};
 use std::type_name;
 use sui::dynamic_field as df;
-use suins::payment::PaymentIntent;
-use suins::pricing_config::PricingConfig;
-use suins::suins::{AdminCap, SuiNS};
+use suins::{payment::PaymentIntent, pricing_config::PricingConfig, suins::{AdminCap, SuiNS}};
 
 use fun internal_apply_discount as DiscountHouse.internal_apply_discount;
 use fun assert_config_exists as DiscountHouse.assert_config_exists;
@@ -41,7 +39,7 @@ const ENotValidForDayOne: vector<u8> = b"DayOne is not valid for this type";
 public struct RegularDiscountsApp() has drop;
 
 /// A key that determins the discounts for a type `T`.
-public struct DiscountKey<phantom T>() has copy, store, drop;
+public struct DiscountKey<phantom T>() has copy, drop, store;
 
 /// A function to register a name with a discount using type `T`.
 public fun apply_percentage_discount<T>(
@@ -54,10 +52,7 @@ public fun apply_percentage_discount<T>(
     // We can only use this discount for types other than DayOne, because we
     // always check
     // that the `DayOne` object is active.
-    assert!(
-        type_name::get<T>() != type_name::get<DayOne>(),
-        ENotValidForDayOne,
-    );
+    assert!(type_name::get<T>() != type_name::get<DayOne>(), ENotValidForDayOne);
 
     self.internal_apply_discount<T>(intent, suins, ctx);
 }
@@ -136,8 +131,5 @@ fun config<T>(self: &mut DiscountHouse): &PricingConfig {
 }
 
 fun assert_config_exists<T>(self: &mut DiscountHouse) {
-    assert!(
-        self.uid_mut().exists_with_type<_, PricingConfig>(DiscountKey<T>()),
-        EConfigNotExists,
-    );
+    assert!(self.uid_mut().exists_with_type<_, PricingConfig>(DiscountKey<T>()), EConfigNotExists);
 }

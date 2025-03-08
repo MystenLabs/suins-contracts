@@ -11,11 +11,8 @@
 module suins::registation_nft_tests;
 
 use std::string::{utf8, String};
-use sui::clock::{Self, Clock};
-use sui::test_utils::assert_eq;
-use suins::constants;
-use suins::domain;
-use suins::suins_registration::{Self as nft, SuinsRegistration};
+use sui::{clock::{Self, Clock}, test_utils::assert_eq};
+use suins::{constants, domain, suins_registration::{Self as nft, SuinsRegistration}};
 
 #[test]
 fun test_new() {
@@ -66,12 +63,7 @@ fun test_update_values() {
 
 // === Helpers ===
 
-fun new(
-    domain_name: String,
-    no_years: u8,
-    clock: &Clock,
-    ctx: &mut TxContext,
-): SuinsRegistration {
+fun new(domain_name: String, no_years: u8, clock: &Clock, ctx: &mut TxContext): SuinsRegistration {
     nft::new_for_testing(
         domain::new(domain_name),
         no_years,

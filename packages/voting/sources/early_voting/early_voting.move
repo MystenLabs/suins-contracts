@@ -1,14 +1,15 @@
+// Copyright (c) Mysten Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 /// Early voting is the simplest form of voting, where proposals are voted on by
 /// the community.
 /// This is a simple voting mechanism, without complex actions.
 module suins_voting::early_voting;
 
-use suins_voting::governance::{NSGovernance, NSGovernanceCap};
-use suins_voting::proposal::Proposal;
+use suins_voting::{governance::{NSGovernance, NSGovernanceCap}, proposal::Proposal};
 
 #[error]
-const ECannotHaveParallelProposals: vector<u8> =
-    b"Cannot have parallel proposals";
+const ECannotHaveParallelProposals: vector<u8> = b"Cannot have parallel proposals";
 
 public struct ProposalPointer has store {
     proposal_id: ID,
@@ -40,10 +41,7 @@ public fun add_proposal(
     // avoid 2 parallel proposals.
     if (early_voting.0.length() > 0) {
         let last_proposal = early_voting.0.borrow(early_voting.0.length() - 1);
-        assert!(
-            last_proposal.end_time < proposal.start_time_ms(),
-            ECannotHaveParallelProposals,
-        );
+        assert!(last_proposal.end_time < proposal.start_time_ms(), ECannotHaveParallelProposals);
     };
 
     early_voting

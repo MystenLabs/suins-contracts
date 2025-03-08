@@ -17,19 +17,17 @@
 */
 module suins::payment;
 
-use std::string::String;
-use std::type_name::{Self, TypeName};
-use sui::clock::Clock;
-use sui::coin::Coin;
-use sui::event;
-use sui::vec_map::{Self, VecMap};
-use suins::constants;
-use suins::core_config::CoreConfig;
-use suins::domain::{Self, Domain};
-use suins::pricing_config::{PricingConfig, RenewalConfig};
-use suins::registry::Registry;
-use suins::suins::SuiNS;
-use suins::suins_registration::SuinsRegistration;
+use std::{string::String, type_name::{Self, TypeName}};
+use sui::{clock::Clock, coin::Coin, event, vec_map::{Self, VecMap}};
+use suins::{
+    constants,
+    core_config::CoreConfig,
+    domain::{Self, Domain},
+    pricing_config::{PricingConfig, RenewalConfig},
+    registry::Registry,
+    suins::SuiNS,
+    suins_registration::SuinsRegistration
+};
 
 #[error]
 const ENotMultipleDiscountsAllowed: vector<u8> = b"Multiple discounts are not allowed";

@@ -1,22 +1,28 @@
+// Copyright (c) Mysten Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 module suins_voting::proposal;
 
 use std::string::String;
-use sui::balance::Balance;
-use sui::clock::Clock;
-use sui::coin::Coin;
-use sui::event;
-use sui::linked_table::{Self, LinkedTable};
-use sui::vec_map::{Self, VecMap};
-use sui::vec_set::VecSet;
-use suins_voting::constants::{min_voting_period_ms, max_voting_period_ms};
-use suins_voting::leaderboard::{Self, Leaderboard};
-use suins_voting::voting_option::{Self, VotingOption, abstain_option};
+use sui::{
+    balance::Balance,
+    clock::Clock,
+    coin::Coin,
+    event,
+    linked_table::{Self, LinkedTable},
+    vec_map::{Self, VecMap},
+    vec_set::VecSet
+};
+use suins_voting::{
+    constants::{min_voting_period_ms, max_voting_period_ms},
+    leaderboard::{Self, Leaderboard},
+    voting_option::{Self, VotingOption, abstain_option}
+};
 use token::ns::NS;
 
 // ERRORS -----
 #[error]
-const ENotAvailableOption: vector<u8> =
-    b"Tries to vote for an option that is not available.";
+const ENotAvailableOption: vector<u8> = b"Tries to vote for an option that is not available.";
 #[error]
 const EVotingPeriodExpired: vector<u8> = b"Voting period has expired.";
 #[error]
@@ -95,16 +101,10 @@ public fun new(
     ctx: &mut TxContext,
 ): Proposal {
     // min voting period checks
-    assert!(
-        end_time_ms >= clock.timestamp_ms() + min_voting_period_ms!(),
-        ETooShortVotingPeriod,
-    );
+    assert!(end_time_ms >= clock.timestamp_ms() + min_voting_period_ms!(), ETooShortVotingPeriod);
 
     // max voting period checks.
-    assert!(
-        end_time_ms <= clock.timestamp_ms() + max_voting_period_ms!(),
-        ETooLongVotingPeriod,
-    );
+    assert!(end_time_ms <= clock.timestamp_ms() + max_voting_period_ms!(), ETooLongVotingPeriod);
 
     // always include the abstain option in all proposals.
     if (!options.contains(&abstain_option())) {
@@ -115,10 +115,7 @@ public fun new(
 
     let mut votes: VecMap<VotingOption, u64> = vec_map::empty();
 
-    let mut vote_leaderboards: VecMap<
-        VotingOption,
-        Leaderboard,
-    > = vec_map::empty();
+    let mut vote_leaderboards: VecMap<VotingOption, Leaderboard> = vec_map::empty();
 
     options.into_keys().do!(|opt| {
         votes.insert(opt, 0);
@@ -183,11 +180,7 @@ public fun vote(
 /// Finalize the proposal after the end time is reached and the threshold is
 /// reached. The winning option is the one with the highest votes, except for
 /// the abstain option which is ignored.
-public fun finalize(
-    proposal: &mut Proposal,
-    clock: &Clock,
-    _ctx: &mut TxContext,
-) {
+public fun finalize(proposal: &mut Proposal, clock: &Clock, _ctx: &mut TxContext) {
     assert!(proposal.winning_option.is_none(), EProposalAlreadyFinalized);
     proposal.finalize_internal(clock);
 }
@@ -195,18 +188,12 @@ public fun finalize(
 /// Permissionless-ly return the tokens for a given proposal, after
 /// the proposal is completed. It also completes the proposal if it hasn't been
 /// completed.
-public fun return_tokens_bulk(
-    proposal: &mut Proposal,
-    clock: &Clock,
-    ctx: &mut TxContext,
-) {
+public fun return_tokens_bulk(proposal: &mut Proposal, clock: &Clock, ctx: &mut TxContext) {
     proposal.finalize_internal(clock);
 
     let mut total_transfers = 0;
 
-    while (
-        !proposal.voters.is_empty() && total_transfers < MAX_RETURNS_PER_TX
-    ) {
+    while (!proposal.voters.is_empty() && total_transfers < MAX_RETURNS_PER_TX) {
         let voter = *proposal.voters.back().borrow();
         // transfer the balance (as coin) back to the voter.
         transfer::public_transfer(
@@ -220,11 +207,7 @@ public fun return_tokens_bulk(
 }
 
 /// Allow user to get their tokens back, if the proposal is completed.
-public fun return_tokens(
-    proposal: &mut Proposal,
-    clock: &Clock,
-    ctx: &mut TxContext,
-): Coin<NS> {
+public fun return_tokens(proposal: &mut Proposal, clock: &Clock, ctx: &mut TxContext): Coin<NS> {
     proposal.finalize_internal(clock);
     proposal.return_voter_coins(ctx.sender(), ctx)
 }
@@ -244,10 +227,7 @@ public fun winning_option(proposal: &Proposal): Option<VotingOption> {
 
 public fun voters_count(proposal: &Proposal): u64 { proposal.voters.length() }
 
-public(package) fun is_end_time_reached(
-    proposal: &Proposal,
-    clock: &Clock,
-): bool {
+public(package) fun is_end_time_reached(proposal: &Proposal, clock: &Clock): bool {
     clock.timestamp_ms() >= proposal.end_time_ms
 }
 
@@ -318,11 +298,7 @@ fun finalize_internal(proposal: &mut Proposal, clock: &Clock) {
 
 /// Removes the voter from the proposal, combines the balances and returns
 /// a single coin back.
-fun return_voter_coins(
-    proposal: &mut Proposal,
-    voter: address,
-    ctx: &mut TxContext,
-): Coin<NS> {
+fun return_voter_coins(proposal: &mut Proposal, voter: address, ctx: &mut TxContext): Coin<NS> {
     assert!(proposal.voters.contains(voter), EVoterNotFound);
     let votes = proposal.voters.remove(voter);
     let (_, mut balances) = votes.into_keys_values();

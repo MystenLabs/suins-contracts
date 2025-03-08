@@ -15,17 +15,14 @@
 /// to the registry.
 module coupons::coupon_house;
 
-use coupons::coupon::{Self, Coupon};
-use coupons::data::{Self, Data};
-use coupons::rules::CouponRules;
+use coupons::{coupon::{Self, Coupon}, data::{Self, Data}, rules::CouponRules};
 use std::string::String;
-use sui::clock::Clock;
-use sui::coin::Coin;
-use sui::dynamic_field as df;
-use sui::sui::SUI;
-use suins::payment::PaymentIntent;
-use suins::suins::{Self, AdminCap, SuiNS};
-use suins::suins_registration::SuinsRegistration;
+use sui::{clock::Clock, coin::Coin, dynamic_field as df, sui::SUI};
+use suins::{
+    payment::PaymentIntent,
+    suins::{Self, AdminCap, SuiNS},
+    suins_registration::SuinsRegistration
+};
 
 /// An app that's not authorized tries to access private data.
 const EAppNotAuthorized: u64 = 1;
@@ -46,7 +43,7 @@ public struct CouponsApp has drop {}
 
 /// Authorization Key for secondary apps (e.g. Discord) connected to this
 /// module.
-public struct AppKey<phantom A: drop> has copy, store, drop {}
+public struct AppKey<phantom A: drop> has copy, drop, store {}
 
 /// The CouponHouse Shared Object which holds a table of coupon codes available
 /// for claim.
@@ -79,10 +76,7 @@ public fun apply_coupon(
     let coupon_house = coupon_house_mut(suins);
 
     // Validate that specified coupon is valid.
-    assert!(
-        coupon_house.data.coupons().contains(coupon_code),
-        ECouponNotExists,
-    );
+    assert!(coupon_house.data.coupons().contains(coupon_code), ECouponNotExists);
 
     // Borrow coupon from the table.
     let coupon: &mut Coupon = &mut coupon_house.data.coupons_mut()[coupon_code];
@@ -105,9 +99,7 @@ public fun apply_coupon(
     // 4. Validate the coupon hasn't expired (Based on clock)
     coupon.rules().assert_coupon_is_not_expired(clock);
     // 5. Validate years are valid for the coupon.
-    coupon
-        .rules()
-        .assert_coupon_valid_for_domain_years(intent.request_data().years());
+    coupon.rules().assert_coupon_valid_for_domain_years(intent.request_data().years());
 
     // Clean up our registry by removing the coupon if no more available claims!
     if (!coupon.rules().has_available_claims()) {
@@ -138,11 +130,7 @@ public fun register_with_coupon(
 }
 
 #[deprecated]
-public fun calculate_sale_price(
-    _suins: &SuiNS,
-    _price: u64,
-    _coupon_code: String,
-): u64 {
+public fun calculate_sale_price(_suins: &SuiNS, _price: u64, _coupon_code: String): u64 {
     abort 1337
 }
 

@@ -9,12 +9,11 @@
 module suins::name_record;
 
 use std::string::String;
-use sui::clock::{timestamp_ms, Clock};
-use sui::vec_map::{Self, VecMap};
+use sui::{clock::{timestamp_ms, Clock}, vec_map::{Self, VecMap}};
 use suins::constants;
 
 /// A single record in the registry.
-public struct NameRecord has copy, store, drop {
+public struct NameRecord has copy, drop, store {
     /// The ID of the `SuinsRegistration` assigned to this record.
     ///
     /// The owner of the corresponding `SuinsRegistration` has the rights to
@@ -42,10 +41,7 @@ public fun new(nft_id: ID, expiration_timestamp_ms: u64): NameRecord {
 }
 
 /// Create a `leaf` NameRecord.
-public fun new_leaf(
-    parent_id: ID,
-    target_address: Option<address>,
-): NameRecord {
+public fun new_leaf(parent_id: ID, target_address: Option<address>): NameRecord {
     NameRecord {
         nft_id: parent_id,
         expiration_timestamp_ms: constants::leaf_expiration_timestamp(),
@@ -72,17 +68,11 @@ public fun set_data(self: &mut NameRecord, data: VecMap<String, String>) {
 }
 
 /// Set the `target_address` field of the `NameRecord`.
-public fun set_target_address(
-    self: &mut NameRecord,
-    new_address: Option<address>,
-) {
+public fun set_target_address(self: &mut NameRecord, new_address: Option<address>) {
     self.target_address = new_address;
 }
 
-public fun set_expiration_timestamp_ms(
-    self: &mut NameRecord,
-    expiration_timestamp_ms: u64,
-) {
+public fun set_expiration_timestamp_ms(self: &mut NameRecord, expiration_timestamp_ms: u64) {
     self.expiration_timestamp_ms = expiration_timestamp_ms;
 }
 
@@ -94,10 +84,7 @@ public fun has_expired(self: &NameRecord, clock: &Clock): bool {
 }
 
 /// Check if the record has expired, taking into account the grace period.
-public fun has_expired_past_grace_period(
-    self: &NameRecord,
-    clock: &Clock,
-): bool {
+public fun has_expired_past_grace_period(self: &NameRecord, clock: &Clock): bool {
     (self.expiration_timestamp_ms + constants::grace_period_ms()) < timestamp_ms(clock)
 }
 

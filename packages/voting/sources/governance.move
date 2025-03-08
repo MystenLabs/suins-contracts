@@ -1,3 +1,6 @@
+// Copyright (c) Mysten Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 /// The governance module for SuiNS.
 ///
 /// The governance module is used to:
@@ -14,8 +17,7 @@
 /// is a simple voting mechanism, without complex actions.
 module suins_voting::governance;
 
-use sui::dynamic_field as df;
-use sui::package;
+use sui::{dynamic_field as df, package};
 
 use fun df::add as UID.add;
 use fun df::borrow as UID.borrow;
@@ -38,7 +40,7 @@ const QUORUM_THRESHOLD: u64 = 1_500_000 * 1_000_000;
 public struct GOVERNANCE has drop {}
 
 /// The KEY for any application stored under the governance object.
-public struct Application<phantom K> has copy, store, drop {}
+public struct Application<phantom K> has copy, drop, store {}
 
 /// The NSGovernance object, which holds all the governance related objects /
 /// capabilities.

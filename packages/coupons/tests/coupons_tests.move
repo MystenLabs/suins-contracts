@@ -4,28 +4,17 @@
 #[test_only]
 module coupons::coupon_tests;
 
-use coupons::constants;
-use coupons::coupon_house;
-use coupons::data;
-use coupons::range;
-use coupons::rules;
-use coupons::setup::{
-    Self,
-    TestApp,
-    user,
-    user_two,
-    test_app,
-    admin_add_coupon,
-    test_init,
-    mist_per_sui
+use coupons::{
+    constants,
+    coupon_house,
+    data,
+    range,
+    rules,
+    setup::{Self, TestApp, user, user_two, test_app, admin_add_coupon, test_init, mist_per_sui}
 };
 use std::string::String;
-use sui::clock::Clock;
-use sui::test_scenario::{Scenario, return_shared};
-use sui::test_utils::{Self, destroy};
-use suins::payment::PaymentIntent;
-use suins::suins::SuiNS;
-use suins::suins_registration::SuinsRegistration;
+use sui::{clock::Clock, test_scenario::{Scenario, return_shared}, test_utils::{Self, destroy}};
+use suins::{payment::PaymentIntent, suins::SuiNS, suins_registration::SuinsRegistration};
 
 // populate a lot of coupons with different cases.
 // This populates the coupon as an authorized app
@@ -226,12 +215,7 @@ fun max_years_two_failure() {
 
 // Tests the e2e experience for coupons (a list of different coupons with
 // different rules)
-#[
-    test,
-    expected_failure(
-        abort_code = ::coupons::coupon_house::ECouponNotExists,
-    ),
-]
+#[test, expected_failure(abort_code = ::coupons::coupon_house::ECouponNotExists)]
 fun no_more_available_claims_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -304,12 +288,7 @@ fun coupon_not_valid_for_years_failure() {
     scenario_val.end();
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::coupons::rules::EInvalidForDomainLength,
-    ),
-]
+#[test, expected_failure(abort_code = ::coupons::rules::EInvalidForDomainLength)]
 fun coupon_invalid_length_1_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -325,12 +304,7 @@ fun coupon_invalid_length_1_failure() {
     scenario_val.end();
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::coupons::rules::EInvalidForDomainLength,
-    ),
-]
+#[test, expected_failure(abort_code = ::coupons::rules::EInvalidForDomainLength)]
 fun coupon_invalid_length_2_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -346,12 +320,7 @@ fun coupon_invalid_length_2_failure() {
     scenario_val.end();
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::coupons::rules::EInvalidForDomainLength,
-    ),
-]
+#[test, expected_failure(abort_code = ::coupons::rules::EInvalidForDomainLength)]
 fun coupon_invalid_length_3_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -477,9 +446,7 @@ fun test_coupon_register(
             scenario.ctx(),
         );
         if (amount.is_some()) {
-            assert!(
-                intent.request_data().base_amount() == amount.get_with_default(0),
-            );
+            assert!(intent.request_data().base_amount() == amount.get_with_default(0));
         };
 
         return_shared(suins);
@@ -520,9 +487,7 @@ fun test_coupon_renewal(
             scenario.ctx(),
         );
         if (amount.is_some()) {
-            assert!(
-                intent.request_data().base_amount() == amount.get_with_default(0),
-            );
+            assert!(intent.request_data().base_amount() == amount.get_with_default(0));
         };
 
         return_shared(suins);
@@ -538,11 +503,7 @@ fun init_registration(suins: &mut SuiNS, domain: String): PaymentIntent {
     intent
 }
 
-fun init_renewal(
-    suins: &mut SuiNS,
-    nft: &SuinsRegistration,
-    years: u8,
-): PaymentIntent {
+fun init_renewal(suins: &mut SuiNS, nft: &SuinsRegistration, years: u8): PaymentIntent {
     let intent = suins::payment::init_renewal(suins, nft, years);
 
     intent

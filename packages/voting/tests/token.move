@@ -1,3 +1,6 @@
+// Copyright (c) Mysten Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 /// This module will be completely removed.
 /// This is only added to simulate a demo token,
 /// and allow for testing the voting module.
@@ -36,11 +39,7 @@ fun init(witness: TOKEN, ctx: &mut TxContext) {
     });
 }
 
-public fun mint(
-    faucet: &mut FaucetForTesting,
-    amount: u64,
-    ctx: &mut TxContext,
-) {
+public fun mint(faucet: &mut FaucetForTesting, amount: u64, ctx: &mut TxContext) {
     transfer::public_transfer(faucet.treasury.mint(amount, ctx), ctx.sender());
 }
 

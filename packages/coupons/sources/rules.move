@@ -5,8 +5,7 @@
 // validation of names etc.
 module coupons::rules;
 
-use coupons::constants;
-use coupons::range::Range;
+use coupons::{constants, range::Range};
 use sui::clock::Clock;
 
 // Errors
@@ -31,7 +30,7 @@ const EInvalidAvailableClaims: u64 = 8;
 /// The Struct that holds the coupon's rules.
 /// All rules are combined in `AND` fashion.
 /// All of the checks have to pass for a coupon to be used.
-public struct CouponRules has copy, store, drop {
+public struct CouponRules has copy, drop, store {
     length: Option<Range>,
     available_claims: Option<u64>,
     user: Option<address>,
@@ -103,10 +102,7 @@ public fun has_available_claims(rules: &CouponRules): bool {
 }
 
 // Assertion helper for the validity of years.
-public fun assert_coupon_valid_for_domain_years(
-    rules: &CouponRules,
-    target: u8,
-) {
+public fun assert_coupon_valid_for_domain_years(rules: &CouponRules, target: u8) {
     assert!(is_coupon_valid_for_domain_years(rules, target), ENotValidYears);
 }
 
@@ -115,10 +111,7 @@ public fun assert_coupon_valid_for_domain_years(
 // That means we can create a combination of:
 // 1. Exact years (e.g. 2 years, by passing [2,2])
 // 2. Range of years (e.g. [1,3])
-public fun is_coupon_valid_for_domain_years(
-    rules: &CouponRules,
-    target: u8,
-): bool {
+public fun is_coupon_valid_for_domain_years(rules: &CouponRules, target: u8): bool {
     if (rules.years.is_none()) return true;
 
     rules.years.borrow().is_in_range(target)
@@ -137,21 +130,12 @@ public fun assert_is_valid_amount(_: u8, amount: u64) {
 
 // We check a DomainSize Rule against the length of a domain.
 // We return if the length is valid based on that.
-public fun assert_coupon_valid_for_domain_size(
-    rules: &CouponRules,
-    length: u8,
-) {
-    assert!(
-        is_coupon_valid_for_domain_size(rules, length),
-        EInvalidForDomainLength,
-    )
+public fun assert_coupon_valid_for_domain_size(rules: &CouponRules, length: u8) {
+    assert!(is_coupon_valid_for_domain_size(rules, length), EInvalidForDomainLength)
 }
 
 /// We check the length of the name based on the domain length rule
-public fun is_coupon_valid_for_domain_size(
-    rules: &CouponRules,
-    length: u8,
-): bool {
+public fun is_coupon_valid_for_domain_size(rules: &CouponRules, length: u8): bool {
     // If the vec is not set, we pass this rule test.
     if (rules.length.is_none()) return true;
 
@@ -165,10 +149,7 @@ public fun assert_coupon_valid_for_address(rules: &CouponRules, user: address) {
 }
 
 /// Check that the domain is valid for the specified address
-public fun is_coupon_valid_for_address(
-    rules: &CouponRules,
-    user: address,
-): bool {
+public fun is_coupon_valid_for_address(rules: &CouponRules, user: address): bool {
     if (rules.user.is_none()) return true;
     rules.user.borrow() == user
 }

@@ -1,15 +1,22 @@
+// Copyright (c) Mysten Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 module suins_voting::early_voting_tests;
 
-use sui::clock::{Self, Clock};
-use sui::coin::{Self, Coin};
-use sui::test_scenario::{Self as ts, Scenario};
-use sui::test_utils::destroy;
-use suins_voting::constants::min_voting_period_ms;
-use suins_voting::early_voting;
-use suins_voting::governance::{Self, NSGovernance, NSGovernanceCap};
-use suins_voting::proposal::Proposal;
-use suins_voting::proposal_tests;
-use suins_voting::voting_option;
+use sui::{
+    clock::{Self, Clock},
+    coin::{Self, Coin},
+    test_scenario::{Self as ts, Scenario},
+    test_utils::destroy
+};
+use suins_voting::{
+    constants::min_voting_period_ms,
+    early_voting,
+    governance::{Self, NSGovernance, NSGovernanceCap},
+    proposal::Proposal,
+    proposal_tests,
+    voting_option
+};
 use token::ns::NS;
 
 const ADMIN: address = @0x0;
@@ -206,9 +213,7 @@ fun test_e2e_no_quorum() {
 
         assert!(coin.value() == 900_000 * DECIMALS);
 
-        assert!(
-            proposal.winning_option().borrow() == voting_option::threshold_not_reached(),
-        );
+        assert!(proposal.winning_option().borrow() == voting_option::threshold_not_reached());
 
         destroy(coin);
         ts::return_shared(proposal);
@@ -279,9 +284,7 @@ fun test_e2e_tie() {
 
         assert!(coin.value() == 4_000_000 * DECIMALS);
 
-        assert!(
-            proposal.winning_option().borrow() == voting_option::tie_rejected(),
-        );
+        assert!(proposal.winning_option().borrow() == voting_option::tie_rejected());
 
         destroy(coin);
         ts::return_shared(proposal);
@@ -352,9 +355,7 @@ fun test_e2e_abstain_bypassed() {
 
         assert!(coin.value() == 3_000_000 * DECIMALS);
 
-        assert!(
-            proposal.winning_option().borrow() == voting_option::no_option(),
-        );
+        assert!(proposal.winning_option().borrow() == voting_option::no_option());
 
         destroy(coin);
         ts::return_shared(proposal);
@@ -384,12 +385,7 @@ fun add_second_proposal_after_first_is_completed() {
     test.cleanup();
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::suins_voting::early_voting::ECannotHaveParallelProposals,
-    ),
-]
+#[test, expected_failure(abort_code = ::suins_voting::early_voting::ECannotHaveParallelProposals)]
 fun test_try_to_add_parallel_proposals() {
     let mut test = prepare_early_voting();
     test.ts.next_tx(ADMIN);

@@ -4,13 +4,14 @@
 module suins::controller;
 
 use std::string::String;
-use sui::clock::Clock;
-use sui::tx_context::sender;
-use suins::domain;
-use suins::registry::Registry;
-use suins::subdomain_registration::SubDomainRegistration;
-use suins::suins::{Self, SuiNS};
-use suins::suins_registration::SuinsRegistration;
+use sui::{clock::Clock, tx_context::sender};
+use suins::{
+    domain,
+    registry::Registry,
+    subdomain_registration::SubDomainRegistration,
+    suins::{Self, SuiNS},
+    suins_registration::SuinsRegistration
+};
 
 const AVATAR: vector<u8> = b"avatar";
 const CONTENT_HASH: vector<u8> = b"content_hash";
@@ -74,7 +75,10 @@ public fun set_user_data(
 
     registry.assert_nft_is_authorized(nft, clock);
     let key_bytes = *key.as_bytes();
-    assert!(key_bytes == AVATAR || key_bytes == CONTENT_HASH || key_bytes == WALRUS_SITE_ID, EUnsupportedKey);
+    assert!(
+        key_bytes == AVATAR || key_bytes == CONTENT_HASH || key_bytes == WALRUS_SITE_ID,
+        EUnsupportedKey,
+    );
 
     if (data.contains(&key)) {
         data.remove(&key);

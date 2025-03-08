@@ -1,3 +1,6 @@
+// Copyright (c) Mysten Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 module suins_voting::leaderboard_tests;
 
 use suins_voting::leaderboard;
@@ -22,22 +25,12 @@ fun test_multi_insertions() {
     assert!(leaderboard.entries()[2].value() == 25);
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::suins_voting::leaderboard::EInvalidMaxSize,
-    ),
-]
+#[test, expected_failure(abort_code = ::suins_voting::leaderboard::EInvalidMaxSize)]
 fun create_zero_sized_leaderboard() {
     let _leaderboard = leaderboard::new(0);
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::suins_voting::leaderboard::EInvalidMaxSize,
-    ),
-]
+#[test, expected_failure(abort_code = ::suins_voting::leaderboard::EInvalidMaxSize)]
 fun create_too_large_leaderboard() {
     let _leaderboard = leaderboard::new(1000);
 }
