@@ -89,49 +89,45 @@ public fun withdraw(
     balance
 }
 
-/// Calculate voting power for a batch based on staking duration or lock period
-public fun power( // TODO cap at 1.1^11 or 3x multiplier
+/// Calculate voting power for a batch based on locking and/or staking duration
+public fun power(
     batch: &Batch,
     clock: &Clock,
 ): u64 {
+    let lock_ms = batch.unlock_ms - batch.start_ms;
+    let lock_months = lock_ms / month_ms!();
+
+    // Special case: 12-month lock gets 3.0x multiplier
+    if (lock_months == max_lock_months!()) {
+        return (batch.balance.value() * 300) / 100
+    };
+
+    // Locked + staked months
+    let mut total_months = lock_months;
+
+    // Add months from staking (if any)
     let now = clock.timestamp_ms();
-    let mut multiplier_bps: u64 = 100; // 1.0x (no increase)
-
-    // Calculate locking multiplier
-    if (batch.start_ms < batch.unlock_ms) {
-        // This batch was locked at some point
-        let lock_duration_ms = batch.unlock_ms - batch.start_ms;
-        let months_locked = lock_duration_ms / month_ms!();
-
-        if (months_locked == max_lock_months!()) {
-            // Special case: 12-month lock gets 3.0x instead of 2.85x (0.15x bonus)
-            return (batch.balance.value() * 300) / 100
-        } else {
-            // Apply 10% increase per month
-            let mut i = 0;
-            while (i < months_locked) {
-                multiplier_bps = multiplier_bps * 110 / 100;
-                i = i + 1;
-            }
-        }
+    if (now > batch.unlock_ms) {
+        let stake_ms = now - batch.unlock_ms;
+        let stake_months = stake_ms / month_ms!();
+        total_months = total_months + stake_months;
     };
 
-    // Calculate staking multiplier
-    if (now >= batch.unlock_ms) {
-        // For regular staking batches, start_ms == unlock_ms
-        // For previously locked batches, we only count additional staking time after unlock
-        let staking_duration_ms = now - batch.unlock_ms;
-        let staking_months = staking_duration_ms / month_ms!();
-
-        // Apply 10% increase per month
-        let mut i = 0;
-        while (i < staking_months) {
-            multiplier_bps = multiplier_bps * 110 / 100;
-            i = i + 1;
-        }
+    // Cap at 11 months (which gives 2.85x multiplier)
+    let max_effective_months = max_lock_months!() - 1;
+    if (total_months > max_effective_months) {
+        total_months = max_effective_months;
     };
 
-    (batch.balance.value() * multiplier_bps) / 100
+    // Apply multiplier: 1.1^total_months
+    let mut power = batch.balance.value();
+    let mut i = 0;
+    while (i < total_months) {
+        power = power * 110 / 100; // +10% per month
+        i = i + 1;
+    };
+
+    power
 }
 
 // === admin functions ===
