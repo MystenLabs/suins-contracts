@@ -17,3 +17,11 @@ public macro fun withdraw_cooldown_ms(): u64 {
 public macro fun max_lock_months(): u64 {
     12
 }
+
+public macro fun monthly_boost_pct(): u64 {
+    110 // 110% / 1.1x
+}
+
+public macro fun max_boost_pct(): u64 {
+    300 // 300% / 3.0x
+}

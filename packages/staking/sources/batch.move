@@ -14,6 +14,8 @@ use staking::constants::{
     month_ms,
     withdraw_cooldown_ms,
     max_lock_months,
+    monthly_boost_pct,
+    max_boost_pct,
 };
 
 // === errors ===
@@ -109,6 +111,14 @@ public fun withdraw(
     balance
 }
 
+// === admin functions ===
+
+// === package functions ===
+
+// === private functions ===
+
+// === view functions ===
+
 /// Calculate voting power for a batch based on locking and/or staking duration
 public fun power(
     batch: &Batch,
@@ -119,7 +129,7 @@ public fun power(
 
     // Special case: 12-month lock gets 3.0x multiplier
     if (lock_months == max_lock_months!()) {
-        return (batch.balance.value() * 300) / 100
+        return (batch.balance.value() * max_boost_pct!()) / 100
     };
 
     // Locked + staked months
@@ -143,20 +153,12 @@ public fun power(
     let mut power = batch.balance.value();
     let mut i = 0;
     while (i < total_months) {
-        power = power * 110 / 100; // +10% per month
+        power = power * monthly_boost_pct!() / 100;
         i = i + 1;
     };
 
     power
 }
-
-// === admin functions ===
-
-// === package functions ===
-
-// === private functions ===
-
-// === view functions ===
 
 /// Check if a batch is staked
 public fun is_staked(
@@ -182,8 +184,6 @@ public fun is_in_cooldown(
     batch.withdraw_ms > 0 && clock.timestamp_ms() < batch.withdraw_ms
 }
 
-// === events ===
-
 // === accessors ===
 
 public fun id(batch: &Batch): ID { batch.id.to_inner() }
@@ -193,5 +193,7 @@ public fun unlock_ms(batch: &Batch): u64 { batch.unlock_ms }
 public fun withdraw_ms(batch: &Batch): u64 { batch.withdraw_ms }
 
 // === method aliases ===
+
+// === events ===
 
 // === test functions ===
