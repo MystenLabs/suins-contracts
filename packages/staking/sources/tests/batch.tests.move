@@ -14,7 +14,12 @@ use token::{
 };
 use staking::{
     batch::{Self, Batch},
+    constants::{month_ms},
 };
+
+// === constants ===
+
+const INITIAL_TIME: u64 = 86_400_000; // January 2, 1970
 
 // === addresses ===
 
@@ -30,7 +35,8 @@ public struct TestSetup {
 
 fun setup(): TestSetup {
     let mut ts = ts::begin(ADMIN);
-    let clock = clock::create_for_testing(ts.ctx());
+    let mut clock = clock::create_for_testing(ts.ctx());
+    clock.set_for_testing(INITIAL_TIME);
     TestSetup { ts, clock }
 }
 
@@ -49,6 +55,14 @@ fun stake_and_take(
     return setup.ts.take_from_sender<Batch>()
 }
 
+fun assert_power(
+    setup: &TestSetup,
+    batch: &Batch,
+    expected_power: u64,
+) {
+    assert_eq(expected_power, batch.power(&setup.clock));
+}
+
 // === helpers for sui modules ===
 
 public fun mint_ns(
@@ -63,8 +77,49 @@ public fun mint_ns(
 #[test]
 fun test_power_ok() {
     let mut setup = setup();
-    let batch = setup.stake_and_take(USER_1, 1000, 0);
-    assert_eq(batch.balance().value(), 1000);
+
+    let balance = 1000;
+
+    // locking
+
+    // 0 months
+    let batch = setup.stake_and_take(USER_1, balance, 0);
+    setup.assert_power(&batch, balance); // no increase in power
     destroy(batch);
+
+    // 1 month
+    let batch = setup.stake_and_take(USER_1, balance, 1);
+    setup.assert_power(&batch, 1100);
+    setup.clock.increment_for_testing(2 * month_ms!());
+    setup.assert_power(&batch, 1210);
+    setup.clock.increment_for_testing(1 * month_ms!());
+    setup.assert_power(&batch, 1331);
+    setup.clock.increment_for_testing(24 * month_ms!());
+    setup.assert_power(&batch, 2850); // same as 11 months
+    destroy(batch);
+
+    // 11 months
+    let batch = setup.stake_and_take(USER_1, balance, 11);
+    setup.assert_power(&batch, 2850);
+    destroy(batch);
+
+    // 12 months
+    let batch = setup.stake_and_take(USER_1, balance, 12);
+    setup.assert_power(&batch, 3000); // 3.0x (0.15x bonus)
+    destroy(batch);
+
+    // staking
+
+    // 0 months
+    let batch = setup.stake_and_take(USER_1, balance, 0);
+    setup.assert_power(&batch, balance); // no increase in power
+    setup.clock.increment_for_testing(1 * month_ms!() - 1); // just under 1 month
+    setup.assert_power(&batch, balance); // no increase in power
+    setup.clock.increment_for_testing(1); // exactly 1 month
+    setup.assert_power(&batch, 1100); // 1.1x
+    setup.clock.increment_for_testing(24 * month_ms!());
+    setup.assert_power(&batch, 2850); // same as 11 months
+    destroy(batch);
+
     destroy(setup);
 }
