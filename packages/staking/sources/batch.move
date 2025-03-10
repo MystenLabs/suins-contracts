@@ -12,7 +12,7 @@ use token::{
 };
 use staking::constants::{
     month_ms,
-    cooldown_period_ms,
+    withdraw_cooldown_ms,
     max_lock_months,
 };
 
@@ -42,7 +42,7 @@ public struct Batch has key {
     /// Locked batches become staked if `clock.timestamp_ms() >= unlock_ms`
     unlock_ms: u64,
     /// When the user can withdraw their NS from the batch. It's `0` if unlock was not requested.
-    cooldown_end_ms: u64,
+    withdraw_ms: u64,
 }
 
 // === initialization ===
@@ -64,7 +64,7 @@ public fun new(
         balance: coin.into_balance(),
         start_ms: now,
         unlock_ms: now + (lock_months * month_ms!()),
-        cooldown_end_ms: 0,
+        withdraw_ms: 0,
     };
     batch
 }
@@ -77,12 +77,11 @@ public fun lock(
 ) {
     assert!(batch.is_staked(clock), EAlreadyLocked); // TODO should increasing lock time be allowed?
     assert!(lock_months > 0 && lock_months <= max_lock_months!(), EInvalidLockPeriod);
-    // If the batch is in cooldown, abort the withdraw request
-    if (batch.is_in_cooldown(clock)) {
-        batch.cooldown_end_ms = 0;
-    };
+    // Lock the batch
     let now = clock.timestamp_ms();
     batch.unlock_ms = now + (lock_months * month_ms!());
+    // Reset the withdraw request, if any
+    batch.withdraw_ms = 0;
 }
 
 /// Request to withdraw a batch, initiating cooldown period
@@ -90,10 +89,10 @@ public fun request_withdraw(
     batch: &mut Batch,
     clock: &Clock,
 ) {
-    assert!(batch.cooldown_end_ms == 0, EWithdrawAlreadyRequested);
+    assert!(batch.withdraw_ms == 0, EWithdrawAlreadyRequested);
     assert!(batch.is_staked(clock), ECannotWithdrawLockedBatch);
     let now = clock.timestamp_ms();
-    batch.cooldown_end_ms = now + cooldown_period_ms!();
+    batch.withdraw_ms = now + withdraw_cooldown_ms!();
 }
 
 /// Withdraw balance and destroy batch after cooldown period has ended
@@ -102,8 +101,8 @@ public fun withdraw(
     clock: &Clock,
 ): Balance<NS> {
     let now = clock.timestamp_ms();
-    assert!(batch.cooldown_end_ms > 0, EWithdrawNotRequested);
-    assert!(now >= batch.cooldown_end_ms, ECooldownNotOver);
+    assert!(batch.withdraw_ms > 0, EWithdrawNotRequested);
+    assert!(now >= batch.withdraw_ms, ECooldownNotOver);
 
     let Batch { id, balance, .. } = batch;
     object::delete(id);
@@ -180,7 +179,7 @@ public fun is_in_cooldown(
     batch: &Batch,
     clock: &Clock,
 ): bool {
-    batch.cooldown_end_ms > 0 && clock.timestamp_ms() < batch.cooldown_end_ms
+    batch.withdraw_ms > 0 && clock.timestamp_ms() < batch.withdraw_ms
 }
 
 // === events ===
@@ -191,7 +190,7 @@ public fun id(batch: &Batch): ID { batch.id.to_inner() }
 public fun balance(batch: &Batch): &Balance<NS> { &batch.balance }
 public fun start_ms(batch: &Batch): u64 { batch.start_ms }
 public fun unlock_ms(batch: &Batch): u64 { batch.unlock_ms }
-public fun cooldown_end_ms(batch: &Batch): u64 { batch.cooldown_end_ms }
+public fun withdraw_ms(batch: &Batch): u64 { batch.withdraw_ms }
 
 // === method aliases ===
 

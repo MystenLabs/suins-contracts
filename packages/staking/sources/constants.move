@@ -10,7 +10,7 @@ public macro fun month_ms(): u64 {
     30 * day_ms!()
 }
 
-public macro fun cooldown_period_ms(): u64 {
+public macro fun withdraw_cooldown_ms(): u64 {
     3 * day_ms!()
 }
 
