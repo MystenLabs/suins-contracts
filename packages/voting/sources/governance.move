@@ -4,7 +4,7 @@
 /// 1. Store the NS token reserves
 /// 2. Store the UpgradeCap for SuiNS protocol
 /// 3. Store the AdminCap for SuiNS protocol
-/// 4. Store the Gorvenance votes & Proposals for SuiNS protocol
+/// 4. Store the Governance votes & Proposals for SuiNS protocol
 /// 5. Apply verified proposals to the SuiNS protocol using these caps
 /// 6. Store the UpgradeCap of the NSGovernance protocol
 ///   - Upgrades to the governance protocol go through typical voting, similar
@@ -103,7 +103,7 @@ public fun set_quorum_threshold(
     governance.quorum_threshold = threshold;
 }
 
-// In the initial version, applications attached to the goveernance object
+// In the initial version, applications attached to the governance object
 // are only controlled internally from the package (public(package) visibility).
 // See `early_voting.move` for reference.
 

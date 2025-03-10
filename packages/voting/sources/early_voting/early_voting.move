@@ -18,7 +18,7 @@ public struct ProposalPointer has store {
 /// The list of proposals in the early voting system.
 public struct EarlyVoting(vector<ProposalPointer>) has store;
 
-/// Called by the `EarlyVotingCap` holder to add a proposal to the early voting
+/// Called by the `NSGovernanceCap` holder to add a proposal to the early voting
 /// system.
 /// The proposal ID is saved in the proposals vector (from earlier to latest),
 /// and becomes shared.
