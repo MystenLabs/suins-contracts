@@ -11,10 +11,14 @@ use token::{
 };
 use staking::constants::{
     month_ms,
+    cooldown_period_ms,
 };
 // === errors ===
 
 const EInvalidLockPeriod: u64 = 0;
+const EWithdrawAlreadyRequested: u64 = 1;
+const EWithdrawNotRequested: u64 = 2;
+const ECooldownNotOver: u64 = 3;
 
 // === constants ===
 
@@ -43,6 +47,7 @@ public struct Batch has key {
 
 // === public functions ===
 
+/// Stake or lock NS for a given period
 public fun stake(
     balance: Balance<NS>,
     lock_months: u8,
@@ -61,7 +66,29 @@ public fun stake(
     transfer::transfer(batch, ctx.sender());
 }
 
-// === view functions ===
+/// Request to withdraw a batch, initiating cooldown period
+public fun request_withdraw(
+    self: &mut Batch,
+    clock: &Clock,
+) {
+    assert!(self.cooldown_end_ms == 0, EWithdrawAlreadyRequested);
+    let now = clock.timestamp_ms();
+    self.cooldown_end_ms = now + cooldown_period_ms!();
+}
+
+/// Withdraw tokens after cooldown period has ended
+public fun withdraw(
+    self: Batch,
+    clock: &Clock,
+): Balance<NS> {
+    let now = clock.timestamp_ms();
+    assert!(self.cooldown_end_ms > 0, EWithdrawNotRequested);
+    assert!(now >= self.cooldown_end_ms, ECooldownNotOver);
+
+    let Batch { id, balance, .. } = self;
+    object::delete(id);
+    balance
+}
 
 // === admin functions ===
 
@@ -69,7 +96,23 @@ public fun stake(
 
 // === private functions ===
 
-// === events ===
+// === helpers ===
+
+/// Check if a batch is currently locked
+public fun is_locked(
+    self: &Batch,
+    clock: &Clock,
+): bool {
+    self.start_ms < self.unlock_ms && clock.timestamp_ms() < self.unlock_ms
+}
+
+/// Check if a batch is in cooldown period
+public fun is_in_cooldown(
+    self: &Batch,
+    clock: &Clock,
+): bool {
+    self.cooldown_end_ms > 0 && clock.timestamp_ms() < self.cooldown_end_ms
+}
 
 // === accessors ===
 
@@ -78,5 +121,7 @@ public fun balance(self: &Batch): &Balance<NS> { &self.balance }
 public fun start_ms(self: &Batch): u64 { self.start_ms }
 public fun unlock_ms(self: &Batch): u64 { self.unlock_ms }
 public fun cooldown_end_ms(self: &Batch): u64 { self.cooldown_end_ms }
+
+// === events ===
 
 // === test functions ===
