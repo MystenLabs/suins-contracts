@@ -24,6 +24,7 @@ const EWithdrawNotRequested: u64 = 2;
 const ECooldownNotOver: u64 = 3;
 const ECoinValueZero: u64 = 4;
 const EAlreadyLocked: u64 = 5;
+const ECannotWithdrawLockedBatch: u64 = 6;
 
 // === constants ===
 
@@ -90,6 +91,7 @@ public fun request_withdraw(
     clock: &Clock,
 ) {
     assert!(batch.cooldown_end_ms == 0, EWithdrawAlreadyRequested);
+    assert!(batch.is_staked(clock), ECannotWithdrawLockedBatch);
     let now = clock.timestamp_ms();
     batch.cooldown_end_ms = now + cooldown_period_ms!();
 }
