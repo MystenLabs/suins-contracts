@@ -42,7 +42,7 @@ fun setup(): TestSetup {
 
 // === helpers for our modules ===
 
-fun stake_and_take(
+fun new_batch(
     setup: &mut TestSetup,
     sender: address,
     balance: u64,
@@ -50,9 +50,7 @@ fun stake_and_take(
 ): Batch {
     setup.ts.next_tx(sender);
     let balance = mint_ns(setup, balance);
-    batch::stake(balance, lock_months, &setup.clock, setup.ts.ctx());
-    setup.ts.next_tx(sender);
-    return setup.ts.take_from_sender<Batch>()
+    batch::new(balance, lock_months, &setup.clock, setup.ts.ctx())
 }
 
 fun assert_power(
@@ -89,7 +87,7 @@ fun test_power_ok() {
     // == regular staking ==
 
     // Basic staking with no lock
-    let batch = setup.stake_and_take(USER_1, balance, 0);
+    let batch = setup.new_batch(USER_1, balance, 0);
     setup.assert_power(&batch, balance); // 1.0x at start
 
     // Test month-by-month progression
@@ -110,7 +108,7 @@ fun test_power_ok() {
     destroy(batch);
 
     // Test partial month handling
-    let batch = setup.stake_and_take(USER_1, balance, 0);
+    let batch = setup.new_batch(USER_1, balance, 0);
     setup.add_time(month_ms!() - 1); // just before 1 month
     setup.assert_power(&batch, balance); // 1.0x (no change)
     setup.add_time(1); // exactly 1 month
@@ -120,24 +118,24 @@ fun test_power_ok() {
     // == locking ===
 
     // Test 1-month lock
-    let batch = setup.stake_and_take(USER_1, balance, 1);
+    let batch = setup.new_batch(USER_1, balance, 1);
     setup.assert_power(&batch, 1100); // 1.1x from lock
     destroy(batch);
 
     // Test 11-month lock (maximum regular multiplier)
-    let batch = setup.stake_and_take(USER_1, balance, 11);
+    let batch = setup.new_batch(USER_1, balance, 11);
     setup.assert_power(&batch, 2850); // 2.85x (1.1^11)
     destroy(batch);
 
     // Test 12-month lock (special bonus case)
-    let batch = setup.stake_and_take(USER_1, balance, 12);
+    let batch = setup.new_batch(USER_1, balance, 12);
     setup.assert_power(&batch, 3000); // 3.0x (special bonus)
     destroy(batch);
 
     // == transition from locked to staked ===
 
     // Test 3-month lock transitioning to staked
-    let batch = setup.stake_and_take(USER_1, balance, 3);
+    let batch = setup.new_batch(USER_1, balance, 3);
     setup.assert_power(&batch, 1331); // 1.331x (1.1^3 from lock)
 
     // Test boundary at unlock time
@@ -158,7 +156,7 @@ fun test_power_ok() {
     destroy(batch);
 
     // Test partial months after lock period
-    let batch = setup.stake_and_take(USER_1, balance, 2);
+    let batch = setup.new_batch(USER_1, balance, 2);
     setup.assert_power(&batch, 1210); // 1.21x (1.1^2 from lock)
     setup.add_time(2 * month_ms!()); // exactly when lock ends
     setup.add_time(month_ms!() / 2); // half a month after unlock
@@ -170,7 +168,7 @@ fun test_power_ok() {
     // == edge cases ===
 
     // Test 6-month lock + 6 months staking (reaching cap)
-    let batch = setup.stake_and_take(USER_1, balance, 6);
+    let batch = setup.new_batch(USER_1, balance, 6);
     setup.assert_power(&batch, 1771); // 1.771x (1.1^6 from lock)
     setup.add_time(6 * month_ms!()); // exactly when lock ends
     setup.add_time(5 * month_ms!()); // 5 months after unlock
@@ -178,7 +176,7 @@ fun test_power_ok() {
     destroy(batch);
 
     // Test 12-month lock with additional staking time
-    let batch = setup.stake_and_take(USER_1, balance, 12);
+    let batch = setup.new_batch(USER_1, balance, 12);
     setup.assert_power(&batch, 3000); // 3.0x (special bonus)
     setup.add_time(12 * month_ms!()); // exactly when lock ends
     setup.assert_power(&batch, 3000); // 3.0x (no change)

@@ -15,6 +15,7 @@ use staking::constants::{
     cooldown_period_ms,
     max_lock_months,
 };
+
 // === errors ===
 
 const EInvalidLockPeriod: u64 = 0;
@@ -44,17 +45,15 @@ public struct Batch has key {
 
 // === initialization ===
 
-// === method aliases ===
-
 // === public functions ===
 
-/// Stake or lock NS for a given period
-public fun stake(
+/// Stake or lock NS
+public fun new(
     coin: Coin<NS>,
     lock_months: u64,
     clock: &Clock,
     ctx: &mut TxContext,
-) {
+): Batch {
     assert!(lock_months <= max_lock_months!(), EInvalidLockPeriod);
     assert!(coin.value() > 0, ECoinValueZero);
     let now = clock.timestamp_ms();
@@ -65,29 +64,29 @@ public fun stake(
         unlock_ms: now + (lock_months * month_ms!()),
         cooldown_end_ms: 0,
     };
-    transfer::transfer(batch, ctx.sender());
+    batch
 }
 
 /// Request to withdraw a batch, initiating cooldown period
 public fun request_withdraw(
-    self: &mut Batch,
+    batch: &mut Batch,
     clock: &Clock,
 ) {
-    assert!(self.cooldown_end_ms == 0, EWithdrawAlreadyRequested);
+    assert!(batch.cooldown_end_ms == 0, EWithdrawAlreadyRequested);
     let now = clock.timestamp_ms();
-    self.cooldown_end_ms = now + cooldown_period_ms!();
+    batch.cooldown_end_ms = now + cooldown_period_ms!();
 }
 
-/// Withdraw tokens after cooldown period has ended
+/// Withdraw balance and destroy batch after cooldown period has ended
 public fun withdraw(
-    self: Batch,
+    batch: Batch,
     clock: &Clock,
 ): Balance<NS> {
     let now = clock.timestamp_ms();
-    assert!(self.cooldown_end_ms > 0, EWithdrawNotRequested);
-    assert!(now >= self.cooldown_end_ms, ECooldownNotOver);
+    assert!(batch.cooldown_end_ms > 0, EWithdrawNotRequested);
+    assert!(now >= batch.cooldown_end_ms, ECooldownNotOver);
 
-    let Batch { id, balance, .. } = self;
+    let Batch { id, balance, .. } = batch;
     object::delete(id);
     balance
 }
@@ -142,29 +141,31 @@ public fun power(
 // === helpers ===
 
 /// Check if a batch is currently locked
-public fun is_locked(
-    self: &Batch,
+fun is_locked(
+    batch: &Batch,
     clock: &Clock,
 ): bool {
-    self.start_ms < self.unlock_ms && clock.timestamp_ms() < self.unlock_ms
+    batch.start_ms < batch.unlock_ms && clock.timestamp_ms() < batch.unlock_ms
 }
 
 /// Check if a batch is in cooldown period
-public fun is_in_cooldown(
-    self: &Batch,
+fun is_in_cooldown(
+    batch: &Batch,
     clock: &Clock,
 ): bool {
-    self.cooldown_end_ms > 0 && clock.timestamp_ms() < self.cooldown_end_ms
+    batch.cooldown_end_ms > 0 && clock.timestamp_ms() < batch.cooldown_end_ms
 }
+
+// === events ===
 
 // === accessors ===
 
-public fun id(self: &Batch): ID { self.id.to_inner() }
-public fun balance(self: &Batch): &Balance<NS> { &self.balance }
-public fun start_ms(self: &Batch): u64 { self.start_ms }
-public fun unlock_ms(self: &Batch): u64 { self.unlock_ms }
-public fun cooldown_end_ms(self: &Batch): u64 { self.cooldown_end_ms }
+public fun id(batch: &Batch): ID { batch.id.to_inner() }
+public fun balance(batch: &Batch): &Balance<NS> { &batch.balance }
+public fun start_ms(batch: &Batch): u64 { batch.start_ms }
+public fun unlock_ms(batch: &Batch): u64 { batch.unlock_ms }
+public fun cooldown_end_ms(batch: &Batch): u64 { batch.cooldown_end_ms }
 
-// === events ===
+// === method aliases ===
 
 // === test functions ===
