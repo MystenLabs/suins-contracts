@@ -23,6 +23,7 @@ const EWithdrawAlreadyRequested: u64 = 1;
 const EWithdrawNotRequested: u64 = 2;
 const ECooldownNotOver: u64 = 3;
 const ECoinValueZero: u64 = 4;
+const EAlreadyLocked: u64 = 5;
 
 // === constants ===
 
@@ -65,6 +66,22 @@ public fun new(
         cooldown_end_ms: 0,
     };
     batch
+}
+
+/// Lock a staked batch
+public fun lock(
+    batch: &mut Batch,
+    lock_months: u64,
+    clock: &Clock,
+) {
+    assert!(batch.is_staked(clock), EAlreadyLocked); // TODO should increasing lock time be allowed?
+    assert!(lock_months > 0 && lock_months <= max_lock_months!(), EInvalidLockPeriod);
+    // If the batch is in cooldown, abort the withdraw request
+    if (batch.is_in_cooldown(clock)) {
+        batch.cooldown_end_ms = 0;
+    };
+    let now = clock.timestamp_ms();
+    batch.unlock_ms = now + (lock_months * month_ms!());
 }
 
 /// Request to withdraw a batch, initiating cooldown period
@@ -138,10 +155,18 @@ public fun power(
 
 // === private functions ===
 
-// === helpers ===
+// === view functions ===
+
+/// Check if a batch is staked
+public fun is_staked(
+    batch: &Batch,
+    clock: &Clock,
+): bool {
+    clock.timestamp_ms() >= batch.unlock_ms
+}
 
 /// Check if a batch is currently locked
-fun is_locked(
+public fun is_locked(
     batch: &Batch,
     clock: &Clock,
 ): bool {
@@ -149,7 +174,7 @@ fun is_locked(
 }
 
 /// Check if a batch is in cooldown period
-fun is_in_cooldown(
+public fun is_in_cooldown(
     batch: &Batch,
     clock: &Clock,
 ): bool {
