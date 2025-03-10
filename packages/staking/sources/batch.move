@@ -5,6 +5,7 @@ module staking::batch;
 use sui::{
     balance::{Balance},
     clock::{Clock},
+    coin::{Coin},
 };
 use token::{
     ns::NS,
@@ -20,6 +21,7 @@ const EInvalidLockPeriod: u64 = 0;
 const EWithdrawAlreadyRequested: u64 = 1;
 const EWithdrawNotRequested: u64 = 2;
 const ECooldownNotOver: u64 = 3;
+const ECoinValueZero: u64 = 4;
 
 // === constants ===
 
@@ -48,16 +50,17 @@ public struct Batch has key {
 
 /// Stake or lock NS for a given period
 public fun stake(
-    balance: Balance<NS>,
+    coin: Coin<NS>,
     lock_months: u64,
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
     assert!(lock_months <= max_lock_months!(), EInvalidLockPeriod);
+    assert!(coin.value() > 0, ECoinValueZero);
     let now = clock.timestamp_ms();
     let batch = Batch {
         id: object::new(ctx),
-        balance,
+        balance: coin.into_balance(),
         start_ms: now,
         unlock_ms: now + (lock_months * month_ms!()),
         cooldown_end_ms: 0,
