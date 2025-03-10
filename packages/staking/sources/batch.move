@@ -3,31 +3,63 @@ module staking::batch;
 // === imports ===
 
 use sui::{
-    balance::Balance,
+    balance::{Balance},
+    clock::{Clock},
 };
-use token::ns::NS;
-
+use token::{
+    ns::NS,
+};
+use staking::constants::{
+    month_ms,
+};
 // === errors ===
+
+const EInvalidLockPeriod: u64 = 0;
 
 // === constants ===
 
+const MAX_LOCK_MONTHS: u8 = 12;
+
 // === structs ===
 
-public struct Batch has key, store {
+// Represents both staked and locked batches.
+public struct Batch has key {
     id: UID,
+    /// Staked/locked NS balance.
     balance: Balance<NS>,
+    /// When the batch was created.
     start_ms: u64,
+    /// When the batch will be unlocked.
+    /// For staked batches, it's equal to `start_ms` as the batch was never locked.
+    /// Locked batches become staked if `clock.timestamp_ms() >= unlock_ms`
     unlock_ms: u64,
+    /// When the user can withdraw their NS from the batch. It's `0` if unlock was not requested.
     cooldown_end_ms: u64,
 }
 
 // === initialization ===
 
-// === events ===
-
 // === method aliases ===
 
 // === public functions ===
+
+public fun stake(
+    balance: Balance<NS>,
+    lock_months: u8,
+    clock: &Clock,
+    ctx: &mut TxContext,
+) {
+    assert!(lock_months <= MAX_LOCK_MONTHS, EInvalidLockPeriod);
+    let now = clock.timestamp_ms();
+    let batch = Batch {
+        id: object::new(ctx),
+        balance,
+        start_ms: now,
+        unlock_ms: now + ((lock_months as u64) * month_ms!()),
+        cooldown_end_ms: 0,
+    };
+    transfer::transfer(batch, ctx.sender());
+}
 
 // === view functions ===
 
@@ -36,6 +68,8 @@ public struct Batch has key, store {
 // === package functions ===
 
 // === private functions ===
+
+// === events ===
 
 // === accessors ===
 

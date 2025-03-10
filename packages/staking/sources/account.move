@@ -1,44 +1,44 @@
-module staking::account;
+// module staking::account;
 
-// === imports ===
+// // === imports ===
 
-use sui::{
-    linked_table::{LinkedTable},
-};
-use staking::{
-    batch::{Batch},
-};
+// use sui::{
+//     linked_table::{LinkedTable},
+// };
+// use staking::{
+//     batch::{Batch},
+// };
 
-// === errors ===
+// // === errors ===
 
-// === constants ===
+// // === constants ===
 
-// === structs ===
+// // === structs ===
 
-public struct Account has key {
-    id: UID,
-    batches: LinkedTable<ID, Batch>,
-}
+// public struct Account has key {
+//     id: UID,
+//     batches: LinkedTable<ID, Batch>,
+// }
 
-// === initialization ===
+// // === initialization ===
 
-// === events ===
+// // === events ===
 
-// === method aliases ===
+// // === method aliases ===
 
-// === public functions ===
+// // === public functions ===
 
-// === view functions ===
+// // === view functions ===
 
-// === admin functions ===
+// // === admin functions ===
 
-// === package functions ===
+// // === package functions ===
 
-// === private functions ===
+// // === private functions ===
 
-// === accessors ===
+// // === accessors ===
 
-public fun id(self: &Account): ID { self.id.to_inner() }
-public fun batches(self: &Account): &LinkedTable<ID, Batch> { &self.batches }
+// public fun id(self: &Account): ID { self.id.to_inner() }
+// public fun batches(self: &Account): &LinkedTable<ID, Batch> { &self.batches }
 
-// === test functions ===
+// // === test functions ===
