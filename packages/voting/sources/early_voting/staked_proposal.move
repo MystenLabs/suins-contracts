@@ -12,6 +12,7 @@ use suins_voting::constants::{min_voting_period_ms, max_voting_period_ms};
 use suins_voting::leaderboard::{Self, Leaderboard};
 use suins_voting::voting_option::{Self, VotingOption, abstain_option};
 use token::ns::NS;
+use staking::batch::Batch;
 
 // ERRORS -----
 #[error]
@@ -145,6 +146,7 @@ public fun vote(
     proposal: &mut Proposal,
     opt: String,
     vote: Coin<NS>,
+    batches: vector<Batch>,
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
@@ -154,9 +156,12 @@ public fun vote(
     // validate that the proposal is still open in terms of time.
     assert!(!proposal.is_end_time_reached(clock), EVotingPeriodExpired);
 
+    // calculate total voting power (NS + staked voting power)
+    let voting_power = vote.value() + batches.fold!(0, |acc, batch| acc + batch.power(clock));
+
     // update total votes for the given option
     let total = proposal.votes.get_mut(&option);
-    *total = *total + vote.value();
+    *total = *total + voting_power;
 
     // add the voter if not already present
     if (!proposal.voters.contains(ctx.sender())) {
@@ -176,7 +181,7 @@ public fun vote(
         return
     };
 
-    leaderboard.add_if_eligible(ctx.sender(), vote.value());
+    leaderboard.add_if_eligible(ctx.sender(), voting_power);
     votes.insert(option, vote.into_balance());
 }
 
