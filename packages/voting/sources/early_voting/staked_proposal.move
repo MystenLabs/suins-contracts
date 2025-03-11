@@ -1,7 +1,7 @@
 module suins_voting::staked_proposal;
 
 use std::string::String;
-use sui::balance::Balance;
+use sui::balance::{Self, Balance};
 use sui::clock::Clock;
 use sui::coin::Coin;
 use sui::event;
@@ -71,11 +71,16 @@ public struct Proposal has key {
     /// voting option.
     /// We keep it as a linked_table to allow easy on-chain permission-less
     /// return of funds.
-    voters: LinkedTable<address, VecMap<VotingOption, Balance<NS>>>,
+    voters: LinkedTable<address, VecMap<VotingOption, Vote>>,
     /// The timestamp when the proposal was created.
     start_time_ms: u64,
     /// The timestamp up to which when the proposal can accept votes.
     end_time_ms: u64,
+}
+
+public struct Vote has store {
+    balance: Balance<NS>,
+    staked_power: u64,
 }
 
 public struct ReturnTokenEvent has copy, drop {
@@ -157,15 +162,16 @@ public fun vote(
     // validate that the proposal is still open in terms of time.
     assert!(!proposal.is_end_time_reached(clock), EVotingPeriodExpired);
 
-    // calculate total voting power in this vote (NS + staked voting power)
-    let mut voting_power = vote_coin.value();
+    // calculate total voting power in this vote (NS balance + staked voting power)
+    let mut new_staked_power = 0;
     vote_staked.do_ref!(|batch| {
-        voting_power = voting_power + batch.power(clock);
+        new_staked_power = new_staked_power + batch.power(clock);
     });
+    let new_voting_power = vote_coin.value() + new_staked_power;
 
     // update total votes for the given option
     let total = proposal.votes.get_mut(&option);
-    *total = *total + voting_power;
+    *total = *total + new_voting_power;
 
     // add the voter if not already present
     if (!proposal.voters.contains(ctx.sender())) {
@@ -178,15 +184,20 @@ public fun vote(
 
     // if the user has already voted for the option, update the vote balance.
     if (votes.contains(&option)) {
-        let (_voting_option, mut balance) = votes.remove(&option);
-        balance.join(vote_coin.into_balance());
-        leaderboard.add_if_eligible(ctx.sender(), balance.value()); // TODO: we're missing the staked power here
-        votes.insert(option, balance);
+        let (_voting_option, mut vote) = votes.remove(&option);
+        vote.balance.join(vote_coin.into_balance());
+        vote.staked_power = vote.staked_power + new_staked_power;
+        let updated_power = vote.balance.value() + vote.staked_power;
+        leaderboard.add_if_eligible(ctx.sender(), updated_power);
+        votes.insert(option, vote);
         return
     };
 
-    leaderboard.add_if_eligible(ctx.sender(), voting_power);
-    votes.insert(option, vote_coin.into_balance());
+    leaderboard.add_if_eligible(ctx.sender(), new_voting_power);
+    votes.insert(option, Vote {
+        balance: vote_coin.into_balance(),
+        staked_power: new_staked_power,
+    });
 }
 
 /// Finalize the proposal after the end time is reached and the threshold is
@@ -333,17 +344,16 @@ fun return_voter_coins(
     ctx: &mut TxContext,
 ): Coin<NS> {
     assert!(proposal.voters.contains(voter), EVoterNotFound);
-    let votes = proposal.voters.remove(voter);
-    let (_, mut balances) = votes.into_keys_values();
+    let voting_options = proposal.voters.remove(voter);
+    let (_, mut votes) = voting_options.into_keys_values();
 
-    // merge balances together.
-    let mut initial_balance = balances.pop_back();
+    let mut user_balance = balance::zero<NS>();
+    while (!votes.is_empty()) {
+        let Vote { balance, .. } = votes.pop_back();
+        user_balance.join(balance);
+    };
 
-    balances.do!(|balance| {
-        initial_balance.join(balance);
-    });
-
-    let coin = initial_balance.into_coin(ctx);
+    let coin = user_balance.into_coin(ctx);
 
     event::emit(ReturnTokenEvent {
         voter,
