@@ -8,4 +8,4 @@ suins = { local = "../suins" }
 denylist = { local = "../denylist" }
 
 [addresses]
-subdomains="0x1"
+subdomains="0x0"
