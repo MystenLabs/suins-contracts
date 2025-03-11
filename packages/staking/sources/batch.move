@@ -10,23 +10,23 @@ use sui::{
 use token::{
     ns::NS,
 };
-use staking::constants::{
-    month_ms,
-    withdraw_cooldown_ms,
-    max_lock_months,
-    monthly_boost_pct,
+use staking::config::{
+    cooldown_ms,
     max_boost_pct,
+    max_lock_months,
+    min_balance,
+    month_ms,
+    monthly_boost_pct,
 };
 
 // === errors ===
 
 const EInvalidLockPeriod: u64 = 0;
-const ECoinValueZero: u64 = 1;
-const EAlreadyLocked: u64 = 2;
-const EWithdrawCooldownNotOver: u64 = 3;
-const EWithdrawAlreadyRequested: u64 = 4;
-const EWithdrawNotRequested: u64 = 5;
-const ECannotWithdrawLockedBatch: u64 = 6;
+const EBalanceTooLow: u64 = 1;
+const EBatchLocked: u64 = 2;
+const ECooldownNotOver: u64 = 3;
+const ECooldownAlreadyRequested: u64 = 4;
+const ECooldownNotStarted: u64 = 5;
 
 // === constants ===
 
@@ -43,8 +43,8 @@ public struct Batch has key {
     /// For staked batches, it's equal to `start_ms` as the batch was never locked.
     /// Locked batches become staked if `clock.timestamp_ms() >= unlock_ms`
     unlock_ms: u64,
-    /// When the user can withdraw their NS from the batch. It's `0` if unlock was not requested.
-    withdraw_cooldown_end_ms: u64,
+    /// When the user can unstake the batch. It's `0` if cooldown was not requested.
+    cooldown_end_ms: u64,
 }
 
 // === initialization ===
@@ -58,15 +58,15 @@ public fun new(
     clock: &Clock,
     ctx: &mut TxContext,
 ): Batch {
+    assert!(coin.value() >= min_balance!(), EBalanceTooLow);
     assert!(lock_months <= max_lock_months!(), EInvalidLockPeriod);
-    assert!(coin.value() > 0, ECoinValueZero);
     let now = clock.timestamp_ms();
     let batch = Batch {
         id: object::new(ctx),
         balance: coin.into_balance(),
         start_ms: now,
         unlock_ms: now + (lock_months * month_ms!()),
-        withdraw_cooldown_end_ms: 0,
+        cooldown_end_ms: 0,
     };
     batch
 }
@@ -77,34 +77,34 @@ public fun lock(
     lock_months: u64,
     clock: &Clock,
 ) {
-    assert!(batch.is_staked(clock), EAlreadyLocked); // TODO should increasing lock time be allowed?
+    assert!(batch.is_staked(clock), EBatchLocked); // TODO allow increasing lock time for locked batches up to 12 months
     assert!(lock_months > 0 && lock_months <= max_lock_months!(), EInvalidLockPeriod);
     // Lock the batch
     let now = clock.timestamp_ms();
     batch.unlock_ms = now + (lock_months * month_ms!());
-    // Reset the withdraw request, if any
-    batch.withdraw_cooldown_end_ms = 0;
+    // Reset the cooldown, if any
+    batch.cooldown_end_ms = 0;
 }
 
 /// Request to withdraw a batch, initiating cooldown period
-public fun request_withdraw(
+public fun start_cooldown(
     batch: &mut Batch,
     clock: &Clock,
 ) {
-    assert!(batch.withdraw_cooldown_end_ms == 0, EWithdrawAlreadyRequested);
-    assert!(batch.is_staked(clock), ECannotWithdrawLockedBatch);
+    assert!(batch.is_staked(clock), EBatchLocked);
+    assert!(batch.cooldown_end_ms == 0, ECooldownAlreadyRequested);
     let now = clock.timestamp_ms();
-    batch.withdraw_cooldown_end_ms = now + withdraw_cooldown_ms!();
+    batch.cooldown_end_ms = now + cooldown_ms!();
 }
 
 /// Withdraw balance and destroy batch after cooldown period has ended
-public fun withdraw(
+public fun unstake(
     batch: Batch,
     clock: &Clock,
 ): Balance<NS> {
     let now = clock.timestamp_ms();
-    assert!(batch.withdraw_cooldown_end_ms > 0, EWithdrawNotRequested);
-    assert!(now >= batch.withdraw_cooldown_end_ms, EWithdrawCooldownNotOver);
+    assert!(batch.cooldown_end_ms > 0, ECooldownNotStarted);
+    assert!(now >= batch.cooldown_end_ms, ECooldownNotOver);
 
     let Batch { id, balance, .. } = batch;
     object::delete(id);
@@ -132,7 +132,7 @@ public fun power(
         return (batch.balance.value() * max_boost_pct!()) / 100
     };
 
-    // Locked + staked months
+    // Calculate locked + staked months
     let mut total_months = lock_months;
 
     // Add months from staking (if any)
@@ -168,29 +168,13 @@ public fun is_staked(
     clock.timestamp_ms() >= batch.unlock_ms
 }
 
-/// Check if a batch is currently locked
-public fun is_locked(
-    batch: &Batch,
-    clock: &Clock,
-): bool {
-    batch.start_ms < batch.unlock_ms && clock.timestamp_ms() < batch.unlock_ms
-}
-
-/// Check if a batch is in cooldown period
-public fun is_in_cooldown(
-    batch: &Batch,
-    clock: &Clock,
-): bool {
-    batch.withdraw_cooldown_end_ms > 0 && clock.timestamp_ms() < batch.withdraw_cooldown_end_ms
-}
-
 // === accessors ===
 
 public fun id(batch: &Batch): ID { batch.id.to_inner() }
 public fun balance(batch: &Batch): &Balance<NS> { &batch.balance }
 public fun start_ms(batch: &Batch): u64 { batch.start_ms }
 public fun unlock_ms(batch: &Batch): u64 { batch.unlock_ms }
-public fun withdraw_cooldown_end_ms(batch: &Batch): u64 { batch.withdraw_cooldown_end_ms }
+public fun cooldown_end_ms(batch: &Batch): u64 { batch.cooldown_end_ms }
 
 // === method aliases ===
 
