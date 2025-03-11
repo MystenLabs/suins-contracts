@@ -60,6 +60,7 @@ public struct Proposal has key {
     /// The description of the proposal.
     description: String,
     /// VecMap of votes, each holding the total voted balance for the option.
+    /// Includes NS balance + staked voting power.
     votes: VecMap<VotingOption, u64>,
     /// The winning vote, that gets decided after the proposal is closed
     /// (permissionless-ly).
@@ -146,7 +147,7 @@ public fun vote(
     proposal: &mut Proposal,
     opt: String,
     vote: Coin<NS>,
-    batches: vector<Batch>,
+    batches: &vector<Batch>,
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
@@ -157,7 +158,10 @@ public fun vote(
     assert!(!proposal.is_end_time_reached(clock), EVotingPeriodExpired);
 
     // calculate total voting power (NS + staked voting power)
-    let voting_power = vote.value() + batches.fold!(0, |acc, batch| acc + batch.power(clock));
+    let mut voting_power = vote.value();
+    batches.do_ref!(|batch| {
+        voting_power = voting_power + batch.power(clock);
+    });
 
     // update total votes for the given option
     let total = proposal.votes.get_mut(&option);
