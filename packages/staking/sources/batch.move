@@ -71,17 +71,18 @@ public fun new(
     batch
 }
 
-/// Lock a staked batch
+/// Lock a staked batch, or extend a locked batch.
+/// In both cases the batch.start_ms remains unchanged, only the batch.unlock_ms is updated.
+/// E.g. user stakes a batch for 6 months, then locks it for 6 months: batch gets the 12-month boost.
 public fun lock(
     batch: &mut Batch,
     lock_months: u64,
-    clock: &Clock,
 ) {
-    assert!(batch.is_staked(clock), EBatchLocked); // TODO allow increasing lock time for locked batches up to 12 months
-    assert!(lock_months > 0 && lock_months <= max_lock_months!(), EInvalidLockPeriod);
+    let current_locked_months = (batch.unlock_ms - batch.start_ms) / month_ms!();
+    assert!(lock_months > current_locked_months, EInvalidLockPeriod);
+    assert!(lock_months <= max_lock_months!(), EInvalidLockPeriod);
     // Lock the batch
-    let now = clock.timestamp_ms();
-    batch.unlock_ms = now + (lock_months * month_ms!());
+    batch.unlock_ms = batch.start_ms + (lock_months * month_ms!());
     // Reset the cooldown, if any
     batch.cooldown_end_ms = 0;
 }
