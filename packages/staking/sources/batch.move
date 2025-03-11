@@ -32,7 +32,7 @@ const ECooldownNotOver: u64 = 5;
 
 // === structs ===
 
-/// A batch of staked NS.
+/// A batch of staked NS
 public struct Batch has key {
     id: UID,
     /// Staked NS balance.
@@ -49,7 +49,7 @@ public struct Batch has key {
 
 // === public functions ===
 
-/// Stake NS into a new batch, optionally locking it for a number of months.
+/// Stake NS into a new batch, optionally locking it for a number of months
 public fun new(
     coin: Coin<NS>,
     lock_months: u64,
@@ -69,7 +69,7 @@ public fun new(
     batch
 }
 
-/// Extend the lock period of a batch.
+/// Extend the lock period of a batch
 public fun lock(
     batch: &mut Batch,
     new_lock_months: u64,
