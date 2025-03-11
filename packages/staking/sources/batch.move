@@ -24,24 +24,22 @@ use staking::config::{
 const EInvalidLockPeriod: u64 = 0;
 const EBalanceTooLow: u64 = 1;
 const EBatchLocked: u64 = 2;
-const ECooldownNotOver: u64 = 3;
-const ECooldownAlreadyRequested: u64 = 4;
-const ECooldownNotStarted: u64 = 5;
+const EUnstakeAlreadyRequested: u64 = 3;
+const EUnstakeNotRequested: u64 = 4;
+const ECooldownNotOver: u64 = 5;
 
 // === constants ===
 
 // === structs ===
 
-// Represents both staked and locked batches.
+/// A batch of staked NS.
 public struct Batch has key {
     id: UID,
-    /// Staked/locked NS balance.
+    /// Staked NS balance.
     balance: Balance<NS>,
     /// When the batch was created.
     start_ms: u64,
-    /// When the batch will be unlocked.
-    /// For staked batches, it's equal to `start_ms` as the batch was never locked.
-    /// Locked batches become staked if `clock.timestamp_ms() >= unlock_ms`
+    /// When the batch will be unlocked. If the batch was never locked, it's equal to `start_ms`.
     unlock_ms: u64,
     /// When the user can unstake the batch. It's `0` if cooldown was not requested.
     cooldown_end_ms: u64,
@@ -51,7 +49,7 @@ public struct Batch has key {
 
 // === public functions ===
 
-/// Stake or lock NS
+/// Stake NS into a new batch, optionally locking it for a number of months.
 public fun new(
     coin: Coin<NS>,
     lock_months: u64,
@@ -71,29 +69,27 @@ public fun new(
     batch
 }
 
-/// Lock a staked batch, or extend a locked batch.
-/// In both cases the batch.start_ms remains unchanged, only the batch.unlock_ms is updated.
-/// E.g. user stakes a batch for 6 months, then locks it for 6 months: batch gets the 12-month boost.
+/// Extend the lock period of a batch.
 public fun lock(
     batch: &mut Batch,
-    lock_months: u64,
+    new_lock_months: u64,
 ) {
-    let current_locked_months = (batch.unlock_ms - batch.start_ms) / month_ms!();
-    assert!(lock_months > current_locked_months, EInvalidLockPeriod);
-    assert!(lock_months <= max_lock_months!(), EInvalidLockPeriod);
+    let curr_lock_months = (batch.unlock_ms - batch.start_ms) / month_ms!();
+    assert!(new_lock_months > curr_lock_months, EInvalidLockPeriod);
+    assert!(new_lock_months <= max_lock_months!(), EInvalidLockPeriod);
     // Lock the batch
-    batch.unlock_ms = batch.start_ms + (lock_months * month_ms!());
+    batch.unlock_ms = batch.start_ms + (new_lock_months * month_ms!());
     // Reset the cooldown, if any
     batch.cooldown_end_ms = 0;
 }
 
-/// Request to withdraw a batch, initiating cooldown period
-public fun start_cooldown(
+/// Request to unstake a batch, initiating cooldown period
+public fun request_unstake(
     batch: &mut Batch,
     clock: &Clock,
 ) {
-    assert!(batch.is_staked(clock), EBatchLocked);
-    assert!(batch.cooldown_end_ms == 0, ECooldownAlreadyRequested);
+    assert!(batch.is_unlocked(clock), EBatchLocked);
+    assert!(batch.cooldown_end_ms == 0, EUnstakeAlreadyRequested);
     let now = clock.timestamp_ms();
     batch.cooldown_end_ms = now + cooldown_ms!();
 }
@@ -104,7 +100,7 @@ public fun unstake(
     clock: &Clock,
 ): Balance<NS> {
     let now = clock.timestamp_ms();
-    assert!(batch.cooldown_end_ms > 0, ECooldownNotStarted);
+    assert!(batch.cooldown_end_ms > 0, EUnstakeNotRequested);
     assert!(now >= batch.cooldown_end_ms, ECooldownNotOver);
 
     let Batch { id, balance, .. } = batch;
@@ -161,12 +157,20 @@ public fun power(
     power
 }
 
-/// Check if a batch is staked
-public fun is_staked(
+/// Check if a batch is locked
+public fun is_locked(
     batch: &Batch,
     clock: &Clock,
 ): bool {
-    clock.timestamp_ms() >= batch.unlock_ms
+    clock.timestamp_ms() < batch.unlock_ms
+}
+
+/// Check if a batch is unlocked
+public fun is_unlocked(
+    batch: &Batch,
+    clock: &Clock,
+): bool {
+    !batch.is_locked(clock)
 }
 
 // === accessors ===
