@@ -146,8 +146,8 @@ public fun new(
 public fun vote(
     proposal: &mut Proposal,
     opt: String,
-    vote: Coin<NS>,
-    batches: &vector<Batch>,
+    vote_coin: Coin<NS>,
+    vote_staked: &vector<Batch>,
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
@@ -157,9 +157,9 @@ public fun vote(
     // validate that the proposal is still open in terms of time.
     assert!(!proposal.is_end_time_reached(clock), EVotingPeriodExpired);
 
-    // calculate total voting power (NS + staked voting power)
-    let mut voting_power = vote.value();
-    batches.do_ref!(|batch| {
+    // calculate total voting power in this vote (NS + staked voting power)
+    let mut voting_power = vote_coin.value();
+    vote_staked.do_ref!(|batch| {
         voting_power = voting_power + batch.power(clock);
     });
 
@@ -178,15 +178,15 @@ public fun vote(
 
     // if the user has already voted for the option, update the vote balance.
     if (votes.contains(&option)) {
-        let (_vote, mut balance) = votes.remove(&option);
-        balance.join(vote.into_balance());
-        leaderboard.add_if_eligible(ctx.sender(), balance.value());
+        let (_voting_option, mut balance) = votes.remove(&option);
+        balance.join(vote_coin.into_balance());
+        leaderboard.add_if_eligible(ctx.sender(), balance.value()); // TODO: we're missing the staked power here
         votes.insert(option, balance);
         return
     };
 
     leaderboard.add_if_eligible(ctx.sender(), voting_power);
-    votes.insert(option, vote.into_balance());
+    votes.insert(option, vote_coin.into_balance());
 }
 
 /// Finalize the proposal after the end time is reached and the threshold is
