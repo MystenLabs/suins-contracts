@@ -14,7 +14,7 @@ use token::{
 };
 use staking::{
     batch::{Self, Batch},
-    config::{month_ms},
+    constants::{month_ms},
 };
 
 // === constants ===

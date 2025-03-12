@@ -1,4 +1,4 @@
-module staking::config;
+module staking::constants;
 
 /// how long it takes to unstake a batch
 public macro fun cooldown_ms(): u64 {
@@ -15,7 +15,7 @@ public macro fun monthly_boost_pct(): u64 {
     110 // 110% / 1.1x
 }
 
-/// max multiplier when locking a batch for `max_lock_months`
+/// multiplier when locking a batch for `max_lock_months`
 public macro fun max_boost_pct(): u64 {
     300 // 300% / 3.0x
 }

@@ -23,14 +23,10 @@ public struct ADMIN has drop {}
 
 fun init(otw: ADMIN, ctx: &mut TxContext)
 {
-    // publisher
     let publisher = package::claim(otw, ctx);
     transfer::public_transfer(publisher, ctx.sender());
 
-    // admin cap
-    let admin_cap = AdminCap {
-        id: object::new(ctx),
-    };
+    let admin_cap = AdminCap { id: object::new(ctx) };
     transfer::transfer(admin_cap, ctx.sender());
 }
 

@@ -6,6 +6,7 @@ use sui::{
     balance::{Balance},
     clock::{Clock},
     coin::{Coin},
+    package::{Self},
 };
 use token::{
     ns::NS,
@@ -13,7 +14,7 @@ use token::{
 use staking::admin::{
     AdminCap,
 };
-use staking::config::{
+use staking::constants::{
     cooldown_ms,
     max_boost_pct,
     max_lock_months,
@@ -48,7 +49,16 @@ public struct Batch has key {
     cooldown_end_ms: u64,
 }
 
+/// one-time witness
+public struct BATCH has drop {}
+
 // === initialization ===
+
+fun init(otw: BATCH, ctx: &mut TxContext)
+{
+    let publisher = package::claim(otw, ctx);
+    transfer::public_transfer(publisher, ctx.sender());
+}
 
 // === public functions ===
 
