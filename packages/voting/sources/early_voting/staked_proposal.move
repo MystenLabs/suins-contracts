@@ -77,6 +77,12 @@ public struct Proposal has key {
     start_time_ms: u64,
     /// The timestamp up to which when the proposal can accept votes.
     end_time_ms: u64,
+    /// The NS to reward voters proportionally to their share of total voting power.
+    reward: Balance<NS>,
+    /// The sum of all NS balance and all staked power used to vote in this proposal.
+    total_power: u64,
+    /// The initial value of `Proposal.reward`.
+    total_reward: u64,
 }
 
 public struct VotingPower has store {
@@ -100,6 +106,7 @@ public fun new(
     description: String,
     end_time_ms: u64,
     mut options: VecSet<VotingOption>,
+    reward: Balance<NS>,
     clock: &Clock,
     ctx: &mut TxContext,
 ): Proposal {
@@ -134,6 +141,7 @@ public fun new(
         vote_leaderboards.insert(opt, leaderboard::new(10));
     });
 
+    let total_reward = reward.value();
     Proposal {
         id: object::new(ctx),
         title,
@@ -146,6 +154,9 @@ public fun new(
         winning_option: option::none(),
         start_time_ms: clock.timestamp_ms(),
         end_time_ms,
+        reward,
+        total_power: 0,
+        total_reward,
     }
 }
 
@@ -173,9 +184,12 @@ public fun vote(
     });
     let new_total_power = vote_coin.value() + new_staked_power;
 
-    // update total votes for the given option
+    // update total voting power for the option
     let total = proposal.votes.get_mut(&option);
     *total = *total + new_total_power;
+
+    // update total voting power in the proposal
+    proposal.total_power = proposal.total_power + new_total_power;
 
     // add the voter if not already present
     if (!proposal.voters.contains(ctx.sender())) {
@@ -341,23 +355,33 @@ fun finalize_internal(proposal: &mut Proposal, clock: &Clock) {
     }
 }
 
-/// Removes the voter from the proposal, combines the balances and returns
-/// a single coin back.
+/// Removes the voter from the proposal and returns a coin which includes the original balance
+/// that the user voted with + NS reward proportional to their share of total voting power.
 fun return_voter_coins(
     proposal: &mut Proposal,
     voter: address,
     ctx: &mut TxContext,
 ): Coin<NS> {
     assert!(proposal.voters.contains(voter), EVoterNotFound);
+    // all the options the user voted on
     let voting_options = proposal.voters.remove(voter);
-    let (_, mut votes) = voting_options.into_keys_values();
+    let (_, mut powers) = voting_options.into_keys_values();
 
+    // the balance from all the options
     let mut user_balance = balance::zero<NS>();
-    while (!votes.is_empty()) {
-        let VotingPower { balance, .. } = votes.pop_back();
+    // the power from all the options
+    let mut user_power: u64 = 0;
+
+    while (!powers.is_empty()) {
+        let VotingPower { balance, total: vote_power, .. } = powers.pop_back();
         user_balance.join(balance);
+        user_power = user_power + vote_power;
     };
-    votes.destroy_empty();
+    powers.destroy_empty();
+
+    // add the reward to the user's balance
+    let user_reward = take_user_reward(proposal, user_power);
+    user_balance.join(user_reward);
 
     let coin = user_balance.into_coin(ctx);
 
@@ -367,4 +391,14 @@ fun return_voter_coins(
     });
 
     coin
+}
+
+fun take_user_reward(
+    proposal: &mut Proposal,
+    user_power: u64,
+): Balance<NS> {
+    let total_reward = proposal.total_reward as u128;
+    let total_power = proposal.total_power as u128;
+    let reward_value = (user_power as u128) * total_reward / total_power;
+    proposal.reward.split(reward_value as u64)
 }
