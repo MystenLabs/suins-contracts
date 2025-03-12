@@ -10,6 +10,9 @@ use sui::{
 use token::{
     ns::NS,
 };
+use staking::admin::{
+    AdminCap,
+};
 use staking::config::{
     cooldown_ms,
     max_boost_pct,
@@ -69,6 +72,14 @@ public fun new(
     batch
 }
 
+/// transfer the batch to the sender
+public fun keep(
+    batch: Batch,
+    ctx: &mut TxContext,
+) {
+    transfer::transfer(batch, ctx.sender());
+}
+
 /// Extend the lock period of a batch
 public fun lock(
     batch: &mut Batch,
@@ -109,6 +120,32 @@ public fun unstake(
 }
 
 // === admin functions ===
+
+/// Stake NS into a new batch with arbitrary start_ms and unlock_ms
+public fun admin_new(
+    _: &AdminCap,
+    coin: Coin<NS>,
+    start_ms: u64,
+    unlock_ms: u64,
+    ctx: &mut TxContext,
+): Batch {
+    assert!(start_ms <= unlock_ms, EInvalidLockPeriod);
+    let batch = Batch {
+        id: object::new(ctx),
+        balance: coin.into_balance(),
+        start_ms,
+        unlock_ms,
+        cooldown_end_ms: 0,
+    };
+    batch
+}
+
+public fun admin_transfer(
+    batch: Batch,
+    recipient: address,
+) {
+    transfer::transfer(batch, recipient);
+}
 
 // === package functions ===
 
