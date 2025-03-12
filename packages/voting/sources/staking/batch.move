@@ -31,6 +31,8 @@ const EBatchLocked: u64 = 2;
 const EUnstakeAlreadyRequested: u64 = 3;
 const EUnstakeNotRequested: u64 = 4;
 const ECooldownNotOver: u64 = 5;
+const EBatchIsVoting: u64 = 6;
+const EInvalidVotingUntilMs: u64 = 7;
 
 // === constants ===
 
@@ -45,8 +47,10 @@ public struct StakingBatch has key {
     start_ms: u64,
     /// When the batch will be unlocked. If the batch was never locked, it's equal to `start_ms`.
     unlock_ms: u64,
-    /// When the user can unstake the batch. It's `0` if cooldown was not requested.
+    /// When the user can unstake the batch. `0` if cooldown was not requested.
     cooldown_end_ms: u64,
+    /// Until when the batch is being used to vote on a proposal. `0` if never voted.
+    voting_until_ms: u64,
 }
 
 /// one-time witness
@@ -78,6 +82,7 @@ public fun new(
         start_ms: now,
         unlock_ms: now + (lock_months * month_ms!()),
         cooldown_end_ms: 0,
+        voting_until_ms: 0,
     };
     batch
 }
@@ -123,6 +128,7 @@ public fun unstake(
     let now = clock.timestamp_ms();
     assert!(batch.cooldown_end_ms > 0, EUnstakeNotRequested);
     assert!(now >= batch.cooldown_end_ms, ECooldownNotOver);
+    assert!(now >= batch.voting_until_ms, EBatchIsVoting);
 
     let StakingBatch { id, balance, .. } = batch;
     object::delete(id);
@@ -146,6 +152,7 @@ public fun admin_new(
         start_ms,
         unlock_ms,
         cooldown_end_ms: 0,
+        voting_until_ms: 0,
     };
     batch
 }
@@ -158,6 +165,15 @@ public fun admin_transfer(
 }
 
 // === package functions ===
+
+public(package) fun set_voting_until_ms(
+    batch: &mut StakingBatch,
+    voting_until_ms: u64,
+    clock: &Clock,
+) {
+    assert!(voting_until_ms >= clock.timestamp_ms(), EInvalidVotingUntilMs);
+    batch.voting_until_ms = voting_until_ms;
+}
 
 // === private functions ===
 
@@ -227,6 +243,7 @@ public fun balance(batch: &StakingBatch): &Balance<NS> { &batch.balance }
 public fun start_ms(batch: &StakingBatch): u64 { batch.start_ms }
 public fun unlock_ms(batch: &StakingBatch): u64 { batch.unlock_ms }
 public fun cooldown_end_ms(batch: &StakingBatch): u64 { batch.cooldown_end_ms }
+public fun voting_until_ms(batch: &StakingBatch): u64 { batch.voting_until_ms }
 
 // === method aliases ===
 
