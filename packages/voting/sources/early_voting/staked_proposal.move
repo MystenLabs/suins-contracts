@@ -72,16 +72,17 @@ public struct Proposal has key {
     /// voting option.
     /// We keep it as a linked_table to allow easy on-chain permission-less
     /// return of funds.
-    voters: LinkedTable<address, VecMap<VotingOption, Vote>>,
+    voters: LinkedTable<address, VecMap<VotingOption, VotingPower>>,
     /// The timestamp when the proposal was created.
     start_time_ms: u64,
     /// The timestamp up to which when the proposal can accept votes.
     end_time_ms: u64,
 }
 
-public struct Vote has store {
+public struct VotingPower has store {
     balance: Balance<NS>,
-    staked_power: u64,
+    staked: u64,
+    total: u64,
 }
 
 public struct ReturnTokenEvent has copy, drop {
@@ -170,11 +171,11 @@ public fun vote(
         batch.set_voting_until_ms(proposal.end_time_ms, clock);
         new_staked_power = new_staked_power + batch.power(clock);
     });
-    let new_voting_power = vote_coin.value() + new_staked_power;
+    let new_total_power = vote_coin.value() + new_staked_power;
 
     // update total votes for the given option
     let total = proposal.votes.get_mut(&option);
-    *total = *total + new_voting_power;
+    *total = *total + new_total_power;
 
     // add the voter if not already present
     if (!proposal.voters.contains(ctx.sender())) {
@@ -187,19 +188,20 @@ public fun vote(
 
     // if the user has already voted for the option, update the vote balance.
     if (votes.contains(&option)) {
-        let (_voting_option, mut vote) = votes.remove(&option);
-        vote.balance.join(vote_coin.into_balance());
-        vote.staked_power = vote.staked_power + new_staked_power;
-        let updated_power = vote.balance.value() + vote.staked_power;
-        leaderboard.add_if_eligible(ctx.sender(), updated_power);
-        votes.insert(option, vote);
+        let (_voting_option, mut power) = votes.remove(&option);
+        power.balance.join(vote_coin.into_balance());
+        power.staked = power.staked + new_staked_power;
+        power.total = power.balance.value() + power.staked;
+        leaderboard.add_if_eligible(ctx.sender(), power.total);
+        votes.insert(option, power);
         return
     };
 
-    leaderboard.add_if_eligible(ctx.sender(), new_voting_power);
-    votes.insert(option, Vote {
+    leaderboard.add_if_eligible(ctx.sender(), new_total_power);
+    votes.insert(option, VotingPower {
         balance: vote_coin.into_balance(),
-        staked_power: new_staked_power,
+        staked: new_staked_power,
+        total: new_total_power,
     });
 }
 
@@ -352,7 +354,7 @@ fun return_voter_coins(
 
     let mut user_balance = balance::zero<NS>();
     while (!votes.is_empty()) {
-        let Vote { balance, .. } = votes.pop_back();
+        let VotingPower { balance, .. } = votes.pop_back();
         user_balance.join(balance);
     };
     votes.destroy_empty();
