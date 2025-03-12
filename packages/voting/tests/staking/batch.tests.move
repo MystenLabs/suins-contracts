@@ -1,5 +1,5 @@
 #[test_only]
-module staking::batch_tests;
+module suins_voting::staking_batch_tests;
 
 // === imports ===
 
@@ -12,9 +12,9 @@ use sui::{
 use token::{
     ns::NS,
 };
-use staking::{
-    batch::{Self, Batch},
-    constants::{month_ms},
+use suins_voting::{
+    staking_batch::{Self, Batch},
+    staking_constants::{month_ms},
 };
 
 // === constants ===
@@ -50,7 +50,7 @@ fun new_batch(
 ): Batch {
     setup.ts.next_tx(sender);
     let balance = mint_ns(setup, balance);
-    batch::new(balance, lock_months, &setup.clock, setup.ts.ctx())
+    staking_batch::new(balance, lock_months, &setup.clock, setup.ts.ctx())
 }
 
 fun assert_power(

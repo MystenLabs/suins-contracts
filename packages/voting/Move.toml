@@ -7,7 +7,5 @@ Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-fram
 
 token = { local = "../token" }
 
-staking = { local = "../staking" }
-
 [addresses]
 suins_voting = "0x0"

@@ -1,4 +1,4 @@
-module staking::batch;
+module suins_voting::staking_batch;
 
 // === imports ===
 
@@ -11,10 +11,10 @@ use sui::{
 use token::{
     ns::NS,
 };
-use staking::admin::{
-    AdminCap,
+use suins_voting::staking_admin::{
+    StakingAdminCap,
 };
-use staking::constants::{
+use suins_voting::staking_constants::{
     cooldown_ms,
     max_boost_pct,
     max_lock_months,
@@ -50,11 +50,11 @@ public struct Batch has key {
 }
 
 /// one-time witness
-public struct BATCH has drop {}
+public struct STAKING_BATCH has drop {}
 
 // === initialization ===
 
-fun init(otw: BATCH, ctx: &mut TxContext)
+fun init(otw: STAKING_BATCH, ctx: &mut TxContext)
 {
     let publisher = package::claim(otw, ctx);
     transfer::public_transfer(publisher, ctx.sender());
@@ -133,7 +133,7 @@ public fun unstake(
 
 /// Stake NS into a new batch with arbitrary start_ms and unlock_ms
 public fun admin_new(
-    _: &AdminCap,
+    _: &StakingAdminCap,
     coin: Coin<NS>,
     start_ms: u64,
     unlock_ms: u64,
@@ -182,9 +182,9 @@ public fun power(
     // Add months from staking (if any)
     let now = clock.timestamp_ms();
     if (now > batch.unlock_ms) {
-        let stake_ms = now - batch.unlock_ms;
-        let stake_months = stake_ms / month_ms!();
-        total_months = total_months + stake_months;
+        let staking_ms = now - batch.unlock_ms;
+        let staking_months = staking_ms / month_ms!();
+        total_months = total_months + staking_months;
     };
 
     // Cap at 11 months (which gives 2.85x multiplier)

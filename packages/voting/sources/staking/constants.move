@@ -1,4 +1,4 @@
-module staking::constants;
+module suins_voting::staking_constants;
 
 /// how long it takes to unstake a batch
 public macro fun cooldown_ms(): u64 {

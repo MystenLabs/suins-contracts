@@ -12,7 +12,7 @@ use suins_voting::constants::{min_voting_period_ms, max_voting_period_ms};
 use suins_voting::leaderboard::{Self, Leaderboard};
 use suins_voting::voting_option::{Self, VotingOption, abstain_option};
 use token::ns::NS;
-use staking::batch::Batch;
+use suins_voting::staking_batch::Batch;
 
 // ERRORS -----
 #[error]
@@ -59,8 +59,7 @@ public struct Proposal has key {
     title: String,
     /// The description of the proposal.
     description: String,
-    /// VecMap of votes, each holding the total voted balance for the option.
-    /// Includes NS balance + staked voting power.
+    /// VecMap of votes, each holding the total voted balance and staked power for the option.
     votes: VecMap<VotingOption, u64>,
     /// The winning vote, that gets decided after the proposal is closed
     /// (permissionless-ly).
@@ -352,6 +351,7 @@ fun return_voter_coins(
         let Vote { balance, .. } = votes.pop_back();
         user_balance.join(balance);
     };
+    votes.destroy_empty();
 
     let coin = user_balance.into_coin(ctx);
 
