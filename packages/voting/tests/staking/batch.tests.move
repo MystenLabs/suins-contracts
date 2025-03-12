@@ -13,7 +13,7 @@ use token::{
     ns::NS,
 };
 use suins_voting::{
-    staking_batch::{Self, Batch},
+    staking_batch::{Self, StakingBatch},
     staking_constants::{month_ms},
 };
 
@@ -47,7 +47,7 @@ fun new_batch(
     sender: address,
     balance: u64,
     lock_months: u64,
-): Batch {
+): StakingBatch {
     setup.ts.next_tx(sender);
     let balance = mint_ns(setup, balance);
     staking_batch::new(balance, lock_months, &setup.clock, setup.ts.ctx())
@@ -55,7 +55,7 @@ fun new_batch(
 
 fun assert_power(
     setup: &TestSetup,
-    batch: &Batch,
+    batch: &StakingBatch,
     expected_power: u64,
 ) {
     assert_eq(expected_power, batch.power(&setup.clock));

@@ -37,7 +37,7 @@ const ECooldownNotOver: u64 = 5;
 // === structs ===
 
 /// A batch of staked NS
-public struct Batch has key {
+public struct StakingBatch has key {
     id: UID,
     /// Staked NS balance.
     balance: Balance<NS>,
@@ -68,11 +68,11 @@ public fun new(
     lock_months: u64,
     clock: &Clock,
     ctx: &mut TxContext,
-): Batch {
+): StakingBatch {
     assert!(coin.value() >= min_balance!(), EBalanceTooLow);
     assert!(lock_months <= max_lock_months!(), EInvalidLockPeriod);
     let now = clock.timestamp_ms();
-    let batch = Batch {
+    let batch = StakingBatch {
         id: object::new(ctx),
         balance: coin.into_balance(),
         start_ms: now,
@@ -84,7 +84,7 @@ public fun new(
 
 /// transfer the batch to the sender
 public fun keep(
-    batch: Batch,
+    batch: StakingBatch,
     ctx: &mut TxContext,
 ) {
     transfer::transfer(batch, ctx.sender());
@@ -92,7 +92,7 @@ public fun keep(
 
 /// Extend the lock period of a batch
 public fun lock(
-    batch: &mut Batch,
+    batch: &mut StakingBatch,
     new_lock_months: u64,
 ) {
     let curr_lock_months = (batch.unlock_ms - batch.start_ms) / month_ms!();
@@ -106,7 +106,7 @@ public fun lock(
 
 /// Request to unstake a batch, initiating cooldown period
 public fun request_unstake(
-    batch: &mut Batch,
+    batch: &mut StakingBatch,
     clock: &Clock,
 ) {
     assert!(batch.is_unlocked(clock), EBatchLocked);
@@ -117,14 +117,14 @@ public fun request_unstake(
 
 /// Withdraw balance and destroy batch after cooldown period has ended
 public fun unstake(
-    batch: Batch,
+    batch: StakingBatch,
     clock: &Clock,
 ): Balance<NS> {
     let now = clock.timestamp_ms();
     assert!(batch.cooldown_end_ms > 0, EUnstakeNotRequested);
     assert!(now >= batch.cooldown_end_ms, ECooldownNotOver);
 
-    let Batch { id, balance, .. } = batch;
+    let StakingBatch { id, balance, .. } = batch;
     object::delete(id);
     balance
 }
@@ -138,9 +138,9 @@ public fun admin_new(
     start_ms: u64,
     unlock_ms: u64,
     ctx: &mut TxContext,
-): Batch {
+): StakingBatch {
     assert!(start_ms <= unlock_ms, EInvalidLockPeriod);
-    let batch = Batch {
+    let batch = StakingBatch {
         id: object::new(ctx),
         balance: coin.into_balance(),
         start_ms,
@@ -151,7 +151,7 @@ public fun admin_new(
 }
 
 public fun admin_transfer(
-    batch: Batch,
+    batch: StakingBatch,
     recipient: address,
 ) {
     transfer::transfer(batch, recipient);
@@ -165,7 +165,7 @@ public fun admin_transfer(
 
 /// Calculate voting power for a batch based on locking and/or staking duration
 public fun power(
-    batch: &Batch,
+    batch: &StakingBatch,
     clock: &Clock,
 ): u64 {
     let lock_ms = batch.unlock_ms - batch.start_ms;
@@ -206,7 +206,7 @@ public fun power(
 
 /// Check if a batch is locked
 public fun is_locked(
-    batch: &Batch,
+    batch: &StakingBatch,
     clock: &Clock,
 ): bool {
     clock.timestamp_ms() < batch.unlock_ms
@@ -214,7 +214,7 @@ public fun is_locked(
 
 /// Check if a batch is unlocked
 public fun is_unlocked(
-    batch: &Batch,
+    batch: &StakingBatch,
     clock: &Clock,
 ): bool {
     !batch.is_locked(clock)
@@ -222,11 +222,11 @@ public fun is_unlocked(
 
 // === accessors ===
 
-public fun id(batch: &Batch): ID { batch.id.to_inner() }
-public fun balance(batch: &Batch): &Balance<NS> { &batch.balance }
-public fun start_ms(batch: &Batch): u64 { batch.start_ms }
-public fun unlock_ms(batch: &Batch): u64 { batch.unlock_ms }
-public fun cooldown_end_ms(batch: &Batch): u64 { batch.cooldown_end_ms }
+public fun id(batch: &StakingBatch): ID { batch.id.to_inner() }
+public fun balance(batch: &StakingBatch): &Balance<NS> { &batch.balance }
+public fun start_ms(batch: &StakingBatch): u64 { batch.start_ms }
+public fun unlock_ms(batch: &StakingBatch): u64 { batch.unlock_ms }
+public fun cooldown_end_ms(batch: &StakingBatch): u64 { batch.cooldown_end_ms }
 
 // === method aliases ===
 

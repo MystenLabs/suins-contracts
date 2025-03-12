@@ -12,7 +12,7 @@ use suins_voting::constants::{min_voting_period_ms, max_voting_period_ms};
 use suins_voting::leaderboard::{Self, Leaderboard};
 use suins_voting::voting_option::{Self, VotingOption, abstain_option};
 use token::ns::NS;
-use suins_voting::staking_batch::Batch;
+use suins_voting::staking_batch::StakingBatch;
 
 // ERRORS -----
 #[error]
@@ -151,7 +151,7 @@ public fun vote(
     proposal: &mut Proposal,
     opt: String,
     vote_coin: Coin<NS>,
-    vote_staked: &vector<Batch>,
+    vote_staked: &vector<StakingBatch>,
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
