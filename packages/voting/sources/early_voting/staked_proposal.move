@@ -35,6 +35,8 @@ const EVoterNotFound: vector<u8> = b"Voter not found.";
 #[error]
 const ENotEnoughOptions: vector<u8> =
     b"Not enough options. Each proposal must have at least 2 options (and abstain).";
+#[error]
+const EBatchIsVoting: vector<u8> = b"Batch is already being used to vote.";
 
 // Our limit is 1024, but keeping this 250 at a time, and someone can just
 // batch 8 operations. Makes the risk of this becoming unusable lower.
@@ -151,7 +153,7 @@ public fun vote(
     proposal: &mut Proposal,
     opt: String,
     vote_coin: Coin<NS>,
-    vote_staked: &vector<StakingBatch>,
+    vote_staked: &mut vector<StakingBatch>,
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
@@ -161,9 +163,11 @@ public fun vote(
     // validate that the proposal is still open in terms of time.
     assert!(!proposal.is_end_time_reached(clock), EVotingPeriodExpired);
 
-    // calculate total voting power in this vote (NS balance + staked voting power)
+    // calculate total voting power in this vote (NS balance + staked power)
     let mut new_staked_power = 0;
-    vote_staked.do_ref!(|batch| {
+    vote_staked.do_mut!(|batch| {
+        assert!(!batch.is_voting(clock), EBatchIsVoting);
+        batch.set_voting_until_ms(proposal.end_time_ms, clock);
         new_staked_power = new_staked_power + batch.power(clock);
     });
     let new_voting_power = vote_coin.value() + new_staked_power;

@@ -158,6 +158,7 @@ public fun admin_new(
 }
 
 public fun admin_transfer(
+    _: &StakingAdminCap,
     batch: StakingBatch,
     recipient: address,
 ) {
@@ -234,6 +235,20 @@ public fun is_unlocked(
     clock: &Clock,
 ): bool {
     !batch.is_locked(clock)
+}
+
+public fun is_in_cooldown(
+    batch: &StakingBatch,
+    clock: &Clock,
+): bool {
+    batch.cooldown_end_ms > 0 && clock.timestamp_ms() < batch.cooldown_end_ms
+}
+
+public fun is_voting(
+    batch: &StakingBatch,
+    clock: &Clock,
+): bool {
+    batch.voting_until_ms > 0 && clock.timestamp_ms() < batch.voting_until_ms
 }
 
 // === accessors ===
