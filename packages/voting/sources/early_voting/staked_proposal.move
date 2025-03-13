@@ -380,21 +380,21 @@ fun return_voter_coins(
     ctx: &mut TxContext,
 ): Coin<NS> {
     assert!(proposal.voters.contains(voter), EVoterNotFound);
-    // all the options the user voted on
-    let voting_options = proposal.voters.remove(voter);
-    let (_, mut powers) = voting_options.into_keys_values();
 
+    // all the options the user voted on
+    let mut voting_options = proposal.voters.remove(voter);
     // the balance from all the options
     let mut user_balance = balance::zero<NS>();
     // the power from all the options
     let mut user_power: u64 = 0;
 
-    while (!powers.is_empty()) {
-        let VotingPower { balance, total: vote_power, .. } = powers.pop_back();
+    while(!voting_options.is_empty()) {
+        let (_option, power) = voting_options.pop();
+        let VotingPower { balance, total: vote_power, .. } = power;
         user_balance.join(balance);
         user_power = user_power + vote_power;
     };
-    powers.destroy_empty();
+    voting_options.destroy_empty();
 
     // add the reward to the user's balance
     let user_reward = take_user_reward(proposal, user_power);
