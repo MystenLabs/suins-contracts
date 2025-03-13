@@ -252,7 +252,7 @@ public fun power(
         total_months = total_months + staking_months;
     };
 
-    // Cap at 11 months (which gives 2.85x multiplier)
+    // e.g. if max_lock_months is 12, cap at 11 months (which gives 2.85x multiplier)
     let max_effective_months = config.max_lock_months() - 1;
     if (total_months > max_effective_months) {
         total_months = max_effective_months;
@@ -270,7 +270,6 @@ public fun power(
     (power as u64)
 }
 
-/// Check if a batch is locked
 public fun is_locked(
     batch: &StakingBatch,
     clock: &Clock,
@@ -278,7 +277,6 @@ public fun is_locked(
     clock.timestamp_ms() < batch.unlock_ms
 }
 
-/// Check if a batch is unlocked
 public fun is_unlocked(
     batch: &StakingBatch,
     clock: &Clock,
