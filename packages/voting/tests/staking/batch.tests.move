@@ -14,6 +14,7 @@ use token::{
 };
 use suins_voting::{
     staking_batch::{Self, StakingBatch},
+    staking_config::{Self, StakingConfig},
     staking_constants::{month_ms},
 };
 
@@ -31,13 +32,17 @@ const USER_1: address = @0xee1;
 public struct TestSetup {
     ts: Scenario,
     clock: Clock,
+    config: StakingConfig,
 }
 
 fun setup(): TestSetup {
     let mut ts = ts::begin(ADMIN);
     let mut clock = clock::create_for_testing(ts.ctx());
     clock.set_for_testing(INITIAL_TIME);
-    TestSetup { ts, clock }
+    staking_config::init_for_testing(ts.ctx());
+    ts.next_tx(ADMIN);
+    let config = ts.take_shared<StakingConfig>();
+    TestSetup { ts, clock, config }
 }
 
 // === helpers for our modules ===
@@ -50,7 +55,7 @@ fun new_batch(
 ): StakingBatch {
     setup.ts.next_tx(sender);
     let balance = mint_ns(setup, balance);
-    staking_batch::new(balance, lock_months, &setup.clock, setup.ts.ctx())
+    staking_batch::new(&setup.config, balance, lock_months, &setup.clock, setup.ts.ctx())
 }
 
 fun assert_power(
@@ -58,7 +63,7 @@ fun assert_power(
     batch: &StakingBatch,
     expected_power: u64,
 ) {
-    assert_eq(expected_power, batch.power(&setup.clock));
+    assert_eq(expected_power, batch.power(&setup.config, &setup.clock));
 }
 
 // === helpers for sui modules ===

@@ -14,7 +14,10 @@ use suins_voting::constants::{min_voting_period_ms, max_voting_period_ms};
 use suins_voting::leaderboard::{Self, Leaderboard};
 use suins_voting::voting_option::{Self, VotingOption, abstain_option};
 use token::ns::NS;
-use suins_voting::staking_batch::StakingBatch;
+use suins_voting::{
+    staking_batch::{StakingBatch},
+    staking_config::{StakingConfig},
+};
 
 // === errors ===
 
@@ -177,6 +180,7 @@ public fun vote(
     opt: String,
     vote_coin: Coin<NS>,
     vote_staked: &mut vector<StakingBatch>,
+    staking_config: &StakingConfig,
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
@@ -191,7 +195,7 @@ public fun vote(
     vote_staked.do_mut!(|batch| {
         assert!(!batch.is_voting(clock), EBatchIsVoting);
         batch.set_voting_until_ms(proposal.end_time_ms, clock);
-        new_staked_power = new_staked_power + batch.power(clock);
+        new_staked_power = new_staked_power + batch.power(staking_config, clock);
     });
     let new_total_power = vote_coin.value() + new_staked_power;
 
