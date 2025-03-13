@@ -6,6 +6,7 @@ use sui::{
     balance::{Balance},
     clock::{Clock},
     coin::{Coin},
+    event::{emit},
     package::{Self},
 };
 use token::{
@@ -70,15 +71,28 @@ public fun new(
 ): StakingBatch {
     assert!(coin.value() >= config.min_balance(), EBalanceTooLow);
     assert!(lock_months <= config.max_lock_months(), EInvalidLockPeriod);
-    let now = clock.timestamp_ms();
+
+    let start_ms = clock.timestamp_ms();
+    let unlock_ms = start_ms + (lock_months * month_ms!());
+    let coin_value = coin.value();
+
     let batch = StakingBatch {
         id: object::new(ctx),
         balance: coin.into_balance(),
-        start_ms: now,
-        unlock_ms: now + (lock_months * month_ms!()),
+        start_ms,
+        unlock_ms,
         cooldown_end_ms: 0,
         voting_until_ms: 0,
     };
+
+    emit(EventNew {
+        batch_id: batch.id.to_address(),
+        balance: coin_value,
+        lock_months,
+        start_ms,
+        unlock_ms,
+    });
+
     batch
 }
 
@@ -99,10 +113,20 @@ public fun lock(
     let curr_lock_months = (batch.unlock_ms - batch.start_ms) / month_ms!();
     assert!(new_lock_months > curr_lock_months, EInvalidLockPeriod);
     assert!(new_lock_months <= config.max_lock_months(), EInvalidLockPeriod);
+
     // Lock the batch
-    batch.unlock_ms = batch.start_ms + (new_lock_months * month_ms!());
+    let new_unlock_ms = batch.start_ms + (new_lock_months * month_ms!());
+    batch.unlock_ms = new_unlock_ms;
+
     // Reset the cooldown, if any
     batch.cooldown_end_ms = 0;
+
+    emit(EventLock {
+        batch_id: batch.id.to_address(),
+        balance: batch.balance.value(),
+        lock_months: new_lock_months,
+        unlock_ms: new_unlock_ms,
+    });
 }
 
 /// Request to unstake a batch, initiating cooldown period
@@ -113,8 +137,16 @@ public fun request_unstake(
 ) {
     assert!(batch.is_unlocked(clock), EBatchLocked);
     assert!(batch.cooldown_end_ms == 0, EUnstakeAlreadyRequested);
+
     let now = clock.timestamp_ms();
-    batch.cooldown_end_ms = now + config.cooldown_ms();
+    let cooldown_end_ms = now + config.cooldown_ms();
+    batch.cooldown_end_ms = cooldown_end_ms;
+
+    emit(EventRequestUnstake {
+        batch_id: batch.id.to_address(),
+        balance: batch.balance.value(),
+        cooldown_end_ms,
+    });
 }
 
 /// Withdraw balance and destroy batch after cooldown period has ended
@@ -122,13 +154,23 @@ public fun unstake(
     batch: StakingBatch,
     clock: &Clock,
 ): Balance<NS> {
-    let now = clock.timestamp_ms();
+    assert!(batch.is_unlocked(clock), EBatchLocked);
     assert!(batch.cooldown_end_ms > 0, EUnstakeNotRequested);
+    let now = clock.timestamp_ms();
     assert!(now >= batch.cooldown_end_ms, ECooldownNotOver);
     assert!(now >= batch.voting_until_ms, EBatchIsVoting);
 
+    let batch_address = batch.id.to_address();
+    let coin_value = batch.balance.value();
+
     let StakingBatch { id, balance, .. } = batch;
     object::delete(id);
+
+    emit(EventUnstake {
+        batch_id: batch_address,
+        balance: coin_value,
+    });
+
     balance
 }
 
@@ -171,6 +213,12 @@ public(package) fun set_voting_until_ms(
 ) {
     assert!(voting_until_ms >= clock.timestamp_ms(), EInvalidVotingUntilMs);
     batch.voting_until_ms = voting_until_ms;
+
+    emit(EventSetVoting {
+        batch_id: batch.id.to_address(),
+        balance: batch.balance.value(),
+        voting_until_ms,
+    });
 }
 
 // === private functions ===
@@ -264,5 +312,37 @@ public fun voting_until_ms(batch: &StakingBatch): u64 { batch.voting_until_ms }
 // === method aliases ===
 
 // === events ===
+
+public struct EventNew has copy, drop {
+    batch_id: address,
+    balance: u64,
+    lock_months: u64,
+    start_ms: u64,
+    unlock_ms: u64,
+}
+
+public struct EventLock has copy, drop {
+    batch_id: address,
+    balance: u64,
+    lock_months: u64,
+    unlock_ms: u64,
+}
+
+public struct EventRequestUnstake has copy, drop {
+    batch_id: address,
+    balance: u64,
+    cooldown_end_ms: u64,
+}
+
+public struct EventUnstake has copy, drop {
+    batch_id: address,
+    balance: u64,
+}
+
+public struct EventSetVoting has copy, drop {
+    batch_id: address,
+    balance: u64,
+    voting_until_ms: u64,
+}
 
 // === test functions ===
