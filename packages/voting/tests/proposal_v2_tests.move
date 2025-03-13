@@ -145,13 +145,15 @@ fun try_to_vote_on_expired_proposal() {
     clock.increment_for_testing(min_voting_period_ms!() + 2);
 
     let coin = coin::mint_for_testing<NS>(100, &mut ctx);
+    let config = staking_config::new_for_testing_default(&mut ctx);
     let batch = staking_batch::new_for_testing(
-        coin::mint_for_testing<NS>(1000, &mut ctx),
-        clock.timestamp_ms(),
-        clock.timestamp_ms(),
+        1000, // balance
+        0, // start_ms
+        0, // unlock_ms
+        0, // cooldown_end_ms
+        0, // voting_until_ms
         &mut ctx,
     );
-    let config = staking_config::new_for_testing(&mut ctx);
     proposal.vote(
         b"Yes".to_string(),
         coin,
@@ -176,13 +178,15 @@ fun vote_non_existing_option() {
     );
 
     let coin = coin::mint_for_testing<NS>(100, &mut ctx);
+    let config = staking_config::new_for_testing_default(&mut ctx);
     let batch = staking_batch::new_for_testing(
-        coin::mint_for_testing<NS>(1000, &mut ctx),
-        clock.timestamp_ms(),
-        clock.timestamp_ms(),
+        1000, // balance
+        0, // start_ms
+        0, // unlock_ms
+        0, // cooldown_end_ms
+        0, // voting_until_ms
         &mut ctx,
     );
-    let config = staking_config::new_for_testing(&mut ctx);
     proposal.vote(
         b"Wut".to_string(),
         coin,

@@ -344,3 +344,22 @@ public struct EventSetVoting has copy, drop {
 }
 
 // === test functions ===
+
+#[test_only]
+public fun new_for_testing(
+    balance: u64,
+    start_ms: u64,
+    unlock_ms: u64,
+    cooldown_end_ms: u64,
+    voting_until_ms: u64,
+    ctx: &mut TxContext,
+): StakingBatch {
+    StakingBatch {
+        id: object::new(ctx),
+        balance: sui::coin::mint_for_testing<NS>(balance, ctx).into_balance(),
+        start_ms,
+        unlock_ms,
+        cooldown_end_ms,
+        voting_until_ms,
+    }
+}

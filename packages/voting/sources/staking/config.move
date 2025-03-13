@@ -7,7 +7,6 @@ use sui::{
 };
 use suins_voting::{
     staking_admin::{StakingAdminCap},
-    staking_constants::{day_ms},
 };
 
 // === errors ===
@@ -17,7 +16,13 @@ const EInvalidMaxBoostBps: u64 = 1;
 const EInvalidMonthlyBoostBps: u64 = 2;
 const EInvalidMinBalance: u64 = 3;
 
-// === constants ===
+// === constants (initial values) ===
+
+const COOLDOWN_MS: u64 = 1000 * 60 * 60 * 24 * 3; // 3 days
+const MAX_LOCK_MONTHS: u64 = 12;
+const MAX_BOOST_BPS: u64 = 3_0000; // 3x
+const MONTHLY_BOOST_BPS: u64 = 1_1000; // 1.1x
+const MIN_BALANCE: u64 = 1000;
 
 // === structs ===
 
@@ -48,11 +53,11 @@ fun init(otw: STAKING_CONFIG, ctx: &mut TxContext)
 
     let config = StakingConfig {
         id: object::new(ctx),
-        cooldown_ms: 3 * day_ms!(),
-        max_lock_months: 12,
-        max_boost_bps: 3_0000, // 3x
-        monthly_boost_bps: 1_1000, // 1.1x
-        min_balance: 1000,
+        cooldown_ms: COOLDOWN_MS,
+        max_lock_months: MAX_LOCK_MONTHS,
+        max_boost_bps: MAX_BOOST_BPS,
+        monthly_boost_bps: MONTHLY_BOOST_BPS,
+        min_balance: MIN_BALANCE,
     };
     transfer::share_object(config);
 }
@@ -115,6 +120,8 @@ public fun min_balance(config: &StakingConfig): u64 { config.min_balance }
 
 // === events ===
 
+// === test functions ===
+
 #[test_only]
 public fun init_for_testing(
     ctx: &mut TxContext,
@@ -122,5 +129,39 @@ public fun init_for_testing(
     let otw = STAKING_CONFIG {};
     init(otw, ctx);
 }
+
+#[test_only]
+public fun new_for_testing(
+    cooldown_ms: u64,
+    max_lock_months: u64,
+    max_boost_bps: u64,
+    monthly_boost_bps: u64,
+    min_balance: u64,
+    ctx: &mut TxContext,
+): StakingConfig {
+    StakingConfig {
+        id: object::new(ctx),
+        cooldown_ms,
+        max_lock_months,
+        max_boost_bps,
+        monthly_boost_bps,
+        min_balance,
+    }
+}
+
+#[test_only]
+public fun new_for_testing_default(
+    ctx: &mut TxContext,
+): StakingConfig {
+    StakingConfig {
+        id: object::new(ctx),
+        cooldown_ms: COOLDOWN_MS,
+        max_lock_months: MAX_LOCK_MONTHS,
+        max_boost_bps: MAX_BOOST_BPS,
+        monthly_boost_bps: MONTHLY_BOOST_BPS,
+        min_balance: MIN_BALANCE,
+    }
+}
+
 
 // === test functions ===
