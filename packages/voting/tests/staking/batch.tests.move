@@ -191,3 +191,63 @@ fun test_power_ok() {
 
     destroy(setup);
 }
+
+#[test]
+fun test_end_to_end_ok() {
+    let mut setup = setup();
+    let balance = 1_000_000; // 1 NS
+
+    // create a new batch with a 3-month lock
+    let mut batch = setup.new_batch(USER_1, balance, 3);
+    // verify initial state
+    assert_eq(batch.balance().value(), balance);
+    assert_eq(batch.cooldown_end_ms(), 0);
+    assert_eq(batch.voting_until_ms(), 0);
+    assert_eq(batch.is_locked(&setup.clock), true);
+    assert_eq(batch.is_unlocked(&setup.clock), false);
+    assert_eq(batch.is_in_cooldown(&setup.clock), false);
+    assert_eq(batch.is_voting(&setup.clock), false);
+    let expected_power = balance * 110 * 110 * 110 / 100 / 100 / 100;
+    assert_eq(batch.power(&setup.config, &setup.clock), expected_power);
+
+    // extend lock to 6 months
+    batch.lock(&setup.config, 6);
+    assert_eq(batch.is_locked(&setup.clock), true);
+    let expected_power = balance * 110 * 110 * 110 * 110 * 110 * 110 / 100 / 100 / 100 / 100 / 100 / 100;
+    assert_eq(batch.power(&setup.config, &setup.clock), expected_power);
+
+    // wait until lock period ends
+    setup.add_time(6 * month_ms!());
+    assert_eq(batch.is_locked(&setup.clock), false);
+    assert_eq(batch.is_unlocked(&setup.clock), true);
+
+    // use batch for voting
+    let voting_end_time = setup.clock.timestamp_ms() + (1000 * 60 * 60 * 24 * 14); // 14 days
+    ts::next_tx(&mut setup.ts, USER_1);
+    batch.set_voting_until_ms(voting_end_time, &setup.clock); // a proposal would set this
+    assert_eq(batch.is_voting(&setup.clock), true);
+
+    // request unstake (should succeed even while voting)
+    batch.request_unstake(&setup.config, &setup.clock);
+    assert_eq(batch.is_in_cooldown(&setup.clock), true);
+    assert_eq(batch.cooldown_end_ms() > 0, true);
+    // wait for cooldown to end but voting is still active
+    let cooldown_ms = setup.config.cooldown_ms();
+    setup.add_time(cooldown_ms);
+    // verify cooldown is over but still voting
+    assert_eq(batch.is_in_cooldown(&setup.clock), false);
+    assert_eq(batch.is_voting(&setup.clock), true);
+
+    // wait for voting to end
+    let remaining_voting_time = voting_end_time - cooldown_ms;
+    setup.add_time(remaining_voting_time);
+    assert_eq(batch.is_voting(&setup.clock), false);
+
+    // unstake the batch
+    ts::next_tx(&mut setup.ts, USER_1);
+    let unstaked_balance = batch.unstake(&setup.clock);
+    assert_eq(unstaked_balance.value(), balance);
+
+    destroy(unstaked_balance);
+    destroy(setup);
+}
