@@ -120,7 +120,7 @@ public fun new(
     description: String,
     end_time_ms: u64,
     mut options: VecSet<VotingOption>,
-    reward: Balance<NS>,
+    reward: Coin<NS>,
     clock: &Clock,
     ctx: &mut TxContext,
 ): ProposalV2 {
@@ -168,7 +168,7 @@ public fun new(
         winning_option: option::none(),
         start_time_ms: clock.timestamp_ms(),
         end_time_ms,
-        reward,
+        reward: reward.into_balance(),
         total_power: 0,
         total_reward,
     }
