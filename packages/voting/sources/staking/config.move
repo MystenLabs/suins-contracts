@@ -12,6 +12,11 @@ use suins_voting::{
 
 // === errors ===
 
+const EInvalidMaxLockMonths: u64 = 0;
+const EInvalidMaxBoostPct: u64 = 1;
+const EInvalidMonthlyBoostPct: u64 = 2;
+const EInvalidMinBalance: u64 = 3;
+
 // === constants ===
 
 // === structs ===
@@ -64,15 +69,19 @@ public fun set_cooldown_ms(c: &mut StakingConfig, _: &StakingAdminCap, cooldown_
     c.cooldown_ms = cooldown_ms;
 }
 public fun set_max_lock_months(c: &mut StakingConfig, _: &StakingAdminCap, max_lock_months: u64 ) {
+    assert!(max_lock_months > 0, EInvalidMaxLockMonths);
     c.max_lock_months = max_lock_months;
 }
 public fun set_max_boost_pct(c: &mut StakingConfig, _: &StakingAdminCap, max_boost_pct: u64 ) {
+    assert!(max_boost_pct > 0, EInvalidMaxBoostPct);
     c.max_boost_pct = max_boost_pct;
 }
 public fun set_monthly_boost_pct(c: &mut StakingConfig, _: &StakingAdminCap, monthly_boost_pct: u64 ) {
+    assert!(monthly_boost_pct >= 100, EInvalidMonthlyBoostPct);
     c.monthly_boost_pct = monthly_boost_pct;
 }
 public fun set_min_balance(c: &mut StakingConfig, _: &StakingAdminCap, min_balance: u64 ) {
+    assert!(min_balance > 0, EInvalidMinBalance);
     c.min_balance = min_balance;
 }
 public fun set_all(
