@@ -102,10 +102,11 @@ fun test_power_ok() {
 
     // Test month-by-month progression
     let mut expected_power = balance;
+    let boost_bps = setup.config.monthly_boost_bps();
     let mut i = 0;
     while (i < 11) {
         setup.add_time(month_ms!()); // (i+1) months after start
-        expected_power = expected_power * 110 / 100;
+        expected_power = expected_power * boost_bps / 10000;
         setup.assert_power(&batch, expected_power); // increases by 10% each month
         i = i + 1;
     };
@@ -201,6 +202,7 @@ fun test_power_ok() {
 fun test_end_to_end_ok() {
     let mut setup = setup();
     let balance = 1_000_000; // 1 NS
+    let boost = setup.config.monthly_boost_bps() as u128;
 
     // Create a new batch with a 3-month lock
     let mut batch = setup.new_batch(USER_1, balance, 3);
@@ -212,13 +214,13 @@ fun test_end_to_end_ok() {
     assert_eq(batch.is_unlocked(&setup.clock), false);
     assert_eq(batch.is_in_cooldown(&setup.clock), false);
     assert_eq(batch.is_voting(&setup.clock), false);
-    let expected_power = balance * 110 * 110 * 110 / 100 / 100 / 100;
+    let expected_power = (balance as u128 * boost * boost * boost / 10000 / 10000 / 10000) as u64;
     assert_eq(batch.power(&setup.config, &setup.clock), expected_power);
 
     // Extend lock to 6 months
     batch.lock(&setup.config, 6);
     assert_eq(batch.is_locked(&setup.clock), true);
-    let expected_power = balance * 110 * 110 * 110 * 110 * 110 * 110 / 100 / 100 / 100 / 100 / 100 / 100;
+    let expected_power = (balance as u128 * boost * boost * boost * boost * boost * boost / 10000 / 10000 / 10000 / 10000 / 10000 / 10000) as u64;
     assert_eq(batch.power(&setup.config, &setup.clock), expected_power);
 
     // Wait until lock period ends
@@ -281,14 +283,18 @@ fun test_power_max_balance() {
 
     // Test with total NS supply
     let total_supply = 500_000_000 * 1_000_000; // 500 million NS
+
     // Lock for 1 month
     let mut batch = setup.new_batch(USER_1, total_supply, 1);
-    let expected_power = total_supply * 110 / 100;
+    let boost = setup.config.monthly_boost_bps() as u128;
+    let expected_power = (total_supply as u128 * boost / 10000) as u64;
     assert_eq(batch.power(&setup.config, &setup.clock), expected_power);
+
     // Lock for max months
     let max_months = setup.config.max_lock_months();
     batch.lock(&setup.config, max_months);
-    let expected_power = (total_supply * setup.config.max_boost_pct()) / 100;
+    let max_boost = setup.config.max_boost_bps() as u128;
+    let expected_power = (total_supply as u128 * max_boost / 10000) as u64;
     assert_eq(batch.power(&setup.config, &setup.clock), expected_power);
 
     destroy(batch);
