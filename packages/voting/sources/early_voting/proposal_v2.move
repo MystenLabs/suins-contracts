@@ -1,4 +1,4 @@
-module suins_voting::staked_proposal;
+module suins_voting::proposal_v2;
 
 // === imports ===
 
@@ -58,7 +58,7 @@ const MAX_RETURNS_PER_TX: u64 = 125;
 /// 3. The total votes for each option.
 /// 4. A list of the unique addresses, and coins they've put for voting options.
 /// 5. The timestamp up to which when the proposal can accept votes.
-public struct Proposal has key {
+public struct ProposalV2 has key {
     /// We keep UID as we'll be adding proposals as DOFs, to easily look them up
     /// (not having to do DF queries).
     /// We'll also create a Display for these proposals.
@@ -91,7 +91,7 @@ public struct Proposal has key {
     reward: Balance<NS>,
     /// The sum of all NS balance and all staked power used to vote in this proposal.
     total_power: u64,
-    /// The initial value of `Proposal.reward`.
+    /// The initial value of `ProposalV2.reward`.
     total_reward: u64,
 }
 
@@ -123,7 +123,7 @@ public fun new(
     reward: Balance<NS>,
     clock: &Clock,
     ctx: &mut TxContext,
-): Proposal {
+): ProposalV2 {
     // min voting period checks
     assert!(
         end_time_ms >= clock.timestamp_ms() + min_voting_period_ms!(),
@@ -156,7 +156,7 @@ public fun new(
     });
 
     let total_reward = reward.value();
-    Proposal {
+    ProposalV2 {
         id: object::new(ctx),
         title,
         description,
@@ -176,7 +176,7 @@ public fun new(
 
 /// Vote for a given proposal.
 public fun vote(
-    proposal: &mut Proposal,
+    proposal: &mut ProposalV2,
     opt: String,
     vote_coin: Coin<NS>,
     vote_staked: &mut vector<StakingBatch>,
@@ -238,7 +238,7 @@ public fun vote(
 /// reached. The winning option is the one with the highest votes, except for
 /// the abstain option which is ignored.
 public fun finalize(
-    proposal: &mut Proposal,
+    proposal: &mut ProposalV2,
     clock: &Clock,
     _ctx: &mut TxContext,
 ) {
@@ -250,7 +250,7 @@ public fun finalize(
 /// the proposal is completed. It also completes the proposal if it hasn't been
 /// completed.
 public fun return_tokens_bulk(
-    proposal: &mut Proposal,
+    proposal: &mut ProposalV2,
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
@@ -275,7 +275,7 @@ public fun return_tokens_bulk(
 
 /// Allow user to get their tokens back, if the proposal is completed.
 public fun return_tokens(
-    proposal: &mut Proposal,
+    proposal: &mut ProposalV2,
     clock: &Clock,
     ctx: &mut TxContext,
 ): Coin<NS> {
@@ -286,30 +286,30 @@ public fun return_tokens(
 // === accessors ===
 
 /// Get the ID of the proposal. Helpful for receiver syntax.
-public fun id(proposal: &Proposal): ID { proposal.id.to_inner() }
+public fun id(proposal: &ProposalV2): ID { proposal.id.to_inner() }
 
-public fun end_time_ms(proposal: &Proposal): u64 { proposal.end_time_ms }
+public fun end_time_ms(proposal: &ProposalV2): u64 { proposal.end_time_ms }
 
-public fun start_time_ms(proposal: &Proposal): u64 { proposal.start_time_ms }
+public fun start_time_ms(proposal: &ProposalV2): u64 { proposal.start_time_ms }
 
-public fun serial_no(proposal: &Proposal): u64 { proposal.serial_no }
+public fun serial_no(proposal: &ProposalV2): u64 { proposal.serial_no }
 
-public fun winning_option(proposal: &Proposal): Option<VotingOption> {
+public fun winning_option(proposal: &ProposalV2): Option<VotingOption> {
     proposal.winning_option
 }
 
-public fun voters_count(proposal: &Proposal): u64 { proposal.voters.length() }
+public fun voters_count(proposal: &ProposalV2): u64 { proposal.voters.length() }
 
 // === package functions ===
 
 public(package) fun is_end_time_reached(
-    proposal: &Proposal,
+    proposal: &ProposalV2,
     clock: &Clock,
 ): bool {
     clock.timestamp_ms() >= proposal.end_time_ms
 }
 
-public(package) fun is_threshold_reached(proposal: &Proposal): bool {
+public(package) fun is_threshold_reached(proposal: &ProposalV2): bool {
     let (_, values) = proposal.votes.into_keys_values();
     let total_vote_value = values.fold!(0, |acc, val| acc + val);
 
@@ -317,12 +317,12 @@ public(package) fun is_threshold_reached(proposal: &Proposal): bool {
 }
 
 /// Only callable by `early_voting` module.
-public(package) fun set_serial_no(proposal: &mut Proposal, serial_no: u64) {
+public(package) fun set_serial_no(proposal: &mut ProposalV2, serial_no: u64) {
     proposal.serial_no = serial_no;
 }
 
 /// Only callable by `early_voting` module.
-public(package) fun set_threshold(proposal: &mut Proposal, threshold: u64) {
+public(package) fun set_threshold(proposal: &mut ProposalV2, threshold: u64) {
     proposal.threshold = threshold;
 }
 
@@ -330,7 +330,7 @@ public(package) fun set_threshold(proposal: &mut Proposal, threshold: u64) {
 /// proposal, they can't do anything with it.
 ///
 /// Important: Make sure this is never a public function.
-public(package) fun share(proposal: Proposal) {
+public(package) fun share(proposal: ProposalV2) {
     transfer::share_object(proposal);
 }
 
@@ -338,7 +338,7 @@ public(package) fun share(proposal: Proposal) {
 
 /// Finalizes a proposal after the end time is reached.
 /// If the proposal has already been finalized, it does nothing.
-fun finalize_internal(proposal: &mut Proposal, clock: &Clock) {
+fun finalize_internal(proposal: &mut ProposalV2, clock: &Clock) {
     assert!(proposal.is_end_time_reached(clock), EEndTimeNotReached);
 
     // if the proposal has already been finalized, do nothing.
@@ -379,7 +379,7 @@ fun finalize_internal(proposal: &mut Proposal, clock: &Clock) {
 /// Removes the voter from the proposal and returns a coin which includes the original balance
 /// that the user voted with + NS reward proportional to their share of total voting power.
 fun return_voter_coins(
-    proposal: &mut Proposal,
+    proposal: &mut ProposalV2,
     voter: address,
     ctx: &mut TxContext,
 ): Coin<NS> {
@@ -415,7 +415,7 @@ fun return_voter_coins(
 }
 
 fun take_user_reward(
-    proposal: &mut Proposal,
+    proposal: &mut ProposalV2,
     user_power: u64,
 ): Balance<NS> {
     let total_reward = proposal.total_reward as u128;
