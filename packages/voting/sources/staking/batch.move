@@ -188,7 +188,9 @@ public fun power(
 
     // Special case: locking for max months gets a higher multiplier
     if (lock_months >= config.max_lock_months()) {
-        return (batch.balance.value() * config.max_boost_pct()) / 100
+        let balance = batch.balance.value() as u128;
+        let max_boost = config.max_boost_pct() as u128;
+        return ((balance * max_boost) / 100) as u64
     };
 
     // Calculate locked + staked months
@@ -209,14 +211,15 @@ public fun power(
     };
 
     // Apply multiplier: 1.1^total_months
-    let mut power = batch.balance.value();
+    let mut power = batch.balance.value() as u128;
+    let monthly_boost = config.monthly_boost_pct() as u128;
     let mut i = 0;
     while (i < total_months) {
-        power = power * config.monthly_boost_pct() / 100;
+        power = (power * monthly_boost) / 100;
         i = i + 1;
     };
 
-    power
+    (power as u64)
 }
 
 /// Check if a batch is locked
