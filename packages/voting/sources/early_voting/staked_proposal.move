@@ -1,5 +1,7 @@
 module suins_voting::staked_proposal;
 
+// === imports ===
+
 use std::string::String;
 use sui::balance::{Self, Balance};
 use sui::clock::Clock;
@@ -14,7 +16,8 @@ use suins_voting::voting_option::{Self, VotingOption, abstain_option};
 use token::ns::NS;
 use suins_voting::staking_batch::StakingBatch;
 
-// ERRORS -----
+// === errors ===
+
 #[error]
 const ENotAvailableOption: vector<u8> =
     b"Tries to vote for an option that is not available.";
@@ -38,9 +41,13 @@ const ENotEnoughOptions: vector<u8> =
 #[error]
 const EBatchIsVoting: vector<u8> = b"Batch is already being used to vote.";
 
+// === constants ===
+
 // Our limit is 1024, but keeping this 250 at a time, and someone can just
 // batch 8 operations. Makes the risk of this becoming unusable lower.
 const MAX_RETURNS_PER_TX: u64 = 125;
+
+// === structs ===
 
 /// A proposal object. A proposal holds:
 /// 1. A title and a description
@@ -91,10 +98,14 @@ public struct VotingPower has store {
     total: u64,
 }
 
+// === events ===
+
 public struct ReturnTokenEvent has copy, drop {
     voter: address,
     amount: u64,
 }
+
+// === public functions ===
 
 /// Create a new proposal with the given options.
 /// Validation of logic is delegated to the calling function.
@@ -268,6 +279,8 @@ public fun return_tokens(
     proposal.return_voter_coins(ctx.sender(), ctx)
 }
 
+// === accessors ===
+
 /// Get the ID of the proposal. Helpful for receiver syntax.
 public fun id(proposal: &Proposal): ID { proposal.id.to_inner() }
 
@@ -282,6 +295,8 @@ public fun winning_option(proposal: &Proposal): Option<VotingOption> {
 }
 
 public fun voters_count(proposal: &Proposal): u64 { proposal.voters.length() }
+
+// === package functions ===
 
 public(package) fun is_end_time_reached(
     proposal: &Proposal,
@@ -314,6 +329,8 @@ public(package) fun set_threshold(proposal: &mut Proposal, threshold: u64) {
 public(package) fun share(proposal: Proposal) {
     transfer::share_object(proposal);
 }
+
+// === private functions ===
 
 /// Finalizes a proposal after the end time is reached.
 /// If the proposal has already been finalized, it does nothing.
