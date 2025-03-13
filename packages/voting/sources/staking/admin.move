@@ -49,3 +49,11 @@ public fun id(cap: &StakingAdminCap): ID { cap.id.to_inner() }
 // === events ===
 
 // === test functions ===
+
+#[test_only]
+public fun init_for_testing(
+    ctx: &mut TxContext,
+) {
+    let otw = STAKING_ADMIN {};
+    init(otw, ctx);
+}
