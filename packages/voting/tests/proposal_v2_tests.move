@@ -148,6 +148,7 @@ fun try_to_vote_on_expired_proposal() {
     let config = staking_config::new_for_testing_default(&mut ctx);
     let batch = staking_batch::new_for_testing(
         1000, // balance
+        0, // rewards
         0, // start_ms
         0, // unlock_ms
         0, // cooldown_end_ms
@@ -181,6 +182,7 @@ fun vote_non_existing_option() {
     let config = staking_config::new_for_testing_default(&mut ctx);
     let batch = staking_batch::new_for_testing(
         1000, // balance
+        0, // rewards
         0, // start_ms
         0, // unlock_ms
         0, // cooldown_end_ms
