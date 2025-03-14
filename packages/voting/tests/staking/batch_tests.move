@@ -311,7 +311,8 @@ fun test_admin_functions() {
         coin,
         arbitrary_start_ms,
         arbitrary_start_ms, // never locked
-        setup.ts.ctx()
+        staking_batch::origin_regular!(),
+        setup.ts.ctx(),
     );
 
     // test admin_transfer
@@ -568,7 +569,8 @@ fun test_admin_new_e_invalid_lock_period() {
         coin,
         now, // start_ms
         now - 1, // unlock_ms
-        setup.ts.ctx()
+        staking_batch::origin_regular!(),
+        setup.ts.ctx(),
     );
 
     destroy(batch);

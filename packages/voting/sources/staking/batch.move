@@ -31,6 +31,9 @@ const EInvalidVotingUntilMs: u64 = 7;
 
 // === constants ===
 
+public macro fun origin_regular(): u8 { 0 }
+public macro fun origin_rewards(): u8 { 1 }
+
 // === structs ===
 
 /// A batch of staked NS
@@ -38,8 +41,6 @@ public struct StakingBatch has key {
     id: UID,
     /// Staked NS balance.
     balance: Balance<NS>,
-    /// How much NS in the batch is from voting rewards.
-    rewards: u64,
     /// When the batch was created.
     start_ms: u64,
     /// When the batch will be unlocked. If the batch was never locked, it's equal to `start_ms`.
@@ -48,6 +49,8 @@ public struct StakingBatch has key {
     cooldown_end_ms: u64,
     /// Until when the batch is being used to vote on a proposal. `0` if never voted.
     voting_until_ms: u64,
+    /// Informational field indicating how the batch was created.
+    origin: u8,
 }
 
 /// one-time witness
@@ -81,11 +84,11 @@ public fun new(
     let batch = StakingBatch {
         id: object::new(ctx),
         balance: coin.into_balance(),
-        rewards: 0,
         start_ms,
         unlock_ms,
         cooldown_end_ms: 0,
         voting_until_ms: 0,
+        origin: origin_regular!(),
     };
 
     emit(EventNew {
@@ -185,17 +188,18 @@ public fun admin_new(
     coin: Coin<NS>,
     start_ms: u64,
     unlock_ms: u64,
+    origin: u8,
     ctx: &mut TxContext,
 ): StakingBatch {
     assert!(start_ms <= unlock_ms, EInvalidLockPeriod);
     let batch = StakingBatch {
         id: object::new(ctx),
         balance: coin.into_balance(),
-        rewards: 0,
         start_ms,
         unlock_ms,
         cooldown_end_ms: 0,
         voting_until_ms: 0,
+        origin,
     };
     batch
 }
@@ -209,14 +213,6 @@ public fun admin_transfer(
 }
 
 // === package functions ===
-
-public(package) fun add_reward(
-    batch: &mut StakingBatch,
-    balance: Balance<NS>,
-) {
-    batch.rewards = batch.rewards + balance.value();
-    batch.balance.join(balance);
-}
 
 public(package) fun set_voting_until_ms(
     batch: &mut StakingBatch,
@@ -314,11 +310,11 @@ public fun is_voting(
 
 public fun id(batch: &StakingBatch): ID { batch.id.to_inner() }
 public fun balance(batch: &StakingBatch): &Balance<NS> { &batch.balance }
-public fun rewards(batch: &StakingBatch): u64 { batch.rewards }
 public fun start_ms(batch: &StakingBatch): u64 { batch.start_ms }
 public fun unlock_ms(batch: &StakingBatch): u64 { batch.unlock_ms }
 public fun cooldown_end_ms(batch: &StakingBatch): u64 { batch.cooldown_end_ms }
 public fun voting_until_ms(batch: &StakingBatch): u64 { batch.voting_until_ms }
+public fun origin(batch: &StakingBatch): u8 { batch.origin }
 
 // === method aliases ===
 
@@ -361,20 +357,20 @@ public struct EventSetVoting has copy, drop {
 #[test_only]
 public fun new_for_testing(
     balance: u64,
-    rewards: u64,
     start_ms: u64,
     unlock_ms: u64,
     cooldown_end_ms: u64,
     voting_until_ms: u64,
+    origin: u8,
     ctx: &mut TxContext,
 ): StakingBatch {
     StakingBatch {
         id: object::new(ctx),
         balance: sui::coin::mint_for_testing<NS>(balance, ctx).into_balance(),
-        rewards,
         start_ms,
         unlock_ms,
         cooldown_end_ms,
         voting_until_ms,
+        origin,
     }
 }

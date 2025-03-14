@@ -3,7 +3,7 @@ module suins_voting::proposal_v2;
 // === imports ===
 
 use std::string::String;
-use sui::balance::{Self, Balance};
+use sui::balance::{Balance};
 use sui::clock::Clock;
 use sui::coin::Coin;
 use sui::event;
@@ -78,11 +78,9 @@ public struct ProposalV2 has key {
     winning_option: Option<VotingOption>,
     /// The leaderboard for most votes per option.
     vote_leaderboards: VecMap<VotingOption, Leaderboard>,
-    /// A list of the unique addresses, and coins they've locked in, for each
-    /// voting option.
-    /// We keep it as a linked_table to allow easy on-chain permission-less
-    /// return of funds.
-    voters: LinkedTable<address, VecMap<VotingOption, VotingPower>>,
+    /// Voter addresses and how much power they voted with on each option.
+    /// It's a LinkedTable to allow permissionless distribution of rewards.
+    voters: LinkedTable<address, VecMap<VotingOption, u64>>,
     /// The timestamp when the proposal was created.
     start_time_ms: u64,
     /// The timestamp up to which when the proposal can accept votes.
@@ -93,12 +91,6 @@ public struct ProposalV2 has key {
     total_power: u64,
     /// The initial value of `ProposalV2.reward`.
     total_reward: u64,
-}
-
-public struct VotingPower has store {
-    balance: Balance<NS>,
-    staked: u64,
-    total: u64,
 }
 
 // === events ===
@@ -178,7 +170,6 @@ public fun new(
 public fun vote(
     proposal: &mut ProposalV2,
     opt: String,
-    vote_coin: Coin<NS>,
     vote_staked: &mut vector<StakingBatch>,
     staking_config: &StakingConfig,
     clock: &Clock,
@@ -191,20 +182,19 @@ public fun vote(
     assert!(!proposal.is_end_time_reached(clock), EVotingPeriodExpired);
 
     // calculate total voting power in this vote (NS balance + staked power)
-    let mut new_staked_power = 0;
+    let mut new_power = 0;
     vote_staked.do_mut!(|batch| {
         assert!(!batch.is_voting(clock), EBatchIsVoting);
         batch.set_voting_until_ms(proposal.end_time_ms, clock);
-        new_staked_power = new_staked_power + batch.power(staking_config, clock);
+        new_power = new_power + batch.power(staking_config, clock);
     });
-    let new_total_power = vote_coin.value() + new_staked_power;
 
     // update total voting power for the option
     let total = proposal.votes.get_mut(&option);
-    *total = *total + new_total_power;
+    *total = *total + new_power;
 
     // update total voting power in the proposal
-    proposal.total_power = proposal.total_power + new_total_power;
+    proposal.total_power = proposal.total_power + new_power;
 
     // add the voter if not already present
     if (!proposal.voters.contains(ctx.sender())) {
@@ -215,23 +205,14 @@ public fun vote(
 
     let votes = proposal.voters.borrow_mut(ctx.sender());
 
-    // if the user has already voted for the option, update the vote balance.
-    if (votes.contains(&option)) {
-        let (_voting_option, mut power) = votes.remove(&option);
-        power.balance.join(vote_coin.into_balance());
-        power.staked = power.staked + new_staked_power;
-        power.total = power.balance.value() + power.staked;
-        leaderboard.add_if_eligible(ctx.sender(), power.total);
-        votes.insert(option, power);
-        return
+    if (!votes.contains(&option)) {
+        votes.insert(option, new_power);
+        leaderboard.add_if_eligible(ctx.sender(), new_power);
+    } else {
+        let vote = votes.get_mut(&option);
+        *vote = *vote + new_power;
+        leaderboard.add_if_eligible(ctx.sender(), *vote);
     };
-
-    leaderboard.add_if_eligible(ctx.sender(), new_total_power);
-    votes.insert(option, VotingPower {
-        balance: vote_coin.into_balance(),
-        staked: new_staked_power,
-        total: new_total_power,
-    });
 }
 
 /// Finalize the proposal after the end time is reached and the threshold is
@@ -264,7 +245,7 @@ public fun return_tokens_bulk(
         let voter = *proposal.voters.back().borrow();
         // transfer the balance (as coin) back to the voter.
         transfer::public_transfer(
-            proposal.return_voter_coins(voter, ctx),
+            proposal.return_reward(voter, ctx),
             voter,
         );
 
@@ -280,7 +261,7 @@ public fun return_tokens(
     ctx: &mut TxContext,
 ): Coin<NS> {
     proposal.finalize_internal(clock);
-    proposal.return_voter_coins(ctx.sender(), ctx)
+    proposal.return_reward(ctx.sender(), ctx)
 }
 
 // === accessors ===
@@ -376,9 +357,9 @@ fun finalize_internal(proposal: &mut ProposalV2, clock: &Clock) {
     }
 }
 
-/// Removes the voter from the proposal and returns a coin which includes the original balance
-/// that the user voted with + NS reward proportional to their share of total voting power.
-fun return_voter_coins(
+/// Remove the voter from the proposal and return a coin with a NS reward
+/// proportional to their share of total voting power.
+fun return_reward(
     proposal: &mut ProposalV2,
     voter: address,
     ctx: &mut TxContext,
@@ -386,35 +367,28 @@ fun return_voter_coins(
     assert!(proposal.voters.contains(voter), EVoterNotFound);
 
     // all the options the user voted on
-    let mut voting_options = proposal.voters.remove(voter);
-    // the balance from all the options
-    let mut user_balance = balance::zero<NS>();
+    let mut user_options = proposal.voters.remove(voter);
     // the power from all the options
     let mut user_power: u64 = 0;
 
-    while(!voting_options.is_empty()) {
-        let (_option, power) = voting_options.pop();
-        let VotingPower { balance, total: vote_power, .. } = power;
-        user_balance.join(balance);
-        user_power = user_power + vote_power;
+    while(!user_options.is_empty()) {
+        let (_option, power) = user_options.pop();
+        user_power = user_power + power;
     };
-    voting_options.destroy_empty();
+    user_options.destroy_empty();
 
     // add the reward to the user's balance
-    let user_reward = take_user_reward(proposal, user_power);
-    user_balance.join(user_reward);
-
-    let coin = user_balance.into_coin(ctx);
+    let reward = take_reward(proposal, user_power).into_coin(ctx);
 
     event::emit(ReturnTokenEvent {
         voter,
-        amount: coin.value(),
+        amount: reward.value(),
     });
 
-    coin
+    reward
 }
 
-fun take_user_reward(
+fun take_reward(
     proposal: &mut ProposalV2,
     user_power: u64,
 ): Balance<NS> {
