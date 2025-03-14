@@ -160,31 +160,29 @@ public fun new(
 public fun vote(
     proposal: &mut ProposalV2,
     opt: String,
-    vote_staked: &mut vector<StakingBatch>,
+    voting_batches: &mut vector<StakingBatch>,
     staking_config: &StakingConfig,
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
     let option = voting_option::new(opt);
     assert!(proposal.option_powers.contains(&option), ENotAvailableOption);
-
-    // validate that the proposal is still open in terms of time.
     assert!(!proposal.is_end_time_reached(clock), EVotingPeriodExpired);
 
-    // calculate total voting power in this vote (NS balance + staked power)
+    // calculate the total voting power in this vote
     let mut new_power = 0;
-    vote_staked.do_mut!(|batch| {
+    voting_batches.do_mut!(|batch| {
         assert!(!batch.is_voting(clock), EBatchIsVoting);
         batch.set_voting_until_ms(proposal.end_ms, clock);
         new_power = new_power + batch.power(staking_config, clock);
     });
 
-    // update total voting power for the option
-    let total = proposal.option_powers.get_mut(&option);
-    *total = *total + new_power;
-
     // update total voting power in the proposal
     proposal.total_power = proposal.total_power + new_power;
+
+    // update voting power for the option
+    let option_power = proposal.option_powers.get_mut(&option);
+    *option_power = *option_power + new_power;
 
     // add the voter if not already present
     if (!proposal.voters.contains(ctx.sender())) {
@@ -192,13 +190,13 @@ public fun vote(
     };
 
     // save the vote and update the leaderboard
-    let votes = proposal.voters.borrow_mut(ctx.sender());
+    let user_votes = proposal.voters.borrow_mut(ctx.sender());
     let leaderboard = proposal.leaderboards.get_mut(&option);
-    if (!votes.contains(&option)) {
-        votes.insert(option, new_power);
+    if (!user_votes.contains(&option)) {
+        user_votes.insert(option, new_power);
         leaderboard.add_if_eligible(ctx.sender(), new_power);
     } else {
-        let vote = votes.get_mut(&option);
+        let vote = user_votes.get_mut(&option);
         *vote = *vote + new_power;
         leaderboard.add_if_eligible(ctx.sender(), *vote);
     };
