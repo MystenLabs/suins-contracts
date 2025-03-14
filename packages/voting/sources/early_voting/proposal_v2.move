@@ -15,7 +15,7 @@ use suins_voting::leaderboard::{Self, Leaderboard};
 use suins_voting::voting_option::{Self, VotingOption, abstain_option};
 use token::ns::NS;
 use suins_voting::{
-    staking_batch::{StakingBatch},
+    staking_batch::{Self, StakingBatch},
     staking_config::{StakingConfig},
 };
 
@@ -201,10 +201,9 @@ public fun vote(
         proposal.voters.push_back(ctx.sender(), vec_map::empty());
     };
 
-    let leaderboard = proposal.vote_leaderboards.get_mut(&option);
-
+    // save the vote and update the leaderboard
     let votes = proposal.voters.borrow_mut(ctx.sender());
-
+    let leaderboard = proposal.vote_leaderboards.get_mut(&option);
     if (!votes.contains(&option)) {
         votes.insert(option, new_power);
         leaderboard.add_if_eligible(ctx.sender(), new_power);
@@ -227,41 +226,37 @@ public fun finalize(
     proposal.finalize_internal(clock);
 }
 
-/// Permissionless-ly return the tokens for a given proposal, after
-/// the proposal is completed. It also completes the proposal if it hasn't been
-/// completed.
-public fun return_tokens_bulk(
+/// Permissionlessly distribute staked NS rewards once voting has ended.
+/// It also completes the proposal if it hasn't been completed.
+public fun distribute_rewards_bulk(
     proposal: &mut ProposalV2,
+    staking_config: &StakingConfig,
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
     proposal.finalize_internal(clock);
 
     let mut total_transfers = 0;
-
     while (
         !proposal.voters.is_empty() && total_transfers < MAX_RETURNS_PER_TX
     ) {
+        // transfer the staked reward to the voter
         let voter = *proposal.voters.back().borrow();
-        // transfer the balance (as coin) back to the voter.
-        transfer::public_transfer(
-            proposal.return_reward(voter, ctx),
-            voter,
-        );
-
-        // increment the total transfers.
+        let batch = proposal.new_reward(voter, staking_config, clock, ctx);
+        batch.transfer(voter);
         total_transfers = total_transfers + 1;
     };
 }
 
 /// Allow user to get their tokens back, if the proposal is completed.
-public fun return_tokens(
+public fun get_reward(
     proposal: &mut ProposalV2,
+    staking_config: &StakingConfig,
     clock: &Clock,
     ctx: &mut TxContext,
-): Coin<NS> {
+): StakingBatch {
     proposal.finalize_internal(clock);
-    proposal.return_reward(ctx.sender(), ctx)
+    proposal.new_reward(ctx.sender(), staking_config, clock, ctx)
 }
 
 // === accessors ===
@@ -357,43 +352,53 @@ fun finalize_internal(proposal: &mut ProposalV2, clock: &Clock) {
     }
 }
 
-/// Remove the voter from the proposal and return a coin with a NS reward
-/// proportional to their share of total voting power.
-fun return_reward(
+/// Remove the voter from the proposal and return a StakingBatch
+/// with a NS reward proportional to their share of total voting power.
+fun new_reward(
     proposal: &mut ProposalV2,
     voter: address,
+    staking_config: &StakingConfig,
+    clock: &Clock,
     ctx: &mut TxContext,
-): Coin<NS> {
+): StakingBatch {
     assert!(proposal.voters.contains(voter), EVoterNotFound);
 
     // all the options the user voted on
     let mut user_options = proposal.voters.remove(voter);
     // the power from all the options
     let mut user_power: u64 = 0;
-
+    // sum the power from all the options
     while(!user_options.is_empty()) {
         let (_option, power) = user_options.pop();
         user_power = user_power + power;
     };
     user_options.destroy_empty();
 
-    // add the reward to the user's balance
-    let reward = take_reward(proposal, user_power).into_coin(ctx);
+    // take the NS reward from the proposal
+    let reward_value = calculate_reward(proposal, user_power);
+    let reward_balance = proposal.reward.split(reward_value);
 
-    event::emit(ReturnTokenEvent {
+    event::emit(ReturnTokenEvent { // TODO
         voter,
-        amount: reward.value(),
+        amount: reward_value,
     });
 
-    reward
+    // return the NS wrapped in a StakingBatch
+    staking_batch::new_reward(
+        staking_config,
+        reward_balance,
+        0, // lock_months
+        clock,
+        ctx,
+    )
 }
 
-fun take_reward(
+fun calculate_reward(
     proposal: &mut ProposalV2,
     user_power: u64,
-): Balance<NS> {
+): u64 {
     let total_reward = proposal.total_reward as u128;
     let total_power = proposal.total_power as u128;
     let reward_value = (user_power as u128) * total_reward / total_power;
-    proposal.reward.split(reward_value as u64)
+    return reward_value as u64
 }
