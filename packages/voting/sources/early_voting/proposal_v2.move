@@ -52,44 +52,34 @@ const MAX_RETURNS_PER_TX: u64 = 125;
 
 // === structs ===
 
-/// A proposal object. A proposal holds:
-/// 1. A title and a description
-/// 2. The total tokens saved for a given vote.
-/// 3. The total votes for each option.
-/// 4. A list of the unique addresses, and coins they've put for voting options.
-/// 5. The timestamp up to which when the proposal can accept votes.
 public struct ProposalV2 has key {
-    /// We keep UID as we'll be adding proposals as DOFs, to easily look them up
-    /// (not having to do DF queries).
-    /// We'll also create a Display for these proposals.
+    /// We add proposals as DOFs, so UID allows us to look them up without DF queries
     id: UID,
-    /// The serial number of the proposal.
+    /// Serial number
     serial_no: u64,
-    /// The minimum threshold for the proposal to be accepted.
+    /// Minimum voting power required for the proposal to be accepted
     threshold: u64,
-    /// The title of the proposal.
+    /// Short title
     title: String,
-    /// The description of the proposal.
+    /// Longer description
     description: String,
-    /// VecMap of votes, each holding the total voted balance and staked power for the option.
+    /// Total voting power for each option
     votes: VecMap<VotingOption, u64>,
-    /// The winning vote, that gets decided after the proposal is closed
-    /// (permissionless-ly).
+    /// Winning option is set when the proposal is finalized
     winning_option: Option<VotingOption>,
-    /// The leaderboard for most votes per option.
+    /// Top voters per option
     vote_leaderboards: VecMap<VotingOption, Leaderboard>,
-    /// Voter addresses and how much power they voted with on each option.
-    /// It's a LinkedTable to allow permissionless distribution of rewards.
+    /// Voter addresses and how much power they voted with on each option
     voters: LinkedTable<address, VecMap<VotingOption, u64>>,
-    /// The timestamp when the proposal was created.
+    /// When the proposal was created
     start_time_ms: u64,
-    /// The timestamp up to which when the proposal can accept votes.
+    /// Until when the proposal can accept votes
     end_time_ms: u64,
-    /// The NS to reward voters proportionally to their share of total voting power.
-    reward: Balance<NS>,
-    /// The sum of all NS balance and all staked power used to vote in this proposal.
+    /// Sum of all voting power used to vote in this proposal
     total_power: u64,
-    /// The initial value of `ProposalV2.reward`.
+    /// NS to reward voters proportionally to their share of total voting power
+    reward: Balance<NS>,
+    /// Initial value of `ProposalV2.reward` (.reward.value() will decrease as we distribute it)
     total_reward: u64,
 }
 
@@ -227,7 +217,7 @@ public fun finalize(
 }
 
 /// Permissionlessly distribute staked NS rewards once voting has ended.
-/// It also completes the proposal if it hasn't been completed.
+/// It also finalizes the proposal if needed.
 public fun distribute_rewards_bulk(
     proposal: &mut ProposalV2,
     staking_config: &StakingConfig,
@@ -248,7 +238,7 @@ public fun distribute_rewards_bulk(
     };
 }
 
-/// Allow user to get their tokens back, if the proposal is completed.
+/// Allow user to get their tokens back once voting has ended.
 public fun get_reward(
     proposal: &mut ProposalV2,
     staking_config: &StakingConfig,
@@ -258,23 +248,6 @@ public fun get_reward(
     proposal.finalize_internal(clock);
     proposal.new_reward(ctx.sender(), staking_config, clock, ctx)
 }
-
-// === accessors ===
-
-/// Get the ID of the proposal. Helpful for receiver syntax.
-public fun id(proposal: &ProposalV2): ID { proposal.id.to_inner() }
-
-public fun end_time_ms(proposal: &ProposalV2): u64 { proposal.end_time_ms }
-
-public fun start_time_ms(proposal: &ProposalV2): u64 { proposal.start_time_ms }
-
-public fun serial_no(proposal: &ProposalV2): u64 { proposal.serial_no }
-
-public fun winning_option(proposal: &ProposalV2): Option<VotingOption> {
-    proposal.winning_option
-}
-
-public fun voters_count(proposal: &ProposalV2): u64 { proposal.voters.length() }
 
 // === package functions ===
 
@@ -402,3 +375,20 @@ fun calculate_reward(
     let reward_value = (user_power as u128) * total_reward / total_power;
     return reward_value as u64
 }
+
+// === accessors ===
+
+/// Get the ID of the proposal. Helpful for receiver syntax.
+public fun id(proposal: &ProposalV2): ID { proposal.id.to_inner() }
+
+public fun end_time_ms(proposal: &ProposalV2): u64 { proposal.end_time_ms }
+
+public fun start_time_ms(proposal: &ProposalV2): u64 { proposal.start_time_ms }
+
+public fun serial_no(proposal: &ProposalV2): u64 { proposal.serial_no }
+
+public fun winning_option(proposal: &ProposalV2): Option<VotingOption> {
+    proposal.winning_option
+}
+
+public fun voters_count(proposal: &ProposalV2): u64 { proposal.voters.length() }
