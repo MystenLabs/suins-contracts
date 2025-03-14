@@ -68,7 +68,12 @@ fun try_claim_tokens_back_before_endtime() {
         option::none(),
         &mut ctx,
     );
-    proposal.return_tokens_bulk(&clock, &mut ctx);
+    let staking_config = staking_config::new_for_testing_default(&mut ctx);
+    proposal.distribute_rewards_bulk(
+        &staking_config,
+        &clock,
+        &mut ctx,
+    );
     abort 1337
 }
 
@@ -82,7 +87,12 @@ fun try_self_finalize_before_end_time() {
         option::none(),
         &mut ctx,
     );
-    let _coin = proposal.return_tokens(&clock, &mut ctx);
+    let staking_config = staking_config::new_for_testing_default(&mut ctx);
+    let _coin = proposal.get_reward(
+        &staking_config,
+        &clock,
+        &mut ctx,
+    );
     abort 1337
 }
 
@@ -126,7 +136,12 @@ fun try_to_claim_without_having_voted() {
     );
     proposal.set_threshold(1);
     clock.increment_for_testing(min_voting_period_ms!() + 2);
-    let _coin = proposal.return_tokens(&clock, &mut ctx);
+    let staking_config = staking_config::new_for_testing_default(&mut ctx);
+    let _coin = proposal.get_reward(
+        &staking_config,
+        &clock,
+        &mut ctx,
+    );
 
     abort 1337
 }
@@ -144,7 +159,7 @@ fun try_to_vote_on_expired_proposal() {
     proposal.set_threshold(1);
     clock.increment_for_testing(min_voting_period_ms!() + 2);
 
-    let config = staking_config::new_for_testing_default(&mut ctx);
+    let staking_config = staking_config::new_for_testing_default(&mut ctx);
     let batch = staking_batch::new_for_testing(
         1000, // balance
         0, // rewards
@@ -157,7 +172,7 @@ fun try_to_vote_on_expired_proposal() {
     proposal.vote(
         b"Yes".to_string(),
         &mut vector[batch],
-        &config,
+        &staking_config,
         &clock,
         &mut ctx,
     );
@@ -176,7 +191,7 @@ fun vote_non_existing_option() {
         &mut ctx,
     );
 
-    let config = staking_config::new_for_testing_default(&mut ctx);
+    let staking_config = staking_config::new_for_testing_default(&mut ctx);
     let batch = staking_batch::new_for_testing(
         1000, // balance
         0, // rewards
@@ -189,7 +204,7 @@ fun vote_non_existing_option() {
     proposal.vote(
         b"Wut".to_string(),
         &mut vector[batch],
-        &config,
+        &staking_config,
         &clock,
         &mut ctx,
     );

@@ -64,17 +64,17 @@ public struct ProposalV2 has key {
     /// Longer description
     description: String,
     /// Total voting power for each option
-    votes: VecMap<VotingOption, u64>,
+    option_powers: VecMap<VotingOption, u64>,
     /// Winning option is set when the proposal is finalized
     winning_option: Option<VotingOption>,
     /// Top voters per option
-    vote_leaderboards: VecMap<VotingOption, Leaderboard>,
+    leaderboards: VecMap<VotingOption, Leaderboard>,
     /// Voter addresses and how much power they voted with on each option
     voters: LinkedTable<address, VecMap<VotingOption, u64>>,
     /// When the proposal was created
-    start_time_ms: u64,
+    start_ms: u64,
     /// Until when the proposal can accept votes
-    end_time_ms: u64,
+    end_ms: u64,
     /// Sum of all voting power used to vote in this proposal
     total_power: u64,
     /// NS to reward voters proportionally to their share of total voting power
@@ -100,7 +100,7 @@ public struct ReturnTokenEvent has copy, drop {
 public fun new(
     title: String,
     description: String,
-    end_time_ms: u64,
+    end_ms: u64,
     mut options: VecSet<VotingOption>,
     reward: Coin<NS>,
     clock: &Clock,
@@ -108,13 +108,13 @@ public fun new(
 ): ProposalV2 {
     // min voting period checks
     assert!(
-        end_time_ms >= clock.timestamp_ms() + min_voting_period_ms!(),
+        end_ms >= clock.timestamp_ms() + min_voting_period_ms!(),
         ETooShortVotingPeriod,
     );
 
     // max voting period checks.
     assert!(
-        end_time_ms <= clock.timestamp_ms() + max_voting_period_ms!(),
+        end_ms <= clock.timestamp_ms() + max_voting_period_ms!(),
         ETooLongVotingPeriod,
     );
 
@@ -125,16 +125,16 @@ public fun new(
 
     assert!(options.size() > 2, ENotEnoughOptions);
 
-    let mut votes: VecMap<VotingOption, u64> = vec_map::empty();
+    let mut option_powers: VecMap<VotingOption, u64> = vec_map::empty();
 
-    let mut vote_leaderboards: VecMap<
+    let mut leaderboards: VecMap<
         VotingOption,
         Leaderboard,
     > = vec_map::empty();
 
     options.into_keys().do!(|opt| {
-        votes.insert(opt, 0);
-        vote_leaderboards.insert(opt, leaderboard::new(10));
+        option_powers.insert(opt, 0);
+        leaderboards.insert(opt, leaderboard::new(10));
     });
 
     let total_reward = reward.value();
@@ -144,12 +144,12 @@ public fun new(
         description,
         serial_no: 0,
         threshold: 0,
-        votes,
-        vote_leaderboards,
+        option_powers,
+        leaderboards,
         voters: linked_table::new(ctx),
         winning_option: option::none(),
-        start_time_ms: clock.timestamp_ms(),
-        end_time_ms,
+        start_ms: clock.timestamp_ms(),
+        end_ms,
         reward: reward.into_balance(),
         total_power: 0,
         total_reward,
@@ -166,7 +166,7 @@ public fun vote(
     ctx: &mut TxContext,
 ) {
     let option = voting_option::new(opt);
-    assert!(proposal.votes.contains(&option), ENotAvailableOption);
+    assert!(proposal.option_powers.contains(&option), ENotAvailableOption);
 
     // validate that the proposal is still open in terms of time.
     assert!(!proposal.is_end_time_reached(clock), EVotingPeriodExpired);
@@ -175,12 +175,12 @@ public fun vote(
     let mut new_power = 0;
     vote_staked.do_mut!(|batch| {
         assert!(!batch.is_voting(clock), EBatchIsVoting);
-        batch.set_voting_until_ms(proposal.end_time_ms, clock);
+        batch.set_voting_until_ms(proposal.end_ms, clock);
         new_power = new_power + batch.power(staking_config, clock);
     });
 
     // update total voting power for the option
-    let total = proposal.votes.get_mut(&option);
+    let total = proposal.option_powers.get_mut(&option);
     *total = *total + new_power;
 
     // update total voting power in the proposal
@@ -193,7 +193,7 @@ public fun vote(
 
     // save the vote and update the leaderboard
     let votes = proposal.voters.borrow_mut(ctx.sender());
-    let leaderboard = proposal.vote_leaderboards.get_mut(&option);
+    let leaderboard = proposal.leaderboards.get_mut(&option);
     if (!votes.contains(&option)) {
         votes.insert(option, new_power);
         leaderboard.add_if_eligible(ctx.sender(), new_power);
@@ -255,12 +255,12 @@ public(package) fun is_end_time_reached(
     proposal: &ProposalV2,
     clock: &Clock,
 ): bool {
-    clock.timestamp_ms() >= proposal.end_time_ms
+    clock.timestamp_ms() >= proposal.end_ms
 }
 
 public(package) fun is_threshold_reached(proposal: &ProposalV2): bool {
-    let (_, values) = proposal.votes.into_keys_values();
-    let total_vote_value = values.fold!(0, |acc, val| acc + val);
+    let (_options, powers) = proposal.option_powers.into_keys_values();
+    let total_vote_value = powers.fold!(0, |acc, val| acc + val);
 
     total_vote_value >= proposal.threshold
 }
@@ -299,14 +299,14 @@ fun finalize_internal(proposal: &mut ProposalV2, clock: &Clock) {
         return
     };
 
-    let mut votes = *&proposal.votes;
+    let mut option_powers = *&proposal.option_powers;
 
-    let (mut winning_option, mut winning_votes) = votes.pop();
+    let (mut winning_option, mut winning_votes) = option_powers.pop();
     if (winning_option == abstain_option()) winning_votes = 0;
     let mut is_tied = false;
 
-    while (!votes.is_empty()) {
-        let (opt, total) = votes.pop();
+    while (!option_powers.is_empty()) {
+        let (opt, total) = option_powers.pop();
         if (opt == abstain_option()) continue;
 
         if (total > winning_votes) {
@@ -381,9 +381,9 @@ fun calculate_reward(
 /// Get the ID of the proposal. Helpful for receiver syntax.
 public fun id(proposal: &ProposalV2): ID { proposal.id.to_inner() }
 
-public fun end_time_ms(proposal: &ProposalV2): u64 { proposal.end_time_ms }
+public fun end_ms(proposal: &ProposalV2): u64 { proposal.end_ms }
 
-public fun start_time_ms(proposal: &ProposalV2): u64 { proposal.start_time_ms }
+public fun start_ms(proposal: &ProposalV2): u64 { proposal.start_ms }
 
 public fun serial_no(proposal: &ProposalV2): u64 { proposal.serial_no }
 
