@@ -17,9 +17,29 @@ For more information, see [Automated Address Management](https://docs.sui.io/con
 
 Switch your `Sui` dependency to the correct network you're publishing or upgrading against (for example, `framework/testnet` for Testnet, `framework/mainnet` for Mainnet).
 
+> Starting from Sui v1.45, you should remove the Sui framework and all other system dependencies from your Move.toml file, as they are now automatically added and managed when used.
+
 ## Tagging
 
-Proper use of tags helps code maintenance.
+Proper use of tags or commit SHAs helps code maintenance.
 
 - Tag your releases with `<network>/<version>` (for example, `mainnet/v1`). Make sure the commit you push after configuring [Automated Address Management](#automated-address-management) is also tagged, or is part of your `main` branch.
 - After applying a release tag, use the commit SHA or the tag to update the source code origin in the `PackageInfo` object.
+
+## Naming your package
+
+In a multi-package repository, it's common to use generic names for packages, such as utils or math. However, this can cause confusion when others try to use your packages or when your packages depend on similarly named ones.
+
+To avoid this, it's best to prefix your package names with the project name. For example, instead of running:
+
+```
+sui move new utils
+```
+
+You should instead run:
+
+```
+sui move new mvr_utils
+```
+
+This makes it clear which packages belong to your project, improving organization and usability for others.
