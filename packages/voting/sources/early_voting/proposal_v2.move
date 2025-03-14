@@ -365,7 +365,7 @@ fun new_reward(
 }
 
 fun calculate_reward(
-    proposal: &mut ProposalV2,
+    proposal: &ProposalV2,
     user_power: u64,
 ): u64 {
     let total_reward = proposal.total_reward as u128;

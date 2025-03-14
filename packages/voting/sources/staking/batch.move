@@ -31,7 +31,9 @@ const EInvalidVotingUntilMs: u64 = 7;
 
 // === constants ===
 
+/// Batch was created by regulars means (typically directly by users)
 public macro fun origin_regular(): u8 { 0 }
+/// Batch was created by a proposal as a voting reward
 public macro fun origin_reward(): u8 { 1 }
 
 // === structs ===
@@ -176,7 +178,7 @@ public fun unstake(
 
 // === admin functions ===
 
-/// Stake NS into a new batch with arbitrary start_ms and unlock_ms
+/// Stake NS into a new batch with arbitrary parameters
 public fun admin_new(
     _: &StakingAdminCap,
     coin: Coin<NS>,
@@ -219,15 +221,13 @@ public(package) fun new_reward(
     // assert!(coin.value() >= config.min_balance(), EBalanceTooLow);
     assert!(lock_months <= config.max_lock_months(), EInvalidLockPeriod);
 
-    let batch = new_internal(
+    new_internal(
         balance,
         lock_months,
         origin_reward!(),
         clock,
         ctx,
-    );
-
-    batch
+    )
 }
 
 /// Flag a batch as being used to vote on a proposal
