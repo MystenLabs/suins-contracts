@@ -62,8 +62,6 @@ public struct ProposalV2 has key {
     title: String,
     /// Longer description
     description: String,
-    /// Total voting power for each option
-    votes: VecMap<VotingOption, u64>,
     /// Winning option is set when the proposal is finalized
     winning_option: Option<VotingOption>,
     /// Top voters per option
@@ -75,16 +73,18 @@ public struct ProposalV2 has key {
 
     /* New or modified fields in v2 */
 
-    /// Voter addresses and how much power they voted with on each option
-    voters: LinkedTable<address, VecMap<VotingOption, u64>>,
-    /// Batches used to vote, and their voting power
-    batches: LinkedTable<address, u64>,
-    /// NS to reward voters proportionally to their share of total voting power
-    reward: Balance<NS>,
-    /// Initial value of `ProposalV2.reward` (.reward.value() will decrease as we distribute it)
-    total_reward: u64,
-    /// Sum of all voting power used to vote in this proposal
+    /// Total voting power that voted in this proposal.
     total_power: u64,
+    /// Voting power per option. Determines the winning option.
+    option_powers: VecMap<VotingOption, u64>,
+    /// Voting power per user and option. For informational use.
+    user_powers: LinkedTable<address, VecMap<VotingOption, u64>>,
+    /// Voting power per batch. Used to distribute rewards.
+    batch_powers: LinkedTable<address, u64>,
+    /// NS to reward batches proportionally to their share of total voting power
+    reward: Balance<NS>,
+    /// Initial value of `ProposalV2.reward` (reward.value() decreases as we distribute it)
+    total_reward: u64,
 }
 
 public(package) fun demo_send_reward( // TODO remove
@@ -132,7 +132,7 @@ public fun new(
 
     assert!(options.size() > 2, ENotEnoughOptions);
 
-    let mut votes: VecMap<VotingOption, u64> = vec_map::empty();
+    let mut option_powers: VecMap<VotingOption, u64> = vec_map::empty();
 
     let mut vote_leaderboards: VecMap<
         VotingOption,
@@ -140,7 +140,7 @@ public fun new(
     > = vec_map::empty();
 
     options.into_keys().do!(|opt| {
-        votes.insert(opt, 0);
+        option_powers.insert(opt, 0);
         vote_leaderboards.insert(opt, leaderboard::new(10));
     });
 
@@ -151,16 +151,16 @@ public fun new(
         threshold: 0,
         title,
         description,
-        votes,
+        option_powers,
         winning_option: option::none(),
         vote_leaderboards,
         start_time_ms: clock.timestamp_ms(),
         end_time_ms,
-        voters: linked_table::new(ctx),
-        batches: linked_table::new(ctx),
+        total_power: 0,
+        user_powers: linked_table::new(ctx),
+        batch_powers: linked_table::new(ctx),
         reward: reward.into_balance(),
         total_reward,
-        total_power: 0,
     }
 }
 
@@ -174,7 +174,7 @@ public fun vote(
     ctx: &mut TxContext,
 ) {
     let option = voting_option::new(opt);
-    assert!(proposal.votes.contains(&option), ENotAvailableOption);
+    assert!(proposal.option_powers.contains(&option), ENotAvailableOption);
     assert!(!proposal.is_end_time_reached(clock), EVotingPeriodExpired);
 
     // calculate the total voting power in this vote
@@ -187,21 +187,21 @@ public fun vote(
         let batch_power = batch.power(staking_config, clock);
         new_power = new_power + batch_power;
         // save batch so it can receive a reward later
-        proposal.batches.push_back(batch.id().to_address(), batch_power);
+        proposal.batch_powers.push_back(batch.id().to_address(), batch_power);
     });
 
     // update proposal voting power
     proposal.total_power = proposal.total_power + new_power;
 
     // update option voting power
-    let option_power = proposal.votes.get_mut(&option);
+    let option_power = proposal.option_powers.get_mut(&option);
     *option_power = *option_power + new_power;
 
     // update user voting power and leaderboard
-    if (!proposal.voters.contains(ctx.sender())) {
-        proposal.voters.push_back(ctx.sender(), vec_map::empty());
+    if (!proposal.user_powers.contains(ctx.sender())) {
+        proposal.user_powers.push_back(ctx.sender(), vec_map::empty());
     };
-    let user_votes = proposal.voters.borrow_mut(ctx.sender());
+    let user_votes = proposal.user_powers.borrow_mut(ctx.sender());
     let leaderboard = proposal.vote_leaderboards.get_mut(&option);
     if (!user_votes.contains(&option)) {
         user_votes.insert(option, new_power);
@@ -235,8 +235,8 @@ public fun distribute_rewards_bulk( // TODO check if this still gas-negative
     proposal.finalize_internal(clock);
 
     let mut i = 0;
-    while (i < MAX_RETURNS_PER_TX && !proposal.batches.is_empty()) {
-        let (batch_addr, batch_power) = proposal.batches.pop_front();
+    while (i < MAX_RETURNS_PER_TX && !proposal.batch_powers.is_empty()) {
+        let (batch_addr, batch_power) = proposal.batch_powers.pop_front();
         let reward_value = calculate_reward(proposal, batch_power);
         if (reward_value > 0) {
             let reward_balance = proposal.reward.split(reward_value);
@@ -293,14 +293,14 @@ fun finalize_internal(proposal: &mut ProposalV2, clock: &Clock) {
         return
     };
 
-    let mut votes = *&proposal.votes;
+    let mut option_powers = *&proposal.option_powers;
 
-    let (mut winning_option, mut winning_votes) = votes.pop();
+    let (mut winning_option, mut winning_votes) = option_powers.pop();
     if (winning_option == abstain_option()) winning_votes = 0;
     let mut is_tied = false;
 
-    while (!votes.is_empty()) {
-        let (opt, total) = votes.pop();
+    while (!option_powers.is_empty()) {
+        let (opt, total) = option_powers.pop();
         if (opt == abstain_option()) continue;
 
         if (total > winning_votes) {
@@ -330,7 +330,7 @@ fun calculate_reward(
     return reward_value as u64
 }
 
-// === accessors ===
+// === accessors === // TODO add missing ones
 
 /// Get the ID of the proposal. Helpful for receiver syntax.
 public fun id(proposal: &ProposalV2): ID { proposal.id.to_inner() }
@@ -345,5 +345,6 @@ public fun winning_option(proposal: &ProposalV2): Option<VotingOption> {
     proposal.winning_option
 }
 
-public fun voters_count(proposal: &ProposalV2): u64 { proposal.voters.length() }
-public fun batches_count(proposal: &ProposalV2): u64 { proposal.batches.length() }
+public fun user_count(proposal: &ProposalV2): u64 { proposal.user_powers.length() }
+
+public fun batch_count(proposal: &ProposalV2): u64 { proposal.batch_powers.length() }

@@ -190,7 +190,7 @@ fun test_e2e() {
 
         proposal.distribute_rewards_bulk(&test.clock, test.ts.ctx());
 
-        assert_eq(proposal.batches_count(), 0);
+        assert_eq(proposal.batch_count(), 0);
 
         ts::return_shared(proposal);
     };
