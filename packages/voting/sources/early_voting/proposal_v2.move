@@ -248,17 +248,6 @@ public fun distribute_rewards_bulk(
     };
 }
 
-/// Allow user to get their tokens back once voting has ended.
-public fun get_reward( // and this wouldn't work by user
-    proposal: &mut ProposalV2,
-    staking_config: &StakingConfig,
-    clock: &Clock,
-    ctx: &mut TxContext,
-): StakingBatch {
-    proposal.finalize_internal(clock);
-    proposal.new_reward(ctx.sender(), staking_config, clock, ctx)
-}
-
 // === package functions ===
 
 public(package) fun is_end_time_reached(
@@ -330,47 +319,6 @@ fun finalize_internal(proposal: &mut ProposalV2, clock: &Clock) {
     } else {
         proposal.winning_option.fill(winning_option);
     }
-}
-
-/// Remove the voter from the proposal and return a StakingBatch
-/// with a NS reward proportional to their share of total voting power.
-fun new_reward(
-    proposal: &mut ProposalV2,
-    voter: address,
-    staking_config: &StakingConfig,
-    clock: &Clock,
-    ctx: &mut TxContext,
-): StakingBatch {
-    assert!(proposal.voters.contains(voter), EVoterNotFound);
-
-    // all the options the user voted on
-    let mut user_options = proposal.voters.remove(voter);
-    // the power from all the options
-    let mut user_power: u64 = 0;
-    // sum the power from all the options
-    while(!user_options.is_empty()) {
-        let (_option, power) = user_options.pop();
-        user_power = user_power + power;
-    };
-    user_options.destroy_empty();
-
-    // take the NS reward from the proposal
-    let reward_value = calculate_reward(proposal, user_power);
-    let reward_balance = proposal.reward.split(reward_value);
-
-    event::emit(ReturnTokenEvent { // TODO
-        voter,
-        amount: reward_value,
-    });
-
-    // return the NS wrapped in a StakingBatch
-    staking_batch::new_reward(
-        staking_config,
-        reward_balance,
-        0, // lock_months
-        clock,
-        ctx,
-    )
 }
 
 fun calculate_reward(

@@ -135,12 +135,7 @@ fun try_self_finalize_before_end_time() {
         option::none(),
         &mut ctx,
     );
-    let staking_config = staking_config::new_for_testing_default(&mut ctx);
-    let _coin = proposal.get_reward(
-        &staking_config,
-        &clock,
-        &mut ctx,
-    );
+    proposal.finalize(&clock, &mut ctx);
     abort 1337
 }
 
@@ -168,28 +163,6 @@ fun try_finalize_twice() {
     );
 
     proposal.finalize(&clock, &mut ctx);
-
-    abort 1337
-}
-
-#[test, expected_failure(abort_code = proposal_v2::EVoterNotFound)]
-fun try_to_claim_without_having_voted() {
-    let mut ctx = tx_context::dummy();
-    let mut clock = clock::create_for_testing(&mut ctx);
-
-    let mut proposal = test_proposal(
-        &clock,
-        option::none(),
-        &mut ctx,
-    );
-    proposal.set_threshold(1);
-    clock.increment_for_testing(min_voting_period_ms!() + 2);
-    let staking_config = staking_config::new_for_testing_default(&mut ctx);
-    let _coin = proposal.get_reward(
-        &staking_config,
-        &clock,
-        &mut ctx,
-    );
 
     abort 1337
 }
