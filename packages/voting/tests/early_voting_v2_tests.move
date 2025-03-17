@@ -14,6 +14,8 @@ use suins_voting::{
     governance::{Self, NSGovernance, NSGovernanceCap},
     proposal_v2_tests::{Self},
     proposal_v2::{ProposalV2},
+    staking_batch::{Self, StakingBatch},
+    staking_config::{Self, StakingConfig},
     voting_option::{Self},
 };
 use token::{
@@ -23,7 +25,7 @@ use token::{
 // === constants ===
 
 const ADMIN: address = @0x0;
-const USER: address = @0x1;
+const USER1: address = @0x1;
 const USER2: address = @0x2;
 const USER3: address = @0x3;
 const USER4: address = @0x4;
@@ -34,12 +36,26 @@ const DECIMALS: u64 = 1_000_000;
 
 public struct TestSetup {
     ts: Scenario,
-    governance: NSGovernance,
     clock: Clock,
+    governance: NSGovernance,
+    staking_config: StakingConfig,
 }
 
-fun test_proposal(setup: &mut TestSetup, end_time_ms: Option<u64>): ProposalV2 {
+fun new_proposal(setup: &mut TestSetup, end_time_ms: Option<u64>): ProposalV2 {
     proposal_v2_tests::test_proposal(&setup.clock, end_time_ms, setup.ts.ctx())
+}
+
+fun new_batch(setup: &mut TestSetup, balance: u64): StakingBatch {
+    let now = setup.clock.timestamp_ms();
+    staking_batch::new_for_testing(
+        balance,
+        now, // start_ms
+        now, // unlock_ms
+        0, // cooldown_end_ms
+        0, // voting_until_ms
+        0, // origin
+        setup.ts.ctx(),
+    )
 }
 
 fun cleanup(setup: TestSetup) {
@@ -48,17 +64,19 @@ fun cleanup(setup: TestSetup) {
 
 fun prepare_early_voting(): TestSetup {
     let mut ts = ts::begin(ADMIN);
-    governance::init_for_testing(ts.ctx());
     let clock = clock::create_for_testing(ts.ctx());
+    governance::init_for_testing(ts.ctx());
+    staking_config::init_for_testing(ts.ctx());
 
     ts.next_tx(ADMIN);
 
     let governance = ts.take_shared<NSGovernance>();
-
+    let staking_config = ts.take_shared<StakingConfig>();
     TestSetup {
         ts,
-        governance,
         clock,
+        governance,
+        staking_config,
     }
 }
 
@@ -72,13 +90,13 @@ fun test_e2e() {
         test.ts.next_tx(ADMIN);
         let cap = test.ts.take_from_sender<NSGovernanceCap>();
 
-        let proposal = test.test_proposal(option::none());
+        let proposal = test.new_proposal(option::none());
         early_voting::add_proposal_v2(&cap, &mut test.governance, proposal);
 
         test.ts.return_to_sender(cap);
     };
     {
-        test.ts.next_tx(USER);
+        test.ts.next_tx(USER1);
         let mut proposal = test.ts.take_shared<ProposalV2>();
 
         assert!(proposal.serial_no() == 1);
@@ -171,7 +189,7 @@ fun test_e2e() {
     };
 
     test.ts.next_tx(ADMIN);
-    let coin = test.ts.take_from_address<Coin<NS>>(USER);
+    let coin = test.ts.take_from_address<Coin<NS>>(USER1);
     assert!(coin.value() == 50_000_000 * DECIMALS);
     destroy(coin);
 
@@ -190,13 +208,13 @@ fun test_e2e_no_quorum() {
         test.ts.next_tx(ADMIN);
         let cap = test.ts.take_from_sender<NSGovernanceCap>();
 
-        let proposal = test.test_proposal(option::none());
+        let proposal = test.new_proposal(option::none());
         early_voting::add_proposal_v2(&cap, &mut test.governance, proposal);
 
         test.ts.return_to_sender(cap);
     };
     {
-        test.ts.next_tx(USER);
+        test.ts.next_tx(USER1);
         let mut proposal = test.ts.take_shared<ProposalV2>();
 
         assert!(proposal.serial_no() == 1);
@@ -263,13 +281,13 @@ fun test_e2e_tie() {
         test.ts.next_tx(ADMIN);
         let cap = test.ts.take_from_sender<NSGovernanceCap>();
 
-        let proposal = test.test_proposal(option::none());
+        let proposal = test.new_proposal(option::none());
         early_voting::add_proposal_v2(&cap, &mut test.governance, proposal);
 
         test.ts.return_to_sender(cap);
     };
     {
-        test.ts.next_tx(USER);
+        test.ts.next_tx(USER1);
         let mut proposal = test.ts.take_shared<ProposalV2>();
 
         assert!(proposal.serial_no() == 1);
@@ -336,13 +354,13 @@ fun test_e2e_abstain_bypassed() {
         test.ts.next_tx(ADMIN);
         let cap = test.ts.take_from_sender<NSGovernanceCap>();
 
-        let proposal = test.test_proposal(option::none());
+        let proposal = test.new_proposal(option::none());
         early_voting::add_proposal_v2(&cap, &mut test.governance, proposal);
 
         test.ts.return_to_sender(cap);
     };
     {
-        test.ts.next_tx(USER);
+        test.ts.next_tx(USER1);
         let mut proposal = test.ts.take_shared<ProposalV2>();
 
         assert!(proposal.serial_no() == 1);
@@ -407,13 +425,13 @@ fun add_second_proposal_after_first_is_completed() {
     test.ts.next_tx(ADMIN);
     let cap = test.ts.take_from_sender<NSGovernanceCap>();
 
-    let proposal = test.test_proposal(option::none());
+    let proposal = test.new_proposal(option::none());
 
     early_voting::add_proposal_v2(&cap, &mut test.governance, proposal);
 
     test.clock.increment_for_testing(min_voting_period_ms!() + 2);
 
-    let second_proposal = test.test_proposal(option::none());
+    let second_proposal = test.new_proposal(option::none());
 
     early_voting::add_proposal_v2(&cap, &mut test.governance, second_proposal);
 
@@ -428,9 +446,9 @@ fun test_try_to_add_parallel_proposals() {
     test.ts.next_tx(ADMIN);
     let cap = test.ts.take_from_sender<NSGovernanceCap>();
 
-    let proposal = test.test_proposal(option::none());
+    let proposal = test.new_proposal(option::none());
 
-    let second_proposal = test.test_proposal(option::none());
+    let second_proposal = test.new_proposal(option::none());
     early_voting::add_proposal_v2(&cap, &mut test.governance, proposal);
     early_voting::add_proposal_v2(&cap, &mut test.governance, second_proposal);
 
