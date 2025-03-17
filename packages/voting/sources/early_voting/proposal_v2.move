@@ -257,10 +257,7 @@ public(package) fun is_end_time_reached(
 }
 
 public(package) fun is_threshold_reached(proposal: &ProposalV2): bool {
-    let (_options, powers) = proposal.option_powers.into_keys_values();
-    let total_vote_value = powers.fold!(0, |acc, val| acc + val);
-
-    total_vote_value >= proposal.threshold
+    proposal.total_power >= proposal.threshold
 }
 
 /// Only callable by `early_voting` module.
