@@ -56,31 +56,10 @@ public struct StakingBatch has key {
     origin: u8,
 }
 
+/// A reward that the proposal module transfers to a voting batch (TTO)
 public struct Reward has key {
     id: UID,
     balance: Balance<NS>,
-}
-
-public(package) fun send_reward(
-    balance: Balance<NS>,
-    recipient: address,
-    ctx: &mut TxContext,
-) {
-    let reward = Reward {
-        id: object::new(ctx),
-        balance,
-    };
-    transfer::transfer(reward, recipient);
-}
-
-public fun receive_reward(
-    batch: &mut StakingBatch,
-    receiving_reward: Receiving<Reward>,
-) {
-    let reward = transfer::receive<Reward>(&mut batch.id, receiving_reward);
-    let Reward { id, balance } = reward;
-    batch.balance.join(balance);
-    object::delete(id);
 }
 
 /// one-time witness
@@ -204,6 +183,17 @@ public fun unstake(
     balance
 }
 
+/// Claim a reward and add it to the batch
+public fun receive_reward(
+    batch: &mut StakingBatch,
+    receiving_reward: Receiving<Reward>,
+) {
+    let reward = transfer::receive<Reward>(&mut batch.id, receiving_reward);
+    let Reward { id, balance } = reward;
+    batch.balance.join(balance);
+    object::delete(id);
+}
+
 // === admin functions ===
 
 /// Stake NS into a new batch with arbitrary parameters
@@ -279,6 +269,19 @@ public(package) fun transfer(
     recipient: address,
 ) {
     transfer::transfer(batch, recipient);
+}
+
+/// Send a reward to a batch (TTO)
+public(package) fun send_reward(
+    balance: Balance<NS>,
+    recipient: address,
+    ctx: &mut TxContext,
+) {
+    let reward = Reward {
+        id: object::new(ctx),
+        balance,
+    };
+    transfer::transfer(reward, recipient);
 }
 
 // === private functions ===
