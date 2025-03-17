@@ -118,9 +118,7 @@ fun try_claim_tokens_back_before_endtime() {
         option::none(),
         &mut ctx,
     );
-    let staking_config = staking_config::new_for_testing_default(&mut ctx);
     proposal.distribute_rewards_bulk(
-        &staking_config,
         &clock,
         &mut ctx,
     );

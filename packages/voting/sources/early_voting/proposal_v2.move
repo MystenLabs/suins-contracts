@@ -46,8 +46,8 @@ const EBatchIsVoting: vector<u8> = b"Batch is already being used to vote.";
 
 // === constants ===
 
-// Our limit is 1024, but keeping this 250 at a time, and someone can just
-// batch 8 operations. Makes the risk of this becoming unusable lower.
+// Limit is 1024, but setting it lower to reduce the risk of this becoming unusable.
+// While the limit is 1024, someone can just batch 8 operations.
 const MAX_RETURNS_PER_TX: u64 = 125;
 
 // === structs ===
@@ -229,25 +229,22 @@ public fun finalize(
     proposal.finalize_internal(clock);
 }
 
-/// Permissionlessly distribute staked NS rewards once voting has ended.
+/// Permissionlessly distribute staked NS rewards to voting batches once voting has ended.
 /// It also finalizes the proposal if needed.
-public fun distribute_rewards_bulk( // TODO: now this would work by batch
+public fun distribute_rewards_bulk(
     proposal: &mut ProposalV2,
-    staking_config: &StakingConfig,
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
     proposal.finalize_internal(clock);
 
-    let mut total_transfers = 0;
-    while (
-        !proposal.voters.is_empty() && total_transfers < MAX_RETURNS_PER_TX
-    ) {
-        // transfer the staked reward to the voter
-        let voter = *proposal.voters.back().borrow();
-        let batch = proposal.new_reward(voter, staking_config, clock, ctx);
-        batch.transfer(voter);
-        total_transfers = total_transfers + 1;
+    let mut i = 0;
+    while (i < MAX_RETURNS_PER_TX && !proposal.batches.is_empty()) {
+        let (batch_addr, batch_power) = proposal.batches.pop_front();
+        let reward_value = calculate_reward(proposal, batch_power);
+        let reward_balance = proposal.reward.split(reward_value);
+        staking_batch::send_reward(reward_balance, batch_addr, ctx);
+        i = i + 1;
     };
 }
 
@@ -378,11 +375,11 @@ fun new_reward(
 
 fun calculate_reward(
     proposal: &ProposalV2,
-    user_power: u64,
+    batch_power: u64,
 ): u64 {
     let total_reward = proposal.total_reward as u128;
     let total_power = proposal.total_power as u128;
-    let reward_value = (user_power as u128) * total_reward / total_power;
+    let reward_value = (batch_power as u128) * total_reward / total_power;
     return reward_value as u64
 }
 
@@ -402,3 +399,4 @@ public fun winning_option(proposal: &ProposalV2): Option<VotingOption> {
 }
 
 public fun voters_count(proposal: &ProposalV2): u64 { proposal.voters.length() }
+public fun batches_count(proposal: &ProposalV2): u64 { proposal.batches.length() }

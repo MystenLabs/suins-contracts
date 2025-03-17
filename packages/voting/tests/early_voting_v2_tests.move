@@ -190,13 +190,9 @@ fun test_e2e() {
         test.ts.next_tx(USER4);
         let mut proposal = test.ts.take_shared<ProposalV2>();
 
-        proposal.distribute_rewards_bulk(
-            &test.staking_config,
-            &test.clock,
-            test.ts.ctx(),
-        );
+        proposal.distribute_rewards_bulk(&test.clock, test.ts.ctx());
 
-        assert_eq(proposal.voters_count(), 0);
+        assert_eq(proposal.batches_count(), 0);
 
         ts::return_shared(proposal);
     };
