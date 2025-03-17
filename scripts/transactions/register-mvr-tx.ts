@@ -140,13 +140,12 @@ export const registerMvrApps = async () => {
 			arguments: [upgradeCapObject],
 		});
 
-		console.log(`@suins/${key}`);
 		transaction.moveCall({
 			target: '@mvr/metadata::package_info::set_metadata',
 			arguments: [
 				packageInfo,
 				transaction.pure.string('default'),
-				transaction.pure.string(`@suins/ + ${key}`),
+				transaction.pure.string(`@suins/${key}`),
 			],
 		});
 
