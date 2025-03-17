@@ -97,13 +97,6 @@ public(package) fun demo_send_reward( // TODO remove
     staking_batch::send_reward(reward_balance, recipient, ctx);
 }
 
-// === events ===
-
-public struct ReturnTokenEvent has copy, drop {
-    voter: address,
-    amount: u64,
-}
-
 // === public functions ===
 
 /// Create a new proposal with the given options.
@@ -187,26 +180,27 @@ public fun vote(
     // calculate the total voting power in this vote
     let mut new_power = 0;
     voting_batches.do_mut!(|batch| {
+        // prevent double voting
         assert!(!batch.is_voting(clock), EBatchIsVoting);
         batch.set_voting_until_ms(proposal.end_time_ms, clock);
+        // count the batch power
         let batch_power = batch.power(staking_config, clock);
         new_power = new_power + batch_power;
+        // save batch so it can receive a reward later
         proposal.batches.push_back(batch.id().to_address(), batch_power);
     });
 
-    // update total voting power in the proposal
+    // update proposal voting power
     proposal.total_power = proposal.total_power + new_power;
 
-    // update voting power for the option
+    // update option voting power
     let option_power = proposal.votes.get_mut(&option);
     *option_power = *option_power + new_power;
 
-    // add the voter if not already present
+    // update user voting power and leaderboard
     if (!proposal.voters.contains(ctx.sender())) {
         proposal.voters.push_back(ctx.sender(), vec_map::empty());
     };
-
-    // save the vote and update the leaderboard
     let user_votes = proposal.voters.borrow_mut(ctx.sender());
     let leaderboard = proposal.vote_leaderboards.get_mut(&option);
     if (!user_votes.contains(&option)) {
@@ -231,9 +225,9 @@ public fun finalize(
     proposal.finalize_internal(clock);
 }
 
-/// Permissionlessly distribute staked NS rewards to voting batches once voting has ended.
-/// It also finalizes the proposal if needed.
-public fun distribute_rewards_bulk(
+/// Distribute staked NS rewards to voting batches once voting has ended.
+/// Also finalize the proposal if needed.
+public fun distribute_rewards_bulk( // TODO check if this still gas-negative
     proposal: &mut ProposalV2,
     clock: &Clock,
     ctx: &mut TxContext,
@@ -244,8 +238,10 @@ public fun distribute_rewards_bulk(
     while (i < MAX_RETURNS_PER_TX && !proposal.batches.is_empty()) {
         let (batch_addr, batch_power) = proposal.batches.pop_front();
         let reward_value = calculate_reward(proposal, batch_power);
-        let reward_balance = proposal.reward.split(reward_value);
-        staking_batch::send_reward(reward_balance, batch_addr, ctx);
+        if (reward_value > 0) {
+            let reward_balance = proposal.reward.split(reward_value);
+            staking_batch::send_reward(reward_balance, batch_addr, ctx);
+        };
         i = i + 1;
     };
 }
@@ -327,6 +323,7 @@ fun calculate_reward(
     proposal: &ProposalV2,
     batch_power: u64,
 ): u64 {
+    if (proposal.total_power == 0) return 0;
     let total_reward = proposal.total_reward as u128;
     let total_power = proposal.total_power as u128;
     let reward_value = (batch_power as u128) * total_reward / total_power;
