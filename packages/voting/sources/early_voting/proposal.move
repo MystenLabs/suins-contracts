@@ -47,8 +47,6 @@ const MAX_RETURNS_PER_TX: u64 = 125;
 /// 5. The timestamp up to which when the proposal can accept votes.
 public struct Proposal has key {
     /// We keep UID as we'll be adding proposals as DOFs, to easily look them up
-    /// (not having to do DF queries).
-    /// We'll also create a Display for these proposals.
     id: UID,
     /// The serial number of the proposal.
     serial_no: u64,
@@ -61,14 +59,10 @@ public struct Proposal has key {
     /// VecMap of votes, each holding the total voted balance for the option.
     votes: VecMap<VotingOption, u64>,
     /// The winning vote, that gets decided after the proposal is closed
-    /// (permissionless-ly).
     winning_option: Option<VotingOption>,
     /// The leaderboard for most votes per option.
     vote_leaderboards: VecMap<VotingOption, Leaderboard>,
-    /// A list of the unique addresses, and coins they've locked in, for each
-    /// voting option.
-    /// We keep it as a linked_table to allow easy on-chain permission-less
-    /// return of funds.
+    /// A list of the unique addresses, and coins they've locked in, for each voting option.
     voters: LinkedTable<address, VecMap<VotingOption, Balance<NS>>>,
     /// The timestamp when the proposal was created.
     start_time_ms: u64,
