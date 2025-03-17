@@ -55,8 +55,8 @@ const AppsMetadata = {
 				sha: '5d1b2459dfde3447b12704cff5ae6f9149baaeaa',
 			},
 		],
-		testnetPackageInfo: '',
-		testnetAddress: '',
+		testnetPackageInfo: '0x729aefdbf015ed3cbe477d01ffba89658e5b1503a596c4e86c256c382307bfba',
+		testnetAddress: '0x40eee27b014a872f5c3330dcd5329aa55c7fe0fcc6e70c6498852e2e3727172e',
 	},
 	payments: {
 		title: 'SuiNS - Payments Metadata',
@@ -68,8 +68,8 @@ const AppsMetadata = {
 				sha: '5d1b2459dfde3447b12704cff5ae6f9149baaeaa',
 			},
 		],
-		testnetPackageInfo: '',
-		testnetAddress: '',
+		testnetPackageInfo: '0xc65ee429a1de9d5dc5069382ac14b303eef4d79bd5f9fa7fada6cff0da42dea9',
+		testnetAddress: '0x9e8b85270cf5e7ec0ae44c745abe000b6dd7d8b54ca2d367e044d8baccefc10c',
 	},
 	coupons: {
 		title: 'SuiNS - Coupons Metadata',
@@ -81,8 +81,8 @@ const AppsMetadata = {
 				sha: 'c33b0742cca13911357f7f9a07727c89e3f515e1',
 			},
 		],
-		testnetPackageInfo: '',
-		testnetAddress: '',
+		testnetPackageInfo: '0x5523dcc537bc04792b92e6c909daeed5fab3c9dc2e7d5cac58533aacb20be6ca',
+		testnetAddress: '0x63029aae8abbefae4f4ac6c5e3e0021159ea93a94ba648681fd64caf5b40677a',
 	},
 	discounts: {
 		title: 'SuiNS - Discounts Metadata',
@@ -94,8 +94,8 @@ const AppsMetadata = {
 				sha: '5d1b2459dfde3447b12704cff5ae6f9149baaeaa',
 			},
 		],
-		testnetPackageInfo: '',
-		testnetAddress: '',
+		testnetPackageInfo: '0xb383570ed441a38ea341bb870ce5127e46057c269135e0ff3c2fd34c793be873',
+		testnetAddress: '0x7976f9bfe81dcbdbb635efb0ecb02844cd79109d3a698d05c06ca9fd2f97d262',
 	},
 	subnames: {
 		title: 'SuiNS - Subnames Metadata',
@@ -107,8 +107,8 @@ const AppsMetadata = {
 				sha: '5d1b2459dfde3447b12704cff5ae6f9149baaeaa',
 			},
 		],
-		testnetPackageInfo: '',
-		testnetAddress: '',
+		testnetPackageInfo: '0xef48920513abd8c64f89a27d562082d9d3d7c0c8c0395a0334c7c02eb3bafca7',
+		testnetAddress: '0x3c272bc45f9157b7818ece4f7411bdfa8af46303b071aca4e18c03119c9ff636',
 	},
 	tempSubnameProxy: {
 		title: 'SuiNS - Temp Subdomain Proxy Metadata',
@@ -120,8 +120,8 @@ const AppsMetadata = {
 				sha: '5d1b2459dfde3447b12704cff5ae6f9149baaeaa',
 			},
 		],
-		testnetPackageInfo: '',
-		testnetAddress: '',
+		testnetPackageInfo: '0xbb5fce6ef1236e2284b2889c511dd9ca57fe36b3b0307fa0fa6413000213de92',
+		testnetAddress: '0x295a0749dae0e76126757c305f218f929df0656df66a6361f8b6c6480a943f12',
 	},
 };
 
