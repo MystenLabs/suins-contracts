@@ -46,6 +46,24 @@ public fun add_proposal(
     proposal.share();
 }
 
+public fun add_proposal_v2(
+    _: &NSGovernanceCap,
+    governance: &mut NSGovernance,
+    mut proposal: ProposalV2,
+) {
+    let pointer = ProposalPointer {
+        proposal_id: proposal.id(),
+        end_time: proposal.end_ms(),
+    };
+    add_early_voting_proposal(governance, pointer, proposal.start_ms());
+
+    let early_voting: &mut EarlyVoting = governance.app_mut();
+    proposal.set_serial_no(early_voting.0.length());
+    proposal.set_threshold(governance.quorum_threshold());
+
+    proposal.share();
+}
+
 // === private functions ===
 
 fun add_early_voting_proposal(
