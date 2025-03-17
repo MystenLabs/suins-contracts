@@ -28,7 +28,7 @@ const INITIAL_TIME: u64 = 86_400_000; // January 2, 1970
 const ADMIN: address = @0xaa1;
 const USER_1: address = @0xee1;
 
-// === test setup ===
+// === setup ===
 
 public struct TestSetup {
     ts: Scenario,
