@@ -3,6 +3,8 @@ module suins_voting::proposal_v2_tests;
 use sui::{
     clock::{Self, Clock},
     coin::{Self},
+    test_scenario::{Self as ts},
+    test_utils::{assert_eq, destroy},
     vec_set::{Self},
 };
 use token::{
@@ -12,9 +14,57 @@ use suins_voting::{
     constants::{min_voting_period_ms, max_voting_period_ms},
     proposal_v2::{Self, ProposalV2},
     voting_option::{Self, threshold_not_reached},
-    staking_batch::{Self},
+    staking_batch::{Self, StakingBatch, Reward},
     staking_config::{Self},
 };
+
+#[test]
+fun test_reward() {
+    let admin: address = @0xAAA;
+    let user1: address = @0xBBB;
+
+    // user creates batch
+    let mut ts = ts::begin(user1);
+    let clock = clock::create_for_testing(ts.ctx());
+    let batch = staking_batch::new_for_testing(
+        1000, // balance
+        0, // start_ms
+        0, // unlock_ms
+        0, // cooldown_end_ms
+        0, // voting_until_ms
+        0, // origin
+        ts.ctx()
+    );
+    let batch_address = batch.id().to_address();
+
+    assert_eq(batch.balance().value(), 1000);
+    batch.keep(ts.ctx());
+
+    // admin creates proposal and sends reward to batch
+    ts.next_tx(admin);
+    let mut proposal = proposal_v2::new(
+        b"The title".to_string(),
+        b"The description".to_string(),
+        clock.timestamp_ms() + min_voting_period_ms!() + 1,
+        voting_option::default_options(),
+        coin::mint_for_testing<NS>(5000, ts.ctx()),
+        &clock,
+        ts.ctx(),
+    );
+    proposal.demo_send_reward(batch_address, 100, ts.ctx());
+
+    // user collects reward
+    ts.next_tx(user1);
+    let mut batch = ts.take_from_sender<StakingBatch>();
+    let receiving_ticket = ts::most_recent_receiving_ticket<Reward>(&batch.id());
+    batch.receive_reward(receiving_ticket);
+    assert_eq(batch.balance().value(), 1100);
+
+    destroy(ts);
+    destroy(clock);
+    destroy(proposal);
+    destroy(batch);
+}
 
 #[test, expected_failure(abort_code = proposal_v2::ETooShortVotingPeriod)]
 fun try_create_outside_min_range() {

@@ -71,6 +71,8 @@ public struct ProposalV2 has key {
     leaderboards: VecMap<VotingOption, Leaderboard>,
     /// Voter addresses and how much power they voted with on each option
     voters: LinkedTable<address, VecMap<VotingOption, u64>>,
+    /// Batches used to vote, and their voting power
+    batches: LinkedTable<address, u64>,
     /// When the proposal was created
     start_ms: u64,
     /// Until when the proposal can accept votes
@@ -81,6 +83,16 @@ public struct ProposalV2 has key {
     reward: Balance<NS>,
     /// Initial value of `ProposalV2.reward` (.reward.value() will decrease as we distribute it)
     total_reward: u64,
+}
+
+public(package) fun demo_send_reward(
+    proposal: &mut ProposalV2,
+    recipient: address,
+    value: u64,
+    ctx: &mut TxContext,
+) {
+    let reward_balance = proposal.reward.split(value);
+    staking_batch::send_reward(reward_balance, recipient, ctx);
 }
 
 // === events ===
@@ -147,6 +159,7 @@ public fun new(
         option_powers,
         leaderboards,
         voters: linked_table::new(ctx),
+        batches: linked_table::new(ctx),
         winning_option: option::none(),
         start_ms: clock.timestamp_ms(),
         end_ms,
@@ -174,7 +187,9 @@ public fun vote(
     voting_batches.do_mut!(|batch| {
         assert!(!batch.is_voting(clock), EBatchIsVoting);
         batch.set_voting_until_ms(proposal.end_ms, clock);
-        new_power = new_power + batch.power(staking_config, clock);
+        let batch_power = batch.power(staking_config, clock);
+        new_power = new_power + batch_power;
+        proposal.batches.push_back(batch.id().to_address(), batch_power);
     });
 
     // update total voting power in the proposal
@@ -216,7 +231,7 @@ public fun finalize(
 
 /// Permissionlessly distribute staked NS rewards once voting has ended.
 /// It also finalizes the proposal if needed.
-public fun distribute_rewards_bulk(
+public fun distribute_rewards_bulk( // TODO: now this would work by batch
     proposal: &mut ProposalV2,
     staking_config: &StakingConfig,
     clock: &Clock,
@@ -237,7 +252,7 @@ public fun distribute_rewards_bulk(
 }
 
 /// Allow user to get their tokens back once voting has ended.
-public fun get_reward(
+public fun get_reward( // and this wouldn't work by user
     proposal: &mut ProposalV2,
     staking_config: &StakingConfig,
     clock: &Clock,
