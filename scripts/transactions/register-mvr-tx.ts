@@ -57,6 +57,10 @@ const AppsMetadata = {
 		],
 		testnetPackageInfo: '0x729aefdbf015ed3cbe477d01ffba89658e5b1503a596c4e86c256c382307bfba',
 		testnetAddress: '0x40eee27b014a872f5c3330dcd5329aa55c7fe0fcc6e70c6498852e2e3727172e',
+		description:
+			'The core SuiNS package. Used for registration/renewal, creating subdomains, and other core functionalities.',
+		documentation_url: 'https://docs.suins.io/',
+		homepage_url: 'https://suins.io/',
 	},
 	payments: {
 		title: 'SuiNS - Payments Metadata',
@@ -70,6 +74,9 @@ const AppsMetadata = {
 		],
 		testnetPackageInfo: '0xc65ee429a1de9d5dc5069382ac14b303eef4d79bd5f9fa7fada6cff0da42dea9',
 		testnetAddress: '0x9e8b85270cf5e7ec0ae44c745abe000b6dd7d8b54ca2d367e044d8baccefc10c',
+		description: 'The SuiNS payments package. Used for registration/renewal payments.',
+		documentation_url: 'https://docs.suins.io/',
+		homepage_url: 'https://suins.io/',
 	},
 	coupons: {
 		title: 'SuiNS - Coupons Metadata',
@@ -83,6 +90,10 @@ const AppsMetadata = {
 		],
 		testnetPackageInfo: '0x5523dcc537bc04792b92e6c909daeed5fab3c9dc2e7d5cac58533aacb20be6ca',
 		testnetAddress: '0x63029aae8abbefae4f4ac6c5e3e0021159ea93a94ba648681fd64caf5b40677a',
+		description:
+			'The SuiNS coupons package. Coupon codes can be used for lower registration/renewal fees.',
+		documentation_url: 'https://docs.suins.io/',
+		homepage_url: 'https://suins.io/',
 	},
 	discounts: {
 		title: 'SuiNS - Discounts Metadata',
@@ -96,6 +107,10 @@ const AppsMetadata = {
 		],
 		testnetPackageInfo: '0xb383570ed441a38ea341bb870ce5127e46057c269135e0ff3c2fd34c793be873',
 		testnetAddress: '0x7976f9bfe81dcbdbb635efb0ecb02844cd79109d3a698d05c06ca9fd2f97d262',
+		description:
+			'The SuiNS discounts package. Specific NFTs can be used for lower registration/renewal fees.',
+		documentation_url: 'https://docs.suins.io/',
+		homepage_url: 'https://suins.io/',
 	},
 	subnames: {
 		title: 'SuiNS - Subnames Metadata',
@@ -109,6 +124,9 @@ const AppsMetadata = {
 		],
 		testnetPackageInfo: '0xef48920513abd8c64f89a27d562082d9d3d7c0c8c0395a0334c7c02eb3bafca7',
 		testnetAddress: '0x3c272bc45f9157b7818ece4f7411bdfa8af46303b071aca4e18c03119c9ff636',
+		description: 'The SuiNS subnames package. Can be used to create and renew subdomains.',
+		documentation_url: 'https://docs.suins.io/',
+		homepage_url: 'https://suins.io/',
 	},
 	tempSubnameProxy: {
 		title: 'SuiNS - Temp Subdomain Proxy Metadata',
@@ -122,6 +140,10 @@ const AppsMetadata = {
 		],
 		testnetPackageInfo: '0xbb5fce6ef1236e2284b2889c511dd9ca57fe36b3b0307fa0fa6413000213de92',
 		testnetAddress: '0x295a0749dae0e76126757c305f218f929df0656df66a6361f8b6c6480a943f12',
+		description:
+			'The SuiNS subname proxy package. A temporary proxy used to proxy subdomain requests.',
+		documentation_url: 'https://docs.suins.io/',
+		homepage_url: 'https://suins.io/',
 	},
 };
 
@@ -209,6 +231,42 @@ export const registerMvrApps = async () => {
 				],
 			});
 		}
+
+		transaction.moveCall({
+			target: `@mvr/core::move_registry::set_metadata`,
+			arguments: [
+				transaction.object(
+					'0x0e5d473a055b6b7d014af557a13ad9075157fdc19b6d51562a18511afd397727', // Move registry
+				),
+				transaction.object(appCapObject),
+				transaction.pure.string('description'), // key
+				transaction.pure.string(AppsMetadata[key as keyof typeof AppsMetadata].description), // value
+			],
+		});
+
+		transaction.moveCall({
+			target: `@mvr/core::move_registry::set_metadata`,
+			arguments: [
+				transaction.object(
+					'0x0e5d473a055b6b7d014af557a13ad9075157fdc19b6d51562a18511afd397727', // Move registry
+				),
+				transaction.object(appCapObject),
+				transaction.pure.string('documentation_url'), // key
+				transaction.pure.string(AppsMetadata[key as keyof typeof AppsMetadata].documentation_url), // value
+			],
+		});
+
+		transaction.moveCall({
+			target: `@mvr/core::move_registry::set_metadata`,
+			arguments: [
+				transaction.object(
+					'0x0e5d473a055b6b7d014af557a13ad9075157fdc19b6d51562a18511afd397727', // Move registry
+				),
+				transaction.object(appCapObject),
+				transaction.pure.string('homepage_url'), // key
+				transaction.pure.string(AppsMetadata[key as keyof typeof AppsMetadata].homepage_url), // value
+			],
+		});
 
 		// and now transfer the `PackageInfo` objects to the admin address (sender of tx).
 		transaction.moveCall({
