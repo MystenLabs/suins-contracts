@@ -15,9 +15,10 @@ use token::{
 use suins_voting::{
     constants::{min_voting_period_ms, max_voting_period_ms},
     proposal_v2::{Self, ProposalV2},
-    voting_option::{Self, VotingOption, threshold_not_reached, tie_rejected},
+    voting_option::{Self, VotingOption, threshold_not_reached},
     staking_batch::{Self, StakingBatch, Reward},
     staking_config::{Self, StakingConfig},
+    staking_constants::{day_ms},
 };
 
 // === constants ===
@@ -104,17 +105,17 @@ fun test_end_to_end_ok() {
     let mut options = voting_option::default_options();
     options.insert(voting_option::new(b"Option A".to_string()));
     options.insert(voting_option::new(b"Option B".to_string()));
-    let voting_period_ms = 7 * 24 * 60 * 60 * 1000;
+    let voting_period_ms = 7 * day_ms!();
     let mut proposal = setup.create_proposal(
         options,
-        1_000_000,
+        1_000_000, // 1 NS
         voting_period_ms,
     );
 
     // user_1 votes with two batches
     ts::next_tx(&mut setup.ts, USER_1);
-    let batch1 = setup.create_batch(500_000, 3);
-    let batch2 = setup.create_batch(300_000, 6);
+    let batch1 = setup.create_batch(250_000_000, 3); // 250 NS, locked for 3 months
+    let batch2 = setup.create_batch(500_000_000, 3); // 500 NS, locked for 3 months
     let batch1_power = batch1.power(&setup.config, &setup.clock);
     let batch2_power = batch2.power(&setup.config, &setup.clock);
     let mut voting_batches_u1 = vector[batch1, batch2];
@@ -131,7 +132,7 @@ fun test_end_to_end_ok() {
 
     // user_2 votes with one batch
     ts::next_tx(&mut setup.ts, USER_2);
-    let batch3 = setup.create_batch(200_000, 12);
+    let batch3 = setup.create_batch(250_000_000, 3); // 250 NS, locked for 3 months
     let batch3_power = batch3.power(&setup.config, &setup.clock);
     let mut voting_batches_u2 = vector[batch3];
     proposal.vote(
@@ -145,55 +146,38 @@ fun test_end_to_end_ok() {
     voting_batches_u2.destroy_empty();
 
     // verify voting results
-    let total_expected_power = batch1_power + batch2_power + batch3_power;
-    assert_eq(proposal.total_power(), total_expected_power);
+    let expected_total_power = batch1_power + batch2_power + batch3_power;
+    assert_eq(proposal.total_power(), expected_total_power);
     assert_eq(*proposal.option_powers().get(&voting_option::new(b"Yes".to_string())), batch1_power + batch2_power);
     assert_eq(*proposal.option_powers().get(&voting_option::new(b"Option A".to_string())), batch3_power);
     assert_eq(*proposal.option_powers().get(&voting_option::new(b"No".to_string())), 0);
     assert_eq(*proposal.option_powers().get(&voting_option::new(b"Abstain".to_string())), 0);
 
     // finalize proposal and distribute rewards
-    setup.add_time(voting_period_ms + 1);
+    setup.add_time(voting_period_ms);
     proposal.finalize(&setup.clock, setup.ts.ctx());
     proposal.distribute_rewards(&setup.clock, setup.ts.ctx());
-
-    // verify winning option
-    assert_eq(proposal.winning_option().is_some(), true);
-    let yes_power = batch1_power + batch2_power;
-    let option_a_power = batch3_power;
-    let expected_winner = if (yes_power > option_a_power) {
-        b"Yes".to_string()
-    } else if (option_a_power > yes_power) {
-        b"Option A".to_string()
-    } else {
-        assert_eq(*proposal.winning_option().borrow(), tie_rejected());
-        b"".to_string()
-    };
-
-    if (expected_winner != b"".to_string()) {
-        assert_eq(*proposal.winning_option().borrow(), voting_option::new(expected_winner));
-    };
+    assert_eq(*proposal.winning_option().borrow(), voting_option::new(b"Yes".to_string()));
 
     // user_1 collects rewards
     ts::next_tx(&mut setup.ts, USER_1);
-    let batch1_id = batch1.id().to_address();
-    if (!ts::ids_for_address<Reward>(batch1_id).is_empty()) {
-        let receiving_ticket = ts::most_recent_receiving_ticket<Reward>(&batch1.id());
-        batch1.receive_reward(receiving_ticket);
-    };
-    let batch2_id = batch2.id().to_address();
-    if (!ts::ids_for_address<Reward>(batch2_id).is_empty()) {
-        let receiving_ticket = ts::most_recent_receiving_ticket<Reward>(&batch2.id());
-        batch2.receive_reward(receiving_ticket);
-    };
+
+    let ticket = ts::most_recent_receiving_ticket<Reward>(&batch1.id());
+    batch1.receive_reward(ticket);
+    assert_eq(batch1.rewards(), 250_000);
+    assert_eq(batch1.balance(), 250_000_000 + 250_000);
+
+    let ticket = ts::most_recent_receiving_ticket<Reward>(&batch2.id());
+    batch2.receive_reward(ticket);
+    assert_eq(batch2.rewards(), 500_000);
+    assert_eq(batch2.balance(), 500_000_000 + 500_000);
 
     // user_2 collects rewards
     ts::next_tx(&mut setup.ts, USER_2);
-    let batch3_id = batch3.id().to_address();
-    if (!ts::ids_for_address<Reward>(batch3_id).is_empty()) {
-        let receiving_ticket = ts::most_recent_receiving_ticket<Reward>(&batch3.id());
-        batch3.receive_reward(receiving_ticket);
-    };
+    let ticket = ts::most_recent_receiving_ticket<Reward>(&batch3.id());
+    batch3.receive_reward(ticket);
+    assert_eq(batch3.rewards(), 250_000);
+    assert_eq(batch3.balance(), 250_000_000 + 250_000);
 
     destroy(batch1);
     destroy(batch2);
