@@ -1,10 +1,13 @@
+// Copyright (c) Mysten Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 /// The governance module for SuiNS.
 ///
 /// The governance module is used to:
 /// 1. Store the NS token reserves
 /// 2. Store the UpgradeCap for SuiNS protocol
 /// 3. Store the AdminCap for SuiNS protocol
-/// 4. Store the Governance votes & Proposals for SuiNS protocol
+/// 4. Store the Gorvenance votes & Proposals for SuiNS protocol
 /// 5. Apply verified proposals to the SuiNS protocol using these caps
 /// 6. Store the UpgradeCap of the NSGovernance protocol
 ///   - Upgrades to the governance protocol go through typical voting, similar
@@ -14,8 +17,7 @@
 /// is a simple voting mechanism, without complex actions.
 module suins_voting::governance;
 
-use sui::dynamic_field as df;
-use sui::package;
+use sui::{dynamic_field as df, package};
 
 use fun df::add as UID.add;
 use fun df::borrow as UID.borrow;
@@ -38,7 +40,7 @@ const QUORUM_THRESHOLD: u64 = 1_500_000 * 1_000_000;
 public struct GOVERNANCE has drop {}
 
 /// The KEY for any application stored under the governance object.
-public struct Application<phantom K> has copy, store, drop {}
+public struct Application<phantom K> has copy, drop, store {}
 
 /// The NSGovernance object, which holds all the governance related objects /
 /// capabilities.
@@ -103,7 +105,7 @@ public fun set_quorum_threshold(
     governance.quorum_threshold = threshold;
 }
 
-// In the initial version, applications attached to the governance object
+// In the initial version, applications attached to the goveernance object
 // are only controlled internally from the package (public(package) visibility).
 // See `early_voting.move` for reference.
 
