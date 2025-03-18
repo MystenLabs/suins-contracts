@@ -32,11 +32,6 @@ const EInvalidVotingUntilMs: u64 = 7;
 
 // === constants ===
 
-/// Batch was created by regulars means (typically directly by users)
-public macro fun origin_regular(): u8 { 0 }
-/// Batch was created by a proposal as a voting reward
-public macro fun origin_reward(): u8 { 1 }
-
 // === structs ===
 
 /// A batch of staked NS
@@ -44,6 +39,8 @@ public struct StakingBatch has key {
     id: UID,
     /// Staked NS balance.
     balance: Balance<NS>,
+    /// How much NS in the batch is from voting rewards.
+    rewards: u64,
     /// When the batch was created.
     start_ms: u64,
     /// When the batch will be unlocked. If the batch was never locked, it's equal to `start_ms`.
@@ -52,8 +49,6 @@ public struct StakingBatch has key {
     cooldown_end_ms: u64,
     /// Until when the batch is being used to vote on a proposal. `0` if never voted.
     voting_until_ms: u64,
-    /// Informational field indicating how the batch was created.
-    origin: u8,
 }
 
 /// A reward that the proposal module transfers to a voting batch (TTO)
@@ -86,13 +81,16 @@ public fun new(
     assert!(coin.value() >= config.min_balance(), EBalanceTooLow);
     assert!(lock_months <= config.max_lock_months(), EInvalidLockPeriod);
 
-    let batch = new_internal(
-        coin.into_balance(),
-        lock_months,
-        origin_regular!(),
-        clock,
-        ctx,
-    );
+    let now = clock.timestamp_ms();
+    let batch = StakingBatch {
+        id: object::new(ctx),
+        balance: coin.into_balance(),
+        rewards: 0,
+        start_ms: now,
+        unlock_ms: now + (lock_months * month_ms!()),
+        cooldown_end_ms: 0,
+        voting_until_ms: 0,
+    };
 
     emit(EventNew {
         batch_id: batch.id.to_address(),
@@ -163,9 +161,9 @@ public fun unstake(
     batch: StakingBatch,
     clock: &Clock,
 ): Balance<NS> {
+    let now = clock.timestamp_ms();
     assert!(batch.is_unlocked(clock), EBatchLocked);
     assert!(batch.cooldown_end_ms > 0, EUnstakeNotRequested);
-    let now = clock.timestamp_ms();
     assert!(now >= batch.cooldown_end_ms, ECooldownNotOver);
     assert!(now >= batch.voting_until_ms, EBatchIsVoting);
 
@@ -190,6 +188,7 @@ public fun receive_reward(
 ) {
     let reward = transfer::receive<Reward>(&mut batch.id, receiving_reward);
     let Reward { id, balance } = reward;
+    batch.rewards = batch.rewards + balance.value();
     batch.balance.join(balance);
     object::delete(id);
 }
@@ -202,18 +201,17 @@ public fun admin_new(
     coin: Coin<NS>,
     start_ms: u64,
     unlock_ms: u64,
-    origin: u8,
     ctx: &mut TxContext,
 ): StakingBatch {
     assert!(start_ms <= unlock_ms, EInvalidLockPeriod);
     let batch = StakingBatch {
         id: object::new(ctx),
         balance: coin.into_balance(),
+        rewards: 0,
         start_ms,
         unlock_ms,
         cooldown_end_ms: 0,
         voting_until_ms: 0,
-        origin,
     };
     batch
 }
@@ -227,26 +225,6 @@ public fun admin_transfer(
 }
 
 // === package functions ===
-
-/// Create a new batch to reward users for voting on a proposal
-public(package) fun new_reward(
-    config: &StakingConfig,
-    balance: Balance<NS>,
-    lock_months: u64,
-    clock: &Clock,
-    ctx: &mut TxContext,
-): StakingBatch {
-    // assert!(coin.value() >= config.min_balance(), EBalanceTooLow);
-    assert!(lock_months <= config.max_lock_months(), EInvalidLockPeriod);
-
-    new_internal(
-        balance,
-        lock_months,
-        origin_reward!(),
-        clock,
-        ctx,
-    )
-}
 
 /// Flag a batch as being used to vote on a proposal
 public(package) fun set_voting_until_ms(
@@ -264,13 +242,6 @@ public(package) fun set_voting_until_ms(
     });
 }
 
-public(package) fun transfer(
-    batch: StakingBatch,
-    recipient: address,
-) {
-    transfer::transfer(batch, recipient);
-}
-
 /// Send a reward to a batch (TTO)
 public(package) fun send_reward(
     balance: Balance<NS>,
@@ -285,25 +256,6 @@ public(package) fun send_reward(
 }
 
 // === private functions ===
-
-fun new_internal(
-    balance: Balance<NS>,
-    lock_months: u64,
-    origin: u8,
-    clock: &Clock,
-    ctx: &mut TxContext,
-): StakingBatch {
-    let now = clock.timestamp_ms();
-    StakingBatch {
-        id: object::new(ctx),
-        balance,
-        start_ms: now,
-        unlock_ms: now + (lock_months * month_ms!()),
-        cooldown_end_ms: 0,
-        voting_until_ms: 0,
-        origin,
-    }
-}
 
 // === view functions ===
 
@@ -383,12 +335,12 @@ public fun is_voting(
 // === accessors ===
 
 public fun id(batch: &StakingBatch): ID { batch.id.to_inner() }
-public fun balance(batch: &StakingBatch): &Balance<NS> { &batch.balance }
+public fun balance(batch: &StakingBatch): u64 { batch.balance.value() }
+public fun rewards(batch: &StakingBatch): u64 { batch.rewards }
 public fun start_ms(batch: &StakingBatch): u64 { batch.start_ms }
 public fun unlock_ms(batch: &StakingBatch): u64 { batch.unlock_ms }
 public fun cooldown_end_ms(batch: &StakingBatch): u64 { batch.cooldown_end_ms }
 public fun voting_until_ms(batch: &StakingBatch): u64 { batch.voting_until_ms }
-public fun origin(batch: &StakingBatch): u8 { batch.origin }
 
 // === method aliases ===
 
@@ -431,20 +383,20 @@ public struct EventSetVoting has copy, drop {
 #[test_only]
 public fun new_for_testing(
     balance: u64,
+    rewards: u64,
     start_ms: u64,
     unlock_ms: u64,
     cooldown_end_ms: u64,
     voting_until_ms: u64,
-    origin: u8,
     ctx: &mut TxContext,
 ): StakingBatch {
     StakingBatch {
         id: object::new(ctx),
         balance: sui::coin::mint_for_testing<NS>(balance, ctx).into_balance(),
+        rewards,
         start_ms,
         unlock_ms,
         cooldown_end_ms,
         voting_until_ms,
-        origin,
     }
 }

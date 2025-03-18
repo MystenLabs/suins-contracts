@@ -207,7 +207,7 @@ fun test_end_to_end_ok() {
     // create a new batch with a 3-month lock
     let mut batch = setup.new_batch(USER_1, balance, 3);
     // verify initial state
-    assert_eq(batch.balance().value(), balance);
+    assert_eq(batch.balance(), balance);
     assert_eq(batch.cooldown_end_ms(), 0);
     assert_eq(batch.voting_until_ms(), 0);
     assert_eq(batch.is_locked(&setup.clock), true);
@@ -311,7 +311,6 @@ fun test_admin_functions() {
         coin,
         arbitrary_start_ms,
         arbitrary_start_ms, // never locked
-        staking_batch::origin_regular!(),
         setup.ts.ctx(),
     );
 
@@ -569,7 +568,6 @@ fun test_admin_new_e_invalid_lock_period() {
         coin,
         now, // start_ms
         now - 1, // unlock_ms
-        staking_batch::origin_regular!(),
         setup.ts.ctx(),
     );
 

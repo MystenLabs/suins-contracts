@@ -37,7 +37,7 @@ fun test_reward() {
     );
     let batch_address = batch.id().to_address();
 
-    assert_eq(batch.balance().value(), 1000);
+    assert_eq(batch.balance(), 1000);
     batch.keep(ts.ctx());
 
     // admin creates proposal and sends reward to batch
@@ -58,7 +58,7 @@ fun test_reward() {
     let mut batch = ts.take_from_sender<StakingBatch>();
     let receiving_ticket = ts::most_recent_receiving_ticket<Reward>(&batch.id());
     batch.receive_reward(receiving_ticket);
-    assert_eq(batch.balance().value(), 1100);
+    assert_eq(batch.balance(), 1100);
 
     destroy(ts);
     destroy(clock);
