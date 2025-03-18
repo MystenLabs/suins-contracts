@@ -227,7 +227,7 @@ public fun finalize(
 
 /// Distribute staked NS rewards to voting batches once voting has ended.
 /// Also finalize the proposal if needed.
-public fun distribute_rewards_bulk( // TODO check if this still gas-negative
+public fun distribute_rewards( // TODO check if this still gas-negative
     proposal: &mut ProposalV2,
     clock: &Clock,
     ctx: &mut TxContext,
@@ -330,21 +330,20 @@ fun calculate_reward(
     return reward_value as u64
 }
 
-// === accessors === // TODO add missing ones
+// === accessors ===
 
-/// Get the ID of the proposal. Helpful for receiver syntax.
 public fun id(proposal: &ProposalV2): ID { proposal.id.to_inner() }
-
-public fun end_time_ms(proposal: &ProposalV2): u64 { proposal.end_time_ms }
-
-public fun start_time_ms(proposal: &ProposalV2): u64 { proposal.start_time_ms }
-
 public fun serial_no(proposal: &ProposalV2): u64 { proposal.serial_no }
-
-public fun winning_option(proposal: &ProposalV2): Option<VotingOption> {
-    proposal.winning_option
-}
-
-public fun user_count(proposal: &ProposalV2): u64 { proposal.user_powers.length() }
-
-public fun batch_count(proposal: &ProposalV2): u64 { proposal.batch_powers.length() }
+public fun threshold(proposal: &ProposalV2): u64 { proposal.threshold }
+public fun title(proposal: &ProposalV2): &String { &proposal.title }
+public fun description(proposal: &ProposalV2): &String { &proposal.description }
+public fun winning_option(proposal: &ProposalV2): &Option<VotingOption> { &proposal.winning_option }
+public fun vote_leaderboards(proposal: &ProposalV2): &VecMap<VotingOption, Leaderboard> { &proposal.vote_leaderboards }
+public fun end_time_ms(proposal: &ProposalV2): u64 { proposal.end_time_ms }
+public fun start_time_ms(proposal: &ProposalV2): u64 { proposal.start_time_ms }
+public fun total_power(proposal: &ProposalV2): u64 { proposal.total_power }
+public fun option_powers(proposal: &ProposalV2): &VecMap<VotingOption, u64> { &proposal.option_powers }
+public fun user_powers(proposal: &ProposalV2): &LinkedTable<address, VecMap<VotingOption, u64>> { &proposal.user_powers }
+public fun batch_powers(proposal: &ProposalV2): &LinkedTable<address, u64> { &proposal.batch_powers }
+public fun reward(proposal: &ProposalV2): &Balance<NS> { &proposal.reward }
+public fun total_reward(proposal: &ProposalV2): u64 { proposal.total_reward }

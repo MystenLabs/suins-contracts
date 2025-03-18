@@ -184,13 +184,13 @@ fun test_e2e() {
     //     ts::return_shared(proposal);
     // };
     {
-        // finalize for all (bulk_finalize) permisionless-ly
+        // finalize for all
         test.ts.next_tx(USER4);
         let mut proposal = test.ts.take_shared<ProposalV2>();
 
-        proposal.distribute_rewards_bulk(&test.clock, test.ts.ctx());
+        proposal.distribute_rewards(&test.clock, test.ts.ctx());
 
-        assert_eq(proposal.batch_count(), 0);
+        assert_eq(proposal.batch_powers().length(), 0);
 
         ts::return_shared(proposal);
     };

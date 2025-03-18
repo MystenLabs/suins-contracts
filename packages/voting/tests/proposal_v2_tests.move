@@ -118,7 +118,7 @@ fun try_claim_tokens_back_before_endtime() {
         option::none(),
         &mut ctx,
     );
-    proposal.distribute_rewards_bulk(
+    proposal.distribute_rewards(
         &clock,
         &mut ctx,
     );
