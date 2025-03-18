@@ -144,6 +144,7 @@ public fun request_unstake(
 ) {
     assert!(batch.is_unlocked(clock), EBatchLocked);
     assert!(!batch.is_cooldown_requested(), ECooldownAlreadyRequested);
+    assert!(!batch.is_voting(clock), EBatchIsVoting);
 
     let now = clock.timestamp_ms();
     let cooldown_end_ms = now + config.cooldown_ms();
@@ -161,11 +162,11 @@ public fun unstake(
     batch: StakingBatch,
     clock: &Clock,
 ): Balance<NS> {
-    let now = clock.timestamp_ms();
     assert!(batch.is_unlocked(clock), EBatchLocked);
     assert!(batch.is_cooldown_requested(), ECooldownNotRequested);
     assert!(batch.is_cooldown_over(clock), ECooldownNotOver);
-    assert!(now >= batch.voting_until_ms, EBatchIsVoting);
+    // proposal doesn't allow a cooldown batch to vote, but doesn't hurt to check
+    assert!(!batch.is_voting(clock), EBatchIsVoting);
 
     let batch_address = batch.id.to_address();
     let coin_value = batch.balance.value();
