@@ -212,7 +212,8 @@ fun test_end_to_end_ok() {
     assert_eq(batch.voting_until_ms(), 0);
     assert_eq(batch.is_locked(&setup.clock), true);
     assert_eq(batch.is_unlocked(&setup.clock), false);
-    assert_eq(batch.is_in_cooldown(&setup.clock), false);
+    assert_eq(batch.is_cooldown_requested(), false);
+    assert_eq(batch.is_cooldown_over(&setup.clock), false);
     assert_eq(batch.is_voting(&setup.clock), false);
     let expected_power = (balance as u128 * boost * boost * boost / 10000 / 10000 / 10000) as u64;
     assert_eq(batch.power(&setup.config, &setup.clock), expected_power);
@@ -235,13 +236,15 @@ fun test_end_to_end_ok() {
 
     // request unstake (should succeed even while voting)
     batch.request_unstake(&setup.config, &setup.clock);
-    assert_eq(batch.is_in_cooldown(&setup.clock), true);
+    assert_eq(batch.is_cooldown_requested(), true);
+    assert_eq(batch.is_cooldown_over(&setup.clock), false);
     assert_eq(batch.cooldown_end_ms() > 0, true);
     // wait for cooldown to end but voting is still active
     let cooldown_ms = setup.config.cooldown_ms();
     setup.add_time(cooldown_ms);
     // verify cooldown is over but still voting
-    assert_eq(batch.is_in_cooldown(&setup.clock), false);
+    assert_eq(batch.is_cooldown_requested(), true);
+    assert_eq(batch.is_cooldown_over(&setup.clock), true);
     assert_eq(batch.is_voting(&setup.clock), true);
 
     // wait for voting to end
@@ -459,7 +462,7 @@ fun test_request_unstake_e_batch_locked() {
     destroy(setup);
 }
 
-#[test, expected_failure(abort_code = staking_batch::EUnstakeAlreadyRequested)]
+#[test, expected_failure(abort_code = staking_batch::ECooldownAlreadyRequested)]
 fun test_request_unstake_e_already_requested() {
     let mut setup = setup();
     let mut batch = setup.new_batch(USER_1, 1_000_000, 0); // no lock
@@ -472,7 +475,7 @@ fun test_request_unstake_e_already_requested() {
     destroy(setup);
 }
 
-#[test, expected_failure(abort_code = staking_batch::EUnstakeNotRequested)]
+#[test, expected_failure(abort_code = staking_batch::ECooldownNotRequested)]
 fun test_unstake_e_not_requested() {
     let mut setup = setup();
     let batch = setup.new_batch(USER_1, 1_000_000, 0); // no lock

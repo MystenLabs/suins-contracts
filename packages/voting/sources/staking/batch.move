@@ -24,8 +24,8 @@ use suins_voting::{
 const EInvalidLockPeriod: u64 = 0;
 const EBalanceTooLow: u64 = 1;
 const EBatchLocked: u64 = 2;
-const EUnstakeAlreadyRequested: u64 = 3;
-const EUnstakeNotRequested: u64 = 4;
+const ECooldownAlreadyRequested: u64 = 3;
+const ECooldownNotRequested: u64 = 4;
 const ECooldownNotOver: u64 = 5;
 const EBatchIsVoting: u64 = 6;
 const EInvalidVotingUntilMs: u64 = 7;
@@ -143,7 +143,7 @@ public fun request_unstake(
     clock: &Clock,
 ) {
     assert!(batch.is_unlocked(clock), EBatchLocked);
-    assert!(batch.cooldown_end_ms == 0, EUnstakeAlreadyRequested);
+    assert!(!batch.is_cooldown_requested(), ECooldownAlreadyRequested);
 
     let now = clock.timestamp_ms();
     let cooldown_end_ms = now + config.cooldown_ms();
@@ -163,8 +163,8 @@ public fun unstake(
 ): Balance<NS> {
     let now = clock.timestamp_ms();
     assert!(batch.is_unlocked(clock), EBatchLocked);
-    assert!(batch.cooldown_end_ms > 0, EUnstakeNotRequested);
-    assert!(now >= batch.cooldown_end_ms, ECooldownNotOver);
+    assert!(batch.is_cooldown_requested(), ECooldownNotRequested);
+    assert!(batch.is_cooldown_over(clock), ECooldownNotOver);
     assert!(now >= batch.voting_until_ms, EBatchIsVoting);
 
     let batch_address = batch.id.to_address();
@@ -318,11 +318,17 @@ public fun is_unlocked(
     !batch.is_locked(clock)
 }
 
-public fun is_in_cooldown(
+public fun is_cooldown_requested(
+    batch: &StakingBatch,
+): bool {
+    batch.cooldown_end_ms > 0
+}
+
+public fun is_cooldown_over(
     batch: &StakingBatch,
     clock: &Clock,
 ): bool {
-    batch.cooldown_end_ms > 0 && clock.timestamp_ms() < batch.cooldown_end_ms
+    batch.is_cooldown_requested() && clock.timestamp_ms() >= batch.cooldown_end_ms
 }
 
 public fun is_voting(
