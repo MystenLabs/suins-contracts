@@ -40,6 +40,8 @@ const ENotEnoughOptions: vector<u8> =
     b"Not enough options. Each proposal must have at least 2 options (and abstain).";
 #[error]
 const EBatchIsVoting: vector<u8> = b"Batch is already being used to vote.";
+#[error]
+const EBatchInCooldown: vector<u8> = b"Batch is in cooldown.";
 
 // === constants ===
 
@@ -182,6 +184,7 @@ public fun vote(
     voting_batches.do_mut!(|batch| {
         // prevent double voting
         assert!(!batch.is_voting(clock), EBatchIsVoting);
+        assert!(!batch.is_cooldown_requested(), EBatchInCooldown);
         batch.set_voting_until_ms(proposal.end_time_ms, clock);
         // count the batch power
         let batch_power = batch.power(staking_config, clock);
