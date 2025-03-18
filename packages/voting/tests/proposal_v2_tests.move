@@ -1,11 +1,13 @@
 module suins_voting::proposal_v2_tests;
 
+// === imports ===
+
 use sui::{
     clock::{Self, Clock},
-    coin::{Self},
-    test_scenario::{Self as ts},
+    coin::{Self, Coin},
+    test_scenario::{Self as ts, Scenario},
     test_utils::{assert_eq, destroy},
-    vec_set::{Self},
+    vec_set::{Self, VecSet},
 };
 use token::{
     ns::NS,
@@ -13,57 +15,191 @@ use token::{
 use suins_voting::{
     constants::{min_voting_period_ms, max_voting_period_ms},
     proposal_v2::{Self, ProposalV2},
-    voting_option::{Self, threshold_not_reached},
+    voting_option::{Self, VotingOption, threshold_not_reached, tie_rejected},
     staking_batch::{Self, StakingBatch, Reward},
-    staking_config::{Self},
+    staking_config::{Self, StakingConfig},
 };
 
+// === constants ===
+
+const INITIAL_TIME: u64 = 86_400_000; // January 2, 1970
+
+const ADMIN: address = @0xaa1;
+const USER_1: address = @0xee1;
+const USER_2: address = @0xee2;
+
+// === setup ===
+
+public struct TestSetup {
+    ts: Scenario,
+    clock: Clock,
+    config: StakingConfig,
+}
+
+fun setup(): TestSetup {
+    let mut ts = ts::begin(ADMIN);
+    let mut clock = clock::create_for_testing(ts.ctx());
+    clock.set_for_testing(INITIAL_TIME);
+    staking_config::init_for_testing(ts.ctx());
+
+    ts.next_tx(ADMIN);
+    let config = ts.take_shared<StakingConfig>();
+    TestSetup { ts, clock, config }
+}
+
+// === helpers for our modules ===
+
+fun create_batch(
+    setup: &mut TestSetup,
+    balance: u64,
+    lock_months: u64,
+): StakingBatch {
+    let coin = setup.mint_ns(balance);
+    staking_batch::new(&setup.config, coin, lock_months, &setup.clock, setup.ts.ctx())
+}
+
+fun create_proposal(
+    setup: &mut TestSetup,
+    options: VecSet<VotingOption>,
+    reward_amount: u64,
+    voting_period_ms: u64,
+): ProposalV2 {
+    let reward_coin = setup.mint_ns(reward_amount);
+    let end_time_ms = setup.clock.timestamp_ms() + voting_period_ms;
+
+    proposal_v2::new(
+        b"Test Title".to_string(),
+        b"Test Description".to_string(),
+        end_time_ms,
+        options,
+        reward_coin,
+        &setup.clock,
+        setup.ts.ctx()
+    )
+}
+
+// === helpers for sui modules ===
+
+fun mint_ns(
+    setup: &mut TestSetup,
+    value: u64,
+): Coin<NS> {
+    return coin::mint_for_testing<NS>(value, setup.ts.ctx())
+}
+
+fun add_time(
+    setup: &mut TestSetup,
+    ms: u64,
+) {
+    setup.clock.increment_for_testing(ms);
+}
+
+// === tests ===
+
 #[test]
-fun test_reward() {
-    let admin: address = @0xAAA;
-    let user1: address = @0xBBB;
+fun test_end_to_end_ok() {
+    let mut setup = setup();
 
-    // user creates batch
-    let mut ts = ts::begin(user1);
-    let clock = clock::create_for_testing(ts.ctx());
-    let batch = staking_batch::new_for_testing(
-        1000, // balance
-        0, // start_ms
-        0, // unlock_ms
-        0, // cooldown_end_ms
-        0, // voting_until_ms
-        0, // origin
-        ts.ctx()
+    // admin creates and configures proposal
+    let mut options = voting_option::default_options();
+    options.insert(voting_option::new(b"Option A".to_string()));
+    options.insert(voting_option::new(b"Option B".to_string()));
+    let voting_period_ms = 7 * 24 * 60 * 60 * 1000;
+    let mut proposal = setup.create_proposal(
+        options,
+        1_000_000,
+        voting_period_ms,
     );
-    let batch_address = batch.id().to_address();
 
-    assert_eq(batch.balance(), 1000);
-    batch.keep(ts.ctx());
-
-    // admin creates proposal and sends reward to batch
-    ts.next_tx(admin);
-    let mut proposal = proposal_v2::new(
-        b"The title".to_string(),
-        b"The description".to_string(),
-        clock.timestamp_ms() + min_voting_period_ms!() + 1,
-        voting_option::default_options(),
-        coin::mint_for_testing<NS>(5000, ts.ctx()),
-        &clock,
-        ts.ctx(),
+    // user_1 votes with two batches
+    ts::next_tx(&mut setup.ts, USER_1);
+    let batch1 = setup.create_batch(500_000, 3);
+    let batch2 = setup.create_batch(300_000, 6);
+    let batch1_power = batch1.power(&setup.config, &setup.clock);
+    let batch2_power = batch2.power(&setup.config, &setup.clock);
+    let mut voting_batches_u1 = vector[batch1, batch2];
+    proposal.vote(
+        b"Yes".to_string(),
+        &mut voting_batches_u1,
+        &setup.config,
+        &setup.clock,
+        setup.ts.ctx()
     );
-    proposal.demo_send_reward(batch_address, 100, ts.ctx());
+    let mut batch2 = voting_batches_u1.pop_back();
+    let mut batch1 = voting_batches_u1.pop_back();
+    voting_batches_u1.destroy_empty();
 
-    // user collects reward
-    ts.next_tx(user1);
-    let mut batch = ts.take_from_sender<StakingBatch>();
-    let receiving_ticket = ts::most_recent_receiving_ticket<Reward>(&batch.id());
-    batch.receive_reward(receiving_ticket);
-    assert_eq(batch.balance(), 1100);
+    // user_2 votes with one batch
+    ts::next_tx(&mut setup.ts, USER_2);
+    let batch3 = setup.create_batch(200_000, 12);
+    let batch3_power = batch3.power(&setup.config, &setup.clock);
+    let mut voting_batches_u2 = vector[batch3];
+    proposal.vote(
+        b"Option A".to_string(),
+        &mut voting_batches_u2,
+        &setup.config,
+        &setup.clock,
+        setup.ts.ctx()
+    );
+    let mut batch3 = voting_batches_u2.pop_back();
+    voting_batches_u2.destroy_empty();
 
-    destroy(ts);
-    destroy(clock);
+    // verify voting results
+    let total_expected_power = batch1_power + batch2_power + batch3_power;
+    assert_eq(proposal.total_power(), total_expected_power);
+    assert_eq(*proposal.option_powers().get(&voting_option::new(b"Yes".to_string())), batch1_power + batch2_power);
+    assert_eq(*proposal.option_powers().get(&voting_option::new(b"Option A".to_string())), batch3_power);
+    assert_eq(*proposal.option_powers().get(&voting_option::new(b"No".to_string())), 0);
+    assert_eq(*proposal.option_powers().get(&voting_option::new(b"Abstain".to_string())), 0);
+
+    // finalize proposal and distribute rewards
+    setup.add_time(voting_period_ms + 1);
+    proposal.finalize(&setup.clock, setup.ts.ctx());
+    proposal.distribute_rewards(&setup.clock, setup.ts.ctx());
+
+    // verify winning option
+    assert_eq(proposal.winning_option().is_some(), true);
+    let yes_power = batch1_power + batch2_power;
+    let option_a_power = batch3_power;
+    let expected_winner = if (yes_power > option_a_power) {
+        b"Yes".to_string()
+    } else if (option_a_power > yes_power) {
+        b"Option A".to_string()
+    } else {
+        assert_eq(*proposal.winning_option().borrow(), tie_rejected());
+        b"".to_string()
+    };
+
+    if (expected_winner != b"".to_string()) {
+        assert_eq(*proposal.winning_option().borrow(), voting_option::new(expected_winner));
+    };
+
+    // user_1 collects rewards
+    ts::next_tx(&mut setup.ts, USER_1);
+    let batch1_id = batch1.id().to_address();
+    if (!ts::ids_for_address<Reward>(batch1_id).is_empty()) {
+        let receiving_ticket = ts::most_recent_receiving_ticket<Reward>(&batch1.id());
+        batch1.receive_reward(receiving_ticket);
+    };
+    let batch2_id = batch2.id().to_address();
+    if (!ts::ids_for_address<Reward>(batch2_id).is_empty()) {
+        let receiving_ticket = ts::most_recent_receiving_ticket<Reward>(&batch2.id());
+        batch2.receive_reward(receiving_ticket);
+    };
+
+    // user_2 collects rewards
+    ts::next_tx(&mut setup.ts, USER_2);
+    let batch3_id = batch3.id().to_address();
+    if (!ts::ids_for_address<Reward>(batch3_id).is_empty()) {
+        let receiving_ticket = ts::most_recent_receiving_ticket<Reward>(&batch3.id());
+        batch3.receive_reward(receiving_ticket);
+    };
+
+    destroy(batch1);
+    destroy(batch2);
+    destroy(batch3);
     destroy(proposal);
-    destroy(batch);
+    destroy(setup);
 }
 
 #[test, expected_failure(abort_code = proposal_v2::ETooShortVotingPeriod)]
@@ -153,13 +289,14 @@ fun try_finalize_twice() {
     clock.increment_for_testing(min_voting_period_ms!() + 2);
     proposal.finalize(&clock, &mut ctx);
 
-    assert!(!proposal.is_threshold_reached());
+    assert_eq(proposal.is_threshold_reached(), false);
 
     // our chance to test the non-reached threshold result too.
-    assert!(
+    assert_eq(
         proposal
             .winning_option()
             .is_some_and!(|opt| opt == threshold_not_reached()),
+        true
     );
 
     proposal.finalize(&clock, &mut ctx);

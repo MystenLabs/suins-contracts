@@ -89,16 +89,6 @@ public struct ProposalV2 has key {
     total_reward: u64,
 }
 
-public(package) fun demo_send_reward( // TODO remove
-    proposal: &mut ProposalV2,
-    recipient: address,
-    value: u64,
-    ctx: &mut TxContext,
-) {
-    let reward_balance = proposal.reward.split(value);
-    staking_batch::send_reward(reward_balance, recipient, ctx);
-}
-
 // === public functions ===
 
 /// Create a new proposal with the given options.
