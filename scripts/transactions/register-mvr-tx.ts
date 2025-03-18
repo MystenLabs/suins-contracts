@@ -157,11 +157,13 @@ export const registerMvrApps = async () => {
 		const appCapObject = transaction.object(MVRAppCaps[key as keyof typeof MVRAppCaps]);
 		const upgradeCapObject = transaction.object(UpgradeCaps[key as keyof typeof UpgradeCaps]);
 
+		// Creates new package info object.
 		const packageInfo = transaction.moveCall({
 			target: `@mvr/metadata::package_info::new`,
 			arguments: [upgradeCapObject],
 		});
 
+		// Sets package info metadata
 		transaction.moveCall({
 			target: '@mvr/metadata::package_info::set_metadata',
 			arguments: [
@@ -171,6 +173,7 @@ export const registerMvrApps = async () => {
 			],
 		});
 
+		// Sets title of the package info
 		const display = transaction.moveCall({
 			target: `@mvr/metadata::display::default`,
 			arguments: [transaction.pure.string(AppsMetadata[key as keyof typeof AppsMetadata].title)],
@@ -182,7 +185,6 @@ export const registerMvrApps = async () => {
 		});
 
 		// time to create the git versioning too.
-
 		for (const version of metadata.versions) {
 			const git = transaction.moveCall({
 				target: `@mvr/metadata::git::new`,
@@ -238,7 +240,7 @@ export const registerMvrApps = async () => {
 				transaction.object(
 					'0x0e5d473a055b6b7d014af557a13ad9075157fdc19b6d51562a18511afd397727', // Move registry
 				),
-				transaction.object(appCapObject),
+				appCapObject,
 				transaction.pure.string('description'), // key
 				transaction.pure.string(AppsMetadata[key as keyof typeof AppsMetadata].description), // value
 			],
@@ -250,7 +252,7 @@ export const registerMvrApps = async () => {
 				transaction.object(
 					'0x0e5d473a055b6b7d014af557a13ad9075157fdc19b6d51562a18511afd397727', // Move registry
 				),
-				transaction.object(appCapObject),
+				appCapObject,
 				transaction.pure.string('documentation_url'), // key
 				transaction.pure.string(AppsMetadata[key as keyof typeof AppsMetadata].documentation_url), // value
 			],
@@ -262,7 +264,7 @@ export const registerMvrApps = async () => {
 				transaction.object(
 					'0x0e5d473a055b6b7d014af557a13ad9075157fdc19b6d51562a18511afd397727', // Move registry
 				),
-				transaction.object(appCapObject),
+				appCapObject,
 				transaction.pure.string('homepage_url'), // key
 				transaction.pure.string(AppsMetadata[key as keyof typeof AppsMetadata].homepage_url), // value
 			],
