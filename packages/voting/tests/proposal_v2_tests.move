@@ -87,6 +87,25 @@ fun create_default_proposal(
     create_proposal(setup, voting_option::default_options(), 0, VOTING_PERIOD_MS)
 }
 
+fun vote_with_new_batch_and_keep(
+    setup: &mut TestSetup,
+    proposal: &mut ProposalV2,
+    option: vector<u8>,
+    balance: u64,
+) {
+    let batch = setup.create_batch(balance, 0);
+    let mut batches = vector[batch];
+    proposal.vote(
+        option.to_string(),
+        &mut batches,
+        &setup.config,
+        &setup.clock,
+        setup.ts.ctx(),
+    );
+    batches.pop_back().keep(setup.ts.ctx());
+    batches.destroy_empty();
+}
+
 fun keep_batches(
     setup: &mut TestSetup,
     batches: vector<StakingBatch>,
@@ -224,10 +243,7 @@ fun test_threshold_not_reached_ok() {
 
     // Add some votes, but not enough to meet threshold
     ts::next_tx(&mut setup.ts, USER_1);
-    let batch = setup.create_batch(threshold - 1, 0);
-    let mut batches = vector[batch];
-    proposal.vote(b"Yes".to_string(), &mut batches, &setup.config, &setup.clock, setup.ts.ctx());
-    setup.keep_batches(batches);
+    setup.vote_with_new_batch_and_keep(&mut proposal, b"Yes", threshold - 1);
 
     // Finalize proposal
     setup.add_time(proposal.end_time_ms());
@@ -246,16 +262,10 @@ fun test_tied_vote_ok() {
 
     // Two users vote with equal power for different options
     ts::next_tx(&mut setup.ts, USER_1);
-    let batch1 = setup.create_batch(1_000_000, 0);
-    let mut batches1 = vector[batch1];
-    proposal.vote(b"Yes".to_string(), &mut batches1, &setup.config, &setup.clock, setup.ts.ctx());
-    setup.keep_batches(batches1);
+    setup.vote_with_new_batch_and_keep(&mut proposal, b"Yes", 1_000_000);
 
     ts::next_tx(&mut setup.ts, USER_2);
-    let batch2 = setup.create_batch(1_000_000, 0);
-    let mut batches2 = vector[batch2];
-    proposal.vote(b"No".to_string(), &mut batches2, &setup.config, &setup.clock, setup.ts.ctx());
-    setup.keep_batches(batches2);
+    setup.vote_with_new_batch_and_keep(&mut proposal, b"No", 1_000_000);
 
     // Time passes, finalize proposal
     setup.set_time(proposal.end_time_ms());
@@ -274,21 +284,13 @@ fun test_abstain_ok() {
 
     // Two users vote: one for Yes, one for Abstain with more power
     ts::next_tx(&mut setup.ts, USER_1);
-    let batch1_balance = 1_000_000;
-    let batch1 = setup.create_batch(batch1_balance, 0);
-    let mut batches1 = vector[batch1];
-    proposal.vote(b"Yes".to_string(), &mut batches1, &setup.config, &setup.clock, setup.ts.ctx());
-    setup.keep_batches(batches1);
+    setup.vote_with_new_batch_and_keep(&mut proposal, b"Yes", 1_000_000);
 
     ts::next_tx(&mut setup.ts, USER_2);
-    let batch2_balance = 2_000_000;
-    let batch2 = setup.create_batch(batch2_balance, 0);
-    let mut batches2 = vector[batch2];
-    proposal.vote(b"Abstain".to_string(), &mut batches2, &setup.config, &setup.clock, setup.ts.ctx());
-    setup.keep_batches(batches2);
+    setup.vote_with_new_batch_and_keep(&mut proposal, b"Abstain", 2_000_000);
 
     // Verify total power counts
-    assert_eq(proposal.total_power(), batch1_balance + batch2_balance);
+    assert_eq(proposal.total_power(), 1_000_000 + 2_000_000);
 
     // Time passes, finalize proposal
     setup.set_time(proposal.end_time_ms());
@@ -308,21 +310,13 @@ fun test_user_can_vote_multiple_times_ok() {
 
     // User votes in two separate transactions
     ts::next_tx(&mut setup.ts, USER_1);
-    let batch1 = setup.create_batch(1_000_000, 0);
-    let batch1_power = batch1.power(&setup.config, &setup.clock);
-    let mut batches1 = vector[batch1];
-    proposal.vote(b"Yes".to_string(), &mut batches1, &setup.config, &setup.clock, setup.ts.ctx());
-    setup.keep_batches(batches1);
+    setup.vote_with_new_batch_and_keep(&mut proposal, b"Yes", 1_000_000);
 
     ts::next_tx(&mut setup.ts, USER_1);
-    let batch2 = setup.create_batch(2_000_000, 0);
-    let batch2_power = batch2.power(&setup.config, &setup.clock);
-    let mut batches2 = vector[batch2];
-    proposal.vote(b"Yes".to_string(), &mut batches2, &setup.config, &setup.clock, setup.ts.ctx());
-    setup.keep_batches(batches2);
+    setup.vote_with_new_batch_and_keep(&mut proposal, b"Yes", 2_000_000);
 
     // Check that user's voting power is accumulated correctly in user_powers
-    let expected_power = batch1_power + batch2_power;
+    let expected_power = 1_000_000 + 2_000_000;
     let user_powers = proposal.user_powers();
     assert_eq(
         *user_powers.borrow(USER_1).get(&voting_option::new(b"Yes".to_string())),
