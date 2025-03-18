@@ -6,7 +6,11 @@
 /// This is a simple voting mechanism, without complex actions.
 module suins_voting::early_voting;
 
-use suins_voting::{governance::{NSGovernance, NSGovernanceCap}, proposal::Proposal};
+use suins_voting::{
+    governance::{NSGovernance, NSGovernanceCap},
+    proposal::Proposal,
+    proposal_v2::ProposalV2,
+};
 
 #[error]
 const ECannotHaveParallelProposals: vector<u8> = b"Cannot have parallel proposals";
@@ -31,6 +35,44 @@ public fun add_proposal(
     governance: &mut NSGovernance,
     mut proposal: Proposal,
 ) {
+    let pointer = ProposalPointer {
+        proposal_id: proposal.id(),
+        end_time: proposal.end_time_ms(),
+    };
+    add_early_voting_proposal(governance, pointer, proposal.start_time_ms());
+
+    let early_voting: &mut EarlyVoting = governance.app_mut();
+    proposal.set_serial_no(early_voting.0.length());
+    proposal.set_threshold(governance.quorum_threshold());
+
+    proposal.share();
+}
+
+public fun add_proposal_v2(
+    _: &NSGovernanceCap,
+    governance: &mut NSGovernance,
+    mut proposal: ProposalV2,
+) {
+    let pointer = ProposalPointer {
+        proposal_id: proposal.id(),
+        end_time: proposal.end_time_ms(),
+    };
+    add_early_voting_proposal(governance, pointer, proposal.start_time_ms());
+
+    let early_voting: &mut EarlyVoting = governance.app_mut();
+    proposal.set_serial_no(early_voting.0.length());
+    proposal.set_threshold(governance.quorum_threshold());
+
+    proposal.share();
+}
+
+// === private functions ===
+
+fun add_early_voting_proposal(
+    governance: &mut NSGovernance,
+    pointer: ProposalPointer,
+    start_time_ms: u64,
+) {
     // Self-spawn the early voting app if it is not there yet.
     if (!governance.has_app<EarlyVoting>()) {
         governance.add_app(EarlyVoting(vector[]))
@@ -41,18 +83,13 @@ public fun add_proposal(
     // avoid 2 parallel proposals.
     if (early_voting.0.length() > 0) {
         let last_proposal = early_voting.0.borrow(early_voting.0.length() - 1);
-        assert!(last_proposal.end_time < proposal.start_time_ms(), ECannotHaveParallelProposals);
+        assert!(
+            last_proposal.end_time < start_time_ms,
+            ECannotHaveParallelProposals,
+        );
     };
 
     early_voting
         .0
-        .push_back(ProposalPointer {
-            proposal_id: proposal.id(),
-            end_time: proposal.end_time_ms(),
-        });
-
-    proposal.set_serial_no(early_voting.0.length());
-    proposal.set_threshold(governance.quorum_threshold());
-
-    proposal.share();
+        .push_back(pointer);
 }
