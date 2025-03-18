@@ -24,6 +24,7 @@ use suins_voting::{
 // === constants ===
 
 const INITIAL_TIME: u64 = 86_400_000; // January 2, 1970
+const VOTING_PERIOD_MS: u64 = 1000 * 60 * 60 * 24 * 7; // 7 days
 
 const ADMIN: address = @0xaa1;
 const USER_1: address = @0xee1;
@@ -80,6 +81,12 @@ fun create_proposal(
     )
 }
 
+fun create_default_proposal(
+    setup: &mut TestSetup,
+): ProposalV2 {
+    create_proposal(setup, voting_option::default_options(), 0, VOTING_PERIOD_MS)
+}
+
 fun keep_batches(
     setup: &mut TestSetup,
     batches: vector<StakingBatch>,
@@ -102,6 +109,13 @@ fun add_time(
     ms: u64,
 ) {
     setup.clock.increment_for_testing(ms);
+}
+
+fun set_time(
+    setup: &mut TestSetup,
+    ms: u64,
+) {
+    setup.clock.set_for_testing(ms);
 }
 
 // === tests ===
@@ -204,13 +218,8 @@ fun test_threshold_not_reached_ok() {
     let mut setup = setup();
 
     // Create proposal with threshold
+    let mut proposal = create_default_proposal(&mut setup);
     let threshold = 1_000_000; // 1 NS
-    let voting_period_ms = day_ms!() * 7;
-    let mut proposal = setup.create_proposal(
-        voting_option::default_options(),
-        0, // no rewards
-        voting_period_ms,
-    );
     proposal.set_threshold(threshold);
 
     // Add some votes, but not enough to meet threshold
@@ -221,7 +230,7 @@ fun test_threshold_not_reached_ok() {
     setup.keep_batches(batches);
 
     // Finalize proposal
-    setup.add_time(voting_period_ms);
+    setup.add_time(proposal.end_time_ms());
     proposal.finalize(&setup.clock, setup.ts.ctx());
 
     assert_eq(*proposal.winning_option().borrow(), threshold_not_reached());
@@ -233,14 +242,7 @@ fun test_threshold_not_reached_ok() {
 #[test]
 fun test_tied_vote_ok() {
     let mut setup = setup();
-
-    // Create proposal
-    let voting_period_ms = day_ms!() * 7;
-    let mut proposal = setup.create_proposal(
-        voting_option::default_options(),
-        0, // no rewards
-        voting_period_ms,
-    );
+    let mut proposal = create_default_proposal(&mut setup);
 
     // Two users vote with equal power for different options
     ts::next_tx(&mut setup.ts, USER_1);
@@ -256,7 +258,7 @@ fun test_tied_vote_ok() {
     setup.keep_batches(batches2);
 
     // Time passes, finalize proposal
-    setup.add_time(voting_period_ms);
+    setup.set_time(proposal.end_time_ms());
     proposal.finalize(&setup.clock, setup.ts.ctx());
 
     assert_eq(*proposal.winning_option().borrow(), tie_rejected());
@@ -268,14 +270,7 @@ fun test_tied_vote_ok() {
 #[test]
 fun test_abstain_ok() {
     let mut setup = setup();
-
-    // Create proposal
-    let voting_period_ms = day_ms!() * 7;
-    let mut proposal = setup.create_proposal(
-        voting_option::default_options(),
-        0, // no rewards
-        voting_period_ms,
-    );
+    let mut proposal = create_default_proposal(&mut setup);
 
     // Two users vote: one for Yes, one for Abstain with more power
     ts::next_tx(&mut setup.ts, USER_1);
@@ -296,7 +291,7 @@ fun test_abstain_ok() {
     assert_eq(proposal.total_power(), batch1_balance + batch2_balance);
 
     // Time passes, finalize proposal
-    setup.add_time(voting_period_ms);
+    setup.set_time(proposal.end_time_ms());
     proposal.finalize(&setup.clock, setup.ts.ctx());
 
     // Yes should win despite having fewer votes, since Abstain is ignored for winner selection
@@ -309,11 +304,7 @@ fun test_abstain_ok() {
 #[test]
 fun test_user_can_vote_multiple_times_ok() {
     let mut setup = setup();
-
-    // Create proposal
-    let mut options = voting_option::default_options();
-    options.insert(voting_option::new(b"Option A".to_string()));
-    let mut proposal = setup.create_proposal(options, 1_000_000, day_ms!() * 7);
+    let mut proposal = create_default_proposal(&mut setup);
 
     // User votes in two separate transactions
     ts::next_tx(&mut setup.ts, USER_1);
