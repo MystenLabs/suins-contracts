@@ -28,6 +28,7 @@ const INITIAL_TIME: u64 = 86_400_000; // January 2, 1970
 const ADMIN: address = @0xaa1;
 const USER_1: address = @0xee1;
 const USER_2: address = @0xee2;
+const USER_3: address = @0xee3;
 
 // === setup ===
 
@@ -79,6 +80,14 @@ fun create_proposal(
     )
 }
 
+fun keep_batches(
+    setup: &mut TestSetup,
+    batches: vector<StakingBatch>,
+) {
+    batches.destroy!(|batch| {
+        batch.keep(setup.ts.ctx());
+    });
+}
 // === helpers for sui modules ===
 
 fun mint_ns(
@@ -116,6 +125,8 @@ fun test_end_to_end_ok() {
     ts::next_tx(&mut setup.ts, USER_1);
     let batch1 = setup.create_batch(250_000_000, 3); // 250 NS, locked for 3 months
     let batch2 = setup.create_batch(500_000_000, 3); // 500 NS, locked for 3 months
+    let batch1_id = batch1.id();
+    let batch2_id = batch2.id();
     let batch1_power = batch1.power(&setup.config, &setup.clock);
     let batch2_power = batch2.power(&setup.config, &setup.clock);
     let mut voting_batches_u1 = vector[batch1, batch2];
@@ -126,13 +137,12 @@ fun test_end_to_end_ok() {
         &setup.clock,
         setup.ts.ctx()
     );
-    let mut batch2 = voting_batches_u1.pop_back();
-    let mut batch1 = voting_batches_u1.pop_back();
-    voting_batches_u1.destroy_empty();
+    setup.keep_batches(voting_batches_u1);
 
     // user_2 votes with one batch
     ts::next_tx(&mut setup.ts, USER_2);
     let batch3 = setup.create_batch(250_000_000, 3); // 250 NS, locked for 3 months
+    let batch3_id = batch3.id();
     let batch3_power = batch3.power(&setup.config, &setup.clock);
     let mut voting_batches_u2 = vector[batch3];
     proposal.vote(
@@ -142,8 +152,7 @@ fun test_end_to_end_ok() {
         &setup.clock,
         setup.ts.ctx()
     );
-    let mut batch3 = voting_batches_u2.pop_back();
-    voting_batches_u2.destroy_empty();
+    setup.keep_batches(voting_batches_u2);
 
     // verify voting results
     let expected_total_power = batch1_power + batch2_power + batch3_power;
@@ -154,6 +163,7 @@ fun test_end_to_end_ok() {
     assert_eq(*proposal.option_powers().get(&voting_option::new(b"Abstain".to_string())), 0);
 
     // finalize proposal and distribute rewards
+    ts::next_tx(&mut setup.ts, USER_3); // anyone can do this
     setup.add_time(voting_period_ms);
     proposal.finalize(&setup.clock, setup.ts.ctx());
     proposal.distribute_rewards(&setup.clock, setup.ts.ctx());
@@ -162,26 +172,29 @@ fun test_end_to_end_ok() {
     // user_1 collects rewards
     ts::next_tx(&mut setup.ts, USER_1);
 
-    let ticket = ts::most_recent_receiving_ticket<Reward>(&batch1.id());
+    let mut batch1 = setup.ts.take_from_sender_by_id<StakingBatch>(batch1_id);
+    let ticket = ts::most_recent_receiving_ticket<Reward>(&batch1_id);
     batch1.receive_reward(ticket);
     assert_eq(batch1.rewards(), 250_000);
     assert_eq(batch1.balance(), 250_000_000 + 250_000);
+    setup.ts.return_to_sender(batch1);
 
-    let ticket = ts::most_recent_receiving_ticket<Reward>(&batch2.id());
+    let mut batch2 = setup.ts.take_from_sender_by_id<StakingBatch>(batch2_id);
+    let ticket = ts::most_recent_receiving_ticket<Reward>(&batch2_id);
     batch2.receive_reward(ticket);
     assert_eq(batch2.rewards(), 500_000);
     assert_eq(batch2.balance(), 500_000_000 + 500_000);
+    setup.ts.return_to_sender(batch2);
 
     // user_2 collects rewards
     ts::next_tx(&mut setup.ts, USER_2);
-    let ticket = ts::most_recent_receiving_ticket<Reward>(&batch3.id());
+    let mut batch3 = setup.ts.take_from_sender_by_id<StakingBatch>(batch3_id);
+    let ticket = ts::most_recent_receiving_ticket<Reward>(&batch3_id);
     batch3.receive_reward(ticket);
     assert_eq(batch3.rewards(), 250_000);
     assert_eq(batch3.balance(), 250_000_000 + 250_000);
+    setup.ts.return_to_sender(batch3);
 
-    destroy(batch1);
-    destroy(batch2);
-    destroy(batch3);
     destroy(proposal);
     destroy(setup);
 }
