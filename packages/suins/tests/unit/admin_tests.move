@@ -11,13 +11,8 @@
 module suins::admin_tests;
 
 use std::string::utf8;
-use sui::clock;
-use sui::test_utils::assert_eq;
-use suins::admin::{Self, Admin};
-use suins::constants;
-use suins::domain;
-use suins::registry;
-use suins::suins;
+use sui::{clock, test_utils::assert_eq};
+use suins::{admin::{Self, Admin}, constants, domain, registry, suins};
 
 #[test, expected_failure(abort_code = ::suins::suins::EAppNotAuthorized)]
 fun try_unathorized_fail() {

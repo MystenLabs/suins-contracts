@@ -5,9 +5,7 @@
 /// This will validate that the supply of minted NS cannot change.
 module token::ns;
 
-use sui::coin::{Self, Coin, TreasuryCap};
-use sui::dynamic_object_field as dof;
-use sui::url;
+use sui::{coin::{Self, Coin, TreasuryCap}, dynamic_object_field as dof, url};
 
 const TOTAL_SUPPLY_TO_MINT: u64 = 500_000_000 * 1_000_000;
 const DECIMALS: u8 = 6;
@@ -25,7 +23,7 @@ public struct ProtectedTreasury has key {
 
 /// The dynamic object field key for the `TreasuryCap`.
 /// That allows us to easily look-up the `TreasuryCap` from the `ProtectedTreasury` off-chain.
-public struct TreasuryCapKey has copy, store, drop {}
+public struct TreasuryCapKey has copy, drop, store {}
 
 #[allow(unused_function, lint(share_owned))]
 fun init(otw: NS, ctx: &mut TxContext) {

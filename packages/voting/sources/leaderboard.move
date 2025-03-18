@@ -1,16 +1,18 @@
+// Copyright (c) Mysten Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 module suins_voting::leaderboard;
 
 #[error]
-const EInvalidMaxSize: vector<u8> =
-    b"Maximum leaderboard size cannot exceed 100 entries.";
+const EInvalidMaxSize: vector<u8> = b"Maximum leaderboard size cannot exceed 100 entries.";
 
 /// The maximum number of entries in the leaderboard
 /// Added to preserve size limits.
 const MAX_ENTRIES: u64 = 100;
 
-public struct LeaderboardEntry(address, u64) has copy, store, drop;
+public struct LeaderboardEntry(address, u64) has copy, drop, store;
 
-public struct Leaderboard has store, drop {
+public struct Leaderboard has drop, store {
     entries: vector<LeaderboardEntry>,
     max_size: u64,
 }
@@ -41,16 +43,10 @@ public fun entries(leaderboard: &Leaderboard): vector<LeaderboardEntry> {
 /// If the address exists in the leaderboard, we know that the new value
 /// is greater than the existing value (so it should belong here),
 /// so we can just update it.
-public fun add_if_eligible(
-    leaderboard: &mut Leaderboard,
-    addr: address,
-    value: u64,
-) {
+public fun add_if_eligible(leaderboard: &mut Leaderboard, addr: address, value: u64) {
     // If the address is already in the leaderboard, add the value to the
     // existing entry
-    let mut addr_idx = leaderboard
-        .entries()
-        .find_index!(|val| val.addr() == addr);
+    let mut addr_idx = leaderboard.entries().find_index!(|val| val.addr() == addr);
 
     if (addr_idx.is_some()) {
         leaderboard.entries[addr_idx.extract()].1 = value;
@@ -63,10 +59,8 @@ public fun add_if_eligible(
 
     // If the leaderboard is full and the last entry is greater than the
     // entry we try to insert, we can skip the insertion
-    if (
-        is_full &&
-        leaderboard.entries[leaderboard.max_size - 1].1 >= value
-    ) return;
+    if (is_full &&
+        leaderboard.entries[leaderboard.max_size - 1].1 >= value) return;
 
     // If the leaderboard is full, remove the last entry
     if (is_full) {
@@ -83,9 +77,7 @@ public fun sort(leaderboard: &mut Leaderboard) {
 
     while (i < leaderboard.entries.length()) {
         let mut j = i;
-        while (
-            j > 0 && leaderboard.entries[j-1].value() < leaderboard.entries[j].value()
-        ) {
+        while (j > 0 && leaderboard.entries[j-1].value() < leaderboard.entries[j].value()) {
             leaderboard.entries.swap(j-1, j);
             j = j - 1;
         };

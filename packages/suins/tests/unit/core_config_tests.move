@@ -3,11 +3,8 @@
 
 module suins::core_config_tests;
 
-use sui::test_utils::assert_eq;
-use sui::vec_map;
-use suins::constants;
-use suins::core_config::{Self, CoreConfig};
-use suins::domain;
+use sui::{test_utils::assert_eq, vec_map};
+use suins::{constants, core_config::{Self, CoreConfig}, domain};
 
 #[test]
 fun test_config_creation_and_field_access() {

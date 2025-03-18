@@ -5,15 +5,12 @@
 ///
 module suins::suins_tests;
 
-use sui::balance;
-use sui::coin;
-use sui::sui::SUI;
-use sui::test_utils::assert_eq;
+use sui::{balance, coin, sui::SUI, test_utils::assert_eq};
 use suins::suins::{Self, AdminCap, SuiNS};
 
 // === Config management ===
 
-public struct TestConfig has store, drop { a: u8 }
+public struct TestConfig has drop, store { a: u8 }
 public struct USDC has drop {}
 
 #[test]

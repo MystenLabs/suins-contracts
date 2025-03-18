@@ -3,27 +3,21 @@
 
 module payments::payments;
 
-use pyth::price_info::PriceInfoObject;
-use pyth::pyth;
+use pyth::{price_info::PriceInfoObject, pyth};
 use std::type_name::{Self, TypeName};
-use sui::clock::Clock;
-use sui::coin::{Coin, CoinMetadata};
-use sui::vec_map::{Self, VecMap};
-use suins::payment::{Receipt, PaymentIntent};
-use suins::suins::SuiNS;
+use sui::{clock::Clock, coin::{Coin, CoinMetadata}, vec_map::{Self, VecMap}};
+use suins::{payment::{Receipt, PaymentIntent}, suins::SuiNS};
 
 use fun get_config_for_type as SuiNS.get_config_for_type;
 
 public struct PaymentsApp() has drop;
 
 #[error]
-const EBaseCurrencySetupMissing: vector<u8> =
-    b"Setup for the base currency is missing.";
+const EBaseCurrencySetupMissing: vector<u8> = b"Setup for the base currency is missing.";
 #[error]
 const EInsufficientPayment: vector<u8> = b"Insufficient coin balance.";
 #[error]
-const EInvalidPaymentType: vector<u8> =
-    b"The supplied payment coin type is not supported.";
+const EInvalidPaymentType: vector<u8> = b"The supplied payment coin type is not supported.";
 #[error]
 const ECannotUseOracleForBaseCurrency: vector<u8> =
     b"Cannot use this function for base currency. Use `handle_base_payment` instead.";
@@ -43,7 +37,7 @@ const PAYMENT_DISCOUNT_KEY: vector<u8> = b"payment_discount";
 
 /// Configuration for the payments module.
 /// Holds a VecMap that determines the configuration for each currency.
-public struct PaymentsConfig has store, drop {
+public struct PaymentsConfig has drop, store {
     // the configuration for each currency.
     currencies: VecMap<TypeName, CoinTypeData>,
     // the type of our base currency (which determines the base price unit).
@@ -52,7 +46,7 @@ public struct PaymentsConfig has store, drop {
     max_age: u64,
 }
 
-public struct CoinTypeData has copy, store, drop {
+public struct CoinTypeData has copy, drop, store {
     /// The coin's decimals.
     decimals: u8,
     // A discount can be applied if the user pays with this currency.
@@ -77,9 +71,7 @@ public fun handle_base_payment<T>(
 
     assert!(payment_type == config.base_currency, EInvalidPaymentType);
 
-    suins
-        .get_config_for_type<T>()
-        .apply_discount_if_eligible(suins, &mut intent);
+    suins.get_config_for_type<T>().apply_discount_if_eligible(suins, &mut intent);
 
     let price = intent.request_data().base_amount();
     assert!(payment.value() == price, EInsufficientPayment);
@@ -139,10 +131,7 @@ public fun calculate_price<T>(
     let payment_type = type_name::get<T>();
     let type_config = suins.get_config_for_type<T>();
 
-    assert!(
-        config.base_currency != payment_type,
-        ECannotUseOracleForBaseCurrency,
-    );
+    assert!(config.base_currency != payment_type, ECannotUseOracleForBaseCurrency);
 
     let price = pyth::get_price_no_older_than(
         price_info_object,
@@ -171,15 +160,10 @@ public fun calculate_price<T>(
     )
 }
 
-public fun calculate_price_after_discount<T>(
-    suins: &SuiNS,
-    intent: &PaymentIntent,
-): u64 {
+public fun calculate_price_after_discount<T>(suins: &SuiNS, intent: &PaymentIntent): u64 {
     let type_config = suins.get_config_for_type<T>();
 
-    intent
-        .request_data()
-        .calculate_total_after_discount(type_config.discount_percentage)
+    intent.request_data().calculate_total_after_discount(type_config.discount_percentage)
 }
 
 /// Creates a new CoinTypeData struct.
@@ -231,8 +215,7 @@ public(package) fun calculate_target_currency_amount(
 
     // We use a buffer in the edge case where target_decimals + pyth_decimals <
     // base_decimals
-    let exponent_with_buffer =
-        BUFFER + target_decimals + pyth_decimals - base_decimals;
+    let exponent_with_buffer = BUFFER + target_decimals + pyth_decimals - base_decimals;
 
     // We cast to u128 to avoid overflow, which is very likely with the buffer
     let target_currency_amount =

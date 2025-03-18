@@ -218,19 +218,7 @@ fun valid_domains() {
     test_valid_domain(b"suins.sui", vector[b"suins", b"sui"]);
     test_valid_domain(
         b"1.2.3.4.5.6.7.8.9.0.sui",
-        vector[
-            b"1",
-            b"2",
-            b"3",
-            b"4",
-            b"5",
-            b"6",
-            b"7",
-            b"8",
-            b"9",
-            b"0",
-            b"sui",
-        ],
+        vector[b"1", b"2", b"3", b"4", b"5", b"6", b"7", b"8", b"9", b"0", b"sui"],
     );
     test_valid_domain(b"pay.mysten.sui", vector[b"pay", b"mysten", b"sui"]);
     test_valid_domain(
@@ -257,11 +245,7 @@ fun test_valid_labels() {
 }
 
 #[test_only]
-fun expect_is_subdomain(
-    domain: vector<u8>,
-    subdomain: vector<u8>,
-    expected: bool,
-) {
+fun expect_is_subdomain(domain: vector<u8>, subdomain: vector<u8>, expected: bool) {
     let domain = new(utf8(domain));
     let subdomain = new(utf8(subdomain));
     assert_eq(is_parent_of(&domain, &subdomain), expected);
@@ -333,11 +317,7 @@ fun split_two_dots() {
 #[test]
 fun split_three_dots() {
     let s = utf8(b"...");
-    let expected = vector[
-        utf8(vector::empty()),
-        utf8(vector::empty()),
-        utf8(vector::empty()),
-    ];
+    let expected = vector[utf8(vector::empty()), utf8(vector::empty()), utf8(vector::empty())];
     let actual = split_by_dot(s);
     assert_eq(actual, expected);
 }

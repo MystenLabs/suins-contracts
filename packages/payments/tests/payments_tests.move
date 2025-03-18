@@ -4,23 +4,20 @@
 #[test_only]
 module payments::payments_tests;
 
-use payments::payments::{
-    new_payments_config,
-    new_coin_type_data,
-    handle_base_payment,
-    PaymentsApp,
-    PaymentsConfig
+use payments::{
+    payments::{
+        new_payments_config,
+        new_coin_type_data,
+        handle_base_payment,
+        PaymentsApp,
+        PaymentsConfig
+    },
+    testns::TESTNS,
+    testusdc::TESTUSDC
 };
-use payments::testns::TESTNS;
-use payments::testusdc::TESTUSDC;
-use std::string::utf8;
-use std::type_name;
-use sui::coin::{Self, CoinMetadata};
-use sui::test_scenario::{Self as ts, ctx};
-use sui::test_utils::destroy;
-use suins::payment;
-use suins::payment_tests::setup_suins;
-use suins::suins::{Self, SuiNS, AdminCap};
+use std::{string::utf8, type_name};
+use sui::{coin::{Self, CoinMetadata}, test_scenario::{Self as ts, ctx}, test_utils::destroy};
+use suins::{payment, payment_tests::setup_suins, suins::{Self, SuiNS, AdminCap}};
 
 public struct PaymentTestsCurrency has drop {}
 public struct SPAM has drop {}
@@ -38,12 +35,7 @@ public fun setup(ctx: &mut TxContext): (SuiNS, AdminCap) {
     (suins, admin_cap)
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::payments::payments::EBaseCurrencySetupMissing,
-    ),
-]
+#[test, expected_failure(abort_code = ::payments::payments::EBaseCurrencySetupMissing)]
 fun base_currency_not_in_list_e() {
     let mut test = ts::begin(SUINS_ADDRESS);
     let (_suins, _admin_cap) = setup(test.ctx());
@@ -67,12 +59,7 @@ fun base_currency_not_in_list_e() {
     abort 1337
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::payments::payments::EInsufficientPayment,
-    ),
-]
+#[test, expected_failure(abort_code = ::payments::payments::EInsufficientPayment)]
 fun payment_insufficient_e() {
     let mut test = ts::begin(SUINS_ADDRESS);
     let (mut suins, admin_cap) = setup(test.ctx());
@@ -111,12 +98,7 @@ fun payment_insufficient_e() {
     abort 1337
 }
 
-#[
-    test,
-    expected_failure(
-        abort_code = ::payments::payments::EInvalidPaymentType,
-    ),
-]
+#[test, expected_failure(abort_code = ::payments::payments::EInvalidPaymentType)]
 fun invalid_payment_type_e() {
     let mut test = ts::begin(SUINS_ADDRESS);
     let (mut suins, admin_cap) = setup(test.ctx());

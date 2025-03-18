@@ -13,9 +13,7 @@ module temp_subdomain_proxy::subdomain_proxy;
 use std::string::String;
 use subdomains::subdomains;
 use sui::clock::Clock;
-use suins::controller;
-use suins::subdomain_registration::SubDomainRegistration;
-use suins::suins::SuiNS;
+use suins::{controller, subdomain_registration::SubDomainRegistration, suins::SuiNS};
 
 public fun new(
     suins: &mut SuiNS,

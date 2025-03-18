@@ -5,12 +5,8 @@
 module suins::register_utils;
 
 use std::string::String;
-use sui::clock::Clock;
-use sui::coin;
-use sui::test_scenario::{Self, Scenario, ctx};
-use suins::register::register;
-use suins::suins::SuiNS;
-use suins::suins_registration::SuinsRegistration;
+use sui::{clock::Clock, coin, test_scenario::{Self, Scenario, ctx}};
+use suins::{register::register, suins::SuiNS, suins_registration::SuinsRegistration};
 
 const SUINS_ADDRESS: address = @0xA001;
 

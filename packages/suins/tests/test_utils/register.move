@@ -5,14 +5,15 @@
 module suins::register;
 
 use std::string::String;
-use sui::clock::Clock;
-use sui::coin::Coin;
-use suins::core_config::CoreConfig;
-use suins::domain;
-use suins::pricing_config::PricingConfig;
-use suins::registry::Registry;
-use suins::suins::{Self, SuiNS};
-use suins::suins_registration::SuinsRegistration;
+use sui::{clock::Clock, coin::Coin};
+use suins::{
+    core_config::CoreConfig,
+    domain,
+    pricing_config::PricingConfig,
+    registry::Registry,
+    suins::{Self, SuiNS},
+    suins_registration::SuinsRegistration
+};
 
 /// Number of years passed is not within [1-5] interval.
 const EInvalidYearsArgument: u64 = 0;

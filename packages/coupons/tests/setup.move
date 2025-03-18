@@ -4,16 +4,10 @@
 #[test_only]
 module coupons::setup;
 
-use coupons::constants;
-use coupons::coupon_house::{Self, CouponsApp};
-use coupons::data::Data;
-use coupons::range;
-use coupons::rules;
+use coupons::{constants, coupon_house::{Self, CouponsApp}, data::Data, range, rules};
 use std::string::{utf8, String};
-use sui::clock;
-use sui::test_scenario::{Self, Scenario, ctx};
-use suins::registry;
-use suins::suins::{Self, AdminCap, SuiNS};
+use sui::{clock, test_scenario::{Self, Scenario, ctx}};
+use suins::{registry, suins::{Self, AdminCap, SuiNS}};
 
 public struct TestApp has drop {}
 
@@ -178,12 +172,7 @@ public fun populate_coupons(data_mut: &mut Data, ctx: &mut TxContext) {
 }
 
 // Adds a 0 rule coupon that gives 15% discount to test admin additions.
-public fun admin_add_coupon(
-    code_name: String,
-    kind: u8,
-    value: u64,
-    scenario: &mut Scenario,
-) {
+public fun admin_add_coupon(code_name: String, kind: u8, value: u64, scenario: &mut Scenario) {
     scenario.next_tx(admin());
     let mut suins = scenario.take_shared<SuiNS>();
     let cap = scenario.take_from_sender<AdminCap>();

@@ -6,13 +6,14 @@
 module suins::admin;
 
 use std::string::String;
-use sui::clock::Clock;
-use sui::tx_context::sender;
-use suins::core_config::CoreConfig;
-use suins::domain;
-use suins::registry::Registry;
-use suins::suins::{Self, AdminCap, SuiNS};
-use suins::suins_registration::SuinsRegistration;
+use sui::{clock::Clock, tx_context::sender};
+use suins::{
+    core_config::CoreConfig,
+    domain,
+    registry::Registry,
+    suins::{Self, AdminCap, SuiNS},
+    suins_registration::SuinsRegistration
+};
 
 /// The authorization witness.
 public struct Admin has drop {}
