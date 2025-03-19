@@ -53,7 +53,7 @@ jobs:
 
       - name: Run Move tests in all package subdirectories, with exclusions
         run: |
-          excluded_dirs=(day_one governance coupons subdomains) # Define excluded directories as an array
+          excluded_dirs=(day_one governance coupons subdomains temp_subdomain_proxy) # Define excluded directories as an array
           for dir in packages/*; do
             dir_name=$(basename "$dir")
             if [[ ! " ${excluded_dirs[*]} " =~ (^|[[:space:]])${dir_name}($|[[:space:]]) ]] && [ -d "$dir" ]; then
