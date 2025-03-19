@@ -7,4 +7,4 @@ Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-fram
 suins = { local = "../suins" }
 
 [addresses]
-coupons = "0x1"
+coupons = "0x0"
