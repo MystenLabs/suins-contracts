@@ -1,11 +1,9 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-import { TransactionArgument } from '@mysten/sui.js/transactions';
 import { SuiGraphQLClient } from '@mysten/sui/graphql';
 import { namedPackagesPlugin, Transaction } from '@mysten/sui/transactions';
 
 import { mainPackage } from '../config/constants';
-import { TempSubdomainProxy } from '../init/manifests';
 import { prepareMultisigTx, sender } from '../utils/utils';
 
 /** Register the MVR plugin globally (once) for our PTB construction */
