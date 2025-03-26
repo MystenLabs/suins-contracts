@@ -111,7 +111,7 @@ public fun keep(
     transfer::transfer(batch, ctx.sender());
 }
 
-/// Lock staked tokens, or extend an existing lock
+/// Lock a staked batch, or extend the lock duration of a locked batch
 public fun lock(
     batch: &mut StakingBatch,
     config: &StakingConfig,
@@ -266,6 +266,7 @@ public fun power(
     config: &StakingConfig,
     clock: &Clock,
 ): u64 {
+    // Calculate lock duration in months
     let lock_ms = batch.unlock_ms - batch.start_ms;
     let lock_months = lock_ms / month_ms!();
 
@@ -293,7 +294,7 @@ public fun power(
         total_months = max_effective_months;
     };
 
-    // Apply multiplier: 1.1^total_months
+    // Apply multiplier: monthly_boost^total_months
     let mut power = batch.balance.value() as u128;
     let monthly_boost = config.monthly_boost_bps() as u128;
     let mut i = 0;

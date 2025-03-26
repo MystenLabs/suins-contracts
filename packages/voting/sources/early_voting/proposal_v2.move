@@ -18,7 +18,7 @@ use suins_voting::{
     staking_config::{StakingConfig},
 };
 
-// === errors ===
+// === errors === // TODO move to constants - smart errors are unreadable on the client side
 
 #[error]
 const ENotAvailableOption: vector<u8> =
