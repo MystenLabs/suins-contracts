@@ -18,30 +18,17 @@ use suins_voting::{
     staking_config::{StakingConfig},
 };
 
-// === errors === // TODO move to constants - smart errors are unreadable on the client side
+// === errors ===
 
-#[error]
-const ENotAvailableOption: vector<u8> =
-    b"Tries to vote for an option that is not available.";
-#[error]
-const EVotingPeriodExpired: vector<u8> = b"Voting period has expired.";
-#[error]
-const ETooShortVotingPeriod: vector<u8> =
-    b"Tries to create a proposal with a voting period shorter than the minimum period.";
-#[error]
-const ETooLongVotingPeriod: vector<u8> =
-    b"Tries to create a proposal with a voting period longer than the maximum period.";
-#[error]
-const EEndTimeNotReached: vector<u8> = b"Proposal end time not reached.";
-#[error]
-const EProposalAlreadyFinalized: vector<u8> = b"Proposal already finalized.";
-#[error]
-const ENotEnoughOptions: vector<u8> =
-    b"Not enough options. Each proposal must have at least 2 options (and abstain).";
-#[error]
-const EBatchIsVoting: vector<u8> = b"Batch is already being used to vote.";
-#[error]
-const EBatchInCooldown: vector<u8> = b"Batch is in cooldown.";
+const ENotAvailableOption: u64 = 0;
+const EVotingPeriodExpired: u64 = 1;
+const ETooShortVotingPeriod: u64 = 2;
+const ETooLongVotingPeriod: u64 = 3;
+const EEndTimeNotReached: u64 = 4;
+const EProposalAlreadyFinalized: u64 = 5;
+const ENotEnoughOptions: u64 = 6;
+const EBatchIsVoting: u64 = 7;
+const EBatchInCooldown: u64 = 8;
 
 // === constants ===
 
