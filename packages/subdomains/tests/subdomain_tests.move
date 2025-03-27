@@ -4,7 +4,7 @@
 #[test_only]
 module suins_subdomains::subdomain_tests;
 
-use denylist::denylist;
+use suins_denylist::denylist;
 use std::string::{String, utf8};
 use sui::clock::{Self, Clock};
 use sui::test_scenario::{Self as ts, Scenario, ctx};
