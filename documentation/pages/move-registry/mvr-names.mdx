@@ -11,7 +11,7 @@ import { Callout } from 'nextra/components';
 
 ## Creating a new application
 
-To create a new application, you must provide a SuiNS name and a package name, as long as it is not 
+To create a new application, you must provide a SuiNS name and a package name, as long as it is not
 already registered.
 
 ```typescript
@@ -32,10 +32,29 @@ const appCap = transaction.moveCall({
 // and register packages later.
 ```
 
+## Setting Application Metadata
+
+Metadata can be added to an application. The appCap must be provided, along with a key/value pair.
+Key should be `description`, `icon_url`, `documentation_url`, `homepage_url`, or `contact`.
+
+```typescript
+const transaction = new Transaction();
+
+transaction.moveCall({
+    target: `@mvr/core::move_registry::set_metadata`,
+    arguments: [
+        transaction.object('0x0e5d473a055b6b7d014af557a13ad9075157fdc19b6d51562a18511afd397727'), // Move registry
+        appCap,
+        transaction.pure.string("description"), // key
+        transaction.pure.string("Description for the application"), // value
+    ],
+});
+```
+
 ## Attaching a Mainnet package to an application
 
 When attaching a Mainnet package to an application, you must provide the `PackageInfo` object.
-This call is permanent, so after a `PackageInfo` object is attached to an application, it cannot be 
+This call is permanent, so after a `PackageInfo` object is attached to an application, it cannot be
 detached in the future. Consequently, an app is always linked to a specific package.
 
 ```typescript

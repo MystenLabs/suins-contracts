@@ -18,17 +18,17 @@ The following example works for both Mainnet and Testnet.
 
 ```typescript
 const transaction = new Transaction();
-// ... (other code, could also include a `transaction.publish()` 
+// ... (other code, could also include a `transaction.publish()`
 // call to publish & register in one step.)
 
-/// We pass in our UpgradeCap 
+/// We pass in our UpgradeCap
 const packageInfo = transaction.moveCall({
     target: `@mvr/metadata::package_info::new`,
     arguments: [transaction.object('<Your UpgradeCap (by value or object id)>')],
 });
 
 // We also need to create the visual representation of our "info" object.
-// You can also call `@mvr/metadata::display::new` instead, 
+// You can also call `@mvr/metadata::display::new` instead,
 // that allows customizing the colors of your metadata object!
 const display = transaction.moveCall({
     target: `@mvr/metadata::display::default`,
@@ -43,8 +43,17 @@ transaction.moveCall({
     arguments: [transaction.object(packageInfo), display],
 });
 
+// Set the default for the packageInfo, which enables lookups
+transaction.moveCall({
+    target: "@mvr/metadata::package_info::set_metadata",
+    arguments: [
+        transaction.object(packageInfo),
+        transaction.pure.string("default"),
+        transaction.pure.string("@{suinsName}/{packageName}"), // Example: @suins/core
+    ],
+});
 
-// transfer the `PackageInfo` object to a safe address. 
+// transfer the `PackageInfo` object to a safe address.
 transaction.moveCall({
     target: `@mvr/metadata::package_info::transfer`,
     arguments: [transaction.object(packageInfo), transaction.pure.address('<Your safe address>')],
@@ -57,7 +66,7 @@ transaction.moveCall({
 
 You can add source code information on your `PackageInfo` object using the following setup.
 
-To update the source for a version, first call 
+To update the source for a version, first call
 `@mvr/metadata::package_info::unset_git_versioning` to remove the existing information.
 
 
@@ -98,23 +107,22 @@ transaction.moveCall({
     ],
 });
 // .. you could then follow the previous steps to add the new source code info for that version.
-``` 
+```
 
 ## Transferring the `PackageInfo` object
 
-You can transfer the `PackageInfo` object to another address (or object) by the following setup. If you want to 
+You can transfer the `PackageInfo` object to another address (or object) by the following setup. If you want to
 build custom access control for your object, you can utilize a transfer to object workflow (see [Transfer to Object](https://docs.sui.io/concepts/transfers/transfer-to-object) on the Sui documentation site for more information).
 
-`PackageInfo` does not allow public transfers, to ensure that the object is always indexable 
+`PackageInfo` does not allow public transfers, to ensure that the object is always indexable
 (wrapping could hurt the discoverability of the object).
 
 ```typescript
 const transaction = new Transaction();
 
-// transfer the `PackageInfo` object to a safe address. 
+// transfer the `PackageInfo` object to a safe address.
 transaction.moveCall({
     target: `@mvr/metadata::package_info::transfer`,
     arguments: [transaction.object(packageInfo), transaction.pure.address('<Your safe address>')],
 });
 ```
-
