@@ -60,13 +60,13 @@ transaction.moveCall({
 });
 
 // Optionally unset the metadata for the packageInfo
-transaction.moveCall({
-    target: "@mvr/metadata::package_info::unset_metadata",
-    arguments: [
-        transaction.object(packageInfo),
-        transaction.pure.string("default"),
-    ],
-});
+// transaction.moveCall({
+//     target: "@mvr/metadata::package_info::unset_metadata",
+//     arguments: [
+//         transaction.object(packageInfo),
+//         transaction.pure.string("default"),
+//     ],
+// });
 
 // transfer the `PackageInfo` object to a safe address.
 transaction.moveCall({
