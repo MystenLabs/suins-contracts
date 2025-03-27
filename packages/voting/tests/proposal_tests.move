@@ -9,7 +9,7 @@ use suins_voting::{
     proposal::{Self, Proposal},
     voting_option::{Self, threshold_not_reached}
 };
-use token::ns::NS;
+use suins_token::ns::NS;
 
 #[test, expected_failure(abort_code = ::suins_voting::proposal::ETooShortVotingPeriod)]
 fun try_create_outside_min_range() {

@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #[test_only]
-module discord::discord_tests;
+module suins_discord::discord_tests;
 
 use coupons::{coupon_house, setup as coupon_setup};
-use discord::{discord::{Self, Discord, DiscordCap, DiscordApp}, test_payloads as tp};
+use suins_discord::{discord::{Self, Discord, DiscordCap, DiscordApp}, test_payloads as tp};
 use sui::test_scenario::{Self, Scenario};
 use suins::suins::{SuiNS, AdminCap};
 
@@ -120,7 +120,7 @@ fun test_e2e() {
     scenario_val.end();
 }
 
-#[test, expected_failure(abort_code = ::discord::discord::ESignatureNotMatch)]
+#[test, expected_failure(abort_code = ::suins_discord::discord::ESignatureNotMatch)]
 fun attach_roles_to_wrong_discord_id_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -137,7 +137,7 @@ fun attach_roles_to_wrong_discord_id_failure() {
     scenario_val.end();
 }
 
-#[test, expected_failure(abort_code = ::discord::discord::ESignatureNotMatch)]
+#[test, expected_failure(abort_code = ::suins_discord::discord::ESignatureNotMatch)]
 fun attach_invalid_roles_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -154,7 +154,7 @@ fun attach_invalid_roles_failure() {
     scenario_val.end();
 }
 
-#[test, expected_failure(abort_code = ::discord::discord::ERoleAlreadyAssigned)]
+#[test, expected_failure(abort_code = ::suins_discord::discord::ERoleAlreadyAssigned)]
 fun try_to_attach_role_twice_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -179,7 +179,7 @@ fun try_to_attach_role_twice_failure() {
     scenario_val.end();
 }
 
-#[test, expected_failure(abort_code = ::discord::discord::ERoleNotExists)]
+#[test, expected_failure(abort_code = ::suins_discord::discord::ERoleNotExists)]
 fun try_to_attach_non_existing_role_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -198,7 +198,7 @@ fun try_to_attach_non_existing_role_failure() {
     scenario_val.end();
 }
 
-#[test, expected_failure(abort_code = ::discord::discord::ESignatureNotMatch)]
+#[test, expected_failure(abort_code = ::suins_discord::discord::ESignatureNotMatch)]
 fun try_to_attach_address_to_invalid_discord_id_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -217,7 +217,7 @@ fun try_to_attach_address_to_invalid_discord_id_failure() {
     scenario_val.end();
 }
 
-#[test, expected_failure(abort_code = ::discord::discord::ESignatureNotMatch)]
+#[test, expected_failure(abort_code = ::suins_discord::discord::ESignatureNotMatch)]
 fun try_to_reuse_signature_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -236,7 +236,7 @@ fun try_to_reuse_signature_failure() {
     scenario_val.end();
 }
 
-#[test, expected_failure(abort_code = ::discord::discord::ENotEnoughPoints)]
+#[test, expected_failure(abort_code = ::suins_discord::discord::ENotEnoughPoints)]
 fun claim_more_points_than_available_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -251,7 +251,7 @@ fun claim_more_points_than_available_failure() {
     scenario_val.end();
 }
 
-#[test, expected_failure(abort_code = ::discord::discord::ENotEnoughPoints)]
+#[test, expected_failure(abort_code = ::suins_discord::discord::ENotEnoughPoints)]
 fun claim_more_points_in_two_steps_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -270,7 +270,7 @@ fun claim_more_points_in_two_steps_failure() {
     abort 1337
 }
 
-#[test, expected_failure(abort_code = ::discord::discord::EInvalidDiscount)]
+#[test, expected_failure(abort_code = ::suins_discord::discord::EInvalidDiscount)]
 fun claim_with_invalid_percentage_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -282,7 +282,7 @@ fun claim_with_invalid_percentage_failure() {
     abort 1337
 }
 
-#[test, expected_failure(abort_code = ::discord::discord::EAddressNoMapping)]
+#[test, expected_failure(abort_code = ::suins_discord::discord::EAddressNoMapping)]
 fun claim_with_non_existing_user_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -295,7 +295,7 @@ fun claim_with_non_existing_user_failure() {
     abort 1337
 }
 
-#[test, expected_failure(abort_code = ::discord::discord::EAddressNoMapping)]
+#[test, expected_failure(abort_code = ::suins_discord::discord::EAddressNoMapping)]
 fun claim_with_invalid_user_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -310,7 +310,7 @@ fun claim_with_invalid_user_failure() {
     abort 1337
 }
 
-#[test, expected_failure(abort_code = ::discord::discord::EDiscordIdNotFound)]
+#[test, expected_failure(abort_code = ::suins_discord::discord::EDiscordIdNotFound)]
 fun claim_non_existent_discord_id() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;

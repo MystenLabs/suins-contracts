@@ -3,7 +3,7 @@
 ///
 /// After publishing this, we will burn the `UpgradeCap`.
 /// This will validate that the supply of minted NS cannot change.
-module token::ns;
+module suins_token::ns;
 
 use sui::{coin::{Self, Coin, TreasuryCap}, dynamic_object_field as dof, url};
 

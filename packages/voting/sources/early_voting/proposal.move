@@ -18,7 +18,7 @@ use suins_voting::{
     leaderboard::{Self, Leaderboard},
     voting_option::{Self, VotingOption, abstain_option}
 };
-use token::ns::NS;
+use suins_token::ns::NS;
 
 // ERRORS -----
 #[error]

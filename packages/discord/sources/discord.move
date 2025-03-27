@@ -19,7 +19,7 @@
 /// The moment the coupon is generated, the address can't change.
 
 /// The coupon's format that is being generated is calculated based on hash(discord_id + claim_idx)
-module discord::discord;
+module suins_discord::discord;
 
 use coupons::{constants::percentage_discount_type, coupon_house, range, rules};
 use std::string::String;

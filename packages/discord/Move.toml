@@ -1,5 +1,5 @@
 [package]
-name = "discord"
+name = "suins_discord"
 version = "0.0.1"
 edition = "2024.beta"
 published-at="0x408d22066775f20e0c13617c1f157a110d9a5b0873b878692b78aba92b1a46e1"
@@ -12,4 +12,4 @@ suins = { git = "https://github.com/mystenlabs/suins-contracts/", subdir = "pack
 coupons = { git = "https://github.com/mystenlabs/suins-contracts/", subdir = "packages/coupons", rev = "releases/mainnet/coupons/v1" }
 
 [addresses]
-discord = "0x408d22066775f20e0c13617c1f157a110d9a5b0873b878692b78aba92b1a46e1"
+suins_discord = "0x408d22066775f20e0c13617c1f157a110d9a5b0873b878692b78aba92b1a46e1"
