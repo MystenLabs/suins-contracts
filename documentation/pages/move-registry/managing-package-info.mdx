@@ -49,7 +49,8 @@ transaction.moveCall({
     arguments: [transaction.object(packageInfo), display],
 });
 
-// Set the default for the packageInfo, which enables reverse resolution (See details in reverse resolution)
+// Set the default for the packageInfo, which enables reverse resolution
+// See details in reverse resolution section
 transaction.moveCall({
     target: "@mvr/metadata::package_info::set_metadata",
     arguments: [
