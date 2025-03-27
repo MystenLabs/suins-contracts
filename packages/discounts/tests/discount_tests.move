@@ -2,10 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #[test_only]
-module discounts::discount_tests;
+module suins_discounts::discount_tests;
 
 use day_one::day_one::{Self, DayOne};
-use discounts::{discounts::{Self, RegularDiscountsApp}, house::{Self, DiscountHouse}};
 use sui::{clock, test_scenario::{Self as ts, Scenario, ctx}, test_utils::{destroy, assert_eq}};
 use suins::{
     constants,
@@ -14,6 +13,7 @@ use suins::{
     registry,
     suins::{Self, SuiNS, AdminCap}
 };
+use suins_discounts::{discounts::{Self, RegularDiscountsApp}, house::{Self, DiscountHouse}};
 
 // an authorized type to test.
 public struct TestAuthorized has copy, drop, store {}
@@ -130,7 +130,7 @@ fun register_day_one() {
     });
 }
 
-#[test, expected_failure(abort_code = ::discounts::discounts::EConfigNotExists)]
+#[test, expected_failure(abort_code = ::suins_discounts::discounts::EConfigNotExists)]
 fun register_with_unauthorized_type() {
     init_purchase!(USER_ADDRESS, b"fivel.sui", |discount_house, suins, intent, scenario| {
         discounts::apply_percentage_discount(
@@ -143,7 +143,7 @@ fun register_with_unauthorized_type() {
     });
 }
 
-#[test, expected_failure(abort_code = ::discounts::discounts::ENotValidForDayOne)]
+#[test, expected_failure(abort_code = ::suins_discounts::discounts::ENotValidForDayOne)]
 fun use_day_one_for_casual_flow_failure() {
     init_purchase!(USER_ADDRESS, b"fivel.sui", |discount_house, suins, intent, scenario| {
         let mut day_one = day_one::mint_for_testing(scenario.ctx());
@@ -159,7 +159,7 @@ fun use_day_one_for_casual_flow_failure() {
     });
 }
 
-#[test, expected_failure(abort_code = ::discounts::discounts::ENotActiveDayOne)]
+#[test, expected_failure(abort_code = ::suins_discounts::discounts::ENotActiveDayOne)]
 fun use_inactive_day_one_failure() {
     init_purchase!(USER_ADDRESS, b"fivel.sui", |discount_house, suins, intent, scenario| {
         let mut day_one = day_one::mint_for_testing(scenario.ctx());

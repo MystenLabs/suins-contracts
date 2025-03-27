@@ -1,7 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-module payments::payments;
+module suins_payments::payments;
 
 use pyth::{price_info::PriceInfoObject, pyth};
 use std::type_name::{Self, TypeName};

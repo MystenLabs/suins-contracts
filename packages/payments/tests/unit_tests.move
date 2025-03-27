@@ -1,9 +1,9 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-module payments::unit_tests;
+module suins_payments::unit_tests;
 
-use payments::payments::calculate_target_currency_amount;
+use suins_payments::payments::calculate_target_currency_amount;
 
 #[test]
 fun test_calculate_target_currency() {
@@ -43,7 +43,7 @@ fun test_calculate_target_currency_2() {
     assert!(target_currency_amount == 27, 1); // 27 TOKEN
 }
 
-#[test, expected_failure(abort_code = ::payments::payments::EInvalidPythPrice)]
+#[test, expected_failure(abort_code = ::suins_payments::payments::EInvalidPythPrice)]
 fun test_calculate_target_currency_invalid_pyth_price() {
     let target_decimals: u8 = 9;
     let base_decimals: u8 = 6;

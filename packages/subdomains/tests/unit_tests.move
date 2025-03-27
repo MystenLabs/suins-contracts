@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #[test_only]
-module subdomains::unit_tests;
+module suins_subdomains::unit_tests;
 
 use std::string::utf8;
-use subdomains::config::{assert_is_valid_subdomain, default};
 use suins::domain::{Self, new as new_domain, parent};
+use suins_subdomains::config::{assert_is_valid_subdomain, default};
 
 // === Validity of subdomain | parent lengths (based on string) ===
 #[test]
@@ -33,7 +33,7 @@ fun test_parent_relationships() {
     );
 }
 
-#[test, expected_failure(abort_code = subdomains::config::EDepthOutOfLimit)]
+#[test, expected_failure(abort_code = ::suins_subdomains::config::EDepthOutOfLimit)]
 fun test_too_large_subdomain_failure() {
     assert_is_valid_subdomain(
         &new_domain(utf8(b"example.sui")),
@@ -42,7 +42,7 @@ fun test_too_large_subdomain_failure() {
     );
 }
 
-#[test, expected_failure(abort_code = subdomains::config::EInvalidParent)]
+#[test, expected_failure(abort_code = ::suins_subdomains::config::EInvalidParent)]
 fun test_invalid_parent_length_failure() {
     assert_is_valid_subdomain(
         &new_domain(utf8(b"example.sui")),
@@ -51,7 +51,7 @@ fun test_invalid_parent_length_failure() {
     );
 }
 
-#[test, expected_failure(abort_code = subdomains::config::EInvalidParent)]
+#[test, expected_failure(abort_code = ::suins_subdomains::config::EInvalidParent)]
 fun test_invalid_parent_smaller_length_failure() {
     assert_is_valid_subdomain(
         &new_domain(utf8(b"sub.sub.example.sui")),
@@ -60,7 +60,7 @@ fun test_invalid_parent_smaller_length_failure() {
     );
 }
 
-#[test, expected_failure(abort_code = subdomains::config::EInvalidParent)]
+#[test, expected_failure(abort_code = ::suins_subdomains::config::EInvalidParent)]
 fun test_invalid_parent_failure() {
     assert_is_valid_subdomain(
         &new_domain(utf8(b"test.example.sui")),
@@ -69,7 +69,7 @@ fun test_invalid_parent_failure() {
     );
 }
 
-#[test, expected_failure(abort_code = subdomains::config::EInvalidParent)]
+#[test, expected_failure(abort_code = ::suins_subdomains::config::EInvalidParent)]
 fun test_invalid_parent_tld_failure() {
     assert_is_valid_subdomain(
         &new_domain(utf8(b"sub.example.move")),
@@ -77,7 +77,7 @@ fun test_invalid_parent_tld_failure() {
         &default(),
     );
 }
-#[test, expected_failure(abort_code = subdomains::config::EInvalidParent)]
+#[test, expected_failure(abort_code = ::suins_subdomains::config::EInvalidParent)]
 fun test_invalid_parent_sld_failure() {
     assert_is_valid_subdomain(
         &new_domain(utf8(b"sub.exampl.sui")),
@@ -86,7 +86,7 @@ fun test_invalid_parent_sld_failure() {
     );
 }
 
-#[test, expected_failure(abort_code = subdomains::config::EInvalidLabelSize)]
+#[test, expected_failure(abort_code = ::suins_subdomains::config::EInvalidLabelSize)]
 fun test_invalid_child_label_size_failure() {
     assert_is_valid_subdomain(
         &new_domain(utf8(b"sub.exampl.sui")),
@@ -95,7 +95,7 @@ fun test_invalid_child_label_size_failure() {
     );
 }
 
-#[test, expected_failure(abort_code = subdomains::config::ENotSupportedTLD)]
+#[test, expected_failure(abort_code = ::suins_subdomains::config::ENotSupportedTLD)]
 fun test_not_supported_tld_failure() {
     assert_is_valid_subdomain(
         &new_domain(utf8(b"sub.sub.example.move")),

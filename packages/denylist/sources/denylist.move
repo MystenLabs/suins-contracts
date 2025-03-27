@@ -1,7 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-module denylist::denylist;
+module suins_denylist::denylist;
 
 use std::string::String;
 use sui::table::{Self, Table};

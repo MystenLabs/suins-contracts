@@ -1,7 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-module subdomains::config;
+module suins_subdomains::config;
 
 use std::string::String;
 use suins::{constants::sui_tld, domain::{Domain, is_parent_of}};

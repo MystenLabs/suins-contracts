@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /// A module to introduce `range` checks for the rules.
-module coupons::range;
+module suins_coupons::range;
 
 /// Invalid [from, to] setup in the range!
 /// `to` parameter has to be >= `from`

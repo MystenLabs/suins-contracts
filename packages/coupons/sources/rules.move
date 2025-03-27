@@ -3,10 +3,10 @@
 
 // A module with a couple of helpers for validation of coupons
 // validation of names etc.
-module coupons::rules;
+module suins_coupons::rules;
 
-use coupons::{constants, range::Range};
 use sui::clock::Clock;
+use suins_coupons::{constants, range::Range};
 
 // Errors
 /// Error when you try to use a coupon that isn't valid for these years.

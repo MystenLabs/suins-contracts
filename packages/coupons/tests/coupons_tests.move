@@ -2,9 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #[test_only]
-module coupons::coupon_tests;
+module suins_coupons::coupon_tests;
 
-use coupons::{
+use std::string::String;
+use sui::{clock::Clock, test_scenario::{Scenario, return_shared}, test_utils::{Self, destroy}};
+use suins::{payment::PaymentIntent, suins::SuiNS, suins_registration::SuinsRegistration};
+use suins_coupons::{
     constants,
     coupon_house,
     data,
@@ -12,9 +15,6 @@ use coupons::{
     rules,
     setup::{Self, TestApp, user, user_two, test_app, admin_add_coupon, test_init, mist_per_sui}
 };
-use std::string::String;
-use sui::{clock::Clock, test_scenario::{Scenario, return_shared}, test_utils::{Self, destroy}};
-use suins::{payment::PaymentIntent, suins::SuiNS, suins_registration::SuinsRegistration};
 
 // populate a lot of coupons with different cases.
 // This populates the coupon as an authorized app
@@ -202,7 +202,7 @@ fun specific_max_years() {
     );
 }
 
-#[test, expected_failure(abort_code = ::coupons::range::EInvalidRange)]
+#[test, expected_failure(abort_code = ::suins_coupons::range::EInvalidRange)]
 fun max_years_two_failure() {
     rules::new_coupon_rules(
         option::none(),
@@ -215,7 +215,7 @@ fun max_years_two_failure() {
 
 // Tests the e2e experience for coupons (a list of different coupons with
 // different rules)
-#[test, expected_failure(abort_code = ::coupons::coupon_house::ECouponNotExists)]
+#[test, expected_failure(abort_code = ::suins_coupons::coupon_house::ECouponNotExists)]
 fun no_more_available_claims_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -237,7 +237,7 @@ fun no_more_available_claims_failure() {
     scenario_val.end();
 }
 
-#[test, expected_failure(abort_code = ::coupons::rules::EInvalidUser)]
+#[test, expected_failure(abort_code = ::suins_coupons::rules::EInvalidUser)]
 fun invalid_user_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -252,7 +252,7 @@ fun invalid_user_failure() {
     scenario_val.end();
 }
 
-#[test, expected_failure(abort_code = ::coupons::rules::ECouponExpired)]
+#[test, expected_failure(abort_code = ::suins_coupons::rules::ECouponExpired)]
 fun coupon_expired_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -271,7 +271,7 @@ fun coupon_expired_failure() {
     scenario_val.end();
 }
 
-#[test, expected_failure(abort_code = ::coupons::rules::ENotValidYears)]
+#[test, expected_failure(abort_code = ::suins_coupons::rules::ENotValidYears)]
 fun coupon_not_valid_for_years_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -288,7 +288,7 @@ fun coupon_not_valid_for_years_failure() {
     scenario_val.end();
 }
 
-#[test, expected_failure(abort_code = ::coupons::rules::EInvalidForDomainLength)]
+#[test, expected_failure(abort_code = ::suins_coupons::rules::EInvalidForDomainLength)]
 fun coupon_invalid_length_1_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -304,7 +304,7 @@ fun coupon_invalid_length_1_failure() {
     scenario_val.end();
 }
 
-#[test, expected_failure(abort_code = ::coupons::rules::EInvalidForDomainLength)]
+#[test, expected_failure(abort_code = ::suins_coupons::rules::EInvalidForDomainLength)]
 fun coupon_invalid_length_2_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -320,7 +320,7 @@ fun coupon_invalid_length_2_failure() {
     scenario_val.end();
 }
 
-#[test, expected_failure(abort_code = ::coupons::rules::EInvalidForDomainLength)]
+#[test, expected_failure(abort_code = ::suins_coupons::rules::EInvalidForDomainLength)]
 fun coupon_invalid_length_3_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -354,7 +354,7 @@ fun add_coupon_as_admin() {
     scenario_val.end();
 }
 
-#[test, expected_failure(abort_code = ::coupons::rules::EInvalidType)]
+#[test, expected_failure(abort_code = ::suins_coupons::rules::EInvalidType)]
 fun add_coupon_invalid_type_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -368,7 +368,7 @@ fun add_coupon_invalid_type_failure() {
     scenario_val.end();
 }
 
-#[test, expected_failure(abort_code = ::coupons::rules::EInvalidAmount)]
+#[test, expected_failure(abort_code = ::suins_coupons::rules::EInvalidAmount)]
 fun add_coupon_invalid_amount_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -381,7 +381,7 @@ fun add_coupon_invalid_amount_failure() {
     );
     scenario_val.end();
 }
-#[test, expected_failure(abort_code = ::coupons::rules::EInvalidAmount)]
+#[test, expected_failure(abort_code = ::suins_coupons::rules::EInvalidAmount)]
 fun add_coupon_invalid_amount_2_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -395,7 +395,7 @@ fun add_coupon_invalid_amount_2_failure() {
     scenario_val.end();
 }
 
-#[test, expected_failure(abort_code = ::coupons::data::ECouponAlreadyExists)]
+#[test, expected_failure(abort_code = ::suins_coupons::data::ECouponAlreadyExists)]
 fun add_coupon_twice_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -415,7 +415,7 @@ fun add_coupon_twice_failure() {
     scenario_val.end();
 }
 
-#[test, expected_failure(abort_code = ::coupons::data::ECouponDoesNotExist)]
+#[test, expected_failure(abort_code = ::suins_coupons::data::ECouponDoesNotExist)]
 fun remove_non_existing_coupon() {
     let mut ctx = tx_context::dummy();
     let mut data = data::new(&mut ctx);

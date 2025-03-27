@@ -9,6 +9,7 @@ use sui::{
     test_scenario::{Self as ts, Scenario},
     test_utils::destroy
 };
+use suins_token::ns::NS;
 use suins_voting::{
     constants::min_voting_period_ms,
     early_voting,
@@ -17,7 +18,6 @@ use suins_voting::{
     proposal_tests,
     voting_option
 };
-use token::ns::NS;
 
 const ADMIN: address = @0x0;
 const USER: address = @0x1;

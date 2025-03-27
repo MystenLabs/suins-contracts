@@ -3,14 +3,14 @@
 
 // A set of tests for the authorization of different apps in the CouponHouse.
 #[test_only]
-module coupons::app_authorization_tests;
+module suins_coupons::app_authorization_tests;
 
-use coupons::{
+use sui::test_scenario::{return_shared, return_to_sender, end};
+use suins::suins::SuiNS;
+use suins_coupons::{
     coupon_house::{Self, deauthorize_app},
     setup::{Self, TestApp, admin, user, test_init}
 };
-use sui::test_scenario::{return_shared, return_to_sender, end};
-use suins::suins::SuiNS;
 
 #[test]
 fun admin_get_app_success() {
@@ -49,7 +49,7 @@ fun authorized_app_get_app_success() {
     end(scenario_val);
 }
 
-#[test, expected_failure(abort_code = ::coupons::coupon_house::EAppNotAuthorized)]
+#[test, expected_failure(abort_code = ::suins_coupons::coupon_house::EAppNotAuthorized)]
 fun unauthorized_app_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;

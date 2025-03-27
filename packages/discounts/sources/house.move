@@ -4,7 +4,7 @@
 /// A base module that holds a shared object for the configuration of the
 /// package
 /// and exports some package utilities for the 2 systems to use.
-module discounts::house;
+module suins_discounts::house;
 
 use std::string::String;
 use suins::suins::AdminCap;
