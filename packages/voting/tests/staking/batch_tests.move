@@ -234,7 +234,7 @@ fun test_end_to_end_ok() {
     batch.set_voting_until_ms(voting_end_time, &setup.clock); // a proposal would set this
     assert_eq(batch.is_voting(&setup.clock), true);
 
-    // request unstake (should succeed even while voting)
+    // request unstake (should succeed even while voting) TODO: we changed this, now it's not allowed
     batch.request_unstake(&setup.config, &setup.clock);
     assert_eq(batch.is_cooldown_requested(), true);
     assert_eq(batch.is_cooldown_over(&setup.clock), false);

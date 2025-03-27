@@ -190,10 +190,10 @@ fun test_end_to_end_ok() {
     // verify voting results
     let expected_total_power = batch1_power + batch2_power + batch3_power;
     assert_eq(proposal.total_power(), expected_total_power);
-    assert_eq(*proposal.option_powers().get(&voting_option::new(b"Yes".to_string())), batch1_power + batch2_power);
-    assert_eq(*proposal.option_powers().get(&voting_option::new(b"Option A".to_string())), batch3_power);
-    assert_eq(*proposal.option_powers().get(&voting_option::new(b"No".to_string())), 0);
-    assert_eq(*proposal.option_powers().get(&voting_option::new(b"Abstain".to_string())), 0);
+    assert_eq(*proposal.votes().get(&voting_option::new(b"Yes".to_string())), batch1_power + batch2_power);
+    assert_eq(*proposal.votes().get(&voting_option::new(b"Option A".to_string())), batch3_power);
+    assert_eq(*proposal.votes().get(&voting_option::new(b"No".to_string())), 0);
+    assert_eq(*proposal.votes().get(&voting_option::new(b"Abstain".to_string())), 0);
 
     // finalize proposal and distribute rewards
     ts::next_tx(&mut setup.ts, USER_3); // anyone can do this

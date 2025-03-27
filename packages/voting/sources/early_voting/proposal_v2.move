@@ -59,15 +59,18 @@ public struct ProposalV2 has key {
     start_time_ms: u64,
     /// Until when the proposal can accept votes
     end_time_ms: u64,
+    /// Voting power per option. Determines the winning option.
+    votes: VecMap<VotingOption, u64>,
 
-    /* New or modified fields in v2 */
+    /* Modified fields in v2 */
+
+    /// Voting power per user and option. For informational use.
+    voters: LinkedTable<address, VecMap<VotingOption, u64>>,
+
+    /* New fields in v2 */
 
     /// Total voting power that voted in this proposal.
     total_power: u64,
-    /// Voting power per option. Determines the winning option.
-    option_powers: VecMap<VotingOption, u64>,
-    /// Voting power per user and option. For informational use.
-    user_powers: LinkedTable<address, VecMap<VotingOption, u64>>,
     /// Voting power per batch. Used to distribute rewards.
     batch_powers: LinkedTable<address, u64>,
     /// NS to reward batches proportionally to their share of total voting power
@@ -111,7 +114,7 @@ public fun new(
 
     assert!(options.size() > 2, ENotEnoughOptions);
 
-    let mut option_powers: VecMap<VotingOption, u64> = vec_map::empty();
+    let mut votes: VecMap<VotingOption, u64> = vec_map::empty();
 
     let mut vote_leaderboards: VecMap<
         VotingOption,
@@ -119,7 +122,7 @@ public fun new(
     > = vec_map::empty();
 
     options.into_keys().do!(|opt| {
-        option_powers.insert(opt, 0);
+        votes.insert(opt, 0);
         vote_leaderboards.insert(opt, leaderboard::new(10));
     });
 
@@ -130,13 +133,13 @@ public fun new(
         threshold: 0,
         title,
         description,
-        option_powers,
+        votes,
         winning_option: option::none(),
         vote_leaderboards,
         start_time_ms: clock.timestamp_ms(),
         end_time_ms,
         total_power: 0,
-        user_powers: linked_table::new(ctx),
+        voters: linked_table::new(ctx),
         batch_powers: linked_table::new(ctx),
         reward: reward.into_balance(),
         total_reward,
@@ -153,7 +156,7 @@ public fun vote(
     ctx: &mut TxContext,
 ) {
     let option = voting_option::new(opt);
-    assert!(proposal.option_powers.contains(&option), ENotAvailableOption);
+    assert!(proposal.votes.contains(&option), ENotAvailableOption);
     assert!(!proposal.is_end_time_reached(clock), EVotingPeriodExpired);
 
     // calculate the total voting power in this vote
@@ -174,14 +177,14 @@ public fun vote(
     proposal.total_power = proposal.total_power + new_power;
 
     // update option voting power
-    let option_power = proposal.option_powers.get_mut(&option);
+    let option_power = proposal.votes.get_mut(&option);
     *option_power = *option_power + new_power;
 
     // update user voting power and leaderboard
-    if (!proposal.user_powers.contains(ctx.sender())) {
-        proposal.user_powers.push_back(ctx.sender(), vec_map::empty());
+    if (!proposal.voters.contains(ctx.sender())) {
+        proposal.voters.push_back(ctx.sender(), vec_map::empty());
     };
-    let user_votes = proposal.user_powers.borrow_mut(ctx.sender());
+    let user_votes = proposal.voters.borrow_mut(ctx.sender());
     let leaderboard = proposal.vote_leaderboards.get_mut(&option);
     if (!user_votes.contains(&option)) {
         user_votes.insert(option, new_power);
@@ -273,14 +276,14 @@ fun finalize_internal(proposal: &mut ProposalV2, clock: &Clock) {
         return
     };
 
-    let mut option_powers = *&proposal.option_powers;
+    let mut votes = *&proposal.votes;
 
-    let (mut winning_option, mut winning_votes) = option_powers.pop();
+    let (mut winning_option, mut winning_votes) = votes.pop();
     if (winning_option == abstain_option()) winning_votes = 0;
     let mut is_tied = false;
 
-    while (!option_powers.is_empty()) {
-        let (opt, total) = option_powers.pop();
+    while (!votes.is_empty()) {
+        let (opt, total) = votes.pop();
         if (opt == abstain_option()) continue;
 
         if (total > winning_votes) {
@@ -322,8 +325,8 @@ public fun vote_leaderboards(proposal: &ProposalV2): &VecMap<VotingOption, Leade
 public fun end_time_ms(proposal: &ProposalV2): u64 { proposal.end_time_ms }
 public fun start_time_ms(proposal: &ProposalV2): u64 { proposal.start_time_ms }
 public fun total_power(proposal: &ProposalV2): u64 { proposal.total_power }
-public fun option_powers(proposal: &ProposalV2): &VecMap<VotingOption, u64> { &proposal.option_powers }
-public fun user_powers(proposal: &ProposalV2): &LinkedTable<address, VecMap<VotingOption, u64>> { &proposal.user_powers }
+public fun votes(proposal: &ProposalV2): &VecMap<VotingOption, u64> { &proposal.votes }
+public fun voters(proposal: &ProposalV2): &LinkedTable<address, VecMap<VotingOption, u64>> { &proposal.voters }
 public fun batch_powers(proposal: &ProposalV2): &LinkedTable<address, u64> { &proposal.batch_powers }
 public fun reward(proposal: &ProposalV2): &Balance<NS> { &proposal.reward }
 public fun total_reward(proposal: &ProposalV2): u64 { proposal.total_reward }
