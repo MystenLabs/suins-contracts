@@ -12,7 +12,7 @@ import { Callout } from 'nextra/components';
 ## MVR name
 
 A MVR name consists of a SuiNS name and a package name, in the format `<suins_name>/<pkg_name>`.
-As an example, if my SuiNS name is `myname`, and my package name is `mypackage`,
+As an example, if your SuiNS name is `myname`, and your package name is `mypackage`,
 the MVR name can be `@myname/mypackage` or `myname.sui/mypackage`.
 
 ## Creating a new `PackageInfo` object
@@ -83,6 +83,17 @@ Reverse resolution allows you to look up the human-readable name (like @suins/co
 associated with a given package ID, regardless of which version of the package you have.
 This is useful for identifying and verifying packages on-chain, especially when working with tools or
 interfaces that reference package IDs directly.
+
+```bash
+curl --location 'https://mainnet.mvr.mystenlabs.com/v1/reverse-resolution/bulk' \
+--header 'Content-Type: application/json' \
+--data '{
+    "package_ids": [
+        "0x2c8d603bc51326b8c13cef9dd07031a408a48dddb541963357661df5d3204809",
+        "0x00c2f85e07181b90c140b15c5ce27d863f93c4d9159d2a4e7bdaeb40e286d6f5"
+    ]
+}'
+```
 
 ## Adding source code information
 
