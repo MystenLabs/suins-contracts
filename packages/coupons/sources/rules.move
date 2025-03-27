@@ -6,8 +6,7 @@
 module suins_coupons::rules;
 
 use sui::clock::Clock;
-use suins_coupons::constants;
-use suins_coupons::range::Range;
+use suins_coupons::{constants, range::Range};
 
 // Errors
 /// Error when you try to use a coupon that isn't valid for these years.

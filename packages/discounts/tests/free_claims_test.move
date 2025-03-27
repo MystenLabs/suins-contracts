@@ -5,7 +5,6 @@
 module suins_discounts::free_claims_test;
 
 use day_one::day_one::{Self, DayOne};
-use suins_discounts::{free_claims::{Self, FreeClaimsApp}, house::{Self, DiscountHouse}};
 use sui::{clock, test_scenario::{Self as ts, Scenario, ctx}, test_utils::{destroy, assert_eq}};
 use suins::{
     constants,
@@ -14,6 +13,7 @@ use suins::{
     registry,
     suins::{Self, SuiNS, AdminCap}
 };
+use suins_discounts::{free_claims::{Self, FreeClaimsApp}, house::{Self, DiscountHouse}};
 
 // an authorized type to test.
 public struct TestAuthorized has key, store {

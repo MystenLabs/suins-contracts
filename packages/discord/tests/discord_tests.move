@@ -5,9 +5,9 @@
 module suins_discord::discord_tests;
 
 use coupons::{coupon_house, setup as coupon_setup};
-use suins_discord::{discord::{Self, Discord, DiscordCap, DiscordApp}, test_payloads as tp};
 use sui::test_scenario::{Self, Scenario};
 use suins::suins::{SuiNS, AdminCap};
+use suins_discord::{discord::{Self, Discord, DiscordCap, DiscordApp}, test_payloads as tp};
 
 const ADMIN_ADDRESS: address = @0xA001;
 

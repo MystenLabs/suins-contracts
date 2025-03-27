@@ -4,19 +4,19 @@
 #[test_only]
 module suins_subdomains::subdomain_tests;
 
-use suins_denylist::denylist;
 use std::string::{String, utf8};
-use sui::clock::{Self, Clock};
-use sui::test_scenario::{Self as ts, Scenario, ctx};
-use suins::constants::{grace_period_ms, year_ms};
-use suins::domain;
-use suins::registry::{Self, Registry};
-use suins::registry_tests::burn_nfts;
-use suins::subdomain_registration::{Self, SubDomainRegistration};
-use suins::suins::{Self, SuiNS, AdminCap};
-use suins::suins_registration::{Self, SuinsRegistration};
-use suins_subdomains::config;
-use suins_subdomains::subdomains::{Self, SubDomains};
+use sui::{clock::{Self, Clock}, test_scenario::{Self as ts, Scenario, ctx}};
+use suins::{
+    constants::{grace_period_ms, year_ms},
+    domain,
+    registry::{Self, Registry},
+    registry_tests::burn_nfts,
+    subdomain_registration::{Self, SubDomainRegistration},
+    suins::{Self, SuiNS, AdminCap},
+    suins_registration::{Self, SuinsRegistration}
+};
+use suins_denylist::denylist;
+use suins_subdomains::{config, subdomains::{Self, SubDomains}};
 
 const USER_ADDRESS: address = @0x01;
 const TEST_ADDRESS: address = @0x02;

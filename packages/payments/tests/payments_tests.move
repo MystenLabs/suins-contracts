@@ -4,6 +4,9 @@
 #[test_only]
 module suins_payments::payments_tests;
 
+use std::{string::utf8, type_name};
+use sui::{coin::{Self, CoinMetadata}, test_scenario::{Self as ts, ctx}, test_utils::destroy};
+use suins::{payment, payment_tests::setup_suins, suins::{Self, SuiNS, AdminCap}};
 use suins_payments::{
     payments::{
         new_payments_config,
@@ -15,9 +18,6 @@ use suins_payments::{
     testns::TESTNS,
     testusdc::TESTUSDC
 };
-use std::{string::utf8, type_name};
-use sui::{coin::{Self, CoinMetadata}, test_scenario::{Self as ts, ctx}, test_utils::destroy};
-use suins::{payment, payment_tests::setup_suins, suins::{Self, SuiNS, AdminCap}};
 
 public struct PaymentTestsCurrency has drop {}
 public struct SPAM has drop {}

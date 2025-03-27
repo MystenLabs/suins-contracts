@@ -24,9 +24,7 @@
 ///
 module suins_subdomains::subdomains;
 
-use suins_denylist::denylist;
 use std::string::{String, utf8};
-use suins_subdomains::config::{Self, SubDomainConfig};
 use sui::{clock::Clock, dynamic_field as df, vec_map::VecMap};
 use suins::{
     constants::{subdomain_allow_extension_key, subdomain_allow_creation_key},
@@ -36,6 +34,8 @@ use suins::{
     suins::{Self, SuiNS},
     suins_registration::SuinsRegistration
 };
+use suins_denylist::denylist;
+use suins_subdomains::config::{Self, SubDomainConfig};
 
 /// Tries to create a subdomain that expires later than the parent or below the minimum.
 const EInvalidExpirationDate: u64 = 1;

@@ -13,12 +13,12 @@ use sui::{
     vec_map::{Self, VecMap},
     vec_set::VecSet
 };
+use suins_token::ns::NS;
 use suins_voting::{
     constants::{min_voting_period_ms, max_voting_period_ms},
     leaderboard::{Self, Leaderboard},
     voting_option::{Self, VotingOption, abstain_option}
 };
-use suins_token::ns::NS;
 
 // ERRORS -----
 #[error]

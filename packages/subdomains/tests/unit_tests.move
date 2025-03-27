@@ -5,8 +5,8 @@
 module suins_subdomains::unit_tests;
 
 use std::string::utf8;
-use suins_subdomains::config::{assert_is_valid_subdomain, default};
 use suins::domain::{Self, new as new_domain, parent};
+use suins_subdomains::config::{assert_is_valid_subdomain, default};
 
 // === Validity of subdomain | parent lengths (based on string) ===
 #[test]

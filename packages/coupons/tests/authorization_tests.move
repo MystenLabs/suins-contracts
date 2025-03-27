@@ -5,12 +5,12 @@
 #[test_only]
 module suins_coupons::app_authorization_tests;
 
+use sui::test_scenario::{return_shared, return_to_sender, end};
+use suins::suins::SuiNS;
 use suins_coupons::{
     coupon_house::{Self, deauthorize_app},
     setup::{Self, TestApp, admin, user, test_init}
 };
-use sui::test_scenario::{return_shared, return_to_sender, end};
-use suins::suins::SuiNS;
 
 #[test]
 fun admin_get_app_success() {

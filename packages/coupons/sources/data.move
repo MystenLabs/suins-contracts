@@ -3,9 +3,9 @@
 
 module suins_coupons::data;
 
-use suins_coupons::coupon::Coupon;
 use std::string::String;
 use sui::bag::{Self, Bag};
+use suins_coupons::coupon::Coupon;
 
 const ECouponAlreadyExists: u64 = 1;
 const ECouponDoesNotExist: u64 = 2;

@@ -11,10 +11,10 @@
 module suins_discounts::discounts;
 
 use day_one::day_one::{DayOne, is_active};
-use suins_discounts::house::{Self, DiscountHouse};
 use std::type_name;
 use sui::dynamic_field as df;
 use suins::{payment::PaymentIntent, pricing_config::PricingConfig, suins::{AdminCap, SuiNS}};
+use suins_discounts::house::{Self, DiscountHouse};
 
 use fun internal_apply_discount as DiscountHouse.internal_apply_discount;
 use fun assert_config_exists as DiscountHouse.assert_config_exists;

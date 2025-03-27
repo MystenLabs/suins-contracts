@@ -3,10 +3,10 @@
 
 module suins_denylist::denylist_tests;
 
-use suins_denylist::denylist::{Self, DenyListAuth};
 use std::string::{utf8, String};
 use sui::test_scenario::{Self as ts, Scenario};
 use suins::suins::{Self, SuiNS};
+use suins_denylist::denylist::{Self, DenyListAuth};
 
 const ADDR: address = @0x0;
 

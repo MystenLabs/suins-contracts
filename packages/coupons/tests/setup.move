@@ -4,10 +4,10 @@
 #[test_only]
 module suins_coupons::setup;
 
-use suins_coupons::{constants, coupon_house::{Self, CouponsApp}, data::Data, range, rules};
 use std::string::{utf8, String};
 use sui::{clock, test_scenario::{Self, Scenario, ctx}};
 use suins::{registry, suins::{Self, AdminCap, SuiNS}};
+use suins_coupons::{constants, coupon_house::{Self, CouponsApp}, data::Data, range, rules};
 
 public struct TestApp has drop {}
 

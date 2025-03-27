@@ -4,6 +4,9 @@
 #[test_only]
 module suins_coupons::coupon_tests;
 
+use std::string::String;
+use sui::{clock::Clock, test_scenario::{Scenario, return_shared}, test_utils::{Self, destroy}};
+use suins::{payment::PaymentIntent, suins::SuiNS, suins_registration::SuinsRegistration};
 use suins_coupons::{
     constants,
     coupon_house,
@@ -12,9 +15,6 @@ use suins_coupons::{
     rules,
     setup::{Self, TestApp, user, user_two, test_app, admin_add_coupon, test_init, mist_per_sui}
 };
-use std::string::String;
-use sui::{clock::Clock, test_scenario::{Scenario, return_shared}, test_utils::{Self, destroy}};
-use suins::{payment::PaymentIntent, suins::SuiNS, suins_registration::SuinsRegistration};
 
 // populate a lot of coupons with different cases.
 // This populates the coupon as an authorized app

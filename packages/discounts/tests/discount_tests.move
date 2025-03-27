@@ -5,7 +5,6 @@
 module suins_discounts::discount_tests;
 
 use day_one::day_one::{Self, DayOne};
-use suins_discounts::{discounts::{Self, RegularDiscountsApp}, house::{Self, DiscountHouse}};
 use sui::{clock, test_scenario::{Self as ts, Scenario, ctx}, test_utils::{destroy, assert_eq}};
 use suins::{
     constants,
@@ -14,6 +13,7 @@ use suins::{
     registry,
     suins::{Self, SuiNS, AdminCap}
 };
+use suins_discounts::{discounts::{Self, RegularDiscountsApp}, house::{Self, DiscountHouse}};
 
 // an authorized type to test.
 public struct TestAuthorized has copy, drop, store {}
