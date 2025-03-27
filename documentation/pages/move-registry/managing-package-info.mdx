@@ -33,7 +33,7 @@ const packageInfo = transaction.moveCall({
 const display = transaction.moveCall({
     target: `@mvr/metadata::display::default`,
     arguments: [
-        transaction.pure.string('<Add a name to easily identify your package. This is not your MVR name.>')
+        transaction.pure.string('<Add a package name. This is not your MVR name.>') // Example: core
     ],
 });
 
@@ -43,13 +43,13 @@ transaction.moveCall({
     arguments: [transaction.object(packageInfo), display],
 });
 
-// Set the default for the packageInfo, which enables lookups
+// Set the default for the packageInfo, which enables reverse resolution (See details in reverse resolution)
 transaction.moveCall({
     target: "@mvr/metadata::package_info::set_metadata",
     arguments: [
         transaction.object(packageInfo),
         transaction.pure.string("default"),
-        transaction.pure.string("@{suinsName}/{packageName}"), // Example: @suins/core
+        transaction.pure.string("<MVR name>"), // Example: @suins/core or suins.sui/core
     ],
 });
 
