@@ -9,6 +9,12 @@ import { Callout } from 'nextra/components';
     These examples assume that you use the MVR plugin for the Sui Typescript SDK, as described in the  [`Typescript SDK`](/move-registry/tooling/typescript-sdk) section.
 </Callout>
 
+## MVR name
+
+A MVR name consists of a SuiNS name and a package name, in the format <suins_name>/<pkg_name>.
+As an example, if my SuiNS name is `myname`, and my package name is `mypackage`,
+the MVR name can be `@myname/mypackage` or `myname.sui/mypackage`.
+
 ## Creating a new `PackageInfo` object
 
 You should create a `PackageInfo` object for your package when you first deploy it, once for each network.
@@ -50,6 +56,15 @@ transaction.moveCall({
         transaction.object(packageInfo),
         transaction.pure.string("default"),
         transaction.pure.string("<MVR name>"), // Example: @suins/core or suins.sui/core
+    ],
+});
+
+// Optionally unset the metadata for the packageInfo
+transaction.moveCall({
+    target: "@mvr/metadata::package_info::unset_metadata",
+    arguments: [
+        transaction.object(packageInfo),
+        transaction.pure.string("default"),
     ],
 });
 
