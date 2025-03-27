@@ -8,10 +8,10 @@
 /// All validation happens on those functions.
 ///
 /// This package will stop being used when we've implemented references in PTBs.
-module temp_subdomain_proxy::subdomain_proxy;
+module suins_temp_subdomain_proxy::subdomain_proxy;
 
 use std::string::String;
-use subdomains::subdomains;
+use suins_subdomains::subdomains;
 use sui::clock::Clock;
 use suins::{controller, subdomain_registration::SubDomainRegistration, suins::SuiNS};
 

@@ -2,11 +2,11 @@
 
 [move]
 version = 3
-manifest_digest = "073E3518C1C6B7811EBDA07BE31C362E53F2F87D7FBA7027C746B28D2CCE54B7"
+manifest_digest = "39E6F97A4533CA627CE642AE97A586926A1929E9821DE6801BAD0870470305F8"
 deps_digest = "3C4103934B1E040BB6B23F1D610B4EF9F2F1166A50A104EADCF77467C004C600"
 dependencies = [
   { id = "Sui", name = "Sui" },
-  { id = "subdomains", name = "subdomains" },
+  { id = "suins_subdomains", name = "suins_subdomains" },
 ]
 
 [[move.package]]
@@ -31,21 +31,21 @@ dependencies = [
 ]
 
 [[move.package]]
-id = "subdomains"
+id = "suins"
+source = { local = "../suins" }
+
+dependencies = [
+  { id = "Sui", name = "Sui" },
+]
+
+[[move.package]]
+id = "suins_subdomains"
 source = { local = "../subdomains" }
 
 dependencies = [
   { id = "Sui", name = "Sui" },
   { id = "denylist", name = "denylist" },
   { id = "suins", name = "suins" },
-]
-
-[[move.package]]
-id = "suins"
-source = { local = "../suins" }
-
-dependencies = [
-  { id = "Sui", name = "Sui" },
 ]
 
 [move.toolchain-version]

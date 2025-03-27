@@ -1,5 +1,5 @@
 [package]
-name = "subdomains"
+name = "suins_subdomains"
 edition = "2024.beta"
 
 [dependencies]
@@ -8,4 +8,4 @@ suins = { local = "../suins" }
 denylist = { local = "../denylist" }
 
 [addresses]
-subdomains="0x0"
+suins_subdomains="0x0"

@@ -2,21 +2,21 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #[test_only]
-module subdomains::subdomain_tests;
+module suins_subdomains::subdomain_tests;
 
 use denylist::denylist;
 use std::string::{String, utf8};
-use subdomains::{config, subdomains::{Self, SubDomains}};
-use sui::{clock::{Self, Clock}, test_scenario::{Self as ts, Scenario, ctx}};
-use suins::{
-    constants::{grace_period_ms, year_ms},
-    domain,
-    registry::{Self, Registry},
-    registry_tests::burn_nfts,
-    subdomain_registration::{Self, SubDomainRegistration},
-    suins::{Self, SuiNS, AdminCap},
-    suins_registration::{Self, SuinsRegistration}
-};
+use sui::clock::{Self, Clock};
+use sui::test_scenario::{Self as ts, Scenario, ctx};
+use suins::constants::{grace_period_ms, year_ms};
+use suins::domain;
+use suins::registry::{Self, Registry};
+use suins::registry_tests::burn_nfts;
+use suins::subdomain_registration::{Self, SubDomainRegistration};
+use suins::suins::{Self, SuiNS, AdminCap};
+use suins::suins_registration::{Self, SuinsRegistration};
+use suins_subdomains::config;
+use suins_subdomains::subdomains::{Self, SubDomains};
 
 const USER_ADDRESS: address = @0x01;
 const TEST_ADDRESS: address = @0x02;
@@ -82,7 +82,7 @@ fun test_multiple_operation_cases() {
     ts::end(scenario_val);
 }
 
-#[test, expected_failure(abort_code = ::subdomains::subdomains::EInvalidExpirationDate)]
+#[test, expected_failure(abort_code = ::suins_subdomains::subdomains::EInvalidExpirationDate)]
 fun expiration_past_parents_expiration() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -100,7 +100,7 @@ fun expiration_past_parents_expiration() {
     abort 1337
 }
 
-#[test, expected_failure(abort_code = ::subdomains::config::EInvalidParent)]
+#[test, expected_failure(abort_code = ::suins_subdomains::config::EInvalidParent)]
 /// tries to create a child node using an invalid parent.
 fun invalid_parent_failure() {
     let mut scenario_val = test_init();
@@ -119,7 +119,12 @@ fun invalid_parent_failure() {
     abort 1337
 }
 
-#[test, expected_failure(abort_code = ::subdomains::subdomains::ECreationDisabledForSubDomain)]
+#[
+    test,
+    expected_failure(
+        abort_code = ::suins_subdomains::subdomains::ECreationDisabledForSubDomain,
+    ),
+]
 fun tries_to_create_subdomain_with_disallowed_node_parent() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -147,7 +152,12 @@ fun tries_to_create_subdomain_with_disallowed_node_parent() {
     abort 1337
 }
 
-#[test, expected_failure(abort_code = ::subdomains::subdomains::EExtensionDisabledForSubDomain)]
+#[
+    test,
+    expected_failure(
+        abort_code = ::suins_subdomains::subdomains::EExtensionDisabledForSubDomain,
+    ),
+]
 fun tries_to_extend_without_permissions() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -167,7 +177,7 @@ fun tries_to_extend_without_permissions() {
     abort 1337
 }
 
-#[test, expected_failure(abort_code = ::subdomains::subdomains::EParentChanged)]
+#[test, expected_failure(abort_code = ::suins_subdomains::subdomains::EParentChanged)]
 fun tries_to_extend_while_parent_changed() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -222,7 +232,7 @@ fun tries_to_use_expired_subdomain_to_create_new() {
     abort 1337
 }
 
-#[test, expected_failure(abort_code = ::subdomains::subdomains::EInvalidExpirationDate)]
+#[test, expected_failure(abort_code = ::suins_subdomains::subdomains::EInvalidExpirationDate)]
 fun tries_to_create_too_short_subdomain() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -233,7 +243,7 @@ fun tries_to_create_too_short_subdomain() {
     abort 1337
 }
 
-#[test, expected_failure(abort_code = ::subdomains::config::EInvalidParent)]
+#[test, expected_failure(abort_code = ::suins_subdomains::config::EInvalidParent)]
 fun tries_to_created_nested_leaf_subdomain() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;

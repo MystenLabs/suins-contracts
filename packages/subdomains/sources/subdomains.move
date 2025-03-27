@@ -22,11 +22,11 @@
 /// 2. For any `registry_mut` call, we know that if this module is not authorized, we'll get an abort
 /// from the core suins package.
 ///
-module subdomains::subdomains;
+module suins_subdomains::subdomains;
 
 use denylist::denylist;
 use std::string::{String, utf8};
-use subdomains::config::{Self, SubDomainConfig};
+use suins_subdomains::config::{Self, SubDomainConfig};
 use sui::{clock::Clock, dynamic_field as df, vec_map::VecMap};
 use suins::{
     constants::{subdomain_allow_extension_key, subdomain_allow_creation_key},
