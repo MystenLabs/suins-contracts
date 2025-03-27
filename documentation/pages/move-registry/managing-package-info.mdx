@@ -84,6 +84,7 @@ associated with a given package ID, regardless of which version of the package y
 This is useful for identifying and verifying packages on-chain, especially when working with tools or
 interfaces that reference package IDs directly.
 
+Example:
 ```bash
 curl --location 'https://mainnet.mvr.mystenlabs.com/v1/reverse-resolution/bulk' \
 --header 'Content-Type: application/json' \
@@ -93,6 +94,20 @@ curl --location 'https://mainnet.mvr.mystenlabs.com/v1/reverse-resolution/bulk' 
         "0x00c2f85e07181b90c140b15c5ce27d863f93c4d9159d2a4e7bdaeb40e286d6f5"
     ]
 }'
+```
+
+Output:
+```json
+{
+  "resolution": {
+    "0x00c2f85e07181b90c140b15c5ce27d863f93c4d9159d2a4e7bdaeb40e286d6f5": {
+      "name": "@suins/core"
+    },
+    "0x2c8d603bc51326b8c13cef9dd07031a408a48dddb541963357661df5d3204809": {
+      "name": "@deepbook/core"
+    }
+  }
+}
 ```
 
 ## Adding source code information
