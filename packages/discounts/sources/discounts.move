@@ -8,10 +8,10 @@
 ///
 /// Can be called only when promotions are active for a specific type T.
 /// Activation / deactivation happens through PTBs.
-module discounts::discounts;
+module suins_discounts::discounts;
 
 use day_one::day_one::{DayOne, is_active};
-use discounts::house::{Self, DiscountHouse};
+use suins_discounts::house::{Self, DiscountHouse};
 use std::type_name;
 use sui::dynamic_field as df;
 use suins::{payment::PaymentIntent, pricing_config::PricingConfig, suins::{AdminCap, SuiNS}};

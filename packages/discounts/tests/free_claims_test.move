@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #[test_only]
-module discounts::free_claims_test;
+module suins_discounts::free_claims_test;
 
 use day_one::day_one::{Self, DayOne};
-use discounts::{free_claims::{Self, FreeClaimsApp}, house::{Self, DiscountHouse}};
+use suins_discounts::{free_claims::{Self, FreeClaimsApp}, house::{Self, DiscountHouse}};
 use sui::{clock, test_scenario::{Self as ts, Scenario, ctx}, test_utils::{destroy, assert_eq}};
 use suins::{
     constants,
@@ -152,7 +152,7 @@ fun test_deauthorize_discount() {
     scenario.end();
 }
 
-#[test, expected_failure(abort_code = ::discounts::free_claims::EConfigNotExists)]
+#[test, expected_failure(abort_code = ::suins_discounts::free_claims::EConfigNotExists)]
 fun register_with_unauthorized_type() {
     init_purchase!(USER_ADDRESS, b"fivel.sui", |discount_house, suins, intent, scenario| {
         let unauthorized = TestUnauthorized {
@@ -169,7 +169,7 @@ fun register_with_unauthorized_type() {
     });
 }
 
-#[test, expected_failure(abort_code = ::discounts::free_claims::EAlreadyClaimed)]
+#[test, expected_failure(abort_code = ::suins_discounts::free_claims::EAlreadyClaimed)]
 #[allow(dead_code)]
 fun test_already_claimed() {
     init_purchase!(USER_ADDRESS, b"fivel.sui", |discount_house, suins, intent, scenario| {
@@ -199,7 +199,7 @@ fun test_already_claimed() {
     });
 }
 
-#[test, expected_failure(abort_code = ::discounts::free_claims::EInvalidCharacterRange)]
+#[test, expected_failure(abort_code = ::suins_discounts::free_claims::EInvalidCharacterRange)]
 #[allow(dead_code)]
 fun test_domain_out_of_range() {
     init_purchase!(USER_ADDRESS, b"fiv.sui", |discount_house, suins, intent, scenario| {
@@ -217,7 +217,7 @@ fun test_domain_out_of_range() {
     });
 }
 
-#[test, expected_failure(abort_code = ::discounts::free_claims::EConfigExists)]
+#[test, expected_failure(abort_code = ::suins_discounts::free_claims::EConfigExists)]
 fun test_authorize_config_twice() {
     let mut scenario = test_init();
     scenario.next_tx(SUINS_ADDRESS);
@@ -234,7 +234,7 @@ fun test_authorize_config_twice() {
     abort 1337
 }
 
-#[test, expected_failure(abort_code = ::discounts::house::EInvalidVersion)]
+#[test, expected_failure(abort_code = ::suins_discounts::house::EInvalidVersion)]
 fun test_version_togge() {
     let mut scenario = test_init();
     scenario.next_tx(SUINS_ADDRESS);
@@ -248,7 +248,7 @@ fun test_version_togge() {
     abort 1337
 }
 
-#[test, expected_failure(abort_code = ::discounts::free_claims::EConfigNotExists)]
+#[test, expected_failure(abort_code = ::suins_discounts::free_claims::EConfigNotExists)]
 fun test_deauthorize_non_existing_config() {
     let mut scenario = test_init();
     scenario.next_tx(SUINS_ADDRESS);
@@ -263,7 +263,7 @@ fun test_deauthorize_non_existing_config() {
     abort 1337
 }
 
-#[test, expected_failure(abort_code = ::discounts::free_claims::ENotValidForDayOne)]
+#[test, expected_failure(abort_code = ::suins_discounts::free_claims::ENotValidForDayOne)]
 fun use_day_one_for_casual_flow_failure() {
     init_purchase!(USER_ADDRESS, b"fivel.sui", |discount_house, suins, intent, scenario| {
         let day_one = day_one::mint_for_testing(scenario.ctx());
@@ -279,7 +279,7 @@ fun use_day_one_for_casual_flow_failure() {
     });
 }
 
-#[test, expected_failure(abort_code = ::discounts::free_claims::ENotActiveDayOne)]
+#[test, expected_failure(abort_code = ::suins_discounts::free_claims::ENotActiveDayOne)]
 fun use_inactive_day_one_failure() {
     init_purchase!(USER_ADDRESS, b"fivel.sui", |discount_house, suins, intent, scenario| {
         let mut day_one = day_one::mint_for_testing(scenario.ctx());

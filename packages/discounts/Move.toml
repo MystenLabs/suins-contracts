@@ -9,4 +9,4 @@ suins = { local = "../suins" }
 day_one = { local = "../day_one" }
 
 [addresses]
-discounts = "0x0"
+suins_discounts = "0x0"
