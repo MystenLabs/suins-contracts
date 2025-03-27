@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #[test_only]
-module payments::testns;
+module suins_payments::testns;
 
 use sui::coin;
 
