@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Some constants used in coupons.
-module coupons::constants;
+module suins_coupons::constants;
 
 /// discount types
 /// Percentage discount (0,100]

@@ -1,9 +1,9 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-module coupons::data;
+module suins_coupons::data;
 
-use coupons::coupon::Coupon;
+use suins_coupons::coupon::Coupon;
 use std::string::String;
 use sui::bag::{Self, Bag};
 

@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #[test_only]
-module coupons::setup;
+module suins_coupons::setup;
 
-use coupons::{constants, coupon_house::{Self, CouponsApp}, data::Data, range, rules};
+use suins_coupons::{constants, coupon_house::{Self, CouponsApp}, data::Data, range, rules};
 use std::string::{utf8, String};
 use sui::{clock, test_scenario::{Self, Scenario, ctx}};
 use suins::{registry, suins::{Self, AdminCap, SuiNS}};

@@ -1,5 +1,5 @@
 [package]
-name = "coupons"
+name = "suins_coupons"
 edition = "2024.beta"
 
 [dependencies]
@@ -7,4 +7,4 @@ Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-fram
 suins = { local = "../suins" }
 
 [addresses]
-coupons = "0x0"
+suins_coupons = "0x0"
