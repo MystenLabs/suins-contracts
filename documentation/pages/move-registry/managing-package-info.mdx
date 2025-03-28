@@ -14,6 +14,7 @@ import { Callout } from 'nextra/components';
 A MVR name consists of a SuiNS name and a package name, in the format `<suins_name>/<pkg_name>`.
 As an example, if your SuiNS name is `myname.sui`, and your package name is `mypackage`,
 the MVR name can be `@myname/mypackage` or `myname.sui/mypackage`.
+
 The MVR standard support an optional `/<version>` which allows specifying which on-chain version
 to resolve to. As an example, if your MVR name is `@myname/mypackage` and there are multiple versions
 of the package, you can specify `@myname/mypackage/2` to use version 2.
@@ -89,7 +90,7 @@ This is useful for identifying and verifying packages on-chain, especially when 
 interfaces that reference package IDs directly.
 
 To accomplish this you can add a `default` on a `PackageInfo` object (see example above), but it needs
-to match what that MVR name points to to resolve.
+to match what that MVR name points to in order to resolve.
 
 Example of reverse resolution:
 ```bash
