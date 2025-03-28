@@ -5,7 +5,6 @@
 	"description": "This repository holds the SuiNS contracts (both the core and all system packages).",
 	"main": "index.js",
 	"devDependencies": {
-		"@changesets/cli": "^2.27.1",
 		"@ianvs/prettier-plugin-sort-imports": "^4.2.1",
 		"@types/node": "^20.11.30",
 		"@typescript-eslint/eslint-plugin": "^7.7.1",
@@ -24,7 +23,6 @@
 		"typescript": "^5.4.5"
 	},
 	"scripts": {
-		"release": "pnpm --filter @mysten/suins build && pnpm changeset publish",
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"prettier:check": "prettier -c --ignore-unknown .",
 		"prettier:fix": "prettier -w --ignore-unknown .",
