@@ -9,6 +9,16 @@ import { Callout } from 'nextra/components';
     These examples assume that you use the MVR plugin for the Sui Typescript SDK, as described in the  [`Typescript SDK`](/move-registry/tooling/typescript-sdk) section.
 </Callout>
 
+## MVR name
+
+A MVR name consists of a SuiNS name and a package name, in the format `<suins_name>/<pkg_name>`.
+As an example, if your SuiNS name is `myname.sui`, and your package name is `mypackage`,
+the MVR name can be `@myname/mypackage` or `myname.sui/mypackage`.
+
+The MVR standard supports an optional `/<version>` that allows you to specify which on-chain version
+to resolve to. As an example, if your MVR name is `@myname/mypackage` and there are multiple versions
+of the package, you can specify `@myname/mypackage/2` to use version 2.
+
 ## Creating a new `PackageInfo` object
 
 You should create a `PackageInfo` object for your package when you first deploy it, once for each network.
@@ -18,22 +28,22 @@ The following example works for both Mainnet and Testnet.
 
 ```typescript
 const transaction = new Transaction();
-// ... (other code, could also include a `transaction.publish()` 
+// ... (other code, could also include a `transaction.publish()`
 // call to publish & register in one step.)
 
-/// We pass in our UpgradeCap 
+/// We pass in our UpgradeCap
 const packageInfo = transaction.moveCall({
     target: `@mvr/metadata::package_info::new`,
     arguments: [transaction.object('<Your UpgradeCap (by value or object id)>')],
 });
 
 // We also need to create the visual representation of our "info" object.
-// You can also call `@mvr/metadata::display::new` instead, 
+// You can also call `@mvr/metadata::display::new` instead,
 // that allows customizing the colors of your metadata object!
 const display = transaction.moveCall({
     target: `@mvr/metadata::display::default`,
     arguments: [
-        transaction.pure.string('<Add a name to easily identify your package. This is not your MVR name.>')
+        transaction.pure.string('<Add a name to easily identify your package. This is not your MVR name.>') // Example: core
     ],
 });
 
@@ -43,8 +53,27 @@ transaction.moveCall({
     arguments: [transaction.object(packageInfo), display],
 });
 
+// Set the default for the packageInfo, which enables reverse resolution for that network
+// See details in reverse resolution section
+transaction.moveCall({
+    target: "@mvr/metadata::package_info::set_metadata",
+    arguments: [
+        transaction.object(packageInfo),
+        transaction.pure.string("default"),
+        transaction.pure.string("<MVR name>"), // Example: @suins/core or suins.sui/core
+    ],
+});
 
-// transfer the `PackageInfo` object to a safe address. 
+// Optionally unset the metadata for the packageInfo
+// transaction.moveCall({
+//     target: "@mvr/metadata::package_info::unset_metadata",
+//     arguments: [
+//         transaction.object(packageInfo),
+//         transaction.pure.string("default"),
+//     ],
+// });
+
+// transfer the `PackageInfo` object to a safe address.
 transaction.moveCall({
     target: `@mvr/metadata::package_info::transfer`,
     arguments: [transaction.object(packageInfo), transaction.pure.address('<Your safe address>')],
@@ -53,11 +82,47 @@ transaction.moveCall({
 // .. you can do any other actions, like setting the source code info, in the same PTB.
 ```
 
+## Reverse resolution
+
+Reverse resolution allows you to look up the human-readable name (like @suins/core or suins.sui/core)
+associated with a given package ID, regardless of which version of the package you have.
+This is useful for identifying and verifying packages on-chain, especially when working with tools or
+interfaces that reference package IDs directly.
+
+To accomplish this you can add a `default` on a `PackageInfo` object (see previous example), but it needs
+to match what that MVR name points to in order to resolve.
+
+Example of reverse resolution:
+```bash
+curl --location 'https://mainnet.mvr.mystenlabs.com/v1/reverse-resolution/bulk' \
+--header 'Content-Type: application/json' \
+--data '{
+    "package_ids": [
+        "0x2c8d603bc51326b8c13cef9dd07031a408a48dddb541963357661df5d3204809",
+        "0x00c2f85e07181b90c140b15c5ce27d863f93c4d9159d2a4e7bdaeb40e286d6f5"
+    ]
+}'
+```
+
+Output:
+```json
+{
+  "resolution": {
+    "0x00c2f85e07181b90c140b15c5ce27d863f93c4d9159d2a4e7bdaeb40e286d6f5": {
+      "name": "@suins/core"
+    },
+    "0x2c8d603bc51326b8c13cef9dd07031a408a48dddb541963357661df5d3204809": {
+      "name": "@deepbook/core"
+    }
+  }
+}
+```
+
 ## Adding source code information
 
 You can add source code information on your `PackageInfo` object using the following setup.
 
-To update the source for a version, first call 
+To update the source for a version, first call
 `@mvr/metadata::package_info::unset_git_versioning` to remove the existing information.
 
 
@@ -98,23 +163,22 @@ transaction.moveCall({
     ],
 });
 // .. you could then follow the previous steps to add the new source code info for that version.
-``` 
+```
 
 ## Transferring the `PackageInfo` object
 
-You can transfer the `PackageInfo` object to another address (or object) by the following setup. If you want to 
+You can transfer the `PackageInfo` object to another address (or object) by the following setup. If you want to
 build custom access control for your object, you can utilize a transfer to object workflow (see [Transfer to Object](https://docs.sui.io/concepts/transfers/transfer-to-object) on the Sui documentation site for more information).
 
-`PackageInfo` does not allow public transfers, to ensure that the object is always indexable 
+`PackageInfo` does not allow public transfers, to ensure that the object is always indexable
 (wrapping could hurt the discoverability of the object).
 
 ```typescript
 const transaction = new Transaction();
 
-// transfer the `PackageInfo` object to a safe address. 
+// transfer the `PackageInfo` object to a safe address.
 transaction.moveCall({
     target: `@mvr/metadata::package_info::transfer`,
     arguments: [transaction.object(packageInfo), transaction.pure.address('<Your safe address>')],
 });
 ```
-
