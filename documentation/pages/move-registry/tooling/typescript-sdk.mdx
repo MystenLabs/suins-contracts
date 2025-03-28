@@ -4,7 +4,7 @@ import Beta from '../../../components/beta'
 
 <Beta/>
 
-# Plugins for Sui Typescript SDK 
+# Plugins for Sui TypeScript SDK 
 
 The Move Registry (MVR, pronounced "mover") Sui TypeScript SDK plugin offers builders a seamless experience when constructing programmable transaction blocks (PTBs) using MVR names. 
 
@@ -14,17 +14,17 @@ This also applies to type names, especially across package upgrades.
 
 ## Recommended usage
 
-The MVR plugin is using a run-time API to resolve named packages / types. While this provides a great UX, it naturally comes with considerations around performance, availability, and security.
+The MVR plugin uses a runtime API to resolve named packages and types. While this is beneficial to the user experience, it naturally comes with considerations around performance, availability, and security.
 
-For this reason, we recommend using the `@mysten/mvr-static` plugin, which, on build-time, pre-resolves all the package addresses & types, 
-and exports a cached resolution file, that caches your MVR references.
+For this reason, consider using the `@mysten/mvr-static` plugin, which statically resolves all the package addresses and types during the build. The plugin caches your MVR references  
+and exports them to a resolution file.
 
-This way, you get the best of both worlds:
+This approach offers a couple of benefits:
 
-- UX of using MVR in your PTBs for names & types, for both mainnet & testnet.
-- Performance (no extra calls to the MVR endpoint) & security of statically pre-resolving MVR references at build-time.
+- Enhanced user experience of leveraging MVR in your PTBs for names and types, for both Mainnet and Testnet.
+- Performance (no extra calls to the MVR endpoint) and security of statically resolving MVR references at build time.
 
-Find more information about the `@mysten/mvr-static` plugin [here](https://www.npmjs.com/package/@mysten/mvr-static?activeTab=readme).
+Check the NPM page for the [`@mysten/mvr-static` plugin](https://www.npmjs.com/package/@mysten/mvr-static?activeTab=readme) to learn more.
 
 ## How to use
 
@@ -45,7 +45,7 @@ Testnet: https://testnet.mvr.mystenlabs.com
 
 ### Register the plugin
 
-You can register the plugin globally, or per PTB (depends on how your dApp is architected).
+Depending on the architecture of your dApp, you can register the plugin either globally or per PTB.
 
 ```typescript
 /** Register the MVR plugin globally */
@@ -73,10 +73,10 @@ function createTransaction(network: 'mainnet' | 'testnet') {
 }
 ```
 
-
 ### Defining overrides
+
 If you want to use the plugin locally (for CI), or you want to cache results yourself (without the `@mysten/mvr-static` generator),
-you can define overrides for the package addresses & types.
+you can define overrides for the package addresses and types.
 
 ```typescript
 const overrides = {
