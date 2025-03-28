@@ -12,8 +12,11 @@ import { Callout } from 'nextra/components';
 ## MVR name
 
 A MVR name consists of a SuiNS name and a package name, in the format `<suins_name>/<pkg_name>`.
-As an example, if your SuiNS name is `myname`, and your package name is `mypackage`,
+As an example, if your SuiNS name is `myname.sui`, and your package name is `mypackage`,
 the MVR name can be `@myname/mypackage` or `myname.sui/mypackage`.
+The MVR standard support an optional `/<version>` which allows specifying which on-chain version
+to resolve to. As an example, if your MVR name is `@myname/mypackage` and there are multiple versions
+of the package, you can specify `@myname/mypackage/2` to call version 2.
 
 ## Creating a new `PackageInfo` object
 
@@ -39,7 +42,7 @@ const packageInfo = transaction.moveCall({
 const display = transaction.moveCall({
     target: `@mvr/metadata::display::default`,
     arguments: [
-        transaction.pure.string('<Add a package name. This is not your MVR name.>') // Example: core
+        transaction.pure.string('<Add a name to easily identify your package. This is not your MVR name.>') // Example: core
     ],
 });
 
@@ -49,7 +52,7 @@ transaction.moveCall({
     arguments: [transaction.object(packageInfo), display],
 });
 
-// Set the default for the packageInfo, which enables reverse resolution
+// Set the default for the packageInfo, which enables reverse resolution for that network
 // See details in reverse resolution section
 transaction.moveCall({
     target: "@mvr/metadata::package_info::set_metadata",
@@ -85,7 +88,10 @@ associated with a given package ID, regardless of which version of the package y
 This is useful for identifying and verifying packages on-chain, especially when working with tools or
 interfaces that reference package IDs directly.
 
-Example:
+To accomplish this you can add a `default` on a `PackageInfo` object (see example above), but it needs
+to match what that MVR name points to to resolve.
+
+Example of reverse resolution:
 ```bash
 curl --location 'https://mainnet.mvr.mystenlabs.com/v1/reverse-resolution/bulk' \
 --header 'Content-Type: application/json' \
