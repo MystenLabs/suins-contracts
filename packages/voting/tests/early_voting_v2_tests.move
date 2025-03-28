@@ -96,16 +96,16 @@ fun test_e2e() {
 
         assert_eq(proposal.serial_no(), 1);
 
-        let mut batches = vector[new_batch(&mut test, 50_000_000 * DECIMALS)];
+        let mut batch = new_batch(&mut test, 50_000_000 * DECIMALS);
         proposal.vote(
             b"Abstain".to_string(),
-            &mut batches,
+            &mut batch,
             &test.staking_config,
             &test.clock,
             test.ts.ctx(),
         );
         ts::return_shared(proposal);
-        destroy(batches);
+        destroy(batch);
     };
     {
         test.ts.next_tx(USER2);
@@ -113,25 +113,25 @@ fun test_e2e() {
 
         assert_eq(proposal.serial_no(), 1);
 
-        let mut batches1 = vector[new_batch(&mut test, 100_000_000 * DECIMALS)];
-        let mut batches2 = vector[new_batch(&mut test, 50_000_000 * DECIMALS)];
+        let mut batch1 = new_batch(&mut test, 100_000_000 * DECIMALS);
+        let mut batch2 = new_batch(&mut test, 50_000_000 * DECIMALS);
         proposal.vote(
             b"Yes".to_string(),
-            &mut batches1,
+            &mut batch1,
             &test.staking_config,
             &test.clock,
             test.ts.ctx(),
         );
         proposal.vote(
             b"No".to_string(),
-            &mut batches2,
+            &mut batch2,
             &test.staking_config,
             &test.clock,
             test.ts.ctx(),
         );
         ts::return_shared(proposal);
-        destroy(batches1);
-        destroy(batches2);
+        destroy(batch1);
+        destroy(batch2);
     };
     {
         test.ts.next_tx(USER3);
@@ -139,25 +139,25 @@ fun test_e2e() {
 
         assert_eq(proposal.serial_no(), 1);
 
-        let mut batches1 = vector[new_batch(&mut test, 50_000_000 * DECIMALS)];
-        let mut batches2 = vector[new_batch(&mut test, 50_000_000 * DECIMALS)];
+        let mut batch1 = new_batch(&mut test, 50_000_000 * DECIMALS);
+        let mut batch2 = new_batch(&mut test, 50_000_000 * DECIMALS);
         proposal.vote(
             b"Yes".to_string(),
-            &mut batches1,
+            &mut batch1,
             &test.staking_config,
             &test.clock,
             test.ts.ctx(),
         );
         proposal.vote(
             b"No".to_string(),
-            &mut batches2,
+            &mut batch2,
             &test.staking_config,
             &test.clock,
             test.ts.ctx(),
         );
         ts::return_shared(proposal);
-        destroy(batches1);
-        destroy(batches2);
+        destroy(batch1);
+        destroy(batch2);
     };
 
     // advance all the way to the end.
@@ -226,16 +226,16 @@ fun test_e2e_no_quorum() {
 
         assert_eq(proposal.serial_no(), 1);
 
-        let mut batches = vector[new_batch(&mut test, 400_000 * DECIMALS)];
+        let mut batch = new_batch(&mut test, 400_000 * DECIMALS);
         proposal.vote(
             b"Abstain".to_string(),
-            &mut batches,
+            &mut batch,
             &test.staking_config,
             &test.clock,
             test.ts.ctx(),
         );
         ts::return_shared(proposal);
-        destroy(batches);
+        destroy(batch);
     };
     {
         test.ts.next_tx(USER2);
@@ -243,25 +243,25 @@ fun test_e2e_no_quorum() {
 
         assert_eq(proposal.serial_no(), 1);
 
-        let mut batches1 = vector[new_batch(&mut test, 500_000 * DECIMALS)];
-        let mut batches2 = vector[new_batch(&mut test, 400_000 * DECIMALS)];
+        let mut batch1 = new_batch(&mut test, 500_000 * DECIMALS);
+        let mut batch2 = new_batch(&mut test, 400_000 * DECIMALS);
         proposal.vote(
             b"Yes".to_string(),
-            &mut batches1,
+            &mut batch1,
             &test.staking_config,
             &test.clock,
             test.ts.ctx(),
         );
         proposal.vote(
             b"No".to_string(),
-            &mut batches2,
+            &mut batch2,
             &test.staking_config,
             &test.clock,
             test.ts.ctx(),
         );
         ts::return_shared(proposal);
-        destroy(batches1);
-        destroy(batches2);
+        destroy(batch1);
+        destroy(batch2);
     };
 
     // advance all the way to the end.
@@ -310,16 +310,16 @@ fun test_e2e_tie() {
 
         assert_eq(proposal.serial_no(), 1);
 
-        let mut batches = vector[new_batch(&mut test, 5_000_000 * DECIMALS)];
+        let mut batch = new_batch(&mut test, 5_000_000 * DECIMALS);
         proposal.vote(
             b"Abstain".to_string(),
-            &mut batches,
+            &mut batch,
             &test.staking_config,
             &test.clock,
             test.ts.ctx(),
         );
         ts::return_shared(proposal);
-        destroy(batches);
+        destroy(batch);
     };
     {
         test.ts.next_tx(USER2);
@@ -327,25 +327,25 @@ fun test_e2e_tie() {
 
         assert_eq(proposal.serial_no(), 1);
 
-        let mut batches1 = vector[new_batch(&mut test, 2_000_000 * DECIMALS)];
-        let mut batches2 = vector[new_batch(&mut test, 2_000_000 * DECIMALS)];
+        let mut batch1 = new_batch(&mut test, 2_000_000 * DECIMALS);
+        let mut batch2 = new_batch(&mut test, 2_000_000 * DECIMALS);
         proposal.vote(
             b"Yes".to_string(),
-            &mut batches1,
+            &mut batch1,
             &test.staking_config,
             &test.clock,
             test.ts.ctx(),
         );
         proposal.vote(
             b"No".to_string(),
-            &mut batches2,
+            &mut batch2,
             &test.staking_config,
             &test.clock,
             test.ts.ctx(),
         );
         ts::return_shared(proposal);
-        destroy(batches1);
-        destroy(batches2);
+        destroy(batch1);
+        destroy(batch2);
     };
 
     // advance all the way to the end.
@@ -394,16 +394,16 @@ fun test_e2e_abstain_bypassed() {
 
         assert_eq(proposal.serial_no(), 1);
 
-        let mut batches = vector[new_batch(&mut test, 5_000_000 * DECIMALS)];
+        let mut batch = new_batch(&mut test, 5_000_000 * DECIMALS);
         proposal.vote(
             b"Abstain".to_string(),
-            &mut batches,
+            &mut batch,
             &test.staking_config,
             &test.clock,
             test.ts.ctx(),
         );
         ts::return_shared(proposal);
-        destroy(batches);
+        destroy(batch);
     };
     {
         test.ts.next_tx(USER2);
@@ -411,25 +411,25 @@ fun test_e2e_abstain_bypassed() {
 
         assert_eq(proposal.serial_no(), 1);
 
-        let mut batches1 = vector[new_batch(&mut test, 1_000_000 * DECIMALS)];
-        let mut batches2 = vector[new_batch(&mut test, 2_000_000 * DECIMALS)];
+        let mut batch1 = new_batch(&mut test, 1_000_000 * DECIMALS);
+        let mut batch2 = new_batch(&mut test, 2_000_000 * DECIMALS);
         proposal.vote(
             b"Yes".to_string(),
-            &mut batches1,
+            &mut batch1,
             &test.staking_config,
             &test.clock,
             test.ts.ctx(),
         );
         proposal.vote(
             b"No".to_string(),
-            &mut batches2,
+            &mut batch2,
             &test.staking_config,
             &test.clock,
             test.ts.ctx(),
         );
         ts::return_shared(proposal);
-        destroy(batches1);
-        destroy(batches2);
+        destroy(batch1);
+        destroy(batch2);
     };
 
     // advance all the way to the end.

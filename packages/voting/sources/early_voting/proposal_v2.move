@@ -150,35 +150,31 @@ public fun new(
 public fun vote(
     proposal: &mut ProposalV2,
     opt: String,
-    voting_batches: &mut vector<StakingBatch>,
+    batch: &mut StakingBatch,
     staking_config: &StakingConfig,
     clock: &Clock,
-    ctx: &mut TxContext,
+    ctx: &TxContext,
 ) {
     let option = voting_option::new(opt);
     assert!(proposal.votes.contains(&option), ENotAvailableOption);
     assert!(!proposal.is_end_time_reached(clock), EVotingPeriodExpired);
 
-    // calculate the total voting power in this vote
-    let mut new_power = 0;
-    voting_batches.do_mut!(|batch| {
-        // prevent double voting
-        assert!(!batch.is_voting(clock), EBatchIsVoting);
-        assert!(!batch.is_cooldown_requested(), EBatchInCooldown);
-        batch.set_voting_until_ms(proposal.end_time_ms, clock);
-        // count the batch power
-        let batch_power = batch.power(staking_config, clock);
-        new_power = new_power + batch_power;
-        // save batch so it can receive a reward later
-        proposal.batch_powers.push_back(batch.id().to_address(), batch_power);
-    });
+    // prevent double voting
+    assert!(!batch.is_voting(clock), EBatchIsVoting);
+    assert!(!batch.is_cooldown_requested(), EBatchInCooldown);
+    batch.set_voting_until_ms(proposal.end_time_ms, clock);
+
+    let batch_power = batch.power(staking_config, clock);
+
+    // save batch so it can receive a reward later
+    proposal.batch_powers.push_back(batch.id().to_address(), batch_power);
 
     // update proposal voting power
-    proposal.total_power = proposal.total_power + new_power;
+    proposal.total_power = proposal.total_power + batch_power;
 
     // update option voting power
     let option_power = proposal.votes.get_mut(&option);
-    *option_power = *option_power + new_power;
+    *option_power = *option_power + batch_power;
 
     // update user voting power and leaderboard
     if (!proposal.voters.contains(ctx.sender())) {
@@ -187,11 +183,11 @@ public fun vote(
     let user_votes = proposal.voters.borrow_mut(ctx.sender());
     let leaderboard = proposal.vote_leaderboards.get_mut(&option);
     if (!user_votes.contains(&option)) {
-        user_votes.insert(option, new_power);
-        leaderboard.add_if_eligible(ctx.sender(), new_power);
+        user_votes.insert(option, batch_power);
+        leaderboard.add_if_eligible(ctx.sender(), batch_power);
     } else {
         let vote = user_votes.get_mut(&option);
-        *vote = *vote + new_power;
+        *vote = *vote + batch_power;
         leaderboard.add_if_eligible(ctx.sender(), *vote);
     };
 }
@@ -202,7 +198,6 @@ public fun vote(
 public fun finalize(
     proposal: &mut ProposalV2,
     clock: &Clock,
-    _ctx: &mut TxContext,
 ) {
     assert!(proposal.winning_option.is_none(), EProposalAlreadyFinalized);
     proposal.finalize_internal(clock);

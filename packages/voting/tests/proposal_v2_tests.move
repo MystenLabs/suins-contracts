@@ -93,27 +93,17 @@ fun vote_with_new_batch_and_keep(
     option: vector<u8>,
     balance: u64,
 ) {
-    let batch = setup.create_batch(balance, 0);
-    let mut batches = vector[batch];
+    let mut batch = setup.create_batch(balance, 0);
     proposal.vote(
         option.to_string(),
-        &mut batches,
+        &mut batch,
         &setup.config,
         &setup.clock,
         setup.ts.ctx(),
     );
-    batches.pop_back().keep(setup.ts.ctx());
-    batches.destroy_empty();
+    batch.keep(setup.ts.ctx());
 }
 
-fun keep_batches(
-    setup: &mut TestSetup,
-    batches: vector<StakingBatch>,
-) {
-    batches.destroy!(|batch| {
-        batch.keep(setup.ts.ctx());
-    });
-}
 // === helpers for sui modules ===
 
 fun mint_ns(
@@ -156,37 +146,42 @@ fun test_end_to_end_ok() {
 
     // user_1 votes with two batches
     ts::next_tx(&mut setup.ts, USER_1);
-    let batch1 = setup.create_batch(250_000_000, 3); // 250 NS, locked for 3 months
-    let batch2 = setup.create_batch(500_000_000, 3); // 500 NS, locked for 3 months
+    let mut batch1 = setup.create_batch(250_000_000, 3); // 250 NS, locked for 3 months
+    let mut batch2 = setup.create_batch(500_000_000, 3); // 500 NS, locked for 3 months
     let batch1_id = batch1.id();
     let batch2_id = batch2.id();
     let batch1_power = batch1.power(&setup.config, &setup.clock);
     let batch2_power = batch2.power(&setup.config, &setup.clock);
-    let mut voting_batches_u1 = vector[batch1, batch2];
     proposal.vote(
         b"Yes".to_string(),
-        &mut voting_batches_u1,
+        &mut batch1,
         &setup.config,
         &setup.clock,
         setup.ts.ctx()
     );
-    setup.keep_batches(voting_batches_u1);
+    proposal.vote(
+        b"Yes".to_string(),
+        &mut batch2,
+        &setup.config,
+        &setup.clock,
+        setup.ts.ctx()
+    );
+    batch1.keep(setup.ts.ctx());
+    batch2.keep(setup.ts.ctx());
 
     // user_2 votes with one batch
     ts::next_tx(&mut setup.ts, USER_2);
-    let batch3 = setup.create_batch(250_000_000, 3); // 250 NS, locked for 3 months
+    let mut batch3 = setup.create_batch(250_000_000, 3); // 250 NS, locked for 3 months
     let batch3_id = batch3.id();
     let batch3_power = batch3.power(&setup.config, &setup.clock);
-    let mut voting_batches_u2 = vector[batch3];
     proposal.vote(
         b"Option A".to_string(),
-        &mut voting_batches_u2,
+        &mut batch3,
         &setup.config,
         &setup.clock,
         setup.ts.ctx()
     );
-    setup.keep_batches(voting_batches_u2);
-
+    batch3.keep(setup.ts.ctx());
     // verify voting results
     let expected_total_power = batch1_power + batch2_power + batch3_power;
     assert_eq(proposal.total_power(), expected_total_power);
@@ -198,7 +193,7 @@ fun test_end_to_end_ok() {
     // finalize proposal and distribute rewards
     ts::next_tx(&mut setup.ts, USER_3); // anyone can do this
     setup.add_time(voting_period_ms);
-    proposal.finalize(&setup.clock, setup.ts.ctx());
+    proposal.finalize(&setup.clock);
     proposal.distribute_rewards(&setup.clock, setup.ts.ctx());
     assert_eq(*proposal.winning_option().borrow(), voting_option::new(b"Yes".to_string()));
 
@@ -247,7 +242,7 @@ fun test_threshold_not_reached_ok() {
 
     // Finalize proposal
     setup.add_time(proposal.end_time_ms());
-    proposal.finalize(&setup.clock, setup.ts.ctx());
+    proposal.finalize(&setup.clock);
 
     assert_eq(*proposal.winning_option().borrow(), threshold_not_reached());
 
@@ -269,7 +264,7 @@ fun test_tied_vote_ok() {
 
     // Time passes, finalize proposal
     setup.set_time(proposal.end_time_ms());
-    proposal.finalize(&setup.clock, setup.ts.ctx());
+    proposal.finalize(&setup.clock);
 
     assert_eq(*proposal.winning_option().borrow(), tie_rejected());
 
@@ -294,7 +289,7 @@ fun test_abstain_ok() {
 
     // Time passes, finalize proposal
     setup.set_time(proposal.end_time_ms());
-    proposal.finalize(&setup.clock, setup.ts.ctx());
+    proposal.finalize(&setup.clock);
 
     // Yes should win despite having fewer votes, since Abstain is ignored for winner selection
     assert_eq(*proposal.winning_option().borrow(), voting_option::new(b"Yes".to_string()));
@@ -317,7 +312,7 @@ fun test_user_can_vote_multiple_times_ok() {
 
     // Check that user's voting power is accumulated correctly in user_powers
     let expected_power = 1_000_000 + 2_000_000;
-    let user_powers = proposal.user_powers();
+    let user_powers = proposal.voters();
     assert_eq(
         *user_powers.borrow(USER_1).get(&voting_option::new(b"Yes".to_string())),
         expected_power
@@ -367,7 +362,7 @@ fun try_finalize_before_endtime() {
         option::none(),
         &mut ctx,
     );
-    proposal.finalize(&clock, &mut ctx);
+    proposal.finalize(&clock);
     abort 1337
 }
 
@@ -398,7 +393,7 @@ fun try_self_finalize_before_end_time() {
         option::none(),
         &mut ctx,
     );
-    proposal.finalize(&clock, &mut ctx);
+    proposal.finalize(&clock);
     abort 1337
 }
 
@@ -414,7 +409,7 @@ fun try_finalize_twice() {
     );
     proposal.set_threshold(1);
     clock.increment_for_testing(min_voting_period_ms!() + 2);
-    proposal.finalize(&clock, &mut ctx);
+    proposal.finalize(&clock);
 
     assert_eq(proposal.is_threshold_reached(), false);
 
@@ -426,7 +421,7 @@ fun try_finalize_twice() {
         true
     );
 
-    proposal.finalize(&clock, &mut ctx);
+    proposal.finalize(&clock);
 
     abort 1337
 }
@@ -445,7 +440,7 @@ fun try_to_vote_on_expired_proposal() {
     clock.increment_for_testing(min_voting_period_ms!() + 2);
 
     let staking_config = staking_config::new_for_testing_default(&mut ctx);
-    let batch = staking_batch::new_for_testing(
+    let mut batch = staking_batch::new_for_testing(
         1000, // balance
         0, // rewards
         0, // start_ms
@@ -456,10 +451,10 @@ fun try_to_vote_on_expired_proposal() {
     );
     proposal.vote(
         b"Yes".to_string(),
-        &mut vector[batch],
+        &mut batch,
         &staking_config,
         &clock,
-        &mut ctx,
+        &ctx,
     );
 
     abort 1337
@@ -477,7 +472,7 @@ fun vote_non_existing_option() {
     );
 
     let staking_config = staking_config::new_for_testing_default(&mut ctx);
-    let batch = staking_batch::new_for_testing(
+    let mut batch = staking_batch::new_for_testing(
         1000, // balance
         0, // rewards
         0, // start_ms
@@ -488,10 +483,10 @@ fun vote_non_existing_option() {
     );
     proposal.vote(
         b"Wut".to_string(),
-        &mut vector[batch],
+        &mut batch,
         &staking_config,
         &clock,
-        &mut ctx,
+        &ctx,
     );
 
     abort 1337
