@@ -27,7 +27,7 @@ jobs:
           echo "Installing Sui 1.43.1..."
           mkdir -p $HOME/sui-bin
 
-          SUI_URL="https://github.com/MystenLabs/sui/releases/download/mainnet-v1.43.1/sui-mainnet-v1.43.1-macos-x86_64.tgz"
+          SUI_URL="https://github.com/MystenLabs/sui/releases/download/mainnet-v1.45.3/sui-mainnet-v1.45.3-macos-x86_64.tgz"
           echo "Downloading Sui from $SUI_URL"
 
           # Use curl with fail flag and check response
@@ -53,7 +53,7 @@ jobs:
 
       - name: Run Move tests in all package subdirectories, with exclusions
         run: |
-          excluded_dirs=(day_one governance coupons subdomains temp_subdomain_proxy) # Define excluded directories as an array
+          excluded_dirs=(day_one governance) # Define excluded directories as an array
           for dir in packages/*; do
             dir_name=$(basename "$dir")
             if [[ ! " ${excluded_dirs[*]} " =~ (^|[[:space:]])${dir_name}($|[[:space:]]) ]] && [ -d "$dir" ]; then
