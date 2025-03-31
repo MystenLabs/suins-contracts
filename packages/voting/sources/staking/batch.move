@@ -117,6 +117,7 @@ public fun lock(
     config: &StakingConfig,
     new_lock_months: u64,
 ) {
+    assert!(!batch.is_cooldown_requested(), ECooldownAlreadyRequested);
     let curr_lock_months = (batch.unlock_ms - batch.start_ms) / month_ms!();
     assert!(new_lock_months > curr_lock_months, EInvalidLockPeriod);
     assert!(new_lock_months <= config.max_lock_months(), EInvalidLockPeriod);
@@ -124,9 +125,6 @@ public fun lock(
     // Lock the batch
     let new_unlock_ms = batch.start_ms + (new_lock_months * month_ms!());
     batch.unlock_ms = new_unlock_ms;
-
-    // Reset the cooldown, if any
-    batch.cooldown_end_ms = 0;
 
     emit(EventLock {
         batch_id: batch.id.to_address(),

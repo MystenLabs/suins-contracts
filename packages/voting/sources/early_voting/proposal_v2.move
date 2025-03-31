@@ -161,7 +161,7 @@ public fun vote(
 
     // prevent double voting
     assert!(!batch.is_voting(clock), EBatchIsVoting);
-    assert!(!batch.is_cooldown_requested(), EBatchInCooldown);
+    assert!(!batch.is_cooldown_over(clock), EBatchInCooldown);
     batch.set_voting_until_ms(proposal.end_time_ms, clock);
 
     let batch_power = batch.power(staking_config, clock);
@@ -203,9 +203,11 @@ public fun finalize(
     proposal.finalize_internal(clock);
 }
 
+// TODO: handle dust after distribution (send to last batch?)
+// TODO check if this still gas-negative
 /// Distribute staked NS rewards to voting batches once voting has ended.
 /// Also finalize the proposal if needed.
-public fun distribute_rewards( // TODO check if this still gas-negative
+public fun distribute_rewards(
     proposal: &mut ProposalV2,
     clock: &Clock,
     ctx: &mut TxContext,
