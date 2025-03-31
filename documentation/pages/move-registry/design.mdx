@@ -21,12 +21,22 @@ The first step when publishing a package is to register its metadata object. Thi
 1. Locating the source code across different versions of the package.
 2. (Future) Providing text-based metadata (title, description, tags) for the package, which the MVR search engine can use.
 
-This metadata object can be reused when authorizing any package upgrades to supply source information for the new version. 
+This metadata object can be reused when authorizing any package upgrades to supply source information for the new version.
 Sui indexers can index the metadata as it cannot be stored within another object.
 
 ![Package Info Objects](/images/mvr/mvr-package-info.svg)
 
-See [Managing Package Metadata](./managing-package-info.mdx) for examples of working with `PackageInfo` objects. 
+See [Managing Package Metadata](./managing-package-info.mdx) for examples of working with `PackageInfo` objects.
+
+## MVR name
+
+A MVR name consists of a SuiNS name and a package name, in the format `<suins_name>/<pkg_name>`.
+As an example, if your SuiNS name is `myname.sui`, and your package name is `mypackage`,
+the MVR name can be `@myname/mypackage` or `myname.sui/mypackage`.
+
+The MVR standard supports an optional `/<version>` that allows you to specify which on-chain version
+to resolve to. As an example, if your MVR name is `@myname/mypackage` and there are multiple versions
+of the package, you can specify `@myname/mypackage/2` to use version 2.
 
 ## MVR registration
 
