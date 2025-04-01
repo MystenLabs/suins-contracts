@@ -2,17 +2,25 @@ module suins_voting::proposal_v2;
 
 // === imports ===
 
-use std::string::String;
-use sui::balance::{Balance};
-use sui::clock::Clock;
-use sui::coin::Coin;
-use sui::linked_table::{Self, LinkedTable};
-use sui::vec_map::{Self, VecMap};
-use sui::vec_set::VecSet;
-use suins_voting::constants::{min_voting_period_ms, max_voting_period_ms};
-use suins_voting::leaderboard::{Self, Leaderboard};
-use suins_voting::voting_option::{Self, VotingOption, abstain_option};
-use token::ns::NS;
+use std::{
+    string::{String},
+};
+use sui::{
+    balance::{Balance},
+    clock::{Clock},
+    coin::{Coin},
+    linked_table::{Self, LinkedTable},
+    vec_map::{Self, VecMap},
+    vec_set::{VecSet},
+};
+use suins_voting::{
+    constants::{min_voting_period_ms, max_voting_period_ms},
+    leaderboard::{Self, Leaderboard},
+    voting_option::{Self, VotingOption, abstain_option},
+};
+use token::{
+    ns::{NS},
+};
 use suins_voting::{
     staking_batch::{Self, StakingBatch},
     staking_config::{StakingConfig},
