@@ -174,10 +174,6 @@ public fun vote(
 
     // batches that have requested cooldown can vote, but only before cooldown ends
     assert!(!batch.is_cooldown_over(clock), EBatchInCooldown);
-    // voting with a batch that has requested cooldown will cancel its cooldown
-    if (batch.is_cooldown_requested()) {
-        batch.cancel_cooldown(clock);
-    };
 
     let batch_power = batch.power(staking_config, clock);
 
