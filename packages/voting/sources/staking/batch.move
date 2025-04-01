@@ -8,7 +8,6 @@ use sui::{
     coin::{Coin},
     event::{emit},
     package::{Self},
-    transfer::{Receiving},
 };
 use token::{
     ns::NS,
@@ -39,8 +38,6 @@ public struct StakingBatch has key {
     id: UID,
     /// Staked NS balance.
     balance: Balance<NS>,
-    /// How much NS in the batch is from voting rewards.
-    rewards: u64,
     /// When the batch was created.
     start_ms: u64,
     /// When the batch will be unlocked. If the batch was never locked, it's equal to `start_ms`.
@@ -49,12 +46,6 @@ public struct StakingBatch has key {
     cooldown_end_ms: u64,
     /// Until when the batch is being used to vote on a proposal. `0` if never voted.
     voting_until_ms: u64,
-}
-
-/// A reward that the proposal module transfers to a voting batch (TTO)
-public struct Reward has key {
-    id: UID,
-    balance: Balance<NS>,
 }
 
 /// one-time witness
@@ -85,7 +76,6 @@ public fun new(
     let batch = StakingBatch {
         id: object::new(ctx),
         balance: coin.into_balance(),
-        rewards: 0,
         start_ms: now,
         unlock_ms: now + (lock_months * month_ms!()),
         cooldown_end_ms: 0,
@@ -180,18 +170,6 @@ public fun unstake(
     balance
 }
 
-/// Claim a reward and add it to the batch
-public fun receive_reward(
-    batch: &mut StakingBatch,
-    receiving_reward: Receiving<Reward>,
-) {
-    let reward = transfer::receive<Reward>(&mut batch.id, receiving_reward);
-    let Reward { id, balance } = reward;
-    batch.rewards = batch.rewards + balance.value();
-    batch.balance.join(balance);
-    object::delete(id);
-}
-
 // === admin functions ===
 
 /// Stake NS into a new batch with arbitrary parameters
@@ -206,7 +184,6 @@ public fun admin_new(
     let batch = StakingBatch {
         id: object::new(ctx),
         balance: coin.into_balance(),
-        rewards: 0,
         start_ms,
         unlock_ms,
         cooldown_end_ms: 0,
@@ -248,19 +225,6 @@ public(package) fun set_voting_until_ms(
         balance: batch.balance.value(),
         voting_until_ms,
     });
-}
-
-/// Send a reward to a batch (TTO)
-public(package) fun send_reward(
-    balance: Balance<NS>,
-    recipient: address,
-    ctx: &mut TxContext,
-) {
-    let reward = Reward {
-        id: object::new(ctx),
-        balance,
-    };
-    transfer::transfer(reward, recipient);
 }
 
 // === private functions ===
@@ -351,7 +315,6 @@ public fun is_voting(
 
 public fun id(batch: &StakingBatch): ID { batch.id.to_inner() }
 public fun balance(batch: &StakingBatch): u64 { batch.balance.value() }
-public fun rewards(batch: &StakingBatch): u64 { batch.rewards }
 public fun start_ms(batch: &StakingBatch): u64 { batch.start_ms }
 public fun unlock_ms(batch: &StakingBatch): u64 { batch.unlock_ms }
 public fun cooldown_end_ms(batch: &StakingBatch): u64 { batch.cooldown_end_ms }
@@ -398,7 +361,6 @@ public struct EventSetVoting has copy, drop {
 #[test_only]
 public fun new_for_testing(
     balance: u64,
-    rewards: u64,
     start_ms: u64,
     unlock_ms: u64,
     cooldown_end_ms: u64,
@@ -408,7 +370,6 @@ public fun new_for_testing(
     StakingBatch {
         id: object::new(ctx),
         balance: sui::coin::mint_for_testing<NS>(balance, ctx).into_balance(),
-        rewards,
         start_ms,
         unlock_ms,
         cooldown_end_ms,

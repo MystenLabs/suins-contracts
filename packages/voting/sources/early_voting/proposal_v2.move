@@ -6,7 +6,7 @@ use std::{
     string::{String},
 };
 use sui::{
-    balance::{Balance},
+    balance::{Self, Balance},
     clock::{Clock},
     coin::{Coin},
     linked_table::{Self, LinkedTable},
@@ -22,7 +22,7 @@ use token::{
     ns::{NS},
 };
 use suins_voting::{
-    staking_batch::{Self, StakingBatch},
+    staking_batch::{StakingBatch},
     staking_config::{StakingConfig},
 };
 
@@ -37,6 +37,7 @@ const EProposalAlreadyFinalized: u64 = 5;
 const ENotEnoughOptions: u64 = 6;
 const EBatchIsVoting: u64 = 7;
 const EBatchInCooldown: u64 = 8;
+const EVoterNotFound: u64 = 9;
 
 // === constants ===
 
@@ -72,15 +73,15 @@ public struct ProposalV2 has key {
 
     /* Modified fields in v2 */
 
-    /// Voting power per user and option. For informational use.
+    /// Voting power per user and option.
     voters: LinkedTable<address, VecMap<VotingOption, u64>>,
 
     /* New fields in v2 */
 
+    /// Total voting power per user. Becomes empty once all rewards have been distributed.
+    voter_powers: LinkedTable<address, u64>,
     /// Total voting power that voted in this proposal.
     total_power: u64,
-    /// Voting power per batch. Used to distribute rewards.
-    batch_powers: LinkedTable<address, u64>,
     /// NS to reward batches proportionally to their share of total voting power
     reward: Balance<NS>,
     /// Initial value of `ProposalV2.reward` (reward.value() decreases as we distribute it)
@@ -148,7 +149,7 @@ public fun new(
         end_time_ms,
         total_power: 0,
         voters: linked_table::new(ctx),
-        batch_powers: linked_table::new(ctx),
+        voter_powers: linked_table::new(ctx),
         reward: reward.into_balance(),
         total_reward,
     }
@@ -173,15 +174,12 @@ public fun vote(
 
     // batches that have requested cooldown can vote, but only before cooldown ends
     assert!(!batch.is_cooldown_over(clock), EBatchInCooldown);
-    // voting with a batch that has requested cooldown will cancel the cooldown
+    // voting with a batch that has requested cooldown will cancel its cooldown
     if (batch.is_cooldown_requested()) {
         batch.cancel_cooldown(clock);
     };
 
     let batch_power = batch.power(staking_config, clock);
-
-    // save batch so it can receive a reward later
-    proposal.batch_powers.push_back(batch.id().to_address(), batch_power);
 
     // update proposal voting power
     proposal.total_power = proposal.total_power + batch_power;
@@ -190,12 +188,17 @@ public fun vote(
     let option_power = proposal.votes.get_mut(&option);
     *option_power = *option_power + batch_power;
 
-    // update user voting power and leaderboard
+    // add new voter
     if (!proposal.voters.contains(ctx.sender())) {
         proposal.voters.push_back(ctx.sender(), vec_map::empty());
+        proposal.voter_powers.push_back(ctx.sender(), 0);
     };
+
+    // update user voting power and leaderboard
+
     let user_votes = proposal.voters.borrow_mut(ctx.sender());
     let leaderboard = proposal.vote_leaderboards.get_mut(&option);
+
     if (!user_votes.contains(&option)) {
         user_votes.insert(option, batch_power);
         leaderboard.add_if_eligible(ctx.sender(), batch_power);
@@ -204,6 +207,10 @@ public fun vote(
         *vote = *vote + batch_power;
         leaderboard.add_if_eligible(ctx.sender(), *vote);
     };
+
+    // update total user power
+    let user_power = proposal.voter_powers.borrow_mut(ctx.sender());
+    *user_power = *user_power + batch_power;
 }
 
 /// Finalize the proposal after the end time is reached and the threshold is
@@ -217,10 +224,9 @@ public fun finalize(
     proposal.finalize_internal(clock);
 }
 
-// TODO: handle dust after distribution (send to last batch?)
-// TODO check if this still gas-negative
-/// Distribute staked NS rewards to voting batches once voting has ended.
+/// Distribute NS rewards to all voters once voting has ended.
 /// Also finalize the proposal if needed.
+#[allow(lint(self_transfer))]
 public fun distribute_rewards(
     proposal: &mut ProposalV2,
     clock: &Clock,
@@ -228,16 +234,31 @@ public fun distribute_rewards(
 ) {
     proposal.finalize_internal(clock);
 
-    let mut i = 0;
-    while (i < MAX_RETURNS_PER_TX && !proposal.batch_powers.is_empty()) {
-        let (batch_addr, batch_power) = proposal.batch_powers.pop_front();
-        let reward_value = calculate_reward(proposal, batch_power);
-        if (reward_value > 0) {
-            let reward_balance = proposal.reward.split(reward_value);
-            staking_batch::send_reward(reward_balance, batch_addr, ctx);
-        };
-        i = i + 1;
+    let mut transfers: u64 = 0;
+    while (transfers < MAX_RETURNS_PER_TX && !proposal.voter_powers.is_empty()) {
+        let voter_addr = *proposal.voter_powers.front().borrow();
+        let reward_coin = get_user_reward(proposal, voter_addr).into_coin(ctx);
+        transfer::public_transfer(reward_coin, voter_addr);
+        transfers = transfers + 1;
     };
+
+    // once all rewards have been distributed, send any remaining NS to the caller
+    if (proposal.voter_powers.is_empty() && proposal.reward.value() > 0) {
+        let dust_value = proposal.reward.value();
+        let dust_coin = proposal.reward.split(dust_value).into_coin(ctx);
+        transfer::public_transfer(dust_coin, ctx.sender());
+    }
+}
+
+/// Allow users to claim their own rewards.
+/// Also finalize the proposal if needed.
+public fun claim_reward(
+    proposal: &mut ProposalV2,
+    clock: &Clock,
+    ctx: &mut TxContext,
+): Coin<NS> {
+    proposal.finalize_internal(clock);
+    get_user_reward(proposal, ctx.sender()).into_coin(ctx)
 }
 
 // === package functions ===
@@ -313,14 +334,33 @@ fun finalize_internal(proposal: &mut ProposalV2, clock: &Clock) {
     }
 }
 
+/// Remove the voter from proposal.voters_copy, and return his reward
+fun get_user_reward(
+    proposal: &mut ProposalV2,
+    user_addr: address,
+): Balance<NS> {
+    assert!(proposal.voter_powers.contains(user_addr), EVoterNotFound);
+
+    let user_power = proposal.voter_powers.remove(user_addr);
+
+    let reward_value = calculate_reward(proposal, user_power);
+
+    if (reward_value > 0) {
+        proposal.reward.split(reward_value)
+    } else {
+        balance::zero()
+    }
+}
+
+/// A voter's reward is proportional to their share of the total voting power.
 fun calculate_reward(
     proposal: &ProposalV2,
-    batch_power: u64,
+    user_power: u64,
 ): u64 {
     if (proposal.total_power == 0) return 0;
     let total_reward = proposal.total_reward as u128;
     let total_power = proposal.total_power as u128;
-    let reward_value = (batch_power as u128) * total_reward / total_power;
+    let reward_value = (user_power as u128) * total_reward / total_power;
     return reward_value as u64
 }
 
@@ -333,11 +373,11 @@ public fun title(proposal: &ProposalV2): &String { &proposal.title }
 public fun description(proposal: &ProposalV2): &String { &proposal.description }
 public fun winning_option(proposal: &ProposalV2): &Option<VotingOption> { &proposal.winning_option }
 public fun vote_leaderboards(proposal: &ProposalV2): &VecMap<VotingOption, Leaderboard> { &proposal.vote_leaderboards }
-public fun end_time_ms(proposal: &ProposalV2): u64 { proposal.end_time_ms }
 public fun start_time_ms(proposal: &ProposalV2): u64 { proposal.start_time_ms }
-public fun total_power(proposal: &ProposalV2): u64 { proposal.total_power }
+public fun end_time_ms(proposal: &ProposalV2): u64 { proposal.end_time_ms }
 public fun votes(proposal: &ProposalV2): &VecMap<VotingOption, u64> { &proposal.votes }
 public fun voters(proposal: &ProposalV2): &LinkedTable<address, VecMap<VotingOption, u64>> { &proposal.voters }
-public fun batch_powers(proposal: &ProposalV2): &LinkedTable<address, u64> { &proposal.batch_powers }
+public fun voter_powers(proposal: &ProposalV2): &LinkedTable<address, u64> { &proposal.voter_powers }
+public fun total_power(proposal: &ProposalV2): u64 { proposal.total_power }
 public fun reward(proposal: &ProposalV2): &Balance<NS> { &proposal.reward }
 public fun total_reward(proposal: &ProposalV2): u64 { proposal.total_reward }
