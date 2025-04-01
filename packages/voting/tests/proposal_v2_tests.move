@@ -113,6 +113,15 @@ fun mint_ns(
     return coin::mint_for_testing<NS>(value, setup.ts.ctx())
 }
 
+fun assert_owns_ns(
+    setup: &TestSetup,
+    expected_amount: u64,
+) {
+    let last_coin = setup.ts.take_from_sender<Coin<NS>>();
+    assert_eq(last_coin.value(), expected_amount);
+    setup.ts.return_to_sender(last_coin);
+}
+
 fun add_time(
     setup: &mut TestSetup,
     ms: u64,
@@ -148,8 +157,6 @@ fun test_end_to_end_ok() {
     ts::next_tx(&mut setup.ts, USER_1);
     let mut batch1 = setup.create_batch(250_000_000, 3); // 250 NS, locked for 3 months
     let mut batch2 = setup.create_batch(500_000_000, 3); // 500 NS, locked for 3 months
-    let batch1_id = batch1.id();
-    let batch2_id = batch2.id();
     let batch1_power = batch1.power(&setup.config, &setup.clock);
     let batch2_power = batch2.power(&setup.config, &setup.clock);
     proposal.vote(
@@ -172,7 +179,6 @@ fun test_end_to_end_ok() {
     // user_2 votes with one batch
     ts::next_tx(&mut setup.ts, USER_2);
     let mut batch3 = setup.create_batch(250_000_000, 3); // 250 NS, locked for 3 months
-    let batch3_id = batch3.id();
     let batch3_power = batch3.power(&setup.config, &setup.clock);
     proposal.vote(
         b"Option A".to_string(),
@@ -197,31 +203,13 @@ fun test_end_to_end_ok() {
     proposal.distribute_rewards(&setup.clock, setup.ts.ctx());
     assert_eq(*proposal.winning_option().borrow(), voting_option::new(b"Yes".to_string()));
 
-    // user_1 collects rewards
+    // user_1 received rewards
     ts::next_tx(&mut setup.ts, USER_1);
+    setup.assert_owns_ns(750_000);
 
-    let mut batch1 = setup.ts.take_from_sender_by_id<StakingBatch>(batch1_id);
-    let ticket = ts::most_recent_receiving_ticket<Reward>(&batch1_id);
-    batch1.receive_reward(ticket);
-    assert_eq(batch1.rewards(), 250_000);
-    assert_eq(batch1.balance(), 250_000_000 + 250_000);
-    setup.ts.return_to_sender(batch1);
-
-    let mut batch2 = setup.ts.take_from_sender_by_id<StakingBatch>(batch2_id);
-    let ticket = ts::most_recent_receiving_ticket<Reward>(&batch2_id);
-    batch2.receive_reward(ticket);
-    assert_eq(batch2.rewards(), 500_000);
-    assert_eq(batch2.balance(), 500_000_000 + 500_000);
-    setup.ts.return_to_sender(batch2);
-
-    // user_2 collects rewards
+    // user_2 received rewards
     ts::next_tx(&mut setup.ts, USER_2);
-    let mut batch3 = setup.ts.take_from_sender_by_id<StakingBatch>(batch3_id);
-    let ticket = ts::most_recent_receiving_ticket<Reward>(&batch3_id);
-    batch3.receive_reward(ticket);
-    assert_eq(batch3.rewards(), 250_000);
-    assert_eq(batch3.balance(), 250_000_000 + 250_000);
-    setup.ts.return_to_sender(batch3);
+    setup.assert_owns_ns(250_000);
 
     destroy(proposal);
     destroy(setup);
@@ -442,7 +430,6 @@ fun try_to_vote_on_expired_proposal() {
     let staking_config = staking_config::new_for_testing_default(&mut ctx);
     let mut batch = staking_batch::new_for_testing(
         1000, // balance
-        0, // rewards
         0, // start_ms
         0, // unlock_ms
         0, // cooldown_end_ms
@@ -474,7 +461,6 @@ fun vote_non_existing_option() {
     let staking_config = staking_config::new_for_testing_default(&mut ctx);
     let mut batch = staking_batch::new_for_testing(
         1000, // balance
-        0, // rewards
         0, // start_ms
         0, // unlock_ms
         0, // cooldown_end_ms

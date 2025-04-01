@@ -87,6 +87,13 @@ fun add_time(
     setup.clock.increment_for_testing(ms);
 }
 
+fun set_time(
+    setup: &mut TestSetup,
+    ms: u64,
+) {
+    setup.clock.set_for_testing(ms);
+}
+
 // === tests ===
 
 #[test]
@@ -229,27 +236,27 @@ fun test_end_to_end_ok() {
     assert_eq(batch.is_locked(&setup.clock), false);
     assert_eq(batch.is_unlocked(&setup.clock), true);
 
-    // use batch for voting
-    let voting_end_time = setup.clock.timestamp_ms() + (1000 * 60 * 60 * 24 * 14); // 14 days
-    batch.set_voting_until_ms(voting_end_time, &setup.clock); // a proposal would set this
-    assert_eq(batch.is_voting(&setup.clock), true);
-
-    // request unstake (should succeed even while voting) TODO: we changed this, now it's not allowed
+    // request unstake
     batch.request_unstake(&setup.config, &setup.clock);
     assert_eq(batch.is_cooldown_requested(), true);
     assert_eq(batch.is_cooldown_over(&setup.clock), false);
     assert_eq(batch.cooldown_end_ms() > 0, true);
+
+    // (simulate) using the batch for voting right before cooldown ends
+    setup.set_time(batch.cooldown_end_ms() - 1);
+    let voting_end_time = setup.clock.timestamp_ms() + (1000 * 60 * 60 * 24 * 14); // 14 days
+    batch.set_voting_until_ms(voting_end_time, &setup.clock); // a proposal would set this
+    assert_eq(batch.is_voting(&setup.clock), true);
+
     // wait for cooldown to end but voting is still active
-    let cooldown_ms = setup.config.cooldown_ms();
-    setup.add_time(cooldown_ms);
+    setup.add_time(1);
     // verify cooldown is over but still voting
     assert_eq(batch.is_cooldown_requested(), true);
     assert_eq(batch.is_cooldown_over(&setup.clock), true);
     assert_eq(batch.is_voting(&setup.clock), true);
 
     // wait for voting to end
-    let remaining_voting_time = voting_end_time - cooldown_ms;
-    setup.add_time(remaining_voting_time);
+    setup.set_time(voting_end_time);
     assert_eq(batch.is_voting(&setup.clock), false);
 
     // unstake the batch
@@ -257,23 +264,6 @@ fun test_end_to_end_ok() {
     assert_eq(unstaked_balance.value(), balance);
 
     destroy(unstaked_balance);
-    destroy(setup);
-}
-
-#[test]
-fun test_lock_resets_cooldown() {
-    let mut setup = setup();
-    let mut batch = setup.new_batch(USER_1, 1_000_000, 0); // no lock
-
-    // request unstake
-    batch.request_unstake(&setup.config, &setup.clock);
-    assert_eq(batch.cooldown_end_ms() > 0, true);
-
-    // lock the batch, which should reset cooldown
-    batch.lock(&setup.config, 3);
-    assert_eq(batch.cooldown_end_ms(), 0);
-
-    destroy(batch);
     destroy(setup);
 }
 
@@ -400,10 +390,9 @@ fun test_new_e_balance_too_low() {
     let balance = min_balance - 1;
     let coin = setup.mint_ns(balance);
 
-    let batch = staking_batch::new(&setup.config, coin, 0, &setup.clock, setup.ts.ctx());
+    let _batch = staking_batch::new(&setup.config, coin, 0, &setup.clock, setup.ts.ctx());
 
-    destroy(batch);
-    destroy(setup);
+    abort 123
 }
 
 #[test, expected_failure(abort_code = staking_batch::EInvalidLockPeriod)]
@@ -413,7 +402,7 @@ fun test_new_e_invalid_lock_period_above_max() {
     let coin = setup.mint_ns(1_000_000);
 
     // try to create a batch with lock period exceeding maximum
-    let batch = staking_batch::new(
+    let _batch = staking_batch::new(
         &setup.config,
         coin,
         max_lock_months + 1,
@@ -421,20 +410,26 @@ fun test_new_e_invalid_lock_period_above_max() {
         setup.ts.ctx(),
     );
 
-    destroy(batch);
-    destroy(setup);
+    abort 123
+}
+
+#[test, expected_failure(abort_code = staking_batch::ECooldownAlreadyRequested)]
+fun test_lock_e_cooldown_already_requested() {
+    let mut setup = setup();
+    let mut batch = setup.new_batch(USER_1, 1_000_000, 0); // no lock
+    batch.request_unstake(&setup.config, &setup.clock);
+    // try to lock after cooldown started
+    batch.lock(&setup.config, 3);
+    abort 123
 }
 
 #[test, expected_failure(abort_code = staking_batch::EInvalidLockPeriod)]
 fun test_lock_e_invalid_lock_period_shorter_than_current() {
     let mut setup = setup();
     let mut batch = setup.new_batch(USER_1, 1_000_000, 6);
-
     // try to extend lock with a shorter period
-    batch.lock(&setup.config, 3); // shorter than current 6 months
-
-    destroy(batch);
-    destroy(setup);
+    batch.lock(&setup.config, 3);
+    abort 123
 }
 
 #[test, expected_failure(abort_code = staking_batch::EInvalidLockPeriod)]
@@ -443,11 +438,8 @@ fun test_lock_e_invalid_lock_period_too_long() {
     // try to extend lock beyond maximum
     let max_lock_months = setup.config.max_lock_months();
     let mut batch = setup.new_batch(USER_1, 1_000_000, 6);
-
     batch.lock(&setup.config, max_lock_months + 1);
-
-    destroy(batch);
-    destroy(setup);
+    abort 123
 }
 
 #[test, expected_failure(abort_code = staking_batch::EBatchLocked)]
@@ -455,55 +447,35 @@ fun test_request_unstake_e_batch_locked() {
     let mut setup = setup();
     // try to request unstake while batch is locked
     let mut batch = setup.new_batch(USER_1, 1_000_000, 3);
-
     batch.request_unstake(&setup.config, &setup.clock);
-
-    destroy(batch);
-    destroy(setup);
+    abort 123
 }
 
 #[test, expected_failure(abort_code = staking_batch::ECooldownAlreadyRequested)]
 fun test_request_unstake_e_already_requested() {
     let mut setup = setup();
     let mut batch = setup.new_batch(USER_1, 1_000_000, 0); // no lock
-
     batch.request_unstake(&setup.config, &setup.clock);
     // try to request unstake twice
     batch.request_unstake(&setup.config, &setup.clock);
-
-    destroy(batch);
-    destroy(setup);
+    abort 123
 }
 
 #[test, expected_failure(abort_code = staking_batch::ECooldownNotRequested)]
 fun test_unstake_e_not_requested() {
     let mut setup = setup();
     let batch = setup.new_batch(USER_1, 1_000_000, 0); // no lock
-
     // try to unstake without requesting first
-    let balance = batch.unstake(&setup.clock);
-
-    destroy(balance);
-    destroy(setup);
+    let _balance = batch.unstake(&setup.clock);
+    abort 123
 }
 
 #[test, expected_failure(abort_code = staking_batch::EBatchLocked)]
 fun test_unstake_e_batch_locked() {
     let mut setup = setup();
-    // create an unlocked batch
-    let mut batch = setup.new_batch(USER_1, 1_000_000, 0);
-    // request unstake while unlocked
+    let mut batch = setup.new_batch(USER_1, 1_000_000, 3); // 3 month lock
     batch.request_unstake(&setup.config, &setup.clock);
-    // lock for 1 month
-    batch.lock(&setup.config, 1);
-    // wait for cooldown to end
-    let cooldown_ms = setup.config.cooldown_ms();
-    setup.add_time(cooldown_ms + 1);
-    // try to unstake the now locked batch
-    let balance = batch.unstake(&setup.clock);
-
-    destroy(balance);
-    destroy(setup);
+    abort 123
 }
 
 #[test, expected_failure(abort_code = staking_batch::ECooldownNotOver)]
@@ -515,13 +487,12 @@ fun test_unstake_e_cooldown_not_over() {
 
     // add some time but less than cooldown period
     let cooldown_ms = setup.config.cooldown_ms();
-    setup.add_time(cooldown_ms - 1000);
+    setup.add_time(cooldown_ms - 1);
 
     // try to unstake before cooldown period ends
-    let balance = batch.unstake(&setup.clock);
+    let _balance = batch.unstake(&setup.clock);
 
-    destroy(balance);
-    destroy(setup);
+    abort 123
 }
 
 #[test, expected_failure(abort_code = staking_batch::EBatchIsVoting)]
@@ -540,10 +511,10 @@ fun test_unstake_e_batch_is_voting() {
     setup.add_time(cooldown_ms);
 
     // try to unstake while batch is being used for voting
-    let balance = batch.unstake(&setup.clock);
+    let _balance = batch.unstake(&setup.clock);
 
-    destroy(balance);
-    destroy(setup);
+    abort 123
+
 }
 
 #[test, expected_failure(abort_code = staking_batch::EInvalidVotingUntilMs)]
@@ -555,8 +526,7 @@ fun test_set_voting_until_ms_e_invalid_time() {
     let past_time = setup.clock.timestamp_ms() - 1000;
     batch.set_voting_until_ms(past_time, &setup.clock);
 
-    destroy(batch);
-    destroy(setup);
+    abort 123
 }
 
 #[test, expected_failure(abort_code = staking_batch::EInvalidLockPeriod)]
@@ -566,7 +536,7 @@ fun test_admin_new_e_invalid_lock_period() {
 
     // try to set unlock_ms before start_ms
     let now = setup.clock.timestamp_ms();
-    let batch = staking_batch::admin_new(
+    let _batch = staking_batch::admin_new(
         &setup.admin_cap,
         coin,
         now, // start_ms
@@ -574,6 +544,5 @@ fun test_admin_new_e_invalid_lock_period() {
         setup.ts.ctx(),
     );
 
-    destroy(batch);
-    destroy(setup);
+    abort 123
 }

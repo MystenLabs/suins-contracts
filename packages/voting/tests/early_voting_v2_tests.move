@@ -48,7 +48,6 @@ fun new_batch(setup: &mut TestSetup, balance: u64): StakingBatch {
         now, // unlock_ms
         0, // cooldown_end_ms
         0, // voting_until_ms
-        0, // origin
         setup.ts.ctx(),
     )
 }
@@ -190,7 +189,7 @@ fun test_e2e() {
 
         proposal.distribute_rewards(&test.clock, test.ts.ctx());
 
-        assert_eq(proposal.batch_powers().length(), 0);
+        assert_eq(proposal.voter_powers().length(), 0);
 
         ts::return_shared(proposal);
     };
