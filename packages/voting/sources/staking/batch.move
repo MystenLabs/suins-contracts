@@ -225,6 +225,15 @@ public fun admin_transfer(
 
 // === package functions ===
 
+public(package) fun cancel_cooldown(
+    batch: &mut StakingBatch,
+    clock: &Clock,
+) {
+    assert!(batch.is_cooldown_requested(), ECooldownNotRequested);
+    assert!(!batch.is_cooldown_over(clock), ECooldownNotOver);
+    batch.cooldown_end_ms = 0;
+}
+
 /// Flag a batch as being used to vote on a proposal
 public(package) fun set_voting_until_ms(
     batch: &mut StakingBatch,
