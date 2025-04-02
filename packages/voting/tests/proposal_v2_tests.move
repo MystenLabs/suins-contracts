@@ -299,32 +299,24 @@ fun try_finalize_twice() {
 
 #[test, expected_failure(abort_code = proposal_v2::EVotingPeriodExpired)]
 fun try_to_vote_on_expired_proposal() {
-    let mut ctx = tx_context::dummy();
-    let mut clock = clock::create_for_testing(&mut ctx);
+    let (mut ts, mut setup) = setup();
 
     let mut proposal = test_proposal(
-        &clock,
+        setup.clock(),
         option::none(),
-        &mut ctx,
+        ts.ctx(),
     );
     proposal.set_threshold(1);
-    clock.increment_for_testing(min_voting_period_ms!() + 2);
+    setup.add_time(min_voting_period_ms!() + 2);
 
-    let staking_config = staking_config::new_for_testing_default(&mut ctx);
-    let mut batch = staking_batch::new_for_testing(
-        1000, // balance
-        0, // start_ms
-        0, // unlock_ms
-        0, // cooldown_end_ms
-        0, // voting_until_ms
-        &mut ctx,
-    );
+    let mut batch = setup.new_batch(&mut ts, 1_000_000, 0);
+
     proposal.vote(
         b"Yes".to_string(),
         &mut batch,
-        &staking_config,
-        &clock,
-        &ctx,
+        setup.config(),
+        setup.clock(),
+        ts.ctx(),
     );
 
     abort 1337
@@ -332,30 +324,22 @@ fun try_to_vote_on_expired_proposal() {
 
 #[test, expected_failure(abort_code = proposal_v2::ENotAvailableOption)]
 fun vote_non_existing_option() {
-    let mut ctx = tx_context::dummy();
-    let clock = clock::create_for_testing(&mut ctx);
+    let (mut ts, mut setup) = setup();
 
     let mut proposal = test_proposal(
-        &clock,
+        setup.clock(),
         option::none(),
-        &mut ctx,
+        ts.ctx(),
     );
 
-    let staking_config = staking_config::new_for_testing_default(&mut ctx);
-    let mut batch = staking_batch::new_for_testing(
-        1000, // balance
-        0, // start_ms
-        0, // unlock_ms
-        0, // cooldown_end_ms
-        0, // voting_until_ms
-        &mut ctx,
-    );
+    let mut batch = setup.new_batch(&mut ts, 1_000_000, 0);
+
     proposal.vote(
         b"Wut".to_string(),
         &mut batch,
-        &staking_config,
-        &clock,
-        &ctx,
+        setup.config(),
+        setup.clock(),
+        ts.ctx(),
     );
 
     abort 1337
