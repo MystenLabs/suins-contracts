@@ -14,6 +14,8 @@ use suins_token::{
     ns::NS,
 };
 use suins_voting::{
+    constants::{min_voting_period_ms},
+    governance::{Self, NSGovernance},
     proposal_v2::{Self, ProposalV2},
     staking_admin::{Self, StakingAdminCap},
     staking_batch::{Self, StakingBatch},
@@ -23,7 +25,8 @@ use suins_voting::{
 
 // === constants ===
 
-const ADMIN: address = @0xaa1;
+public macro fun admin_addr(): address { @0xaa1 }
+
 const INITIAL_TIME: u64 = 86_400_000; // January 2, 1970
 const VOTING_PERIOD_MS: u64 = 1000 * 60 * 60 * 24 * 7; // 7 days
 
@@ -31,30 +34,34 @@ const VOTING_PERIOD_MS: u64 = 1000 * 60 * 60 * 24 * 7; // 7 days
 
 public struct TestSetup {
     clock: Clock,
+    gov: NSGovernance,
     config: StakingConfig,
     admin_cap: StakingAdminCap,
 }
 
 public fun clock(setup: &TestSetup): &Clock { &setup.clock }
+public fun gov_mut(setup: &mut TestSetup): &mut NSGovernance { &mut setup.gov }
 public fun config(setup: &TestSetup): &StakingConfig { &setup.config }
 public fun config_mut(setup: &mut TestSetup): &mut StakingConfig { &mut setup.config }
 public fun admin_cap(setup: &TestSetup): &StakingAdminCap { &setup.admin_cap }
 
 public fun setup(): (Scenario, TestSetup) {
-    let mut ts = ts::begin(ADMIN);
+    let mut ts = ts::begin(admin_addr!());
     let mut clock = clock::create_for_testing(ts.ctx());
 
     clock.set_for_testing(INITIAL_TIME);
+    governance::init_for_testing(ts.ctx());
     staking_config::init_for_testing(ts.ctx());
     staking_admin::init_for_testing(ts.ctx());
 
-    ts.next_tx(ADMIN);
+    ts.next_tx(admin_addr!());
+    let gov = ts.take_shared<NSGovernance>();
     let config = ts.take_shared<StakingConfig>();
-    let admin_cap = ts::take_from_address<StakingAdminCap>(&ts, ADMIN);
+    let admin_cap = ts.take_from_sender<StakingAdminCap>();
 
     (
         ts,
-        TestSetup { clock, config, admin_cap }
+        TestSetup { clock, gov, config, admin_cap }
     )
 }
 
@@ -107,6 +114,38 @@ public fun new_default_proposal(
 ): ProposalV2 {
     new_proposal(setup, ts, voting_option::default_options(), 0, VOTING_PERIOD_MS)
 }
+
+public fun new_proposal_with_end_time(
+    setup: &mut TestSetup,
+    ts: &mut Scenario,
+    end_time_ms: Option<u64>,
+): ProposalV2 {
+    test_proposal(&setup.clock, end_time_ms, ts.ctx())
+}
+
+fun test_proposal(
+    clock: &Clock,
+    end_time_ms: Option<u64>,
+    ctx: &mut TxContext,
+): ProposalV2 {
+    let options = voting_option::default_options();
+    let title = b"Test Proposal".to_string();
+    let description = b"Test Proposal Description".to_string();
+    let reward = coin::mint_for_testing<NS>(1_000_000, ctx); // 1 NS
+
+    proposal_v2::new(
+        title,
+        description,
+        end_time_ms.destroy_or!(
+            clock.timestamp_ms() + min_voting_period_ms!() + 1,
+        ),
+        options,
+        reward,
+        clock,
+        ctx,
+    )
+}
+
 
 public fun vote_with_new_batch_and_keep(
     setup: &mut TestSetup,

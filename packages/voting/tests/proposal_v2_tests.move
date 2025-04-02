@@ -16,8 +16,6 @@ use suins_voting::{
     constants::{min_voting_period_ms, max_voting_period_ms},
     proposal_v2::{Self, ProposalV2},
     voting_option::{Self, threshold_not_reached, tie_rejected},
-    staking_batch::{Self},
-    staking_config::{Self},
     staking_constants::{day_ms},
     test_utils::{setup, assert_owns_ns},
 };
