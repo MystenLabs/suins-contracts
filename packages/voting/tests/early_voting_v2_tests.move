@@ -79,7 +79,7 @@ fun prepare_early_voting(): TestSetup {
     }
 }
 
-// === tests ===
+// === original tests from v1 (adapted for proposal_v2) ===
 
 #[test]
 fun test_e2e() {

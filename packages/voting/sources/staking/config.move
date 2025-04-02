@@ -70,24 +70,24 @@ fun init(otw: STAKING_CONFIG, ctx: &mut TxContext)
 
 // === private functions ===
 
-public fun set_cooldown_ms(c: &mut StakingConfig, _: &StakingAdminCap, cooldown_ms: u64 ) {
-    c.cooldown_ms = cooldown_ms;
+public fun set_cooldown_ms(config: &mut StakingConfig, _: &StakingAdminCap, cooldown_ms: u64 ) {
+    config.cooldown_ms = cooldown_ms;
 }
-public fun set_max_lock_months(c: &mut StakingConfig, _: &StakingAdminCap, max_lock_months: u64 ) {
+public fun set_max_lock_months(config: &mut StakingConfig, _: &StakingAdminCap, max_lock_months: u64 ) {
     assert!(max_lock_months > 0, EInvalidMaxLockMonths);
-    c.max_lock_months = max_lock_months;
+    config.max_lock_months = max_lock_months;
 }
-public fun set_max_boost_bps(c: &mut StakingConfig, _: &StakingAdminCap, max_boost_bps: u64) {
+public fun set_max_boost_bps(config: &mut StakingConfig, _: &StakingAdminCap, max_boost_bps: u64) {
     assert!(max_boost_bps > 0, EInvalidMaxBoostBps);
-    c.max_boost_bps = max_boost_bps;
+    config.max_boost_bps = max_boost_bps;
 }
-public fun set_monthly_boost_bps(c: &mut StakingConfig, _: &StakingAdminCap, monthly_boost_bps: u64) {
+public fun set_monthly_boost_bps(config: &mut StakingConfig, _: &StakingAdminCap, monthly_boost_bps: u64) {
     assert!(monthly_boost_bps >= 10000, EInvalidMonthlyBoostBps); // at least 1x
-    c.monthly_boost_bps = monthly_boost_bps;
+    config.monthly_boost_bps = monthly_boost_bps;
 }
-public fun set_min_balance(c: &mut StakingConfig, _: &StakingAdminCap, min_balance: u64 ) {
+public fun set_min_balance(config: &mut StakingConfig, _: &StakingAdminCap, min_balance: u64 ) {
     assert!(min_balance > 0, EInvalidMinBalance);
-    c.min_balance = min_balance;
+    config.min_balance = min_balance;
 }
 public fun set_all(
     config: &mut StakingConfig,

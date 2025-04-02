@@ -310,7 +310,7 @@ fun test_user_can_vote_multiple_times_ok() {
     destroy(setup);
 }
 
-// === original tests from v1 ===
+// === original tests from v1 (adapted for proposal_v2) ===
 
 #[test, expected_failure(abort_code = proposal_v2::ETooShortVotingPeriod)]
 fun try_create_outside_min_range() {
