@@ -29,7 +29,8 @@ const ECooldownAlreadyRequested: u64 = 3;
 const ECooldownNotRequested: u64 = 4;
 const ECooldownNotOver: u64 = 5;
 const EBatchIsVoting: u64 = 6;
-const EInvalidVotingUntilMs: u64 = 7;
+const EVotingUntilMsInPast: u64 = 7;
+const EVotingUntilMsNotExtended: u64 = 8;
 
 // === constants ===
 
@@ -212,7 +213,9 @@ public(package) fun set_voting_until_ms(
     voting_until_ms: u64,
     clock: &Clock,
 ) {
-    assert!(voting_until_ms >= clock.timestamp_ms(), EInvalidVotingUntilMs);
+    assert!(voting_until_ms >= clock.timestamp_ms(), EVotingUntilMsInPast);
+    assert!(voting_until_ms > batch.voting_until_ms, EVotingUntilMsNotExtended);
+
     batch.voting_until_ms = voting_until_ms;
 
     emit(EventSetVoting {
