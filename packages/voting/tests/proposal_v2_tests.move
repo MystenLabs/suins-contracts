@@ -221,7 +221,7 @@ fun test_threshold_not_reached_ok() {
 
     // Create proposal with threshold
     let mut proposal = create_default_proposal(&mut setup);
-    let threshold = 1_000_000; // 1 NS
+    let threshold = 1_000_000_000; // 1000 NS
     proposal.set_threshold(threshold);
 
     // Add some votes, but not enough to meet threshold
