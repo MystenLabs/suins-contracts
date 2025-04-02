@@ -88,7 +88,6 @@ public fun new(
     emit(EventNew {
         batch_id: batch.id.to_address(),
         balance: batch.balance.value(),
-        lock_months,
         start_ms: batch.start_ms,
         unlock_ms: batch.unlock_ms,
     });
@@ -111,11 +110,12 @@ public fun lock(
     new_lock_months: u64,
     clock: &Clock,
 ) {
-    assert!(!batch.is_cooldown_requested(), ECooldownAlreadyRequested);
-    let curr_lock_months = (batch.unlock_ms - batch.start_ms) / month_ms!();
-    assert!(new_lock_months > curr_lock_months, EInvalidLockPeriod);
-    assert!(new_lock_months <= config.max_lock_months(), EInvalidLockPeriod);
     assert!(!batch.is_voting(clock), EBatchIsVoting);
+    assert!(!batch.is_cooldown_requested(), ECooldownAlreadyRequested);
+    let old_unlock_ms = batch.unlock_ms;
+    let old_lock_months = (old_unlock_ms - batch.start_ms) / month_ms!();
+    assert!(new_lock_months > old_lock_months, EInvalidLockPeriod);
+    assert!(new_lock_months <= config.max_lock_months(), EInvalidLockPeriod);
 
     // Lock the batch
     let new_unlock_ms = batch.start_ms + (new_lock_months * month_ms!());
@@ -124,8 +124,9 @@ public fun lock(
     emit(EventLock {
         batch_id: batch.id.to_address(),
         balance: batch.balance.value(),
-        lock_months: new_lock_months,
-        unlock_ms: new_unlock_ms,
+        start_ms: batch.start_ms,
+        old_unlock_ms,
+        new_unlock_ms,
     });
 }
 
@@ -135,9 +136,9 @@ public fun request_unstake(
     config: &StakingConfig,
     clock: &Clock,
 ) {
+    assert!(!batch.is_voting(clock), EBatchIsVoting);
     assert!(batch.is_unlocked(clock), EBatchLocked);
     assert!(!batch.is_cooldown_requested(), ECooldownAlreadyRequested);
-    assert!(!batch.is_voting(clock), EBatchIsVoting);
 
     let now = clock.timestamp_ms();
     let cooldown_end_ms = now + config.cooldown_ms();
@@ -155,11 +156,10 @@ public fun unstake(
     batch: StakingBatch,
     clock: &Clock,
 ): Balance<NS> {
+    assert!(!batch.is_voting(clock), EBatchIsVoting);
     assert!(batch.is_unlocked(clock), EBatchLocked);
     assert!(batch.is_cooldown_requested(), ECooldownNotRequested);
     assert!(batch.is_cooldown_over(clock), ECooldownNotOver);
-    // proposal doesn't allow a cooldown batch to vote, but doesn't hurt to check
-    assert!(!batch.is_voting(clock), EBatchIsVoting);
 
     let batch_address = batch.id.to_address();
     let coin_value = batch.balance.value();
@@ -197,6 +197,7 @@ public fun admin_new(
     batch
 }
 
+/// Allows the admin to airdrop batches
 public fun admin_transfer(
     _: &StakingAdminCap,
     batch: StakingBatch,
@@ -325,7 +326,6 @@ public fun voting_until_ms(batch: &StakingBatch): u64 { batch.voting_until_ms }
 public struct EventNew has copy, drop {
     batch_id: address,
     balance: u64,
-    lock_months: u64,
     start_ms: u64,
     unlock_ms: u64,
 }
@@ -333,8 +333,9 @@ public struct EventNew has copy, drop {
 public struct EventLock has copy, drop {
     batch_id: address,
     balance: u64,
-    lock_months: u64,
-    unlock_ms: u64,
+    start_ms: u64,
+    old_unlock_ms: u64,
+    new_unlock_ms: u64,
 }
 
 public struct EventRequestUnstake has copy, drop {

@@ -517,7 +517,7 @@ fun test_unstake_e_batch_is_voting() {
 
 }
 
-#[test, expected_failure(abort_code = staking_batch::EInvalidVotingUntilMs)]
+#[test, expected_failure(abort_code = staking_batch::EVotingUntilMsInPast)]
 fun test_set_voting_until_ms_e_invalid_time() {
     let mut setup = setup();
     let mut batch = setup.new_batch(USER_1, 1_000_000, 0);

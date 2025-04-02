@@ -22,7 +22,7 @@ const COOLDOWN_MS: u64 = 1000 * 60 * 60 * 24 * 3; // 3 days
 const MAX_LOCK_MONTHS: u64 = 12;
 const MAX_BOOST_BPS: u64 = 3_0000; // 3x
 const MONTHLY_BOOST_BPS: u64 = 1_1000; // 1.1x
-const MIN_BALANCE: u64 = 1000;
+const MIN_BALANCE: u64 = 1_000; // 0.001 NS
 
 // === structs ===
 
