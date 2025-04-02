@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import ReactPlayer from 'react-player/lazy'
 
-const Player = ({ videoFilename }) => {
+const Player = ({ videoId }) => {
   const [hasWindow, setHasWindow] = useState(false);
   const [duration, setDuration] = useState();
-  const videoUrl = `/videos/${videoFilename.replace('.mp4', '')}.mp4`;
-  const thumbnailUrl = `/videos/thumbnails/${videoFilename.replace('.mp4', '')}.png`;
+  const videoUrl = `https://youtu.be/${videoId}`;
 
   const handleDuration = (time) => {
     setDuration(time);
@@ -25,8 +24,6 @@ const Player = ({ videoFilename }) => {
         className='absolute top-0 left-0'
         url={videoUrl}
         controls={true}
-        light={thumbnailUrl}
-        playing={true}
         width='100%'
         height='100%'
         onDuration={handleDuration}
