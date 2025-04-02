@@ -503,12 +503,11 @@ fun test_unstake_e_batch_is_voting() {
     batch.request_unstake(&setup.config, &setup.clock);
 
     // set voting until later than cooldown period
-    let cooldown_ms = setup.config.cooldown_ms();
-    let voting_end_time = cooldown_ms * 2;
+    let voting_end_time = batch.cooldown_end_ms() * 2;
     batch.set_voting_until_ms(voting_end_time, &setup.clock);
 
     // wait for cooldown to end
-    setup.add_time(cooldown_ms);
+    setup.add_time(batch.cooldown_end_ms());
 
     // try to unstake while batch is being used for voting
     let _balance = batch.unstake(&setup.clock);
