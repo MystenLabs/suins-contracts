@@ -226,7 +226,7 @@ fun test_end_to_end_ok() {
     assert_eq(batch.power(&setup.config, &setup.clock), expected_power);
 
     // extend lock to 6 months
-    batch.lock(&setup.config, 6);
+    batch.lock(&setup.config, 6, &setup.clock);
     assert_eq(batch.is_locked(&setup.clock), true);
     let expected_power = (balance as u128 * boost * boost * boost * boost * boost * boost / 10000 / 10000 / 10000 / 10000 / 10000 / 10000) as u64;
     assert_eq(batch.power(&setup.config, &setup.clock), expected_power);
@@ -282,7 +282,7 @@ fun test_power_max_balance() {
 
     // lock for max months
     let max_months = setup.config.max_lock_months();
-    batch.lock(&setup.config, max_months);
+    batch.lock(&setup.config, max_months, &setup.clock);
     let max_boost = setup.config.max_boost_bps() as u128;
     let expected_power = (total_supply as u128 * max_boost / 10000) as u64;
     assert_eq(batch.power(&setup.config, &setup.clock), expected_power);
@@ -419,7 +419,7 @@ fun test_lock_e_cooldown_already_requested() {
     let mut batch = setup.new_batch(USER_1, 1_000_000, 0); // no lock
     batch.request_unstake(&setup.config, &setup.clock);
     // try to lock after cooldown started
-    batch.lock(&setup.config, 3);
+    batch.lock(&setup.config, 3, &setup.clock);
     abort 123
 }
 
@@ -428,7 +428,7 @@ fun test_lock_e_invalid_lock_period_shorter_than_current() {
     let mut setup = setup();
     let mut batch = setup.new_batch(USER_1, 1_000_000, 6);
     // try to extend lock with a shorter period
-    batch.lock(&setup.config, 3);
+    batch.lock(&setup.config, 3, &setup.clock);
     abort 123
 }
 
@@ -438,7 +438,7 @@ fun test_lock_e_invalid_lock_period_too_long() {
     // try to extend lock beyond maximum
     let max_lock_months = setup.config.max_lock_months();
     let mut batch = setup.new_batch(USER_1, 1_000_000, 6);
-    batch.lock(&setup.config, max_lock_months + 1);
+    batch.lock(&setup.config, max_lock_months + 1, &setup.clock);
     abort 123
 }
 

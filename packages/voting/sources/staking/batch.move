@@ -106,11 +106,13 @@ public fun lock(
     batch: &mut StakingBatch,
     config: &StakingConfig,
     new_lock_months: u64,
+    clock: &Clock,
 ) {
     assert!(!batch.is_cooldown_requested(), ECooldownAlreadyRequested);
     let curr_lock_months = (batch.unlock_ms - batch.start_ms) / month_ms!();
     assert!(new_lock_months > curr_lock_months, EInvalidLockPeriod);
     assert!(new_lock_months <= config.max_lock_months(), EInvalidLockPeriod);
+    assert!(!batch.is_voting(clock), EBatchIsVoting);
 
     // Lock the batch
     let new_unlock_ms = batch.start_ms + (new_lock_months * month_ms!());
