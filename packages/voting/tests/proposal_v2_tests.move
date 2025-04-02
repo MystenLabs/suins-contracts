@@ -48,8 +48,8 @@ fun test_end_to_end_ok() {
 
     // user_1 votes with two batches
     ts::next_tx(&mut ts, USER_1);
-    let mut batch1 = setup.new_batch(&mut ts, USER_1, 250_000_000, 3); // 250 NS, locked for 3 months
-    let mut batch2 = setup.new_batch(&mut ts, USER_1, 500_000_000, 3); // 500 NS, locked for 3 months
+    let mut batch1 = setup.new_batch(&mut ts, 250_000_000, 3); // 250 NS, locked for 3 months
+    let mut batch2 = setup.new_batch(&mut ts, 500_000_000, 3); // 500 NS, locked for 3 months
     let batch1_power = batch1.power(setup.config(), setup.clock());
     let batch2_power = batch2.power(setup.config(), setup.clock());
     proposal.vote(
@@ -71,7 +71,7 @@ fun test_end_to_end_ok() {
 
     // user_2 votes with one batch
     ts::next_tx(&mut ts, USER_2);
-    let mut batch3 = setup.new_batch(&mut ts, USER_2, 250_000_000, 3); // 250 NS, locked for 3 months
+    let mut batch3 = setup.new_batch(&mut ts, 250_000_000, 3); // 250 NS, locked for 3 months
     let batch3_power = batch3.power(setup.config(), setup.clock());
     proposal.vote(
         b"Option A".to_string(),
@@ -118,7 +118,7 @@ fun test_threshold_not_reached_ok() {
     proposal.set_threshold(threshold);
 
     // Add some votes, but not enough to meet threshold
-    setup.vote_with_new_batch_and_keep(&mut ts, USER_1, &mut proposal, b"Yes", threshold - 1);
+    setup.vote_with_new_batch_and_keep(&mut ts, &mut proposal, b"Yes", threshold - 1);
 
     // Finalize proposal
     setup.add_time(proposal.end_time_ms());
@@ -135,10 +135,9 @@ fun test_tied_vote_ok() {
     let (mut ts, mut setup) = setup();
     let mut proposal = setup.new_default_proposal(&mut ts);
 
-    // Two users vote with equal power for different options
-    setup.vote_with_new_batch_and_keep(&mut ts, USER_1, &mut proposal, b"Yes", 1_000_000);
-
-    setup.vote_with_new_batch_and_keep(&mut ts, USER_2, &mut proposal, b"No", 1_000_000);
+    // Two votes with equal power for different options
+    setup.vote_with_new_batch_and_keep(&mut ts, &mut proposal, b"Yes", 1_000_000);
+    setup.vote_with_new_batch_and_keep(&mut ts, &mut proposal, b"No", 1_000_000);
 
     // Time passes, finalize proposal
     setup.set_time(proposal.end_time_ms());
@@ -155,10 +154,9 @@ fun test_abstain_ok() {
     let (mut ts, mut setup) = setup();
     let mut proposal = setup.new_default_proposal(&mut ts);
 
-    // Two users vote: one for Yes, one for Abstain with more power
-    setup.vote_with_new_batch_and_keep(&mut ts, USER_1, &mut proposal, b"Yes", 1_000_000);
-
-    setup.vote_with_new_batch_and_keep(&mut ts, USER_2, &mut proposal, b"Abstain", 2_000_000);
+    // Two votes: one for Yes, one for Abstain with more power
+    setup.vote_with_new_batch_and_keep(&mut ts, &mut proposal, b"Yes", 1_000_000);
+    setup.vote_with_new_batch_and_keep(&mut ts, &mut proposal, b"Abstain", 2_000_000);
 
     // Verify total power counts
     assert_eq(proposal.total_power(), 1_000_000 + 2_000_000);
@@ -175,14 +173,13 @@ fun test_abstain_ok() {
 }
 
 #[test]
-fun test_user_can_vote_multiple_times_ok() {
+fun test_user_can_vote_same_option_multiple_times_ok() {
     let (mut ts, mut setup) = setup();
     let mut proposal = setup.new_default_proposal(&mut ts);
 
-    // User votes in two separate transactions
-    setup.vote_with_new_batch_and_keep(&mut ts, USER_1, &mut proposal, b"Yes", 1_000_000);
-
-    setup.vote_with_new_batch_and_keep(&mut ts, USER_1, &mut proposal, b"Yes", 2_000_000);
+    ts.next_tx(USER_1);
+    setup.vote_with_new_batch_and_keep(&mut ts, &mut proposal, b"Yes", 1_000_000);
+    setup.vote_with_new_batch_and_keep(&mut ts, &mut proposal, b"Yes", 2_000_000);
 
     // Check that user's voting power is accumulated correctly in user_powers
     let expected_power = 1_000_000 + 2_000_000;

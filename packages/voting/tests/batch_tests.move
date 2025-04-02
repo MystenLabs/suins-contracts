@@ -42,7 +42,7 @@ fun test_power_ok() {
     // == regular staking ==
 
     // basic staking with no lock
-    let batch = setup.new_batch(&mut ts, USER_1, balance, 0);
+    let batch = setup.new_batch(&mut ts, balance, 0);
     setup.assert_power(&batch, balance); // 1.0x at start
 
     // test month-by-month progression
@@ -64,7 +64,7 @@ fun test_power_ok() {
     destroy(batch);
 
     // test partial month handling
-    let batch = setup.new_batch(&mut ts, USER_1, balance, 0);
+    let batch = setup.new_batch(&mut ts, balance, 0);
     setup.add_time(month_ms!() - 1); // just before 1 month
     setup.assert_power(&batch, balance); // 1.0x (no change)
     setup.add_time(1); // exactly 1 month
@@ -74,24 +74,24 @@ fun test_power_ok() {
     // == locking ===
 
     // test 1-month lock
-    let batch = setup.new_batch(&mut ts, USER_1, balance, 1);
+    let batch = setup.new_batch(&mut ts, balance, 1);
     setup.assert_power(&batch, 1_100_000); // 1.1x from lock
     destroy(batch);
 
     // test 11-month lock (maximum regular multiplier)
-    let batch = setup.new_batch(&mut ts, USER_1, balance, 11);
+    let batch = setup.new_batch(&mut ts, balance, 11);
     setup.assert_power(&batch, 2_853_114); // 2.85x (1.1^11)
     destroy(batch);
 
     // test 12-month lock (special bonus case)
-    let batch = setup.new_batch(&mut ts, USER_1, balance, 12);
+    let batch = setup.new_batch(&mut ts, balance, 12);
     setup.assert_power(&batch, 3_000_000); // 3.0x (special bonus)
     destroy(batch);
 
     // == transition from locked to staked ===
 
     // test 3-month lock transitioning to staked
-    let batch = setup.new_batch(&mut ts, USER_1, balance, 3);
+    let batch = setup.new_batch(&mut ts, balance, 3);
     setup.assert_power(&batch, 1_331_000); // 1.331x (1.1^3 from lock)
 
     // test boundary at unlock time
@@ -112,7 +112,7 @@ fun test_power_ok() {
     destroy(batch);
 
     // test partial months after lock period
-    let batch = setup.new_batch(&mut ts, USER_1, balance, 2);
+    let batch = setup.new_batch(&mut ts, balance, 2);
     setup.assert_power(&batch, 1_210_000); // 1.21x (1.1^2 from lock)
     setup.add_time(2 * month_ms!()); // exactly when lock ends
     setup.add_time(month_ms!() / 2); // half a month after unlock
@@ -124,7 +124,7 @@ fun test_power_ok() {
     // == edge cases ===
 
     // test 6-month lock + 6 months staking (reaching cap)
-    let batch = setup.new_batch(&mut ts, USER_1, balance, 6);
+    let batch = setup.new_batch(&mut ts, balance, 6);
     setup.assert_power(&batch, 1_771_561); // 1.771x (1.1^6 from lock)
     setup.add_time(6 * month_ms!()); // exactly when lock ends
     setup.add_time(5 * month_ms!()); // 5 months after unlock
@@ -132,7 +132,7 @@ fun test_power_ok() {
     destroy(batch);
 
     // test 12-month lock with additional staking time
-    let batch = setup.new_batch(&mut ts, USER_1, balance, 12);
+    let batch = setup.new_batch(&mut ts, balance, 12);
     setup.assert_power(&batch, 3_000_000); // 3.0x (special bonus)
     setup.add_time(12 * month_ms!()); // exactly when lock ends
     setup.assert_power(&batch, 3_000_000); // 3.0x (no change)
@@ -150,7 +150,7 @@ fun test_end_to_end_ok() {
     let boost = setup.config().monthly_boost_bps() as u128;
 
     // create a new batch with a 3-month lock
-    let mut batch = setup.new_batch(&mut ts, USER_1, balance, 3);
+    let mut batch = setup.new_batch(&mut ts, balance, 3);
     // verify initial state
     assert_eq(batch.balance(), balance);
     assert_eq(batch.cooldown_end_ms(), 0);
@@ -213,7 +213,7 @@ fun test_power_max_balance() {
     let total_supply = 500_000_000 * 1_000_000; // 500 million NS
 
     // lock for 1 month
-    let mut batch = setup.new_batch(&mut ts, USER_1, total_supply, 1);
+    let mut batch = setup.new_batch(&mut ts, total_supply, 1);
     let boost = setup.config().monthly_boost_bps() as u128;
     let expected_power = (total_supply as u128 * boost / 10000) as u64;
     assert_eq(batch.power(setup.config(), setup.clock()), expected_power);
@@ -265,7 +265,7 @@ fun test_config_changes() {
     let balance = 1_000_000;
 
     // change monthly_boost_bps
-    let batch = setup.new_batch(&mut ts, USER_1, balance, 1);
+    let batch = setup.new_batch(&mut ts, balance, 1);
     let boost_1 = setup.config().monthly_boost_bps();
     let boost_2 = boost_1 + 1000; // increase by 10%
     setup.config_mut().set_monthly_boost_bps(&cap, boost_2);
@@ -277,13 +277,13 @@ fun test_config_changes() {
     let max_boost_2 = 100_0000; // 100x
     setup.config_mut().set_max_boost_bps(&cap, max_boost_2);
     let max_lock_months = setup.config().max_lock_months();
-    let batch = setup.new_batch(&mut ts, USER_1, balance, max_lock_months);
+    let batch = setup.new_batch(&mut ts, balance, max_lock_months);
     let expected_power = balance * max_boost_2 / 10000;
     assert_eq(batch.power(setup.config(), setup.clock()), expected_power);
     destroy(batch);
 
     // change cooldown period
-    let mut batch = setup.new_batch(&mut ts, USER_1, balance, 0);
+    let mut batch = setup.new_batch(&mut ts, balance, 0);
     let cooldown_1 = setup.config().cooldown_ms();
     let cooldown_2 = cooldown_1 / 2;
     setup.config_mut().set_cooldown_ms(&cap, cooldown_2);
@@ -306,7 +306,7 @@ fun test_zero_cooldown() {
     setup.config_mut().set_cooldown_ms(&cap, 0);
 
     // create and request unstake for a batch
-    let mut batch = setup.new_batch(&mut ts, USER_1, balance, 0);
+    let mut batch = setup.new_batch(&mut ts, balance, 0);
     batch.request_unstake(setup.config(), setup.clock());
 
     // should be able to unstake immediately
@@ -354,7 +354,7 @@ fun test_new_e_invalid_lock_period_above_max() {
 #[test, expected_failure(abort_code = staking_batch::ECooldownAlreadyRequested)]
 fun test_lock_e_cooldown_already_requested() {
     let (mut ts, mut setup) = setup();
-    let mut batch = setup.new_batch(&mut ts, USER_1, 1_000_000, 0); // no lock
+    let mut batch = setup.new_batch(&mut ts, 1_000_000, 0);
     batch.request_unstake(setup.config(), setup.clock());
     // try to lock after cooldown started
     batch.lock(setup.config(), 3, setup.clock());
@@ -364,7 +364,7 @@ fun test_lock_e_cooldown_already_requested() {
 #[test, expected_failure(abort_code = staking_batch::EInvalidLockPeriod)]
 fun test_lock_e_invalid_lock_period_shorter_than_current() {
     let (mut ts, mut setup) = setup();
-    let mut batch = setup.new_batch(&mut ts, USER_1, 1_000_000, 6);
+    let mut batch = setup.new_batch(&mut ts, 1_000_000, 6);
     // try to extend lock with a shorter period
     batch.lock(setup.config(), 3, setup.clock());
     abort 123
@@ -375,7 +375,7 @@ fun test_lock_e_invalid_lock_period_too_long() {
     let (mut ts, mut setup) = setup();
     // try to extend lock beyond maximum
     let max_lock_months = setup.config().max_lock_months();
-    let mut batch = setup.new_batch(&mut ts, USER_1, 1_000_000, 6);
+    let mut batch = setup.new_batch(&mut ts, 1_000_000, 6);
     batch.lock(setup.config(), max_lock_months + 1, setup.clock());
     abort 123
 }
@@ -384,7 +384,7 @@ fun test_lock_e_invalid_lock_period_too_long() {
 fun test_request_unstake_e_batch_locked() {
     let (mut ts, mut setup) = setup();
     // try to request unstake while batch is locked
-    let mut batch = setup.new_batch(&mut ts, USER_1, 1_000_000, 3);
+    let mut batch = setup.new_batch(&mut ts, 1_000_000, 3);
     batch.request_unstake(setup.config(), setup.clock());
     abort 123
 }
@@ -392,7 +392,7 @@ fun test_request_unstake_e_batch_locked() {
 #[test, expected_failure(abort_code = staking_batch::ECooldownAlreadyRequested)]
 fun test_request_unstake_e_already_requested() {
     let (mut ts, mut setup) = setup();
-    let mut batch = setup.new_batch(&mut ts, USER_1, 1_000_000, 0); // no lock
+    let mut batch = setup.new_batch(&mut ts, 1_000_000, 0);
     batch.request_unstake(setup.config(), setup.clock());
     // try to request unstake twice
     batch.request_unstake(setup.config(), setup.clock());
@@ -402,7 +402,7 @@ fun test_request_unstake_e_already_requested() {
 #[test, expected_failure(abort_code = staking_batch::ECooldownNotRequested)]
 fun test_unstake_e_not_requested() {
     let (mut ts, mut setup) = setup();
-    let batch = setup.new_batch(&mut ts, USER_1, 1_000_000, 0); // no lock
+    let batch = setup.new_batch(&mut ts, 1_000_000, 0);
     // try to unstake without requesting first
     let _balance = batch.unstake(setup.clock());
     abort 123
@@ -411,7 +411,7 @@ fun test_unstake_e_not_requested() {
 #[test, expected_failure(abort_code = staking_batch::EBatchLocked)]
 fun test_unstake_e_batch_locked() {
     let (mut ts, mut setup) = setup();
-    let mut batch = setup.new_batch(&mut ts, USER_1, 1_000_000, 3); // 3 month lock
+    let mut batch = setup.new_batch(&mut ts, 1_000_000, 3); // 3 month lock
     batch.request_unstake(setup.config(), setup.clock());
     abort 123
 }
@@ -419,7 +419,7 @@ fun test_unstake_e_batch_locked() {
 #[test, expected_failure(abort_code = staking_batch::ECooldownNotOver)]
 fun test_unstake_e_cooldown_not_over() {
     let (mut ts, mut setup) = setup();
-    let mut batch = setup.new_batch(&mut ts, USER_1, 1_000_000, 0); // no lock
+    let mut batch = setup.new_batch(&mut ts, 1_000_000, 0);
 
     batch.request_unstake(setup.config(), setup.clock());
 
@@ -436,7 +436,7 @@ fun test_unstake_e_cooldown_not_over() {
 #[test, expected_failure(abort_code = staking_batch::EBatchIsVoting)]
 fun test_unstake_e_batch_is_voting() {
     let (mut ts, mut setup) = setup();
-    let mut batch = setup.new_batch(&mut ts, USER_1, 1_000_000, 0); // no lock
+    let mut batch = setup.new_batch(&mut ts, 1_000_000, 0);
 
     batch.request_unstake(setup.config(), setup.clock());
 
@@ -457,7 +457,7 @@ fun test_unstake_e_batch_is_voting() {
 #[test, expected_failure(abort_code = staking_batch::EVotingUntilMsInPast)]
 fun test_set_voting_until_ms_e_invalid_time() {
     let (mut ts, mut setup) = setup();
-    let mut batch = setup.new_batch(&mut ts, USER_1, 1_000_000, 0);
+    let mut batch = setup.new_batch(&mut ts, 1_000_000, 0);
 
     // try to set voting_until_ms to a time in the past
     let past_time = setup.clock().timestamp_ms() - 1000;

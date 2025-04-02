@@ -63,11 +63,9 @@ public fun setup(): (Scenario, TestSetup) {
 public fun new_batch(
     setup: &mut TestSetup,
     ts: &mut Scenario,
-    sender: address,
     balance: u64,
     lock_months: u64,
 ): StakingBatch {
-    ts.next_tx(sender);
     let balance = mint_ns(ts, balance);
     staking_batch::new(&setup.config, balance, lock_months, &setup.clock, ts.ctx())
 }
@@ -113,12 +111,11 @@ public fun new_default_proposal(
 public fun vote_with_new_batch_and_keep(
     setup: &mut TestSetup,
     ts: &mut Scenario,
-    sender: address,
     proposal: &mut ProposalV2,
     option: vector<u8>,
     balance: u64,
 ) {
-    let mut batch = new_batch(setup, ts, sender, balance, 0);
+    let mut batch = new_batch(setup, ts, balance, 0);
     proposal.vote(
         option.to_string(),
         &mut batch,
