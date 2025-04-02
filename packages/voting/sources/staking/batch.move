@@ -1,3 +1,5 @@
+// TODO: add Stats (total staked/locked)
+// TODO: add events
 module suins_voting::staking_batch;
 
 // === imports ===

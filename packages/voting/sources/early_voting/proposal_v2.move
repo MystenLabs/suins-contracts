@@ -1,3 +1,5 @@
+// TODO (maybe): add Stats: user lifetime rewards, rewards per proposal
+// TODO: add events
 module suins_voting::proposal_v2;
 
 // === imports ===
@@ -330,7 +332,7 @@ fun finalize_internal(proposal: &mut ProposalV2, clock: &Clock) {
     }
 }
 
-/// Remove the voter from proposal.voters_copy, and return his reward
+/// Remove the voter from proposal.voter_powers, and return his reward
 fun get_user_reward(
     proposal: &mut ProposalV2,
     user_addr: address,
