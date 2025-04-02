@@ -20,7 +20,7 @@ use suins_voting::{
     leaderboard::{Self, Leaderboard},
     voting_option::{Self, VotingOption, abstain_option},
 };
-use token::{
+use suins_token::{
     ns::{NS},
 };
 use suins_voting::{

@@ -9,7 +9,7 @@ use sui::{
     test_scenario::{Self as ts, Scenario},
     test_utils::{assert_eq, destroy},
 };
-use token::{
+use suins_token::{
     ns::NS,
 };
 use suins_voting::{

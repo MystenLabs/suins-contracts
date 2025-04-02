@@ -11,7 +11,7 @@ use sui::{
     event::{emit},
     package::{Self},
 };
-use token::{
+use suins_token::{
     ns::NS,
 };
 use suins_voting::{

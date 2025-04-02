@@ -9,7 +9,7 @@ use sui::{
     test_utils::{assert_eq, destroy},
     vec_set::{Self, VecSet},
 };
-use token::{
+use suins_token::{
     ns::NS,
 };
 use suins_voting::{
