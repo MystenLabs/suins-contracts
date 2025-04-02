@@ -504,6 +504,7 @@ public fun test_proposal(
     let options = voting_option::default_options();
     let title = b"Test Proposal".to_string();
     let description = b"Test Proposal Description".to_string();
+    let reward = coin::mint_for_testing<NS>(1_000_000, ctx); // 1 NS
 
     proposal_v2::new(
         title,
@@ -512,7 +513,7 @@ public fun test_proposal(
             clock.timestamp_ms() + min_voting_period_ms!() + 1,
         ),
         options,
-        coin::mint_for_testing<NS>(0, ctx),
+        reward,
         clock,
         ctx,
     )

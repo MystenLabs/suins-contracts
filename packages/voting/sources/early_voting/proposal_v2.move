@@ -254,9 +254,9 @@ public fun claim_reward(
     proposal: &mut ProposalV2,
     clock: &Clock,
     ctx: &mut TxContext,
-): Coin<NS> {
+): Balance<NS> {
     proposal.finalize_internal(clock);
-    get_user_reward(proposal, ctx.sender()).into_coin(ctx)
+    get_user_reward(proposal, ctx.sender())
 }
 
 // === package functions ===
