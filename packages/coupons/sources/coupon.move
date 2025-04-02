@@ -1,9 +1,9 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-module coupons::coupon;
+module suins_coupons::coupon;
 
-use coupons::rules::{Self, CouponRules};
+use suins_coupons::rules::{Self, CouponRules};
 
 const EInvalidDiscountPercentage: u64 = 1;
 

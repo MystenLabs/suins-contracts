@@ -1,5 +1,5 @@
 [package]
-name = "discounts"
+name = "suins_discounts"
 version = "0.0.1"
 edition = "2024.beta"
 
@@ -9,4 +9,4 @@ suins = { local = "../suins" }
 day_one = { local = "../day_one" }
 
 [addresses]
-discounts = "0x0"
+suins_discounts = "0x0"

@@ -13,9 +13,8 @@
 /// explanation.
 /// The app is authorized on `SuiNS` to be able to claim names and add earnings
 /// to the registry.
-module coupons::coupon_house;
+module suins_coupons::coupon_house;
 
-use coupons::{coupon::{Self, Coupon}, data::{Self, Data}, rules::CouponRules};
 use std::string::String;
 use sui::{clock::Clock, coin::Coin, dynamic_field as df, sui::SUI};
 use suins::{
@@ -23,6 +22,7 @@ use suins::{
     suins::{Self, AdminCap, SuiNS},
     suins_registration::SuinsRegistration
 };
+use suins_coupons::{coupon::{Self, Coupon}, data::{Self, Data}, rules::CouponRules};
 
 /// An app that's not authorized tries to access private data.
 const EAppNotAuthorized: u64 = 1;

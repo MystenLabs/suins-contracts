@@ -1,5 +1,5 @@
 [package]
-name = "payments"
+name = "suins_payments"
 edition = "2024.beta" # edition = "legacy" to use legacy (pre-2024) Move
 
 [dependencies]
@@ -10,4 +10,4 @@ suins = { local = "../suins" }
 Pyth = { git = "https://github.com/pyth-network/pyth-crosschain.git", subdir = "target_chains/sui/contracts", rev = "sui-contract-mainnet" }
 
 [addresses]
-payments = "0x0"
+suins_payments = "0x0"

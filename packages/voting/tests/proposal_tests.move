@@ -4,12 +4,12 @@
 module suins_voting::proposal_tests;
 
 use sui::{clock::{Self, Clock}, coin, vec_set};
+use suins_token::ns::NS;
 use suins_voting::{
     constants::{min_voting_period_ms, max_voting_period_ms},
     proposal::{Self, Proposal},
     voting_option::{Self, threshold_not_reached}
 };
-use token::ns::NS;
 
 #[test, expected_failure(abort_code = ::suins_voting::proposal::ETooShortVotingPeriod)]
 fun try_create_outside_min_range() {

@@ -1,12 +1,12 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-module denylist::denylist_tests;
+module suins_denylist::denylist_tests;
 
-use denylist::denylist::{Self, DenyListAuth};
 use std::string::{utf8, String};
 use sui::test_scenario::{Self as ts, Scenario};
 use suins::suins::{Self, SuiNS};
+use suins_denylist::denylist::{Self, DenyListAuth};
 
 const ADDR: address = @0x0;
 
@@ -37,7 +37,7 @@ fun test() {
     scenario_val.end();
 }
 
-#[test, expected_failure(abort_code = ::denylist::denylist::ENoWordsInList)]
+#[test, expected_failure(abort_code = ::suins_denylist::denylist::ENoWordsInList)]
 fun test_empty_addition_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
@@ -52,7 +52,7 @@ fun test_empty_addition_failure() {
 }
 
 // coverage.. :)
-#[test, expected_failure(abort_code = ::denylist::denylist::ENoWordsInList)]
+#[test, expected_failure(abort_code = ::suins_denylist::denylist::ENoWordsInList)]
 fun test_empty_addition_blocked_failure() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;

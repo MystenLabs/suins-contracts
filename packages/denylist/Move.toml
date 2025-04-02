@@ -1,5 +1,5 @@
 [package]
-name = "denylist"
+name = "suins_denylist"
 edition = "2024.beta"
 
 [dependencies]
@@ -7,4 +7,4 @@ Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-fram
 suins = { local = "../suins" }
 
 [addresses]
-denylist = "0x0"
+suins_denylist = "0x0"

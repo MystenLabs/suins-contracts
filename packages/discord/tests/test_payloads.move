@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #[test_only]
-module discord::test_payloads;
+module suins_discord::test_payloads;
 
 use std::string::{String, utf8};
 

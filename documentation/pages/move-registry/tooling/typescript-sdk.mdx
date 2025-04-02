@@ -4,7 +4,7 @@ import Beta from '../../../components/beta'
 
 <Beta/>
 
-# Plugin for Sui Typescript SDK 
+# Plugins for Sui TypeScript SDK 
 
 The Move Registry (MVR, pronounced "mover") Sui TypeScript SDK plugin offers builders a seamless experience when constructing programmable transaction blocks (PTBs) using MVR names. 
 
@@ -12,7 +12,25 @@ The plugin resolves MVR names to their respective addresses before constructing 
 
 This also applies to type names, especially across package upgrades.
 
+## Recommended usage
+
+The MVR plugin uses a runtime API to resolve named packages and types. While this is beneficial to the user experience, it naturally comes with considerations around performance, availability, and security.
+
+For this reason, consider using the `@mysten/mvr-static` plugin, which statically resolves all the package addresses and types during the build. The plugin caches your MVR references  
+and exports them to a resolution file.
+
+This approach offers a couple of benefits:
+
+- Enhanced user experience of leveraging MVR in your PTBs for names and types, for both Mainnet and Testnet.
+- Performance (no extra calls to the MVR endpoint) and security of statically resolving MVR references at build time.
+
+Check the NPM page for the [`@mysten/mvr-static` plugin](https://www.npmjs.com/package/@mysten/mvr-static?activeTab=readme) to learn more.
+
 ## How to use
+
+<Callout type="info" emoji="ℹ️">
+    The plugin is functional starting from `@mysten/sui` v1.25.0
+</Callout>
 
 The MVR plugin is exported directly from the `@mysten/sui` package. To enable the plugin, register it either globally or per PTB in your dApp.
 
@@ -21,30 +39,58 @@ The MVR plugin is exported directly from the `@mysten/sui` package. To enable th
 Mysten Labs provides public good endpoints compatible with the MVR plugin.
      
 ```
-Mainnet: https://mvr-rpc.sui-mainnet.mystenlabs.com/graphql
-Testnet: https://mvr-rpc.sui-testnet.mystenlabs.com/graphql
+Mainnet: https://mainnet.mvr.mystenlabs.com
+Testnet: https://testnet.mvr.mystenlabs.com
 ```
 
 ### Register the plugin
 
+Depending on the architecture of your dApp, you can register the plugin either globally or per PTB.
+
 ```typescript
+/** Register the MVR plugin globally */
+
 import { namedPackagesPlugin, Transaction } from "@mysten/sui/transactions";
 
+const plugin = namedPackagesPlugin({ url: '<endpoint based on network>' });
+
 /** Register the MVR plugin globally (once) for our PTB construction */
-Transaction.registerGlobalSerializationPlugin('namedPackagesPlugin', namedPackagesPlugin({
-    suiGraphQLClient: new SuiGraphQLClient({
-        url: `<a graphql endpoint with mvr enabled>`
-    }),
-    // You can also define overrides for packages and types optionally.
-    // The following example shows how to override the sui@framework package to resolve 0x1.
-    // Attention: Types need to be strictly defined in the overrides.
-    overrides: {
-        packages: { 'sui@framework': '0x2' },
-        types: {}
-    }
-}));
+Transaction.registerGlobalSerializationPlugin('namedPackagesPlugin', plugin);
 ```
 
+```typescript
+/** Register the MVR plugin per PTB */
+
+const mainnetPlugin = namedPackagesPlugin({ url: 'https://mainnet.mvr.mystenlabs.com' });
+const testnetPlugin = namedPackagesPlugin({ url: 'https://testnet.mvr.mystenlabs.com' });
+
+function createTransaction(network: 'mainnet' | 'testnet') {
+    const transaction = new Transaction();
+
+    transaction.addSerializationPlugin(network === 'mainnet' ? mainnetPlugin : testnetPlugin);
+
+    // continue with your transaction.
+}
+```
+
+### Defining overrides
+
+If you want to use the plugin locally (for CI), or you want to cache results yourself (without the `@mysten/mvr-static` generator),
+you can define overrides for the package addresses and types.
+
+```typescript
+const overrides = {
+    packages: {
+        '@suifrens/accessories': '0xe177697e191327901637f8d2c5ffbbde8b1aaac27ec1024c4b62d1ebd1cd7430',
+    },
+    types: {
+        '@suifrens/core::suifren::SuiFren': '0x80d7de9c4a56194087e0ba0bf59492aa8e6a5ee881606226930827085ddf2332::suifren::SuiFren',
+        '@suifrens/core::bullshark::Bullshark': '0x8894fa02fc6f36cbc485ae9145d05f247a78e220814fb8419ab261bd81f08f32::bullshark::Bullshark',
+    }
+}
+
+const plugin = namedPackagesPlugin({ url: '<endpoint based on network>', overrides });
+```
 
 ## Before / after example
 
