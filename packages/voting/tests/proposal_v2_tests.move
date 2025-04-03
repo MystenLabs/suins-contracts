@@ -3,7 +3,7 @@ module suins_voting::proposal_v2_tests;
 // === imports ===
 
 use sui::{
-    clock::{Self, Clock},
+    clock::{Self},
     coin::{Self},
     test_scenario::{Self as ts},
     test_utils::{assert_eq, destroy},
@@ -14,10 +14,10 @@ use suins_token::{
 };
 use suins_voting::{
     constants::{min_voting_period_ms, max_voting_period_ms},
-    proposal_v2::{Self, ProposalV2},
+    proposal_v2::{Self},
     voting_option::{Self, threshold_not_reached, tie_rejected},
     staking_constants::{day_ms},
-    test_utils::{setup, assert_owns_ns},
+    test_utils::{setup, assert_owns_ns, new_proposal_with_end_time},
 };
 
 // === constants ===
@@ -195,90 +195,75 @@ fun test_user_can_vote_same_option_multiple_times_ok() {
 
 #[test, expected_failure(abort_code = proposal_v2::ETooShortVotingPeriod)]
 fun try_create_outside_min_range() {
-    let mut ctx = tx_context::dummy();
-    let clock = clock::create_for_testing(&mut ctx);
-
-    let mut _proposal = test_proposal(
-        &clock,
+    let (mut ts, mut setup) = setup();
+    let _proposal = setup.new_proposal_with_end_time(
+        &mut ts,
         option::some(min_voting_period_ms!() - 1),
-        &mut ctx,
     );
-
-    abort 1337
+    abort 123
 }
 
 #[test, expected_failure(abort_code = proposal_v2::ETooLongVotingPeriod)]
 fun try_create_outside_max_range() {
-    let mut ctx = tx_context::dummy();
-    let clock = clock::create_for_testing(&mut ctx);
-
-    let mut _proposal = test_proposal(
-        &clock,
+    let (mut ts, mut setup) = setup();
+    let _proposal = setup.new_proposal_with_end_time(
+        &mut ts,
         option::some(max_voting_period_ms!() + 1),
-        &mut ctx,
     );
-
-    abort 1337
+    abort 123
 }
 
 #[test, expected_failure(abort_code = proposal_v2::EEndTimeNotReached)]
 fun try_finalize_before_endtime() {
-    let mut ctx = tx_context::dummy();
-    let clock = clock::create_for_testing(&mut ctx);
-
-    let mut proposal = test_proposal(
-        &clock,
-        option::none(),
-        &mut ctx,
+    let (mut ts, mut setup) = setup();
+    let mut proposal = setup.new_proposal_with_end_time(
+        &mut ts,
+        option::some(max_voting_period_ms!()),
     );
-    proposal.finalize(&clock);
-    abort 1337
+    setup.add_time(max_voting_period_ms!() - 1);
+    proposal.finalize(setup.clock());
+    abort 123
 }
 
 #[test, expected_failure(abort_code = proposal_v2::EEndTimeNotReached)]
 fun try_claim_tokens_back_before_endtime() {
-    let mut ctx = tx_context::dummy();
-    let clock = clock::create_for_testing(&mut ctx);
-
-    let mut proposal = test_proposal(
-        &clock,
-        option::none(),
-        &mut ctx,
+    let (mut ts, mut setup) = setup();
+    let mut proposal = setup.new_proposal_with_end_time(
+        &mut ts,
+        option::some(max_voting_period_ms!()),
     );
+    setup.add_time(max_voting_period_ms!() - 1);
     proposal.distribute_rewards(
-        &clock,
-        &mut ctx,
+        setup.clock(),
+        ts.ctx(),
     );
-    abort 1337
+    abort 123
 }
 
 #[test, expected_failure(abort_code = proposal_v2::EEndTimeNotReached)]
 fun try_self_finalize_before_end_time() {
-    let mut ctx = tx_context::dummy();
-    let clock = clock::create_for_testing(&mut ctx);
-
-    let mut proposal = test_proposal(
-        &clock,
-        option::none(),
-        &mut ctx,
+    let (mut ts, mut setup) = setup();
+    let mut proposal = setup.new_proposal_with_end_time(
+        &mut ts,
+        option::some(max_voting_period_ms!()),
     );
-    proposal.finalize(&clock);
-    abort 1337
+    setup.add_time(max_voting_period_ms!() - 1);
+    proposal.finalize(setup.clock());
+    abort 123
 }
 
 #[test, expected_failure(abort_code = proposal_v2::EProposalAlreadyFinalized)]
 fun try_finalize_twice() {
-    let mut ctx = tx_context::dummy();
-    let mut clock = clock::create_for_testing(&mut ctx);
+    let (mut ts, mut setup) = setup();
 
-    let mut proposal = test_proposal(
-        &clock,
+    let mut proposal = setup.new_proposal_with_end_time(
+        &mut ts,
         option::none(),
-        &mut ctx,
     );
+
     proposal.set_threshold(1);
-    clock.increment_for_testing(min_voting_period_ms!() + 2);
-    proposal.finalize(&clock);
+    setup.add_time(min_voting_period_ms!() + 2);
+    proposal.finalize(setup.clock());
 
     assert_eq(proposal.is_threshold_reached(), false);
 
@@ -290,22 +275,21 @@ fun try_finalize_twice() {
         true
     );
 
-    proposal.finalize(&clock);
+    proposal.finalize(setup.clock());
 
-    abort 1337
+    abort 123
 }
 
 #[test, expected_failure(abort_code = proposal_v2::EVotingPeriodExpired)]
 fun try_to_vote_on_expired_proposal() {
     let (mut ts, mut setup) = setup();
 
-    let mut proposal = test_proposal(
-        setup.clock(),
-        option::none(),
-        ts.ctx(),
+    let mut proposal = setup.new_proposal_with_end_time(
+        &mut ts,
+        option::some(min_voting_period_ms!()),
     );
     proposal.set_threshold(1);
-    setup.add_time(min_voting_period_ms!() + 2);
+    setup.add_time(min_voting_period_ms!());
 
     let mut batch = setup.new_batch(&mut ts, 1_000_000, 0);
 
@@ -317,17 +301,16 @@ fun try_to_vote_on_expired_proposal() {
         ts.ctx(),
     );
 
-    abort 1337
+    abort 123
 }
 
 #[test, expected_failure(abort_code = proposal_v2::ENotAvailableOption)]
 fun vote_non_existing_option() {
     let (mut ts, mut setup) = setup();
 
-    let mut proposal = test_proposal(
-        setup.clock(),
+    let mut proposal = setup.new_proposal_with_end_time(
+        &mut ts,
         option::none(),
-        ts.ctx(),
     );
 
     let mut batch = setup.new_batch(&mut ts, 1_000_000, 0);
@@ -340,7 +323,7 @@ fun vote_non_existing_option() {
         ts.ctx(),
     );
 
-    abort 1337
+    abort 123
 }
 
 #[test, expected_failure(abort_code = proposal_v2::ENotEnoughOptions)]
@@ -358,28 +341,5 @@ fun create_proposal_without_enough_options() {
         &mut ctx,
     );
 
-    abort 1337
-}
-
-public fun test_proposal(
-    clock: &Clock,
-    end_time_ms: Option<u64>,
-    ctx: &mut TxContext,
-): ProposalV2 {
-    let options = voting_option::default_options();
-    let title = b"Test Proposal".to_string();
-    let description = b"Test Proposal Description".to_string();
-    let reward = coin::mint_for_testing<NS>(1_000_000, ctx); // 1 NS
-
-    proposal_v2::new(
-        title,
-        description,
-        end_time_ms.destroy_or!(
-            clock.timestamp_ms() + min_voting_period_ms!() + 1,
-        ),
-        options,
-        reward,
-        clock,
-        ctx,
-    )
+    abort 123
 }

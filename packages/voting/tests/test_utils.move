@@ -28,7 +28,7 @@ use suins_voting::{
 public macro fun admin_addr(): address { @0xaa1 }
 
 const INITIAL_TIME: u64 = 86_400_000; // January 2, 1970
-const VOTING_PERIOD_MS: u64 = 1000 * 60 * 60 * 24 * 7; // 7 days
+const REWARD_AMOUNT: u64 = 1_000_000; // 1 NS
 
 // === setup ===
 
@@ -108,44 +108,32 @@ public fun new_proposal(
     )
 }
 
+public fun new_proposal_with_end_time(
+    setup: &mut TestSetup,
+    ts: &mut Scenario,
+    voting_period_ms: Option<u64>,
+): ProposalV2 {
+    new_proposal(
+        setup,
+        ts,
+        voting_option::default_options(),
+        REWARD_AMOUNT,
+        voting_period_ms.destroy_or!(min_voting_period_ms!()),
+    )
+}
+
 public fun new_default_proposal(
     setup: &mut TestSetup,
     ts: &mut Scenario,
 ): ProposalV2 {
-    new_proposal(setup, ts, voting_option::default_options(), 0, VOTING_PERIOD_MS)
-}
-
-public fun new_proposal_with_end_time(
-    setup: &mut TestSetup,
-    ts: &mut Scenario,
-    end_time_ms: Option<u64>,
-): ProposalV2 {
-    test_proposal(&setup.clock, end_time_ms, ts.ctx())
-}
-
-fun test_proposal(
-    clock: &Clock,
-    end_time_ms: Option<u64>,
-    ctx: &mut TxContext,
-): ProposalV2 {
-    let options = voting_option::default_options();
-    let title = b"Test Proposal".to_string();
-    let description = b"Test Proposal Description".to_string();
-    let reward = coin::mint_for_testing<NS>(1_000_000, ctx); // 1 NS
-
-    proposal_v2::new(
-        title,
-        description,
-        end_time_ms.destroy_or!(
-            clock.timestamp_ms() + min_voting_period_ms!() + 1,
-        ),
-        options,
-        reward,
-        clock,
-        ctx,
+    new_proposal(
+        setup,
+        ts,
+        voting_option::default_options(),
+        REWARD_AMOUNT,
+        min_voting_period_ms!(),
     )
 }
-
 
 public fun vote_with_new_batch_and_keep(
     setup: &mut TestSetup,
