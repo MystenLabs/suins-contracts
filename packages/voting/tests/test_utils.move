@@ -3,6 +3,9 @@ module suins_voting::test_utils;
 
 // === imports ===
 
+use std::{
+    string::{String},
+};
 use sui::{
     balance::{Balance},
     clock::{Self, Clock},
@@ -34,17 +37,19 @@ const REWARD_AMOUNT: u64 = 1_000_000; // 1 NS
 // === setup ===
 
 public struct TestSetup {
+    ts: Scenario,
     clock: Clock,
     gov: NSGovernance,
     system: StakingSystem,
 }
 
+public fun ts(setup: &TestSetup): &Scenario { &setup.ts }
 public fun clock(setup: &TestSetup): &Clock { &setup.clock }
 public fun gov_mut(setup: &mut TestSetup): &mut NSGovernance { &mut setup.gov }
 public fun system(setup: &TestSetup): &StakingSystem { &setup.system }
 public fun system_mut(setup: &mut TestSetup): &mut StakingSystem { &mut setup.system }
 
-public fun setup(): (Scenario, TestSetup) {
+public fun setup(): TestSetup {
     let mut ts = ts::begin(admin_addr!());
     let mut clock = clock::create_for_testing(ts.ctx());
 
@@ -57,22 +62,18 @@ public fun setup(): (Scenario, TestSetup) {
     let gov = ts.take_shared<NSGovernance>();
     let system = ts.take_shared<StakingSystem>();
 
-    (
-        ts,
-        TestSetup { clock, gov, system }
-    )
+    TestSetup { ts, clock, gov, system }
 }
 
 // === staking_batch helpers ===
 
 public fun batch__new(
     setup: &mut TestSetup,
-    ts: &mut Scenario,
     balance: u64,
     lock_months: u64,
 ): StakingBatch {
-    let balance = mint_ns(ts, balance);
-    staking_batch::new(&mut setup.system, balance, lock_months, &setup.clock, ts.ctx())
+    let balance = mint_ns(setup, balance);
+    staking_batch::new(&mut setup.system, balance, lock_months, &setup.clock, setup.ts.ctx())
 }
 
 public fun batch__unstake(
@@ -80,6 +81,13 @@ public fun batch__unstake(
     batch: StakingBatch,
 ): Balance<NS> {
     batch.unstake(&mut setup.system, &setup.clock)
+}
+
+public fun batch__keep(
+    setup: &mut TestSetup,
+    batch: StakingBatch,
+) {
+    batch.keep(setup.ts.ctx());
 }
 
 public fun assert_power(
@@ -94,12 +102,11 @@ public fun assert_power(
 
 public fun new_proposal(
     setup: &mut TestSetup,
-    ts: &mut Scenario,
     options: VecSet<VotingOption>,
     reward_amount: u64,
     voting_period_ms: u64,
 ): ProposalV2 {
-    let reward_coin = mint_ns(ts, reward_amount);
+    let reward_coin = setup.mint_ns(reward_amount);
     let end_time_ms = setup.clock.timestamp_ms() + voting_period_ms;
 
     proposal_v2::new(
@@ -109,18 +116,16 @@ public fun new_proposal(
         options,
         reward_coin,
         &setup.clock,
-        ts.ctx()
+        setup.ts.ctx()
     )
 }
 
 public fun new_proposal_with_end_time(
     setup: &mut TestSetup,
-    ts: &mut Scenario,
     voting_period_ms: Option<u64>,
 ): ProposalV2 {
     new_proposal(
         setup,
-        ts,
         voting_option::default_options(),
         REWARD_AMOUNT,
         voting_period_ms.destroy_or!(min_voting_period_ms!()),
@@ -129,11 +134,9 @@ public fun new_proposal_with_end_time(
 
 public fun new_default_proposal(
     setup: &mut TestSetup,
-    ts: &mut Scenario,
 ): ProposalV2 {
     new_proposal(
         setup,
-        ts,
         voting_option::default_options(),
         REWARD_AMOUNT,
         min_voting_period_ms!(),
@@ -142,43 +145,70 @@ public fun new_default_proposal(
 
 public fun vote_with_new_batch_and_keep(
     setup: &mut TestSetup,
-    ts: &mut Scenario,
     proposal: &mut ProposalV2,
     option: vector<u8>,
     balance: u64,
 ) {
-    let mut batch = setup.batch__new(ts, balance, 0);
+    let mut batch = setup.batch__new(balance, 0);
     proposal.vote(
         option.to_string(),
         &mut batch,
         &setup.system,
         &setup.clock,
-        ts.ctx(),
+        setup.ts.ctx(),
     );
-    batch.keep(ts.ctx());
+    batch.keep(setup.ts.ctx());
+}
+
+public fun proposal__vote(
+    setup: &mut TestSetup,
+    proposal: &mut ProposalV2,
+    opt: String,
+    batch: &mut StakingBatch,
+) {
+    proposal.vote(
+        opt,
+        batch,
+        &setup.system,
+        &setup.clock,
+        setup.ts.ctx(),
+    );
+}
+
+public fun proposal__distribute_rewards(
+    setup: &mut TestSetup,
+    proposal: &mut ProposalV2,
+) {
+    proposal.distribute_rewards(&setup.clock, setup.ts.ctx());
+}
+
+public fun proposal__claim_reward(
+    setup: &mut TestSetup,
+    proposal: &mut ProposalV2,
+): Balance<NS> {
+    proposal.claim_reward(&setup.clock, setup.ts.ctx())
 }
 
 // === sui helpers ===
 
-public fun destroy(setup: TestSetup, ts: Scenario) {
-    test_utils::destroy(ts);
+public fun destroy(setup: TestSetup) {
     test_utils::destroy(setup);
 }
 
 public fun mint_ns(
-    ts: &mut Scenario,
+    setup: &mut TestSetup,
     value: u64,
 ): Coin<NS> {
-    return coin::mint_for_testing<NS>(value, ts.ctx())
+    return coin::mint_for_testing<NS>(value, setup.ts.ctx())
 }
 
 public fun assert_owns_ns(
-    ts: &Scenario,
+    setup: &mut TestSetup,
     expected_amount: u64,
 ) {
-    let last_coin = ts.take_from_sender<Coin<NS>>();
+    let last_coin = setup.ts.take_from_sender<Coin<NS>>();
     assert_eq(last_coin.value(), expected_amount);
-    ts.return_to_sender(last_coin);
+    setup.ts.return_to_sender(last_coin);
 }
 
 public fun add_time(
@@ -193,4 +223,11 @@ public fun set_time(
     ms: u64,
 ) {
     setup.clock.set_for_testing(ms);
+}
+
+public fun next_tx(
+    setup: &mut TestSetup,
+    sender: address,
+) {
+    setup.ts.next_tx(sender);
 }

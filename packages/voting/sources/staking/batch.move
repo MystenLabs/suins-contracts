@@ -100,7 +100,7 @@ public fun new(
 /// transfer the batch to the sender
 public fun keep(
     batch: StakingBatch,
-    ctx: &mut TxContext,
+    ctx: &TxContext,
 ) {
     transfer::transfer(batch, ctx.sender());
 }
