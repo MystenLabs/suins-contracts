@@ -174,8 +174,8 @@ public fun vote(
     assert!(!batch.is_voting(clock), EBatchIsVoting);
     batch.set_voting_until_ms(proposal.end_time_ms, clock);
 
-    // batches that have requested cooldown can vote, but only before cooldown ends
-    assert!(!batch.is_cooldown_over(clock), EBatchInCooldown);
+    // batches that have requested or completed cooldown can't vote
+    assert!(!batch.is_cooldown_requested(), EBatchInCooldown);
 
     let batch_power = batch.power(staking_system, clock);
 
