@@ -15,7 +15,7 @@ import { Tabs } from 'nextra/components'
 To create a new application, you must provide a SuiNS name and a package name, as long as it is not
 already registered.
 
-<Tabs items={['Typescript', 'SuiCLI']}>
+<Tabs items={['Typescript', 'Sui CLI']}>
 <Tabs.Tab>
 
 ```typescript
@@ -39,18 +39,9 @@ const appCap = transaction.moveCall({
 <Tabs.Tab>
 Example of a PTB after MVR, consistent across networks:
 
-```typescript
-const transaction = new Transaction();
-
-// Now we can use `@suifrens/core` across all package upgrades for type reference.
-// And we also have the guarantee to call the latest version of the accessories package.
-transaction.moveCall({
-    target: `@suifrens/accessories::accessories::equip`,
-    arguments: [..],
-    typeArguments: [
-        `@suifrens/core::suifren::SuiFren<@suifrens/core::bullshark::Bullshark>`
-    ]
-})
+```bash
+sui client ptb --move-call @mvr/core::move_registry::register @0x0e5d473a055b6b7d014af557a13ad9075157fdc19b6d51562a18511afd397727
+@<suinsObjectId> \"<name>\" @0x6 --assign appcap --transfer-objects "[appcap]" @<address-to-transfer-appcap>
 ```
 </Tabs.Tab>
 </Tabs>
