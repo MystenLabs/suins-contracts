@@ -72,7 +72,7 @@ public fun batch__new(
     balance: u64,
     lock_months: u64,
 ): StakingBatch {
-    let balance = mint_ns(setup, balance);
+    let balance = setup.mint_ns(balance);
     staking_batch::new(&mut setup.system, balance, lock_months, &setup.clock, setup.ts.ctx())
 }
 
@@ -100,7 +100,7 @@ public fun assert_power(
 
 // === proposal_v2 helpers ===
 
-public fun new_proposal(
+public fun proposal__new(
     setup: &mut TestSetup,
     options: VecSet<VotingOption>,
     reward_amount: u64,
@@ -120,44 +120,25 @@ public fun new_proposal(
     )
 }
 
-public fun new_proposal_with_end_time(
+public fun proposal__new_with_end_time(
     setup: &mut TestSetup,
     voting_period_ms: Option<u64>,
 ): ProposalV2 {
-    new_proposal(
-        setup,
+    setup.proposal__new(
         voting_option::default_options(),
         REWARD_AMOUNT,
         voting_period_ms.destroy_or!(min_voting_period_ms!()),
     )
 }
 
-public fun new_default_proposal(
+public fun proposal__new_default(
     setup: &mut TestSetup,
 ): ProposalV2 {
-    new_proposal(
-        setup,
+    setup.proposal__new(
         voting_option::default_options(),
         REWARD_AMOUNT,
         min_voting_period_ms!(),
     )
-}
-
-public fun vote_with_new_batch_and_keep(
-    setup: &mut TestSetup,
-    proposal: &mut ProposalV2,
-    option: vector<u8>,
-    balance: u64,
-) {
-    let mut batch = setup.batch__new(balance, 0);
-    proposal.vote(
-        option.to_string(),
-        &mut batch,
-        &setup.system,
-        &setup.clock,
-        setup.ts.ctx(),
-    );
-    batch.keep(setup.ts.ctx());
 }
 
 public fun proposal__vote(
@@ -173,6 +154,23 @@ public fun proposal__vote(
         &setup.clock,
         setup.ts.ctx(),
     );
+}
+
+public fun proposal__vote_with_new_batch_and_keep(
+    setup: &mut TestSetup,
+    proposal: &mut ProposalV2,
+    option: vector<u8>,
+    balance: u64,
+) {
+    let mut batch = setup.batch__new(balance, 0);
+    proposal.vote(
+        option.to_string(),
+        &mut batch,
+        &setup.system,
+        &setup.clock,
+        setup.ts.ctx(),
+    );
+    batch.keep(setup.ts.ctx());
 }
 
 public fun proposal__distribute_rewards(
