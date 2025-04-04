@@ -75,9 +75,9 @@ transaction.moveCall({
 ```bash
 sui client ptb
 --move-call @mvr/metadata::package_info::new @<upgrade cap id or value> --assign packageinfo \
---move-call @mvr/metadata::display::default \"sample\" --assign display
---move-call @mvr/metadata::package_info::set_display packageinfo display
---move-call @mvr/metadata::package_info::set_metadata packageinfo \"default\"  \"<MVR name>\"
+--move-call @mvr/metadata::display::default \"sample\" --assign display \
+--move-call @mvr/metadata::package_info::set_display packageinfo display \
+--move-call @mvr/metadata::package_info::set_metadata packageinfo \"default\" \"<MVR name>\" \
 --move-call @mvr/metadata::package_info::transfer packageinfo @<Address to transfer packageInfo>
 ```
 
@@ -149,6 +149,14 @@ transaction.moveCall({
 });
 ```
 
+```bash
+sui client ptb --move-call @mvr/metadata::git::new \
+"\"<Your git repository, e.g. `https://github.com/mystenlabs/mvr>\"" \
+"\"<Your git subdirectory, e.g. `packages/mvr>\"" \
+\"<Your git commit hash or tag, e.g. `636d22d6bc4195afec9a1c0a8563b61fc813acfc`>\" --assign git \
+--move-call @mvr/metadata::package_info::set_git_versioning @<Your PackageInfo object> <Version number> git
+```
+
 ## Removing or updating source code information
 
 ```typescript
@@ -162,6 +170,11 @@ transaction.moveCall({
     ],
 });
 // .. you could then follow the previous steps to add the new source code info for that version.
+```
+
+```bash
+sui client ptb \
+--move-call @mvr/metadata::package_info::unset_git_versioning @<Your PackageInfo object> <Version number>
 ```
 
 ## Transferring the `PackageInfo` object
@@ -180,4 +193,8 @@ transaction.moveCall({
     target: `@mvr/metadata::package_info::transfer`,
     arguments: [transaction.object(packageInfo), transaction.pure.address('<Your safe address>')],
 });
+```
+
+```bash
+sui client transfer --to <address to transfer> --object-id <packageInfo>
 ```
