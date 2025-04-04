@@ -20,8 +20,8 @@ const EInvalidMinBalance: u64 = 3;
 
 const COOLDOWN_MS: u64 = 1000 * 60 * 60 * 24 * 3; // 3 days
 const MAX_LOCK_MONTHS: u64 = 12;
-const MAX_BOOST_BPS: u64 = 3_0000; // 3x
-const MONTHLY_BOOST_BPS: u64 = 1_1000; // 1.1x
+const MAX_BOOST_BPS: u64 = 300_00; // 3x
+const MONTHLY_BOOST_BPS: u64 = 110_00; // 1.1x
 const MIN_BALANCE: u64 = 1_000_000; // 1 NS
 
 // === structs ===

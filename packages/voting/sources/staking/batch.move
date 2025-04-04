@@ -236,40 +236,32 @@ public fun power(
     config: &StakingConfig,
     clock: &Clock,
 ): u64 {
-    // Calculate lock duration in months
-    let lock_ms = batch.unlock_ms - batch.start_ms;
-    let lock_months = lock_ms / month_ms!();
+    let mut power = batch.balance.value() as u128; // base power is the NS balance
+    let mut months: u64; // how many monthly boosts to apply
+    let max_months = config.max_lock_months();
 
-    // Special case: locking for max months gets a higher multiplier
-    if (lock_months >= config.max_lock_months()) {
-        let balance = batch.balance.value() as u128;
-        let max_boost = config.max_boost_bps() as u128;
-        return ((balance * max_boost) / 10000) as u64
+    if (batch.is_locked(clock)) {
+        let lock_ms = batch.unlock_ms - batch.start_ms;
+        months = lock_ms / month_ms!();
+        // Locking for max months gets a higher multiplier
+        if (months >= max_months) {
+            let max_boost = config.max_boost_bps() as u128;
+            return ((power * max_boost) / 100_00) as u64
+        };
+    } else {
+        let stake_ms = clock.timestamp_ms() - batch.start_ms;
+        months = stake_ms / month_ms!();
+        // Staking max boost is capped at max_months - 1
+        if (months >= max_months) {
+            months = max_months - 1;
+        };
     };
 
-    // Calculate locked + staked months
-    let mut total_months = lock_months;
-
-    // Add months from staking (if any)
-    let now = clock.timestamp_ms();
-    if (now > batch.unlock_ms) {
-        let staking_ms = now - batch.unlock_ms;
-        let staking_months = staking_ms / month_ms!();
-        total_months = total_months + staking_months;
-    };
-
-    // e.g. if max_lock_months is 12, cap at 11 months (which gives 2.85x multiplier)
-    let max_effective_months = config.max_lock_months() - 1;
-    if (total_months > max_effective_months) {
-        total_months = max_effective_months;
-    };
-
-    // Apply multiplier: monthly_boost^total_months
-    let mut power = batch.balance.value() as u128;
+    // Apply multiplier: monthly_boost^months
     let monthly_boost = config.monthly_boost_bps() as u128;
     let mut i = 0;
-    while (i < total_months) {
-        power = (power * monthly_boost) / 10000;
+    while (i < months) {
+        power = (power * monthly_boost) / 100_00;
         i = i + 1;
     };
 

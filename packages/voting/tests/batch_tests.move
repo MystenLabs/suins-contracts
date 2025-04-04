@@ -135,9 +135,9 @@ fun test_power_ok() {
     let batch = setup.new_batch(&mut ts, balance, 12);
     setup.assert_power(&batch, 3_000_000); // 3.0x (special bonus)
     setup.add_time(12 * month_ms!()); // exactly when lock ends
-    setup.assert_power(&batch, 3_000_000); // 3.0x (no change)
+    setup.assert_power(&batch, 2_853_114); // 2.85x (no longer locked, gets max staking boost)
     setup.add_time(12 * month_ms!()); // 12 months after unlock
-    setup.assert_power(&batch, 3_000_000); // 3.0x (no change)
+    setup.assert_power(&batch, 2_853_114); // 2.85x (no longer locked, gets max staking boost)
     destroy(batch);
 
     setup.destroy(ts);
