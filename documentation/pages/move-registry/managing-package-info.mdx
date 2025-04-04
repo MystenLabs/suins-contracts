@@ -74,11 +74,11 @@ transaction.moveCall({
 
 ```bash
 sui client ptb
---move-call @mvr/metadata::package_info::new @<Upgrade cap id or value> --assign packageinfo \
---move-call @mvr/metadata::display::default \"sample\" --assign display \
---move-call @mvr/metadata::package_info::set_display packageinfo display \
---move-call @mvr/metadata::package_info::set_metadata packageinfo \"default\" \"<MVR name>\" \
---move-call @mvr/metadata::package_info::transfer packageinfo @<Address to transfer packageInfo>
+    --move-call @mvr/metadata::package_info::new @<Upgrade cap id or value> --assign packageinfo \
+    --move-call @mvr/metadata::display::default \"sample\" --assign display \
+    --move-call @mvr/metadata::package_info::set_display packageinfo display \
+    --move-call @mvr/metadata::package_info::set_metadata packageinfo \"default\" \"<MVR name>\" \
+    --move-call @mvr/metadata::package_info::transfer packageinfo @<Address to transfer packageInfo>
 ```
 
 ## Reverse resolution
