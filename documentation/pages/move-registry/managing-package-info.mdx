@@ -161,7 +161,7 @@ transaction.moveCall({
 ```bash
 sui client ptb --move-call @mvr/metadata::git::new \
     "\"<Your git repository, e.g. https://github.com/mystenlabs/mvr>\"" \
-    \"<Your git subdirectory, e.g. packages/mvr>\"" \
+    \"<Your git subdirectory, e.g. packages/mvr>\" \
     \"<Your git commit hash or tag, e.g. 636d22d6bc4195afec9a1c0a8563b61fc813acfc>\" --assign git \
 --move-call @mvr/metadata::package_info::set_git_versioning @<Your PackageInfo object> \
     <The version number for the given source code (e.g. 1)> git
