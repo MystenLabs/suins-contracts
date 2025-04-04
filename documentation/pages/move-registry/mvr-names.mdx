@@ -14,6 +14,9 @@ import { Callout } from 'nextra/components';
 To create a new application, you must provide a SuiNS name and a package name, as long as it is not
 already registered.
 
+<Tabs items={['Typescript', 'Sui CLI']}>
+<Tabs.Tab>
+
 ```typescript
 const transaction = new Transaction();
 
@@ -31,6 +34,29 @@ const appCap = transaction.moveCall({
 // we can then use the appCap to attach packages directly, or transfer (e.g. to a safe address)
 // and register packages later.
 ```
+</Tabs.Tab>
+<Tabs.Tab>
+
+```typescript
+const transaction = new Transaction();
+
+const appCap = transaction.moveCall({
+    target: `@mvr/core::move_registry::register`,
+    arguments: [
+        // the registry obj: Can also be resolved as `registry-obj@mvr` from mainnet SuiNS.
+        transaction.object('0x0e5d473a055b6b7d014af557a13ad9075157fdc19b6d51562a18511afd397727'),
+        transaction.object(suinsObjectId),
+        transaction.pure.string(name),
+        transaction.object.clock(),
+    ],
+});
+
+// we can then use the appCap to attach packages directly, or transfer (e.g. to a safe address)
+// and register packages later.
+```
+</Tabs.Tab>
+</Tabs>
+
 
 ## Setting application metadata
 
