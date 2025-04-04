@@ -86,6 +86,8 @@ When attaching a Mainnet package to an application, you must provide the `Packag
 This call is permanent, so after a `PackageInfo` object is attached to an application, it cannot be
 detached in the future. Consequently, an app is always linked to a specific package.
 
+<Tabs items={['Typescript', 'Sui CLI']}>
+<Tabs.Tab>
 ```typescript
 // we can then use the appCap to attach packages directly, or transfer (e.g. to a safe address)
 // and register packages later.
@@ -102,12 +104,16 @@ const transaction = new Transaction();
     ],
 });
 ```
+</Tabs.Tab>
+<Tabs.Tab>
 
 ```bash
 sui client ptb --move-call @mvr/core::move_registry::assign_package \
 @0x0e5d473a055b6b7d014af557a13ad9075157fdc19b6d51562a18511afd397727 \
 @<The AppCap object> @<The PackageInfo object on mainnet>
 ```
+</Tabs.Tab>
+</Tabs>
 
 ## Attaching a non-Mainnet package to an application
 
@@ -117,6 +123,8 @@ For non-Mainnet networks, you only attach a "pointer" to the package, instead of
 You can always update an external network by first calling `@mvr/core::move_registry::unset_network`, and then calling `@mvr/core::move_registry::set_network` again.
 </Callout>
 
+<Tabs items={['Typescript', 'Sui CLI']}>
+<Tabs.Tab>
 ```typescript
 const transaction = new Transaction();
 
@@ -141,9 +149,11 @@ transaction.moveCall({
 });
 ```
 
+</Tabs.Tab>
+<Tabs.Tab>
 ```bash
 sui client ptb \
-    --move-call 0x1::option::some "<0x2::object::ID>" @<The objectId of the `PackageInfo` object on the external network> \
+    --move-call 0x1::option::some "<0x2::object::ID>" @<The objectId of the PackageInfo object on the external network> \
     --assign packageInfo \
     --move-call 0x1::option::some "<address>" @<The address of the package on the external network> \
     --assign packageId \
@@ -153,5 +163,7 @@ sui client ptb \
     --assign appInfo \
     --move-call @mvr/core::move_registry::set_network \
     @0x0e5d473a055b6b7d014af557a13ad9075157fdc19b6d51562a18511afd397727 @<The AppCap object> \
-    \"<chain id of the network: use `4c78adac` for testnet>\" appInfo
+    \"<chain id of the network: use 4c78adac for testnet>\" appInfo
 ```
+</Tabs.Tab>
+</Tabs>
