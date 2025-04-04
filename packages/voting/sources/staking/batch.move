@@ -16,8 +16,8 @@ use suins_token::{
 };
 use suins_voting::{
     staking_admin::{StakingAdminCap},
-    staking_config::{StakingConfig},
     staking_constants::{month_ms},
+    staking_system::{StakingSystem},
 };
 
 // === errors ===
@@ -66,14 +66,14 @@ fun init(otw: STAKING_BATCH, ctx: &mut TxContext)
 
 /// Stake NS into a new batch, optionally locking it for a number of months
 public fun new(
-    config: &StakingConfig,
+    system: &StakingSystem,
     coin: Coin<NS>,
     lock_months: u64,
     clock: &Clock,
     ctx: &mut TxContext,
 ): StakingBatch {
-    assert!(coin.value() >= config.min_balance(), EBalanceTooLow);
-    assert!(lock_months <= config.max_lock_months(), EInvalidLockPeriod);
+    assert!(coin.value() >= system.min_balance(), EBalanceTooLow);
+    assert!(lock_months <= system.max_lock_months(), EInvalidLockPeriod);
 
     let now = clock.timestamp_ms();
     let batch = StakingBatch {
@@ -106,7 +106,7 @@ public fun keep(
 /// Lock a staked batch, or extend the lock duration of a locked batch
 public fun lock(
     batch: &mut StakingBatch,
-    config: &StakingConfig,
+    system: &StakingSystem,
     new_lock_months: u64,
     clock: &Clock,
 ) {
@@ -115,7 +115,7 @@ public fun lock(
     let old_unlock_ms = batch.unlock_ms;
     let old_lock_months = (old_unlock_ms - batch.start_ms) / month_ms!();
     assert!(new_lock_months > old_lock_months, EInvalidLockPeriod);
-    assert!(new_lock_months <= config.max_lock_months(), EInvalidLockPeriod);
+    assert!(new_lock_months <= system.max_lock_months(), EInvalidLockPeriod);
 
     // Lock the batch
     let new_unlock_ms = batch.start_ms + (new_lock_months * month_ms!());
@@ -133,7 +133,7 @@ public fun lock(
 /// Request to unstake a batch, initiating cooldown period
 public fun request_unstake(
     batch: &mut StakingBatch,
-    config: &StakingConfig,
+    system: &StakingSystem,
     clock: &Clock,
 ) {
     assert!(!batch.is_voting(clock), EBatchIsVoting);
@@ -141,7 +141,7 @@ public fun request_unstake(
     assert!(!batch.is_cooldown_requested(), ECooldownAlreadyRequested);
 
     let now = clock.timestamp_ms();
-    let cooldown_end_ms = now + config.cooldown_ms();
+    let cooldown_end_ms = now + system.cooldown_ms();
     batch.cooldown_end_ms = cooldown_end_ms;
 
     emit(EventRequestUnstake {
@@ -233,19 +233,19 @@ public(package) fun set_voting_until_ms(
 /// Calculate voting power for a batch based on locking and/or staking duration
 public fun power(
     batch: &StakingBatch,
-    config: &StakingConfig,
+    system: &StakingSystem,
     clock: &Clock,
 ): u64 {
     let mut power = batch.balance.value() as u128; // base power is the NS balance
     let mut months: u64; // how many monthly boosts to apply
-    let max_months = config.max_lock_months();
+    let max_months = system.max_lock_months();
 
     if (batch.is_locked(clock)) {
         let lock_ms = batch.unlock_ms - batch.start_ms;
         months = lock_ms / month_ms!();
         // Locking for max months gets a higher multiplier
         if (months >= max_months) {
-            let max_boost = config.max_boost_bps() as u128;
+            let max_boost = system.max_boost_bps() as u128;
             return ((power * max_boost) / 100_00) as u64
         };
     } else {
@@ -258,7 +258,7 @@ public fun power(
     };
 
     // Apply multiplier: monthly_boost^months
-    let monthly_boost = config.monthly_boost_bps() as u128;
+    let monthly_boost = system.monthly_boost_bps() as u128;
     let mut i = 0;
     while (i < months) {
         power = (power * monthly_boost) / 100_00;

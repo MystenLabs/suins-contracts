@@ -48,19 +48,19 @@ fun test_end_to_end_ok() {
     ts::next_tx(&mut ts, USER_1);
     let mut batch1 = setup.new_batch(&mut ts, 250_000_000, 3); // 250 NS, locked for 3 months
     let mut batch2 = setup.new_batch(&mut ts, 500_000_000, 3); // 500 NS, locked for 3 months
-    let batch1_power = batch1.power(setup.config(), setup.clock());
-    let batch2_power = batch2.power(setup.config(), setup.clock());
+    let batch1_power = batch1.power(setup.system(), setup.clock());
+    let batch2_power = batch2.power(setup.system(), setup.clock());
     proposal.vote(
         b"Yes".to_string(),
         &mut batch1,
-        setup.config(),
+        setup.system(),
         setup.clock(),
         ts.ctx(),
     );
     proposal.vote(
         b"Yes".to_string(),
         &mut batch2,
-        setup.config(),
+        setup.system(),
         setup.clock(),
         ts.ctx(),
     );
@@ -70,11 +70,11 @@ fun test_end_to_end_ok() {
     // user_2 votes with one batch
     ts::next_tx(&mut ts, USER_2);
     let mut batch3 = setup.new_batch(&mut ts, 250_000_000, 3); // 250 NS, locked for 3 months
-    let batch3_power = batch3.power(setup.config(), setup.clock());
+    let batch3_power = batch3.power(setup.system(), setup.clock());
     proposal.vote(
         b"Option A".to_string(),
         &mut batch3,
-        setup.config(),
+        setup.system(),
         setup.clock(),
         ts.ctx(),
     );
@@ -296,7 +296,7 @@ fun try_to_vote_on_expired_proposal() {
     proposal.vote(
         b"Yes".to_string(),
         &mut batch,
-        setup.config(),
+        setup.system(),
         setup.clock(),
         ts.ctx(),
     );
@@ -318,7 +318,7 @@ fun vote_non_existing_option() {
     proposal.vote(
         b"Wut".to_string(),
         &mut batch,
-        setup.config(),
+        setup.system(),
         setup.clock(),
         ts.ctx(),
     );

@@ -53,7 +53,7 @@ fun test_e2e() {
         proposal.vote(
             b"Abstain".to_string(),
             &mut batch,
-            setup.config(),
+            setup.system(),
             setup.clock(),
             ts.ctx(),
         );
@@ -72,14 +72,14 @@ fun test_e2e() {
         proposal.vote(
             b"Yes".to_string(),
             &mut batch1,
-            setup.config(),
+            setup.system(),
             setup.clock(),
             ts.ctx(),
         );
         proposal.vote(
             b"No".to_string(),
             &mut batch2,
-            setup.config(),
+            setup.system(),
             setup.clock(),
             ts.ctx(),
         );
@@ -99,14 +99,14 @@ fun test_e2e() {
         proposal.vote(
             b"Yes".to_string(),
             &mut batch1,
-            setup.config(),
+            setup.system(),
             setup.clock(),
             ts.ctx(),
         );
         proposal.vote(
             b"No".to_string(),
             &mut batch2,
-            setup.config(),
+            setup.system(),
             setup.clock(),
             ts.ctx(),
         );
@@ -185,7 +185,7 @@ fun test_e2e_no_quorum() {
         proposal.vote(
             b"Abstain".to_string(),
             &mut batch,
-            setup.config(),
+            setup.system(),
             setup.clock(),
             ts.ctx(),
         );
@@ -204,14 +204,14 @@ fun test_e2e_no_quorum() {
         proposal.vote(
             b"Yes".to_string(),
             &mut batch1,
-            setup.config(),
+            setup.system(),
             setup.clock(),
             ts.ctx(),
         );
         proposal.vote(
             b"No".to_string(),
             &mut batch2,
-            setup.config(),
+            setup.system(),
             setup.clock(),
             ts.ctx(),
         );
@@ -270,7 +270,7 @@ fun test_e2e_tie() {
         proposal.vote(
             b"Abstain".to_string(),
             &mut batch,
-            setup.config(),
+            setup.system(),
             setup.clock(),
             ts.ctx(),
         );
@@ -289,14 +289,14 @@ fun test_e2e_tie() {
         proposal.vote(
             b"Yes".to_string(),
             &mut batch1,
-            setup.config(),
+            setup.system(),
             setup.clock(),
             ts.ctx(),
         );
         proposal.vote(
             b"No".to_string(),
             &mut batch2,
-            setup.config(),
+            setup.system(),
             setup.clock(),
             ts.ctx(),
         );
@@ -355,7 +355,7 @@ fun test_e2e_abstain_bypassed() {
         proposal.vote(
             b"Abstain".to_string(),
             &mut batch,
-            setup.config(),
+            setup.system(),
             setup.clock(),
             ts.ctx(),
         );
@@ -374,14 +374,14 @@ fun test_e2e_abstain_bypassed() {
         proposal.vote(
             b"Yes".to_string(),
             &mut batch1,
-            setup.config(),
+            setup.system(),
             setup.clock(),
             ts.ctx(),
         );
         proposal.vote(
             b"No".to_string(),
             &mut batch2,
-            setup.config(),
+            setup.system(),
             setup.clock(),
             ts.ctx(),
         );

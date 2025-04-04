@@ -1,4 +1,4 @@
-module suins_voting::staking_config;
+module suins_voting::staking_system;
 
 // === imports ===
 
@@ -27,7 +27,7 @@ const MIN_BALANCE: u64 = 1_000_000; // 1 NS
 // === structs ===
 
 /// Staking configuration. Singleton.
-public struct StakingConfig has key {
+public struct StakingSystem has key {
     id: UID,
     /// how long it takes to unstake a batch
     cooldown_ms: u64,
@@ -42,16 +42,16 @@ public struct StakingConfig has key {
 }
 
 /// One-Time Witness
-public struct STAKING_CONFIG has drop {}
+public struct STAKING_SYSTEM has drop {}
 
 // === initialization ===
 
-fun init(otw: STAKING_CONFIG, ctx: &mut TxContext)
+fun init(otw: STAKING_SYSTEM, ctx: &mut TxContext)
 {
     let publisher = package::claim(otw, ctx);
     transfer::public_transfer(publisher, ctx.sender());
 
-    let config = StakingConfig {
+    let config = StakingSystem {
         id: object::new(ctx),
         cooldown_ms: COOLDOWN_MS,
         max_lock_months: MAX_LOCK_MONTHS,
@@ -70,27 +70,27 @@ fun init(otw: STAKING_CONFIG, ctx: &mut TxContext)
 
 // === private functions ===
 
-public fun set_cooldown_ms(config: &mut StakingConfig, _: &StakingAdminCap, cooldown_ms: u64 ) {
-    config.cooldown_ms = cooldown_ms;
+public fun set_cooldown_ms(system: &mut StakingSystem, _: &StakingAdminCap, cooldown_ms: u64 ) {
+    system.cooldown_ms = cooldown_ms;
 }
-public fun set_max_lock_months(config: &mut StakingConfig, _: &StakingAdminCap, max_lock_months: u64 ) {
+public fun set_max_lock_months(system: &mut StakingSystem, _: &StakingAdminCap, max_lock_months: u64 ) {
     assert!(max_lock_months > 0, EInvalidMaxLockMonths);
-    config.max_lock_months = max_lock_months;
+    system.max_lock_months = max_lock_months;
 }
-public fun set_max_boost_bps(config: &mut StakingConfig, _: &StakingAdminCap, max_boost_bps: u64) {
+public fun set_max_boost_bps(system: &mut StakingSystem, _: &StakingAdminCap, max_boost_bps: u64) {
     assert!(max_boost_bps > 0, EInvalidMaxBoostBps);
-    config.max_boost_bps = max_boost_bps;
+    system.max_boost_bps = max_boost_bps;
 }
-public fun set_monthly_boost_bps(config: &mut StakingConfig, _: &StakingAdminCap, monthly_boost_bps: u64) {
+public fun set_monthly_boost_bps(system: &mut StakingSystem, _: &StakingAdminCap, monthly_boost_bps: u64) {
     assert!(monthly_boost_bps >= 10000, EInvalidMonthlyBoostBps); // at least 1x
-    config.monthly_boost_bps = monthly_boost_bps;
+    system.monthly_boost_bps = monthly_boost_bps;
 }
-public fun set_min_balance(config: &mut StakingConfig, _: &StakingAdminCap, min_balance: u64 ) {
+public fun set_min_balance(system: &mut StakingSystem, _: &StakingAdminCap, min_balance: u64 ) {
     assert!(min_balance > 0, EInvalidMinBalance);
-    config.min_balance = min_balance;
+    system.min_balance = min_balance;
 }
 public fun set_all(
-    config: &mut StakingConfig,
+    system: &mut StakingSystem,
     _: &StakingAdminCap,
     cooldown_ms: u64,
     max_lock_months: u64,
@@ -98,23 +98,23 @@ public fun set_all(
     monthly_boost_bps: u64,
     min_balance: u64,
 ) {
-    set_cooldown_ms(config, _, cooldown_ms);
-    set_max_lock_months(config, _, max_lock_months);
-    set_max_boost_bps(config, _, max_boost_bps);
-    set_monthly_boost_bps(config, _, monthly_boost_bps);
-    set_min_balance(config, _, min_balance);
+    set_cooldown_ms(system, _, cooldown_ms);
+    set_max_lock_months(system, _, max_lock_months);
+    set_max_boost_bps(system, _, max_boost_bps);
+    set_monthly_boost_bps(system, _, monthly_boost_bps);
+    set_min_balance(system, _, min_balance);
 }
 
 // === view functions ===
 
 // === accessors ===
 
-public fun id(config: &StakingConfig): ID { config.id.to_inner() }
-public fun cooldown_ms(config: &StakingConfig): u64 { config.cooldown_ms }
-public fun max_lock_months(config: &StakingConfig): u64 { config.max_lock_months }
-public fun max_boost_bps(config: &StakingConfig): u64 { config.max_boost_bps }
-public fun monthly_boost_bps(config: &StakingConfig): u64 { config.monthly_boost_bps }
-public fun min_balance(config: &StakingConfig): u64 { config.min_balance }
+public fun id(system: &StakingSystem): ID { system.id.to_inner() }
+public fun cooldown_ms(system: &StakingSystem): u64 { system.cooldown_ms }
+public fun max_lock_months(system: &StakingSystem): u64 { system.max_lock_months }
+public fun max_boost_bps(system: &StakingSystem): u64 { system.max_boost_bps }
+public fun monthly_boost_bps(system: &StakingSystem): u64 { system.monthly_boost_bps }
+public fun min_balance(system: &StakingSystem): u64 { system.min_balance }
 
 // === method aliases ===
 
@@ -126,6 +126,6 @@ public fun min_balance(config: &StakingConfig): u64 { config.min_balance }
 public fun init_for_testing(
     ctx: &mut TxContext,
 ) {
-    let otw = STAKING_CONFIG {};
+    let otw = STAKING_SYSTEM {};
     init(otw, ctx);
 }

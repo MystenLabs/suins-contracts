@@ -25,7 +25,7 @@ use suins_token::{
 };
 use suins_voting::{
     staking_batch::{StakingBatch},
-    staking_config::{StakingConfig},
+    staking_system::{StakingSystem},
 };
 
 // === errors ===
@@ -162,7 +162,7 @@ public fun vote(
     proposal: &mut ProposalV2,
     opt: String,
     batch: &mut StakingBatch,
-    staking_config: &StakingConfig,
+    staking_system: &StakingSystem,
     clock: &Clock,
     ctx: &TxContext,
 ) {
@@ -177,7 +177,7 @@ public fun vote(
     // batches that have requested cooldown can vote, but only before cooldown ends
     assert!(!batch.is_cooldown_over(clock), EBatchInCooldown);
 
-    let batch_power = batch.power(staking_config, clock);
+    let batch_power = batch.power(staking_system, clock);
 
     // update proposal voting power
     proposal.total_power = proposal.total_power + batch_power;

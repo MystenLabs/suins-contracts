@@ -17,9 +17,9 @@ use suins_voting::{
     constants::{min_voting_period_ms},
     governance::{Self, NSGovernance},
     proposal_v2::{Self, ProposalV2},
-    staking_admin::{Self, StakingAdminCap},
+    staking_admin::{Self},
     staking_batch::{Self, StakingBatch},
-    staking_config::{Self, StakingConfig},
+    staking_system::{Self, StakingSystem},
     voting_option::{Self, VotingOption},
 };
 
@@ -35,13 +35,13 @@ const REWARD_AMOUNT: u64 = 1_000_000; // 1 NS
 public struct TestSetup {
     clock: Clock,
     gov: NSGovernance,
-    config: StakingConfig,
+    system: StakingSystem,
 }
 
 public fun clock(setup: &TestSetup): &Clock { &setup.clock }
 public fun gov_mut(setup: &mut TestSetup): &mut NSGovernance { &mut setup.gov }
-public fun config(setup: &TestSetup): &StakingConfig { &setup.config }
-public fun config_mut(setup: &mut TestSetup): &mut StakingConfig { &mut setup.config }
+public fun system(setup: &TestSetup): &StakingSystem { &setup.system }
+public fun system_mut(setup: &mut TestSetup): &mut StakingSystem { &mut setup.system }
 
 public fun setup(): (Scenario, TestSetup) {
     let mut ts = ts::begin(admin_addr!());
@@ -49,16 +49,16 @@ public fun setup(): (Scenario, TestSetup) {
 
     clock.set_for_testing(INITIAL_TIME);
     governance::init_for_testing(ts.ctx());
-    staking_config::init_for_testing(ts.ctx());
+    staking_system::init_for_testing(ts.ctx());
     staking_admin::init_for_testing(ts.ctx());
 
     ts.next_tx(admin_addr!());
     let gov = ts.take_shared<NSGovernance>();
-    let config = ts.take_shared<StakingConfig>();
+    let system = ts.take_shared<StakingSystem>();
 
     (
         ts,
-        TestSetup { clock, gov, config }
+        TestSetup { clock, gov, system }
     )
 }
 
@@ -71,7 +71,7 @@ public fun new_batch(
     lock_months: u64,
 ): StakingBatch {
     let balance = mint_ns(ts, balance);
-    staking_batch::new(&setup.config, balance, lock_months, &setup.clock, ts.ctx())
+    staking_batch::new(&setup.system, balance, lock_months, &setup.clock, ts.ctx())
 }
 
 public fun assert_power(
@@ -79,7 +79,7 @@ public fun assert_power(
     batch: &StakingBatch,
     expected_power: u64,
 ) {
-    assert_eq(expected_power, batch.power(&setup.config, &setup.clock));
+    assert_eq(expected_power, batch.power(&setup.system, &setup.clock));
 }
 
 // === proposal_v2 helpers ===
@@ -143,7 +143,7 @@ public fun vote_with_new_batch_and_keep(
     proposal.vote(
         option.to_string(),
         &mut batch,
-        &setup.config,
+        &setup.system,
         &setup.clock,
         ts.ctx(),
     );

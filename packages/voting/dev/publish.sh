@@ -18,7 +18,7 @@ VOTING_DIR="$PACKAGES_DIR/voting"
 TOKEN_PACKAGE_ID=""
 VOTING_PACKAGE_ID=""
 GOVERNANCE_OBJ_ID=""
-STAKING_CONFIG_OBJ_ID=""
+STAKING_SYSTEM_OBJ_ID=""
 ACTIVE_ENV=$(sui client active-env)
 
 ### functions ###
@@ -37,10 +37,10 @@ function publish() {
     elif [ "$dir" == "$VOTING_DIR" ]; then
         VOTING_PACKAGE_ID=$package_id
         GOVERNANCE_OBJ_ID=$(get_object_id "$json" "$package_id" "governance::NSGovernance")
-        STAKING_CONFIG_OBJ_ID=$(get_object_id "$json" "$package_id" "staking_config::StakingConfig")
+        STAKING_SYSTEM_OBJ_ID=$(get_object_id "$json" "$package_id" "staking_system::StakingSystem")
 
         echo "NSGovernance ID: $GOVERNANCE_OBJ_ID"
-        echo "StakingConfig ID: $STAKING_CONFIG_OBJ_ID"
+        echo "StakingSystem ID: $STAKING_SYSTEM_OBJ_ID"
     fi
 }
 
@@ -65,8 +65,8 @@ function print_ts_config() {
     echo "      \"$VOTING_PACKAGE_ID\","
     echo "    governanceObjId:"
     echo "      \"$GOVERNANCE_OBJ_ID\","
-    echo "    stakingConfigId:"
-    echo "      \"$STAKING_CONFIG_OBJ_ID\","
+    echo "    stakingSystemId:"
+    echo "      \"$STAKING_SYSTEM_OBJ_ID\","
     echo "    coinType:"
     echo "      \"$TOKEN_PACKAGE_ID::ns::NS\","
     echo "    votingTokenType:"
