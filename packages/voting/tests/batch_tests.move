@@ -8,7 +8,7 @@ use sui::{
     test_utils::{assert_eq, destroy},
 };
 use suins_voting::{
-    staking_admin::{Self},
+    staking_admin::{StakingAdminCap},
     staking_batch::{Self, StakingBatch},
     staking_constants::{month_ms},
     test_utils::{setup, mint_ns},
@@ -232,13 +232,14 @@ fun test_power_max_balance() {
 #[test]
 fun test_admin_functions() {
     let (mut ts, setup) = setup();
+    let cap = ts.take_from_sender<StakingAdminCap>();
 
     // test admin_new
     let coin = mint_ns(&mut ts, 1_000_000);
     let now = setup.clock().timestamp_ms();
     let arbitrary_start_ms = now - 1000 * 60 * 60; // 1 hour ago
     let batch = staking_batch::admin_new(
-        setup.admin_cap(),
+        &cap,
         coin,
         arbitrary_start_ms,
         arbitrary_start_ms, // never locked
@@ -246,13 +247,14 @@ fun test_admin_functions() {
     );
 
     // test admin_transfer
-    staking_batch::admin_transfer(setup.admin_cap(), batch, USER_1);
+    staking_batch::admin_transfer(&cap, batch, USER_1);
 
     // verify USER_1 received the batch
     ts::next_tx(&mut ts, USER_1);
     let taken_batch = ts.take_from_sender<StakingBatch>();
 
     destroy(taken_batch);
+    destroy(cap);
     setup.destroy(ts);
 }
 
@@ -261,7 +263,7 @@ fun test_admin_functions() {
 #[test]
 fun test_config_changes() {
     let (mut ts, mut setup) = setup();
-    let cap = staking_admin::new_for_testing(ts.ctx());
+    let cap = ts.take_from_sender<StakingAdminCap>();
     let balance = 1_000_000;
 
     // change monthly_boost_bps
@@ -299,7 +301,7 @@ fun test_config_changes() {
 #[test]
 fun test_zero_cooldown() {
     let (mut ts, mut setup) = setup();
-    let cap = staking_admin::new_for_testing(ts.ctx());
+    let cap = ts.take_from_sender<StakingAdminCap>();
     let balance = 1_000_000;
 
     // set cooldown to zero
@@ -469,12 +471,13 @@ fun test_set_voting_until_ms_e_invalid_time() {
 #[test, expected_failure(abort_code = staking_batch::EInvalidLockPeriod)]
 fun test_admin_new_e_invalid_lock_period() {
     let (mut ts, setup) = setup();
+    let cap = ts.take_from_sender<StakingAdminCap>();
     let coin = mint_ns(&mut ts, 1_000_000);
 
     // try to set unlock_ms before start_ms
     let now = setup.clock().timestamp_ms();
     let _batch = staking_batch::admin_new(
-        setup.admin_cap(),
+        &cap,
         coin,
         now, // start_ms
         now - 1, // unlock_ms

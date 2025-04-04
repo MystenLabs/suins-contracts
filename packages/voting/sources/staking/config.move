@@ -129,39 +129,3 @@ public fun init_for_testing(
     let otw = STAKING_CONFIG {};
     init(otw, ctx);
 }
-
-#[test_only]
-public fun new_for_testing(
-    cooldown_ms: u64,
-    max_lock_months: u64,
-    max_boost_bps: u64,
-    monthly_boost_bps: u64,
-    min_balance: u64,
-    ctx: &mut TxContext,
-): StakingConfig {
-    StakingConfig {
-        id: object::new(ctx),
-        cooldown_ms,
-        max_lock_months,
-        max_boost_bps,
-        monthly_boost_bps,
-        min_balance,
-    }
-}
-
-#[test_only]
-public fun new_for_testing_default(
-    ctx: &mut TxContext,
-): StakingConfig {
-    StakingConfig {
-        id: object::new(ctx),
-        cooldown_ms: COOLDOWN_MS,
-        max_lock_months: MAX_LOCK_MONTHS,
-        max_boost_bps: MAX_BOOST_BPS,
-        monthly_boost_bps: MONTHLY_BOOST_BPS,
-        min_balance: MIN_BALANCE,
-    }
-}
-
-
-// === test functions ===

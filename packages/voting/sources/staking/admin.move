@@ -57,10 +57,3 @@ public fun init_for_testing(
     let otw = STAKING_ADMIN {};
     init(otw, ctx);
 }
-
-#[test_only]
-public fun new_for_testing(
-    ctx: &mut TxContext,
-): StakingAdminCap {
-    StakingAdminCap { id: object::new(ctx) }
-}

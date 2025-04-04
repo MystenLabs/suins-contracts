@@ -36,14 +36,12 @@ public struct TestSetup {
     clock: Clock,
     gov: NSGovernance,
     config: StakingConfig,
-    admin_cap: StakingAdminCap,
 }
 
 public fun clock(setup: &TestSetup): &Clock { &setup.clock }
 public fun gov_mut(setup: &mut TestSetup): &mut NSGovernance { &mut setup.gov }
 public fun config(setup: &TestSetup): &StakingConfig { &setup.config }
 public fun config_mut(setup: &mut TestSetup): &mut StakingConfig { &mut setup.config }
-public fun admin_cap(setup: &TestSetup): &StakingAdminCap { &setup.admin_cap }
 
 public fun setup(): (Scenario, TestSetup) {
     let mut ts = ts::begin(admin_addr!());
@@ -57,11 +55,10 @@ public fun setup(): (Scenario, TestSetup) {
     ts.next_tx(admin_addr!());
     let gov = ts.take_shared<NSGovernance>();
     let config = ts.take_shared<StakingConfig>();
-    let admin_cap = ts.take_from_sender<StakingAdminCap>();
 
     (
         ts,
-        TestSetup { clock, gov, config, admin_cap }
+        TestSetup { clock, gov, config }
     )
 }
 
