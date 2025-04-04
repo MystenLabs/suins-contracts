@@ -72,6 +72,15 @@ transaction.moveCall({
 // .. you can do any other actions, like setting the source code info, in the same PTB.
 ```
 
+```bash
+sui client ptb
+--move-call @mvr/metadata::package_info::new @<upgrade cap id or value> --assign packageinfo \
+--move-call @mvr/metadata::display::default \"sample\" --assign display
+--move-call @mvr/metadata::package_info::set_display packageinfo display
+--move-call @mvr/metadata::package_info::set_metadata packageinfo \"default\"  \"<MVR name>\"
+--move-call @mvr/metadata::package_info::transfer packageinfo @<Address to transfer packageInfo>
+```
+
 ## Reverse resolution
 
 Reverse resolution allows you to look up the human-readable name (like @suins/core or suins.sui/core)
