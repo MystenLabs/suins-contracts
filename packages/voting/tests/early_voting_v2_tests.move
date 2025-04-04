@@ -49,7 +49,7 @@ fun test_e2e() {
 
         assert_eq(proposal.serial_no(), 1);
 
-        let mut batch = setup.new_batch(&mut ts, 50_000_000 * DECIMALS, 0);
+        let mut batch = setup.batch__new(&mut ts, 50_000_000 * DECIMALS, 0);
         proposal.vote(
             b"Abstain".to_string(),
             &mut batch,
@@ -67,8 +67,8 @@ fun test_e2e() {
 
         assert_eq(proposal.serial_no(), 1);
 
-        let mut batch1 = setup.new_batch(&mut ts, 100_000_000 * DECIMALS, 0);
-        let mut batch2 = setup.new_batch(&mut ts, 50_000_000 * DECIMALS, 0);
+        let mut batch1 = setup.batch__new(&mut ts, 100_000_000 * DECIMALS, 0);
+        let mut batch2 = setup.batch__new(&mut ts, 50_000_000 * DECIMALS, 0);
         proposal.vote(
             b"Yes".to_string(),
             &mut batch1,
@@ -94,8 +94,8 @@ fun test_e2e() {
 
         assert_eq(proposal.serial_no(), 1);
 
-        let mut batch1 = setup.new_batch(&mut ts, 25_000_000 * DECIMALS, 0);
-        let mut batch2 = setup.new_batch(&mut ts, 25_000_000 * DECIMALS, 0);
+        let mut batch1 = setup.batch__new(&mut ts, 25_000_000 * DECIMALS, 0);
+        let mut batch2 = setup.batch__new(&mut ts, 25_000_000 * DECIMALS, 0);
         proposal.vote(
             b"Yes".to_string(),
             &mut batch1,
@@ -181,7 +181,7 @@ fun test_e2e_no_quorum() {
 
         assert_eq(proposal.serial_no(), 1);
 
-        let mut batch = setup.new_batch(&mut ts, 300_000 * DECIMALS, 0);
+        let mut batch = setup.batch__new(&mut ts, 300_000 * DECIMALS, 0);
         proposal.vote(
             b"Abstain".to_string(),
             &mut batch,
@@ -199,8 +199,8 @@ fun test_e2e_no_quorum() {
 
         assert_eq(proposal.serial_no(), 1);
 
-        let mut batch1 = setup.new_batch(&mut ts, 600_000 * DECIMALS, 0);
-        let mut batch2 = setup.new_batch(&mut ts, 300_000 * DECIMALS, 0);
+        let mut batch1 = setup.batch__new(&mut ts, 600_000 * DECIMALS, 0);
+        let mut batch2 = setup.batch__new(&mut ts, 300_000 * DECIMALS, 0);
         proposal.vote(
             b"Yes".to_string(),
             &mut batch1,
@@ -266,7 +266,7 @@ fun test_e2e_tie() {
 
         assert_eq(proposal.serial_no(), 1);
 
-        let mut batch = setup.new_batch(&mut ts, 4_000_000 * DECIMALS, 0);
+        let mut batch = setup.batch__new(&mut ts, 4_000_000 * DECIMALS, 0);
         proposal.vote(
             b"Abstain".to_string(),
             &mut batch,
@@ -284,8 +284,8 @@ fun test_e2e_tie() {
 
         assert_eq(proposal.serial_no(), 1);
 
-        let mut batch1 = setup.new_batch(&mut ts, 1_000_000 * DECIMALS, 0);
-        let mut batch2 = setup.new_batch(&mut ts, 1_000_000 * DECIMALS, 0);
+        let mut batch1 = setup.batch__new(&mut ts, 1_000_000 * DECIMALS, 0);
+        let mut batch2 = setup.batch__new(&mut ts, 1_000_000 * DECIMALS, 0);
         proposal.vote(
             b"Yes".to_string(),
             &mut batch1,
@@ -351,7 +351,7 @@ fun test_e2e_abstain_bypassed() {
 
         assert_eq(proposal.serial_no(), 1);
 
-        let mut batch = setup.new_batch(&mut ts, 5_000_000 * DECIMALS, 0);
+        let mut batch = setup.batch__new(&mut ts, 5_000_000 * DECIMALS, 0);
         proposal.vote(
             b"Abstain".to_string(),
             &mut batch,
@@ -369,8 +369,8 @@ fun test_e2e_abstain_bypassed() {
 
         assert_eq(proposal.serial_no(), 1);
 
-        let mut batch1 = setup.new_batch(&mut ts, 1_000_000 * DECIMALS, 0);
-        let mut batch2 = setup.new_batch(&mut ts, 2_000_000 * DECIMALS, 0);
+        let mut batch1 = setup.batch__new(&mut ts, 1_000_000 * DECIMALS, 0);
+        let mut batch2 = setup.batch__new(&mut ts, 2_000_000 * DECIMALS, 0);
         proposal.vote(
             b"Yes".to_string(),
             &mut batch1,

@@ -66,7 +66,7 @@ fun init(otw: STAKING_BATCH, ctx: &mut TxContext)
 
 /// Stake NS into a new batch, optionally locking it for a number of months
 public fun new(
-    system: &StakingSystem,
+    system: &mut StakingSystem,
     coin: Coin<NS>,
     lock_months: u64,
     clock: &Clock,
@@ -84,6 +84,8 @@ public fun new(
         cooldown_end_ms: 0,
         voting_until_ms: 0,
     };
+
+    system.add_balance(batch.balance.value());
 
     emit(EventNew {
         batch_id: batch.id.to_address(),
@@ -154,6 +156,7 @@ public fun request_unstake(
 /// Withdraw balance and destroy batch after cooldown period has ended
 public fun unstake(
     batch: StakingBatch,
+    system: &mut StakingSystem,
     clock: &Clock,
 ): Balance<NS> {
     assert!(!batch.is_voting(clock), EBatchIsVoting);
@@ -162,14 +165,15 @@ public fun unstake(
     assert!(batch.is_cooldown_over(clock), ECooldownNotOver);
 
     let batch_address = batch.id.to_address();
-    let coin_value = batch.balance.value();
 
     let StakingBatch { id, balance, .. } = batch;
     object::delete(id);
 
+    system.sub_balance(balance.value());
+
     emit(EventUnstake {
         batch_id: batch_address,
-        balance: coin_value,
+        balance: balance.value(),
     });
 
     balance
@@ -180,12 +184,16 @@ public fun unstake(
 /// Stake NS into a new batch with arbitrary parameters
 public fun admin_new(
     _: &StakingAdminCap,
+    system: &mut StakingSystem,
     coin: Coin<NS>,
     start_ms: u64,
     unlock_ms: u64,
     ctx: &mut TxContext,
 ): StakingBatch {
     assert!(start_ms <= unlock_ms, EInvalidLockPeriod);
+
+    system.add_balance(coin.value());
+
     let batch = StakingBatch {
         id: object::new(ctx),
         balance: coin.into_balance(),

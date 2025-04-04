@@ -39,6 +39,11 @@ public struct StakingSystem has key {
     monthly_boost_bps: u64,
     /// minimum NS balance allowed in a batch
     min_balance: u64,
+    stats: StakingStats,
+}
+
+public struct StakingStats has store {
+    total_balance: u64,
 }
 
 /// One-Time Witness
@@ -58,6 +63,9 @@ fun init(otw: STAKING_SYSTEM, ctx: &mut TxContext)
         max_boost_bps: MAX_BOOST_BPS,
         monthly_boost_bps: MONTHLY_BOOST_BPS,
         min_balance: MIN_BALANCE,
+        stats: StakingStats {
+            total_balance: 0,
+        },
     };
     transfer::share_object(config);
 }
@@ -65,10 +73,6 @@ fun init(otw: STAKING_SYSTEM, ctx: &mut TxContext)
 // === public functions ===
 
 // === admin functions ===
-
-// === package functions ===
-
-// === private functions ===
 
 public fun set_cooldown_ms(system: &mut StakingSystem, _: &StakingAdminCap, cooldown_ms: u64 ) {
     system.cooldown_ms = cooldown_ms;
@@ -105,6 +109,24 @@ public fun set_all(
     set_min_balance(system, _, min_balance);
 }
 
+// === package functions ===
+
+public(package) fun add_balance(
+    system: &mut StakingSystem,
+    balance: u64,
+) {
+    system.stats.total_balance = system.stats.total_balance + balance;
+}
+
+public(package) fun sub_balance(
+    system: &mut StakingSystem,
+    balance: u64,
+) {
+    system.stats.total_balance = system.stats.total_balance - balance;
+}
+
+// === private functions ===
+
 // === view functions ===
 
 // === accessors ===
@@ -115,6 +137,9 @@ public fun max_lock_months(system: &StakingSystem): u64 { system.max_lock_months
 public fun max_boost_bps(system: &StakingSystem): u64 { system.max_boost_bps }
 public fun monthly_boost_bps(system: &StakingSystem): u64 { system.monthly_boost_bps }
 public fun min_balance(system: &StakingSystem): u64 { system.min_balance }
+public fun stats(system: &StakingSystem): &StakingStats { &system.stats }
+
+public fun total_balance(stats: &StakingStats): u64 { stats.total_balance }
 
 // === method aliases ===
 

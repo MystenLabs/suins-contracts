@@ -4,6 +4,7 @@ module suins_voting::test_utils;
 // === imports ===
 
 use sui::{
+    balance::{Balance},
     clock::{Self, Clock},
     coin::{Self, Coin},
     test_scenario::{Self as ts, Scenario},
@@ -64,14 +65,21 @@ public fun setup(): (Scenario, TestSetup) {
 
 // === staking_batch helpers ===
 
-public fun new_batch(
+public fun batch__new(
     setup: &mut TestSetup,
     ts: &mut Scenario,
     balance: u64,
     lock_months: u64,
 ): StakingBatch {
     let balance = mint_ns(ts, balance);
-    staking_batch::new(&setup.system, balance, lock_months, &setup.clock, ts.ctx())
+    staking_batch::new(&mut setup.system, balance, lock_months, &setup.clock, ts.ctx())
+}
+
+public fun batch__unstake(
+    setup: &mut TestSetup,
+    batch: StakingBatch,
+): Balance<NS> {
+    batch.unstake(&mut setup.system, &setup.clock)
 }
 
 public fun assert_power(
@@ -139,7 +147,7 @@ public fun vote_with_new_batch_and_keep(
     option: vector<u8>,
     balance: u64,
 ) {
-    let mut batch = new_batch(setup, ts, balance, 0);
+    let mut batch = setup.batch__new(ts, balance, 0);
     proposal.vote(
         option.to_string(),
         &mut batch,
