@@ -83,7 +83,7 @@ sui client ptb
     --move-call @mvr/metadata::display::default \"sample\" --assign display \
     --move-call @mvr/metadata::package_info::set_display packageinfo display \
     --move-call @mvr/metadata::package_info::set_metadata packageinfo \"default\" \"<MVR name>\" \
-    --move-call @mvr/metadata::package_info::transfer packageinfo @<Address to transfer packageInfo>
+    --move-call @mvr/metadata::package_info::transfer packageinfo @<<Your safe address>>
 ```
 </Tabs.Tab>
 </Tabs>
@@ -141,9 +141,9 @@ const transaction = new Transaction();
 const git = transaction.moveCall({
     target: `@mvr/metadata::git::new`,
     arguments: [
-        transaction.pure.string('<Your git repository, e.g. https://github.com/mystenlabs/mvr>'),
-        transaction.pure.string('<Your git subdirectory, e.g. packages/mvr>'),
-        transaction.pure.string('<Your git commit hash or tag, e.g. 636d22d6bc4195afec9a1c0a8563b61fc813acfc>'),
+        transaction.pure.string('<Your git repository, e.g. `https://github.com/mystenlabs/mvr`>'),
+        transaction.pure.string('<Your git subdirectory, e.g. `packages/mvr`>'),
+        transaction.pure.string('<Your git commit hash or tag, e.g. `636d22d6bc4195afec9a1c0a8563b61fc813acfc`>'),
     ],
 });
 
@@ -160,11 +160,11 @@ transaction.moveCall({
 <Tabs.Tab>
 ```bash
 sui client ptb --move-call @mvr/metadata::git::new \
-"\"<Your git repository, e.g. `https://github.com/mystenlabs/mvr>\"" \
-"\"<Your git subdirectory, e.g. `packages/mvr>\"" \
-\"<Your git commit hash or tag, e.g. `636d22d6bc4195afec9a1c0a8563b61fc813acfc`>\" --assign git \
+    "\"<Your git repository, e.g. https://github.com/mystenlabs/mvr>\"" \
+    \"<Your git subdirectory, e.g. packages/mvr>\"" \
+    \"<Your git commit hash or tag, e.g. 636d22d6bc4195afec9a1c0a8563b61fc813acfc>\" --assign git \
 --move-call @mvr/metadata::package_info::set_git_versioning @<Your PackageInfo object> \
-<The version number for the given source code (e.g. 1)> git
+    <The version number for the given source code (e.g. 1)> git
 ```
 </Tabs.Tab>
 </Tabs>
@@ -186,7 +186,7 @@ transaction.moveCall({
 
 ```bash
 sui client ptb \
---move-call @mvr/metadata::package_info::unset_git_versioning @<Your PackageInfo object> <Version number>
+    --move-call @mvr/metadata::package_info::unset_git_versioning @<Your PackageInfo object> <Version number>
 ```
 
 ## Transferring the `PackageInfo` object
