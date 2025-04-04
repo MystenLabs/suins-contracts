@@ -78,7 +78,7 @@ transaction.moveCall({
 </Tabs.Tab>
 <Tabs.Tab>
 ```bash
-sui client ptb
+sui client ptb \
     --move-call @mvr/metadata::package_info::new @<Upgrade cap id or value> --assign packageinfo \
     --move-call @mvr/metadata::display::default \"sample\" --assign display \
     --move-call @mvr/metadata::package_info::set_display packageinfo display \
