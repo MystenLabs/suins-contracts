@@ -23,7 +23,7 @@ use suins_voting::{
     proposal_v2::{Self, ProposalV2},
     staking_admin::{Self},
     staking_batch::{Self, StakingBatch},
-    staking_system::{Self, StakingSystem},
+    staking_config::{Self, StakingConfig},
     voting_option::{Self, VotingOption},
 };
 
@@ -40,14 +40,14 @@ public struct TestSetup {
     ts: Scenario,
     clock: Clock,
     gov: NSGovernance,
-    system: StakingSystem,
+    config: StakingConfig,
 }
 
 public fun ts(setup: &TestSetup): &Scenario { &setup.ts }
 public fun clock(setup: &TestSetup): &Clock { &setup.clock }
 public fun gov_mut(setup: &mut TestSetup): &mut NSGovernance { &mut setup.gov }
-public fun system(setup: &TestSetup): &StakingSystem { &setup.system }
-public fun system_mut(setup: &mut TestSetup): &mut StakingSystem { &mut setup.system }
+public fun config(setup: &TestSetup): &StakingConfig { &setup.config }
+public fun config_mut(setup: &mut TestSetup): &mut StakingConfig { &mut setup.config }
 
 public fun setup(): TestSetup {
     let mut ts = ts::begin(admin_addr!());
@@ -55,14 +55,14 @@ public fun setup(): TestSetup {
 
     clock.set_for_testing(INITIAL_TIME);
     governance::init_for_testing(ts.ctx());
-    staking_system::init_for_testing(ts.ctx());
+    staking_config::init_for_testing(ts.ctx());
     staking_admin::init_for_testing(ts.ctx());
 
     ts.next_tx(admin_addr!());
     let gov = ts.take_shared<NSGovernance>();
-    let system = ts.take_shared<StakingSystem>();
+    let config = ts.take_shared<StakingConfig>();
 
-    TestSetup { ts, clock, gov, system }
+    TestSetup { ts, clock, gov, config }
 }
 
 // === staking_batch helpers ===
@@ -73,14 +73,14 @@ public fun batch__new(
     lock_months: u64,
 ): StakingBatch {
     let balance = setup.mint_ns(balance);
-    staking_batch::new(&mut setup.system, balance, lock_months, &setup.clock, setup.ts.ctx())
+    staking_batch::new(&mut setup.config, balance, lock_months, &setup.clock, setup.ts.ctx())
 }
 
 public fun batch__unstake(
     setup: &mut TestSetup,
     batch: StakingBatch,
 ): Balance<NS> {
-    batch.unstake(&mut setup.system, &setup.clock)
+    batch.unstake(&mut setup.config, &setup.clock)
 }
 
 public fun batch__keep(
@@ -95,7 +95,7 @@ public fun assert_power(
     batch: &StakingBatch,
     expected_power: u64,
 ) {
-    assert_eq(expected_power, batch.power(&setup.system, &setup.clock));
+    assert_eq(expected_power, batch.power(&setup.config, &setup.clock));
 }
 
 // === proposal_v2 helpers ===
@@ -150,7 +150,7 @@ public fun proposal__vote(
     proposal.vote(
         opt,
         batch,
-        &setup.system,
+        &setup.config,
         &setup.clock,
         setup.ts.ctx(),
     );
@@ -166,7 +166,7 @@ public fun proposal__vote_with_new_batch_and_keep(
     proposal.vote(
         option.to_string(),
         &mut batch,
-        &setup.system,
+        &setup.config,
         &setup.clock,
         setup.ts.ctx(),
     );

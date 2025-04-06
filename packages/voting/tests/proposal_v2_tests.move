@@ -46,8 +46,8 @@ fun test_end_to_end_ok() {
     setup.next_tx(USER_1);
     let mut batch1 = setup.batch__new(250_000_000, 3); // 250 NS, locked for 3 months
     let mut batch2 = setup.batch__new(500_000_000, 3); // 500 NS, locked for 3 months
-    let batch1_power = batch1.power(setup.system(), setup.clock());
-    let batch2_power = batch2.power(setup.system(), setup.clock());
+    let batch1_power = batch1.power(setup.config(), setup.clock());
+    let batch2_power = batch2.power(setup.config(), setup.clock());
     setup.proposal__vote(
         &mut proposal,
         b"Yes".to_string(),
@@ -64,7 +64,7 @@ fun test_end_to_end_ok() {
     // user_2 votes with one batch
     setup.next_tx(USER_2);
     let mut batch3 = setup.batch__new(250_000_000, 3); // 250 NS, locked for 3 months
-    let batch3_power = batch3.power(setup.system(), setup.clock());
+    let batch3_power = batch3.power(setup.config(), setup.clock());
     setup.proposal__vote(
         &mut proposal,
         b"Option A".to_string(),
