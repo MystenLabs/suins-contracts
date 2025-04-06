@@ -26,6 +26,7 @@ use suins_token::{
 use suins_voting::{
     staking_batch::{StakingBatch},
     staking_config::{StakingConfig},
+    staking_stats::{StakingStats},
 };
 
 // === errors ===
@@ -227,6 +228,7 @@ public fun finalize(
 #[allow(lint(self_transfer))]
 public fun distribute_rewards(
     proposal: &mut ProposalV2,
+    stats: &mut StakingStats,
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
@@ -235,7 +237,7 @@ public fun distribute_rewards(
     let mut transfers: u64 = 0;
     while (transfers < MAX_RETURNS_PER_TX && !proposal.voter_powers.is_empty()) {
         let voter_addr = *proposal.voter_powers.front().borrow();
-        let reward_coin = get_user_reward(proposal, voter_addr).into_coin(ctx);
+        let reward_coin = get_user_reward(proposal, stats, voter_addr).into_coin(ctx);
         transfer::public_transfer(reward_coin, voter_addr);
         transfers = transfers + 1;
     };
@@ -252,11 +254,12 @@ public fun distribute_rewards(
 /// Also finalize the proposal if needed.
 public fun claim_reward(
     proposal: &mut ProposalV2,
+    stats: &mut StakingStats,
     clock: &Clock,
     ctx: &mut TxContext,
 ): Balance<NS> {
     proposal.finalize_internal(clock);
-    get_user_reward(proposal, ctx.sender())
+    get_user_reward(proposal, stats, ctx.sender())
 }
 
 // === package functions ===
@@ -335,6 +338,7 @@ fun finalize_internal(proposal: &mut ProposalV2, clock: &Clock) {
 /// Remove the voter from proposal.voter_powers, and return his reward
 fun get_user_reward(
     proposal: &mut ProposalV2,
+    stats: &mut StakingStats,
     user_addr: address,
 ): Balance<NS> {
     assert!(proposal.voter_powers.contains(user_addr), EVoterNotFound);
@@ -344,6 +348,7 @@ fun get_user_reward(
     let reward_value = calculate_reward(proposal, user_power);
 
     if (reward_value > 0) {
+        stats.add_user_reward(user_addr, reward_value);
         proposal.reward.split(reward_value)
     } else {
         balance::zero()

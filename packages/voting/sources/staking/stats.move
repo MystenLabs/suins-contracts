@@ -4,6 +4,7 @@ module suins_voting::staking_stats;
 
 use sui::{
     package::{Self},
+    table::{Self, Table},
 };
 
 // === errors ===
@@ -16,6 +17,7 @@ use sui::{
 public struct StakingStats has key {
     id: UID,
     total_balance: u64,
+    user_rewards: Table<address, u64>,
 }
 
 /// One-Time Witness
@@ -31,6 +33,7 @@ fun init(otw: STAKING_STATS, ctx: &mut TxContext)
     let stats = StakingStats {
         id: object::new(ctx),
         total_balance: 0,
+        user_rewards: table::new(ctx),
     };
     transfer::share_object(stats);
 }
@@ -53,6 +56,19 @@ public(package) fun sub_balance(
     balance: u64,
 ) {
     stats.total_balance = stats.total_balance - balance;
+}
+
+public(package) fun add_user_reward(
+    stats: &mut StakingStats,
+    user: address,
+    reward: u64,
+) {
+    if (!stats.user_rewards.contains(user)) {
+        stats.user_rewards.add(user, reward);
+    } else {
+        let old_reward = stats.user_rewards.borrow_mut(user);
+        *old_reward = *old_reward + reward;
+    }
 }
 
 // === private functions ===

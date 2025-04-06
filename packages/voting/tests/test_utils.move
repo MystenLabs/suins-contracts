@@ -188,14 +188,14 @@ public fun proposal__distribute_rewards(
     setup: &mut TestSetup,
     proposal: &mut ProposalV2,
 ) {
-    proposal.distribute_rewards(&setup.clock, setup.ts.ctx());
+    proposal.distribute_rewards(&mut setup.stats, &setup.clock, setup.ts.ctx());
 }
 
 public fun proposal__claim_reward(
     setup: &mut TestSetup,
     proposal: &mut ProposalV2,
 ): Balance<NS> {
-    proposal.claim_reward(&setup.clock, setup.ts.ctx())
+    proposal.claim_reward(&mut setup.stats, &setup.clock, setup.ts.ctx())
 }
 
 // === sui helpers ===
