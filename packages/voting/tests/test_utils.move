@@ -24,6 +24,7 @@ use suins_voting::{
     staking_admin::{Self},
     staking_batch::{Self, StakingBatch},
     staking_config::{Self, StakingConfig},
+    staking_stats::{Self, StakingStats},
     voting_option::{Self, VotingOption},
 };
 
@@ -41,6 +42,7 @@ public struct TestSetup {
     clock: Clock,
     gov: NSGovernance,
     config: StakingConfig,
+    stats: StakingStats,
 }
 
 public fun ts(setup: &TestSetup): &Scenario { &setup.ts }
@@ -55,14 +57,16 @@ public fun setup(): TestSetup {
 
     clock.set_for_testing(INITIAL_TIME);
     governance::init_for_testing(ts.ctx());
-    staking_config::init_for_testing(ts.ctx());
     staking_admin::init_for_testing(ts.ctx());
+    staking_config::init_for_testing(ts.ctx());
+    staking_stats::init_for_testing(ts.ctx());
 
     ts.next_tx(admin_addr!());
     let gov = ts.take_shared<NSGovernance>();
     let config = ts.take_shared<StakingConfig>();
+    let stats = ts.take_shared<StakingStats>();
 
-    TestSetup { ts, clock, gov, config }
+    TestSetup { ts, clock, gov, config, stats }
 }
 
 // === staking_batch helpers ===
@@ -73,14 +77,21 @@ public fun batch__new(
     lock_months: u64,
 ): StakingBatch {
     let balance = setup.mint_ns(balance);
-    staking_batch::new(&mut setup.config, balance, lock_months, &setup.clock, setup.ts.ctx())
+    staking_batch::new(
+        &setup.config,
+        &mut setup.stats,
+        balance,
+        lock_months,
+        &setup.clock,
+        setup.ts.ctx(),
+    )
 }
 
 public fun batch__unstake(
     setup: &mut TestSetup,
     batch: StakingBatch,
 ): Balance<NS> {
-    batch.unstake(&mut setup.config, &setup.clock)
+    batch.unstake(&mut setup.stats, &setup.clock)
 }
 
 public fun batch__keep(
