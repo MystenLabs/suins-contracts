@@ -162,7 +162,7 @@ public fun vote(
     proposal: &mut ProposalV2,
     opt: String,
     batch: &mut StakingBatch,
-    staking_system: &StakingSystem,
+    system: &StakingSystem,
     clock: &Clock,
     ctx: &TxContext,
 ) {
@@ -177,7 +177,7 @@ public fun vote(
     // batches that have requested or completed cooldown can't vote
     assert!(!batch.is_cooldown_requested(), EBatchInCooldown);
 
-    let batch_power = batch.power(staking_system, clock);
+    let batch_power = batch.power(system, clock);
 
     // update proposal voting power
     proposal.total_power = proposal.total_power + batch_power;

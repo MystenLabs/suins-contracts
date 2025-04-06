@@ -240,9 +240,7 @@ fun try_self_finalize_before_end_time() {
 fun try_finalize_twice() {
     let mut setup = setup();
 
-    let mut proposal = setup.proposal__new_with_end_time(
-        option::none(),
-    );
+    let mut proposal = setup.proposal__new_default();
 
     proposal.set_threshold(1);
     setup.add_time(min_voting_period_ms!() + 2);
@@ -288,9 +286,7 @@ fun try_to_vote_on_expired_proposal() {
 fun vote_non_existing_option() {
     let mut setup = setup();
 
-    let mut proposal = setup.proposal__new_with_end_time(
-        option::none(),
-    );
+    let mut proposal = setup.proposal__new_default();
 
     let mut batch = setup.batch__new(1_000_000, 0);
 
