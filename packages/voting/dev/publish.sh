@@ -19,6 +19,7 @@ TOKEN_PACKAGE_ID=""
 VOTING_PACKAGE_ID=""
 GOVERNANCE_OBJ_ID=""
 STAKING_CONFIG_OBJ_ID=""
+STAKING_STATS_OBJ_ID=""
 ACTIVE_ENV=$(sui client active-env)
 
 ### functions ###
@@ -38,9 +39,11 @@ function publish() {
         VOTING_PACKAGE_ID=$package_id
         GOVERNANCE_OBJ_ID=$(get_object_id "$json" "$package_id" "governance::NSGovernance")
         STAKING_CONFIG_OBJ_ID=$(get_object_id "$json" "$package_id" "staking_config::StakingConfig")
+        STAKING_STATS_OBJ_ID=$(get_object_id "$json" "$package_id" "staking_stats::StakingStats")
 
         echo "NSGovernance ID: $GOVERNANCE_OBJ_ID"
         echo "StakingConfig ID: $STAKING_CONFIG_OBJ_ID"
+        echo "StakingStats ID: $STAKING_STATS_OBJ_ID"
     fi
 }
 
@@ -67,6 +70,8 @@ function print_ts_config() {
     echo "      \"$GOVERNANCE_OBJ_ID\","
     echo "    stakingConfigId:"
     echo "      \"$STAKING_CONFIG_OBJ_ID\","
+    echo "    stakingStatsId:"
+    echo "      \"$STAKING_STATS_OBJ_ID\","
     echo "    coinType:"
     echo "      \"$TOKEN_PACKAGE_ID::ns::NS\","
     echo "    votingTokenType:"
