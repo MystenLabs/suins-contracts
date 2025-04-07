@@ -159,9 +159,9 @@ public fun new(
 /// Vote for a given proposal.
 public fun vote(
     proposal: &mut ProposalV2,
-    opt: String,
-    batch: &mut StakingBatch,
     config: &StakingConfig,
+    batch: &mut StakingBatch,
+    opt: String,
     clock: &Clock,
     ctx: &TxContext,
 ) {

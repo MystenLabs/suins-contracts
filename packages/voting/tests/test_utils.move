@@ -191,9 +191,9 @@ public fun proposal__vote(
     opt: String,
 ) {
     proposal.vote(
-        opt,
-        batch,
         &setup.config,
+        batch,
+        opt,
         &setup.clock,
         setup.ts.ctx(),
     );
@@ -207,9 +207,9 @@ public fun proposal__vote_with_new_batch_and_keep(
 ) {
     let mut batch = setup.batch__new(balance, 0);
     proposal.vote(
-        option.to_string(),
-        &mut batch,
         &setup.config,
+        &mut batch,
+        option.to_string(),
         &setup.clock,
         setup.ts.ctx(),
     );
