@@ -10,7 +10,7 @@ use suins_voting::{
     staking_admin::{StakingAdminCap},
     staking_batch::{Self, StakingBatch},
     staking_constants::{month_ms},
-    test_utils::{setup},
+    test_utils::{setup, admin_addr},
 };
 
 // === constants ===
@@ -228,35 +228,32 @@ fun test_power_max_balance() {
     setup.destroy();
 }
 
-// #[test] // TODO
-// fun test_admin_functions() {
-//     let mut setup = setup();
-//     let cap = setup.ts().take_from_sender<StakingAdminCap>();
+#[test]
+fun test_admin_functions() {
+    let mut setup = setup();
 
-//     // test admin_new
-//     let coin = setup.mint_ns(1_000_000);
-//     let now = setup.clock().timestamp_ms();
-//     let arbitrary_start_ms = now - 1000 * 60 * 60; // 1 hour ago
-//     let batch = staking_batch::admin_new(
-//         &cap,
-//         setup.config_mut(),
-//         coin,
-//         arbitrary_start_ms,
-//         arbitrary_start_ms, // never locked
-//         ts.ctx(),
-//     );
+    // test admin_new
+    let now = setup.clock().timestamp_ms();
+    let past_time_ms = now - 1000 * 60 * 60; // 1 hour ago
+    let batch = setup.batch__admin_new(
+        1_000_000,
+        past_time_ms,
+        past_time_ms, // never locked
+    );
 
-//     // test admin_transfer
-//     staking_batch::admin_transfer(&cap, batch, USER_1);
+    // test admin_transfer
+    setup.next_tx(admin_addr!());
+    setup.batch__admin_transfer(batch, USER_1);
 
-//     // verify USER_1 received the batch
-//     setup.next_tx(USER_1);
-//     let taken_batch = setup.ts().take_from_sender<StakingBatch>();
+    // verify USER_1 received the batch
+    setup.next_tx(USER_1);
+    let taken_batch = setup.ts().take_from_sender<StakingBatch>();
+    assert_eq(taken_batch.balance(), 1_000_000);
+    assert_eq(taken_batch.is_locked(setup.clock()), false);
 
-//     destroy(taken_batch);
-//     destroy(cap);
-//     setup.destroy();
-// }
+    destroy(taken_batch);
+    setup.destroy();
+}
 
 // === tests: admin ===
 
@@ -460,22 +457,13 @@ fun test_set_voting_until_ms_e_invalid_time() {
     abort 123
 }
 
-// #[test, expected_failure(abort_code = staking_batch::EInvalidLockPeriod)]
-// fun test_admin_new_e_invalid_lock_period() { // TODO
-//     let mut setup = setup();
-//     let cap = setup.ts().take_from_sender<StakingAdminCap>();
-//     let coin = setup.mint_ns(1_000_000);
+#[test, expected_failure(abort_code = staking_batch::EInvalidLockPeriod)]
+fun test_admin_new_e_invalid_lock_period() {
+    let mut setup = setup();
 
-//     // try to set unlock_ms before start_ms
-//     let now = setup.clock().timestamp_ms();
-//     let _batch = staking_batch::admin_new(
-//         &cap,
-//         setup.config_mut(),
-//         coin,
-//         now, // start_ms
-//         now - 1, // unlock_ms
-//         setup.ts().ctx(),
-//     );
+    // try to set unlock_ms before start_ms
+    let now = setup.clock().timestamp_ms();
+    let _batch = setup.batch__admin_new(1_000_000, now, now - 1);
 
-//     abort 123
-// }
+    abort 123
+}

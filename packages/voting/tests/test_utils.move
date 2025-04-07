@@ -22,6 +22,7 @@ use suins_voting::{
     governance::{Self, NSGovernance},
     proposal_v2::{Self, ProposalV2},
     staking_admin::{Self},
+    staking_admin::{StakingAdminCap},
     staking_batch::{Self, StakingBatch},
     staking_config::{Self, StakingConfig},
     staking_stats::{Self, StakingStats},
@@ -107,6 +108,36 @@ public fun assert_power(
     expected_power: u64,
 ) {
     assert_eq(expected_power, batch.power(&setup.config, &setup.clock));
+}
+
+public fun batch__admin_new(
+    setup: &mut TestSetup,
+    balance: u64,
+    start_ms: u64,
+    end_ms: u64,
+): StakingBatch {
+    let cap = setup.ts().take_from_sender<StakingAdminCap>();
+    let coin = setup.mint_ns(balance);
+    let batch = staking_batch::admin_new(
+        &cap,
+        &mut setup.stats,
+        coin,
+        start_ms,
+        end_ms,
+        setup.ts.ctx(),
+    );
+    setup.ts.return_to_sender(cap);
+    batch
+}
+
+public fun batch__admin_transfer(
+    setup: &mut TestSetup,
+    batch: StakingBatch,
+    recipient: address,
+) {
+    let cap = setup.ts().take_from_sender<StakingAdminCap>();
+    staking_batch::admin_transfer(&cap, batch, recipient);
+    setup.ts.return_to_sender(cap);
 }
 
 // === proposal_v2 helpers ===
