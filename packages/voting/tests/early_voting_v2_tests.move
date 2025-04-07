@@ -3,7 +3,8 @@ module suins_voting::early_voting_v2_tests;
 // === imports ===
 
 use sui::{
-    coin::{Coin},
+    clock::{Self},
+    coin::{Self, Coin},
     test_scenario::{Self as ts},
     test_utils::{assert_eq, destroy},
 };
@@ -13,8 +14,8 @@ use suins_token::{
 use suins_voting::{
     constants::{min_voting_period_ms},
     early_voting::{Self},
-    governance::{NSGovernanceCap},
-    proposal_v2::{ProposalV2},
+    governance::{Self, NSGovernance, NSGovernanceCap},
+    proposal_v2::{Self, ProposalV2},
     test_utils::{setup, admin_addr},
     voting_option::{Self},
 };
@@ -27,6 +28,91 @@ const USER3: address = @0x3;
 const USER4: address = @0x4;
 
 const DECIMALS: u64 = 1_000_000;
+
+// === tests ===
+
+#[test]
+fun test_add_proposal_v2_ok() {
+    let mut ts = ts::begin(admin_addr!());
+    let mut clock = clock::create_for_testing(ts.ctx());
+    governance::init_for_testing(ts.ctx());
+
+    ts.next_tx(admin_addr!());
+    let cap = ts.take_from_sender<NSGovernanceCap>();
+    let mut gov = ts.take_shared<NSGovernance>();
+
+    // create proposal1
+
+    let start_time_1 = clock.timestamp_ms();
+    let title = b"The Title".to_string();
+    let description = b"The Description".to_string();
+    let end_time_1 = start_time_1 + min_voting_period_ms!();
+    let options = voting_option::default_options();
+    let reward_value = 1_000_000;
+    let reward = coin::mint_for_testing<NS>(reward_value, ts.ctx());
+
+    let proposal1 = proposal_v2::new(
+        title,
+        description,
+        end_time_1,
+        options,
+        reward,
+        &clock,
+        ts.ctx(),
+    );
+
+    // validate proposal1 initial state
+
+    assert_eq(proposal1.serial_no(), 0);
+    assert_eq(proposal1.threshold(), 0);
+    assert_eq(*proposal1.title(), title);
+    assert_eq(*proposal1.description(), description);
+    assert_eq(proposal1.winning_option().is_none(), true);
+    assert_eq(proposal1.vote_leaderboards().size(), voting_option::default_options().size());
+    assert_eq(proposal1.start_time_ms(), start_time_1);
+    assert_eq(proposal1.end_time_ms(), end_time_1);
+    assert_eq(proposal1.votes().size(), voting_option::default_options().size());
+    assert_eq(proposal1.voters().length(), 0);
+    assert_eq(proposal1.voter_powers().length(), 0);
+    assert_eq(proposal1.total_power(), 0);
+    assert_eq(proposal1.reward().value(), reward_value);
+    assert_eq(proposal1.total_reward(), reward_value);
+
+    // validate proposal1 state after adding to early voting
+    early_voting::add_proposal_v2(&cap, &mut gov, proposal1);
+    ts.next_tx(admin_addr!());
+    let proposal1 = ts.take_shared<ProposalV2>();
+    assert_eq(proposal1.serial_no(), 1);
+    assert_eq(proposal1.threshold(), gov.quorum_threshold());
+    ts::return_shared(proposal1);
+
+    // create proposal2
+
+    let start_time_2 = end_time_1 + 1;
+    clock.set_for_testing(start_time_2);
+    let proposal2 = proposal_v2::new(
+        title,
+        description,
+        start_time_2 + min_voting_period_ms!(),
+        options,
+        coin::mint_for_testing<NS>(reward_value, ts.ctx()),
+        &clock,
+        ts.ctx(),
+    );
+
+    // validate proposal2 state after adding to early voting
+    early_voting::add_proposal_v2(&cap, &mut gov, proposal2);
+    ts.next_tx(admin_addr!());
+    let proposal2 = ts.take_shared<ProposalV2>();
+    assert_eq(proposal2.serial_no(), 2);
+    assert_eq(proposal2.threshold(), gov.quorum_threshold());
+    ts::return_shared(proposal2);
+
+    destroy(ts);
+    destroy(cap);
+    destroy(gov);
+    destroy(clock);
+}
 
 // === original tests from v1 (adapted for proposal_v2) ===
 
