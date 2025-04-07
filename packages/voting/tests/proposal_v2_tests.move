@@ -222,6 +222,38 @@ fun test_proposal_with_no_rewards_ok() {
     setup.destroy();
 }
 
+#[test]
+fun test_distribute_rewards_and_recover_dust_ok() {
+    let mut setup = setup();
+    let mut proposal = setup.proposal__new(
+        voting_option::default_options(),
+        1_000_000, // 1 NS reward
+        min_voting_period_ms!(),
+    );
+    // user_1 votes with 33.33% of total power
+    setup.next_tx(USER_1);
+    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", 1_000_000);
+    // user_2 votes with 66.66% of total power
+    setup.next_tx(USER_2);
+    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", 2_000_000);
+    // user_3 finalizes proposal and distributes rewards
+    setup.next_tx(USER_3);
+    setup.add_time(proposal.end_time_ms());
+    setup.proposal__distribute_rewards(&mut proposal);
+    // user_1 receives 0.333333 NS
+    setup.next_tx(USER_1);
+    setup.assert_owns_ns(333_333);
+    // user_2 receives 0.666666 NS
+    setup.next_tx(USER_2);
+    setup.assert_owns_ns(666_666);
+    // user_3 receives 0.000001 NS
+    setup.next_tx(USER_3);
+    setup.assert_owns_ns(1);
+
+    destroy(proposal);
+    setup.destroy();
+}
+
 // === tests: errors ===
 
 #[test, expected_failure(abort_code = proposal_v2::EVoterNotFound)]
