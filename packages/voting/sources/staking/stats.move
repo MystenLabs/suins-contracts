@@ -78,6 +78,15 @@ public(package) fun add_user_reward(
 // === accessors ===
 
 public fun total_balance(stats: &StakingStats): u64 { stats.total_balance }
+public fun user_rewards(stats: &StakingStats): &Table<address, u64> { &stats.user_rewards }
+
+public fun user_reward(stats: &StakingStats, user: address): u64 {
+    return if (stats.user_rewards.contains(user)) {
+        *stats.user_rewards.borrow(user)
+    } else {
+        0
+    }
+}
 
 // === method aliases ===
 

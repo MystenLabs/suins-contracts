@@ -293,8 +293,59 @@ fun test_distribute_rewards_ok_many_voters() {
 
     // check stats
     assert_eq(setup.stats().total_balance(), total_power);
+    assert_eq(setup.stats().user_rewards().length(), total_voters);
 
     destroy(proposal);
+    setup.destroy();
+}
+
+#[test]
+fun test_stats_ok() {
+    let mut setup = setup();
+
+    let mut prop1 = setup.proposal__new_default();
+
+    // user_1 votes on prop1 with 9 NS
+    setup.next_tx(USER_1);
+    setup.proposal__vote_with_new_batch_and_keep(&mut prop1, b"Yes", 1_000_000);
+    setup.proposal__vote_with_new_batch_and_keep(&mut prop1, b"No", 8_000_000); // bro changed his mind
+    let user_1_reward_prop1 = reward_amount!() * 9 / 10;
+
+    // user_2 votes on prop1 with 1 NS
+    setup.next_tx(USER_2);
+    setup.proposal__vote_with_new_batch_and_keep(&mut prop1, b"Yes", 1_000_000);
+    let user_2_reward_prop1 = reward_amount!() / 10;
+
+    // check stats before finalizing prop1
+    assert_eq(setup.stats().total_balance(), 10_000_000);
+    assert_eq(setup.stats().user_rewards().length(), 0);
+    assert_eq(setup.stats().user_reward(USER_1), 0);
+    assert_eq(setup.stats().user_reward(USER_2), 0);
+
+    // finalize prop1 and check stats
+    setup.set_time(prop1.end_time_ms());
+    setup.proposal__distribute_rewards(&mut prop1);
+    assert_eq(setup.stats().total_balance(), 10_000_000); // no change
+    assert_eq(setup.stats().user_rewards().length(), 2);
+    assert_eq(setup.stats().user_reward(USER_1), user_1_reward_prop1);
+    assert_eq(setup.stats().user_reward(USER_2), user_2_reward_prop1);
+
+    // user_1 stakes another 5 NS and votes on a second proposal with it
+    let mut prop2 = setup.proposal__new_default();
+    setup.next_tx(USER_1);
+    setup.proposal__vote_with_new_batch_and_keep(&mut prop2, b"Yes", 5_000_000);
+
+    // finalize prop2 and check stats
+    setup.add_time(prop2.end_time_ms());
+    let reward_coin = setup.proposal__claim_reward(&mut prop2);
+    assert_eq(reward_coin.value(), reward_amount!()); // user_1 is the only voter, so gets all rewards
+    assert_eq(setup.stats().total_balance(), 15_000_000); // increased by 5 NS
+    assert_eq(setup.stats().user_rewards().length(), 2); // no change
+    assert_eq(setup.stats().user_reward(USER_1), user_1_reward_prop1 + reward_amount!());
+
+    destroy(prop1);
+    destroy(prop2);
+    destroy(reward_coin);
     setup.destroy();
 }
 
