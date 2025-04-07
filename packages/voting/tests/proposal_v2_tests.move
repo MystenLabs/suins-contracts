@@ -4,7 +4,7 @@ module suins_voting::proposal_v2_tests;
 
 use sui::{
     clock::{Self},
-    coin::{Self},
+    coin::{Self, Coin},
     test_utils::{assert_eq, destroy},
     vec_set::{Self},
 };
@@ -178,6 +178,45 @@ fun test_user_can_vote_same_option_multiple_times_ok() {
         *user_powers.borrow(USER_1).get(&voting_option::new(b"Yes".to_string())),
         expected_power
     );
+
+    destroy(proposal);
+    setup.destroy();
+}
+
+#[test]
+fun test_proposal_with_no_rewards_ok() {
+    let mut setup = setup();
+
+    let mut proposal = setup.proposal__new(
+        voting_option::default_options(),
+        0, // no rewards
+        min_voting_period_ms!(),
+    );
+
+    // user_1 votes
+    setup.next_tx(USER_1);
+    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", 1_000_000);
+
+    // user_2 votes
+    setup.next_tx(USER_2);
+    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", 1_000_000);
+
+    // finalize proposal
+    setup.add_time(proposal.end_time_ms());
+    proposal.finalize(setup.clock());
+
+    // user_1 claims reward coin with 0 value
+    setup.next_tx(USER_1);
+    let reward_coin = setup.proposal__claim_reward(&mut proposal);
+    assert_eq(reward_coin.value(), 0);
+    reward_coin.destroy_zero();
+
+    // distribute all remaining rewards
+    setup.proposal__distribute_rewards(&mut proposal);
+
+    // user_2 does not receive any Coin<NS>
+    setup.next_tx(USER_2);
+    assert_eq(setup.ts().has_most_recent_for_sender<Coin<NS>>(), false);
 
     destroy(proposal);
     setup.destroy();

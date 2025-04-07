@@ -236,7 +236,11 @@ public fun distribute_rewards(
     while (transfers < MAX_RETURNS_PER_TX && !proposal.voter_powers.is_empty()) {
         let voter_addr = *proposal.voter_powers.front().borrow();
         let reward_coin = proposal.get_user_reward(stats, voter_addr).into_coin(ctx);
-        transfer::public_transfer(reward_coin, voter_addr);
+        if (reward_coin.value() == 0) {
+            reward_coin.destroy_zero();
+        } else {
+            transfer::public_transfer(reward_coin, voter_addr);
+        };
         transfers = transfers + 1;
     };
 
