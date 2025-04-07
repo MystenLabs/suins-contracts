@@ -40,29 +40,34 @@ fun test_power_ok() {
 
     // == regular staking ==
 
-    // basic staking with no lock
+    // test month-by-month progression
     let batch = setup.batch__new(balance, 0);
     setup.assert_power(&batch, balance); // 1.0x at start
 
-    // test month-by-month progression
     let mut expected_power = balance;
     let boost_bps = setup.config().monthly_boost_bps();
     let mut i = 0;
     while (i < 11) {
         setup.add_time(month_ms!()); // (i+1) months after start
         expected_power = expected_power * boost_bps / 10000;
-        setup.assert_power(&batch, expected_power); // increases by 10% each month
+        setup.assert_power(&batch, expected_power);
         i = i + 1;
     };
+    destroy(batch);
 
-    // test cap at month 12 and beyond
-    setup.add_time(month_ms!()); // 12 months after start
+    // test around month 12
+    let batch = setup.batch__new(balance, 0);
+    setup.add_time(10 * month_ms!()); // 10 months after start
+    setup.assert_power(&batch, 2_593_740); // 2.59x
+    setup.add_time(1 * month_ms!()); // 11 months after start (12th month)
+    setup.assert_power(&batch, 2_853_114); // 2.85x (max reached)
+    setup.add_time(1 * month_ms!()); // 12 months after start
     setup.assert_power(&batch, 2_853_114); // 2.85x (capped)
-    setup.add_time(3 * month_ms!()); // 15 months after start
+    setup.add_time(12 * month_ms!()); // 1 year later
     setup.assert_power(&batch, 2_853_114); // 2.85x (still capped)
     destroy(batch);
 
-    // test partial month handling
+    // test month boundary
     let batch = setup.batch__new(balance, 0);
     setup.add_time(month_ms!() - 1); // just before 1 month
     setup.assert_power(&batch, balance); // 1.0x (no change)
@@ -79,7 +84,7 @@ fun test_power_ok() {
 
     // test 11-month lock (maximum regular multiplier)
     let batch = setup.batch__new(balance, 11);
-    setup.assert_power(&batch, 2_853_114); // 2.85x (1.1^11)
+    setup.assert_power(&batch, 2_853_114);
     destroy(batch);
 
     // test 12-month lock (special bonus case)
@@ -91,43 +96,48 @@ fun test_power_ok() {
 
     // test 3-month lock transitioning to staked
     let batch = setup.batch__new(balance, 3);
-    setup.assert_power(&batch, 1_331_000); // 1.331x (1.1^3 from lock)
+    setup.assert_power(&batch, 1_331_000);
 
     // test boundary at unlock time
     setup.add_time(3 * month_ms!() - 1); // just before 3-month lock ends
-    setup.assert_power(&batch, 1_331_000); // 1.331x (no change)
+    setup.assert_power(&batch, 1_331_000); // (no change)
     setup.add_time(1); // exactly when 3-month lock ends
-    setup.assert_power(&batch, 1_331_000); // 1.331x (no change at unlock)
+    setup.assert_power(&batch, 1_331_000); // (no change)
 
     // test additional staking time after unlock
-    setup.add_time(1 * month_ms!()); // 1 month after unlock
-    setup.assert_power(&batch, 1_464_100); // 1.464x (1.331x * 1.1)
-    setup.add_time(2 * month_ms!()); // 3 months after unlock
-    setup.assert_power(&batch, 1_771_561); // 1.771x (1.464x * 1.1^2)
+    setup.add_time(1 * month_ms!()); // 1 month later
+    setup.assert_power(&batch, 1_464_100);
+    setup.add_time(2 * month_ms!()); // 2 months later
+    setup.assert_power(&batch, 1_771_561);
 
     // test cap after many months of staking
-    setup.add_time(20 * month_ms!()); // 23 months after unlock
+    setup.add_time(12 * month_ms!()); // 1 year later
     setup.assert_power(&batch, 2_853_114); // 2.85x (capped)
     destroy(batch);
 
     // test partial months after lock period
     let batch = setup.batch__new(balance, 2);
-    setup.assert_power(&batch, 1_210_000); // 1.21x (1.1^2 from lock)
+    setup.assert_power(&batch, 1_210_000);
     setup.add_time(2 * month_ms!()); // exactly when lock ends
     setup.add_time(month_ms!() / 2); // half a month after unlock
-    setup.assert_power(&batch, 1_210_000); // 1.21x (no change)
+    setup.assert_power(&batch, 1_210_000); // (no change)
     setup.add_time(month_ms!() / 2); // 1 month after unlock
-    setup.assert_power(&batch, 1_331_000); // 1.331x (1.21x * 1.1)
+    setup.assert_power(&batch, 1_331_000); // 1.331x
     destroy(batch);
 
     // == edge cases ===
 
-    // test 6-month lock + 6 months staking (reaching cap)
+    // test 6-month lock + 5 months staking (reaching cap)
     let batch = setup.batch__new(balance, 6);
-    setup.assert_power(&batch, 1_771_561); // 1.771x (1.1^6 from lock)
+    setup.assert_power(&batch, 1_771_561);
     setup.add_time(6 * month_ms!()); // exactly when lock ends
-    setup.add_time(5 * month_ms!()); // 5 months after unlock
-    setup.assert_power(&batch, 2_853_114); // 2.85x (1.771x * 1.1^5, capped)
+    setup.assert_power(&batch, 1_771_561); // (no change)
+    setup.add_time(1 * month_ms!()); // 1 months after unlock
+    setup.assert_power(&batch, 1_948_717);
+    setup.add_time(4 * month_ms!()); // 5 months after unlock
+    setup.assert_power(&batch, 2_853_114); // max reached
+    setup.add_time(12 * month_ms!()); // 1 year later
+    setup.assert_power(&batch, 2_853_114); // still capped
     destroy(batch);
 
     // test 12-month lock with additional staking time
