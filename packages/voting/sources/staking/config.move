@@ -109,7 +109,6 @@ public fun set_all(
 
 // === accessors ===
 
-public fun id(config: &StakingConfig): ID { config.id.to_inner() }
 public fun cooldown_ms(config: &StakingConfig): u64 { config.cooldown_ms }
 public fun max_lock_months(config: &StakingConfig): u64 { config.max_lock_months }
 public fun max_boost_bps(config: &StakingConfig): u64 { config.max_boost_bps }

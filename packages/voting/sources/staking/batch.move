@@ -306,7 +306,6 @@ public fun is_voting(
 
 // === accessors ===
 
-public fun id(batch: &StakingBatch): ID { batch.id.to_inner() }
 public fun balance(batch: &StakingBatch): u64 { batch.balance.value() }
 public fun start_ms(batch: &StakingBatch): u64 { batch.start_ms }
 public fun unlock_ms(batch: &StakingBatch): u64 { batch.unlock_ms }

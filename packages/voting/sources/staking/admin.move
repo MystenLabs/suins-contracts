@@ -42,8 +42,6 @@ fun init(otw: STAKING_ADMIN, ctx: &mut TxContext)
 
 // === accessors ===
 
-public fun id(cap: &StakingAdminCap): ID { cap.id.to_inner() }
-
 // === method aliases ===
 
 // === events ===

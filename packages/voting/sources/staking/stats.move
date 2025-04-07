@@ -77,7 +77,6 @@ public(package) fun add_user_reward(
 
 // === accessors ===
 
-public fun id(stats: &StakingStats): ID { stats.id.to_inner() }
 public fun total_balance(stats: &StakingStats): u64 { stats.total_balance }
 
 // === method aliases ===
