@@ -1,5 +1,3 @@
-// TODO: add Stats (total staked/locked)
-// TODO: add events
 module suins_voting::staking_batch;
 
 // === imports ===
@@ -228,12 +226,6 @@ public(package) fun set_voting_until_ms(
     assert!(voting_until_ms > batch.voting_until_ms, EVotingUntilMsNotExtended);
 
     batch.voting_until_ms = voting_until_ms;
-
-    emit(EventSetVoting {
-        batch_id: batch.id.to_address(),
-        balance: batch.balance.value(),
-        voting_until_ms,
-    });
 }
 
 // === private functions ===
@@ -349,12 +341,6 @@ public struct EventRequestUnstake has copy, drop {
 public struct EventUnstake has copy, drop {
     batch_id: address,
     balance: u64,
-}
-
-public struct EventSetVoting has copy, drop {
-    batch_id: address,
-    balance: u64,
-    voting_until_ms: u64,
 }
 
 // === test functions ===
