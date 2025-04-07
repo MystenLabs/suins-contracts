@@ -235,6 +235,19 @@ fun test_claim_reward_e_voter_not_found() {
     abort 123
 }
 
+#[test, expected_failure(abort_code = proposal_v2::EBatchIsVoting)]
+fun test_claim_reward_e_batch_is_voting() {
+    let mut setup = setup();
+    let mut proposal = setup.proposal__new_default();
+    // user_1 votes
+    setup.next_tx(USER_1);
+    let mut batch = setup.batch__new(5_000_000, 0);
+    setup.proposal__vote(&mut proposal, b"Yes".to_string(), &mut batch);
+    // user_1 tries to vote again with the same batch
+    setup.proposal__vote(&mut proposal, b"Yes".to_string(), &mut batch);
+    abort 123
+}
+
 #[test, expected_failure(abort_code = proposal_v2::EVoterNotFound)]
 fun test_claim_reward_e_voter_not_found_double_claim() {
     let mut setup = setup();
