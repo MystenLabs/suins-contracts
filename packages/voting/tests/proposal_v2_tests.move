@@ -297,19 +297,8 @@ fun test_distribute_rewards_ok_many_voters() {
 
 // === tests: errors ===
 
-#[test, expected_failure(abort_code = proposal_v2::EVoterNotFound)]
-fun test_claim_reward_e_voter_not_found() {
-    let mut setup = setup();
-    let mut proposal = setup.proposal__new_default();
-    // user_1 tries to claim reward, but is not a voter
-    setup.set_time(proposal.end_time_ms());
-    setup.next_tx(USER_1);
-    let _reward_coin = setup.proposal__claim_reward(&mut proposal);
-    abort 123
-}
-
 #[test, expected_failure(abort_code = proposal_v2::EBatchIsVoting)]
-fun test_claim_reward_e_batch_is_voting() {
+fun test_vote_e_batch_is_voting() {
     let mut setup = setup();
     let mut proposal = setup.proposal__new_default();
     // user_1 votes
@@ -318,6 +307,48 @@ fun test_claim_reward_e_batch_is_voting() {
     setup.proposal__vote(&mut proposal, b"Yes".to_string(), &mut batch);
     // user_1 tries to vote again with the same batch
     setup.proposal__vote(&mut proposal, b"Yes".to_string(), &mut batch);
+    abort 123
+}
+
+#[test, expected_failure(abort_code = proposal_v2::EBatchInCooldown)]
+fun test_vote_e_batch_in_cooldown_requested() {
+    let mut setup = setup();
+    let mut proposal = setup.proposal__new_default();
+    let mut batch = setup.batch__new(5_000_000, 0);
+    // try to vote with a batch that's requested cooldown
+    batch.request_unstake(setup.config(), setup.clock());
+    setup.proposal__vote(&mut proposal, b"Yes".to_string(), &mut batch);
+    abort 123
+}
+
+#[test, expected_failure(abort_code = proposal_v2::EBatchInCooldown)]
+fun test_vote_e_batch_in_cooldown_completed() {
+    let mut setup = setup();
+    let mut proposal = setup.proposal__new(
+        voting_option::default_options(),
+        1_000_000, // 1 NS
+        max_voting_period_ms!(),
+    );
+    let mut batch = setup.batch__new(5_000_000, 0);
+    // request batch cooldown
+    batch.request_unstake(setup.config(), setup.clock());
+    assert_eq(batch.is_cooldown_over(setup.clock()), false);
+    // wait for cooldown to end
+    setup.set_time(batch.cooldown_end_ms());
+    assert_eq(batch.is_cooldown_over(setup.clock()), true);
+    // try to vote with a batch that's completed cooldown
+    setup.proposal__vote(&mut proposal, b"Yes".to_string(), &mut batch);
+    abort 123
+}
+
+#[test, expected_failure(abort_code = proposal_v2::EVoterNotFound)]
+fun test_claim_reward_e_voter_not_found() {
+    let mut setup = setup();
+    let mut proposal = setup.proposal__new_default();
+    // user_1 tries to claim reward, but is not a voter
+    setup.set_time(proposal.end_time_ms());
+    setup.next_tx(USER_1);
+    let _reward_coin = setup.proposal__claim_reward(&mut proposal);
     abort 123
 }
 
