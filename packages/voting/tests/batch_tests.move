@@ -336,6 +336,30 @@ fun test_zero_cooldown() {
     setup.destroy();
 }
 
+#[test]
+fun test_stats_ok() {
+    let mut setup = setup();
+
+    // stake 5 NS + lock 10 NS
+    setup.next_tx(USER_1);
+    let mut batch1 = setup.batch__new(5_000_000, 0);
+    let batch2 = setup.batch__new(10_000_000, 3);
+
+    // check TVL
+    assert_eq(setup.stats().total_balance(), 15_000_000);
+
+    // unstake batch1
+    batch1.request_unstake(setup.config(), setup.clock()); // request unstake
+    setup.set_time(batch1.cooldown_end_ms() + month_ms!()); // cooldown ended a while ago
+    assert_eq(setup.stats().total_balance(), 15_000_000); // but user didn't unstake yet
+    let unstaked_balance = setup.batch__unstake(batch1); // actually unstake
+    assert_eq(setup.stats().total_balance(), 10_000_000); // TVL reduced
+
+    destroy(batch2);
+    destroy(unstaked_balance);
+    setup.destroy();
+}
+
 // === tests: errors ===
 
 #[test, expected_failure(abort_code = staking_batch::EBalanceTooLow)]

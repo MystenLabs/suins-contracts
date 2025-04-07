@@ -291,6 +291,9 @@ fun test_distribute_rewards_ok_many_voters() {
     assert_eq(proposal.voter_powers().length(), 0); // all voters received their rewards
     assert_eq(proposal.reward().value(), 0); // reward fully distributed
 
+    // check stats
+    assert_eq(setup.stats().total_balance(), total_power);
+
     destroy(proposal);
     setup.destroy();
 }

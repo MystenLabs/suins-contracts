@@ -52,6 +52,7 @@ public fun clock(setup: &TestSetup): &Clock { &setup.clock }
 public fun gov_mut(setup: &mut TestSetup): &mut NSGovernance { &mut setup.gov }
 public fun config(setup: &TestSetup): &StakingConfig { &setup.config }
 public fun config_mut(setup: &mut TestSetup): &mut StakingConfig { &mut setup.config }
+public fun stats(setup: &TestSetup): &StakingStats { &setup.stats }
 
 public fun setup(): TestSetup {
     let mut ts = ts::begin(admin_addr!());
