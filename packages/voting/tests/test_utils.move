@@ -10,6 +10,7 @@ use sui::{
     balance::{Balance},
     clock::{Self, Clock},
     coin::{Self, Coin},
+    random::{Self},
     test_scenario::{Self as ts, Scenario},
     test_utils::{Self, assert_eq},
     vec_set::{VecSet},
@@ -270,4 +271,10 @@ public fun next_tx(
     sender: address,
 ) {
     setup.ts.next_tx(sender);
+}
+
+public fun random_addr(): address {
+    let mut gen = random::new_generator_for_testing();
+    let random_bytes = gen.generate_bytes(32);
+    sui::address::from_bytes(random_bytes)
 }

@@ -44,7 +44,7 @@ const EVoterNotFound: u64 = 109;
 
 // Limit is 1024, but setting it lower to reduce the risk of this becoming unusable.
 // While the limit is 1024, someone can just batch 8 operations.
-const MAX_RETURNS_PER_TX: u64 = 125;
+public macro fun max_returns_per_tx(): u64 { 125 }
 
 // === structs ===
 
@@ -233,7 +233,7 @@ public fun distribute_rewards(
     proposal.finalize_internal(clock);
 
     let mut transfers: u64 = 0;
-    while (transfers < MAX_RETURNS_PER_TX && !proposal.voter_powers.is_empty()) {
+    while (transfers < max_returns_per_tx!() && !proposal.voter_powers.is_empty()) {
         let voter_addr = *proposal.voter_powers.front().borrow();
         let reward_coin = proposal.get_user_reward(stats, voter_addr).into_coin(ctx);
         if (reward_coin.value() == 0) {

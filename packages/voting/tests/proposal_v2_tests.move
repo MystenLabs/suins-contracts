@@ -13,10 +13,10 @@ use suins_token::{
 };
 use suins_voting::{
     constants::{min_voting_period_ms, max_voting_period_ms},
-    proposal_v2::{Self},
+    proposal_v2::{Self, max_returns_per_tx},
     voting_option::{Self, threshold_not_reached, tie_rejected},
     staking_constants::{day_ms},
-    test_utils::{setup, assert_owns_ns, proposal__new_with_end_time, reward_amount},
+    test_utils::{setup, random_addr, assert_owns_ns, proposal__new_with_end_time, reward_amount},
 };
 
 // === constants ===
@@ -223,7 +223,7 @@ fun test_proposal_with_no_rewards_ok() {
 }
 
 #[test]
-fun test_distribute_rewards_and_recover_dust_ok() {
+fun test_distribute_rewards_ok_and_recover_dust() {
     let mut setup = setup();
     let mut proposal = setup.proposal__new(
         voting_option::default_options(),
@@ -249,6 +249,47 @@ fun test_distribute_rewards_and_recover_dust_ok() {
     // user_3 receives 0.000001 NS
     setup.next_tx(USER_3);
     setup.assert_owns_ns(1);
+
+    destroy(proposal);
+    setup.destroy();
+}
+
+#[test]
+fun test_distribute_rewards_ok_many_voters() {
+    let mut setup = setup();
+    let mut proposal = setup.proposal__new_default();
+
+    let total_voters = max_returns_per_tx!() + 7; // 125 + 7 = 132
+    let total_power = 5_000_000 * total_voters;
+
+    total_voters.do!(|_| {
+        setup.next_tx(random_addr());
+        setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", 5_000_000);
+    });
+    setup.add_time(proposal.end_time_ms());
+
+    // check state before distributing rewards
+    assert_eq(proposal.total_power(), total_power);
+    assert_eq(proposal.total_reward(), reward_amount!());
+    assert_eq(proposal.voters().length(), total_voters);
+    assert_eq(proposal.voter_powers().length(), total_voters);
+    assert_eq(proposal.reward().value(), reward_amount!()); // full reward
+
+    // first round of distributing rewards
+    setup.proposal__distribute_rewards(&mut proposal);
+    assert_eq(proposal.total_power(), total_power); // unchanged
+    assert_eq(proposal.total_reward(), reward_amount!()); // unchanged
+    assert_eq(proposal.voters().length(), total_voters); // unchanged
+    assert_eq(proposal.voter_powers().length(), 7); // 132 - 125 = 7 voter have yet to receive rewards
+    assert!(proposal.reward().value() > 0 && proposal.reward().value() < reward_amount!()); // partially distributed
+
+    // second and final round of distributing rewards
+    setup.proposal__distribute_rewards(&mut proposal);
+    assert_eq(proposal.total_power(), total_power); // unchanged
+    assert_eq(proposal.total_reward(), reward_amount!()); // unchanged
+    assert_eq(proposal.voters().length(), total_voters); // unchanged
+    assert_eq(proposal.voter_powers().length(), 0); // all voters received their rewards
+    assert_eq(proposal.reward().value(), 0); // reward fully distributed
 
     destroy(proposal);
     setup.destroy();
