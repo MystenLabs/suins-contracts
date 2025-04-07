@@ -187,8 +187,8 @@ public fun proposal__new_default(
 public fun proposal__vote(
     setup: &mut TestSetup,
     proposal: &mut ProposalV2,
-    opt: String,
     batch: &mut StakingBatch,
+    opt: String,
 ) {
     proposal.vote(
         opt,

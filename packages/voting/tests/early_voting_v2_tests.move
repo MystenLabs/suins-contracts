@@ -138,8 +138,8 @@ fun test_e2e() {
         let mut batch = setup.batch__new(50_000_000 * DECIMALS, 0);
         setup.proposal__vote(
             &mut proposal,
-            b"Abstain".to_string(),
             &mut batch,
+            b"Abstain".to_string(),
         );
         ts::return_shared(proposal);
         destroy(batch);
@@ -155,13 +155,13 @@ fun test_e2e() {
         let mut batch2 = setup.batch__new(50_000_000 * DECIMALS, 0);
         setup.proposal__vote(
             &mut proposal,
-            b"Yes".to_string(),
             &mut batch1,
+            b"Yes".to_string(),
         );
         setup.proposal__vote(
             &mut proposal,
-            b"No".to_string(),
             &mut batch2,
+            b"No".to_string(),
         );
         ts::return_shared(proposal);
         destroy(batch1);
@@ -178,13 +178,13 @@ fun test_e2e() {
         let mut batch2 = setup.batch__new(25_000_000 * DECIMALS, 0);
         setup.proposal__vote(
             &mut proposal,
-            b"Yes".to_string(),
             &mut batch1,
+            b"Yes".to_string(),
         );
         setup.proposal__vote(
             &mut proposal,
-            b"No".to_string(),
             &mut batch2,
+            b"No".to_string(),
         );
         ts::return_shared(proposal);
         destroy(batch1);
@@ -257,8 +257,8 @@ fun test_e2e_no_quorum() {
         let mut batch = setup.batch__new(300_000 * DECIMALS, 0);
         setup.proposal__vote(
             &mut proposal,
-            b"Abstain".to_string(),
             &mut batch,
+            b"Abstain".to_string(),
         );
         ts::return_shared(proposal);
         destroy(batch);
@@ -274,13 +274,13 @@ fun test_e2e_no_quorum() {
         let mut batch2 = setup.batch__new(300_000 * DECIMALS, 0);
         setup.proposal__vote(
             &mut proposal,
-            b"Yes".to_string(),
             &mut batch1,
+            b"Yes".to_string(),
         );
         setup.proposal__vote(
             &mut proposal,
-            b"No".to_string(),
             &mut batch2,
+            b"No".to_string(),
         );
         ts::return_shared(proposal);
         destroy(batch1);
@@ -333,8 +333,8 @@ fun test_e2e_tie() {
         let mut batch = setup.batch__new(4_000_000 * DECIMALS, 0);
         setup.proposal__vote(
             &mut proposal,
-            b"Abstain".to_string(),
             &mut batch,
+            b"Abstain".to_string(),
         );
         ts::return_shared(proposal);
         destroy(batch);
@@ -350,13 +350,13 @@ fun test_e2e_tie() {
         let mut batch2 = setup.batch__new(1_000_000 * DECIMALS, 0);
         setup.proposal__vote(
             &mut proposal,
-            b"Yes".to_string(),
             &mut batch1,
+            b"Yes".to_string(),
         );
         setup.proposal__vote(
             &mut proposal,
-            b"No".to_string(),
             &mut batch2,
+            b"No".to_string(),
         );
         ts::return_shared(proposal);
         destroy(batch1);
@@ -409,8 +409,8 @@ fun test_e2e_abstain_bypassed() {
         let mut batch = setup.batch__new(5_000_000 * DECIMALS, 0);
         setup.proposal__vote(
             &mut proposal,
-            b"Abstain".to_string(),
             &mut batch,
+            b"Abstain".to_string(),
         );
         ts::return_shared(proposal);
         destroy(batch);
@@ -426,13 +426,13 @@ fun test_e2e_abstain_bypassed() {
         let mut batch2 = setup.batch__new(2_000_000 * DECIMALS, 0);
         setup.proposal__vote(
             &mut proposal,
-            b"Yes".to_string(),
             &mut batch1,
+            b"Yes".to_string(),
         );
         setup.proposal__vote(
             &mut proposal,
-            b"No".to_string(),
             &mut batch2,
+            b"No".to_string(),
         );
         ts::return_shared(proposal);
         destroy(batch1);

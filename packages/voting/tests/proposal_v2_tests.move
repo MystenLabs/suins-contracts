@@ -50,13 +50,13 @@ fun test_end_to_end_ok() {
     let batch2_power = batch2.power(setup.config(), setup.clock());
     setup.proposal__vote(
         &mut proposal,
-        b"Yes".to_string(),
         &mut batch1,
+        b"Yes".to_string(),
     );
     setup.proposal__vote(
         &mut proposal,
-        b"Yes".to_string(),
         &mut batch2,
+        b"Yes".to_string(),
     );
     setup.batch__keep(batch1);
     setup.batch__keep(batch2);
@@ -67,8 +67,8 @@ fun test_end_to_end_ok() {
     let batch3_power = batch3.power(setup.config(), setup.clock());
     setup.proposal__vote(
         &mut proposal,
-        b"Option A".to_string(),
         &mut batch3,
+        b"Option A".to_string(),
     );
     setup.batch__keep(batch3);
     // verify voting results
@@ -304,9 +304,9 @@ fun test_vote_e_batch_is_voting() {
     // user_1 votes
     setup.next_tx(USER_1);
     let mut batch = setup.batch__new(5_000_000, 0);
-    setup.proposal__vote(&mut proposal, b"Yes".to_string(), &mut batch);
+    setup.proposal__vote(&mut proposal, &mut batch, b"Yes".to_string());
     // user_1 tries to vote again with the same batch
-    setup.proposal__vote(&mut proposal, b"Yes".to_string(), &mut batch);
+    setup.proposal__vote(&mut proposal, &mut batch, b"Yes".to_string());
     abort 123
 }
 
@@ -317,7 +317,7 @@ fun test_vote_e_batch_in_cooldown_requested() {
     let mut batch = setup.batch__new(5_000_000, 0);
     // try to vote with a batch that's requested cooldown
     batch.request_unstake(setup.config(), setup.clock());
-    setup.proposal__vote(&mut proposal, b"Yes".to_string(), &mut batch);
+    setup.proposal__vote(&mut proposal, &mut batch, b"Yes".to_string());
     abort 123
 }
 
@@ -337,7 +337,7 @@ fun test_vote_e_batch_in_cooldown_completed() {
     setup.set_time(batch.cooldown_end_ms());
     assert_eq(batch.is_cooldown_over(setup.clock()), true);
     // try to vote with a batch that's completed cooldown
-    setup.proposal__vote(&mut proposal, b"Yes".to_string(), &mut batch);
+    setup.proposal__vote(&mut proposal, &mut batch, b"Yes".to_string());
     abort 123
 }
 
@@ -462,8 +462,8 @@ fun try_to_vote_on_expired_proposal() {
 
     setup.proposal__vote(
         &mut proposal,
-        b"Yes".to_string(),
         &mut batch,
+        b"Yes".to_string(),
     );
 
     abort 123
@@ -479,8 +479,8 @@ fun vote_non_existing_option() {
 
     setup.proposal__vote(
         &mut proposal,
-        b"Wut".to_string(),
         &mut batch,
+        b"Wut".to_string(),
     );
 
     abort 123
