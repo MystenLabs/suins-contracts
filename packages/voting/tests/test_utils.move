@@ -32,9 +32,9 @@ use suins_voting::{
 // === constants ===
 
 public macro fun admin_addr(): address { @0xaa1 }
+public macro fun reward_amount(): u64 { 1_000_000 }
 
 const INITIAL_TIME: u64 = 86_400_000; // January 2, 1970
-const REWARD_AMOUNT: u64 = 1_000_000; // 1 NS
 
 // === setup ===
 
@@ -168,7 +168,7 @@ public fun proposal__new_with_end_time(
 ): ProposalV2 {
     setup.proposal__new(
         voting_option::default_options(),
-        REWARD_AMOUNT,
+        reward_amount!(),
         voting_period_ms.destroy_or!(min_voting_period_ms!()),
     )
 }
@@ -178,7 +178,7 @@ public fun proposal__new_default(
 ): ProposalV2 {
     setup.proposal__new(
         voting_option::default_options(),
-        REWARD_AMOUNT,
+        reward_amount!(),
         min_voting_period_ms!(),
     )
 }

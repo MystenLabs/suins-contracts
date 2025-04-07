@@ -16,7 +16,7 @@ use suins_voting::{
     proposal_v2::{Self},
     voting_option::{Self, threshold_not_reached, tie_rejected},
     staking_constants::{day_ms},
-    test_utils::{setup, assert_owns_ns, proposal__new_with_end_time},
+    test_utils::{setup, assert_owns_ns, proposal__new_with_end_time, reward_amount},
 };
 
 // === constants ===
@@ -220,6 +220,37 @@ fun test_proposal_with_no_rewards_ok() {
 
     destroy(proposal);
     setup.destroy();
+}
+
+// === tests: errors ===
+
+#[test, expected_failure(abort_code = proposal_v2::EVoterNotFound)]
+fun test_claim_reward_e_voter_not_found() {
+    let mut setup = setup();
+    let mut proposal = setup.proposal__new_default();
+    // user_1 tries to claim reward, but is not a voter
+    setup.set_time(proposal.end_time_ms());
+    setup.next_tx(USER_1);
+    let _reward_coin = setup.proposal__claim_reward(&mut proposal);
+    abort 123
+}
+
+#[test, expected_failure(abort_code = proposal_v2::EVoterNotFound)]
+fun test_claim_reward_e_voter_not_found_double_claim() {
+    let mut setup = setup();
+    let mut proposal = setup.proposal__new_default();
+    // user_1 votes
+    setup.next_tx(USER_1);
+    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", 5_000_000);
+    // user_1 successfully claims reward
+    setup.set_time(proposal.end_time_ms());
+    setup.next_tx(USER_1);
+    let reward_coin1 = setup.proposal__claim_reward(&mut proposal);
+    assert_eq(reward_coin1.value(), reward_amount!());
+    // user_1 tries to claim reward again
+    setup.next_tx(USER_1);
+    let _reward_coin2 = setup.proposal__claim_reward(&mut proposal);
+    abort 123
 }
 
 // === original tests from v1 (adapted for proposal_v2) ===
