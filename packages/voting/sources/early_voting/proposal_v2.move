@@ -29,16 +29,16 @@ use suins_voting::{
 
 // === errors ===
 
-const ENotAvailableOption: u64 = 0;
-const EVotingPeriodExpired: u64 = 1;
-const ETooShortVotingPeriod: u64 = 2;
-const ETooLongVotingPeriod: u64 = 3;
-const EEndTimeNotReached: u64 = 4;
-const EProposalAlreadyFinalized: u64 = 5;
-const ENotEnoughOptions: u64 = 6;
-const EBatchIsVoting: u64 = 7;
-const EBatchInCooldown: u64 = 8;
-const EVoterNotFound: u64 = 9;
+const ENotAvailableOption: u64 = 100;
+const EVotingPeriodExpired: u64 = 101;
+const ETooShortVotingPeriod: u64 = 102;
+const ETooLongVotingPeriod: u64 = 103;
+const EEndTimeNotReached: u64 = 104;
+const EProposalAlreadyFinalized: u64 = 105;
+const ENotEnoughOptions: u64 = 106;
+const EBatchIsVoting: u64 = 107;
+const EBatchInCooldown: u64 = 108;
+const EVoterNotFound: u64 = 109;
 
 // === constants ===
 
@@ -148,9 +148,9 @@ public fun new(
         vote_leaderboards,
         start_time_ms: clock.timestamp_ms(),
         end_time_ms,
-        total_power: 0,
         voters: linked_table::new(ctx),
         voter_powers: linked_table::new(ctx),
+        total_power: 0,
         reward: reward.into_balance(),
         total_reward,
     }
@@ -235,7 +235,7 @@ public fun distribute_rewards(
     let mut transfers: u64 = 0;
     while (transfers < MAX_RETURNS_PER_TX && !proposal.voter_powers.is_empty()) {
         let voter_addr = *proposal.voter_powers.front().borrow();
-        let reward_coin = get_user_reward(proposal, stats, voter_addr).into_coin(ctx);
+        let reward_coin = proposal.get_user_reward(stats, voter_addr).into_coin(ctx);
         transfer::public_transfer(reward_coin, voter_addr);
         transfers = transfers + 1;
     };
@@ -257,7 +257,7 @@ public fun claim_reward(
     ctx: &mut TxContext,
 ): Balance<NS> {
     proposal.finalize_internal(clock);
-    get_user_reward(proposal, stats, ctx.sender())
+    proposal.get_user_reward(stats, ctx.sender())
 }
 
 // === package functions ===

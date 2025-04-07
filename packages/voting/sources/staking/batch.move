@@ -21,15 +21,15 @@ use suins_voting::{
 
 // === errors ===
 
-const EInvalidLockPeriod: u64 = 0;
-const EBalanceTooLow: u64 = 1;
-const EBatchLocked: u64 = 2;
-const ECooldownAlreadyRequested: u64 = 3;
-const ECooldownNotRequested: u64 = 4;
-const ECooldownNotOver: u64 = 5;
-const EBatchIsVoting: u64 = 6;
-const EVotingUntilMsInPast: u64 = 7;
-const EVotingUntilMsNotExtended: u64 = 8;
+const EInvalidLockPeriod: u64 = 100;
+const EBalanceTooLow: u64 = 101;
+const EBatchLocked: u64 = 102;
+const ECooldownAlreadyRequested: u64 = 103;
+const ECooldownNotRequested: u64 = 104;
+const ECooldownNotOver: u64 = 105;
+const EBatchIsVoting: u64 = 106;
+const EVotingUntilMsInPast: u64 = 107;
+const EVotingUntilMsNotExtended: u64 = 108;
 
 // === constants ===
 

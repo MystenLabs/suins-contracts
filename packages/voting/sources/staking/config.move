@@ -11,10 +11,10 @@ use suins_voting::{
 
 // === errors ===
 
-const EInvalidMaxLockMonths: u64 = 0;
-const EInvalidMaxBoostBps: u64 = 1;
-const EInvalidMonthlyBoostBps: u64 = 2;
-const EInvalidMinBalance: u64 = 3;
+const EInvalidMaxLockMonths: u64 = 100;
+const EInvalidMaxBoostBps: u64 = 101;
+const EInvalidMonthlyBoostBps: u64 = 102;
+const EInvalidMinBalance: u64 = 103;
 
 // === constants (initial values) ===
 
@@ -74,11 +74,11 @@ public fun set_max_lock_months(config: &mut StakingConfig, _: &StakingAdminCap, 
     config.max_lock_months = max_lock_months;
 }
 public fun set_max_boost_bps(config: &mut StakingConfig, _: &StakingAdminCap, max_boost_bps: u64) {
-    assert!(max_boost_bps > 0, EInvalidMaxBoostBps);
+    assert!(max_boost_bps > 100_00, EInvalidMaxBoostBps); // at least 1x
     config.max_boost_bps = max_boost_bps;
 }
 public fun set_monthly_boost_bps(config: &mut StakingConfig, _: &StakingAdminCap, monthly_boost_bps: u64) {
-    assert!(monthly_boost_bps >= 10000, EInvalidMonthlyBoostBps); // at least 1x
+    assert!(monthly_boost_bps >= 100_00, EInvalidMonthlyBoostBps); // at least 1x
     config.monthly_boost_bps = monthly_boost_bps;
 }
 public fun set_min_balance(config: &mut StakingConfig, _: &StakingAdminCap, min_balance: u64 ) {
