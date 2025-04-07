@@ -157,11 +157,19 @@ fun test_end_to_end_ok() {
     let mut setup = setup();
     let balance = 1_000_000; // 1 NS
     let boost = setup.config().monthly_boost_bps() as u128;
+    let initial_time = setup.clock().timestamp_ms();
 
     // create a new batch with a 3-month lock
-    let mut batch = setup.batch__new(balance, 3);
+    setup.next_tx(USER_1);
+    let batch = setup.batch__new(balance, 3);
+    setup.batch__keep(batch);
+
     // verify initial state
+    setup.next_tx(USER_1);
+    let mut batch = setup.ts().take_from_sender<StakingBatch>();
     assert_eq(batch.balance(), balance);
+    assert_eq(batch.start_ms(), initial_time);
+    assert_eq(batch.unlock_ms(), initial_time + 3 * month_ms!());
     assert_eq(batch.cooldown_end_ms(), 0);
     assert_eq(batch.voting_until_ms(), 0);
     assert_eq(batch.is_locked(setup.clock()), true);
@@ -175,6 +183,7 @@ fun test_end_to_end_ok() {
     // extend lock to 6 months
     batch.lock(setup.config(), 6, setup.clock());
     assert_eq(batch.is_locked(setup.clock()), true);
+    assert_eq(batch.unlock_ms(), initial_time + 6 * month_ms!());
     let expected_power = (balance as u128 * boost * boost * boost * boost * boost * boost / 10000 / 10000 / 10000 / 10000 / 10000 / 10000) as u64;
     assert_eq(batch.power(setup.config(), setup.clock()), expected_power);
 
@@ -352,6 +361,15 @@ fun test_new_e_invalid_lock_period_above_max() {
     abort 123
 }
 
+#[test, expected_failure(abort_code = staking_batch::EBatchIsVoting)]
+fun test_lock_e_is_voting() {
+    let mut setup = setup();
+    let mut batch = setup.batch__new(1_000_000, 0);
+    batch.set_voting_until_ms(setup.clock().timestamp_ms() + 1000, setup.clock());
+    batch.lock(setup.config(), 3, setup.clock());
+    abort 123
+}
+
 #[test, expected_failure(abort_code = staking_batch::ECooldownAlreadyRequested)]
 fun test_lock_e_cooldown_already_requested() {
     let mut setup = setup();
@@ -381,11 +399,20 @@ fun test_lock_e_invalid_lock_period_too_long() {
     abort 123
 }
 
+#[test, expected_failure(abort_code = staking_batch::EBatchIsVoting)]
+fun test_request_unstake_e_is_voting() {
+    let mut setup = setup();
+    let mut batch = setup.batch__new(1_000_000, 0);
+    batch.set_voting_until_ms(setup.clock().timestamp_ms() + 1000, setup.clock());
+    batch.request_unstake(setup.config(), setup.clock());
+    abort 123
+}
+
 #[test, expected_failure(abort_code = staking_batch::EBatchLocked)]
 fun test_request_unstake_e_batch_locked() {
     let mut setup = setup();
-    // try to request unstake while batch is locked
     let mut batch = setup.batch__new(1_000_000, 3);
+    // try to request unstake while batch is locked
     batch.request_unstake(setup.config(), setup.clock());
     abort 123
 }
@@ -412,8 +439,9 @@ fun test_unstake_e_not_requested() {
 #[test, expected_failure(abort_code = staking_batch::EBatchLocked)]
 fun test_unstake_e_batch_locked() {
     let mut setup = setup();
-    let mut batch = setup.batch__new(1_000_000, 3); // 3 month lock
-    batch.request_unstake(setup.config(), setup.clock());
+    let batch = setup.batch__new(1_000_000, 3);
+    // try to unstake a locked batch
+    let _balance = setup.batch__unstake(batch);
     abort 123
 }
 
@@ -456,13 +484,27 @@ fun test_unstake_e_batch_is_voting() {
 }
 
 #[test, expected_failure(abort_code = staking_batch::EVotingUntilMsInPast)]
-fun test_set_voting_until_ms_e_invalid_time() {
+fun test_set_voting_until_ms_e_ms_in_past() {
     let mut setup = setup();
     let mut batch = setup.batch__new(1_000_000, 0);
 
     // try to set voting_until_ms to a time in the past
     let past_time = setup.clock().timestamp_ms() - 1000;
     batch.set_voting_until_ms(past_time, setup.clock());
+
+    abort 123
+}
+
+#[test, expected_failure(abort_code = staking_batch::EVotingUntilMsNotExtended)]
+fun test_set_voting_until_ms_e_not_extended() {
+    let mut setup = setup();
+    let mut batch = setup.batch__new(1_000_000, 0);
+
+    let voting_until_ms = setup.clock().timestamp_ms() + 1000;
+    batch.set_voting_until_ms(voting_until_ms, setup.clock());
+
+    // try to set voting_until_ms to the same time
+    batch.set_voting_until_ms(voting_until_ms, setup.clock());
 
     abort 123
 }
