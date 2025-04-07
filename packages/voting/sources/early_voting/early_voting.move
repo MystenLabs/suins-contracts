@@ -6,6 +6,9 @@
 /// This is a simple voting mechanism, without complex actions.
 module suins_voting::early_voting;
 
+use sui::{
+    event::{emit},
+};
 use suins_voting::{
     governance::{NSGovernance, NSGovernanceCap},
     proposal::Proposal,
@@ -45,6 +48,15 @@ public fun add_proposal(
     proposal.set_serial_no(early_voting.0.length());
     proposal.set_threshold(governance.quorum_threshold());
 
+    emit(EventAddProposal {
+        proposal_id: proposal.id(),
+        serial_no: proposal.serial_no(),
+        start_time: proposal.start_time_ms(),
+        end_time: proposal.end_time_ms(),
+        version: 1,
+        reward: 0,
+    });
+
     proposal.share();
 }
 
@@ -62,6 +74,15 @@ public fun add_proposal_v2(
     let early_voting: &mut EarlyVoting = governance.app_mut();
     proposal.set_serial_no(early_voting.0.length());
     proposal.set_threshold(governance.quorum_threshold());
+
+    emit(EventAddProposal {
+        proposal_id: proposal.id(),
+        serial_no: proposal.serial_no(),
+        start_time: proposal.start_time_ms(),
+        end_time: proposal.end_time_ms(),
+        version: 2,
+        reward: proposal.reward().value(),
+    });
 
     proposal.share();
 }
@@ -92,4 +113,15 @@ fun add_early_voting_proposal(
     early_voting
         .0
         .push_back(pointer);
+}
+
+// === events ===
+
+public struct EventAddProposal has copy, drop {
+    proposal_id: ID,
+    serial_no: u64,
+    start_time: u64,
+    end_time: u64,
+    version: u8,
+    reward: u64,
 }

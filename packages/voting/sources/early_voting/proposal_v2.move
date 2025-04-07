@@ -1,5 +1,3 @@
-// TODO (maybe): add Stats: user lifetime rewards, rewards per proposal
-// TODO: add events
 module suins_voting::proposal_v2;
 
 // === imports ===
