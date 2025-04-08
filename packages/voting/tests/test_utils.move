@@ -10,6 +10,7 @@ use sui::{
     balance::{Balance},
     clock::{Self, Clock},
     coin::{Self, Coin},
+    random::{Self},
     test_scenario::{Self as ts, Scenario},
     test_utils::{Self, assert_eq},
     vec_set::{VecSet},
@@ -24,7 +25,7 @@ use suins_voting::{
     staking_admin::{Self},
     staking_admin::{StakingAdminCap},
     staking_batch::{Self, StakingBatch},
-    staking_config::{Self, StakingConfig},
+    staking_config::{Self, Self as cnf, StakingConfig},
     staking_stats::{Self, StakingStats},
     voting_option::{Self, VotingOption},
 };
@@ -54,10 +55,19 @@ public fun config_mut(setup: &mut TestSetup): &mut StakingConfig { &mut setup.co
 public fun stats(setup: &TestSetup): &StakingStats { &setup.stats }
 
 public fun setup(): TestSetup {
-    let mut ts = ts::begin(admin_addr!());
-    let mut clock = clock::create_for_testing(ts.ctx());
+    setup_internal(true)
+}
 
+public fun setup_with_default_config(): TestSetup {
+    setup_internal(false)
+}
+
+fun setup_internal(random_config: bool): TestSetup {
+    let mut ts = ts::begin(admin_addr!());
+
+    let mut clock = clock::create_for_testing(ts.ctx());
     clock.set_for_testing(INITIAL_TIME);
+
     governance::init_for_testing(ts.ctx());
     staking_admin::init_for_testing(ts.ctx());
     staking_config::init_for_testing(ts.ctx());
@@ -65,8 +75,30 @@ public fun setup(): TestSetup {
 
     ts.next_tx(admin_addr!());
     let gov = ts.take_shared<NSGovernance>();
-    let config = ts.take_shared<StakingConfig>();
+    let mut config = ts.take_shared<StakingConfig>();
     let stats = ts.take_shared<StakingStats>();
+
+    if (random_config) {
+        let mut gen = random::new_generator_for_testing();
+        let cap = ts.take_from_sender<StakingAdminCap>();
+        config.set_cooldown_ms(&cap, gen.generate_u64_in_range(
+            cnf::min_cooldown_ms!(), cnf::max_cooldown_ms!())
+        );
+        config.set_max_lock_months(&cap, gen.generate_u64_in_range(
+            cnf::min_max_lock_months!(), cnf::max_max_lock_months!())
+        );
+        config.set_max_boost_bps(&cap, gen.generate_u64_in_range(
+            cnf::min_max_boost_bps!(), cnf::max_max_boost_bps!())
+        );
+        config.set_monthly_boost_bps(&cap, gen.generate_u64_in_range(
+            cnf::min_monthly_boost_bps!(), cnf::max_monthly_boost_bps!())
+        );
+        // config.set_min_balance(&cap, gen.generate_u64_in_range(
+        //     cnf::min_min_balance!(), cnf::max_min_balance!())
+        // );
+        ts.return_to_sender(cap);
+        ts.next_tx(admin_addr!());
+    };
 
     TestSetup { ts, clock, gov, config, stats }
 }

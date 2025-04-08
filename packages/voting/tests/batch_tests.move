@@ -10,7 +10,7 @@ use suins_voting::{
     staking_admin::{StakingAdminCap},
     staking_batch::{Self, StakingBatch},
     staking_constants::{month_ms},
-    test_utils::{setup, admin_addr},
+    test_utils::{setup, setup_with_default_config, admin_addr},
 };
 
 // === constants ===
@@ -21,7 +21,7 @@ const USER_1: address = @0xee1;
 
 #[test]
 fun test_end_to_end_ok() {
-    let mut setup = setup();
+    let mut setup = setup_with_default_config();
     let balance = 1_000_000; // 1 NS
     let boost = setup.config().monthly_boost_bps() as u128;
     let initial_time = setup.clock().timestamp_ms();
@@ -106,7 +106,7 @@ fun test_end_to_end_ok() {
 // month 10: 2_593_740
 // month 11: 2_853_114
 fun test_power_ok() {
-    let mut setup = setup();
+    let mut setup = setup_with_default_config();
     let balance = 1_000_000; // 1 NS
 
     // == regular staking ==
@@ -225,7 +225,7 @@ fun test_power_ok() {
 
 #[test]
 fun test_power_max_balance() {
-    let mut setup = setup();
+    let mut setup = setup_with_default_config();
 
     // test with total NS supply
     let total_supply = 500_000_000 * 1_000_000; // 500 million NS

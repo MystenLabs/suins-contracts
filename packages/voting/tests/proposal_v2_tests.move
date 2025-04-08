@@ -16,7 +16,7 @@ use suins_voting::{
     proposal_v2::{Self, max_returns_per_tx},
     voting_option::{Self, threshold_not_reached, tie_rejected},
     staking_constants::{day_ms},
-    test_utils::{setup, random_addr, assert_owns_ns, proposal__new_with_end_time, reward_amount},
+    test_utils::{setup, setup_with_default_config, random_addr, assert_owns_ns, proposal__new_with_end_time, reward_amount},
 };
 
 // === constants ===
@@ -29,7 +29,7 @@ const USER_3: address = @0xee3;
 
 #[test]
 fun test_end_to_end_ok() {
-    let mut setup = setup();
+    let mut setup = setup_with_default_config();
 
     // admin creates and configures proposal
     let mut options = voting_option::default_options();
@@ -378,7 +378,7 @@ fun test_vote_e_batch_in_cooldown_requested() {
 
 #[test, expected_failure(abort_code = proposal_v2::EBatchInCooldown)]
 fun test_vote_e_batch_in_cooldown_completed() {
-    let mut setup = setup();
+    let mut setup = setup_with_default_config();
     let mut proposal = setup.proposal__new(
         voting_option::default_options(),
         1_000_000, // 1 NS
