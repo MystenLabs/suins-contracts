@@ -20,6 +20,77 @@ const USER_1: address = @0xee1;
 // === tests ===
 
 #[test]
+fun test_end_to_end_ok() {
+    let mut setup = setup();
+    let balance = 1_000_000; // 1 NS
+    let boost = setup.config().monthly_boost_bps() as u128;
+    let initial_time = setup.clock().timestamp_ms();
+
+    // create a new batch with a 3-month lock
+    setup.next_tx(USER_1);
+    let batch = setup.batch__new(balance, 3);
+    setup.batch__keep(batch);
+
+    // verify initial state
+    setup.next_tx(USER_1);
+    let mut batch = setup.ts().take_from_sender<StakingBatch>();
+    assert_eq(batch.balance(), balance);
+    assert_eq(batch.start_ms(), initial_time);
+    assert_eq(batch.unlock_ms(), initial_time + 3 * month_ms!());
+    assert_eq(batch.cooldown_end_ms(), 0);
+    assert_eq(batch.voting_until_ms(), 0);
+    assert_eq(batch.is_locked(setup.clock()), true);
+    assert_eq(batch.is_unlocked(setup.clock()), false);
+    assert_eq(batch.is_cooldown_requested(), false);
+    assert_eq(batch.is_cooldown_over(setup.clock()), false);
+    assert_eq(batch.is_voting(setup.clock()), false);
+    let expected_power = (balance as u128 * boost * boost * boost / 10000 / 10000 / 10000) as u64;
+    assert_eq(batch.power(setup.config(), setup.clock()), expected_power);
+
+    // extend lock to 6 months
+    batch.lock(setup.config(), 6, setup.clock());
+    assert_eq(batch.is_locked(setup.clock()), true);
+    assert_eq(batch.unlock_ms(), initial_time + 6 * month_ms!());
+    let expected_power = (balance as u128 * boost * boost * boost * boost * boost * boost / 10000 / 10000 / 10000 / 10000 / 10000 / 10000) as u64;
+    assert_eq(batch.power(setup.config(), setup.clock()), expected_power);
+
+    // wait until lock period ends
+    setup.add_time(6 * month_ms!());
+    assert_eq(batch.is_locked(setup.clock()), false);
+    assert_eq(batch.is_unlocked(setup.clock()), true);
+
+    // request unstake
+    batch.request_unstake(setup.config(), setup.clock());
+    assert_eq(batch.is_cooldown_requested(), true);
+    assert_eq(batch.is_cooldown_over(setup.clock()), false);
+    assert_eq(batch.cooldown_end_ms() > 0, true);
+
+    // (simulate) using the batch for voting right before cooldown ends
+    setup.set_time(batch.cooldown_end_ms() - 1);
+    let voting_end_time = setup.clock().timestamp_ms() + (1000 * 60 * 60 * 24 * 14); // 14 days
+    batch.set_voting_until_ms(voting_end_time, setup.clock()); // a proposal would set this
+    assert_eq(batch.is_voting(setup.clock()), true);
+
+    // wait for cooldown to end but voting is still active
+    setup.add_time(1);
+    // verify cooldown is over but still voting
+    assert_eq(batch.is_cooldown_requested(), true);
+    assert_eq(batch.is_cooldown_over(setup.clock()), true);
+    assert_eq(batch.is_voting(setup.clock()), true);
+
+    // wait for voting to end
+    setup.set_time(voting_end_time);
+    assert_eq(batch.is_voting(setup.clock()), false);
+
+    // unstake the batch
+    let unstaked_balance = setup.batch__unstake(batch);
+    assert_eq(unstaked_balance.value(), balance);
+
+    destroy(unstaked_balance);
+    setup.destroy();
+}
+
+#[test]
 // Voting power grows according to this formula: `power_N = TRUNC(power_N-1 * 1.1)`
 //
 // month 0:  1_000_000
@@ -149,77 +220,6 @@ fun test_power_ok() {
     setup.assert_power(&batch, 2_853_114); // 2.85x (no longer locked, gets max staking boost)
     destroy(batch);
 
-    setup.destroy();
-}
-
-#[test]
-fun test_end_to_end_ok() {
-    let mut setup = setup();
-    let balance = 1_000_000; // 1 NS
-    let boost = setup.config().monthly_boost_bps() as u128;
-    let initial_time = setup.clock().timestamp_ms();
-
-    // create a new batch with a 3-month lock
-    setup.next_tx(USER_1);
-    let batch = setup.batch__new(balance, 3);
-    setup.batch__keep(batch);
-
-    // verify initial state
-    setup.next_tx(USER_1);
-    let mut batch = setup.ts().take_from_sender<StakingBatch>();
-    assert_eq(batch.balance(), balance);
-    assert_eq(batch.start_ms(), initial_time);
-    assert_eq(batch.unlock_ms(), initial_time + 3 * month_ms!());
-    assert_eq(batch.cooldown_end_ms(), 0);
-    assert_eq(batch.voting_until_ms(), 0);
-    assert_eq(batch.is_locked(setup.clock()), true);
-    assert_eq(batch.is_unlocked(setup.clock()), false);
-    assert_eq(batch.is_cooldown_requested(), false);
-    assert_eq(batch.is_cooldown_over(setup.clock()), false);
-    assert_eq(batch.is_voting(setup.clock()), false);
-    let expected_power = (balance as u128 * boost * boost * boost / 10000 / 10000 / 10000) as u64;
-    assert_eq(batch.power(setup.config(), setup.clock()), expected_power);
-
-    // extend lock to 6 months
-    batch.lock(setup.config(), 6, setup.clock());
-    assert_eq(batch.is_locked(setup.clock()), true);
-    assert_eq(batch.unlock_ms(), initial_time + 6 * month_ms!());
-    let expected_power = (balance as u128 * boost * boost * boost * boost * boost * boost / 10000 / 10000 / 10000 / 10000 / 10000 / 10000) as u64;
-    assert_eq(batch.power(setup.config(), setup.clock()), expected_power);
-
-    // wait until lock period ends
-    setup.add_time(6 * month_ms!());
-    assert_eq(batch.is_locked(setup.clock()), false);
-    assert_eq(batch.is_unlocked(setup.clock()), true);
-
-    // request unstake
-    batch.request_unstake(setup.config(), setup.clock());
-    assert_eq(batch.is_cooldown_requested(), true);
-    assert_eq(batch.is_cooldown_over(setup.clock()), false);
-    assert_eq(batch.cooldown_end_ms() > 0, true);
-
-    // (simulate) using the batch for voting right before cooldown ends
-    setup.set_time(batch.cooldown_end_ms() - 1);
-    let voting_end_time = setup.clock().timestamp_ms() + (1000 * 60 * 60 * 24 * 14); // 14 days
-    batch.set_voting_until_ms(voting_end_time, setup.clock()); // a proposal would set this
-    assert_eq(batch.is_voting(setup.clock()), true);
-
-    // wait for cooldown to end but voting is still active
-    setup.add_time(1);
-    // verify cooldown is over but still voting
-    assert_eq(batch.is_cooldown_requested(), true);
-    assert_eq(batch.is_cooldown_over(setup.clock()), true);
-    assert_eq(batch.is_voting(setup.clock()), true);
-
-    // wait for voting to end
-    setup.set_time(voting_end_time);
-    assert_eq(batch.is_voting(setup.clock()), false);
-
-    // unstake the batch
-    let unstaked_balance = setup.batch__unstake(batch);
-    assert_eq(unstaked_balance.value(), balance);
-
-    destroy(unstaked_balance);
     setup.destroy();
 }
 
