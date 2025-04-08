@@ -54,11 +54,17 @@ public fun config(setup: &TestSetup): &StakingConfig { &setup.config }
 public fun config_mut(setup: &mut TestSetup): &mut StakingConfig { &mut setup.config }
 public fun stats(setup: &TestSetup): &StakingStats { &setup.stats }
 
+/**
+ * Setup a test with random config values
+ */
 public fun setup(): TestSetup {
     setup_internal(true)
 }
 
-public fun setup_with_default_config(): TestSetup {
+/**
+ * Setup a test with default config values
+ */
+public fun setup_default_config(): TestSetup {
     setup_internal(false)
 }
 
@@ -121,7 +127,7 @@ public fun batch__new(
     )
 }
 
-public fun batch__new__with_min_bal(
+public fun batch__new__min_bal(
     setup: &mut TestSetup,
     lock_months: u64,
 ): StakingBatch {
@@ -203,7 +209,7 @@ public fun proposal__new(
     )
 }
 
-public fun proposal__new_with_end_time(
+public fun proposal__new__end_time(
     setup: &mut TestSetup,
     voting_period_ms: Option<u64>,
 ): ProposalV2 {
@@ -214,7 +220,7 @@ public fun proposal__new_with_end_time(
     )
 }
 
-public fun proposal__new_default(
+public fun proposal__new__default(
     setup: &mut TestSetup,
 ): ProposalV2 {
     setup.proposal__new(
@@ -239,7 +245,7 @@ public fun proposal__vote(
     );
 }
 
-public fun proposal__vote_with_new_batch_and_keep(
+public fun proposal__vote__new_batch_and_keep(
     setup: &mut TestSetup,
     proposal: &mut ProposalV2,
     option: vector<u8>,

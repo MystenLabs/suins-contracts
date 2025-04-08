@@ -28,8 +28,8 @@ public(package) macro fun min_max_lock_months(): u64 { 3 } // 3 months
 public(package) macro fun max_max_lock_months(): u64 { 36 } // 3 years
 
 public(package) macro fun init_max_boost_bps(): u64 { 300_00 } // 3x
-public(package) macro fun min_max_boost_bps(): u64 { 100_00 } // 1x
-public(package) macro fun max_max_boost_bps(): u64 { 1000_00 } // 10x
+public(package) macro fun min_max_boost_bps(): u64 { 105_00 } // 1.05x
+public(package) macro fun max_max_boost_bps(): u64 { 1500_00 } // 15x
 
 public(package) macro fun init_monthly_boost_bps(): u64 { 110_00 } // 1.1x
 public(package) macro fun min_monthly_boost_bps(): u64 { 101_00 } // 1.01x

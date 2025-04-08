@@ -123,7 +123,7 @@ fun test_e2e() {
     {
         let cap = setup.ts().take_from_sender<NSGovernanceCap>();
 
-        let proposal = setup.proposal__new_default();
+        let proposal = setup.proposal__new__default();
         early_voting::add_proposal_v2(&cap, setup.gov_mut(), proposal);
 
         setup.ts().return_to_sender(cap);
@@ -242,7 +242,7 @@ fun test_e2e_no_quorum() {
         setup.next_tx(admin_addr!());
         let cap = setup.ts().take_from_sender<NSGovernanceCap>();
 
-        let proposal = setup.proposal__new_default();
+        let proposal = setup.proposal__new__default();
         early_voting::add_proposal_v2(&cap, setup.gov_mut(), proposal);
 
         setup.ts().return_to_sender(cap);
@@ -318,7 +318,7 @@ fun test_e2e_tie() {
         setup.next_tx(admin_addr!());
         let cap = setup.ts().take_from_sender<NSGovernanceCap>();
 
-        let proposal = setup.proposal__new_default();
+        let proposal = setup.proposal__new__default();
         early_voting::add_proposal_v2(&cap, setup.gov_mut(), proposal);
 
         setup.ts().return_to_sender(cap);
@@ -394,7 +394,7 @@ fun test_e2e_abstain_bypassed() {
         setup.next_tx(admin_addr!());
         let cap = setup.ts().take_from_sender<NSGovernanceCap>();
 
-        let proposal = setup.proposal__new_default();
+        let proposal = setup.proposal__new__default();
         early_voting::add_proposal_v2(&cap, setup.gov_mut(), proposal);
 
         setup.ts().return_to_sender(cap);
@@ -468,13 +468,13 @@ fun add_second_proposal_after_first_is_completed() {
 
     let cap = setup.ts().take_from_sender<NSGovernanceCap>();
 
-    let proposal = setup.proposal__new_default();
+    let proposal = setup.proposal__new__default();
 
     early_voting::add_proposal_v2(&cap, setup.gov_mut(), proposal);
 
     setup.add_time(min_voting_period_ms!() + 2);
 
-    let second_proposal = setup.proposal__new_default();
+    let second_proposal = setup.proposal__new__default();
 
     early_voting::add_proposal_v2(&cap, setup.gov_mut(), second_proposal);
 
@@ -489,9 +489,9 @@ fun test_try_to_add_parallel_proposals() {
     setup.next_tx(admin_addr!());
     let cap = setup.ts().take_from_sender<NSGovernanceCap>();
 
-    let proposal = setup.proposal__new_default();
+    let proposal = setup.proposal__new__default();
 
-    let second_proposal = setup.proposal__new_default();
+    let second_proposal = setup.proposal__new__default();
     early_voting::add_proposal_v2(&cap, setup.gov_mut(), proposal);
     early_voting::add_proposal_v2(&cap, setup.gov_mut(), second_proposal);
 
