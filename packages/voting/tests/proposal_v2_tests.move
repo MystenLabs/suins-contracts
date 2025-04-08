@@ -58,6 +58,10 @@ fun test_end_to_end_ok() {
         &mut batch2,
         b"Yes".to_string(),
     );
+    assert!(batch1.is_voting(setup.clock()));
+    assert!(batch2.is_voting(setup.clock()));
+    assert_eq(batch1.voting_until_ms(), proposal.end_time_ms());
+    assert_eq(batch2.voting_until_ms(), proposal.end_time_ms());
     setup.batch__keep(batch1);
     setup.batch__keep(batch2);
 

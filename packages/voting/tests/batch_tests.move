@@ -22,7 +22,7 @@ const USER_1: address = @0xee1;
 #[test]
 fun test_end_to_end_ok() {
     let mut setup = setup_with_default_config();
-    let balance = 1_000_000; // 1 NS
+    let balance = setup.config().min_balance() * 1000;
     let boost = setup.config().monthly_boost_bps() as u128;
     let initial_time = setup.clock().timestamp_ms();
 
@@ -65,22 +65,10 @@ fun test_end_to_end_ok() {
     assert_eq(batch.is_cooldown_over(setup.clock()), false);
     assert_eq(batch.cooldown_end_ms() > 0, true);
 
-    // (simulate) using the batch for voting right before cooldown ends
-    setup.set_time(batch.cooldown_end_ms() - 1);
-    let voting_end_time = setup.clock().timestamp_ms() + (1000 * 60 * 60 * 24 * 14); // 14 days
-    batch.set_voting_until_ms(voting_end_time, setup.clock()); // a proposal would set this
-    assert_eq(batch.is_voting(setup.clock()), true);
-
-    // wait for cooldown to end but voting is still active
-    setup.add_time(1);
-    // verify cooldown is over but still voting
+    // wait for cooldown to end
+    setup.add_time(batch.cooldown_end_ms());
     assert_eq(batch.is_cooldown_requested(), true);
     assert_eq(batch.is_cooldown_over(setup.clock()), true);
-    assert_eq(batch.is_voting(setup.clock()), true);
-
-    // wait for voting to end
-    setup.set_time(voting_end_time);
-    assert_eq(batch.is_voting(setup.clock()), false);
 
     // unstake the batch
     let unstaked_balance = setup.batch__unstake(batch);
