@@ -30,6 +30,7 @@ const USER_3: address = @0xee3;
 #[test]
 fun test_end_to_end_ok() {
     let mut setup = setup_with_default_config();
+    let min_bal = setup.config().min_balance();
 
     // admin creates and configures proposal
     let mut options = voting_option::default_options();
@@ -44,8 +45,8 @@ fun test_end_to_end_ok() {
 
     // user_1 votes with two batches
     setup.next_tx(USER_1);
-    let mut batch1 = setup.batch__new(250_000_000, 3); // 250 NS, locked for 3 months
-    let mut batch2 = setup.batch__new(500_000_000, 3); // 500 NS, locked for 3 months
+    let mut batch1 = setup.batch__new(min_bal * 1, 3); // e.g. 250 NS, locked for 3 months
+    let mut batch2 = setup.batch__new(min_bal * 2, 3); // e.g. 500 NS, locked for 3 months
     let batch1_power = batch1.power(setup.config(), setup.clock());
     let batch2_power = batch2.power(setup.config(), setup.clock());
     setup.proposal__vote(
@@ -67,7 +68,7 @@ fun test_end_to_end_ok() {
 
     // user_2 votes with one batch
     setup.next_tx(USER_2);
-    let mut batch3 = setup.batch__new(250_000_000, 3); // 250 NS, locked for 3 months
+    let mut batch3 = setup.batch__new(min_bal * 1, 3); // e.g. 250 NS, locked for 3 months
     let batch3_power = batch3.power(setup.config(), setup.clock());
     setup.proposal__vote(
         &mut proposal,
@@ -105,10 +106,11 @@ fun test_end_to_end_ok() {
 #[test]
 fun test_threshold_not_reached_ok() {
     let mut setup = setup();
+    let min_bal = setup.config().min_balance();
 
     // Create proposal with threshold
     let mut proposal = setup.proposal__new_default();
-    let threshold = 1_000_000_000; // 1000 NS
+    let threshold = min_bal * 100;
     proposal.set_threshold(threshold);
 
     // Add some votes, but not enough to meet threshold
@@ -127,11 +129,12 @@ fun test_threshold_not_reached_ok() {
 #[test]
 fun test_tied_vote_ok() {
     let mut setup = setup();
+    let min_bal = setup.config().min_balance();
     let mut proposal = setup.proposal__new_default();
 
     // Two votes with equal power for different options
-    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", 1_000_000);
-    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"No", 1_000_000);
+    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", min_bal);
+    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"No", min_bal);
 
     // Time passes, finalize proposal
     setup.set_time(proposal.end_time_ms());
@@ -146,14 +149,15 @@ fun test_tied_vote_ok() {
 #[test]
 fun test_abstain_ok() {
     let mut setup = setup();
+    let min_bal = setup.config().min_balance();
     let mut proposal = setup.proposal__new_default();
 
     // Two votes: one for Yes, one for Abstain with more power
-    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", 1_000_000);
-    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Abstain", 2_000_000);
+    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", min_bal);
+    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Abstain", min_bal * 2);
 
     // Verify total power counts
-    assert_eq(proposal.total_power(), 1_000_000 + 2_000_000);
+    assert_eq(proposal.total_power(), min_bal * 3);
 
     // Time passes, finalize proposal
     setup.set_time(proposal.end_time_ms());
@@ -169,14 +173,15 @@ fun test_abstain_ok() {
 #[test]
 fun test_user_can_vote_same_option_multiple_times_ok() {
     let mut setup = setup();
+    let min_bal = setup.config().min_balance();
     let mut proposal = setup.proposal__new_default();
 
     setup.next_tx(USER_1);
-    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", 1_000_000);
-    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", 2_000_000);
+    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", min_bal);
+    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", min_bal * 2);
 
     // Check that user's voting power is accumulated correctly in user_powers
-    let expected_power = 1_000_000 + 2_000_000;
+    let expected_power = min_bal * 3;
     let user_powers = proposal.voters();
     assert_eq(
         *user_powers.borrow(USER_1).get(&voting_option::new(b"Yes".to_string())),
@@ -190,7 +195,7 @@ fun test_user_can_vote_same_option_multiple_times_ok() {
 #[test]
 fun test_proposal_with_no_rewards_ok() {
     let mut setup = setup();
-
+    let min_bal = setup.config().min_balance();
     let mut proposal = setup.proposal__new(
         voting_option::default_options(),
         0, // no rewards
@@ -199,11 +204,11 @@ fun test_proposal_with_no_rewards_ok() {
 
     // user_1 votes
     setup.next_tx(USER_1);
-    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", 1_000_000);
+    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", min_bal);
 
     // user_2 votes
     setup.next_tx(USER_2);
-    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", 1_000_000);
+    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", min_bal);
 
     // finalize proposal
     setup.add_time(proposal.end_time_ms());
@@ -229,6 +234,7 @@ fun test_proposal_with_no_rewards_ok() {
 #[test]
 fun test_distribute_rewards_ok_and_recover_dust() {
     let mut setup = setup();
+    let min_bal = setup.config().min_balance();
     let mut proposal = setup.proposal__new(
         voting_option::default_options(),
         1_000_000, // 1 NS reward
@@ -236,10 +242,10 @@ fun test_distribute_rewards_ok_and_recover_dust() {
     );
     // user_1 votes with 33.33% of total power
     setup.next_tx(USER_1);
-    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", 1_000_000);
+    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", min_bal);
     // user_2 votes with 66.66% of total power
     setup.next_tx(USER_2);
-    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", 2_000_000);
+    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", min_bal * 2);
     // user_3 finalizes proposal and distributes rewards
     setup.next_tx(USER_3);
     setup.add_time(proposal.end_time_ms());
@@ -261,15 +267,16 @@ fun test_distribute_rewards_ok_and_recover_dust() {
 #[test]
 fun test_distribute_rewards_ok_many_voters() {
     let mut setup = setup();
+    let min_bal = setup.config().min_balance();
     let mut proposal = setup.proposal__new_default();
 
     let total_voters = max_returns_per_tx!() + 7; // 125 + 7 = 132
-    let total_power = 5_000_000 * total_voters;
+    let total_power = min_bal * total_voters;
 
     total_voters.do!(|_| {
         let voter_addr = setup.random_addr();
         setup.next_tx(voter_addr);
-        setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", 5_000_000);
+        setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", min_bal);
     });
     setup.add_time(proposal.end_time_ms());
 
@@ -307,22 +314,23 @@ fun test_distribute_rewards_ok_many_voters() {
 #[test]
 fun test_stats_ok() {
     let mut setup = setup();
+    let min_bal = setup.config().min_balance();
 
     let mut prop1 = setup.proposal__new_default();
 
     // user_1 votes on prop1 with 9 NS
     setup.next_tx(USER_1);
-    setup.proposal__vote_with_new_batch_and_keep(&mut prop1, b"Yes", 1_000_000);
-    setup.proposal__vote_with_new_batch_and_keep(&mut prop1, b"No", 8_000_000); // bro changed his mind
+    setup.proposal__vote_with_new_batch_and_keep(&mut prop1, b"Yes", min_bal);
+    setup.proposal__vote_with_new_batch_and_keep(&mut prop1, b"No", min_bal * 8); // bro changed his mind
     let user_1_reward_prop1 = reward_amount!() * 9 / 10;
 
     // user_2 votes on prop1 with 1 NS
     setup.next_tx(USER_2);
-    setup.proposal__vote_with_new_batch_and_keep(&mut prop1, b"Yes", 1_000_000);
+    setup.proposal__vote_with_new_batch_and_keep(&mut prop1, b"Yes", min_bal);
     let user_2_reward_prop1 = reward_amount!() / 10;
 
     // check stats before finalizing prop1
-    assert_eq(setup.stats().total_balance(), 10_000_000);
+    assert_eq(setup.stats().total_balance(), min_bal * 10);
     assert_eq(setup.stats().user_rewards().length(), 0);
     assert_eq(setup.stats().user_reward(USER_1), 0);
     assert_eq(setup.stats().user_reward(USER_2), 0);
@@ -330,7 +338,7 @@ fun test_stats_ok() {
     // finalize prop1 and check stats
     setup.set_time(prop1.end_time_ms());
     setup.proposal__distribute_rewards(&mut prop1);
-    assert_eq(setup.stats().total_balance(), 10_000_000); // no change
+    assert_eq(setup.stats().total_balance(), min_bal * 10); // no change
     assert_eq(setup.stats().user_rewards().length(), 2);
     assert_eq(setup.stats().user_reward(USER_1), user_1_reward_prop1);
     assert_eq(setup.stats().user_reward(USER_2), user_2_reward_prop1);
@@ -338,13 +346,13 @@ fun test_stats_ok() {
     // user_1 stakes another 5 NS and votes on a second proposal with it
     let mut prop2 = setup.proposal__new_default();
     setup.next_tx(USER_1);
-    setup.proposal__vote_with_new_batch_and_keep(&mut prop2, b"Yes", 5_000_000);
+    setup.proposal__vote_with_new_batch_and_keep(&mut prop2, b"Yes", min_bal * 5);
 
     // finalize prop2 and check stats
     setup.add_time(prop2.end_time_ms());
     let reward_coin = setup.proposal__claim_reward(&mut prop2);
     assert_eq(reward_coin.value(), reward_amount!()); // user_1 is the only voter, so gets all rewards
-    assert_eq(setup.stats().total_balance(), 15_000_000); // increased by 5 NS
+    assert_eq(setup.stats().total_balance(), min_bal * 15); // increased by 50%
     assert_eq(setup.stats().user_rewards().length(), 2); // no change
     assert_eq(setup.stats().user_reward(USER_1), user_1_reward_prop1 + reward_amount!());
 
@@ -362,7 +370,7 @@ fun test_vote_e_batch_is_voting() {
     let mut proposal = setup.proposal__new_default();
     // user_1 votes
     setup.next_tx(USER_1);
-    let mut batch = setup.batch__new(5_000_000, 0);
+    let mut batch = setup.batch__new__with_min_bal(0);
     setup.proposal__vote(&mut proposal, &mut batch, b"Yes".to_string());
     // user_1 tries to vote again with the same batch
     setup.proposal__vote(&mut proposal, &mut batch, b"Yes".to_string());
@@ -373,7 +381,7 @@ fun test_vote_e_batch_is_voting() {
 fun test_vote_e_batch_in_cooldown_requested() {
     let mut setup = setup();
     let mut proposal = setup.proposal__new_default();
-    let mut batch = setup.batch__new(5_000_000, 0);
+    let mut batch = setup.batch__new__with_min_bal(0);
     // try to vote with a batch that's requested cooldown
     batch.request_unstake(setup.config(), setup.clock());
     setup.proposal__vote(&mut proposal, &mut batch, b"Yes".to_string());
@@ -388,7 +396,7 @@ fun test_vote_e_batch_in_cooldown_completed() {
         1_000_000, // 1 NS
         max_voting_period_ms!(),
     );
-    let mut batch = setup.batch__new(5_000_000, 0);
+    let mut batch = setup.batch__new__with_min_bal(0);
     // request batch cooldown
     batch.request_unstake(setup.config(), setup.clock());
     assert_eq(batch.is_cooldown_over(setup.clock()), false);
@@ -414,10 +422,11 @@ fun test_claim_reward_e_voter_not_found() {
 #[test, expected_failure(abort_code = proposal_v2::EVoterNotFound)]
 fun test_claim_reward_e_voter_not_found_double_claim() {
     let mut setup = setup();
+    let min_bal = setup.config().min_balance();
     let mut proposal = setup.proposal__new_default();
     // user_1 votes
     setup.next_tx(USER_1);
-    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", 5_000_000);
+    setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", min_bal);
     // user_1 successfully claims reward
     setup.set_time(proposal.end_time_ms());
     setup.next_tx(USER_1);
@@ -517,7 +526,7 @@ fun try_to_vote_on_expired_proposal() {
     proposal.set_threshold(1);
     setup.add_time(min_voting_period_ms!());
 
-    let mut batch = setup.batch__new(1_000_000, 0);
+    let mut batch = setup.batch__new__with_min_bal(0);
 
     setup.proposal__vote(
         &mut proposal,
@@ -534,7 +543,7 @@ fun vote_non_existing_option() {
 
     let mut proposal = setup.proposal__new_default();
 
-    let mut batch = setup.batch__new(1_000_000, 0);
+    let mut batch = setup.batch__new__with_min_bal(0);
 
     setup.proposal__vote(
         &mut proposal,

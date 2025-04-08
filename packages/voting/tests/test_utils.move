@@ -93,9 +93,9 @@ fun setup_internal(random_config: bool): TestSetup {
         config.set_monthly_boost_bps(&cap, gen.generate_u64_in_range(
             cnf::min_monthly_boost_bps!(), cnf::max_monthly_boost_bps!())
         );
-        // config.set_min_balance(&cap, gen.generate_u64_in_range(
-        //     cnf::min_min_balance!(), cnf::max_min_balance!())
-        // );
+        config.set_min_balance(&cap, gen.generate_u64_in_range(
+            cnf::min_min_balance!(), cnf::max_min_balance!())
+        );
         ts.return_to_sender(cap);
         ts.next_tx(admin_addr!());
     };
@@ -119,6 +119,14 @@ public fun batch__new(
         &setup.clock,
         setup.ts.ctx(),
     )
+}
+
+public fun batch__new__with_min_bal(
+    setup: &mut TestSetup,
+    lock_months: u64,
+): StakingBatch {
+    let balance = setup.config().min_balance();
+    setup.batch__new(balance, lock_months)
 }
 
 public fun batch__unstake(
