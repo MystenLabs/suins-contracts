@@ -11,18 +11,33 @@ use suins_voting::{
 
 // === errors ===
 
-const EInvalidMaxLockMonths: u64 = 100;
-const EInvalidMaxBoostBps: u64 = 101;
-const EInvalidMonthlyBoostBps: u64 = 102;
-const EInvalidMinBalance: u64 = 103;
+const EInvalidCooldownMs: u64 = 100;
+const EInvalidMaxLockMonths: u64 = 101;
+const EInvalidMaxBoostBps: u64 = 102;
+const EInvalidMonthlyBoostBps: u64 = 103;
+const EInvalidMinBalance: u64 = 104;
 
-// === constants (initial values) ===
+// === constants (initial values, and min/max values the admin can set) ===
 
-const COOLDOWN_MS: u64 = 1000 * 60 * 60 * 24 * 3; // 3 days
-const MAX_LOCK_MONTHS: u64 = 12;
-const MAX_BOOST_BPS: u64 = 300_00; // 3x
-const MONTHLY_BOOST_BPS: u64 = 110_00; // 1.1x
-const MIN_BALANCE: u64 = 1_000_000; // 1 NS
+public(package) macro fun init_cooldown_ms(): u64 { 1000 * 60 * 60 * 24 * 3 } // 3 days
+public(package) macro fun min_cooldown_ms(): u64 { 0 } // instant
+public(package) macro fun max_cooldown_ms(): u64 { 1000 * 60 * 60 * 24 * 30 } // 30 days
+
+public(package) macro fun init_max_lock_months(): u64 { 12 }
+public(package) macro fun min_max_lock_months(): u64 { 3 } // 3 months
+public(package) macro fun max_max_lock_months(): u64 { 36 } // 3 years
+
+public(package) macro fun init_max_boost_bps(): u64 { 300_00 } // 3x
+public(package) macro fun min_max_boost_bps(): u64 { 100_00 } // 1x
+public(package) macro fun max_max_boost_bps(): u64 { 1000_00 } // 10x
+
+public(package) macro fun init_monthly_boost_bps(): u64 { 110_00 } // 1.1x
+public(package) macro fun min_monthly_boost_bps(): u64 { 101_00 } // 1.01x
+public(package) macro fun max_monthly_boost_bps(): u64 { 300_00 } // 3x
+
+public(package) macro fun init_min_balance(): u64 { 1_000_000 } // 1 NS
+public(package) macro fun min_min_balance(): u64 { 1_000 } // 0.001 NS
+public(package) macro fun max_min_balance(): u64 { 1_000_000_000 } // 1000 NS
 
 // === structs ===
 
@@ -53,11 +68,11 @@ fun init(otw: STAKING_CONFIG, ctx: &mut TxContext)
 
     let config = StakingConfig {
         id: object::new(ctx),
-        cooldown_ms: COOLDOWN_MS,
-        max_lock_months: MAX_LOCK_MONTHS,
-        max_boost_bps: MAX_BOOST_BPS,
-        monthly_boost_bps: MONTHLY_BOOST_BPS,
-        min_balance: MIN_BALANCE,
+        cooldown_ms: init_cooldown_ms!(),
+        max_lock_months: init_max_lock_months!(),
+        max_boost_bps: init_max_boost_bps!(),
+        monthly_boost_bps: init_monthly_boost_bps!(),
+        min_balance: init_min_balance!(),
     };
     transfer::share_object(config);
 }
@@ -67,22 +82,28 @@ fun init(otw: STAKING_CONFIG, ctx: &mut TxContext)
 // === admin functions ===
 
 public fun set_cooldown_ms(config: &mut StakingConfig, _: &StakingAdminCap, cooldown_ms: u64 ) {
+    assert!(cooldown_ms >= min_cooldown_ms!(), EInvalidCooldownMs);
+    assert!(cooldown_ms <= max_cooldown_ms!(), EInvalidCooldownMs);
     config.cooldown_ms = cooldown_ms;
 }
 public fun set_max_lock_months(config: &mut StakingConfig, _: &StakingAdminCap, max_lock_months: u64 ) {
-    assert!(max_lock_months > 0, EInvalidMaxLockMonths);
+    assert!(max_lock_months >= min_max_lock_months!(), EInvalidMaxLockMonths);
+    assert!(max_lock_months <= max_max_lock_months!(), EInvalidMaxLockMonths);
     config.max_lock_months = max_lock_months;
 }
 public fun set_max_boost_bps(config: &mut StakingConfig, _: &StakingAdminCap, max_boost_bps: u64) {
-    assert!(max_boost_bps > 100_00, EInvalidMaxBoostBps); // at least 1x
+    assert!(max_boost_bps >= min_max_boost_bps!(), EInvalidMaxBoostBps);
+    assert!(max_boost_bps <= max_max_boost_bps!(), EInvalidMaxBoostBps);
     config.max_boost_bps = max_boost_bps;
 }
 public fun set_monthly_boost_bps(config: &mut StakingConfig, _: &StakingAdminCap, monthly_boost_bps: u64) {
-    assert!(monthly_boost_bps >= 100_00, EInvalidMonthlyBoostBps); // at least 1x
+    assert!(monthly_boost_bps >= min_monthly_boost_bps!(), EInvalidMonthlyBoostBps);
+    assert!(monthly_boost_bps <= max_monthly_boost_bps!(), EInvalidMonthlyBoostBps);
     config.monthly_boost_bps = monthly_boost_bps;
 }
 public fun set_min_balance(config: &mut StakingConfig, _: &StakingAdminCap, min_balance: u64 ) {
-    assert!(min_balance > 0, EInvalidMinBalance);
+    assert!(min_balance >= min_min_balance!(), EInvalidMinBalance);
+    assert!(min_balance <= max_min_balance!(), EInvalidMinBalance);
     config.min_balance = min_balance;
 }
 public fun set_all(

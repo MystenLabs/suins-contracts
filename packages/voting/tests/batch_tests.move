@@ -292,7 +292,7 @@ fun test_config_changes() {
     destroy(batch);
 
     // increase max_boost_bps
-    let max_boost_2 = 100_0000; // 100x
+    let max_boost_2 = 1000_00; // 10x
     setup.config_mut().set_max_boost_bps(&cap, max_boost_2);
     let max_lock_months = setup.config().max_lock_months();
     let batch = setup.batch__new(balance, max_lock_months);
