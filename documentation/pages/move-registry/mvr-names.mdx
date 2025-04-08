@@ -15,7 +15,7 @@ import { Tabs } from 'nextra/components'
 To create a new application, you must provide a SuiNS name and a package name, as long as it is not
 already registered.
 
-<Tabs items={['Typescript', 'Sui CLI']}>
+<Tabs items={['Typescript', 'Sui CLI']} storageKey="language">
 <Tabs.Tab>
 
 ```typescript
@@ -53,7 +53,7 @@ sui client ptb --move-call @mvr/core::move_registry::register \
 Metadata is strongly recommended for any application. Provide the `appCap` along with a key-value pair.
 Key can be `description`, `icon_url`, `documentation_url`, `homepage_url`, or `contact`.
 
-<Tabs items={['Typescript', 'Sui CLI']}>
+<Tabs items={['Typescript', 'Sui CLI']} storageKey="language">
 <Tabs.Tab>
 ```typescript
 const transaction = new Transaction();
@@ -86,7 +86,7 @@ When attaching a Mainnet package to an application, you must provide the `Packag
 This call is permanent, so after a `PackageInfo` object is attached to an application, it cannot be
 detached in the future. Consequently, an app is always linked to a specific package.
 
-<Tabs items={['Typescript', 'Sui CLI']}>
+<Tabs items={['Typescript', 'Sui CLI']} storageKey="language">
 <Tabs.Tab>
 ```typescript
 // we can then use the appCap to attach packages directly, or transfer (e.g. to a safe address)
@@ -123,7 +123,7 @@ For non-Mainnet networks, you only attach a "pointer" to the package, instead of
 You can always update an external network by first calling `@mvr/core::move_registry::unset_network`, and then calling `@mvr/core::move_registry::set_network` again.
 </Callout>
 
-<Tabs items={['Typescript', 'Sui CLI']}>
+<Tabs items={['Typescript', 'Sui CLI']} storageKey="language">
 <Tabs.Tab>
 ```typescript
 const transaction = new Transaction();

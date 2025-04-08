@@ -17,7 +17,7 @@ You can then treat the object as the source of truth for metadata of your packag
 
 The following example works for both Mainnet and Testnet.
 
-<Tabs items={['Typescript', 'Sui CLI']}>
+<Tabs items={['Typescript', 'Sui CLI']} storageKey="language">
 <Tabs.Tab>
 ```typescript
 const transaction = new Transaction();
@@ -131,7 +131,7 @@ You can add source code information on your `PackageInfo` object using the follo
 To update the source for a version, first call
 `@mvr/metadata::package_info::unset_git_versioning` to remove the existing information.
 
-<Tabs items={['Typescript', 'Sui CLI']}>
+<Tabs items={['Typescript', 'Sui CLI']} storageKey="language">
 <Tabs.Tab>
 ```typescript
 const transaction = new Transaction();
@@ -197,7 +197,7 @@ build custom access control for your object, you can utilize a transfer to objec
 `PackageInfo` does not allow public transfers, to ensure that the object is always indexable
 (wrapping could hurt the discoverability of the object).
 
-<Tabs items={['Typescript', 'Sui CLI']}>
+<Tabs items={['Typescript', 'Sui CLI']} storageKey="language">
 <Tabs.Tab>
 ```typescript
 const transaction = new Transaction();
