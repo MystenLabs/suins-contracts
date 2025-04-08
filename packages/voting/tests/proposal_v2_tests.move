@@ -263,7 +263,8 @@ fun test_distribute_rewards_ok_many_voters() {
     let total_power = 5_000_000 * total_voters;
 
     total_voters.do!(|_| {
-        setup.next_tx(random_addr());
+        let voter_addr = setup.random_addr();
+        setup.next_tx(voter_addr);
         setup.proposal__vote_with_new_batch_and_keep(&mut proposal, b"Yes", 5_000_000);
     });
     setup.add_time(proposal.end_time_ms());
