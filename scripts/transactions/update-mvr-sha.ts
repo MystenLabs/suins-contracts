@@ -1,23 +1,15 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-import { SuiGraphQLClient } from '@mysten/sui/graphql';
 import { namedPackagesPlugin, Transaction } from '@mysten/sui/transactions';
 
 import { mainPackage } from '../config/constants';
 import { prepareMultisigTx, sender } from '../utils/utils';
 
-/** Register the MVR plugin globally (once) for our PTB construction */
-Transaction.registerGlobalSerializationPlugin(
-	'namedPackagesPlugin',
-	namedPackagesPlugin({
-		suiGraphQLClient: new SuiGraphQLClient({
-			url: 'https://mvr-rpc.sui-mainnet.mystenlabs.com/graphql',
-		}),
-	}),
-);
+const mainnetPlugin = namedPackagesPlugin({ url: 'https://mainnet.mvr.mystenlabs.com' });
 
 export const updateMvrSha = async () => {
 	const transaction = new Transaction();
+	transaction.addSerializationPlugin(mainnetPlugin);
 	const env = 'mainnet';
 	const repository = 'https://github.com/MystenLabs/suins-contracts';
 
