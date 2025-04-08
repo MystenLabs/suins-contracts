@@ -83,7 +83,8 @@ sui client ptb \
     --move-call @mvr/metadata::display::default \"sample\" --assign display \
     --move-call @mvr/metadata::package_info::set_display packageinfo display \
     --move-call @mvr/metadata::package_info::set_metadata packageinfo \"default\" \"<MVR name>\" \
-    --move-call @mvr/metadata::package_info::transfer packageinfo @<<Your safe address>>
+    --move-call sui::tx_context::sender --assign sender \
+    --move-call @mvr/metadata::package_info::transfer packageinfo sender
 ```
 </Tabs.Tab>
 </Tabs>
