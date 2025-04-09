@@ -16,7 +16,7 @@ const Beta = () => {
           Read the documentation to learn how to:
         </p>
         <ul className="nx-mt-4 nx-ml-6">
-          <li>Use a fallback address in your TypeScript to account for situations when MVR might not be available.</li>
+          <li className="nx-my-2">Use a fallback address in your TypeScript to account for situations when MVR might not be available.</li>
           <li>Structure your application so it's easier to maintain uptime in the face of MVR outages.</li>
           <li>Take additional steps to de-risk using MVR.</li>
         </ul>
