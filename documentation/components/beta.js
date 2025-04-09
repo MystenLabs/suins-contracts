@@ -3,7 +3,6 @@
 
 import React from 'react';
 import { useRouter } from 'next/router';
-import { Callout } from 'nextra/components';
 
 const Beta = () => {
   const location = useRouter();
