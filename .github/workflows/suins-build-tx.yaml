@@ -17,6 +17,7 @@ on:
           - Upgrade Coupons
           - Create MVR Names
           - Update MVR Metadata
+          - Update MVR Icon
       sui_tools_image:
         description: 'image reference of sui_tools'
         default: 'mysten/sui-tools:mainnet'
@@ -178,6 +179,17 @@ jobs:
           RPC_URL: ${{ inputs.rpc }}
         run: |
           cd scripts && pnpm ts-node transactions/update-mvr-sha.ts
+
+      - name: Update MVR Icon
+        if: ${{ inputs.transaction_type == 'Update MVR Icon' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+          RPC_URL: ${{ inputs.rpc }}
+        run: |
+          cd scripts && pnpm ts-node transactions/update-mvr-icon.ts
 
       - name: Show Transaction Data (To sign)
         run: |
