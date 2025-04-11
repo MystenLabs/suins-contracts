@@ -76,7 +76,6 @@ function print_ts_config() {
     echo "      \"$TOKEN_PACKAGE_ID::ns::NS\","
     echo "    votingTokenType:"
     echo "      \"$TOKEN_PACKAGE_ID::ns::NS\","
-    echo "    faucet: \"\","
     echo "  },"
 }
 
