@@ -13,7 +13,7 @@ use suins_token::{
 };
 use suins_voting::{
     constants::{min_voting_period_ms},
-    early_voting::{Self},
+    early_voting::{Self, serial_no_offset},
     governance::{Self, NSGovernance, NSGovernanceCap},
     proposal_v2::{Self, ProposalV2},
     test_utils::{setup, admin_addr},
@@ -82,7 +82,7 @@ fun test_add_proposal_v2_ok() {
     early_voting::add_proposal_v2(&cap, &mut gov, proposal1);
     ts.next_tx(admin_addr!());
     let proposal1 = ts.take_shared<ProposalV2>();
-    assert_eq(proposal1.serial_no(), 1);
+    assert_eq(proposal1.serial_no(), 1 + serial_no_offset!());
     assert_eq(proposal1.threshold(), gov.quorum_threshold());
     ts::return_shared(proposal1);
 
@@ -104,7 +104,7 @@ fun test_add_proposal_v2_ok() {
     early_voting::add_proposal_v2(&cap, &mut gov, proposal2);
     ts.next_tx(admin_addr!());
     let proposal2 = ts.take_shared<ProposalV2>();
-    assert_eq(proposal2.serial_no(), 2);
+    assert_eq(proposal2.serial_no(), 2 + serial_no_offset!());
     assert_eq(proposal2.threshold(), gov.quorum_threshold());
     ts::return_shared(proposal2);
 
@@ -133,7 +133,7 @@ fun test_e2e() {
         setup.next_tx(USER1);
         let mut proposal = setup.ts().take_shared<ProposalV2>();
 
-        assert_eq(proposal.serial_no(), 1);
+        assert_eq(proposal.serial_no(), 1 + serial_no_offset!());
 
         let mut batch = setup.batch__new(50_000_000 * DECIMALS, 0);
         setup.proposal__vote(
@@ -149,7 +149,7 @@ fun test_e2e() {
         setup.next_tx(USER2);
         let mut proposal = setup.ts().take_shared<ProposalV2>();
 
-        assert_eq(proposal.serial_no(), 1);
+        assert_eq(proposal.serial_no(), 1 + serial_no_offset!());
 
         let mut batch1 = setup.batch__new(100_000_000 * DECIMALS, 0);
         let mut batch2 = setup.batch__new(50_000_000 * DECIMALS, 0);
@@ -172,7 +172,7 @@ fun test_e2e() {
         setup.next_tx(USER3);
         let mut proposal = setup.ts().take_shared<ProposalV2>();
 
-        assert_eq(proposal.serial_no(), 1);
+        assert_eq(proposal.serial_no(), 1 + serial_no_offset!());
 
         let mut batch1 = setup.batch__new(25_000_000 * DECIMALS, 0);
         let mut batch2 = setup.batch__new(25_000_000 * DECIMALS, 0);
@@ -252,7 +252,7 @@ fun test_e2e_no_quorum() {
         setup.next_tx(USER1);
         let mut proposal = setup.ts().take_shared<ProposalV2>();
 
-        assert_eq(proposal.serial_no(), 1);
+        assert_eq(proposal.serial_no(), 1 + serial_no_offset!());
 
         let mut batch = setup.batch__new(300_000 * DECIMALS, 0);
         setup.proposal__vote(
@@ -268,7 +268,7 @@ fun test_e2e_no_quorum() {
         setup.next_tx(USER2);
         let mut proposal = setup.ts().take_shared<ProposalV2>();
 
-        assert_eq(proposal.serial_no(), 1);
+        assert_eq(proposal.serial_no(), 1 + serial_no_offset!());
 
         let mut batch1 = setup.batch__new(600_000 * DECIMALS, 0);
         let mut batch2 = setup.batch__new(300_000 * DECIMALS, 0);
@@ -328,7 +328,7 @@ fun test_e2e_tie() {
         setup.next_tx(USER1);
         let mut proposal = setup.ts().take_shared<ProposalV2>();
 
-        assert_eq(proposal.serial_no(), 1);
+        assert_eq(proposal.serial_no(), 1 + serial_no_offset!());
 
         let mut batch = setup.batch__new(4_000_000 * DECIMALS, 0);
         setup.proposal__vote(
@@ -344,7 +344,7 @@ fun test_e2e_tie() {
         setup.next_tx(USER2);
         let mut proposal = setup.ts().take_shared<ProposalV2>();
 
-        assert_eq(proposal.serial_no(), 1);
+        assert_eq(proposal.serial_no(), 1 + serial_no_offset!());
 
         let mut batch1 = setup.batch__new(1_000_000 * DECIMALS, 0);
         let mut batch2 = setup.batch__new(1_000_000 * DECIMALS, 0);
@@ -404,7 +404,7 @@ fun test_e2e_abstain_bypassed() {
         setup.next_tx(USER1);
         let mut proposal = setup.ts().take_shared<ProposalV2>();
 
-        assert_eq(proposal.serial_no(), 1);
+        assert_eq(proposal.serial_no(), 1 + serial_no_offset!());
 
         let mut batch = setup.batch__new(5_000_000 * DECIMALS, 0);
         setup.proposal__vote(
@@ -420,7 +420,7 @@ fun test_e2e_abstain_bypassed() {
         setup.next_tx(USER2);
         let mut proposal = setup.ts().take_shared<ProposalV2>();
 
-        assert_eq(proposal.serial_no(), 1);
+        assert_eq(proposal.serial_no(), 1 + serial_no_offset!());
 
         let mut batch1 = setup.batch__new(1_000_000 * DECIMALS, 0);
         let mut batch2 = setup.batch__new(2_000_000 * DECIMALS, 0);

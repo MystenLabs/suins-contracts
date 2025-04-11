@@ -25,6 +25,11 @@ public struct ProposalPointer has store {
 /// The list of proposals in the early voting system.
 public struct EarlyVoting(vector<ProposalPointer>) has store;
 
+/// There were 3 v1 proposals
+public(package) macro fun serial_no_offset(): u64 {
+    3
+}
+
 /// Called by the `NSGovernance` holder to add a proposal to the early voting
 /// system.
 /// The proposal ID is saved in the proposals vector (from earlier to latest),
@@ -45,7 +50,7 @@ public fun add_proposal_v2(
     add_early_voting_proposal(governance, pointer, proposal.start_time_ms());
 
     let early_voting: &mut EarlyVoting = governance.app_mut();
-    proposal.set_serial_no(early_voting.0.length());
+    proposal.set_serial_no(early_voting.0.length() + serial_no_offset!());
     proposal.set_threshold(governance.quorum_threshold());
 
     emit(EventAddProposal {
