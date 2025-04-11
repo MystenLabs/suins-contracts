@@ -20,12 +20,13 @@ const ECannotHaveParallelProposals: vector<u8> = b"Cannot have parallel proposal
 public struct ProposalPointer has store {
     proposal_id: ID,
     end_time: u64,
+    version: u8,
 }
 
 /// The list of proposals in the early voting system.
 public struct EarlyVoting(vector<ProposalPointer>) has store;
 
-/// Called by the `EarlyVotingCap` holder to add a proposal to the early voting
+/// Called by the `NSGovernance` holder to add a proposal to the early voting
 /// system.
 /// The proposal ID is saved in the proposals vector (from earlier to latest),
 /// and becomes shared.
@@ -40,6 +41,7 @@ public fun add_proposal_v2(
     let pointer = ProposalPointer {
         proposal_id: object::id(&proposal),
         end_time: proposal.end_time_ms(),
+        version: 2,
     };
     add_early_voting_proposal(governance, pointer, proposal.start_time_ms());
 
