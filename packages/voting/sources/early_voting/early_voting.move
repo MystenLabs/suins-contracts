@@ -19,7 +19,6 @@ const ECannotHaveParallelProposals: u64 = 1000;
 public struct ProposalPointer has store {
     proposal_id: ID,
     end_time: u64,
-    version: u8,
 }
 
 /// The list of proposals in the early voting system.
@@ -45,7 +44,6 @@ public fun add_proposal_v2(
     let pointer = ProposalPointer {
         proposal_id: object::id(&proposal),
         end_time: proposal.end_time_ms(),
-        version: 2,
     };
     add_early_voting_proposal(governance, pointer, proposal.start_time_ms());
 
