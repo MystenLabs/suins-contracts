@@ -13,9 +13,9 @@ use suins_token::{
     ns::NS,
 };
 use suins_voting::{
+    constants::{month_ms},
     staking_admin::{StakingAdminCap},
     staking_config::{StakingConfig},
-    staking_constants::{month_ms},
     staking_stats::{StakingStats},
 };
 

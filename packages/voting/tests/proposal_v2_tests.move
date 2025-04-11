@@ -12,10 +12,9 @@ use suins_token::{
     ns::NS,
 };
 use suins_voting::{
-    constants::{min_voting_period_ms, max_voting_period_ms},
+    constants::{day_ms, max_voting_period_ms, min_voting_period_ms},
     proposal_v2::{Self, max_returns_per_tx},
     voting_option::{Self, threshold_not_reached, tie_rejected},
-    staking_constants::{day_ms},
     test_utils::{setup, setup_default_config, random_addr, assert_owns_ns, proposal__new__end_time, reward_amount},
 };
 

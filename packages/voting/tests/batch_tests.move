@@ -7,9 +7,9 @@ use sui::{
     test_utils::{assert_eq, destroy},
 };
 use suins_voting::{
+    constants::{month_ms},
     staking_admin::{StakingAdminCap},
     staking_batch::{Self, StakingBatch},
-    staking_constants::{month_ms},
     test_utils::{setup, setup_default_config, admin_addr},
 };
 
