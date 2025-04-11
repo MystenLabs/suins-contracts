@@ -25,7 +25,7 @@ use fun df::borrow_mut as UID.borrow_mut;
 use fun df::remove as UID.remove;
 use fun df::exists_with_type as UID.exists_with_type;
 
-const EInvalidVersion: u64 = 1;
+const EInvalidVersion: u64 = 1000;
 
 /// active version of the protocol.
 const VERSION: u16 = 1;

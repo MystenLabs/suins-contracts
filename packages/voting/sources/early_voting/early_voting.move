@@ -14,8 +14,7 @@ use suins_voting::{
     proposal_v2::ProposalV2,
 };
 
-#[error]
-const ECannotHaveParallelProposals: vector<u8> = b"Cannot have parallel proposals";
+const ECannotHaveParallelProposals: u64 = 1000;
 
 public struct ProposalPointer has store {
     proposal_id: ID,

@@ -29,16 +29,16 @@ use suins_voting::{
 
 // === errors ===
 
-const ENotAvailableOption: u64 = 100;
-const EVotingPeriodExpired: u64 = 101;
-const ETooShortVotingPeriod: u64 = 102;
-const ETooLongVotingPeriod: u64 = 103;
-const EEndTimeNotReached: u64 = 104;
-const EProposalAlreadyFinalized: u64 = 105;
-const ENotEnoughOptions: u64 = 106;
-const EBatchIsVoting: u64 = 107;
-const EBatchInCooldown: u64 = 108;
-const EVoterNotFound: u64 = 109;
+const ENotAvailableOption: u64 = 1000;
+const EVotingPeriodExpired: u64 = 1001;
+const ETooShortVotingPeriod: u64 = 1002;
+const ETooLongVotingPeriod: u64 = 1003;
+const EEndTimeNotReached: u64 = 1004;
+const EProposalAlreadyFinalized: u64 = 1005;
+const ENotEnoughOptions: u64 = 1006;
+const EBatchIsVoting: u64 = 1007;
+const EBatchInCooldown: u64 = 1008;
+const EVoterNotFound: u64 = 1009;
 
 // === constants ===
 
