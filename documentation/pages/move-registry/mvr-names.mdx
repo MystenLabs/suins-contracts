@@ -1,18 +1,23 @@
 import Beta from '../../components/beta'
 import { Callout } from 'nextra/components';
+import { Tabs } from 'nextra/components'
 
 <Beta/>
 
 # Managing MVR names (Mainnet only)
 
 <Callout type="warning">
-    These examples assume that you use the MVR plugin for the Sui Typescript SDK, as described in the  [`Typescript SDK`](/move-registry/tooling/typescript-sdk) section.
+    The TypeScript examples assume that you use the [MVR plugin](/move-registry/tooling/typescript-sdk) for the Sui TypeScript SDK.
+    The Sui CLI examples do not use the MVR plugin.
 </Callout>
 
 ## Creating a new application
 
 To create a new application, you must provide a SuiNS name and a package name, as long as it is not
 already registered.
+
+<Tabs items={['Typescript', 'Sui CLI']} storageKey="language">
+<Tabs.Tab>
 
 ```typescript
 const transaction = new Transaction();
@@ -31,12 +36,26 @@ const appCap = transaction.moveCall({
 // we can then use the appCap to attach packages directly, or transfer (e.g. to a safe address)
 // and register packages later.
 ```
+</Tabs.Tab>
+<Tabs.Tab>
+Example of a PTB after MVR, consistent across networks:
+
+```bash
+sui client ptb --move-call @mvr/core::move_registry::register \
+    @0x0e5d473a055b6b7d014af557a13ad9075157fdc19b6d51562a18511afd397727 @<suinsObjectId> \
+    \"<name>\" @0x6 --assign appcap --transfer-objects "[appcap]" @<address-to-transfer-appcap>
+```
+</Tabs.Tab>
+</Tabs>
+
 
 ## Setting application metadata
 
 Metadata is strongly recommended for any application. Provide the `appCap` along with a key-value pair.
 Key can be `description`, `icon_url`, `documentation_url`, `homepage_url`, or `contact`.
 
+<Tabs items={['Typescript', 'Sui CLI']} storageKey="language">
+<Tabs.Tab>
 ```typescript
 const transaction = new Transaction();
 
@@ -51,6 +70,16 @@ transaction.moveCall({
     ],
 });
 ```
+</Tabs.Tab>
+<Tabs.Tab>
+
+```bash
+sui client ptb --move-call @mvr/core::move_registry::set_metadata \
+    @0x0e5d473a055b6b7d014af557a13ad9075157fdc19b6d51562a18511afd397727 \
+    @<appCap> \"description\" "\"<Description for the application>\""
+```
+</Tabs.Tab>
+</Tabs>
 
 ## Attaching a Mainnet package to an application
 
@@ -58,6 +87,8 @@ When attaching a Mainnet package to an application, you must provide the `Packag
 This call is permanent, so after a `PackageInfo` object is attached to an application, it cannot be
 detached in the future. Consequently, an app is always linked to a specific package.
 
+<Tabs items={['Typescript', 'Sui CLI']} storageKey="language">
+<Tabs.Tab>
 ```typescript
 // we can then use the appCap to attach packages directly, or transfer (e.g. to a safe address)
 // and register packages later.
@@ -74,6 +105,16 @@ const transaction = new Transaction();
     ],
 });
 ```
+</Tabs.Tab>
+<Tabs.Tab>
+
+```bash
+sui client ptb --move-call @mvr/core::move_registry::assign_package \
+    @0x0e5d473a055b6b7d014af557a13ad9075157fdc19b6d51562a18511afd397727 \
+    @<The AppCap object> @<The PackageInfo object on mainnet>
+```
+</Tabs.Tab>
+</Tabs>
 
 ## Attaching a non-Mainnet package to an application
 
@@ -83,6 +124,8 @@ For non-Mainnet networks, you only attach a "pointer" to the package, instead of
 You can always update an external network by first calling `@mvr/core::move_registry::unset_network`, and then calling `@mvr/core::move_registry::set_network` again.
 </Callout>
 
+<Tabs items={['Typescript', 'Sui CLI']} storageKey="language">
+<Tabs.Tab>
 ```typescript
 const transaction = new Transaction();
 
@@ -106,3 +149,22 @@ transaction.moveCall({
     ],
 });
 ```
+
+</Tabs.Tab>
+<Tabs.Tab>
+```bash
+sui client ptb \
+    --move-call 0x1::option::some "<0x2::object::ID>" @<The objectId of the PackageInfo object on the external network> \
+    --assign packageInfo \
+    --move-call 0x1::option::some "<address>" @<The address of the package on the external network> \
+    --assign packageId \
+    --move-call 0x1::option::none "<0x2::object::ID>" \
+    --assign null \
+    --move-call @mvr/core::app_info::new packageInfo packageId null \
+    --assign appInfo \
+    --move-call @mvr/core::move_registry::set_network \
+    @0x0e5d473a055b6b7d014af557a13ad9075157fdc19b6d51562a18511afd397727 @<The AppCap object> \
+    \"<chain id of the network: use 4c78adac for testnet>\" appInfo
+```
+</Tabs.Tab>
+</Tabs>

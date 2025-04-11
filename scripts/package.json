@@ -27,12 +27,12 @@
 	"license": "ISC",
 	"dependencies": {
 		"@mysten/kiosk": "0.10.6",
-		"@mysten/sui": "^1.21.2",
-		"@noble/hashes": "^1.6.1",
+		"@mysten/sui": "^1.26.1",
+		"@noble/hashes": "^1.7.1",
 		"@pythnetwork/pyth-sui-js": "^2.1.0"
 	},
 	"devDependencies": {
-		"@types/node": "^20.17.9",
+		"@types/node": "^20.17.30",
 		"esbuild": "^0.20.2",
 		"ts-node": "^10.9.2"
 	}
