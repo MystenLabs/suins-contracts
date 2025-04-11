@@ -11,7 +11,6 @@ use sui::{
 };
 use suins_voting::{
     governance::{NSGovernance, NSGovernanceCap},
-    proposal::Proposal,
     proposal_v2::ProposalV2,
 };
 
@@ -33,33 +32,6 @@ public struct EarlyVoting(vector<ProposalPointer>) has store;
 ///
 /// SAFETY: We do not worry about the vector exceeding size limits,
 /// as the number of proposals is expected to be low in this iteration.
-public fun add_proposal(
-    _: &NSGovernanceCap,
-    governance: &mut NSGovernance,
-    mut proposal: Proposal,
-) {
-    let pointer = ProposalPointer {
-        proposal_id: proposal.id(),
-        end_time: proposal.end_time_ms(),
-    };
-    add_early_voting_proposal(governance, pointer, proposal.start_time_ms());
-
-    let early_voting: &mut EarlyVoting = governance.app_mut();
-    proposal.set_serial_no(early_voting.0.length());
-    proposal.set_threshold(governance.quorum_threshold());
-
-    emit(EventAddProposal {
-        proposal_id: proposal.id(),
-        serial_no: proposal.serial_no(),
-        start_time: proposal.start_time_ms(),
-        end_time: proposal.end_time_ms(),
-        version: 1,
-        reward: 0,
-    });
-
-    proposal.share();
-}
-
 public fun add_proposal_v2(
     _: &NSGovernanceCap,
     governance: &mut NSGovernance,
