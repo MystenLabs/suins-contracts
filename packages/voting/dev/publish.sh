@@ -74,8 +74,6 @@ function print_ts_config() {
     echo "      \"$STAKING_STATS_OBJ_ID\","
     echo "    coinType:"
     echo "      \"$TOKEN_PACKAGE_ID::ns::NS\","
-    echo "    votingTokenType:"
-    echo "      \"$TOKEN_PACKAGE_ID::ns::NS\","
     echo "  },"
 }
 
