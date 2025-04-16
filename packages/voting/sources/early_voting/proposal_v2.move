@@ -160,11 +160,13 @@ public fun new(
 public fun vote(
     proposal: &mut ProposalV2,
     config: &StakingConfig,
+    stats: &mut StakingStats,
     batch: &mut StakingBatch,
     opt: String,
     clock: &Clock,
-    ctx: &TxContext,
+    ctx: &mut TxContext,
 ) {
+    let sender = ctx.sender();
     let option = voting_option::new(opt);
     assert!(proposal.votes.contains(&option), ENotAvailableOption);
     assert!(!proposal.is_end_time_reached(clock), EVotingPeriodExpired);
@@ -186,28 +188,31 @@ public fun vote(
     *option_power = *option_power + batch_power;
 
     // add new voter
-    if (!proposal.voters.contains(ctx.sender())) {
-        proposal.voters.push_back(ctx.sender(), vec_map::empty());
-        proposal.voter_powers.push_back(ctx.sender(), 0);
+    if (!proposal.voters.contains(sender)) {
+        proposal.voters.push_back(sender, vec_map::empty());
+        proposal.voter_powers.push_back(sender, 0);
     };
 
     // update user voting power and leaderboard
 
-    let user_votes = proposal.voters.borrow_mut(ctx.sender());
+    let user_votes = proposal.voters.borrow_mut(sender);
     let leaderboard = proposal.vote_leaderboards.get_mut(&option);
 
     if (!user_votes.contains(&option)) {
         user_votes.insert(option, batch_power);
-        leaderboard.add_if_eligible(ctx.sender(), batch_power);
+        leaderboard.add_if_eligible(sender, batch_power);
     } else {
         let vote = user_votes.get_mut(&option);
         *vote = *vote + batch_power;
-        leaderboard.add_if_eligible(ctx.sender(), *vote);
+        leaderboard.add_if_eligible(sender, *vote);
     };
 
     // update total user power
-    let user_power = proposal.voter_powers.borrow_mut(ctx.sender());
+    let user_power = proposal.voter_powers.borrow_mut(sender);
     *user_power = *user_power + batch_power;
+
+    // update user stats
+    stats.add_user_power(sender, proposal.id.to_address(), batch_power, ctx);
 }
 
 /// Finalize the proposal after the end time is reached and the threshold is
@@ -350,7 +355,7 @@ fun get_user_reward(
     let reward_value = calculate_reward(proposal, user_power);
 
     if (reward_value > 0) {
-        stats.add_user_reward(user_addr, reward_value);
+        stats.add_user_reward(user_addr, proposal.id.to_address(), reward_value);
         proposal.reward.split(reward_value)
     } else {
         balance::zero()

@@ -238,6 +238,7 @@ public fun proposal__vote(
 ) {
     proposal.vote(
         &setup.config,
+        &mut setup.stats,
         batch,
         opt,
         &setup.clock,
@@ -254,6 +255,7 @@ public fun proposal__vote__new_batch_and_keep(
     let mut batch = setup.batch__new(balance, 0);
     proposal.vote(
         &setup.config,
+        &mut setup.stats,
         &mut batch,
         option.to_string(),
         &setup.clock,
