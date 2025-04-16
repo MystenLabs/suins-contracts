@@ -91,6 +91,27 @@ fun add_early_voting_proposal(
         .push_back(pointer);
 }
 
+// === devinspect functions ===
+
+/// get the proposal IDs from newest to oldest
+#[allow(unused_function)]
+fun view_proposal_ids(
+    gov: &NSGovernance,
+): vector<address> {
+    if (!gov.has_app<EarlyVoting>()) {
+        return vector[]
+    };
+    let early_voting: &EarlyVoting = gov.app();
+    let mut i = early_voting.0.length();
+    let mut proposals = vector<address>[];
+    while (i > 0) {
+        i = i - 1;
+        let proposal = early_voting.0.borrow(i);
+        proposals.push_back(proposal.proposal_id.to_address());
+    };
+    proposals
+}
+
 // === events ===
 
 public struct EventAddProposal has copy, drop {
