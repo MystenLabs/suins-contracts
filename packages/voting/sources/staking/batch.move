@@ -76,6 +76,8 @@ public fun new(
     assert!(lock_months <= config.max_lock_months(), EInvalidLockPeriod);
 
     let value = coin.value();
+    stats.add_tvl(value);
+    stats.add_user_tvl(ctx.sender(), value, ctx);
 
     let now = clock.timestamp_ms();
     let batch = StakingBatch {
@@ -86,9 +88,6 @@ public fun new(
         cooldown_end_ms: 0,
         voting_until_ms: 0,
     };
-
-    stats.add_tvl(value);
-    stats.add_user_tvl(ctx.sender(), value, ctx);
 
     emit(EventNew {
         batch_id: batch.id.to_address(),
@@ -168,13 +167,11 @@ public fun unstake(
     assert!(batch.is_cooldown_requested(), ECooldownNotRequested);
     assert!(batch.is_cooldown_over(clock), ECooldownNotOver);
 
-    let batch_address = batch.id.to_address();
-
     let StakingBatch { id, balance, .. } = batch;
+    let batch_address = id.to_address();
     object::delete(id);
 
     let value = balance.value();
-
     stats.sub_tvl(value);
     stats.sub_user_tvl(ctx.sender(), value);
 
@@ -188,38 +185,30 @@ public fun unstake(
 
 // === admin functions ===
 
-/// Stake NS into a new batch with arbitrary parameters
+/// Stake NS into a new batch with arbitrary parameters, and transfer it
 public fun admin_new(
     _: &StakingAdminCap,
     stats: &mut StakingStats,
+    recipient: address,
     coin: Coin<NS>,
     start_ms: u64,
     unlock_ms: u64,
     ctx: &mut TxContext,
-): StakingBatch {
+) {
     assert!(start_ms <= unlock_ms, EInvalidLockPeriod);
 
     let value = coin.value();
-
     stats.add_tvl(value);
-    stats.add_user_tvl(ctx.sender(), value, ctx); // TODO this needs to be final user
+    stats.add_user_tvl(recipient, value, ctx);
 
-    StakingBatch {
+    let batch = StakingBatch {
         id: object::new(ctx),
         balance: coin.into_balance(),
         start_ms,
         unlock_ms,
         cooldown_end_ms: 0,
         voting_until_ms: 0,
-    }
-}
-
-/// Allows the admin to airdrop batches
-public fun admin_transfer(
-    _: &StakingAdminCap,
-    batch: StakingBatch,
-    recipient: address,
-) {
+    };
     transfer::transfer(batch, recipient);
 }
 

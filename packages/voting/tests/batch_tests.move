@@ -10,7 +10,7 @@ use suins_voting::{
     constants::{month_ms},
     staking_admin::{StakingAdminCap},
     staking_batch::{Self, StakingBatch},
-    test_utils::{setup, setup_default_config, admin_addr},
+    test_utils::{setup, setup_default_config},
 };
 
 // === constants ===
@@ -242,15 +242,12 @@ fun test_admin_functions() {
     // test admin_new
     let now = setup.clock().timestamp_ms();
     let past_time_ms = now - 1000 * 60 * 60; // 1 hour ago
-    let batch = setup.batch__admin_new(
+    setup.batch__admin_new(
+        USER_1,
         1_000_000,
         past_time_ms,
         past_time_ms, // never locked
     );
-
-    // test admin_transfer
-    setup.next_tx(admin_addr!());
-    setup.batch__admin_transfer(batch, USER_1);
 
     // verify USER_1 received the batch
     setup.next_tx(USER_1);
@@ -528,7 +525,7 @@ fun test_admin_new_e_invalid_lock_period() {
 
     // try to set unlock_ms before start_ms
     let now = setup.clock().timestamp_ms();
-    let _batch = setup.batch__admin_new(1_000_000, now, now - 1);
+    setup.batch__admin_new(USER_1,1_000_000, now, now - 1);
 
     abort 123
 }

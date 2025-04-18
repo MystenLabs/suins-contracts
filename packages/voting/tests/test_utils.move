@@ -159,31 +159,22 @@ public fun assert_power(
 
 public fun batch__admin_new(
     setup: &mut TestSetup,
+    recipient: address,
     balance: u64,
     start_ms: u64,
     end_ms: u64,
-): StakingBatch {
+) {
     let cap = setup.ts().take_from_sender<StakingAdminCap>();
     let coin = setup.mint_ns(balance);
-    let batch = staking_batch::admin_new(
+    staking_batch::admin_new(
         &cap,
         &mut setup.stats,
+        recipient,
         coin,
         start_ms,
         end_ms,
         setup.ts.ctx(),
     );
-    setup.ts.return_to_sender(cap);
-    batch
-}
-
-public fun batch__admin_transfer(
-    setup: &mut TestSetup,
-    batch: StakingBatch,
-    recipient: address,
-) {
-    let cap = setup.ts().take_from_sender<StakingAdminCap>();
-    staking_batch::admin_transfer(&cap, batch, recipient);
     setup.ts.return_to_sender(cap);
 }
 
