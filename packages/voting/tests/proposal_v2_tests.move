@@ -304,7 +304,7 @@ fun test_distribute_rewards_ok_many_voters() {
 
     // check stats
     assert_eq(setup.stats().tvl(), total_power);
-    assert_eq(setup.stats().user_stats().length(), total_voters);
+    assert_eq(setup.stats().users().length(), total_voters);
 
     destroy(proposal);
     setup.destroy();
@@ -330,7 +330,7 @@ fun test_stats_ok() {
 
     // check stats before finalizing prop1
     assert_eq(setup.stats().tvl(), min_bal * 10);
-    assert_eq(setup.stats().user_stats().length(), 2);
+    assert_eq(setup.stats().users().length(), 2);
     assert_eq(setup.stats().user_total_power(USER_1), min_bal * 9);
     assert_eq(setup.stats().user_total_power(USER_2), min_bal);
     assert_eq(setup.stats().user_total_reward(USER_1), 0);
@@ -340,7 +340,7 @@ fun test_stats_ok() {
     setup.set_time(prop1.end_time_ms());
     setup.proposal__distribute_rewards(&mut prop1);
     assert_eq(setup.stats().tvl(), min_bal * 10); // no change
-    assert_eq(setup.stats().user_stats().length(), 2);
+    assert_eq(setup.stats().users().length(), 2);
     assert_eq(setup.stats().user_total_reward(USER_1), user_1_reward_prop1);
     assert_eq(setup.stats().user_total_reward(USER_2), user_2_reward_prop1);
 
@@ -354,7 +354,7 @@ fun test_stats_ok() {
     let reward_coin = setup.proposal__claim_reward(&mut prop2);
     assert_eq(reward_coin.value(), reward_amount!()); // user_1 is the only voter, so gets all rewards
     assert_eq(setup.stats().tvl(), min_bal * 15); // increased by 50%
-    assert_eq(setup.stats().user_stats().length(), 2); // no change
+    assert_eq(setup.stats().users().length(), 2); // no change
     assert_eq(setup.stats().user_total_reward(USER_1), user_1_reward_prop1 + reward_amount!());
 
     destroy(prop1);

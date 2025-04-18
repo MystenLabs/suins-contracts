@@ -19,7 +19,7 @@ public struct StakingStats has key {
     /// TVL = all staked NS + all locked NS
     tvl: u64,
     /// keys are user addresses
-    user_stats: Table<address, UserStats>,
+    users: Table<address, UserStats>,
 }
 
 /// User stats. One per user.
@@ -53,7 +53,7 @@ fun init(otw: STAKING_STATS, ctx: &mut TxContext)
     let stats = StakingStats {
         id: object::new(ctx),
         tvl: 0,
-        user_stats: table::new(ctx),
+        users: table::new(ctx),
     };
     transfer::share_object(stats);
 }
@@ -85,15 +85,15 @@ public(package) fun add_user_power(
     power: u64,
     ctx: &mut TxContext,
 ) {
-    if (!stats.user_stats.contains(user)) {
-        stats.user_stats.add(user, UserStats {
+    if (!stats.users.contains(user)) {
+        stats.users.add(user, UserStats {
             total_power: 0,
             total_reward: 0,
             proposals: table::new(ctx),
         });
     };
 
-    let user_stats = stats.user_stats.borrow_mut(user);
+    let user_stats = stats.users.borrow_mut(user);
     user_stats.total_power = user_stats.total_power + power;
 
     if (!user_stats.proposals.contains(proposal)) {
@@ -113,7 +113,7 @@ public(package) fun add_user_reward(
     proposal: address,
     reward: u64,
 ) {
-    let user_stats = stats.user_stats.borrow_mut(user);
+    let user_stats = stats.users.borrow_mut(user);
     user_stats.total_reward = user_stats.total_reward + reward;
 
     let proposal_stats = user_stats.proposals.borrow_mut(proposal);
@@ -128,8 +128,8 @@ public fun user_total_power(
     stats: &StakingStats,
     user: address,
 ): u64 {
-    return if (stats.user_stats.contains(user)) {
-        stats.user_stats.borrow(user).total_power
+    return if (stats.users.contains(user)) {
+        stats.users.borrow(user).total_power
     } else {
         0
     }
@@ -139,8 +139,8 @@ public fun user_total_reward(
     stats: &StakingStats,
     user: address,
 ): u64 {
-    return if (stats.user_stats.contains(user)) {
-        stats.user_stats.borrow(user).total_reward
+    return if (stats.users.contains(user)) {
+        stats.users.borrow(user).total_reward
     } else {
         0
     }
@@ -151,10 +151,10 @@ public fun user_proposal_stats(
     user: address,
     proposal: address,
 ): (u64, u64) {
-    if (!stats.user_stats.contains(user)) {
+    if (!stats.users.contains(user)) {
         return (0, 0)
     };
-    let user_stats = stats.user_stats.borrow(user);
+    let user_stats = stats.users.borrow(user);
     if (!user_stats.proposals.contains(proposal)) {
         return (0, 0)
     };
@@ -165,7 +165,7 @@ public fun user_proposal_stats(
 // === accessors ===
 
 public fun tvl(stats: &StakingStats): u64 { stats.tvl }
-public fun user_stats(stats: &StakingStats): &Table<address, UserStats> { &stats.user_stats }
+public fun users(stats: &StakingStats): &Table<address, UserStats> { &stats.users }
 
 // === method aliases ===
 
