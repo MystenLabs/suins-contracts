@@ -85,7 +85,7 @@ public fun new(
         voting_until_ms: 0,
     };
 
-    stats.add_total_balance(batch.balance.value());
+    stats.add_tvl(batch.balance.value());
 
     emit(EventNew {
         batch_id: batch.id.to_address(),
@@ -169,7 +169,7 @@ public fun unstake(
     let StakingBatch { id, balance, .. } = batch;
     object::delete(id);
 
-    stats.sub_total_balance(balance.value());
+    stats.sub_tvl(balance.value());
 
     emit(EventUnstake {
         batch_id: batch_address,
@@ -192,7 +192,7 @@ public fun admin_new(
 ): StakingBatch {
     assert!(start_ms <= unlock_ms, EInvalidLockPeriod);
 
-    stats.add_total_balance(coin.value());
+    stats.add_tvl(coin.value());
 
     let batch = StakingBatch {
         id: object::new(ctx),

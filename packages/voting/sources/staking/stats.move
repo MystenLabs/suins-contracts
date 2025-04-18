@@ -17,7 +17,7 @@ use sui::{
 public struct StakingStats has key {
     id: UID,
     /// TVL = all staked NS + all locked NS
-    total_balance: u64,
+    tvl: u64,
     /// keys are user addresses
     user_stats: Table<address, UserStats>,
 }
@@ -52,7 +52,7 @@ fun init(otw: STAKING_STATS, ctx: &mut TxContext)
 
     let stats = StakingStats {
         id: object::new(ctx),
-        total_balance: 0,
+        tvl: 0,
         user_stats: table::new(ctx),
     };
     transfer::share_object(stats);
@@ -64,18 +64,18 @@ fun init(otw: STAKING_STATS, ctx: &mut TxContext)
 
 // === package functions ===
 
-public(package) fun add_total_balance(
+public(package) fun add_tvl(
     stats: &mut StakingStats,
     balance: u64,
 ) {
-    stats.total_balance = stats.total_balance + balance;
+    stats.tvl = stats.tvl + balance;
 }
 
-public(package) fun sub_total_balance(
+public(package) fun sub_tvl(
     stats: &mut StakingStats,
     balance: u64,
 ) {
-    stats.total_balance = stats.total_balance - balance;
+    stats.tvl = stats.tvl - balance;
 }
 
 public(package) fun add_user_power(
@@ -164,7 +164,7 @@ public fun user_proposal_stats(
 
 // === accessors ===
 
-public fun total_balance(stats: &StakingStats): u64 { stats.total_balance }
+public fun tvl(stats: &StakingStats): u64 { stats.tvl }
 public fun user_stats(stats: &StakingStats): &Table<address, UserStats> { &stats.user_stats }
 
 // === method aliases ===

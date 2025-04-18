@@ -335,14 +335,14 @@ fun test_stats_ok() {
     let batch2 = setup.batch__new(min_bal * 2, 3);
 
     // check TVL
-    assert_eq(setup.stats().total_balance(), min_bal * 3);
+    assert_eq(setup.stats().tvl(), min_bal * 3);
 
     // unstake batch1
     batch1.request_unstake(setup.config(), setup.clock()); // request unstake
     setup.set_time(batch1.cooldown_end_ms() + month_ms!()); // cooldown ended a while ago
-    assert_eq(setup.stats().total_balance(), min_bal * 3); // but user didn't unstake yet
+    assert_eq(setup.stats().tvl(), min_bal * 3); // but user didn't unstake yet
     let unstaked_balance = setup.batch__unstake(batch1); // actually unstake
-    assert_eq(setup.stats().total_balance(), min_bal * 2); // TVL reduced
+    assert_eq(setup.stats().tvl(), min_bal * 2); // TVL reduced
 
     destroy(batch2);
     destroy(unstaked_balance);
