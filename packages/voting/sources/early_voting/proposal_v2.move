@@ -212,7 +212,7 @@ public fun vote(
     *user_power = *user_power + batch_power;
 
     // update user stats
-    stats.add_user_power(sender, proposal.id.to_address(), batch_power, ctx);
+    stats.add_user_vote(sender, proposal.id.to_address(), batch_power, ctx);
 }
 
 /// Finalize the proposal after the end time is reached and the threshold is

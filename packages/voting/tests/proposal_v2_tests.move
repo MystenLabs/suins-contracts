@@ -323,17 +323,17 @@ fun test_stats_ok() {
     setup.proposal__vote__new_batch_and_keep(&mut prop1, b"Yes", min_bal);
     setup.proposal__vote__new_batch_and_keep(&mut prop1, b"No", min_bal * 8); // bro changed his mind
     let user_1_reward_prop1 = reward_amount!() * 9 / 10;
+    assert_eq(setup.stats().user_tvl(USER_1), min_bal * 9);
 
     // user_2 votes on prop1 with 1 NS
     setup.next_tx(USER_2);
     setup.proposal__vote__new_batch_and_keep(&mut prop1, b"Yes", min_bal);
     let user_2_reward_prop1 = reward_amount!() / 10;
+    assert_eq(setup.stats().user_tvl(USER_2), min_bal);
 
     // check stats before finalizing prop1
     assert_eq(setup.stats().tvl(), min_bal * 10);
     assert_eq(setup.stats().users().length(), 2);
-    assert_eq(setup.stats().user_power(USER_1), min_bal * 9);
-    assert_eq(setup.stats().user_power(USER_2), min_bal);
     assert_eq(setup.stats().user_rewards(USER_1), 0);
     assert_eq(setup.stats().user_rewards(USER_2), 0);
 
@@ -349,6 +349,7 @@ fun test_stats_ok() {
     let mut prop2 = setup.proposal__new__default();
     setup.next_tx(USER_1);
     setup.proposal__vote__new_batch_and_keep(&mut prop2, b"Yes", min_bal * 5);
+    assert_eq(setup.stats().user_tvl(USER_1), min_bal * 14);
 
     // finalize prop2 and check stats
     setup.add_time(prop2.end_time_ms());

@@ -75,6 +75,8 @@ public fun new(
     assert!(coin.value() >= config.min_balance(), EBalanceTooLow);
     assert!(lock_months <= config.max_lock_months(), EInvalidLockPeriod);
 
+    let value = coin.value();
+
     let now = clock.timestamp_ms();
     let batch = StakingBatch {
         id: object::new(ctx),
@@ -85,11 +87,12 @@ public fun new(
         voting_until_ms: 0,
     };
 
-    stats.add_tvl(batch.balance.value());
+    stats.add_tvl(value);
+    stats.add_user_tvl(ctx.sender(), value, ctx);
 
     emit(EventNew {
         batch_id: batch.id.to_address(),
-        balance: batch.balance.value(),
+        balance: value,
         start_ms: batch.start_ms,
         unlock_ms: batch.unlock_ms,
     });
@@ -158,6 +161,7 @@ public fun unstake(
     batch: StakingBatch,
     stats: &mut StakingStats,
     clock: &Clock,
+    ctx: &TxContext,
 ): Balance<NS> {
     assert!(!batch.is_voting(clock), EBatchIsVoting);
     assert!(batch.is_unlocked(clock), EBatchLocked);
@@ -169,11 +173,14 @@ public fun unstake(
     let StakingBatch { id, balance, .. } = batch;
     object::delete(id);
 
-    stats.sub_tvl(balance.value());
+    let value = balance.value();
+
+    stats.sub_tvl(value);
+    stats.sub_user_tvl(ctx.sender(), value);
 
     emit(EventUnstake {
         batch_id: batch_address,
-        balance: balance.value(),
+        balance: value,
     });
 
     balance
@@ -192,17 +199,19 @@ public fun admin_new(
 ): StakingBatch {
     assert!(start_ms <= unlock_ms, EInvalidLockPeriod);
 
-    stats.add_tvl(coin.value());
+    let value = coin.value();
 
-    let batch = StakingBatch {
+    stats.add_tvl(value);
+    stats.add_user_tvl(ctx.sender(), value, ctx); // TODO this needs to be final user
+
+    StakingBatch {
         id: object::new(ctx),
         balance: coin.into_balance(),
         start_ms,
         unlock_ms,
         cooldown_end_ms: 0,
         voting_until_ms: 0,
-    };
-    batch
+    }
 }
 
 /// Allows the admin to airdrop batches

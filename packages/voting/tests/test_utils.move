@@ -139,7 +139,7 @@ public fun batch__unstake(
     setup: &mut TestSetup,
     batch: StakingBatch,
 ): Balance<NS> {
-    batch.unstake(&mut setup.stats, &setup.clock)
+    batch.unstake(&mut setup.stats, &setup.clock, setup.ts.ctx())
 }
 
 public fun batch__keep(

@@ -24,8 +24,8 @@ public struct StakingStats has key {
 
 /// User stats. One per user.
 public struct UserStats has store {
-    /// how much voting power the user voted with across all proposals
-    power: u64,
+    /// how much NS the user is staking + locking currently
+    tvl: u64,
     /// how much NS the user earned across all proposals
     rewards: u64,
     /// keys are proposal addresses
@@ -78,7 +78,30 @@ public(package) fun sub_tvl(
     stats.tvl = stats.tvl - balance;
 }
 
-public(package) fun add_user_power(
+public(package) fun add_user_tvl(
+    stats: &mut StakingStats,
+    user: address,
+    balance: u64,
+    ctx: &mut TxContext,
+) {
+    if (!stats.users.contains(user)) {
+        stats.users.add(user, new_user_stats(ctx));
+    };
+
+    let user_stats = stats.users.borrow_mut(user);
+    user_stats.tvl = user_stats.tvl + balance;
+}
+
+public(package) fun sub_user_tvl(
+    stats: &mut StakingStats,
+    user: address,
+    balance: u64,
+) {
+    let user_stats = stats.users.borrow_mut(user);
+    user_stats.tvl = user_stats.tvl - balance;
+}
+
+public(package) fun add_user_vote(
     stats: &mut StakingStats,
     user: address,
     proposal: address,
@@ -86,15 +109,10 @@ public(package) fun add_user_power(
     ctx: &mut TxContext,
 ) {
     if (!stats.users.contains(user)) {
-        stats.users.add(user, UserStats {
-            power: 0,
-            rewards: 0,
-            proposals: table::new(ctx),
-        });
+        stats.users.add(user, new_user_stats(ctx));
     };
 
     let user_stats = stats.users.borrow_mut(user);
-    user_stats.power = user_stats.power + power;
 
     if (!user_stats.proposals.contains(proposal)) {
         user_stats.proposals.add(proposal, UserProposalStats {
@@ -122,14 +140,22 @@ public(package) fun add_user_reward(
 
 // === private functions ===
 
+fun new_user_stats(ctx: &mut TxContext): UserStats {
+    UserStats {
+        tvl: 0,
+        rewards: 0,
+        proposals: table::new(ctx),
+    }
+}
+
 // === view functions ===
 
-public fun user_power(
+public fun user_tvl(
     stats: &StakingStats,
     user: address,
 ): u64 {
     return if (stats.users.contains(user)) {
-        stats.users.borrow(user).power
+        stats.users.borrow(user).tvl
     } else {
         0
     }
