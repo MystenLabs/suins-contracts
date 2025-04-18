@@ -25,9 +25,9 @@ public struct StakingStats has key {
 /// User stats. One per user.
 public struct UserStats has store {
     /// how much voting power the user voted with across all proposals
-    total_power: u64,
+    power: u64,
     /// how much NS the user earned across all proposals
-    total_reward: u64,
+    rewards: u64,
     /// keys are proposal addresses
     proposals: Table<address, UserProposalStats>,
 }
@@ -87,14 +87,14 @@ public(package) fun add_user_power(
 ) {
     if (!stats.users.contains(user)) {
         stats.users.add(user, UserStats {
-            total_power: 0,
-            total_reward: 0,
+            power: 0,
+            rewards: 0,
             proposals: table::new(ctx),
         });
     };
 
     let user_stats = stats.users.borrow_mut(user);
-    user_stats.total_power = user_stats.total_power + power;
+    user_stats.power = user_stats.power + power;
 
     if (!user_stats.proposals.contains(proposal)) {
         user_stats.proposals.add(proposal, UserProposalStats {
@@ -114,7 +114,7 @@ public(package) fun add_user_reward(
     reward: u64,
 ) {
     let user_stats = stats.users.borrow_mut(user);
-    user_stats.total_reward = user_stats.total_reward + reward;
+    user_stats.rewards = user_stats.rewards + reward;
 
     let proposal_stats = user_stats.proposals.borrow_mut(proposal);
     proposal_stats.reward = proposal_stats.reward + reward;
@@ -124,23 +124,23 @@ public(package) fun add_user_reward(
 
 // === view functions ===
 
-public fun user_total_power(
+public fun user_power(
     stats: &StakingStats,
     user: address,
 ): u64 {
     return if (stats.users.contains(user)) {
-        stats.users.borrow(user).total_power
+        stats.users.borrow(user).power
     } else {
         0
     }
 }
 
-public fun user_total_reward(
+public fun user_rewards(
     stats: &StakingStats,
     user: address,
 ): u64 {
     return if (stats.users.contains(user)) {
-        stats.users.borrow(user).total_reward
+        stats.users.borrow(user).rewards
     } else {
         0
     }
