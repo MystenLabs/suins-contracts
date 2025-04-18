@@ -124,11 +124,6 @@ public(package) fun add_user_reward(
 
 // === view functions ===
 
-// === accessors ===
-
-public fun total_balance(stats: &StakingStats): u64 { stats.total_balance }
-public fun user_stats(stats: &StakingStats): &Table<address, UserStats> { &stats.user_stats }
-
 public fun user_total_power(
     stats: &StakingStats,
     user: address,
@@ -139,6 +134,7 @@ public fun user_total_power(
         0
     }
 }
+
 public fun user_total_reward(
     stats: &StakingStats,
     user: address,
@@ -149,6 +145,7 @@ public fun user_total_reward(
         0
     }
 }
+
 public fun user_proposal_stats(
     stats: &StakingStats,
     user: address,
@@ -164,6 +161,11 @@ public fun user_proposal_stats(
     let proposal_stats = user_stats.proposals.borrow(proposal);
     (proposal_stats.power, proposal_stats.reward)
 }
+
+// === accessors ===
+
+public fun total_balance(stats: &StakingStats): u64 { stats.total_balance }
+public fun user_stats(stats: &StakingStats): &Table<address, UserStats> { &stats.user_stats }
 
 // === method aliases ===
 

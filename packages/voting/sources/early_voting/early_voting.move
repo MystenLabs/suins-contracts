@@ -91,11 +91,10 @@ fun add_early_voting_proposal(
         .push_back(pointer);
 }
 
-// === devinspect functions ===
+// === view functions ===
 
 /// get the proposal IDs from newest to oldest
-#[allow(unused_function)]
-fun view_proposal_ids(
+public fun get_proposal_ids(
     gov: &NSGovernance,
 ): vector<address> {
     if (!gov.has_app<EarlyVoting>()) {
