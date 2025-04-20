@@ -30,6 +30,7 @@ const ECooldownNotOver: u64 = 105;
 const EBatchIsVoting: u64 = 106;
 const EVotingUntilMsInPast: u64 = 107;
 const EVotingUntilMsNotExtended: u64 = 108;
+const EInvalidStartMs: u64 = 109;
 
 // === constants ===
 
@@ -102,14 +103,18 @@ public fun new(
 /// Stake NS into a new batch with arbitrary parameters, and transfer it
 public fun admin_new(
     _: &StakingAdminCap,
+    config: &StakingConfig,
     stats: &mut StakingStats,
     recipient: address,
     coin: Coin<NS>,
     start_ms: u64,
-    unlock_ms: u64,
+    lock_months: u64,
+    clock: &Clock,
     ctx: &mut TxContext,
 ) {
-    assert!(start_ms <= unlock_ms, EInvalidLockPeriod);
+    assert!(coin.value() >= config.min_balance(), EBalanceTooLow);
+    assert!(lock_months <= config.max_lock_months(), EInvalidLockPeriod);
+    assert!(start_ms <= clock.timestamp_ms(), EInvalidStartMs);
 
     let value = coin.value();
     stats.add_tvl(value);
@@ -119,7 +124,7 @@ public fun admin_new(
         id: object::new(ctx),
         balance: coin.into_balance(),
         start_ms,
-        unlock_ms,
+        unlock_ms: start_ms + (lock_months * month_ms!()),
         cooldown_end_ms: 0,
         voting_until_ms: 0,
     };
