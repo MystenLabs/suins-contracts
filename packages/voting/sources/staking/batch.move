@@ -73,62 +73,20 @@ public fun new(
     clock: &Clock,
     ctx: &mut TxContext,
 ): StakingBatch {
-    assert!(coin.value() >= config.min_balance(), EBalanceTooLow);
-    assert!(lock_months <= config.max_lock_months(), EInvalidLockPeriod);
-
-    let value = coin.value();
-    stats.add_tvl(value);
-    stats.add_user_tvl(ctx.sender(), value, ctx);
-
-    let now = clock.timestamp_ms();
-    let batch = StakingBatch {
-        id: object::new(ctx),
-        balance: coin.into_balance(),
-        start_ms: now,
-        unlock_ms: now + (lock_months * month_ms!()),
-        cooldown_end_ms: 0,
-        voting_until_ms: 0,
-    };
+    let recipient = ctx.sender();
+    let start_ms = clock.timestamp_ms();
+    let batch = new_internal(
+        config, stats, recipient, coin, start_ms, lock_months, clock, ctx
+    );
 
     emit(EventNew {
         batch_id: batch.id.to_address(),
-        balance: value,
+        balance: batch.balance.value(),
         start_ms: batch.start_ms,
         unlock_ms: batch.unlock_ms,
     });
 
     batch
-}
-
-/// Stake NS into a new batch with arbitrary parameters, and transfer it
-public fun admin_new(
-    _: &StakingAdminCap,
-    config: &StakingConfig,
-    stats: &mut StakingStats,
-    recipient: address,
-    coin: Coin<NS>,
-    start_ms: u64,
-    lock_months: u64,
-    clock: &Clock,
-    ctx: &mut TxContext,
-) {
-    assert!(coin.value() >= config.min_balance(), EBalanceTooLow);
-    assert!(lock_months <= config.max_lock_months(), EInvalidLockPeriod);
-    assert!(start_ms <= clock.timestamp_ms(), EInvalidStartMs);
-
-    let value = coin.value();
-    stats.add_tvl(value);
-    stats.add_user_tvl(recipient, value, ctx);
-
-    let batch = StakingBatch {
-        id: object::new(ctx),
-        balance: coin.into_balance(),
-        start_ms,
-        unlock_ms: start_ms + (lock_months * month_ms!()),
-        cooldown_end_ms: 0,
-        voting_until_ms: 0,
-    };
-    transfer::transfer(batch, recipient);
 }
 
 /// transfer the batch to the sender
@@ -215,6 +173,26 @@ public fun unstake(
     balance
 }
 
+// === admin functions ===
+
+/// Stake NS into a new batch with an arbitrary start_ms, and transfer it
+public fun admin_new(
+    _: &StakingAdminCap,
+    config: &StakingConfig,
+    stats: &mut StakingStats,
+    coin: Coin<NS>,
+    lock_months: u64,
+    start_ms: u64, // unlike `new`, this can be in the past
+    recipient: address, // unlike `new`, admin can create batches for others
+    clock: &Clock,
+    ctx: &mut TxContext,
+) {
+    let batch = new_internal(
+        config, stats, recipient, coin, start_ms, lock_months, clock, ctx
+    );
+    transfer::transfer(batch, recipient);
+}
+
 // === package functions ===
 
 /// Flag a batch as being used to vote on a proposal
@@ -230,6 +208,34 @@ public(package) fun set_voting_until_ms(
 }
 
 // === private functions ===
+
+fun new_internal(
+    config: &StakingConfig,
+    stats: &mut StakingStats,
+    recipient: address,
+    coin: Coin<NS>,
+    start_ms: u64,
+    lock_months: u64,
+    clock: &Clock,
+    ctx: &mut TxContext,
+): StakingBatch {
+    assert!(coin.value() >= config.min_balance(), EBalanceTooLow);
+    assert!(lock_months <= config.max_lock_months(), EInvalidLockPeriod);
+    assert!(start_ms <= clock.timestamp_ms(), EInvalidStartMs);
+
+    let value = coin.value();
+    stats.add_tvl(value);
+    stats.add_user_tvl(recipient, value, ctx);
+
+    StakingBatch {
+        id: object::new(ctx),
+        balance: coin.into_balance(),
+        start_ms,
+        unlock_ms: start_ms + (lock_months * month_ms!()),
+        cooldown_end_ms: 0,
+        voting_until_ms: 0,
+    }
+}
 
 // === view functions ===
 
