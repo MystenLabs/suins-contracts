@@ -77,8 +77,6 @@ fun init(otw: STAKING_CONFIG, ctx: &mut TxContext)
     transfer::share_object(config);
 }
 
-// === public functions ===
-
 // === admin functions ===
 
 public fun set_cooldown_ms(config: &mut StakingConfig, _: &StakingAdminCap, cooldown_ms: u64 ) {
@@ -122,12 +120,6 @@ public fun set_all(
     set_min_balance(config, _, min_balance);
 }
 
-// === package functions ===
-
-// === private functions ===
-
-// === view functions ===
-
 // === accessors ===
 
 public fun cooldown_ms(config: &StakingConfig): u64 { config.cooldown_ms }
@@ -135,8 +127,6 @@ public fun max_lock_months(config: &StakingConfig): u64 { config.max_lock_months
 public fun max_boost_bps(config: &StakingConfig): u64 { config.max_boost_bps }
 public fun monthly_boost_bps(config: &StakingConfig): u64 { config.monthly_boost_bps }
 public fun min_balance(config: &StakingConfig): u64 { config.min_balance }
-
-// === method aliases ===
 
 // === events ===
 

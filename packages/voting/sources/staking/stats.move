@@ -7,10 +7,6 @@ use sui::{
     table::{Self, Table},
 };
 
-// === errors ===
-
-// === constants ===
-
 // === structs ===
 
 /// Staking stats. Singleton.
@@ -57,10 +53,6 @@ fun init(otw: STAKING_STATS, ctx: &mut TxContext)
     };
     transfer::share_object(stats);
 }
-
-// === public functions ===
-
-// === admin functions ===
 
 // === package functions ===
 
@@ -192,10 +184,6 @@ public fun user_proposal_stats(
 
 public fun tvl(stats: &StakingStats): u64 { stats.tvl }
 public fun users(stats: &StakingStats): &Table<address, UserStats> { &stats.users }
-
-// === method aliases ===
-
-// === events ===
 
 // === test functions ===
 

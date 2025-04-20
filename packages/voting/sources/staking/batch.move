@@ -32,8 +32,6 @@ const EVotingUntilMsInPast: u64 = 107;
 const EVotingUntilMsNotExtended: u64 = 108;
 const EInvalidStartMs: u64 = 109;
 
-// === constants ===
-
 // === structs ===
 
 /// A batch of staked NS
@@ -319,8 +317,6 @@ public fun unlock_ms(batch: &StakingBatch): u64 { batch.unlock_ms }
 public fun cooldown_end_ms(batch: &StakingBatch): u64 { batch.cooldown_end_ms }
 public fun voting_until_ms(batch: &StakingBatch): u64 { batch.voting_until_ms }
 
-// === method aliases ===
-
 // === events ===
 
 public struct EventNew has copy, drop {
@@ -348,5 +344,3 @@ public struct EventUnstake has copy, drop {
     batch_id: address,
     balance: u64,
 }
-
-// === test functions ===

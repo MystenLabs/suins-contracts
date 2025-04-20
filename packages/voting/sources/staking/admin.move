@@ -6,10 +6,6 @@ use sui::{
     package::{Self},
 };
 
-// === errors ===
-
-// === constants ===
-
 // === structs ===
 
 public struct StakingAdminCap has key, store {
@@ -29,22 +25,6 @@ fun init(otw: STAKING_ADMIN, ctx: &mut TxContext)
     let cap = StakingAdminCap { id: object::new(ctx) };
     transfer::transfer(cap, ctx.sender());
 }
-
-// === public functions ===
-
-// === admin functions ===
-
-// === package functions ===
-
-// === private functions ===
-
-// === view functions ===
-
-// === accessors ===
-
-// === method aliases ===
-
-// === events ===
 
 // === test functions ===
 
