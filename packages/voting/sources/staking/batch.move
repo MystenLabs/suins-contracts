@@ -99,6 +99,33 @@ public fun new(
     batch
 }
 
+/// Stake NS into a new batch with arbitrary parameters, and transfer it
+public fun admin_new(
+    _: &StakingAdminCap,
+    stats: &mut StakingStats,
+    recipient: address,
+    coin: Coin<NS>,
+    start_ms: u64,
+    unlock_ms: u64,
+    ctx: &mut TxContext,
+) {
+    assert!(start_ms <= unlock_ms, EInvalidLockPeriod);
+
+    let value = coin.value();
+    stats.add_tvl(value);
+    stats.add_user_tvl(recipient, value, ctx);
+
+    let batch = StakingBatch {
+        id: object::new(ctx),
+        balance: coin.into_balance(),
+        start_ms,
+        unlock_ms,
+        cooldown_end_ms: 0,
+        voting_until_ms: 0,
+    };
+    transfer::transfer(batch, recipient);
+}
+
 /// transfer the batch to the sender
 public fun keep(
     batch: StakingBatch,
@@ -181,35 +208,6 @@ public fun unstake(
     });
 
     balance
-}
-
-// === admin functions ===
-
-/// Stake NS into a new batch with arbitrary parameters, and transfer it
-public fun admin_new(
-    _: &StakingAdminCap,
-    stats: &mut StakingStats,
-    recipient: address,
-    coin: Coin<NS>,
-    start_ms: u64,
-    unlock_ms: u64,
-    ctx: &mut TxContext,
-) {
-    assert!(start_ms <= unlock_ms, EInvalidLockPeriod);
-
-    let value = coin.value();
-    stats.add_tvl(value);
-    stats.add_user_tvl(recipient, value, ctx);
-
-    let batch = StakingBatch {
-        id: object::new(ctx),
-        balance: coin.into_balance(),
-        start_ms,
-        unlock_ms,
-        cooldown_end_ms: 0,
-        voting_until_ms: 0,
-    };
-    transfer::transfer(batch, recipient);
 }
 
 // === package functions ===
