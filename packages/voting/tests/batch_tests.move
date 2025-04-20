@@ -212,7 +212,7 @@ fun test_power_ok() {
 }
 
 #[test]
-fun test_power_max_balance() {
+fun test_power_max_balance_ok() {
     let mut setup = setup();
 
     // test with total NS supply
@@ -236,33 +236,46 @@ fun test_power_max_balance() {
 }
 
 #[test]
-fun test_admin_functions() {
+fun test_admin_new_ok() {
     let mut setup = setup();
+    setup.add_time(month_ms!() * 12);
 
     // test admin_new
-    let now = setup.clock().timestamp_ms();
-    let past_time_ms = now - 1000 * 60 * 60; // 1 hour ago
+    let balance = setup.config().min_balance();
+    let expected_power = balance * setup.config().monthly_boost_bps() / 10000;
+    let start_ms = setup.clock().timestamp_ms() - month_ms!(); // 1 month ago
     setup.batch__admin_new(
+        balance,
+        0, // never locked
+        start_ms,
         USER_1,
-        1_000_000,
-        past_time_ms,
-        past_time_ms, // never locked
     );
 
-    // verify USER_1 received the batch
+    // verify USER_1 received the batch and it's correctly configured
     setup.next_tx(USER_1);
-    let taken_batch = setup.ts().take_from_sender<StakingBatch>();
-    assert_eq(taken_batch.balance(), 1_000_000);
-    assert_eq(taken_batch.is_locked(setup.clock()), false);
+    let batch = setup.ts().take_from_sender<StakingBatch>();
 
-    destroy(taken_batch);
+    assert_eq(batch.balance(), balance);
+    assert_eq(batch.start_ms(), start_ms);
+    assert_eq(batch.unlock_ms(), start_ms);
+    assert_eq(batch.cooldown_end_ms(), 0);
+    assert_eq(batch.voting_until_ms(), 0);
+
+    assert_eq(batch.power(setup.config(), setup.clock()), expected_power);
+    assert_eq(batch.is_locked(setup.clock()), false);
+    assert_eq(batch.is_unlocked(setup.clock()), true);
+    assert_eq(batch.is_cooldown_requested(), false);
+    assert_eq(batch.is_cooldown_over(setup.clock()), false);
+    assert_eq(batch.is_voting(setup.clock()), false);
+
+    destroy(batch);
     setup.destroy();
 }
 
 // === tests: admin ===
 
 #[test]
-fun test_config_changes() {
+fun test_config_changes_ok() {
     let mut setup = setup_default_config();
     let min_bal = setup.config().min_balance();
     let cap = setup.ts().take_from_sender<StakingAdminCap>();
@@ -300,7 +313,7 @@ fun test_config_changes() {
 }
 
 #[test]
-fun test_zero_cooldown() {
+fun test_zero_cooldown_ok() {
     let mut setup = setup();
     let cap = setup.ts().take_from_sender<StakingAdminCap>();
     let balance = setup.config().min_balance();
@@ -519,13 +532,51 @@ fun test_set_voting_until_ms_e_not_extended() {
     abort 123
 }
 
+#[test, expected_failure(abort_code = staking_batch::EBalanceTooLow)]
+fun test_admin_new_e_balance_too_low() {
+    let mut setup = setup();
+
+    let balance = setup.config().min_balance() - 1; // too low
+    let start_ms = setup.clock().timestamp_ms();
+    setup.batch__admin_new(
+        balance,
+        0, // never locked
+        start_ms,
+        USER_1,
+    );
+
+    abort 123
+}
+
 #[test, expected_failure(abort_code = staking_batch::EInvalidLockPeriod)]
 fun test_admin_new_e_invalid_lock_period() {
     let mut setup = setup();
 
-    // try to set unlock_ms before start_ms
-    let now = setup.clock().timestamp_ms();
-    setup.batch__admin_new(USER_1,1_000_000, now, now - 1);
+    let balance = setup.config().min_balance();
+    let start_ms = setup.clock().timestamp_ms();
+    let lock_months = setup.config().max_lock_months() + 1; // too long
+    setup.batch__admin_new(
+        balance,
+        lock_months,
+        start_ms,
+        USER_1,
+    );
+
+    abort 123
+}
+
+#[test, expected_failure(abort_code = staking_batch::EInvalidStartMs)]
+fun test_admin_new_e_invalid_start_ms() {
+    let mut setup = setup();
+
+    let balance = setup.config().min_balance();
+    let start_ms = setup.clock().timestamp_ms() + 1; // in the future
+    setup.batch__admin_new(
+        balance,
+        0, // never locked
+        start_ms,
+        USER_1,
+    );
 
     abort 123
 }
