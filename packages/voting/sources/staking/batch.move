@@ -16,7 +16,7 @@ use suins_voting::{
     constants::{month_ms},
     staking_admin::{StakingAdminCap},
     staking_config::{StakingConfig},
-    staking_stats::{StakingStats},
+    stats::{Stats},
 };
 
 // === errors ===
@@ -65,7 +65,7 @@ fun init(otw: STAKING_BATCH, ctx: &mut TxContext)
 /// Stake NS into a new batch, optionally locking it for a number of months
 public fun new(
     config: &StakingConfig,
-    stats: &mut StakingStats,
+    stats: &mut Stats,
     coin: Coin<NS>,
     lock_months: u64,
     clock: &Clock,
@@ -146,7 +146,7 @@ public fun request_unstake(
 /// Withdraw balance and destroy batch after cooldown period has ended
 public fun unstake(
     batch: StakingBatch,
-    stats: &mut StakingStats,
+    stats: &mut Stats,
     clock: &Clock,
     ctx: &TxContext,
 ): Balance<NS> {
@@ -177,7 +177,7 @@ public fun unstake(
 public fun admin_new(
     _: &StakingAdminCap,
     config: &StakingConfig,
-    stats: &mut StakingStats,
+    stats: &mut Stats,
     coin: Coin<NS>,
     lock_months: u64,
     start_ms: u64, // unlike `new`, this can be in the past
@@ -209,7 +209,7 @@ public(package) fun set_voting_until_ms(
 
 fun new_internal(
     config: &StakingConfig,
-    stats: &mut StakingStats,
+    stats: &mut Stats,
     recipient: address,
     coin: Coin<NS>,
     start_ms: u64,

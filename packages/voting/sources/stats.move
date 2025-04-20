@@ -1,4 +1,4 @@
-module suins_voting::staking_stats;
+module suins_voting::stats;
 
 // === imports ===
 
@@ -9,8 +9,8 @@ use sui::{
 
 // === structs ===
 
-/// Staking stats. Singleton.
-public struct StakingStats has key {
+/// Staking and governance stats. Singleton.
+public struct Stats has key {
     id: UID,
     /// TVL = all staked NS + all locked NS
     tvl: u64,
@@ -37,16 +37,16 @@ public struct UserProposalStats has copy, drop, store {
 }
 
 /// One-Time Witness
-public struct STAKING_STATS has drop {}
+public struct STATS has drop {}
 
 // === initialization ===
 
-fun init(otw: STAKING_STATS, ctx: &mut TxContext)
+fun init(otw: STATS, ctx: &mut TxContext)
 {
     let publisher = package::claim(otw, ctx);
     transfer::public_transfer(publisher, ctx.sender());
 
-    let stats = StakingStats {
+    let stats = Stats {
         id: object::new(ctx),
         tvl: 0,
         users: table::new(ctx),
@@ -57,21 +57,21 @@ fun init(otw: STAKING_STATS, ctx: &mut TxContext)
 // === package functions ===
 
 public(package) fun add_tvl(
-    stats: &mut StakingStats,
+    stats: &mut Stats,
     balance: u64,
 ) {
     stats.tvl = stats.tvl + balance;
 }
 
 public(package) fun sub_tvl(
-    stats: &mut StakingStats,
+    stats: &mut Stats,
     balance: u64,
 ) {
     stats.tvl = stats.tvl - balance;
 }
 
 public(package) fun add_user_tvl(
-    stats: &mut StakingStats,
+    stats: &mut Stats,
     user: address,
     balance: u64,
     ctx: &mut TxContext,
@@ -85,7 +85,7 @@ public(package) fun add_user_tvl(
 }
 
 public(package) fun sub_user_tvl(
-    stats: &mut StakingStats,
+    stats: &mut Stats,
     user: address,
     balance: u64,
 ) {
@@ -94,7 +94,7 @@ public(package) fun sub_user_tvl(
 }
 
 public(package) fun add_user_vote(
-    stats: &mut StakingStats,
+    stats: &mut Stats,
     user: address,
     proposal: address,
     power: u64,
@@ -118,7 +118,7 @@ public(package) fun add_user_vote(
 }
 
 public(package) fun add_user_reward(
-    stats: &mut StakingStats,
+    stats: &mut Stats,
     user: address,
     proposal: address,
     reward: u64,
@@ -143,7 +143,7 @@ fun new_user_stats(ctx: &mut TxContext): UserStats {
 // === view functions ===
 
 public fun user_tvl(
-    stats: &StakingStats,
+    stats: &Stats,
     user: address,
 ): u64 {
     return if (stats.users.contains(user)) {
@@ -154,7 +154,7 @@ public fun user_tvl(
 }
 
 public fun user_rewards(
-    stats: &StakingStats,
+    stats: &Stats,
     user: address,
 ): u64 {
     return if (stats.users.contains(user)) {
@@ -165,7 +165,7 @@ public fun user_rewards(
 }
 
 public fun user_proposal_stats(
-    stats: &StakingStats,
+    stats: &Stats,
     user: address,
     proposal: address,
 ): (u64, u64) {
@@ -182,8 +182,8 @@ public fun user_proposal_stats(
 
 // === accessors ===
 
-public fun tvl(stats: &StakingStats): u64 { stats.tvl }
-public fun users(stats: &StakingStats): &Table<address, UserStats> { &stats.users }
+public fun tvl(stats: &Stats): u64 { stats.tvl }
+public fun users(stats: &Stats): &Table<address, UserStats> { &stats.users }
 
 // === test functions ===
 
@@ -191,6 +191,6 @@ public fun users(stats: &StakingStats): &Table<address, UserStats> { &stats.user
 public fun init_for_testing(
     ctx: &mut TxContext,
 ) {
-    let otw = STAKING_STATS {};
+    let otw = STATS {};
     init(otw, ctx);
 }

@@ -26,7 +26,7 @@ use suins_voting::{
     staking_admin::{StakingAdminCap},
     staking_batch::{Self, StakingBatch},
     staking_config::{Self, Self as cnf, StakingConfig},
-    staking_stats::{Self, StakingStats},
+    stats::{Self, Stats},
     voting_option::{Self, VotingOption},
 };
 
@@ -44,7 +44,7 @@ public struct TestSetup {
     clock: Clock,
     gov: NSGovernance,
     config: StakingConfig,
-    stats: StakingStats,
+    stats: Stats,
 }
 
 public fun ts(setup: &TestSetup): &Scenario { &setup.ts }
@@ -52,7 +52,7 @@ public fun clock(setup: &TestSetup): &Clock { &setup.clock }
 public fun gov_mut(setup: &mut TestSetup): &mut NSGovernance { &mut setup.gov }
 public fun config(setup: &TestSetup): &StakingConfig { &setup.config }
 public fun config_mut(setup: &mut TestSetup): &mut StakingConfig { &mut setup.config }
-public fun stats(setup: &TestSetup): &StakingStats { &setup.stats }
+public fun stats(setup: &TestSetup): &Stats { &setup.stats }
 
 /**
  * Setup a test with random config values
@@ -77,12 +77,12 @@ fun setup_internal(random_config: bool): TestSetup {
     governance::init_for_testing(ts.ctx());
     staking_admin::init_for_testing(ts.ctx());
     staking_config::init_for_testing(ts.ctx());
-    staking_stats::init_for_testing(ts.ctx());
+    stats::init_for_testing(ts.ctx());
 
     ts.next_tx(admin_addr!());
     let gov = ts.take_shared<NSGovernance>();
     let mut config = ts.take_shared<StakingConfig>();
-    let stats = ts.take_shared<StakingStats>();
+    let stats = ts.take_shared<Stats>();
 
     if (random_config) {
         let mut gen = random::new_generator_for_testing();

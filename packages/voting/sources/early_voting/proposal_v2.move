@@ -24,7 +24,7 @@ use suins_token::{
 use suins_voting::{
     staking_batch::{StakingBatch},
     staking_config::{StakingConfig},
-    staking_stats::{StakingStats},
+    stats::{Stats},
 };
 
 // === errors ===
@@ -160,7 +160,7 @@ public fun new(
 public fun vote(
     proposal: &mut ProposalV2,
     config: &StakingConfig,
-    stats: &mut StakingStats,
+    stats: &mut Stats,
     batch: &mut StakingBatch,
     opt: String,
     clock: &Clock,
@@ -231,7 +231,7 @@ public fun finalize(
 #[allow(lint(self_transfer))]
 public fun distribute_rewards(
     proposal: &mut ProposalV2,
-    stats: &mut StakingStats,
+    stats: &mut Stats,
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
@@ -261,7 +261,7 @@ public fun distribute_rewards(
 /// Also finalize the proposal if needed.
 public fun claim_reward(
     proposal: &mut ProposalV2,
-    stats: &mut StakingStats,
+    stats: &mut Stats,
     clock: &Clock,
     ctx: &mut TxContext,
 ): Balance<NS> {
@@ -345,7 +345,7 @@ fun finalize_internal(proposal: &mut ProposalV2, clock: &Clock) {
 /// Remove the voter from proposal.voter_powers, and return his reward
 fun get_user_reward(
     proposal: &mut ProposalV2,
-    stats: &mut StakingStats,
+    stats: &mut Stats,
     user_addr: address,
 ): Balance<NS> {
     assert!(proposal.voter_powers.contains(user_addr), EVoterNotFound);
