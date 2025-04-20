@@ -10,6 +10,7 @@ use sui::{
     package::{Self},
 };
 use suins_voting::{
+    constants::{month_ms},
     staking_admin::{StakingAdminCap},
 };
 
@@ -25,19 +26,19 @@ const EInvalidMinBalance: u64 = 104;
 
 public(package) macro fun init_cooldown_ms(): u64 { 1000 * 60 * 60 * 24 * 3 } // 3 days
 public(package) macro fun min_cooldown_ms(): u64 { 0 } // instant
-public(package) macro fun max_cooldown_ms(): u64 { 1000 * 60 * 60 * 24 * 30 } // 30 days
+public(package) macro fun max_cooldown_ms(): u64 { month_ms!() } // 30 days
 
-public(package) macro fun init_max_lock_months(): u64 { 12 }
-public(package) macro fun min_max_lock_months(): u64 { 3 } // 3 months
-public(package) macro fun max_max_lock_months(): u64 { 36 } // 3 years
+public(package) macro fun init_monthly_boost_bps(): u64 { 110_00 } // 1.1x
+public(package) macro fun min_monthly_boost_bps(): u64 { 101_00 } // 1.01x
+public(package) macro fun max_monthly_boost_bps(): u64 { 300_00 } // 3x
 
 public(package) macro fun init_max_boost_bps(): u64 { 300_00 } // 3x
 public(package) macro fun min_max_boost_bps(): u64 { 105_00 } // 1.05x
 public(package) macro fun max_max_boost_bps(): u64 { 1500_00 } // 15x
 
-public(package) macro fun init_monthly_boost_bps(): u64 { 110_00 } // 1.1x
-public(package) macro fun min_monthly_boost_bps(): u64 { 101_00 } // 1.01x
-public(package) macro fun max_monthly_boost_bps(): u64 { 300_00 } // 3x
+public(package) macro fun init_max_lock_months(): u64 { 12 } // 12 months
+public(package) macro fun min_max_lock_months(): u64 { 3 } // 3 months
+public(package) macro fun max_max_lock_months(): u64 { 36 } // 3 years
 
 public(package) macro fun init_min_balance(): u64 { 1_000_000 } // 1 NS
 public(package) macro fun min_min_balance(): u64 { 1_000 } // 0.001 NS
@@ -48,15 +49,15 @@ public(package) macro fun max_min_balance(): u64 { 1_000_000_000 } // 1000 NS
 /// Staking configuration. Singleton.
 public struct StakingConfig has key {
     id: UID,
-    /// how long it takes to unstake a batch
+    /// How long it takes to unstake a batch
     cooldown_ms: u64,
-    /// max number of months a batch can be staked for
-    max_lock_months: u64,
-    /// total power multiplier when locking a batch for `max_lock_months`
-    max_boost_bps: u64,
-    /// monthly power multiplier for staked/locked batches
+    /// Monthly power multiplier for staked/locked batches
     monthly_boost_bps: u64,
-    /// minimum NS balance allowed in a batch
+    /// Total power multiplier when locking a batch for `max_lock_months`
+    max_boost_bps: u64,
+    /// Maximum number of months a batch can be locked for
+    max_lock_months: u64,
+    /// Minimum balance required to stake/lock a new batch
     min_balance: u64,
 }
 

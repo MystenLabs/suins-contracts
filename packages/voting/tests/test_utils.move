@@ -90,14 +90,14 @@ fun setup_internal(random_config: bool): TestSetup {
         config.set_cooldown_ms(&cap, gen.generate_u64_in_range(
             cnf::min_cooldown_ms!(), cnf::max_cooldown_ms!())
         );
-        config.set_max_lock_months(&cap, gen.generate_u64_in_range(
-            cnf::min_max_lock_months!(), cnf::max_max_lock_months!())
+        config.set_monthly_boost_bps(&cap, gen.generate_u64_in_range(
+            cnf::min_monthly_boost_bps!(), cnf::max_monthly_boost_bps!())
         );
         config.set_max_boost_bps(&cap, gen.generate_u64_in_range(
             cnf::min_max_boost_bps!(), cnf::max_max_boost_bps!())
         );
-        config.set_monthly_boost_bps(&cap, gen.generate_u64_in_range(
-            cnf::min_monthly_boost_bps!(), cnf::max_monthly_boost_bps!())
+        config.set_max_lock_months(&cap, gen.generate_u64_in_range(
+            cnf::min_max_lock_months!(), cnf::max_max_lock_months!())
         );
         config.set_min_balance(&cap, gen.generate_u64_in_range(
             cnf::min_min_balance!(), cnf::max_min_balance!())
