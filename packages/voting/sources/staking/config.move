@@ -2,7 +2,11 @@ module suins_voting::staking_config;
 
 // === imports ===
 
+use std::{
+    string::{String},
+};
 use sui::{
+    event::{emit},
     package::{Self},
 };
 use suins_voting::{
@@ -82,26 +86,31 @@ fun init(otw: STAKING_CONFIG, ctx: &mut TxContext)
 public fun set_cooldown_ms(config: &mut StakingConfig, _: &StakingAdminCap, cooldown_ms: u64 ) {
     assert!(cooldown_ms >= min_cooldown_ms!(), EInvalidCooldownMs);
     assert!(cooldown_ms <= max_cooldown_ms!(), EInvalidCooldownMs);
+    emit_event(b"cooldown_ms", config.cooldown_ms, cooldown_ms);
     config.cooldown_ms = cooldown_ms;
 }
 public fun set_max_lock_months(config: &mut StakingConfig, _: &StakingAdminCap, max_lock_months: u64 ) {
     assert!(max_lock_months >= min_max_lock_months!(), EInvalidMaxLockMonths);
     assert!(max_lock_months <= max_max_lock_months!(), EInvalidMaxLockMonths);
+    emit_event(b"max_lock_months", config.max_lock_months, max_lock_months);
     config.max_lock_months = max_lock_months;
 }
 public fun set_max_boost_bps(config: &mut StakingConfig, _: &StakingAdminCap, max_boost_bps: u64) {
     assert!(max_boost_bps >= min_max_boost_bps!(), EInvalidMaxBoostBps);
     assert!(max_boost_bps <= max_max_boost_bps!(), EInvalidMaxBoostBps);
+    emit_event(b"max_boost_bps", config.max_boost_bps, max_boost_bps);
     config.max_boost_bps = max_boost_bps;
 }
 public fun set_monthly_boost_bps(config: &mut StakingConfig, _: &StakingAdminCap, monthly_boost_bps: u64) {
     assert!(monthly_boost_bps >= min_monthly_boost_bps!(), EInvalidMonthlyBoostBps);
     assert!(monthly_boost_bps <= max_monthly_boost_bps!(), EInvalidMonthlyBoostBps);
+    emit_event(b"monthly_boost_bps", config.monthly_boost_bps, monthly_boost_bps);
     config.monthly_boost_bps = monthly_boost_bps;
 }
 public fun set_min_balance(config: &mut StakingConfig, _: &StakingAdminCap, min_balance: u64 ) {
     assert!(min_balance >= min_min_balance!(), EInvalidMinBalance);
     assert!(min_balance <= max_min_balance!(), EInvalidMinBalance);
+    emit_event(b"min_balance", config.min_balance, min_balance);
     config.min_balance = min_balance;
 }
 public fun set_all(
@@ -120,6 +129,20 @@ public fun set_all(
     set_min_balance(config, _, min_balance);
 }
 
+// === private functions ===
+
+fun emit_event(
+    property: vector<u8>,
+    old_value: u64,
+    new_value: u64,
+) {
+    emit(EventConfigChange {
+        property: property.to_string(),
+        old_value,
+        new_value,
+    });
+}
+
 // === accessors ===
 
 public fun cooldown_ms(config: &StakingConfig): u64 { config.cooldown_ms }
@@ -129,6 +152,12 @@ public fun monthly_boost_bps(config: &StakingConfig): u64 { config.monthly_boost
 public fun min_balance(config: &StakingConfig): u64 { config.min_balance }
 
 // === events ===
+
+public struct EventConfigChange has copy, drop {
+    property: String,
+    old_value: u64,
+    new_value: u64,
+}
 
 // === test functions ===
 
