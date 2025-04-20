@@ -80,8 +80,8 @@ function print_ts_config() {
 ### main ###
 
 # prevent from running on mainnet
-if [ "$ACTIVE_ENV" == "mainnet" ]; then
-    echo "The active environment is mainnet. Aborting."
+if [ "$ACTIVE_ENV" != "localnet" ]; then
+    echo "The active environment is not localnet. Aborting."
     exit 1
 fi
 
