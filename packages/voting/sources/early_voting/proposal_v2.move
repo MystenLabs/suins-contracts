@@ -174,6 +174,7 @@ public fun vote(
     // prevent double voting
     assert!(!batch.is_voting(clock), EBatchIsVoting);
     batch.set_voting_until_ms(proposal.end_time_ms, clock);
+    batch.set_last_vote(opt);
 
     // batches that have requested or completed cooldown can't vote
     assert!(!batch.is_cooldown_requested(), EBatchInCooldown);

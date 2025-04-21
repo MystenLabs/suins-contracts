@@ -2,6 +2,9 @@ module suins_voting::staking_batch;
 
 // === imports ===
 
+use std::{
+    string::{String},
+};
 use sui::{
     balance::{Balance},
     clock::{Clock},
@@ -47,6 +50,8 @@ public struct StakingBatch has key {
     cooldown_end_ms: u64,
     /// Until when the batch is being used to vote on a proposal. `0` if never voted.
     voting_until_ms: u64,
+    /// The last option a batch voted for.
+    last_vote: Option<String>,
 }
 
 /// one-time witness
@@ -205,6 +210,13 @@ public(package) fun set_voting_until_ms(
     batch.voting_until_ms = voting_until_ms;
 }
 
+public(package) fun set_last_vote(
+    batch: &mut StakingBatch,
+    last_vote: String,
+) {
+    batch.last_vote = option::some(last_vote);
+}
+
 // === private functions ===
 
 fun new_internal(
@@ -232,6 +244,7 @@ fun new_internal(
         unlock_ms: start_ms + (lock_months * month_ms!()),
         cooldown_end_ms: 0,
         voting_until_ms: 0,
+        last_vote: option::none(),
     }
 }
 
@@ -316,6 +329,7 @@ public fun start_ms(batch: &StakingBatch): u64 { batch.start_ms }
 public fun unlock_ms(batch: &StakingBatch): u64 { batch.unlock_ms }
 public fun cooldown_end_ms(batch: &StakingBatch): u64 { batch.cooldown_end_ms }
 public fun voting_until_ms(batch: &StakingBatch): u64 { batch.voting_until_ms }
+public fun last_vote(batch: &StakingBatch): Option<String> { batch.last_vote }
 
 // === events ===
 
