@@ -53,10 +53,17 @@ In your code, import and use the package as:
 ```move
 module my::awesome_project;
 
-use suins::registry;
 use suins::suins::SuiNS;
+use suins::domain;
+use suins::name_record::NameRecord;
+use suins::registry::{Registry, lookup};
+use std::string::String;
 
-public fun do(suins: &mut SuiNS) {
-    let _ = registry::lookup(registry, domain);
+public fun target_address(suins: &mut SuiNS, domain_name: String) {
+    let registry = suins.registry<Registry>();
+    let domain = domain::new(domain_name);
+    let name_record = registry.lookup(domain).borrow<NameRecord>();
+    let target_address = name_record.target_address();
+    ...
 }
 ```
