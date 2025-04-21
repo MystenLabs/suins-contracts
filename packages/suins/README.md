@@ -5,7 +5,7 @@ This directory contains the main suins package.
 You can find the latest addresses for this package and more information
 [in the docs page](https://docs.suins.io/).
 
-### Overview
+## Overview
 
 The SuiNS Core Package is the foundational component of the Sui Name Service (SuiNS), providing essential on-chain functionality for name resolution within the Sui ecosystem. It enables developers to integrate human-readable names into their applications, facilitating both forward (name-to-address) and reverse (address-to-name) lookups.
 
@@ -13,7 +13,7 @@ For on-chain integrations, it’s recommended to depend solely on the core packa
 
 Developers can integrate the core package into their Move-based projects by adding the appropriate dependency.
 
-### Modules
+## Modules
 
 admin: Provides reserved functions for managing domain registrations and configurations via the authorized AdminCap. Intended to be used by SuiNS administrators or deployers.
 constants: Centralized module defining system-wide constants (e.g. domain length bounds, TLDs, grace periods) and helper getters.
