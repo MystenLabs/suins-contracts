@@ -16,14 +16,23 @@ Developers can integrate the core package into their Move-based projects by addi
 ## Modules
 
 admin: Provides reserved functions for managing domain registrations and configurations via the authorized AdminCap. Intended to be used by SuiNS administrators or deployers.
+
 constants: Centralized module defining system-wide constants (e.g. domain length bounds, TLDs, grace periods) and helper getters.
+
 controller: Exposes user-facing functionality such as reverse lookup setup, metadata editing, and burning expired records. Requires app-level authorization (ControllerV2).
+
 core_config: Defines the domain validation logic and payment configuration for registration and renewals. Stores constraints like label length and supported TLDs.
+
 domain: Defines the Domain type and helper utilities for parsing, validating, and manipulating domain structures (e.g. parent/subdomain relationships).
+
 name_record: Represents the on-chain record for a registered domain, including its target address, expiration, and custom metadata. Used by the registry for name management.
+
 registry: Manages the mapping between Domain and NameRecord, as well as reverse lookups from address to domain. Supports adding, removing, and burning domain records.
+
 subdomain_registration: Wraps SuinsRegistration objects to represent subdomains. Adds structure for distinguishing and managing subdomain NFTs while maintaining compatibility with the registry.
+
 suins_registration: Defines the SuinsRegistration NFT representing ownership of a registered domain. Tracks metadata like domain name, expiration timestamp, and optional image URL.
+
 suins: Core module of the SuiNS application. Defines the SuiNS object and authorization logic. Provides shared registry and config access for authorized apps via generic dynamic fields.
 
 ## Installing
