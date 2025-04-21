@@ -7,7 +7,7 @@ You can find more information
 
 ## Overview
 
-The suins_discounts package introduces an extensible system for applying dynamic discounts and free claims on domain registrations in SuiNS. Discounts are determined by ownership of specific object types (e.g., NFTs) and are governed by per-type configuration stored in the DiscountHouse shared object.
+The discounts package introduces an extensible system for applying dynamic discounts and free claims on domain registrations in SuiNS. Discounts are determined by ownership of specific object types (e.g., NFTs) and are governed by per-type configuration stored in the DiscountHouse shared object.
 
 This framework supports both:
 
