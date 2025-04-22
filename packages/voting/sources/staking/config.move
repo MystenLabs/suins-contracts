@@ -39,7 +39,7 @@ public(package) macro fun init_max_lock_months(): u64 { 12 } // 12 months
 public(package) macro fun min_max_lock_months(): u64 { 3 } // 3 months
 public(package) macro fun max_max_lock_months(): u64 { 36 } // 3 years
 
-public(package) macro fun init_min_balance(): u64 { 1_000_000 } // 1 NS
+public(package) macro fun init_min_balance(): u64 { 100_000 } // 0.1 NS
 public(package) macro fun min_min_balance(): u64 { 1_000 } // 0.001 NS
 public(package) macro fun max_min_balance(): u64 { 1_000_000_000 } // 1000 NS
 
