@@ -1,7 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-/// This module is used to streamline our payment flows.
+/* This module is used to streamline our payment flows. */
 /*
    Whenever a registration or renewal request comes in, we issue a
    `PaymentIntent` that holds the data required to complete the payment,
