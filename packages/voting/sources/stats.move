@@ -3,7 +3,6 @@ module suins_voting::stats;
 // === imports ===
 
 use sui::{
-    package::{Self},
     table::{Self, Table},
 };
 
@@ -42,11 +41,9 @@ public struct STATS has drop {}
 // === initialization ===
 
 fun init(
-    otw: STATS,
+    _otw: STATS,
     ctx: &mut TxContext,
 ) {
-    package::claim_and_keep(otw, ctx);
-
     let stats = Stats {
         id: object::new(ctx),
         tvl: 0,

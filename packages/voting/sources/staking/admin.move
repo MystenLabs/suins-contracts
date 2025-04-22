@@ -1,11 +1,5 @@
 module suins_voting::staking_admin;
 
-// === imports ===
-
-use sui::{
-    package::{Self},
-};
-
 // === structs ===
 
 public struct StakingAdminCap has key, store {
@@ -18,11 +12,9 @@ public struct STAKING_ADMIN has drop {}
 // === initialization ===
 
 fun init(
-    otw: STAKING_ADMIN,
+    _otw: STAKING_ADMIN,
     ctx: &mut TxContext,
 ) {
-    package::claim_and_keep(otw, ctx);
-
     let cap = StakingAdminCap { id: object::new(ctx) };
     transfer::transfer(cap, ctx.sender());
 }

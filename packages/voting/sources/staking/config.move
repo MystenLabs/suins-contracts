@@ -7,7 +7,6 @@ use std::{
 };
 use sui::{
     event::{emit},
-    package::{Self},
 };
 use suins_voting::{
     constants::{month_ms},
@@ -67,11 +66,9 @@ public struct STAKING_CONFIG has drop {}
 // === initialization ===
 
 fun init(
-    otw: STAKING_CONFIG,
+    _otw: STAKING_CONFIG,
     ctx: &mut TxContext,
 ) {
-    package::claim_and_keep(otw, ctx);
-
     let config = StakingConfig {
         id: object::new(ctx),
         cooldown_ms: init_cooldown_ms!(),
