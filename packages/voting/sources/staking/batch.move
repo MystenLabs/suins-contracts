@@ -59,10 +59,11 @@ public struct STAKING_BATCH has drop {}
 
 // === initialization ===
 
-fun init(otw: STAKING_BATCH, ctx: &mut TxContext)
-{
-    let publisher = package::claim(otw, ctx);
-    transfer::public_transfer(publisher, ctx.sender());
+fun init(
+    otw: STAKING_BATCH,
+    ctx: &mut TxContext,
+) {
+    package::claim_and_keep(otw, ctx);
 }
 
 // === public functions ===

@@ -66,10 +66,11 @@ public struct STAKING_CONFIG has drop {}
 
 // === initialization ===
 
-fun init(otw: STAKING_CONFIG, ctx: &mut TxContext)
-{
-    let publisher = package::claim(otw, ctx);
-    transfer::public_transfer(publisher, ctx.sender());
+fun init(
+    otw: STAKING_CONFIG,
+    ctx: &mut TxContext,
+) {
+    package::claim_and_keep(otw, ctx);
 
     let config = StakingConfig {
         id: object::new(ctx),

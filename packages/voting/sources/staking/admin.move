@@ -17,10 +17,11 @@ public struct STAKING_ADMIN has drop {}
 
 // === initialization ===
 
-fun init(otw: STAKING_ADMIN, ctx: &mut TxContext)
-{
-    let publisher = package::claim(otw, ctx);
-    transfer::public_transfer(publisher, ctx.sender());
+fun init(
+    otw: STAKING_ADMIN,
+    ctx: &mut TxContext,
+) {
+    package::claim_and_keep(otw, ctx);
 
     let cap = StakingAdminCap { id: object::new(ctx) };
     transfer::transfer(cap, ctx.sender());

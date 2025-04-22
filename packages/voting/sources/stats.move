@@ -28,7 +28,7 @@ public struct UserStats has store {
     proposals: Table<address, UserProposalStats>,
 }
 
-/// User participation in a proposal. Many per user.
+/// User participation in a proposal.
 public struct UserProposalStats has copy, drop, store {
     /// how much voting power the user voted with in this proposal
     power: u64,
@@ -41,10 +41,11 @@ public struct STATS has drop {}
 
 // === initialization ===
 
-fun init(otw: STATS, ctx: &mut TxContext)
-{
-    let publisher = package::claim(otw, ctx);
-    transfer::public_transfer(publisher, ctx.sender());
+fun init(
+    otw: STATS,
+    ctx: &mut TxContext,
+) {
+    package::claim_and_keep(otw, ctx);
 
     let stats = Stats {
         id: object::new(ctx),
