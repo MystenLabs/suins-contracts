@@ -19,19 +19,19 @@ public struct Stats has key {
 
 /// User stats. One per user.
 public struct UserStats has store {
-    /// how much NS the user is staking + locking currently
+    /// Total NS a user is staking + locking currently
     tvl: u64,
-    /// how much NS the user earned across all proposals
+    /// Total NS a user earned across all proposals
     rewards: u64,
-    /// keys are proposal addresses
+    /// Keys are proposal addresses
     proposals: Table<address, UserProposalStats>,
 }
 
 /// User participation in a proposal.
 public struct UserProposalStats has copy, drop, store {
-    /// how much voting power the user voted with in this proposal
+    /// How much voting power the user voted with in this proposal
     power: u64,
-    /// how much NS the user earned in this proposal
+    /// How much NS the user earned in this proposal
     reward: u64,
 }
 
@@ -138,8 +138,14 @@ fun new_user_stats(ctx: &mut TxContext): UserStats {
     }
 }
 
-// === view functions ===
+// === accessors: Stats ===
 
+public fun tvl(stats: &Stats): u64 { stats.tvl }
+public fun users(stats: &Stats): &Table<address, UserStats> { &stats.users }
+
+// === accessors: UserStats ===
+
+/// Total NS a user is staking + locking currently.
 public fun user_tvl(
     stats: &Stats,
     user: address,
@@ -151,6 +157,7 @@ public fun user_tvl(
     }
 }
 
+/// Total NS a user earned across all proposals.
 public fun user_rewards(
     stats: &Stats,
     user: address,
@@ -162,6 +169,7 @@ public fun user_rewards(
     }
 }
 
+/// The voting power and NS reward for a user's participation in a proposal.
 public fun user_proposal_stats(
     stats: &Stats,
     user: address,
@@ -177,11 +185,6 @@ public fun user_proposal_stats(
     let proposal_stats = user_stats.proposals.borrow(proposal);
     (proposal_stats.power, proposal_stats.reward)
 }
-
-// === accessors ===
-
-public fun tvl(stats: &Stats): u64 { stats.tvl }
-public fun users(stats: &Stats): &Table<address, UserStats> { &stats.users }
 
 // === test functions ===
 
