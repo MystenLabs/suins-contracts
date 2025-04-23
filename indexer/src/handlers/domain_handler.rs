@@ -239,7 +239,7 @@ impl Handler for DomainHandler {
 }
 
 impl Processor for DomainHandler {
-    const NAME: &'static str = "Domain Update";
+    const NAME: &'static str = "Domain";
     type Value = SuinsCheckpointData;
 
     fn process(&self, checkpoint: &Arc<CheckpointData>) -> anyhow::Result<Vec<Self::Value>> {
