@@ -1,0 +1,52 @@
+[package]
+name = "suins-indexer"
+version = "0.1.0"
+authors = ["Mysten Labs <build@mystenlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+tokio = "1.44.2"
+tokio-util = "0.7.14"
+async-trait = "0.1.88"
+futures = "0.3.31"
+anyhow = "1.0.98"
+serde = "1.0.219"
+serde_json = "1.0.140"
+sui-indexer-alt-framework = { git = "https://github.com/MystenLabs/sui.git", rev = "42ba6c0" }
+sui-config = { git = "https://github.com/MystenLabs/sui.git", rev = "42ba6c0" }
+sui-data-ingestion-core = { git = "https://github.com/MystenLabs/sui.git", rev = "42ba6c0" }
+sui-name-service = { git = "https://github.com/MystenLabs/sui.git", rev = "42ba6c0" }
+fastcrypto = { git = "https://github.com/MystenLabs/fastcrypto" }
+reqwest = { version = "^0.12", features = ["blocking", "json"] }
+bcs = "0.1.6"
+
+prometheus = "0.13.4"
+
+sui-indexer-alt-metrics = { git = "https://github.com/MystenLabs/sui.git", rev = "42ba6c0" }
+mysten-metrics = { git = "https://github.com/MystenLabs/sui.git", rev = "42ba6c0" }
+telemetry-subscribers = { git = "https://github.com/MystenLabs/sui.git", rev = "42ba6c0" }
+sui-pg-db = { git = "https://github.com/MystenLabs/sui.git", rev = "42ba6c0" }
+move-core-types = { git = "https://github.com/MystenLabs/sui.git", rev = "42ba6c0" }
+sui-types = { git = "https://github.com/MystenLabs/sui.git", rev = "42ba6c0" }
+
+move-binding-derive = { git = "https://github.com/MystenLabs/move-binding.git", rev = "2300e3c" }
+move-types = { git = "https://github.com/MystenLabs/move-binding.git", rev = "2300e3c" }
+
+sui-sdk-types = { git = "https://github.com/mystenlabs/sui-rust-sdk", package = "sui-sdk-types", features = ["serde"], rev = "86a9e06" }
+sui-transaction-builder = { git = "https://github.com/mystenlabs/sui-rust-sdk", rev = "86a9e06" }
+
+clap = { version = "4.5.37", features = ["env"] }
+tempfile = "3.13.0"
+uuid = { version = "1.11.0", features = ["serde", "v4"] }
+bigdecimal = "0.4.5"
+itertools = "0.14.0"
+diesel = { version = "2.2.7", features = ["postgres", "uuid", "chrono", "serde_json", "numeric"] }
+diesel-async = { version = "0.5.2", features = ["bb8", "postgres"] }
+diesel_migrations = "2.2.0"
+
+[[bin]]
+name = "suins-indexer"
+path = "src/main.rs"
+
