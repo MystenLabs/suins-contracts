@@ -318,21 +318,25 @@ fun test_stats_ok() {
 
     let mut prop1 = setup.proposal__new__default();
 
+    // proposal 1
+
     // user_1 votes on prop1 with 9 NS
     setup.next_tx(USER_1);
-    setup.proposal__vote__new_batch_and_keep(&mut prop1, b"Yes", min_bal);
-    setup.proposal__vote__new_batch_and_keep(&mut prop1, b"No", min_bal * 8); // bro changed his mind
-    let user_1_reward_prop1 = reward_amount!() * 9 / 10;
-    assert_eq(setup.stats().user_tvl(USER_1), min_bal * 9);
+    let u1p1_ns = min_bal * 9;
+    let u1p1_reward = reward_amount!() * 9 / 10;
+    setup.proposal__vote__new_batch_and_keep(&mut prop1, b"Yes", min_bal * 1);
+    setup.proposal__vote__new_batch_and_keep(&mut prop1, b"No",  min_bal * 8); // bro changed his mind
+    assert_eq(setup.stats().user_tvl(USER_1), u1p1_ns);
 
     // user_2 votes on prop1 with 1 NS
     setup.next_tx(USER_2);
-    setup.proposal__vote__new_batch_and_keep(&mut prop1, b"Yes", min_bal);
-    let user_2_reward_prop1 = reward_amount!() / 10;
-    assert_eq(setup.stats().user_tvl(USER_2), min_bal);
+    let u2p1_ns = min_bal;
+    let u2p1_reward = reward_amount!() / 10;
+    setup.proposal__vote__new_batch_and_keep(&mut prop1, b"Yes", u2p1_ns);
+    assert_eq(setup.stats().user_tvl(USER_2), u2p1_ns);
 
     // check stats before finalizing prop1
-    assert_eq(setup.stats().tvl(), min_bal * 10);
+    assert_eq(setup.stats().tvl(), u1p1_ns + u2p1_ns);
     assert_eq(setup.stats().users().length(), 2);
     assert_eq(setup.stats().user_rewards(USER_1), 0);
     assert_eq(setup.stats().user_rewards(USER_2), 0);
@@ -340,24 +344,55 @@ fun test_stats_ok() {
     // finalize prop1 and check stats
     setup.set_time(prop1.end_time_ms());
     setup.proposal__distribute_rewards(&mut prop1);
-    assert_eq(setup.stats().tvl(), min_bal * 10); // no change
-    assert_eq(setup.stats().users().length(), 2);
-    assert_eq(setup.stats().user_rewards(USER_1), user_1_reward_prop1);
-    assert_eq(setup.stats().user_rewards(USER_2), user_2_reward_prop1);
+    // global stats
+    assert_eq(setup.stats().tvl(), u1p1_ns + u2p1_ns); // no change
+    assert_eq(setup.stats().users().length(), 2); // no change
+    // user stats
+    assert_eq(setup.stats().user_rewards(USER_1), u1p1_reward);
+    assert_eq(setup.stats().user_rewards(USER_2), u2p1_reward);
+    // user proposal stats
+    let (power, reward) = setup.stats().user_proposal_stats(USER_1, prop1.id().to_address());
+    assert_eq(power, u1p1_ns);
+    assert_eq(reward, u1p1_reward);
+    let (power, reward) = setup.stats().user_proposal_stats(USER_2, prop1.id().to_address());
+    assert_eq(power, u2p1_ns);
+    assert_eq(reward, u2p1_reward);
+
+    // proposal 2
 
     // user_1 stakes another 5 NS and votes on a second proposal with it
     let mut prop2 = setup.proposal__new__default();
     setup.next_tx(USER_1);
-    setup.proposal__vote__new_batch_and_keep(&mut prop2, b"Yes", min_bal * 5);
-    assert_eq(setup.stats().user_tvl(USER_1), min_bal * 14);
+    let u1p2_ns = min_bal * 5;
+    let u1p2_reward = reward_amount!(); // user_1 is the only voter, so gets all rewards
+    setup.proposal__vote__new_batch_and_keep(&mut prop2, b"Yes", u1p2_ns);
+    assert_eq(setup.stats().user_tvl(USER_1), u1p1_ns + u1p2_ns);
 
     // finalize prop2 and check stats
     setup.add_time(prop2.end_time_ms());
     let reward_coin = setup.proposal__claim_reward(&mut prop2);
-    assert_eq(reward_coin.value(), reward_amount!()); // user_1 is the only voter, so gets all rewards
-    assert_eq(setup.stats().tvl(), min_bal * 15); // increased by 50%
+    assert_eq(reward_coin.value(), u1p2_reward);
+    // global stats
+    assert_eq(setup.stats().tvl(), u1p1_ns + u2p1_ns + u1p2_ns);
     assert_eq(setup.stats().users().length(), 2); // no change
-    assert_eq(setup.stats().user_rewards(USER_1), user_1_reward_prop1 + reward_amount!());
+    // user stats
+    assert_eq(setup.stats().user_rewards(USER_1), u1p1_reward + u1p2_reward);
+    // user proposal stats
+    let (power, reward) = setup.stats().user_proposal_stats(USER_1, prop2.id().to_address());
+    assert_eq(power, u1p2_ns);
+    assert_eq(reward, u1p2_reward);
+
+    // gets stats for a non-existing proposal
+    let (power, reward) = setup.stats().user_proposal_stats(USER_1, @0x123123123);
+    assert_eq(power, 0);
+    assert_eq(reward, 0);
+
+    // gets stats for a non-existing user
+    assert_eq(setup.stats().user_tvl(USER_3), 0);
+    assert_eq(setup.stats().user_rewards(USER_3), 0);
+    let (power, reward) = setup.stats().user_proposal_stats(USER_3, prop1.id().to_address());
+    assert_eq(power, 0);
+    assert_eq(reward, 0);
 
     destroy(prop1);
     destroy(prop2);

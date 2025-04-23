@@ -10,12 +10,13 @@ use suins_voting::{
     constants::{month_ms},
     staking_admin::{StakingAdminCap},
     staking_batch::{Self, StakingBatch},
-    test_utils::{setup, setup_default_config},
+    test_utils::{setup, setup_default_config, admin_addr},
 };
 
 // === constants ===
 
 const USER_1: address = @0xee1;
+const USER_2: address = @0xee2;
 
 // === tests ===
 
@@ -339,20 +340,35 @@ fun test_stats_ok() {
     let mut setup = setup();
     let min_bal = setup.config().min_balance();
 
-    // stake 1x min bal and lock 2x min bal
+    // create two batches
     setup.next_tx(USER_1);
-    let mut batch1 = setup.batch__new(min_bal, 0);
-    let batch2 = setup.batch__new(min_bal * 2, 3);
+    let b1_ns = min_bal; // batch 1
+    let b2_ns = min_bal * 2; // batch 2
+    let mut batch1 = setup.batch__new(b1_ns, 0); // stake
+    let batch2 = setup.batch__new(b2_ns, 3); // lock for 3 months
 
     // check TVL
-    assert_eq(setup.stats().tvl(), min_bal * 3);
+    assert_eq(setup.stats().tvl(), b1_ns + b2_ns);
 
     // unstake batch1
-    batch1.request_unstake(setup.config(), setup.clock()); // request unstake
-    setup.set_time(batch1.cooldown_end_ms() + month_ms!()); // cooldown ended a while ago
-    assert_eq(setup.stats().tvl(), min_bal * 3); // but user didn't unstake yet
-    let unstaked_balance = setup.batch__unstake(batch1); // actually unstake
-    assert_eq(setup.stats().tvl(), min_bal * 2); // TVL reduced
+    batch1.request_unstake(setup.config(), setup.clock());
+    setup.set_time(batch1.cooldown_end_ms() + month_ms!()); // cooldown ended
+    assert_eq(setup.stats().tvl(), b1_ns + b2_ns); // user didn't unstake yet
+    let unstaked_balance = setup.batch__unstake(batch1);
+    assert_eq(setup.stats().tvl(), b2_ns); // TVL reduced
+
+    // admin sends a batch to another user
+    setup.next_tx(admin_addr!());
+    let b3_ns = min_bal * 10;
+    let start_ms = setup.clock().timestamp_ms();
+    setup.batch__admin_new(b3_ns, 0, start_ms, USER_2);
+
+    // check TVL
+    setup.next_tx(admin_addr!());
+    assert_eq(setup.stats().users().length(), 2);
+    assert_eq(setup.stats().tvl(), b2_ns + b3_ns);
+    assert_eq(setup.stats().user_tvl(USER_1), b2_ns);
+    assert_eq(setup.stats().user_tvl(USER_2), b3_ns);
 
     destroy(batch2);
     destroy(unstaked_balance);

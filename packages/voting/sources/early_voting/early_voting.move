@@ -42,7 +42,7 @@ public fun add_proposal_v2(
     mut proposal: ProposalV2,
 ) {
     let pointer = ProposalPointer {
-        proposal_id: object::id(&proposal),
+        proposal_id: proposal.id(),
         end_time: proposal.end_time_ms(),
     };
     add_early_voting_proposal(governance, pointer, proposal.start_time_ms());
@@ -52,7 +52,7 @@ public fun add_proposal_v2(
     proposal.set_threshold(governance.quorum_threshold());
 
     emit(EventAddProposal {
-        proposal_id: object::id(&proposal),
+        proposal_id: proposal.id(),
         serial_no: proposal.serial_no(),
         start_time: proposal.start_time_ms(),
         end_time: proposal.end_time_ms(),

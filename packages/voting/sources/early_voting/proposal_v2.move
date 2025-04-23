@@ -377,6 +377,7 @@ fun calculate_reward(
 
 // === accessors ===
 
+public fun id(proposal: &ProposalV2): ID { proposal.id.to_inner() }
 public fun serial_no(proposal: &ProposalV2): u64 { proposal.serial_no }
 public fun threshold(proposal: &ProposalV2): u64 { proposal.threshold }
 public fun title(proposal: &ProposalV2): &String { &proposal.title }
