@@ -218,7 +218,8 @@ transaction.moveCall({
 </Tabs.Tab>
 <Tabs.Tab>
 ```bash
-sui client ptb --transfer-objects "[@<packageInfo>]" @<Your safe address>
+sui client ptb \
+    --move-call @mvr/metadata::package_info::transfer @<packageInfo> @<Your safe address>
 ```
 </Tabs.Tab>
 </Tabs>
