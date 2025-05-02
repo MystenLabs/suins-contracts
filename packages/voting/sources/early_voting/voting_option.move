@@ -9,7 +9,6 @@ use sui::vec_set::{Self, VecSet};
 const YES_OPTION: vector<u8> = b"Yes";
 const NO_OPTION: vector<u8> = b"No";
 const ABSTAIN_OPTION: vector<u8> = b"Abstain";
-/// This is a special option that is set to be the .
 const THRESHOLD_NOT_REACHED: vector<u8> = b"Threshold not reached";
 const TIE_REJECTED: vector<u8> = b"Vote rejected due to tie";
 

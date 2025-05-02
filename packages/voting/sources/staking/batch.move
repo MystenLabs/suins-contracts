@@ -77,10 +77,9 @@ public fun new(
     clock: &Clock,
     ctx: &mut TxContext,
 ): StakingBatch {
-    let recipient = ctx.sender();
     let start_ms = clock.timestamp_ms();
     let batch = new_internal(
-        config, stats, recipient, coin, start_ms, lock_months, clock, ctx
+        config, stats, ctx.sender(), coin, start_ms, lock_months, clock, ctx
     );
 
     emit(EventNew {
@@ -135,7 +134,7 @@ public fun request_unstake(
     clock: &Clock,
 ) {
     assert!(!batch.is_voting(clock), EBatchIsVoting);
-    assert!(batch.is_unlocked(clock), EBatchLocked);
+    assert!(!batch.is_locked(clock), EBatchLocked);
     assert!(!batch.is_cooldown_requested(), ECooldownAlreadyRequested);
 
     let now = clock.timestamp_ms();
@@ -157,7 +156,7 @@ public fun unstake(
     ctx: &TxContext,
 ): Balance<NS> {
     assert!(!batch.is_voting(clock), EBatchIsVoting);
-    assert!(batch.is_unlocked(clock), EBatchLocked);
+    assert!(!batch.is_locked(clock), EBatchLocked);
     assert!(batch.is_cooldown_requested(), ECooldownNotRequested);
     assert!(batch.is_cooldown_over(clock), ECooldownNotOver);
 
@@ -223,7 +222,7 @@ public(package) fun set_last_vote(
 fun new_internal(
     config: &StakingConfig,
     stats: &mut Stats,
-    recipient: address,
+    owner: address,
     coin: Coin<NS>,
     start_ms: u64,
     lock_months: u64,
@@ -236,7 +235,7 @@ fun new_internal(
 
     let value = coin.value();
     stats.add_tvl(value);
-    stats.add_user_tvl(recipient, value, ctx);
+    stats.add_user_tvl(owner, value, ctx);
 
     StakingBatch {
         id: object::new(ctx),

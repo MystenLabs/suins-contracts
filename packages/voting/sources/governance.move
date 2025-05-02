@@ -2,19 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /// The governance module for SuiNS.
-///
-/// The governance module is used to:
-/// 1. Store the NS token reserves
-/// 2. Store the UpgradeCap for SuiNS protocol
-/// 3. Store the AdminCap for SuiNS protocol
-/// 4. Store the Governance votes & Proposals for SuiNS protocol
-/// 5. Apply verified proposals to the SuiNS protocol using these caps
-/// 6. Store the UpgradeCap of the NSGovernance protocol
-///   - Upgrades to the governance protocol go through typical voting, similar
-/// to the SuiNS protocol.
-///
-/// In the initial phase of the release, this only supports "early_voting" which
-/// is a simple voting mechanism, without complex actions.
 module suins_voting::governance;
 
 use sui::{dynamic_field as df, package};

@@ -72,7 +72,7 @@ public struct ProposalV2 has key {
     /// Voting power per option. Determines the winning option.
     votes: VecMap<VotingOption, u64>,
 
-    /* Modified fields in v2 */
+    /* Fields modified in v2 */
 
     /// Voting power per user and option.
     voters: LinkedTable<address, VecMap<VotingOption, u64>>,
@@ -171,13 +171,13 @@ public fun vote(
     assert!(proposal.votes.contains(&option), ENotAvailableOption);
     assert!(!proposal.is_end_time_reached(clock), EVotingPeriodExpired);
 
+    // batches that have requested or completed cooldown can't vote
+    assert!(!batch.is_cooldown_requested(), EBatchInCooldown);
+
     // prevent double voting
     assert!(!batch.is_voting(clock), EBatchIsVoting);
     batch.set_voting_until_ms(proposal.end_time_ms, clock);
     batch.set_last_vote(opt);
-
-    // batches that have requested or completed cooldown can't vote
-    assert!(!batch.is_cooldown_requested(), EBatchInCooldown);
 
     let batch_power = batch.power(config, clock);
 
