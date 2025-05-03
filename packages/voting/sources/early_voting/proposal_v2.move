@@ -13,18 +13,16 @@ use sui::{
     vec_map::{Self, VecMap},
     vec_set::{VecSet},
 };
-use suins_voting::{
-    constants::{min_voting_period_ms, max_voting_period_ms},
-    leaderboard::{Self, Leaderboard},
-    voting_option::{Self, VotingOption, abstain_option},
-};
 use suins_token::{
     ns::{NS},
 };
 use suins_voting::{
+    constants::{min_voting_period_ms, max_voting_period_ms},
+    leaderboard::{Self, Leaderboard},
     staking_batch::{StakingBatch},
     staking_config::{StakingConfig},
     stats::{Stats},
+    voting_option::{Self, VotingOption, abstain_option},
 };
 
 // === errors ===
@@ -171,7 +169,7 @@ public fun vote(
     assert!(proposal.votes.contains(&option), ENotAvailableOption);
     assert!(!proposal.is_end_time_reached(clock), EVotingPeriodExpired);
 
-    // batches that have requested or completed cooldown can't vote
+    // batches that have requested (or completed) cooldown can't vote
     assert!(!batch.is_cooldown_requested(), EBatchInCooldown);
 
     // prevent double voting
@@ -179,38 +177,36 @@ public fun vote(
     batch.set_voting_until_ms(proposal.end_time_ms, clock);
     batch.set_last_vote(opt);
 
+    // update proposal power
     let batch_power = batch.power(config, clock);
-
-    // update proposal voting power
     proposal.total_power = proposal.total_power + batch_power;
 
-    // update option voting power
+    // update option power
     let option_power = proposal.votes.get_mut(&option);
     *option_power = *option_power + batch_power;
 
     // add new voter
     if (!proposal.voters.contains(sender)) {
-        proposal.voters.push_back(sender, vec_map::empty());
         proposal.voter_powers.push_back(sender, 0);
+        proposal.voters.push_back(sender, vec_map::empty());
     };
 
-    // update user voting power and leaderboard
+    // update user total power
+    let user_power = proposal.voter_powers.borrow_mut(sender);
+    *user_power = *user_power + batch_power;
 
+    // update user power per option
     let user_votes = proposal.voters.borrow_mut(sender);
-    let leaderboard = proposal.vote_leaderboards.get_mut(&option);
-
     if (!user_votes.contains(&option)) {
         user_votes.insert(option, batch_power);
-        leaderboard.add_if_eligible(sender, batch_power);
     } else {
         let vote = user_votes.get_mut(&option);
         *vote = *vote + batch_power;
-        leaderboard.add_if_eligible(sender, *vote);
     };
 
-    // update total user power
-    let user_power = proposal.voter_powers.borrow_mut(sender);
-    *user_power = *user_power + batch_power;
+    // update option leaderboard
+    let leaderboard = proposal.vote_leaderboards.get_mut(&option);
+    leaderboard.add_if_eligible(sender, *user_votes.get(&option));
 
     // update user stats
     stats.add_user_vote(sender, proposal.id.to_address(), batch_power, ctx);
