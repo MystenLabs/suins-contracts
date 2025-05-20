@@ -1,4 +1,4 @@
-# Discounts Package
+# Denylist Package
 
 This directory contains the denylist package. The package provides support for managing name restrictions within the SuiNS system.
 
@@ -20,8 +20,8 @@ denylist: Maintains two separate lists of restricted names — reserved and bloc
 ### [Move Registry CLI](https://docs.suins.io/move-registry)
 
 ```bash
-mvr add @suins/denylist --network testnet
+mvr add @suins/deny-list --network testnet
 
 # or for mainnet
-mvr add @suins/denylist --network mainnet
+mvr add @suins/deny-list --network mainnet
 ```
