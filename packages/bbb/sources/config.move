@@ -69,6 +69,7 @@ fun emit_event(
 
 // === accessors ===
 
+public fun id(config: &BBBConfig): ID { config.id.to_inner() }
 public fun burn_bps(config: &BBBConfig): u64 { config.burn_bps }
 
 // === events ===
