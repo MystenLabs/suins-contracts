@@ -1,0 +1,19 @@
+---
+source: indexer/tests/suins_data_tests.rs
+expression: rows
+---
+[
+  {
+    "name": "new.test.sui",
+    "parent": "test.sui",
+    "expiration_timestamp_ms": 0,
+    "nft_id": "0xa4891f3754b203ef230a5e2a08822c835c808eab71e2bc6ca33a73cec9728376",
+    "field_id": "0x291b2df93f40d8405de1bbdc014306b2aa4fcd0d2289cebaf49f58128880cf6c",
+    "target_address": "0x0000000000000000000000000000000000000000000000000000000000000002",
+    "data": {
+      "contents": []
+    },
+    "last_checkpoint_updated": 22279365,
+    "subdomain_wrapper_id": null
+  }
+]
