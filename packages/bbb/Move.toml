@@ -6,8 +6,13 @@ edition = "2024.beta" # edition = "legacy" to use legacy (pre-2024) Move
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/mainnet", override=true }
 suins = { local = "../suins" }
 
-# Pyth dependency
+# Pyth
 Pyth = { git = "https://github.com/pyth-network/pyth-crosschain.git", subdir = "target_chains/sui/contracts", rev = "sui-contract-mainnet" }
+# Aftermath
+AftermathAmm = { git = "https://github.com/AftermathFinance/move-interfaces.git", subdir = "packages/amm/amm", rev = "main" }
+AfSuiTreasury = { git = "https://github.com/AftermathFinance/move-interfaces.git", subdir = "packages/afsui/afsui-treasury", rev = "main" }
+InsuranceFund = { git = "https://github.com/AftermathFinance/move-interfaces.git", subdir = "packages/amm/amm-insurance-fund", rev = "main" }
+ProtocolFeeVault = { git = "https://github.com/AftermathFinance/move-interfaces.git", subdir = "packages/amm/amm-protocol-fee-vault", rev = "main" }
 
 [addresses]
 suins_bbb = "0x0"
