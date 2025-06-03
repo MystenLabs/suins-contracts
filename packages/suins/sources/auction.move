@@ -7,6 +7,7 @@ It is intended to be placed in suins-contracts/packages/suins/sources/auction.mo
 
 module suins::auction {
     use sui::table::{Self, Table};
+    use sui::object_table::{Self, ObjectTable};
     use sui::coin::Coin;
     use sui::sui::SUI;
     use sui::clock::Clock;
@@ -44,7 +45,7 @@ module suins::auction {
     /// Table mapping domain to Auction
     public struct AuctionTable has key, store {
         id: UID,
-        table: Table<vector<u8>, Auction>,
+        table: ObjectTable<vector<u8>, Auction>,
     }
 
     /// Table mapping domain to Offers
@@ -117,7 +118,7 @@ module suins::auction {
     fun init (ctx: &mut TxContext) {
         transfer::share_object(AuctionTable {
             id: object::new(ctx),
-            table: table::new(ctx),
+            table: object_table::new(ctx),
         });
         transfer::share_object(OfferTable {
             id: object::new(ctx),
@@ -178,12 +179,12 @@ module suins::auction {
 
         let auction = auction_table.table.borrow_mut(domain_name);
         let now = clock.timestamp_ms() / 1000;
-        if (now < auction.start_time) { abort ETooEarly };
-        if (now > auction.end_time) { abort ETooLate };
+        assert!(now > auction.start_time, ETooEarly);
+        assert!(now < auction.end_time, ETooLate);
 
         let bid_amount = coin.value();
         let highest_bid_value = auction.highest_bid_balance.value();
-        if (bid_amount <= auction.min_bid || bid_amount <= highest_bid_value) { abort EBidTooLow };
+        assert!(bid_amount >= auction.min_bid && bid_amount > highest_bid_value, EBidTooLow);
 
         if (highest_bid_value > 0) {
             let prev_balance = auction.highest_bid_balance.withdraw_all();
@@ -223,13 +224,17 @@ module suins::auction {
         } =  auction_table.table.remove(domain_name);
 
         let now = clock.timestamp_ms() / 1000;
-        if (now < end_time) { abort ENotEnded };
+        assert!(now > end_time, ENotEnded);
 
         let highest_bid_value = balance::value(&highest_bid_balance);
-        if (highest_bid_value == 0) { abort ENoBids };
+        assert!(highest_bid_value > 0, ENoBids);
 
         transfer::public_transfer(suins_registration, highest_bidder);
-        transfer::public_transfer(coin::from_balance(highest_bid_balance, ctx), owner);
+        if (highest_bid_balance.value() > 0) {
+            transfer::public_transfer(coin::from_balance(highest_bid_balance, ctx), owner);
+        } else {
+            highest_bid_balance.destroy_zero();
+        };
 
         event::emit(AuctionFinalizedEvent {
             auction_id: object::id(auction_table),
@@ -245,6 +250,7 @@ module suins::auction {
     public fun cancel_auction(
         auction_table: &mut AuctionTable,
         domain_name: vector<u8>,
+        clock: &Clock,
         ctx: &mut TxContext
     ):  SuinsRegistration {
         assert!(auction_table.table.contains(domain_name), ENotAuctioned);
@@ -253,7 +259,7 @@ module suins::auction {
             id,
             owner,
             start_time: _,
-            end_time: _,
+            end_time ,
             min_bid: _,
             highest_bidder,
             highest_bid_balance,
@@ -261,9 +267,16 @@ module suins::auction {
         } =  auction_table.table.remove(domain_name);
 
         let caller = tx_context::sender(ctx);
-        if (owner != caller) { abort ENotOwner };
+        assert!(owner == caller, ENotOwner);
 
-        transfer::public_transfer(coin::from_balance(highest_bid_balance, ctx), highest_bidder);
+        let now = clock.timestamp_ms() / 1000;
+        assert!(now < end_time, ENotEnded);
+
+        if (highest_bid_balance.value() > 0) {
+            transfer::public_transfer(coin::from_balance(highest_bid_balance, ctx), highest_bidder);
+        } else {
+            highest_bid_balance.destroy_zero();
+        };
 
         object::delete(id);
 
