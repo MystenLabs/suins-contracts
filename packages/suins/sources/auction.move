@@ -19,14 +19,15 @@ module suins::auction {
     const ENotOwner: u64 = 0;
     const ETooEarly: u64 = 1;
     const ETooLate: u64 = 2;
-    const EBidTooLow: u64 = 3;
-    const ENoBids: u64 = 4;
-    const ENotEnded: u64 = 5;
-    const ENotAuctioned: u64 = 6;
-    const EAlreadyOffered: u64 = 7;
-    const EDomainNotOffered: u64 = 8;
-    const EAddressNotOffered: u64 = 9;
-    const EAddressNotPresent: u64 = 10;
+    const EWrongTime: u64 = 3;
+    const EBidTooLow: u64 = 4;
+    const ENoBids: u64 = 5;
+    const ENotEnded: u64 = 6;
+    const ENotAuctioned: u64 = 7;
+    const EAlreadyOffered: u64 = 8;
+    const EDomainNotOffered: u64 = 9;
+    const EAddressNotOffered: u64 = 10;
+    const EAddressNotPresent: u64 = 11;
 
     /// Core Auction struct
     public struct Auction has key, store {
@@ -52,6 +53,7 @@ module suins::auction {
         table: Table<vector<u8>, Table<address, Balance<SUI>>>,
     }
 
+    /// Table mapping domain to addresses that have made Offers
     public struct OfferAddresses has key, store {
         id: UID,
         addresses: Table<vector<u8>, vector<address>>,
@@ -59,28 +61,57 @@ module suins::auction {
 
     /// Event for auction creation
     public struct AuctionCreatedEvent has copy, drop, store {
+        auction_id: ID,
         domain_name: vector<u8>,
         owner: address,
         start_time: u64,
         end_time: u64,
         min_bid: u64,
     }
+
     /// Event for new bid
     public struct BidPlacedEvent has copy, drop, store {
+        auction_id: ID,
         domain_name: vector<u8>,
         bidder: address,
         amount: u64,
     }
+
     /// Event for auction finalization
     public struct AuctionFinalizedEvent has copy, drop, store {
+        auction_id: ID,
         domain_name: vector<u8>,
         winner: address,
         amount: u64,
     }
+
     /// Event for auction cancellation
     public struct AuctionCancelledEvent has copy, drop, store {
+        auction_id: ID,
         domain_name: vector<u8>,
         owner: address,
+    }
+
+    /// Event for offer placement
+    public struct OfferPlacedEvent has copy, drop, store {
+        domain_name: vector<u8>,
+        address: address,
+        value: u64,
+    }
+
+    /// Event for offer cancellation
+    public struct OfferCancelledEvent has copy, drop, store {
+        domain_name: vector<u8>,
+        address: address,
+        value: u64,
+    }
+
+    /// Event for offer acceptance
+    public struct OfferAcceptedEvent has copy, drop, store {
+        domain_name: vector<u8>,
+        seller: address,
+        buyer: address,
+        value: u64,
     }
 
     fun init (ctx: &mut TxContext) {
@@ -107,6 +138,7 @@ module suins::auction {
         suins_registration: SuinsRegistration, 
         ctx: &mut TxContext
     ) {
+        assert!(end_time > start_time, EWrongTime);
         let domain = suins_registration.domain();
         let domain_name = domain.to_string().into_bytes();
         let owner = tx_context::sender(ctx);
@@ -125,6 +157,7 @@ module suins::auction {
         );
 
         event::emit(AuctionCreatedEvent {
+            auction_id: object::id(auction_table),
             domain_name,
             owner,
             start_time,
@@ -150,7 +183,7 @@ module suins::auction {
 
         let bid_amount = coin.value();
         let highest_bid_value = auction.highest_bid_balance.value();
-        if (bid_amount < auction.min_bid || bid_amount <= highest_bid_value) { abort EBidTooLow };
+        if (bid_amount <= auction.min_bid || bid_amount <= highest_bid_value) { abort EBidTooLow };
 
         if (highest_bid_value > 0) {
             let prev_balance = auction.highest_bid_balance.withdraw_all();
@@ -162,6 +195,7 @@ module suins::auction {
         auction.highest_bid_balance.join(coin.into_balance());
 
         event::emit(BidPlacedEvent {
+            auction_id: object::id(auction_table),
             domain_name,
             bidder,
             amount: bid_amount,
@@ -188,35 +222,31 @@ module suins::auction {
             suins_registration,
         } =  auction_table.table.remove(domain_name);
 
-        let caller = tx_context::sender(ctx);
-        if (owner != caller) { abort ENotOwner };
-
         let now = clock.timestamp_ms() / 1000;
         if (now < end_time) { abort ENotEnded };
 
         let highest_bid_value = balance::value(&highest_bid_balance);
         if (highest_bid_value == 0) { abort ENoBids };
 
-
         transfer::public_transfer(suins_registration, highest_bidder);
         transfer::public_transfer(coin::from_balance(highest_bid_balance, ctx), owner);
 
         event::emit(AuctionFinalizedEvent {
+            auction_id: object::id(auction_table),
             domain_name,
             winner: highest_bidder,
             amount: highest_bid_value,
         });
 
-        // Delete the auction object
         object::delete(id);
     }
 
-    /// Cancel an auction (only by owner, only if no bids)
-    public entry fun cancel_auction(
+    /// Cancel an auction 
+    public fun cancel_auction(
         auction_table: &mut AuctionTable,
         domain_name: vector<u8>,
         ctx: &mut TxContext
-    ) {
+    ):  SuinsRegistration {
         assert!(auction_table.table.contains(domain_name), ENotAuctioned);
 
         let Auction {
@@ -225,7 +255,7 @@ module suins::auction {
             start_time: _,
             end_time: _,
             min_bid: _,
-            highest_bidder: _,
+            highest_bidder,
             highest_bid_balance,
             suins_registration,
         } =  auction_table.table.remove(domain_name);
@@ -233,18 +263,17 @@ module suins::auction {
         let caller = tx_context::sender(ctx);
         if (owner != caller) { abort ENotOwner };
 
-        let highest_bid_value = balance::value(&highest_bid_balance);
-        if (highest_bid_value > 0) { abort ENoBids };
-
-        balance::destroy_zero(highest_bid_balance);
-        transfer::public_transfer(suins_registration, caller);
+        transfer::public_transfer(coin::from_balance(highest_bid_balance, ctx), highest_bidder);
 
         object::delete(id);
 
         event::emit(AuctionCancelledEvent {
+            auction_id: object::id(auction_table),
             domain_name,
             owner: caller,
         });
+
+        suins_registration
     }
 
     /// Place an offer on a domain not in auction
@@ -256,6 +285,7 @@ module suins::auction {
         ctx: &mut TxContext
     ) 
     {
+        let coin_value = coin.value();
         if (offer_table.table.contains(domain_name)) {
             let offers = offer_table.table.borrow_mut(domain_name);
             assert!(!offers.contains(tx_context::sender(ctx)), EAlreadyOffered);
@@ -267,6 +297,12 @@ module suins::auction {
         };
         let mut addresses = offer_addresses.addresses.borrow_mut(domain_name);
         addresses.push_back(tx_context::sender(ctx));
+
+        event::emit(OfferPlacedEvent {
+            domain_name,
+            address: tx_context::sender(ctx),
+            value: coin_value,
+        });
     }
 
     /// Cancel an offer on a domain not in auction
@@ -283,6 +319,13 @@ module suins::auction {
         assert!(offers.contains(caller), EAddressNotOffered);
         remove_offer_address(offer_addresses, domain_name, &caller);
         let coin = remove_offer_balance(offer_table, domain_name, caller, ctx);
+
+        event::emit(OfferCancelledEvent {
+            domain_name,
+            address: caller,
+            value: coin.value(),
+        });
+
         coin
     }
 
@@ -307,6 +350,13 @@ module suins::auction {
         transfer::public_transfer(suins_registration, address);
 
         clear_offer_tables(offer_table, offer_addresses, domain_name, ctx);
+
+        event::emit(OfferAcceptedEvent {
+            domain_name,
+            seller: tx_context::sender(ctx),
+            buyer: address,
+            value: coin.value(),
+        });
 
         coin
     }
@@ -356,5 +406,12 @@ module suins::auction {
             i = i + 1;
         };
         offers.destroy_empty();
+    }
+
+    // Testing functions 
+
+    #[test_only]
+    public fun init_for_testing(ctx: &mut TxContext) {
+        init(ctx);
     }
 }
