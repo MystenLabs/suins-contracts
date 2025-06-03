@@ -48,15 +48,10 @@ module suins::auction {
         table: ObjectTable<vector<u8>, Auction>,
     }
 
-    /// Table mapping domain to Offers
+    /// Table mapping domain to Offers and addresses that have made Offers
     public struct OfferTable has key, store {
         id: UID,
         table: Table<vector<u8>, Table<address, Balance<SUI>>>,
-    }
-
-    /// Table mapping domain to addresses that have made Offers
-    public struct OfferAddresses has key, store {
-        id: UID,
         addresses: Table<vector<u8>, vector<address>>,
     }
 
@@ -123,9 +118,6 @@ module suins::auction {
         transfer::share_object(OfferTable {
             id: object::new(ctx),
             table: table::new(ctx),
-        });
-        transfer::share_object(OfferAddresses {
-            id: object::new(ctx),
             addresses: table::new(ctx),
         });
     }
@@ -292,24 +284,29 @@ module suins::auction {
     /// Place an offer on a domain not in auction
     public fun place_offer(
         offer_table: &mut OfferTable,
-        offer_addresses: &mut OfferAddresses,
         domain_name: vector<u8>,
         coin: Coin<SUI>,
         ctx: &mut TxContext
     ) 
     {
         let coin_value = coin.value();
+        let caller = tx_context::sender(ctx);
         if (offer_table.table.contains(domain_name)) {
             let offers = offer_table.table.borrow_mut(domain_name);
-            assert!(!offers.contains(tx_context::sender(ctx)), EAlreadyOffered);
-            offers.add(tx_context::sender(ctx), coin.into_balance());
+            assert!(!offers.contains(caller), EAlreadyOffered);
+            offers.add(caller, coin.into_balance());
+
+            let addresses = offer_table.addresses.borrow_mut(domain_name);
+            addresses.push_back(caller);
         } else {
             let mut offers = table::new<address, Balance<SUI>>(ctx);
-            offers.add(tx_context::sender(ctx), coin.into_balance());
+            offers.add(caller, coin.into_balance());
             offer_table.table.add(domain_name, offers);
+
+            let mut addresses = vector::empty<address>();
+            addresses.push_back(caller);
+            offer_table.addresses.add(domain_name, addresses);
         };
-        let mut addresses = offer_addresses.addresses.borrow_mut(domain_name);
-        addresses.push_back(tx_context::sender(ctx));
 
         event::emit(OfferPlacedEvent {
             domain_name,
@@ -321,7 +318,6 @@ module suins::auction {
     /// Cancel an offer on a domain not in auction
     public fun cancel_offer(
         offer_table: &mut OfferTable,
-        offer_addresses: &mut OfferAddresses,
         domain_name: vector<u8>,
         ctx: &mut TxContext
     ) : Coin<SUI>
@@ -330,8 +326,7 @@ module suins::auction {
         let offers = offer_table.table.borrow_mut(domain_name);
         let caller = tx_context::sender(ctx);
         assert!(offers.contains(caller), EAddressNotOffered);
-        remove_offer_address(offer_addresses, domain_name, &caller);
-        let coin = remove_offer_balance(offer_table, domain_name, caller, ctx);
+        let (coin, _) = remove_offer(offer_table, domain_name, caller, ctx);
 
         event::emit(OfferCancelledEvent {
             domain_name,
@@ -345,7 +340,6 @@ module suins::auction {
     /// Accept an offer on a domain not in auction
     public fun accept_offer(
         offer_table: &mut OfferTable,
-        offer_addresses: &mut OfferAddresses,
         suins_registration: SuinsRegistration, 
         address: address,
         ctx: &mut TxContext
@@ -358,11 +352,12 @@ module suins::auction {
         let offers = offer_table.table.borrow(domain_name);
         assert!(offers.contains(address), EAddressNotOffered);
 
-        remove_offer_address(offer_addresses, domain_name, &address);
-        let coin = remove_offer_balance(offer_table, domain_name, address, ctx);
+        let (coin, empty_storage) = remove_offer(offer_table, domain_name, address, ctx);
         transfer::public_transfer(suins_registration, address);
 
-        clear_offer_tables(offer_table, offer_addresses, domain_name, ctx);
+        if (!empty_storage) {
+            clear_offer_tables(offer_table, domain_name, ctx);
+        };
 
         event::emit(OfferAcceptedEvent {
             domain_name,
@@ -376,39 +371,47 @@ module suins::auction {
 
     // Private functions 
 
-    // Remove an address from the offer addresses table
-    fun remove_offer_address(
-        offer_addresses: &mut OfferAddresses,
-        domain_name: vector<u8>,
-        address: &address
-    ) {
-        let addresses = offer_addresses.addresses.borrow_mut(domain_name);
-        let (present, index) = addresses.index_of(address);
-        assert!(present, EAddressNotPresent);
-        addresses.remove(index);
-    }
-
-    // Remove an address from the offer table
-    fun remove_offer_balance(
+    // Remove an offer from storage
+    fun remove_offer(
         offer_table: &mut OfferTable,
         domain_name: vector<u8>,
         address: address,
         ctx: &mut TxContext
-    ): Coin<SUI> {
+    ): (Coin<SUI>, bool) {
+        assert!(offer_table.addresses.contains(domain_name),EAddressNotOffered);
+        let addresses = offer_table.addresses.borrow_mut(domain_name);
+        let (present, index) = addresses.index_of(&address);
+        assert!(present, EAddressNotPresent);
+        addresses.remove(index);
+        let addresses_empty = addresses.length() == 0;
+        if (addresses_empty) {
+            let addresses = offer_table.addresses.remove(domain_name);
+            addresses.destroy_empty();
+        };
+
+        assert!(offer_table.table.contains(domain_name), EDomainNotOffered);
         let offers = offer_table.table.borrow_mut(domain_name);
         let balance = offers.remove(address);
-        coin::from_balance(balance, ctx)
+        let offers_empty = offers.length() == 0;
+        if (offers_empty) {
+            let offers = offer_table.table.remove(domain_name);
+            offers.destroy_empty();
+        };
+
+        (coin::from_balance(balance, ctx), addresses_empty && offers_empty)
     }
 
 
     // Clear offer tables
     fun clear_offer_tables(
         offer_table: &mut OfferTable,
-        offer_addresses: &mut OfferAddresses,
         domain_name: vector<u8>,
         ctx: &mut TxContext
     ) {
-        let mut addresses = offer_addresses.addresses.remove(domain_name); 
+        assert!(offer_table.addresses.contains(domain_name),EAddressNotOffered);
+        assert!(offer_table.table.contains(domain_name), EDomainNotOffered);
+
+        let mut addresses = offer_table.addresses.remove(domain_name); 
         let mut offers = offer_table.table.remove(domain_name);
         let len = vector::length(&addresses);
         let mut i = 0;
@@ -418,6 +421,7 @@ module suins::auction {
             transfer::public_transfer(coin::from_balance<SUI>(balance, ctx), addr);
             i = i + 1;
         };
+        addresses.destroy_empty();
         offers.destroy_empty();
     }
 
