@@ -106,7 +106,7 @@ After completing your install from one of the above methods, use a terminal or c
 To add a dependency to your Move code, use the `mvr add` command. This command adds the dependency to your `Move.toml` file.
 
 ```sh
-mvr add <package_name> --network <mainnet|testnet>
+mvr add <package_name>
 ```
 
 MVR adds a new entry to your `Move.toml` file. The following shows an example of the information that MVR adds.
@@ -115,10 +115,14 @@ MVR adds a new entry to your `Move.toml` file. The following shows an example of
 [dependencies]
 ...
 app = { r.mvr = "@mvr/app" }
-
-[r.mvr]
-network = "mainnet"
 ```
+
+<div className="nx-pt-3">
+<Callout>
+Starting at version `0.0.13`, `network` is no longer supported in the `Move.toml` file. MVR instead relies on the CLI's active chain identifier to determine
+the network to use.
+</Callout>
+</div>
 
 ## Building against MVR dependencies
 
