@@ -12,7 +12,7 @@ const fundsToTreasury = async () => {
 
 	const adminCapObj = txb.object(config.adminCap);
 
-	const suiProfits = txb.moveCall({
+	const oldSuiProfits = txb.moveCall({
 		target: `${config.packageId}::suins::withdraw`,
 		arguments: [adminCapObj, txb.object(config.suins)],
 	});
@@ -29,8 +29,14 @@ const fundsToTreasury = async () => {
 		typeArguments: [config.coins.USDC.type],
 	});
 
+	const newSuiProfits = txb.moveCall({
+		target: `${config.packageId}::suins::withdraw_custom`,
+		arguments: [txb.object(config.suins), adminCapObj],
+		typeArguments: [config.coins.SUI.type],
+	});
+
 	txb.transferObjects(
-		[suiProfits, nsProfits, usdcProfits],
+		[oldSuiProfits, nsProfits, usdcProfits, newSuiProfits],
 		txb.pure.address(config.treasuryAddress!),
 	);
 	await prepareMultisigTx(txb, 'mainnet', config.adminAddress);
