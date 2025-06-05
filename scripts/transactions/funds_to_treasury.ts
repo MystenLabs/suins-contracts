@@ -37,7 +37,7 @@ const fundsToTreasury = async () => {
 
 	txb.transferObjects(
 		[oldSuiProfits, nsProfits, usdcProfits, newSuiProfits],
-		txb.pure.address(config.treasuryAddress!),
+		txb.pure.address(config.adminAddress!),
 	);
 	await prepareMultisigTx(txb, 'mainnet', config.adminAddress);
 };
