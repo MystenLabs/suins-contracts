@@ -8,6 +8,7 @@ export default function Document() {
     <Html lang="en">
       <Head>
         <link rel="shortcut icon" href="/favicon.png" />
+        <meta name="algolia-site-verification"  content="BCA21DA2879818D2" />
       </Head>
       <body>
         <Main />
