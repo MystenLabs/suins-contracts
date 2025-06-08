@@ -1,4 +1,4 @@
-module suins_bbb::bbb;
+module suins_bbb::bbb_swap;
 
 use sui::{coin::{Coin}};
 
