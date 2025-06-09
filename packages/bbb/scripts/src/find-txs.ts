@@ -1,4 +1,4 @@
-import { getAftermathAmmPkgId, newSuiClient } from "./lib/utils";
+import { getAftermathAmmPkgId, newSuiClient } from "./common";
 
 const client = newSuiClient();
 
@@ -14,9 +14,9 @@ let txDigests: string[] = [];
                 function: "swap_exact_in",
             },
         },
-        // options: {
-        //     showEffects: true,
-        // },
+        options: {
+            showEffects: true,
+        },
         cursor,
     });
     cursor = txs.nextCursor;
