@@ -7,7 +7,7 @@ Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-fram
 suins = { local = "../suins" }
 
 # Pyth
-Pyth = { git = "https://github.com/pyth-network/pyth-crosschain.git", subdir = "target_chains/sui/contracts", rev = "sui-contract-mainnet" }
+# Pyth = { git = "https://github.com/pyth-network/pyth-crosschain.git", subdir = "target_chains/sui/contracts", rev = "sui-contract-mainnet" }
 # Aftermath
 AftermathAmm = { git = "https://github.com/AftermathFinance/move-interfaces.git", subdir = "packages/amm/amm", rev = "main" }
 AfSuiTreasury = { git = "https://github.com/AftermathFinance/move-interfaces.git", subdir = "packages/afsui/afsui-treasury", rev = "main" }
