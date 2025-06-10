@@ -30,7 +30,8 @@ module suins::auction {
     const EAddressNotOffered: u64 = 10;
     const ECounterOfferTooLow: u64 = 11;
     const EWrongCoinValue: u64 = 12;
-
+    const ENoCounterOffer: u64 = 13;
+    
     /// Core Auction struct
     public struct Auction has key, store {
         id: UID,
@@ -449,6 +450,7 @@ module suins::auction {
         let caller = tx_context::sender(ctx); 
 
         let offer = offer_borrow_mut(offer_table, domain_name,caller);
+        assert!(offer.counter_offer != 0, ENoCounterOffer);
         let coin_value = coin::value(&coin);
         let balance_value = offer.balance.value();
         assert!(coin_value + balance_value == offer.counter_offer, EWrongCoinValue);
@@ -481,8 +483,14 @@ module suins::auction {
         address: address,
     ):  Offer  {
         let offers = domain_offers_borrow_mut(offer_table, domain_name, address);
+        let offer = offers.remove(address);
+        
+        if (offers.length() == 0) {
+            let empty_table = offer_table.table.remove(domain_name);
+            table::destroy_empty(empty_table);
+        };
 
-        offers.remove(address)
+        offer
     }
 
     // Get mutable reference to offers
@@ -548,5 +556,20 @@ module suins::auction {
     #[test_only]
     public fun get_suins_registration(auction: &Auction): &SuinsRegistration {
         &auction.suins_registration
+    }
+
+    #[test_only]
+    public fun get_offer_table(offer_table: &OfferTable): &Table<vector<u8>, Table<address, Offer>> {
+        &offer_table.table
+    }
+
+    #[test_only]
+    public fun get_offer_balance(offer: &Offer): &Balance<SUI> {
+        &offer.balance
+    }
+
+    #[test_only]
+    public fun get_offer_counter_offer(offer: &Offer): u64 {
+        offer.counter_offer
     }
 }
