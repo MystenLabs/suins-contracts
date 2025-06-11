@@ -15,6 +15,7 @@ const ENotBurnable: u64 = 100;
 
 // === public functions ===
 
+/// Burn all `Balance<C>` in the vault by sending it to the burn address.
 public fun burn<C>(
     config: &BBBConfig,
     vault: &mut BBBVault,
@@ -22,17 +23,13 @@ public fun burn<C>(
 ) {
     assert!(config.is_burnable<C>(), ENotBurnable);
 
-    let mut balance = vault.withdraw<C>();
+    let balance = vault.withdraw<C>();
     if (balance.value() == 0) {
         balance.destroy_zero();
         return
     };
 
-    let burn_amount = balance.value() * config.burn_bps() / 100_00;
-    let burn_balance = balance.split(burn_amount);
-    vault.deposit<C>(balance);
-
     transfer::public_transfer(
-        burn_balance.into_coin(ctx), burn_address!()
+        balance.into_coin(ctx), burn_address!()
     )
 }
