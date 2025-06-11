@@ -65,7 +65,9 @@ public(package) fun withdraw<C>(
     if (!balances.contains(coin_type)) {
         balance::zero()
     } else {
-        balances.borrow_mut<TypeName, Balance<C>>(coin_type).withdraw_all()
+        balances
+            .borrow_mut<TypeName, Balance<C>>(coin_type)
+            .withdraw_all()
     }
 }
 
