@@ -32,15 +32,15 @@ public struct BBBConfig has key {
     /// Percentage of revenue that will be burned, in basis points
     burn_bps: u64,
     /// Operations that can be performed on assets inside the vault
-    operations: vector<AssetOperation>,
+    actions: vector<BBBAction>,
 }
 
-public enum AssetOperation has store {
+public enum BBBAction has store {
     Burn {
-        type_name: TypeName,
+        coin_type: TypeName,
     },
     Swap {
-        type_name: TypeName,
+        coin_type: TypeName,
         pool_id: ID,
     }
 }
@@ -57,33 +57,35 @@ fun init(
     let config = BBBConfig {
         id: object::new(ctx),
         burn_bps: init_burn_bps!(),
-        operations: vector::empty(),
+        actions: vector::empty(),
     };
     transfer::share_object(config);
 }
 
+// === public functions ===
+
 // === admin functions ===
 
-public fun add_burn_operation<C>(
+public fun add_burn_action<C>(
     config: &mut BBBConfig,
     _cap: &BBBAdminCap,
 ) {
-    let operation = AssetOperation::Burn {
-        type_name: type_name::get<C>(),
+    let action = BBBAction::Burn {
+        coin_type: type_name::get<C>(),
     };
-    config.operations.push_back(operation);
+    config.actions.push_back(action);
 }
 
-public fun add_swap_operation<L>(
+public fun add_swap_action<L>(
     config: &mut BBBConfig,
     _cap: &BBBAdminCap,
     pool: &Pool<L>,
 ) {
-    let operation = AssetOperation::Swap {
-        type_name: type_name::get<L>(),
+    let action = BBBAction::Swap {
+        coin_type: type_name::get<L>(),
         pool_id: object::id(pool),
     };
-    config.operations.push_back(operation);
+    config.actions.push_back(action);
 }
 
 public fun set_burn_bps(config: &mut BBBConfig, _: &BBBAdminCap, burn_bps: u64) {
