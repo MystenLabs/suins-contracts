@@ -49,7 +49,6 @@ public fun swap_aftermath<L, CoinIn, CoinOut>(
     insurance_fund: &mut InsuranceFund,
     referral_vault: &ReferralVault,
     expected_coin_out: u64, // MAYBE remove since it can't be trusted anyway
-    allowable_slippage: u64, // TODO move to BBBConfig
     ctx: &mut TxContext,
 ) {
     let swap_opt = get_aftermath_swap_config<CoinIn>(config);
@@ -74,7 +73,7 @@ public fun swap_aftermath<L, CoinIn, CoinOut>(
         referral_vault,
         coin_in,
         expected_coin_out,
-        allowable_slippage,
+        config.slippage(),
         ctx,
     );
 
