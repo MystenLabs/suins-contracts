@@ -1,8 +1,5 @@
-module suins_bbb::bbb_swap;
+module suins_bbb::bbb_swap_aftermath;
 
-use sui::{
-    coin::{Coin},
-};
 use amm::{
     swap::{swap_exact_in},
     pool::Pool,
