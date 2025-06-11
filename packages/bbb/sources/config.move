@@ -75,10 +75,10 @@ public fun is_burnable<C>(
 public fun get_aftermath_swap_config<C>(
     config: &BBBConfig,
 ): Option<AftermathSwapConfig> {
-    let target_type = type_name::get<C>();
+    let coin_type = type_name::get<C>();
 
     let idx = config.af_swaps.find_index!(|swap| {
-        swap.coin_type == target_type
+        swap.coin_type == coin_type
     });
 
     if (idx.is_none()) {
