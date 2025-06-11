@@ -6,7 +6,7 @@ use std::{
     type_name::{Self, TypeName},
 };
 use sui::{
-    balance::{Balance},
+    balance::{Self, Balance},
     bag::{Self, Bag},
 };
 
@@ -38,9 +38,9 @@ fun init(
     transfer::share_object(vault);
 }
 
-// === package functions ===
+// === public functions ===
 
-public(package) fun add_balance<C>(
+public fun add_balance<C>(
     vault: &mut BBBVault,
     balance: Balance<C>,
 ) {
@@ -53,6 +53,20 @@ public(package) fun add_balance<C>(
             .borrow_mut<TypeName, Balance<C>>(coin_type)
             .join(balance);
     };
+}
+
+// === package functions ===
+
+public(package) fun withdraw_balance<C>(
+    vault: &mut BBBVault,
+): Balance<C> {
+    let balances = &mut vault.balances;
+    let coin_type = type_name::get<C>();
+    if (!balances.contains(coin_type)) {
+        balance::zero()
+    } else {
+        balances.borrow_mut<TypeName, Balance<C>>(coin_type).withdraw_all()
+    }
 }
 
 // === private functions ===

@@ -14,11 +14,16 @@ use amm::{
 };
 use suins_bbb::{
     bbb_admin::{BBBAdminCap},
+    bbb_vault::{BBBVault},
 };
 
 // === errors ===
 
 const EInvalidBurnBps: u64 = 100;
+
+// === constants ===
+
+macro fun burn_address(): address { @0x0 }
 
 // === constants: initial values ===
 
@@ -35,7 +40,7 @@ public struct BBBConfig has key {
     actions: vector<BBBAction>,
 }
 
-public enum BBBAction has store {
+public enum BBBAction has copy, drop, store {
     Burn {
         coin_type: TypeName,
     },
@@ -63,6 +68,56 @@ fun init(
 }
 
 // === public functions ===
+
+public fun execute_action<C>(
+    config: &BBBConfig,
+    vault: &mut BBBVault,
+    ctx: &mut TxContext,
+) {
+    let action_opt = get_action<C>(config);
+    if (action_opt.is_none()) {
+        return
+    };
+
+    let balance = vault.withdraw_balance<C>();
+    if (balance.value() == 0) {
+        balance.destroy_zero();
+        return
+    };
+
+    let action = action_opt.destroy_some();
+    match (action) {
+        BBBAction::Burn { .. } => {
+            transfer::public_transfer(
+                balance.into_coin(ctx), burn_address!()
+            )
+        },
+        _ => {
+            abort // TODO
+        }
+    }
+}
+
+public fun get_action<C>(
+    config: &BBBConfig,
+): Option<BBBAction> {
+    let target_type = type_name::get<C>();
+
+    let idx = config.actions.find_index!(|action| {
+        match (action) {
+            BBBAction::Burn { coin_type } | BBBAction::Swap { coin_type, .. } => {
+                *coin_type == target_type
+            },
+        }
+    });
+
+    if (idx.is_none()) {
+        option::none()
+    } else {
+        option::some(config.actions[idx.destroy_some()])
+    }
+}
+
 
 // === admin functions ===
 
