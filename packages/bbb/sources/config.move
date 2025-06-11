@@ -20,12 +20,14 @@ use suins_bbb::{
 // === errors ===
 
 const EInvalidBurnBps: u64 = 100;
+const ENotBurnable: u64 = 101;
+const ENoAftermathSwap: u64 = 102;
 
 // === constants ===
 
 macro fun burn_address(): address { @0x0 }
 
-// === constants: initial values ===
+// === constants: initial config values ===
 
 macro fun init_burn_bps(): u64 { 80_00 } // 80%
 
@@ -36,18 +38,15 @@ public struct BBBConfig has key {
     id: UID,
     /// Percentage of revenue that will be burned, in basis points
     burn_bps: u64,
-    /// Operations that can be performed on assets inside the vault
-    actions: vector<BBBAction>,
+    /// Coin types that can be burned
+    burn_types: vector<TypeName>,
+    /// Aftermath swap configurations
+    af_swaps: vector<AftermathSwapConfig>,
 }
 
-public enum BBBAction has copy, drop, store {
-    Burn {
-        coin_type: TypeName,
-    },
-    Swap {
-        coin_type: TypeName,
-        pool_id: ID,
-    }
+public struct AftermathSwapConfig has copy, drop, store {
+    coin_type: TypeName,
+    pool_id: ID,
 }
 
 /// One-Time Witness
@@ -62,86 +61,99 @@ fun init(
     let config = BBBConfig {
         id: object::new(ctx),
         burn_bps: init_burn_bps!(),
-        actions: vector::empty(),
+        burn_types: vector::empty(),
+        af_swaps: vector::empty(),
     };
     transfer::share_object(config);
 }
 
 // === public functions ===
 
-public fun execute_action<C>(
+public fun burn<C>(
     config: &BBBConfig,
     vault: &mut BBBVault,
     ctx: &mut TxContext,
 ) {
-    let action_opt = get_action<C>(config);
-    if (action_opt.is_none()) {
-        return
-    };
+    assert!(config.is_burnable<C>(), ENotBurnable);
 
-    let balance = vault.withdraw_balance<C>();
+    let balance = vault.withdraw<C>();
     if (balance.value() == 0) {
         balance.destroy_zero();
         return
     };
 
-    let action = action_opt.destroy_some();
-    match (action) {
-        BBBAction::Burn { .. } => {
-            transfer::public_transfer(
-                balance.into_coin(ctx), burn_address!()
-            )
-        },
-        _ => {
-            abort // TODO
-        }
-    }
+    transfer::public_transfer(
+        balance.into_coin(ctx), burn_address!()
+    )
 }
 
-public fun get_action<C>(
+public fun swap_aftermath<C>(
     config: &BBBConfig,
-): Option<BBBAction> {
+    vault: &mut BBBVault,
+    ctx: &mut TxContext,
+) {
+    let swap_opt = get_aftermath_swap_config<C>(config);
+    assert!(swap_opt.is_some(), ENoAftermathSwap);
+
+    let swap = swap_opt.destroy_some();
+
+    let balance = vault.withdraw<C>();
+    if (balance.value() == 0) {
+        balance.destroy_zero();
+        return
+    };
+    abort // TODO
+}
+
+/// === public helpers ===
+
+public fun is_burnable<C>(
+    config: &BBBConfig,
+): bool {
+    config.burn_types.any!(|coin_type| {
+        coin_type == type_name::get<C>()
+    })
+}
+
+public fun get_aftermath_swap_config<C>(
+    config: &BBBConfig,
+): Option<AftermathSwapConfig> {
     let target_type = type_name::get<C>();
 
-    let idx = config.actions.find_index!(|action| {
-        match (action) {
-            BBBAction::Burn { coin_type } | BBBAction::Swap { coin_type, .. } => {
-                *coin_type == target_type
-            },
-        }
+    let idx = config.af_swaps.find_index!(|swap| {
+        swap.coin_type == target_type
     });
 
     if (idx.is_none()) {
         option::none()
     } else {
-        option::some(config.actions[idx.destroy_some()])
+        option::some(config.af_swaps[idx.destroy_some()])
     }
 }
 
-
-// === admin functions ===
+// === public admin functions ===
 
 public fun add_burn_action<C>(
     config: &mut BBBConfig,
     _cap: &BBBAdminCap,
 ) {
-    let action = BBBAction::Burn {
-        coin_type: type_name::get<C>(),
-    };
-    config.actions.push_back(action);
+    // TODO: check if already exists
+    config.burn_types.push_back(type_name::get<C>());
 }
 
-public fun add_swap_action<L>(
+public fun add_aftermath_swap<C, L>(
     config: &mut BBBConfig,
     _cap: &BBBAdminCap,
     pool: &Pool<L>,
 ) {
-    let action = BBBAction::Swap {
-        coin_type: type_name::get<L>(),
+    // TODO: check if already exists
+    config.af_swaps.push_back(AftermathSwapConfig {
+        coin_type: type_name::get<C>(),
         pool_id: object::id(pool),
-    };
-    config.actions.push_back(action);
+    });
 }
+
+// === setters (admin only) ===
 
 public fun set_burn_bps(config: &mut BBBConfig, _: &BBBAdminCap, burn_bps: u64) {
     assert!(burn_bps <= 100_00, EInvalidBurnBps);

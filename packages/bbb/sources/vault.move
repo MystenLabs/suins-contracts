@@ -57,7 +57,7 @@ public fun add_balance<C>(
 
 // === package functions ===
 
-public(package) fun withdraw_balance<C>(
+public(package) fun withdraw<C>(
     vault: &mut BBBVault,
 ): Balance<C> {
     let balances = &mut vault.balances;
