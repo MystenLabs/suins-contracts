@@ -7,43 +7,20 @@ use std::{
     type_name::{Self, TypeName},
 };
 use sui::{
-    coin::{Coin},
     event::{emit},
 };
 use amm::{
-    swap::{swap_exact_in},
     pool::Pool,
-    pool_registry::PoolRegistry,
-};
-use protocol_fee_vault::{
-    vault::ProtocolFeeVault,
-};
-use treasury::{
-    treasury::Treasury,
-};
-use insurance_fund::{
-    insurance_fund::InsuranceFund,
-};
-use referral_vault::{
-    referral_vault::ReferralVault,
 };
 use suins_bbb::{
     bbb_admin::{BBBAdminCap},
-    bbb_vault::{BBBVault},
 };
 
 // === errors ===
 
 const EInvalidBurnBps: u64 = 100;
-const ENotBurnable: u64 = 101;
-const ENoAftermathSwap: u64 = 102;
-const EInvalidPool: u64 = 103;
 
-// === constants ===
-
-macro fun burn_address(): address { @0x0 }
-
-// === constants: initial config values ===
+// === initial config values ===
 
 macro fun init_burn_bps(): u64 { 80_00 } // 80%
 
@@ -84,24 +61,6 @@ fun init(
 }
 
 // === public functions ===
-
-public fun burn<C>(
-    config: &BBBConfig,
-    vault: &mut BBBVault,
-    ctx: &mut TxContext,
-) {
-    assert!(config.is_burnable<C>(), ENotBurnable);
-
-    let balance = vault.withdraw<C>();
-    if (balance.value() == 0) {
-        balance.destroy_zero();
-        return
-    };
-
-    transfer::public_transfer(
-        balance.into_coin(ctx), burn_address!()
-    )
-}
 
 // === public helpers ===
 
@@ -159,7 +118,15 @@ public fun set_burn_bps(config: &mut BBBConfig, _: &BBBAdminCap, burn_bps: u64) 
     config.burn_bps = burn_bps;
 }
 
-// === getters TODO ===
+// === getters: BBBConfig ===
+
+public fun id(config: &BBBConfig): ID { config.id.to_inner() }
+public fun burn_bps(config: &BBBConfig): u64 { config.burn_bps }
+
+// === getters: AftermathSwapConfig ===
+
+public fun coin_type(swap: &AftermathSwapConfig): TypeName { swap.coin_type }
+public fun pool_id(swap: &AftermathSwapConfig): ID { swap.pool_id }
 
 // === private functions ===
 
@@ -174,16 +141,6 @@ fun emit_event(
         new_value,
     });
 }
-
-// === accessors: BBBConfig ===
-
-public fun id(config: &BBBConfig): ID { config.id.to_inner() }
-public fun burn_bps(config: &BBBConfig): u64 { config.burn_bps }
-
-// === accessors: AftermathSwapConfig ===
-
-public fun coin_type(swap: &AftermathSwapConfig): TypeName { swap.coin_type }
-public fun pool_id(swap: &AftermathSwapConfig): ID { swap.pool_id }
 
 // === events ===
 

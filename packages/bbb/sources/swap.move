@@ -30,6 +30,8 @@ use suins_bbb::{
 const ENoAftermathSwap: u64 = 100;
 const EInvalidPool: u64 = 101;
 
+// === public functions ===
+
 /// Swap `coin_in` for an equal-valued amount of `Coin<CoinOut>` using Aftermath's AMM.
 /// Protocol fees are charged on the Coin being swapped in.
 /// Resulting `Coin<CoinOut>` is deposited into the `BBBVault`.
