@@ -40,7 +40,7 @@ fun init(
 
 // === public functions ===
 
-public fun add_balance<C>(
+public fun deposit<C>(
     vault: &mut BBBVault,
     balance: Balance<C>,
 ) {
