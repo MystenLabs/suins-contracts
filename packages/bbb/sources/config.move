@@ -103,50 +103,7 @@ public fun burn<C>(
     )
 }
 
-public fun swap_aftermath<L, CoinIn, CoinOut>(
-    config: &BBBConfig,
-    vault: &mut BBBVault,
-    // Aftermath `swap_exact_in` parameters
-    pool: &mut Pool<L>,
-    pool_registry: &PoolRegistry,
-    protocol_fee_vault: &ProtocolFeeVault,
-    treasury: &mut Treasury,
-    insurance_fund: &mut InsuranceFund,
-    referral_vault: &ReferralVault,
-    expected_coin_out: u64, // MAYBE remove since can't be trusted anyway
-    allowable_slippage: u64, // TODO move to BBBConfig
-    ctx: &mut TxContext,
-) {
-    let swap_opt = get_aftermath_swap_config<CoinIn>(config);
-    assert!(swap_opt.is_some(), ENoAftermathSwap);
-
-    let swap = swap_opt.destroy_some();
-    assert!(swap.pool_id == object::id(pool), EInvalidPool);
-
-    let balance = vault.withdraw<CoinIn>();
-    if (balance.value() == 0) {
-        balance.destroy_zero();
-        return
-    };
-
-    let coin_in = balance.into_coin(ctx);
-    let coin_out = swap_exact_in<L, CoinIn, CoinOut>(
-        pool,
-        pool_registry,
-        protocol_fee_vault,
-        treasury,
-        insurance_fund,
-        referral_vault,
-        coin_in,
-        expected_coin_out,
-        allowable_slippage,
-        ctx,
-    );
-
-    vault.deposit<CoinOut>(coin_out.into_balance());
-}
-
-/// === public helpers ===
+// === public helpers ===
 
 public fun is_burnable<C>(
     config: &BBBConfig,
@@ -218,10 +175,15 @@ fun emit_event(
     });
 }
 
-// === accessors ===
+// === accessors: BBBConfig ===
 
 public fun id(config: &BBBConfig): ID { config.id.to_inner() }
 public fun burn_bps(config: &BBBConfig): u64 { config.burn_bps }
+
+// === accessors: AftermathSwapConfig ===
+
+public fun coin_type(swap: &AftermathSwapConfig): TypeName { swap.coin_type }
+public fun pool_id(swap: &AftermathSwapConfig): ID { swap.pool_id }
 
 // === events ===
 
