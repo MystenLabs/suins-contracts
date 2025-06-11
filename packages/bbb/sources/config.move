@@ -7,10 +7,25 @@ use std::{
     type_name::{Self, TypeName},
 };
 use sui::{
+    coin::{Coin},
     event::{emit},
 };
 use amm::{
+    swap::{swap_exact_in},
     pool::Pool,
+    pool_registry::PoolRegistry,
+};
+use protocol_fee_vault::{
+    vault::ProtocolFeeVault,
+};
+use treasury::{
+    treasury::Treasury,
+};
+use insurance_fund::{
+    insurance_fund::InsuranceFund,
+};
+use referral_vault::{
+    referral_vault::ReferralVault,
 };
 use suins_bbb::{
     bbb_admin::{BBBAdminCap},
@@ -22,6 +37,7 @@ use suins_bbb::{
 const EInvalidBurnBps: u64 = 100;
 const ENotBurnable: u64 = 101;
 const ENoAftermathSwap: u64 = 102;
+const EInvalidPool: u64 = 103;
 
 // === constants ===
 
@@ -87,22 +103,47 @@ public fun burn<C>(
     )
 }
 
-public fun swap_aftermath<C>(
+public fun swap_aftermath<L, CoinIn, CoinOut>(
     config: &BBBConfig,
     vault: &mut BBBVault,
+    // Aftermath `swap_exact_in` parameters
+    pool: &mut Pool<L>,
+    pool_registry: &PoolRegistry,
+    protocol_fee_vault: &ProtocolFeeVault,
+    treasury: &mut Treasury,
+    insurance_fund: &mut InsuranceFund,
+    referral_vault: &ReferralVault,
+    expected_coin_out: u64, // MAYBE remove since can't be trusted anyway
+    allowable_slippage: u64, // TODO move to BBBConfig
     ctx: &mut TxContext,
 ) {
-    let swap_opt = get_aftermath_swap_config<C>(config);
+    let swap_opt = get_aftermath_swap_config<CoinIn>(config);
     assert!(swap_opt.is_some(), ENoAftermathSwap);
 
     let swap = swap_opt.destroy_some();
+    assert!(swap.pool_id == object::id(pool), EInvalidPool);
 
-    let balance = vault.withdraw<C>();
+    let balance = vault.withdraw<CoinIn>();
     if (balance.value() == 0) {
         balance.destroy_zero();
         return
     };
-    abort // TODO
+
+    let coin_in = balance.into_coin(ctx);
+    let coin_out = swap_exact_in<L, CoinIn, CoinOut>(
+        pool,
+        pool_registry,
+        protocol_fee_vault,
+        treasury,
+        insurance_fund,
+        referral_vault,
+        coin_in,
+        expected_coin_out,
+        allowable_slippage,
+        ctx,
+    );
+
+    vault.deposit<CoinOut>(coin_out.into_balance());
 }
 
 /// === public helpers ===
