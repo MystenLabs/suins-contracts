@@ -23,6 +23,7 @@ const EInvalidBurnBps: u64 = 100;
 // === initial config values ===
 
 macro fun init_burn_bps(): u64 { 80_00 } // 80%
+macro fun init_slippage(): u64 { 980_000_000_000_000_000 } // 2%
 
 // === structs ===
 
@@ -31,6 +32,9 @@ public struct BBBConfig has key {
     id: UID,
     /// Percentage of revenue that will be burned, in basis points
     burn_bps: u64,
+    /// Slippage tolerance as (1 - slippage) in 18-decimal fixed point.
+    /// E.g., 2% slippage = 980_000_000_000_000_000 (represents 0.98)
+    slippage: u64,
     /// Coin types that can be burned
     burn_types: vector<TypeName>,
     /// Aftermath swap configurations
@@ -38,7 +42,9 @@ public struct BBBConfig has key {
 }
 
 public struct AftermathSwapConfig has copy, drop, store {
+    /// The type of coin to be swapped
     coin_type: TypeName,
+    /// The ID of the Aftermath `Pool` object
     pool_id: ID,
 }
 
@@ -54,6 +60,7 @@ fun init(
     let config = BBBConfig {
         id: object::new(ctx),
         burn_bps: init_burn_bps!(),
+        slippage: init_slippage!(),
         burn_types: vector::empty(),
         af_swaps: vector::empty(),
     };
@@ -122,6 +129,7 @@ public fun set_burn_bps(config: &mut BBBConfig, _: &BBBAdminCap, burn_bps: u64) 
 
 public fun id(config: &BBBConfig): ID { config.id.to_inner() }
 public fun burn_bps(config: &BBBConfig): u64 { config.burn_bps }
+public fun slippage(config: &BBBConfig): u64 { config.slippage }
 
 // === getters: AftermathSwapConfig ===
 

@@ -27,8 +27,9 @@ export function newSuiClient(network = getNetwork()): SuiClient {
 
 export function getAftermathAmmPkgId(network = getNetwork()): string {
     if (network === "mainnet") {
-        return "0xc4049b2d1cc0f6e017fda8260e4377cecd236bd7f56a54fee120816e72e2e0dd"; // v2
         // return "0xefe170ec0be4d762196bedecd7a065816576198a6527c99282a2551aaa7da38c"; // v1
+        return "0xc4049b2d1cc0f6e017fda8260e4377cecd236bd7f56a54fee120816e72e2e0dd"; // v2
+        // return "0xf948935b111990c2b604900c9b2eeb8f24dcf9868a45d1ea1653a5f282c10e29"; // v3
     }
     throw new Error(`Unsupported network: ${network}`);
 }
