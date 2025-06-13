@@ -1,7 +1,5 @@
 module suins_bbb::bbb_vault;
 
-// === imports ===
-
 use std::{
     type_name::{Self, TypeName},
 };

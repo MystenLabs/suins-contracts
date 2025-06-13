@@ -1,7 +1,5 @@
 module suins_bbb::bbb_config;
 
-// === imports ===
-
 use std::{
     string::{String},
     type_name::{Self, TypeName},
@@ -77,8 +75,6 @@ fun init(
 
 // === public functions ===
 
-// === public helpers ===
-
 public fun is_burnable<C>(
     config: &BBBConfig,
 ): bool {
@@ -92,16 +88,12 @@ public fun get_aftermath_swap_config<C>(
     config: &BBBConfig,
 ): Option<AftermathSwapConfig> {
     let coin_type = type_name::get<C>();
-
     let idx = config.af_swaps.find_index!(|swap| {
         swap.coin_type == coin_type
     });
+    assert!(idx.is_some(), EAftermathSwapNotFound);
 
-    if (idx.is_none()) {
-        option::none()
-    } else {
-        option::some(config.af_swaps[idx.destroy_some()])
-    }
+    option::some(config.af_swaps[idx.destroy_some()])
 }
 
 // === public admin functions ===
@@ -125,8 +117,6 @@ public fun add_aftermath_swap<C, L>(
     pool: &Pool<L>,
 ) {
     let coin_type = type_name::get<C>();
-    let pool_id = object::id(pool);
-
     let idx = config.af_swaps.find_index!(|swap_config| {
         swap_config.coin_type == coin_type
     });
@@ -134,25 +124,33 @@ public fun add_aftermath_swap<C, L>(
 
     config.af_swaps.push_back(AftermathSwapConfig {
         coin_type,
-        pool_id,
+        pool_id: object::id(pool),
     });
 }
 
-public fun remove_burn_action<C>(config: &mut BBBConfig, _: &BBBAdminCap) {
-    let given_type = type_name::get<C>();
+public fun remove_burn_action<C>(
+    config: &mut BBBConfig,
+    _: &BBBAdminCap,
+) {
+    let coin_type = type_name::get<C>();
     let idx = config.burn_types.find_index!(|burn_type| {
-        burn_type == given_type
+        burn_type == coin_type
     });
     assert!(idx.is_some(), EBurnActionNotFound);
+
     config.burn_types.swap_remove(idx.destroy_some());
 }
 
-public fun remove_aftermath_swap<C>(config: &mut BBBConfig, _: &BBBAdminCap) {
-    let given_type = type_name::get<C>();
+public fun remove_aftermath_swap<C>(
+    config: &mut BBBConfig,
+    _: &BBBAdminCap,
+) {
+    let coin_type = type_name::get<C>();
     let idx = config.af_swaps.find_index!(|swap_config| {
-        swap_config.coin_type == given_type
+        swap_config.coin_type == coin_type
     });
     assert!(idx.is_some(), EAftermathSwapNotFound);
+
     config.af_swaps.swap_remove(idx.destroy_some());
 }
 
@@ -173,6 +171,8 @@ public fun set_slippage(config: &mut BBBConfig, _: &BBBAdminCap, slippage: u64) 
 public fun id(config: &BBBConfig): ID { config.id.to_inner() }
 public fun burn_bps(config: &BBBConfig): u64 { config.burn_bps }
 public fun slippage(config: &BBBConfig): u64 { config.slippage }
+public fun burn_types(config: &BBBConfig): &vector<TypeName> { &config.burn_types }
+public fun af_swaps(config: &BBBConfig): &vector<AftermathSwapConfig> { &config.af_swaps }
 
 // === getters: AftermathSwapConfig ===
 
