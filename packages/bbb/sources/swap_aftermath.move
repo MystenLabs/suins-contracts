@@ -1,5 +1,15 @@
 module suins_bbb::bbb_swap_aftermath;
 
+use std::{
+    type_name,
+};
+use sui::{
+    clock::Clock,
+};
+use pyth::{
+    price_info::PriceInfoObject,
+    pyth::Self,
+};
 use amm::{
     swap::swap_exact_in,
     pool::Pool,
@@ -18,14 +28,16 @@ use referral_vault::{
     referral_vault::ReferralVault,
 };
 use suins_bbb::{
-    bbb_config::{BBBConfig, get_aftermath_swap_config},
-    bbb_vault::{BBBVault},
+    bbb_config::{AftermathSwapConfig, BBBConfig, get_aftermath_swap_config},
+    bbb_vault::BBBVault,
 };
 
 // === errors ===
 
 const ENoAftermathSwap: u64 = 100;
 const EInvalidPool: u64 = 101;
+const ECoinInPriceFeedIdMismatch: u64 = 102;
+const ECoinOutPriceFeedIdMismatch: u64 = 103;
 
 // === public functions ===
 
@@ -79,4 +91,62 @@ public fun swap_aftermath<L, CoinIn, CoinOut>(
     );
 
     vault.deposit<CoinOut>(coin_out.into_balance());
+}
+
+fun calc_expected_coin_out(
+    bbb_conf: &BBBConfig,
+    swap_conf: &AftermathSwapConfig,
+    coin_in_price_info_obj: &PriceInfoObject,
+    coin_out_price_info_obj: &PriceInfoObject,
+    coin_in_amount: u64,
+    clock: &Clock,
+): u64 {
+    // check that the price feed ids match the swap configuration
+    let coin_in_price_info = coin_in_price_info_obj.get_price_info_from_price_info_object();
+    let coin_out_price_info = coin_out_price_info_obj.get_price_info_from_price_info_object();
+    assert!(
+        coin_in_price_info.get_price_identifier().get_bytes() == swap_conf.coin_in_feed_id(),
+        ECoinInPriceFeedIdMismatch,
+    );
+    assert!(
+        coin_out_price_info.get_price_identifier().get_bytes() == swap_conf.coin_out_feed_id(),
+        ECoinOutPriceFeedIdMismatch,
+    );
+
+    // get the price of both coins in USD
+    let coin_in_price_usd = pyth::get_price_no_older_than(
+        coin_in_price_info_obj,
+        clock,
+        bbb_conf.max_age_secs(),
+    );
+    let coin_out_price_usd = pyth::get_price_no_older_than(
+        coin_out_price_info_obj,
+        clock,
+        bbb_conf.max_age_secs(),
+    );
+
+    // extract price magnitudes and decimal exponents from the `Price` structs
+    let coin_in_price_mag = coin_in_price_usd.get_price().get_magnitude_if_positive();
+    let coin_out_price_mag = coin_out_price_usd.get_price().get_magnitude_if_positive();
+    let coin_in_price_dec = coin_in_price_usd.get_expo().get_magnitude_if_negative() as u8;
+    let coin_out_price_dec = coin_out_price_usd.get_expo().get_magnitude_if_negative() as u8;
+
+    // buffer to avoid precision loss when the computed exponent would be negative.
+    let buffer: u8 = 10;
+
+    // calculate the numerator and denominator
+    let coin_in_decimals = suins_bbb::bbb_config::coin_in_decimals(swap_conf);
+    let coin_out_decimals = suins_bbb::bbb_config::coin_out_decimals(swap_conf);
+    let numerator = (coin_in_amount as u128)
+        * (coin_in_price_mag as u128)
+        * 10u128.pow((buffer + coin_out_price_dec + coin_out_decimals) as u8);
+    let denominator = (coin_out_price_mag as u128)
+        * 10u128.pow((buffer + coin_in_price_dec + coin_in_decimals) as u8);
+
+    // divide and round up to avoid precision loss
+    let expected_coin_out = numerator
+        .divide_and_round_up(denominator)
+        .divide_and_round_up(10u128.pow(buffer)) as u64;
+
+    expected_coin_out
 }
