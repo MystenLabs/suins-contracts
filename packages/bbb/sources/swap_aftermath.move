@@ -1,5 +1,11 @@
 module suins_bbb::bbb_swap_aftermath;
 
+use sui::{
+    clock::Clock,
+};
+use pyth::{
+    price_info::PriceInfoObject,
+};
 use amm::{
     swap::swap_exact_in,
     pool::Pool,
@@ -19,6 +25,7 @@ use referral_vault::{
 };
 use suins_bbb::{
     bbb_config::{BBBConfig, get_aftermath_swap_config},
+    bbb_oracle_pyth::calc_expected_coin_out,
     bbb_vault::BBBVault,
 };
 
@@ -26,6 +33,8 @@ use suins_bbb::{
 
 const ENoAftermathSwap: u64 = 100;
 const EInvalidPool: u64 = 101;
+const ECoinInPriceFeedIdMismatch: u64 = 102;
+const ECoinOutPriceFeedIdMismatch: u64 = 103;
 
 // === public functions ===
 
@@ -40,31 +49,65 @@ const EInvalidPool: u64 = 101;
 /// - `EInvalidSwapAmountOut`: the swap would result in more than `MAX_SWAP_AMOUNT_OUT`
 ///    worth of `Coin<CoinOut>` exiting the Pool.
 public fun swap_aftermath<L, CoinIn, CoinOut>(
+    // ours
     config: &BBBConfig,
     vault: &mut BBBVault,
+    // pyth
+    coin_in_price_info_obj: &PriceInfoObject,
+    coin_out_price_info_obj: &PriceInfoObject,
+    // aftermath
     pool: &mut Pool<L>,
     pool_registry: &PoolRegistry,
     protocol_fee_vault: &ProtocolFeeVault,
     treasury: &mut Treasury,
     insurance_fund: &mut InsuranceFund,
     referral_vault: &ReferralVault,
+    // sui
+    clock: &Clock,
     ctx: &mut TxContext,
 ) {
+    // check swap config exists for CoinIn
     let swap_opt = get_aftermath_swap_config<CoinIn>(config);
     assert!(swap_opt.is_some(), ENoAftermathSwap);
 
+    // check pool id matches the one in the swap config
     let swap_conf = swap_opt.destroy_some();
-    assert!(swap_conf.pool_id() == object::id(pool), EInvalidPool);
+    assert!(object::id(pool) == swap_conf.pool_id(), EInvalidPool);
 
-    let expected_coin_out = 123; // TODO: call oracle
+    // check price feed ids match the swap config
+    let coin_in_price_info = coin_in_price_info_obj.get_price_info_from_price_info_object();
+    let coin_out_price_info = coin_out_price_info_obj.get_price_info_from_price_info_object();
+    assert!(
+        coin_in_price_info.get_price_identifier().get_bytes() == swap_conf.coin_in_feed_id(),
+        ECoinInPriceFeedIdMismatch,
+    );
+    assert!(
+        coin_out_price_info.get_price_identifier().get_bytes() == swap_conf.coin_out_feed_id(),
+        ECoinOutPriceFeedIdMismatch,
+    );
 
+    // withdraw all CoinIn from vault
     let balance = vault.withdraw<CoinIn>();
-    if (balance.value() == 0) {
-        balance.destroy_zero();
+    let coin_in = balance.into_coin(ctx);
+
+    // return early if the vault is empty
+    if (coin_in.value() == 0) {
+        coin_in.destroy_zero();
         return
     };
 
-    let coin_in = balance.into_coin(ctx);
+    // calculate expected CoinOut amount
+    let expected_coin_out = calc_expected_coin_out(
+        coin_in_price_info_obj,
+        coin_out_price_info_obj,
+        swap_conf.coin_in_decimals(),
+        swap_conf.coin_out_decimals(),
+        coin_in.value(),
+        config.max_age_secs(),
+        clock,
+    );
+
+    // swap CoinIn for CoinOut
     let coin_out = swap_exact_in<L, CoinIn, CoinOut>(
         pool,
         pool_registry,
@@ -78,5 +121,6 @@ public fun swap_aftermath<L, CoinIn, CoinOut>(
         ctx,
     );
 
+    // deposit CoinOut into vault
     vault.deposit<CoinOut>(coin_out.into_balance());
 }
