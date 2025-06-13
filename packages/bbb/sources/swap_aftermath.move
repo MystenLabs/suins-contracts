@@ -1,7 +1,7 @@
 module suins_bbb::bbb_swap_aftermath;
 
 use amm::{
-    swap::{swap_exact_in},
+    swap::swap_exact_in,
     pool::Pool,
     pool_registry::PoolRegistry,
 };
@@ -48,14 +48,15 @@ public fun swap_aftermath<L, CoinIn, CoinOut>(
     treasury: &mut Treasury,
     insurance_fund: &mut InsuranceFund,
     referral_vault: &ReferralVault,
-    expected_coin_out: u64, // MAYBE remove since it can't be trusted anyway
     ctx: &mut TxContext,
 ) {
     let swap_opt = get_aftermath_swap_config<CoinIn>(config);
     assert!(swap_opt.is_some(), ENoAftermathSwap);
 
-    let swap = swap_opt.destroy_some();
-    assert!(swap.pool_id() == object::id(pool), EInvalidPool);
+    let swap_conf = swap_opt.destroy_some();
+    assert!(swap_conf.pool_id() == object::id(pool), EInvalidPool);
+
+    let expected_coin_out = 123; // TODO: call oracle
 
     let balance = vault.withdraw<CoinIn>();
     if (balance.value() == 0) {

@@ -46,6 +46,8 @@ public struct BBBConfig has key {
     /// Slippage tolerance as (1 - slippage) in 18-decimal fixed point.
     /// E.g., 2% slippage = 980_000_000_000_000_000 (represents 0.98)
     slippage: u64,
+    /// How old the Pyth price can be, in seconds.
+    max_age_secs: u64,
     /// Coin types that can be burned
     burn_types: vector<TypeName>,
     /// Aftermath swap configurations
@@ -79,6 +81,7 @@ fun init(
         id: object::new(ctx),
         burn_bps: init_burn_bps!(),
         slippage: init_slippage!(),
+        max_age_secs: 60,
         burn_types: vector::empty(),
         af_swaps: vector::empty(),
     };
@@ -192,6 +195,7 @@ public fun set_slippage(config: &mut BBBConfig, _: &BBBAdminCap, slippage: u64) 
 public fun id(config: &BBBConfig): ID { config.id.to_inner() }
 public fun burn_bps(config: &BBBConfig): u64 { config.burn_bps }
 public fun slippage(config: &BBBConfig): u64 { config.slippage }
+public fun max_age_secs(config: &BBBConfig): u64 { config.max_age_secs }
 public fun burn_types(config: &BBBConfig): &vector<TypeName> { &config.burn_types }
 public fun af_swaps(config: &BBBConfig): &vector<AftermathSwapConfig> { &config.af_swaps }
 
