@@ -19,11 +19,19 @@ use suins_bbb::{
 // === errors ===
 
 const EInvalidBurnBps: u64 = 100;
+const EInvalidSlippage: u64 = 101;
+const EBurnActionAlreadyExists: u64 = 102;
+const EAftermathSwapAlreadyExists: u64 = 103;
+const EBurnActionNotFound: u64 = 104;
+const EAftermathSwapNotFound: u64 = 105;
 
-// === initial config values ===
+// === constants ===
 
 macro fun init_burn_bps(): u64 { 80_00 } // 80%
 macro fun init_slippage(): u64 { 980_000_000_000_000_000 } // 2%
+
+macro fun max_burn_bps(): u64 { 100_00 } // 100%
+macro fun max_slippage(): u64 { 1_000_000_000_000_000_000 } // 100%
 
 // === structs ===
 
@@ -74,8 +82,9 @@ fun init(
 public fun is_burnable<C>(
     config: &BBBConfig,
 ): bool {
-    config.burn_types.any!(|coin_type| {
-        coin_type == type_name::get<C>()
+    let coin_type = type_name::get<C>();
+    config.burn_types.any!(|burn_type| {
+        burn_type == coin_type
     })
 }
 
@@ -101,8 +110,13 @@ public fun add_burn_action<C>(
     config: &mut BBBConfig,
     _cap: &BBBAdminCap,
 ) {
-    // TODO: check if already exists
-    config.burn_types.push_back(type_name::get<C>());
+    let coin_type = type_name::get<C>();
+    let idx = config.burn_types.find_index!(|burn_type| {
+        burn_type == coin_type
+    });
+    assert!(idx.is_none(), EBurnActionAlreadyExists);
+
+    config.burn_types.push_back(coin_type);
 }
 
 public fun add_aftermath_swap<C, L>(
@@ -110,19 +124,48 @@ public fun add_aftermath_swap<C, L>(
     _cap: &BBBAdminCap,
     pool: &Pool<L>,
 ) {
-    // TODO: check if already exists
+    let coin_type = type_name::get<C>();
+    let pool_id = object::id(pool);
+
+    let idx = config.af_swaps.find_index!(|swap_config| {
+        swap_config.coin_type == coin_type
+    });
+    assert!(idx.is_none(), EAftermathSwapAlreadyExists);
+
     config.af_swaps.push_back(AftermathSwapConfig {
-        coin_type: type_name::get<C>(),
-        pool_id: object::id(pool),
+        coin_type,
+        pool_id,
     });
 }
 
-// === setters (admin only) ===
+public fun remove_burn_action<C>(config: &mut BBBConfig, _: &BBBAdminCap) {
+    let given_type = type_name::get<C>();
+    let idx = config.burn_types.find_index!(|burn_type| {
+        burn_type == given_type
+    });
+    assert!(idx.is_some(), EBurnActionNotFound);
+    config.burn_types.swap_remove(idx.destroy_some());
+}
+
+public fun remove_aftermath_swap<C>(config: &mut BBBConfig, _: &BBBAdminCap) {
+    let given_type = type_name::get<C>();
+    let idx = config.af_swaps.find_index!(|swap_config| {
+        swap_config.coin_type == given_type
+    });
+    assert!(idx.is_some(), EAftermathSwapNotFound);
+    config.af_swaps.swap_remove(idx.destroy_some());
+}
 
 public fun set_burn_bps(config: &mut BBBConfig, _: &BBBAdminCap, burn_bps: u64) {
-    assert!(burn_bps <= 100_00, EInvalidBurnBps);
+    assert!(burn_bps <= max_burn_bps!(), EInvalidBurnBps);
     emit_event(b"burn_bps", config.burn_bps, burn_bps);
     config.burn_bps = burn_bps;
+}
+
+public fun set_slippage(config: &mut BBBConfig, _: &BBBAdminCap, slippage: u64) {
+    assert!(slippage <= max_slippage!(), EInvalidSlippage);
+    emit_event(b"slippage", config.slippage, slippage);
+    config.slippage = slippage;
 }
 
 // === getters: BBBConfig ===
