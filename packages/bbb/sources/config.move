@@ -25,6 +25,8 @@ const EBurnActionAlreadyExists: u64 = 102;
 const EAftermathSwapAlreadyExists: u64 = 103;
 const EBurnActionNotFound: u64 = 104;
 const EAftermathSwapNotFound: u64 = 105;
+const EInvalidCoinInType: u64 = 106;
+const EInvalidCoinOutType: u64 = 107;
 
 // === constants ===
 
@@ -134,9 +136,13 @@ public fun add_aftermath_swap<CoinIn, CoinOut, L>(
     });
     assert!(idx.is_none(), EAftermathSwapAlreadyExists);
 
+    let coin_out_type = type_name::get<CoinOut>();
+    assert!(af_pool.type_names().contains(&coin_in_type.into_string()), EInvalidCoinInType);
+    assert!(af_pool.type_names().contains(&coin_out_type.into_string()), EInvalidCoinOutType);
+
     config.af_swaps.push_back(AftermathSwapConfig {
         coin_in_type,
-        coin_out_type: type_name::get<CoinOut>(),
+        coin_out_type,
         coin_in_feed_id: coin_in_feed.get_price_identifier().get_bytes(),
         coin_out_feed_id: coin_out_feed.get_price_identifier().get_bytes(),
         pool_id: object::id(af_pool),
