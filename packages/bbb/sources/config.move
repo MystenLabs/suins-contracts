@@ -10,6 +10,9 @@ use sui::{
 use amm::{
     pool::Pool,
 };
+use pyth::{
+    price_feed::{PriceFeed},
+};
 use suins_bbb::{
     bbb_admin::{BBBAdminCap},
 };
@@ -47,10 +50,17 @@ public struct BBBConfig has key {
     af_swaps: vector<AftermathSwapConfig>,
 }
 
+/// Aftermath swap configuration.
 public struct AftermathSwapConfig has copy, drop, store {
-    /// The type of coin to be swapped
-    coin_type: TypeName,
-    /// The ID of the Aftermath `Pool` object
+    /// Type of coin to be swapped into `coin_out_type`
+    coin_in_type: TypeName,
+    /// Type of coin to be received from the swap
+    coin_out_type: TypeName,
+    /// Pyth `PriceFeed` identifier for `coin_in_type` without the `0x` prefix
+    coin_in_feed_id: vector<u8>,
+    /// Pyth `PriceFeed` identifier for `coin_out_type` without the `0x` prefix
+    coin_out_feed_id: vector<u8>,
+    /// Aftermath `Pool` object `ID`
     pool_id: ID,
 }
 
@@ -84,12 +94,12 @@ public fun is_burnable<C>(
     })
 }
 
-public fun get_aftermath_swap_config<C>(
+public fun get_aftermath_swap_config<CoinIn>(
     config: &BBBConfig,
 ): Option<AftermathSwapConfig> {
-    let coin_type = type_name::get<C>();
+    let coin_in_type = type_name::get<CoinIn>();
     let idx = config.af_swaps.find_index!(|swap| {
-        swap.coin_type == coin_type
+        swap.coin_in_type == coin_in_type
     });
     assert!(idx.is_some(), EAftermathSwapNotFound);
 
@@ -111,20 +121,25 @@ public fun add_burn_action<C>(
     config.burn_types.push_back(coin_type);
 }
 
-public fun add_aftermath_swap<C, L>(
+public fun add_aftermath_swap<CoinIn, CoinOut, L>(
     config: &mut BBBConfig,
     _cap: &BBBAdminCap,
-    pool: &Pool<L>,
+    coin_in_feed: &PriceFeed,
+    coin_out_feed: &PriceFeed,
+    af_pool: &Pool<L>,
 ) {
-    let coin_type = type_name::get<C>();
+    let coin_in_type = type_name::get<CoinIn>();
     let idx = config.af_swaps.find_index!(|swap_config| {
-        swap_config.coin_type == coin_type
+        swap_config.coin_in_type == coin_in_type
     });
     assert!(idx.is_none(), EAftermathSwapAlreadyExists);
 
     config.af_swaps.push_back(AftermathSwapConfig {
-        coin_type,
-        pool_id: object::id(pool),
+        coin_in_type,
+        coin_out_type: type_name::get<CoinOut>(),
+        coin_in_feed_id: coin_in_feed.get_price_identifier().get_bytes(),
+        coin_out_feed_id: coin_out_feed.get_price_identifier().get_bytes(),
+        pool_id: object::id(af_pool),
     });
 }
 
@@ -141,13 +156,13 @@ public fun remove_burn_action<C>(
     config.burn_types.swap_remove(idx.destroy_some());
 }
 
-public fun remove_aftermath_swap<C>(
+public fun remove_aftermath_swap<CoinIn>(
     config: &mut BBBConfig,
     _: &BBBAdminCap,
 ) {
-    let coin_type = type_name::get<C>();
+    let coin_in_type = type_name::get<CoinIn>();
     let idx = config.af_swaps.find_index!(|swap_config| {
-        swap_config.coin_type == coin_type
+        swap_config.coin_in_type == coin_in_type
     });
     assert!(idx.is_some(), EAftermathSwapNotFound);
 
@@ -176,8 +191,11 @@ public fun af_swaps(config: &BBBConfig): &vector<AftermathSwapConfig> { &config.
 
 // === getters: AftermathSwapConfig ===
 
-public fun coin_type(swap: &AftermathSwapConfig): TypeName { swap.coin_type }
-public fun pool_id(swap: &AftermathSwapConfig): ID { swap.pool_id }
+public fun coin_in_type(swap: &AftermathSwapConfig): &TypeName { &swap.coin_in_type }
+public fun coin_out_type(swap: &AftermathSwapConfig): &TypeName { &swap.coin_out_type }
+public fun coin_in_feed_id(swap: &AftermathSwapConfig): &vector<u8> { &swap.coin_in_feed_id }
+public fun coin_out_feed_id(swap: &AftermathSwapConfig): &vector<u8> { &swap.coin_out_feed_id }
+public fun pool_id(swap: &AftermathSwapConfig): &ID { &swap.pool_id }
 
 // === private functions ===
 
