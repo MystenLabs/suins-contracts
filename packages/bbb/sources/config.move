@@ -60,6 +60,10 @@ public struct AftermathSwapConfig has copy, drop, store {
     coin_in_type: TypeName,
     /// Type of coin to be received from the swap
     coin_out_type: TypeName,
+    /// Number of decimals used by `coin_in_type`
+    coin_in_decimals: u8,
+    /// Number of decimals used by `coin_out_type`
+    coin_out_decimals: u8,
     /// Pyth `PriceFeed` identifier for `coin_in_type` without the `0x` prefix
     coin_in_feed_id: vector<u8>,
     /// Pyth `PriceFeed` identifier for `coin_out_type` without the `0x` prefix
@@ -129,6 +133,8 @@ public fun add_burn_action<C>(
 public fun add_aftermath_swap<CoinIn, CoinOut, L>(
     config: &mut BBBConfig,
     _cap: &BBBAdminCap,
+    coin_in_decimals: u8,
+    coin_out_decimals: u8,
     coin_in_feed: &PriceFeed,
     coin_out_feed: &PriceFeed,
     af_pool: &Pool<L>,
@@ -149,6 +155,8 @@ public fun add_aftermath_swap<CoinIn, CoinOut, L>(
         coin_in_feed_id: coin_in_feed.get_price_identifier().get_bytes(),
         coin_out_feed_id: coin_out_feed.get_price_identifier().get_bytes(),
         pool_id: object::id(af_pool),
+        coin_in_decimals,
+        coin_out_decimals,
     });
 }
 
@@ -203,6 +211,8 @@ public fun af_swaps(config: &BBBConfig): &vector<AftermathSwapConfig> { &config.
 
 public fun coin_in_type(swap: &AftermathSwapConfig): &TypeName { &swap.coin_in_type }
 public fun coin_out_type(swap: &AftermathSwapConfig): &TypeName { &swap.coin_out_type }
+public fun coin_in_decimals(swap: &AftermathSwapConfig): u8 { swap.coin_in_decimals }
+public fun coin_out_decimals(swap: &AftermathSwapConfig): u8 { swap.coin_out_decimals }
 public fun coin_in_feed_id(swap: &AftermathSwapConfig): &vector<u8> { &swap.coin_in_feed_id }
 public fun coin_out_feed_id(swap: &AftermathSwapConfig): &vector<u8> { &swap.coin_out_feed_id }
 public fun pool_id(swap: &AftermathSwapConfig): &ID { &swap.pool_id }
