@@ -131,19 +131,24 @@ fun calc_expected_coin_out(
     let coin_in_price_dec = coin_in_price_usd.get_expo().get_magnitude_if_negative() as u8;
     let coin_out_price_dec = coin_out_price_usd.get_expo().get_magnitude_if_negative() as u8;
 
-    // buffer to avoid precision loss when the computed exponent would be negative.
+    // buffer to avoid precision loss when the computed exponent would be negative
     let buffer: u8 = 10;
 
-    // calculate the numerator and denominator
+    // calculate the exponent that aligns the two price / coin-decimal systems
     let coin_in_decimals = suins_bbb::bbb_config::coin_in_decimals(swap_conf);
     let coin_out_decimals = suins_bbb::bbb_config::coin_out_decimals(swap_conf);
+    let exp_with_buffer =
+        buffer + coin_out_decimals + coin_out_price_dec
+               - coin_in_decimals  - coin_in_price_dec;
+
+    // numerator = amount_in * price_in * 10^(buffer + exp_diff)
     let numerator = (coin_in_amount as u128)
         * (coin_in_price_mag as u128)
-        * 10u128.pow((buffer + coin_out_price_dec + coin_out_decimals) as u8);
-    let denominator = (coin_out_price_mag as u128)
-        * 10u128.pow((buffer + coin_in_price_dec + coin_in_decimals) as u8);
+        * 10u128.pow(exp_with_buffer);
+    // denominator = price_out
+    let denominator = coin_out_price_mag as u128;
 
-    // divide and round up to avoid precision loss
+    // divide and round up, then drop the extra buffer
     let expected_coin_out = numerator
         .divide_and_round_up(denominator)
         .divide_and_round_up(10u128.pow(buffer)) as u64;
