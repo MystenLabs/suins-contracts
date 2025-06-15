@@ -1,5 +1,8 @@
 module suins_bbb::bbb_aftermath;
 
+use std::{
+    type_name::{Self,TypeName},
+};
 use sui::{
     clock::Clock,
 };
@@ -24,17 +27,54 @@ use referral_vault::{
     referral_vault::ReferralVault,
 };
 use suins_bbb::{
-    bbb_config::{BBBConfig, get_aftermath_swap_config},
     bbb_pyth::calc_expected_coin_out,
     bbb_vault::BBBVault,
 };
 
 // === errors ===
 
-const ENoAftermathSwap: u64 = 100;
-const EInvalidPool: u64 = 101;
-const ECoinInPriceFeedIdMismatch: u64 = 102;
-const ECoinOutPriceFeedIdMismatch: u64 = 103;
+const EInvalidPool: u64 = 100;
+const ECoinInPriceFeedIdMismatch: u64 = 101;
+const ECoinOutPriceFeedIdMismatch: u64 = 102;
+const EInvalidCoinInType: u64 = 103;
+const EInvalidCoinOutType: u64 = 104;
+
+// === structs ===
+
+/// Aftermath swap configuration.
+public struct AftermathSwapConfig has copy, drop, store {
+    /// Type of coin to be swapped into `coin_out_type`
+    coin_in_type: TypeName,
+    /// Type of coin to be received from the swap
+    coin_out_type: TypeName,
+    /// Number of decimals used by `coin_in_type`
+    coin_in_decimals: u8,
+    /// Number of decimals used by `coin_out_type`
+    coin_out_decimals: u8,
+    /// Pyth `PriceFeed` identifier for `coin_in_type` without the `0x` prefix
+    coin_in_feed_id: vector<u8>,
+    /// Pyth `PriceFeed` identifier for `coin_out_type` without the `0x` prefix
+    coin_out_feed_id: vector<u8>,
+    /// Aftermath `Pool` object `ID`
+    pool_id: ID,
+    /// Slippage tolerance as (1 - slippage) in 18-decimal fixed point.
+    /// E.g., 2% slippage = 980_000_000_000_000_000 (represents 0.98)
+    slippage: u64,
+    /// How old the Pyth price can be, in seconds.
+    max_age_secs: u64,
+}
+
+// === getters ===
+
+public fun coin_in_type(config: &AftermathSwapConfig): &TypeName { &config.coin_in_type }
+public fun coin_out_type(config: &AftermathSwapConfig): &TypeName { &config.coin_out_type }
+public fun coin_in_decimals(config: &AftermathSwapConfig): u8 { config.coin_in_decimals }
+public fun coin_out_decimals(config: &AftermathSwapConfig): u8 { config.coin_out_decimals }
+public fun coin_in_feed_id(config: &AftermathSwapConfig): &vector<u8> { &config.coin_in_feed_id }
+public fun coin_out_feed_id(config: &AftermathSwapConfig): &vector<u8> { &config.coin_out_feed_id }
+public fun pool_id(config: &AftermathSwapConfig): &ID { &config.pool_id }
+public fun slippage(config: &AftermathSwapConfig): u64 { config.slippage }
+public fun max_age_secs(config: &AftermathSwapConfig): u64 { config.max_age_secs }
 
 // === public functions ===
 
@@ -50,7 +90,7 @@ const ECoinOutPriceFeedIdMismatch: u64 = 103;
 ///    worth of `Coin<CoinOut>` exiting the Pool.
 public fun swap_aftermath<L, CoinIn, CoinOut>(
     // ours
-    config: &BBBConfig,
+    conf: &AftermathSwapConfig,
     vault: &mut BBBVault,
     // pyth
     coin_in_price_info_obj: &PriceInfoObject,
@@ -66,24 +106,27 @@ public fun swap_aftermath<L, CoinIn, CoinOut>(
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
-    // check swap config exists for CoinIn
-    let swap_opt = get_aftermath_swap_config<CoinIn>(config);
-    assert!(swap_opt.is_some(), ENoAftermathSwap);
-
-    // check pool id matches the one in the swap config
-    let swap_conf = swap_opt.destroy_some();
-    assert!(object::id(pool) == swap_conf.pool_id(), EInvalidPool);
-
-    // check price feed ids match the swap config
+    // check price feed ids match the config
     let coin_in_price_info = coin_in_price_info_obj.get_price_info_from_price_info_object();
     let coin_out_price_info = coin_out_price_info_obj.get_price_info_from_price_info_object();
     assert!(
-        coin_in_price_info.get_price_identifier().get_bytes() == swap_conf.coin_in_feed_id(),
+        coin_in_price_info.get_price_identifier().get_bytes() == conf.coin_in_feed_id(),
         ECoinInPriceFeedIdMismatch,
     );
     assert!(
-        coin_out_price_info.get_price_identifier().get_bytes() == swap_conf.coin_out_feed_id(),
+        coin_out_price_info.get_price_identifier().get_bytes() == conf.coin_out_feed_id(),
         ECoinOutPriceFeedIdMismatch,
+    );
+
+    // check pool id and coin types match the config
+    assert!(object::id(pool) == conf.pool_id(), EInvalidPool);
+    assert!(
+        pool.type_names().contains(&type_name::get<CoinIn>().into_string()),
+        EInvalidCoinInType,
+    );
+    assert!(
+        pool.type_names().contains(&type_name::get<CoinOut>().into_string()),
+        EInvalidCoinOutType,
     );
 
     // withdraw all CoinIn from vault
@@ -100,10 +143,10 @@ public fun swap_aftermath<L, CoinIn, CoinOut>(
     let expected_coin_out = calc_expected_coin_out(
         coin_in_price_info_obj,
         coin_out_price_info_obj,
-        swap_conf.coin_in_decimals(),
-        swap_conf.coin_out_decimals(),
+        conf.coin_in_decimals,
+        conf.coin_out_decimals,
         coin_in.value(),
-        config.max_age_secs(),
+        conf.max_age_secs,
         clock,
     );
 
@@ -117,10 +160,36 @@ public fun swap_aftermath<L, CoinIn, CoinOut>(
         referral_vault,
         coin_in,
         expected_coin_out,
-        config.slippage(),
+        conf.slippage,
         ctx,
     );
 
     // deposit CoinOut into vault
     vault.deposit<CoinOut>(coin_out.into_balance());
+}
+
+// === package functions ===
+
+public(package) fun new_aftermath_swap_config(
+    coin_in_type: TypeName,
+    coin_out_type: TypeName,
+    coin_in_decimals: u8,
+    coin_out_decimals: u8,
+    coin_in_feed_id: vector<u8>,
+    coin_out_feed_id: vector<u8>,
+    pool_id: ID,
+    slippage: u64,
+    max_age_secs: u64,
+): AftermathSwapConfig {
+    AftermathSwapConfig {
+        coin_in_type,
+        coin_out_type,
+        coin_in_decimals,
+        coin_out_decimals,
+        coin_in_feed_id,
+        coin_out_feed_id,
+        pool_id,
+        slippage,
+        max_age_secs,
+    }
 }
