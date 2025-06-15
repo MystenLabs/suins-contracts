@@ -9,46 +9,46 @@ use pyth::{
 };
 
 public(package) fun calc_expected_coin_out(
-    coin_in_price_info_obj: &PriceInfoObject,
-    coin_out_price_info_obj: &PriceInfoObject,
-    coin_in_decimals: u8,
-    coin_out_decimals: u8,
-    coin_in_amount: u64,
+    info_in: &PriceInfoObject,
+    info_out: &PriceInfoObject,
+    decimals_in: u8,
+    decimals_out: u8,
+    amount_in: u64,
     max_age_secs: u64,
     clock: &Clock,
 ): u64 {
     // get the price of both coins in USD
-    let coin_in_price_usd = pyth::get_price_no_older_than(
-        coin_in_price_info_obj,
+    let usd_price_in = pyth::get_price_no_older_than(
+        info_in,
         clock,
         max_age_secs,
     );
-    let coin_out_price_usd = pyth::get_price_no_older_than(
-        coin_out_price_info_obj,
+    let usd_price_out = pyth::get_price_no_older_than(
+        info_out,
         clock,
         max_age_secs,
     );
 
     // extract price magnitudes and decimal exponents from the `Price` structs
-    let coin_in_price_mag = coin_in_price_usd.get_price().get_magnitude_if_positive();
-    let coin_out_price_mag = coin_out_price_usd.get_price().get_magnitude_if_positive();
-    let coin_in_price_dec = coin_in_price_usd.get_expo().get_magnitude_if_negative() as u8;
-    let coin_out_price_dec = coin_out_price_usd.get_expo().get_magnitude_if_negative() as u8;
+    let mag_in = usd_price_in.get_price().get_magnitude_if_positive();
+    let mag_out = usd_price_out.get_price().get_magnitude_if_positive();
+    let dec_in = usd_price_in.get_expo().get_magnitude_if_negative() as u8;
+    let dec_out = usd_price_out.get_expo().get_magnitude_if_negative() as u8;
 
     // buffer to avoid precision loss when the computed exponent would be negative
     let buffer: u8 = 10;
 
     // calculate the exponent that aligns the two price / coin-decimal systems
     let exp_with_buffer =
-        buffer + coin_out_decimals + coin_out_price_dec
-               - coin_in_decimals  - coin_in_price_dec;
+        buffer + decimals_out + dec_out
+               - decimals_in  - dec_in;
 
     // numerator = amount_in * price_in * 10^(buffer + exp_diff)
-    let numerator = (coin_in_amount as u128)
-        * (coin_in_price_mag as u128)
+    let numerator = (amount_in as u128)
+        * (mag_in as u128)
         * 10u128.pow(exp_with_buffer);
     // denominator = price_out
-    let denominator = coin_out_price_mag as u128;
+    let denominator = mag_out as u128;
 
     // divide and round up, then drop the extra buffer
     let expected_coin_out = numerator
