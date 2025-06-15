@@ -1,4 +1,4 @@
-module suins_bbb::bbb_oracle_pyth;
+module suins_bbb::bbb_pyth;
 
 use sui::{
     clock::Clock,

@@ -1,4 +1,4 @@
-module suins_bbb::bbb_swap_aftermath;
+module suins_bbb::bbb_aftermath;
 
 use sui::{
     clock::Clock,
@@ -25,7 +25,7 @@ use referral_vault::{
 };
 use suins_bbb::{
     bbb_config::{BBBConfig, get_aftermath_swap_config},
-    bbb_oracle_pyth::calc_expected_coin_out,
+    bbb_pyth::calc_expected_coin_out,
     bbb_vault::BBBVault,
 };
 
