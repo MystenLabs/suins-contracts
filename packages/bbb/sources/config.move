@@ -1,11 +1,7 @@
 module suins_bbb::bbb_config;
 
 use std::{
-    string::{String},
     type_name::{Self, TypeName},
-};
-use sui::{
-    event::{emit},
 };
 use amm::{
     pool::Pool,
@@ -84,9 +80,9 @@ public fun is_burnable<C>(
 public fun get_aftermath_swap_config<CoinIn>(
     conf: &BBBConfig,
 ): AftermathSwapConfig {
-    let coin_in_type = type_name::get<CoinIn>();
+    let type_in = type_name::get<CoinIn>();
     let idx = conf.af_swaps.find_index!(|swap| {
-        swap.coin_in_type() == coin_in_type
+        swap.type_in() == type_in
     });
     assert!(idx.is_some(), EAftermathSwapNotFound);
     conf.af_swaps[idx.destroy_some()]
@@ -100,7 +96,6 @@ public fun set_burn_bps(
     burn_bps: u64,
 ) {
     assert!(burn_bps <= max_burn_bps!(), EInvalidBurnBps);
-    emit_event(b"burn_bps", conf.burn_bps, burn_bps);
     conf.burn_bps = burn_bps;
 }
 
@@ -120,31 +115,31 @@ public fun add_burn_action<C>(
 public fun add_aftermath_swap<CoinIn, CoinOut, L>(
     conf: &mut BBBConfig,
     _cap: &BBBAdminCap,
-    coin_in_decimals: u8,
-    coin_out_decimals: u8,
-    coin_in_feed: &PriceFeed,
-    coin_out_feed: &PriceFeed,
+    decimals_in: u8,
+    decimals_out: u8,
+    feed_in: &PriceFeed,
+    feed_out: &PriceFeed,
     af_pool: &Pool<L>,
     slippage: u64,
     max_age_secs: u64,
 ) {
-    let coin_in_type = type_name::get<CoinIn>();
+    let type_in = type_name::get<CoinIn>();
     let idx = conf.af_swaps.find_index!(|swap_config| {
-        swap_config.coin_in_type() == coin_in_type
+        swap_config.type_in() == type_in
     });
     assert!(idx.is_none(), EAftermathSwapAlreadyExists);
 
-    let coin_out_type = type_name::get<CoinOut>();
-    assert!(af_pool.type_names().contains(&coin_in_type.into_string()), EInvalidCoinInType);
-    assert!(af_pool.type_names().contains(&coin_out_type.into_string()), EInvalidCoinOutType);
+    let type_out = type_name::get<CoinOut>();
+    assert!(af_pool.type_names().contains(&type_in.into_string()), EInvalidCoinInType);
+    assert!(af_pool.type_names().contains(&type_out.into_string()), EInvalidCoinOutType);
 
     conf.af_swaps.push_back(new_aftermath_swap_config(
-        coin_in_type,
-        coin_out_type,
-        coin_in_decimals,
-        coin_out_decimals,
-        coin_in_feed.get_price_identifier().get_bytes(),
-        coin_out_feed.get_price_identifier().get_bytes(),
+        type_in,
+        type_out,
+        decimals_in,
+        decimals_out,
+        feed_in.get_price_identifier().get_bytes(),
+        feed_out.get_price_identifier().get_bytes(),
         object::id(af_pool),
         slippage,
         max_age_secs,
@@ -168,35 +163,13 @@ public fun remove_aftermath_swap<CoinIn>(
     conf: &mut BBBConfig,
     _: &BBBAdminCap,
 ) {
-    let coin_in_type = type_name::get<CoinIn>();
+    let type_in = type_name::get<CoinIn>();
     let idx = conf.af_swaps.find_index!(|swap_config| {
-        swap_config.coin_in_type() == coin_in_type
+        swap_config.type_in() == type_in
     });
     assert!(idx.is_some(), EAftermathSwapNotFound);
 
     conf.af_swaps.swap_remove(idx.destroy_some());
-}
-
-// === private functions ===
-
-fun emit_event(
-    property: vector<u8>,
-    old_value: u64,
-    new_value: u64,
-) {
-    emit(EventConfigChange {
-        property: property.to_string(),
-        old_value,
-        new_value,
-    });
-}
-
-// === events ===
-
-public struct EventConfigChange has copy, drop {
-    property: String,
-    old_value: u64,
-    new_value: u64,
 }
 
 // === test functions ===

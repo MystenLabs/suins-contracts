@@ -43,18 +43,18 @@ const EInvalidCoinOutType: u64 = 104;
 
 /// Aftermath swap configuration.
 public struct AftermathSwapConfig has copy, drop, store {
-    /// Type of coin to be swapped into `coin_out_type`
-    coin_in_type: TypeName,
+    /// Type of coin to be swapped into `type_out`
+    type_in: TypeName,
     /// Type of coin to be received from the swap
-    coin_out_type: TypeName,
-    /// Number of decimals used by `coin_in_type`
-    coin_in_decimals: u8,
-    /// Number of decimals used by `coin_out_type`
-    coin_out_decimals: u8,
-    /// Pyth `PriceFeed` identifier for `coin_in_type` without the `0x` prefix
-    coin_in_feed_id: vector<u8>,
-    /// Pyth `PriceFeed` identifier for `coin_out_type` without the `0x` prefix
-    coin_out_feed_id: vector<u8>,
+    type_out: TypeName,
+    /// Number of decimals used by `type_in`
+    decimals_in: u8,
+    /// Number of decimals used by `type_out`
+    decimals_out: u8,
+    /// Pyth `PriceFeed` identifier for `type_in` without the `0x` prefix
+    feed_in: vector<u8>,
+    /// Pyth `PriceFeed` identifier for `type_out` without the `0x` prefix
+    feed_out: vector<u8>,
     /// Aftermath `Pool` object `ID`
     pool_id: ID,
     /// Slippage tolerance as (1 - slippage) in 18-decimal fixed point.
@@ -66,21 +66,21 @@ public struct AftermathSwapConfig has copy, drop, store {
 
 // === getters ===
 
-public fun coin_in_type(config: &AftermathSwapConfig): &TypeName { &config.coin_in_type }
-public fun coin_out_type(config: &AftermathSwapConfig): &TypeName { &config.coin_out_type }
-public fun coin_in_decimals(config: &AftermathSwapConfig): u8 { config.coin_in_decimals }
-public fun coin_out_decimals(config: &AftermathSwapConfig): u8 { config.coin_out_decimals }
-public fun coin_in_feed_id(config: &AftermathSwapConfig): &vector<u8> { &config.coin_in_feed_id }
-public fun coin_out_feed_id(config: &AftermathSwapConfig): &vector<u8> { &config.coin_out_feed_id }
+public fun type_in(config: &AftermathSwapConfig): &TypeName { &config.type_in }
+public fun type_out(config: &AftermathSwapConfig): &TypeName { &config.type_out }
+public fun decimals_in(config: &AftermathSwapConfig): u8 { config.decimals_in }
+public fun decimals_out(config: &AftermathSwapConfig): u8 { config.decimals_out }
+public fun feed_in(config: &AftermathSwapConfig): &vector<u8> { &config.feed_in }
+public fun feed_out(config: &AftermathSwapConfig): &vector<u8> { &config.feed_out }
 public fun pool_id(config: &AftermathSwapConfig): &ID { &config.pool_id }
 public fun slippage(config: &AftermathSwapConfig): u64 { config.slippage }
 public fun max_age_secs(config: &AftermathSwapConfig): u64 { config.max_age_secs }
 
 // === public functions ===
 
-/// Swap `coin_in` for an equal-valued amount of `Coin<CoinOut>` using Aftermath's AMM.
-/// Protocol fees are charged on the Coin being swapped in.
-/// Resulting `Coin<CoinOut>` is deposited into the `BBBVault`.
+/// Swap the `CoinIn` in the vault for an equal-valued amount of `CoinOut`,
+/// and deposit the resulting `CoinOut` into the vault.
+/// Uses Aftermath's AMM. Protocol fees are charged on the `CoinIn` being swapped.
 ///
 /// Aborts:
 /// - `EZeroValue`: `coin_in` has a value of zero.
@@ -93,8 +93,8 @@ public fun swap_aftermath<L, CoinIn, CoinOut>(
     conf: &AftermathSwapConfig,
     vault: &mut BBBVault,
     // pyth
-    coin_in_price_info_obj: &PriceInfoObject,
-    coin_out_price_info_obj: &PriceInfoObject,
+    info_in: &PriceInfoObject,
+    info_out: &PriceInfoObject,
     // aftermath
     pool: &mut Pool<L>,
     pool_registry: &PoolRegistry,
@@ -107,24 +107,18 @@ public fun swap_aftermath<L, CoinIn, CoinOut>(
     ctx: &mut TxContext,
 ) {
     // check price feed ids match the config
-    let coin_in_price_info = coin_in_price_info_obj.get_price_info_from_price_info_object();
-    let coin_out_price_info = coin_out_price_info_obj.get_price_info_from_price_info_object();
-    assert!(
-        coin_in_price_info.get_price_identifier().get_bytes() == conf.coin_in_feed_id(),
-        ECoinInPriceFeedIdMismatch,
-    );
-    assert!(
-        coin_out_price_info.get_price_identifier().get_bytes() == conf.coin_out_feed_id(),
-        ECoinOutPriceFeedIdMismatch,
-    );
+    let feed_id_in = info_in.get_price_info_from_price_info_object().get_price_identifier();
+    let feed_id_out = info_out.get_price_info_from_price_info_object().get_price_identifier();
+    assert!(feed_id_in.get_bytes() == conf.feed_in(), ECoinInPriceFeedIdMismatch);
+    assert!(feed_id_out.get_bytes() == conf.feed_out(), ECoinOutPriceFeedIdMismatch);
 
     // check pool id and coin types match the config
     assert!(object::id(pool) == conf.pool_id(), EInvalidPool);
-    assert!(
+    assert!( // technically not needed because `swap_exact_in` guarantees this
         pool.type_names().contains(&type_name::get<CoinIn>().into_string()),
         EInvalidCoinInType,
     );
-    assert!(
+    assert!( // technically not needed because `swap_exact_in` guarantees this
         pool.type_names().contains(&type_name::get<CoinOut>().into_string()),
         EInvalidCoinOutType,
     );
@@ -141,10 +135,10 @@ public fun swap_aftermath<L, CoinIn, CoinOut>(
 
     // calculate expected CoinOut amount
     let expected_coin_out = calc_expected_coin_out(
-        coin_in_price_info_obj,
-        coin_out_price_info_obj,
-        conf.coin_in_decimals,
-        conf.coin_out_decimals,
+        info_in,
+        info_out,
+        conf.decimals_in,
+        conf.decimals_out,
         coin_in.value(),
         conf.max_age_secs,
         clock,
@@ -171,23 +165,23 @@ public fun swap_aftermath<L, CoinIn, CoinOut>(
 // === package functions ===
 
 public(package) fun new_aftermath_swap_config(
-    coin_in_type: TypeName,
-    coin_out_type: TypeName,
-    coin_in_decimals: u8,
-    coin_out_decimals: u8,
-    coin_in_feed_id: vector<u8>,
-    coin_out_feed_id: vector<u8>,
+    type_in: TypeName,
+    type_out: TypeName,
+    decimals_in: u8,
+    decimals_out: u8,
+    feed_in: vector<u8>,
+    feed_out: vector<u8>,
     pool_id: ID,
     slippage: u64,
     max_age_secs: u64,
 ): AftermathSwapConfig {
     AftermathSwapConfig {
-        coin_in_type,
-        coin_out_type,
-        coin_in_decimals,
-        coin_out_decimals,
-        coin_in_feed_id,
-        coin_out_feed_id,
+        type_in,
+        type_out,
+        decimals_in,
+        decimals_out,
+        feed_in,
+        feed_out,
         pool_id,
         slippage,
         max_age_secs,
