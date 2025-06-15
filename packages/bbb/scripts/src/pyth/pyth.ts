@@ -73,12 +73,13 @@ export class SuiPythClient {
 	): Promise<ObjectId[]> {
 		const packageId = await this.getPythPackageId();
 		let priceUpdatesHotPotato;
-		if (updates.length > 1) {
+		if (updates.length !== 1) {
 			throw new Error(
 				'SDK does not support sending multiple accumulator messages in a single transaction',
 			);
 		}
-		const vaa = extractVaaBytesFromAccumulatorMessage(updates[0]);
+		const accumulatorMessage = updates[0]!;
+		const vaa = extractVaaBytesFromAccumulatorMessage(accumulatorMessage);
 		const verifiedVaas = await this.verifyVaas([vaa], tx);
 		[priceUpdatesHotPotato] = tx.moveCall({
 			target: `${packageId}::pyth::create_authenticated_price_infos_using_accumulator`,
@@ -87,12 +88,12 @@ export class SuiPythClient {
 				tx.pure(
 					bcs
 						.vector(bcs.U8)
-						.serialize(Array.from(updates[0]), {
+						.serialize(Array.from(accumulatorMessage), {
 							maxSize: MAX_ARGUMENT_SIZE,
 						})
 						.toBytes(),
 				),
-				verifiedVaas[0],
+				verifiedVaas[0]!,
 				tx.object.clock(),
 			],
 		});
@@ -108,7 +109,7 @@ export class SuiPythClient {
 				target: `${packageId}::pyth::update_single_price_feed`,
 				arguments: [
 					tx.object(this.pythStateId),
-					priceUpdatesHotPotato,
+					priceUpdatesHotPotato!,
 					tx.object(priceInfoObjectId),
 					coinWithBalance({ balance: baseUpdateFee }),
 					tx.object.clock(),
@@ -117,7 +118,7 @@ export class SuiPythClient {
 		}
 		tx.moveCall({
 			target: `${packageId}::hot_potato_vector::destroy`,
-			arguments: [priceUpdatesHotPotato],
+			arguments: [priceUpdatesHotPotato!],
 			typeArguments: [`${packageId}::price_info::PriceInfo`],
 		});
 		return priceInfoObjects;
