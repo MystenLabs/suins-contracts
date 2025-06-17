@@ -42,28 +42,28 @@ public struct BBBConfig has key {
     af_swaps: vector<AftermathSwapConfig>,
 }
 
-// === getters ===
-
 public fun id(conf: &BBBConfig): ID { conf.id.to_inner() }
 public fun burn_bps(conf: &BBBConfig): u64 { conf.burn_bps }
 public fun burn_types(conf: &BBBConfig): &vector<TypeName> { &conf.burn_types }
 public fun af_swaps(conf: &BBBConfig): &vector<AftermathSwapConfig> { &conf.af_swaps }
 
-// === initialization ===
-
-public struct BBB_CONFIG has drop {}
-
-fun init(
-    _otw: BBB_CONFIG,
+fun new(
     ctx: &mut TxContext,
-) {
-    let conf = BBBConfig {
+): BBBConfig {
+    BBBConfig {
         id: object::new(ctx),
         burn_bps: init_burn_bps!(),
         burn_types: vector::empty(),
         af_swaps: vector::empty(),
-    };
-    transfer::share_object(conf);
+    }
+}
+
+// === initialization ===
+
+public struct BBB_CONFIG has drop {}
+
+fun init(_otw: BBB_CONFIG, ctx: &mut TxContext) {
+    transfer::share_object(new(ctx));
 }
 
 // === public functions ===
@@ -170,9 +170,8 @@ public fun remove_aftermath_swap<CoinIn>(
 // === test functions ===
 
 #[test_only]
-public fun init_for_testing(
+public fun new_for_testing(
     ctx: &mut TxContext,
-) {
-    let otw = BBB_CONFIG {};
-    init(otw, ctx);
+): BBBConfig {
+    new(ctx)
 }

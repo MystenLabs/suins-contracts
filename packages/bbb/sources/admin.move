@@ -17,13 +17,3 @@ fun init(
     let cap = BBBAdminCap { id: object::new(ctx) };
     transfer::transfer(cap, ctx.sender());
 }
-
-// === test functions ===
-
-#[test_only]
-public fun init_for_testing(
-    ctx: &mut TxContext,
-) {
-    let otw = BBB_ADMIN {};
-    init(otw, ctx);
-}
