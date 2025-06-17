@@ -64,8 +64,6 @@ public struct AftermathSwapConfig has copy, drop, store {
     max_age_secs: u64,
 }
 
-// === getters ===
-
 public fun type_in(config: &AftermathSwapConfig): &TypeName { &config.type_in }
 public fun type_out(config: &AftermathSwapConfig): &TypeName { &config.type_out }
 public fun decimals_in(config: &AftermathSwapConfig): u8 { config.decimals_in }
@@ -75,6 +73,30 @@ public fun feed_out(config: &AftermathSwapConfig): &vector<u8> { &config.feed_ou
 public fun pool_id(config: &AftermathSwapConfig): &ID { &config.pool_id }
 public fun slippage(config: &AftermathSwapConfig): u64 { config.slippage }
 public fun max_age_secs(config: &AftermathSwapConfig): u64 { config.max_age_secs }
+
+public(package) fun new_aftermath_swap_config(
+    type_in: TypeName,
+    type_out: TypeName,
+    decimals_in: u8,
+    decimals_out: u8,
+    feed_in: vector<u8>,
+    feed_out: vector<u8>,
+    pool_id: ID,
+    slippage: u64,
+    max_age_secs: u64,
+): AftermathSwapConfig {
+    AftermathSwapConfig {
+        type_in,
+        type_out,
+        decimals_in,
+        decimals_out,
+        feed_in,
+        feed_out,
+        pool_id,
+        slippage,
+        max_age_secs,
+    }
+}
 
 // === public functions ===
 
@@ -160,30 +182,4 @@ public fun swap_aftermath<L, CoinIn, CoinOut>(
 
     // deposit CoinOut into vault
     vault.deposit<CoinOut>(coin_out);
-}
-
-// === package functions ===
-
-public(package) fun new_aftermath_swap_config(
-    type_in: TypeName,
-    type_out: TypeName,
-    decimals_in: u8,
-    decimals_out: u8,
-    feed_in: vector<u8>,
-    feed_out: vector<u8>,
-    pool_id: ID,
-    slippage: u64,
-    max_age_secs: u64,
-): AftermathSwapConfig {
-    AftermathSwapConfig {
-        type_in,
-        type_out,
-        decimals_in,
-        decimals_out,
-        feed_in,
-        feed_out,
-        pool_id,
-        slippage,
-        max_age_secs,
-    }
 }
