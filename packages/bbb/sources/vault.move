@@ -18,24 +18,24 @@ public struct BBBVault has key {
     balances: Bag,
 }
 
-// === getters ===
-
 public fun id(vault: &BBBVault): ID { vault.id.to_inner() }
 public fun balances(vault: &BBBVault): &Bag { &vault.balances }
+
+fun new(
+    ctx: &mut TxContext,
+): BBBVault {
+    BBBVault {
+        id: object::new(ctx),
+        balances: bag::new(ctx),
+    }
+}
 
 // === initialization ===
 
 public struct BBB_VAULT has drop {}
 
-fun init(
-    _otw: BBB_VAULT,
-    ctx: &mut TxContext,
-) {
-    let vault = BBBVault {
-        id: object::new(ctx),
-        balances: bag::new(ctx),
-    };
-    transfer::share_object(vault);
+fun init(_otw: BBB_VAULT, ctx: &mut TxContext) {
+    transfer::share_object(new(ctx));
 }
 
 // === public functions ===
@@ -75,9 +75,8 @@ public(package) fun withdraw<C>(
 // === test functions ===
 
 #[test_only]
-public fun init_for_testing(
+public fun new_for_testing(
     ctx: &mut TxContext,
-) {
-    let otw = BBB_VAULT {};
-    init(otw, ctx);
+): BBBVault {
+    new(ctx)
 }
