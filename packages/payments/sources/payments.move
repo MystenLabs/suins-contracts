@@ -7,6 +7,10 @@ use pyth::{price_info::PriceInfoObject, pyth};
 use std::type_name::{Self, TypeName};
 use sui::{clock::Clock, coin::{Coin, CoinMetadata}, vec_map::{Self, VecMap}};
 use suins::{payment::{Receipt, PaymentIntent}, suins::SuiNS};
+use suins_bbb::{
+    bbb_config::BBBConfig,
+    bbb_vault::BBBVault,
+};
 
 use fun get_config_for_type as SuiNS.get_config_for_type;
 
@@ -63,8 +67,11 @@ public struct CoinTypeData has copy, drop, store {
 /// We do not need to check the price feed for the base currency.
 public fun handle_base_payment<T>(
     suins: &mut SuiNS,
+    bbb_config: &BBBConfig,
+    bbb_vault: &mut BBBVault,
     mut intent: PaymentIntent,
-    payment: Coin<T>,
+    mut payment: Coin<T>,
+    ctx: &mut TxContext,
 ): Receipt {
     let payment_type = type_name::get<T>();
     let config = suins.get_config<PaymentsConfig>();
@@ -75,6 +82,8 @@ public fun handle_base_payment<T>(
 
     let price = intent.request_data().base_amount();
     assert!(payment.value() == price, EInsufficientPayment);
+
+    deposit_into_bbb_vault(bbb_config, bbb_vault, &mut payment, ctx);
 
     intent.finalize_payment(suins, PaymentsApp(), payment)
 }
@@ -93,11 +102,14 @@ public fun handle_base_payment<T>(
 /// that is being displayed to the user (with a buffer determined by the FE).
 public fun handle_payment<T>(
     suins: &mut SuiNS,
+    bbb_config: &BBBConfig,
+    bbb_vault: &mut BBBVault,
     mut intent: PaymentIntent,
-    payment: Coin<T>,
+    mut payment: Coin<T>,
     clock: &Clock,
     price_info_object: &PriceInfoObject,
     user_price_guard: u64,
+    ctx: &mut TxContext,
 ): Receipt {
     let type_config = suins.get_config_for_type<T>();
     type_config.apply_discount_if_eligible(suins, &mut intent);
@@ -110,6 +122,8 @@ public fun handle_payment<T>(
     );
     assert!(payment.value() == target_currency_amount, EInsufficientPayment);
     assert!(user_price_guard >= target_currency_amount, ESafeguardViolation); // price guard should be larger than the payment amount
+
+    deposit_into_bbb_vault(bbb_config, bbb_vault, &mut payment, ctx);
 
     intent.finalize_payment(suins, PaymentsApp(), payment)
 }
@@ -252,4 +266,16 @@ fun get_config_for_type<T>(suins: &SuiNS): CoinTypeData {
     let payment_type = type_name::get<T>();
     assert!(config.currencies.contains(&payment_type), EInvalidPaymentType);
     *config.currencies.get(&payment_type)
+}
+
+/// Deposit a percentage of the payment into the Buy Back & Burn vault.
+fun deposit_into_bbb_vault<T>(
+    bbb_config: &BBBConfig,
+    bbb_vault: &mut BBBVault,
+    payment: &mut Coin<T>,
+    ctx: &mut TxContext,
+) {
+    let burn_amount = (payment.value() as u128) * (bbb_config.burn_bps() as u128) / 100_00;
+    let burn_coin = payment.split(burn_amount as u64, ctx);
+    bbb_vault.deposit(burn_coin);
 }

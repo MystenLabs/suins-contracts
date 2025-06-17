@@ -6,11 +6,13 @@ use std::{
 use sui::{
     balance::{Self, Balance},
     bag::{Self, Bag},
+    coin::{Coin},
 };
 
 // === structs ===
 
 /// Buy Back & Burn vault. Singleton.
+/// Holds the coin balances that will be burned (or swapped & burned).
 public struct BBBVault has key {
     id: UID,
     balances: Bag,
@@ -40,8 +42,9 @@ fun init(
 
 public fun deposit<C>(
     vault: &mut BBBVault,
-    balance: Balance<C>,
+    coin: Coin<C>,
 ) {
+    let balance = coin.into_balance();
     let balances = &mut vault.balances;
     let coin_type = type_name::get<C>();
     if (!balances.contains(coin_type)) {

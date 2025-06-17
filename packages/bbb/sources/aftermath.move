@@ -159,7 +159,7 @@ public fun swap_aftermath<L, CoinIn, CoinOut>(
     );
 
     // deposit CoinOut into vault
-    vault.deposit<CoinOut>(coin_out.into_balance());
+    vault.deposit<CoinOut>(coin_out);
 }
 
 // === package functions ===

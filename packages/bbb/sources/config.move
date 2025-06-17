@@ -34,7 +34,7 @@ macro fun max_burn_bps(): u64 { 100_00 } // 100%
 /// Buy Back & Burn configuration. Singleton.
 public struct BBBConfig has key {
     id: UID,
-    /// Percentage of revenue that will be burned, in basis points
+    /// % of revenue that payments package sends to the vault for burning
     burn_bps: u64,
     /// Coin types that can be burned
     burn_types: vector<TypeName>,
