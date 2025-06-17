@@ -16,26 +16,18 @@ use suins_bbb::{
 
 // === errors ===
 
-const EInvalidBurnBps: u64 = 100;
-const EBurnTypeAlreadyExists: u64 = 101;
-const EAftermathSwapAlreadyExists: u64 = 102;
-const EBurnTypeNotFound: u64 = 103;
-const EAftermathSwapNotFound: u64 = 104;
-const EInvalidCoinInType: u64 = 105;
-const EInvalidCoinOutType: u64 = 106;
-
-// === constants ===
-
-macro fun init_burn_bps(): u64 { 80_00 } // 80%
-macro fun max_burn_bps(): u64 { 100_00 } // 100%
+const EBurnTypeAlreadyExists: u64 = 100;
+const EAftermathSwapAlreadyExists: u64 = 101;
+const EBurnTypeNotFound: u64 = 102;
+const EAftermathSwapNotFound: u64 = 103;
+const EInvalidCoinInType: u64 = 104;
+const EInvalidCoinOutType: u64 = 105;
 
 // === structs ===
 
 /// Buy Back & Burn configuration. Singleton.
 public struct BBBConfig has key {
     id: UID,
-    /// % of revenue that payments package sends to the vault for burning
-    burn_bps: u64,
     /// Coin types that can be burned
     burn_types: vector<TypeName>,
     /// Aftermath swap configurations
@@ -43,7 +35,6 @@ public struct BBBConfig has key {
 }
 
 public fun id(conf: &BBBConfig): ID { conf.id.to_inner() }
-public fun burn_bps(conf: &BBBConfig): u64 { conf.burn_bps }
 public fun burn_types(conf: &BBBConfig): &vector<TypeName> { &conf.burn_types }
 public fun af_swaps(conf: &BBBConfig): &vector<AftermathSwapConfig> { &conf.af_swaps }
 
@@ -52,7 +43,6 @@ fun new(
 ): BBBConfig {
     BBBConfig {
         id: object::new(ctx),
-        burn_bps: init_burn_bps!(),
         burn_types: vector::empty(),
         af_swaps: vector::empty(),
     }
@@ -89,15 +79,6 @@ public fun get_aftermath_swap_config<CoinIn>(
 }
 
 // === public admin functions ===
-
-public fun set_burn_bps(
-    conf: &mut BBBConfig,
-    _: &BBBAdminCap,
-    burn_bps: u64,
-) {
-    assert!(burn_bps <= max_burn_bps!(), EInvalidBurnBps);
-    conf.burn_bps = burn_bps;
-}
 
 public fun add_burn_type<C>(
     conf: &mut BBBConfig,
