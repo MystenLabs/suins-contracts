@@ -6,10 +6,9 @@ public struct BBBAdminCap has key, store {
     id: UID,
 }
 
-/// one-time witness
-public struct BBB_ADMIN has drop {}
-
 // === initialization ===
+
+public struct BBB_ADMIN has drop {}
 
 fun init(
     _otw: BBB_ADMIN,
