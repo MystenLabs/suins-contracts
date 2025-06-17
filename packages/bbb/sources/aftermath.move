@@ -34,8 +34,8 @@ use suins_bbb::{
 // === errors ===
 
 const EInvalidPool: u64 = 100;
-const ECoinInPriceFeedIdMismatch: u64 = 101;
-const ECoinOutPriceFeedIdMismatch: u64 = 102;
+const EFeedInMismatch: u64 = 101;
+const EFeedOutMismatch: u64 = 102;
 const EInvalidCoinInType: u64 = 103;
 const EInvalidCoinOutType: u64 = 104;
 
@@ -109,8 +109,8 @@ public fun swap_aftermath<L, CoinIn, CoinOut>(
     // check price feed ids match the config
     let feed_id_in = info_in.get_price_info_from_price_info_object().get_price_identifier();
     let feed_id_out = info_out.get_price_info_from_price_info_object().get_price_identifier();
-    assert!(feed_id_in.get_bytes() == conf.feed_in(), ECoinInPriceFeedIdMismatch);
-    assert!(feed_id_out.get_bytes() == conf.feed_out(), ECoinOutPriceFeedIdMismatch);
+    assert!(feed_id_in.get_bytes() == conf.feed_in(), EFeedInMismatch);
+    assert!(feed_id_out.get_bytes() == conf.feed_out(), EFeedOutMismatch);
 
     // check pool id and coin types match the config
     assert!(object::id(pool) == conf.pool_id(), EInvalidPool);

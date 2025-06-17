@@ -17,9 +17,9 @@ use suins_bbb::{
 // === errors ===
 
 const EInvalidBurnBps: u64 = 100;
-const EBurnActionAlreadyExists: u64 = 101;
+const EBurnTypeAlreadyExists: u64 = 101;
 const EAftermathSwapAlreadyExists: u64 = 102;
-const EBurnActionNotFound: u64 = 103;
+const EBurnTypeNotFound: u64 = 103;
 const EAftermathSwapNotFound: u64 = 104;
 const EInvalidCoinInType: u64 = 105;
 const EInvalidCoinOutType: u64 = 106;
@@ -29,7 +29,7 @@ const EInvalidCoinOutType: u64 = 106;
 macro fun init_burn_bps(): u64 { 80_00 } // 80%
 macro fun max_burn_bps(): u64 { 100_00 } // 100%
 
-// === structs & getters ===
+// === structs ===
 
 /// Buy Back & Burn configuration. Singleton.
 public struct BBBConfig has key {
@@ -99,17 +99,25 @@ public fun set_burn_bps(
     conf.burn_bps = burn_bps;
 }
 
-public fun add_burn_action<C>(
+public fun add_burn_type<C>(
     conf: &mut BBBConfig,
     _cap: &BBBAdminCap,
+) {
+    assert!(!conf.is_burnable<C>(), EBurnTypeAlreadyExists);
+    conf.burn_types.push_back(type_name::get<C>());
+}
+
+public fun remove_burn_type<C>(
+    conf: &mut BBBConfig,
+    _: &BBBAdminCap,
 ) {
     let coin_type = type_name::get<C>();
     let idx = conf.burn_types.find_index!(|burn_type| {
         burn_type == coin_type
     });
-    assert!(idx.is_none(), EBurnActionAlreadyExists);
+    assert!(idx.is_some(), EBurnTypeNotFound);
 
-    conf.burn_types.push_back(coin_type);
+    conf.burn_types.swap_remove(idx.destroy_some());
 }
 
 public fun add_aftermath_swap<CoinIn, CoinOut, L>(
@@ -124,10 +132,10 @@ public fun add_aftermath_swap<CoinIn, CoinOut, L>(
     max_age_secs: u64,
 ) {
     let type_in = type_name::get<CoinIn>();
-    let idx = conf.af_swaps.find_index!(|swap_config| {
+    let already_exists = conf.af_swaps.any!(|swap_config| {
         swap_config.type_in() == type_in
     });
-    assert!(idx.is_none(), EAftermathSwapAlreadyExists);
+    assert!(!already_exists, EAftermathSwapAlreadyExists);
 
     let type_out = type_name::get<CoinOut>();
     assert!(af_pool.type_names().contains(&type_in.into_string()), EInvalidCoinInType);
@@ -144,19 +152,6 @@ public fun add_aftermath_swap<CoinIn, CoinOut, L>(
         slippage,
         max_age_secs,
     ));
-}
-
-public fun remove_burn_action<C>(
-    conf: &mut BBBConfig,
-    _: &BBBAdminCap,
-) {
-    let coin_type = type_name::get<C>();
-    let idx = conf.burn_types.find_index!(|burn_type| {
-        burn_type == coin_type
-    });
-    assert!(idx.is_some(), EBurnActionNotFound);
-
-    conf.burn_types.swap_remove(idx.destroy_some());
 }
 
 public fun remove_aftermath_swap<CoinIn>(

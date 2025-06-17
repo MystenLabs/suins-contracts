@@ -8,10 +8,6 @@ use sui::{
     bag::{Self, Bag},
 };
 
-// === errors ===
-
-// === constants ===
-
 // === structs ===
 
 /// Buy Back & Burn vault. Singleton.
@@ -20,10 +16,14 @@ public struct BBBVault has key {
     balances: Bag,
 }
 
-/// One-Time Witness
-public struct BBB_VAULT has drop {}
+// === getters ===
+
+public fun id(vault: &BBBVault): ID { vault.id.to_inner() }
+public fun balances(vault: &BBBVault): &Bag { &vault.balances }
 
 // === initialization ===
+
+public struct BBB_VAULT has drop {}
 
 fun init(
     _otw: BBB_VAULT,
@@ -68,15 +68,6 @@ public(package) fun withdraw<C>(
             .withdraw_all()
     }
 }
-
-// === private functions ===
-
-// === accessors ===
-
-public fun id(vault: &BBBVault): ID { vault.id.to_inner() }
-public fun balances(vault: &BBBVault): &Bag { &vault.balances }
-
-// === events ===
 
 // === test functions ===
 
