@@ -1,7 +1,7 @@
 module suins_bbb::bbb_config;
 
 use std::{
-    type_name::{Self, TypeName},
+    type_name::{Self},
 };
 use amm::{
     pool::Pool,
@@ -11,7 +11,8 @@ use pyth::{
 };
 use suins_bbb::{
     bbb_admin::{BBBAdminCap},
-    bbb_aftermath::{AftermathSwapConfig, new_aftermath_swap_config},
+    bbb_aftermath_swap::{Self, AftermathSwap},
+    bbb_burn::{Self, Burn},
 };
 
 // === errors ===
@@ -28,23 +29,23 @@ const EInvalidCoinOutType: u64 = 105;
 /// Buy Back & Burn configuration. Singleton.
 public struct BBBConfig has key {
     id: UID,
-    /// Coin types that can be burned
-    burn_types: vector<TypeName>,
     /// Aftermath swap configurations
-    af_swaps: vector<AftermathSwapConfig>,
+    af_swaps: vector<AftermathSwap>,
+    /// Coin types that can be burned
+    burns: vector<Burn>,
 }
 
 public fun id(conf: &BBBConfig): ID { conf.id.to_inner() }
-public fun burn_types(conf: &BBBConfig): &vector<TypeName> { &conf.burn_types }
-public fun af_swaps(conf: &BBBConfig): &vector<AftermathSwapConfig> { &conf.af_swaps }
+public fun af_swaps(conf: &BBBConfig): &vector<AftermathSwap> { &conf.af_swaps }
+public fun burns(conf: &BBBConfig): &vector<Burn> { &conf.burns }
 
 fun new(
     ctx: &mut TxContext,
 ): BBBConfig {
     BBBConfig {
         id: object::new(ctx),
-        burn_types: vector::empty(),
         af_swaps: vector::empty(),
+        burns: vector::empty(),
     }
 }
 
@@ -58,18 +59,9 @@ fun init(_otw: BBB_CONFIG, ctx: &mut TxContext) {
 
 // === public functions ===
 
-public fun is_burnable<C>(
+public fun get_aftermath_swap<CoinIn>(
     conf: &BBBConfig,
-): bool {
-    let coin_type = type_name::get<C>();
-    conf.burn_types.any!(|burn_type| {
-        burn_type == coin_type
-    })
-}
-
-public fun get_aftermath_swap_config<CoinIn>(
-    conf: &BBBConfig,
-): AftermathSwapConfig {
+): AftermathSwap {
     let type_in = type_name::get<CoinIn>();
     let idx = conf.af_swaps.find_index!(|swap| {
         swap.type_in() == type_in
@@ -78,28 +70,18 @@ public fun get_aftermath_swap_config<CoinIn>(
     conf.af_swaps[idx.destroy_some()]
 }
 
-// === public admin functions ===
-
-public fun add_burn_type<C>(
-    conf: &mut BBBConfig,
-    _cap: &BBBAdminCap,
-) {
-    assert!(!conf.is_burnable<C>(), EBurnTypeAlreadyExists);
-    conf.burn_types.push_back(type_name::get<C>());
-}
-
-public fun remove_burn_type<C>(
-    conf: &mut BBBConfig,
-    _: &BBBAdminCap,
-) {
+public fun get_burn<C>(
+    conf: &BBBConfig,
+): Burn {
     let coin_type = type_name::get<C>();
-    let idx = conf.burn_types.find_index!(|burn_type| {
-        burn_type == coin_type
+    let idx = conf.burns.find_index!(|burn| {
+        burn.coin_type() == coin_type
     });
     assert!(idx.is_some(), EBurnTypeNotFound);
-
-    conf.burn_types.swap_remove(idx.destroy_some());
+    conf.burns[idx.destroy_some()]
 }
+
+// === public admin functions ===
 
 public fun add_aftermath_swap<CoinIn, CoinOut, L>(
     conf: &mut BBBConfig,
@@ -122,7 +104,7 @@ public fun add_aftermath_swap<CoinIn, CoinOut, L>(
     assert!(af_pool.type_names().contains(&type_in.into_string()), EInvalidCoinInType);
     assert!(af_pool.type_names().contains(&type_out.into_string()), EInvalidCoinOutType);
 
-    conf.af_swaps.push_back(new_aftermath_swap_config(
+    conf.af_swaps.push_back(bbb_aftermath_swap::new(
         type_in,
         type_out,
         decimals_in,
@@ -133,6 +115,19 @@ public fun add_aftermath_swap<CoinIn, CoinOut, L>(
         slippage,
         max_age_secs,
     ));
+}
+
+public fun add_burn_type<C>(
+    conf: &mut BBBConfig,
+    _cap: &BBBAdminCap,
+) {
+    let coin_type = type_name::get<C>();
+    let already_exists = conf.burns.any!(|burn| {
+        burn.coin_type() == coin_type
+    });
+    assert!(!already_exists, EBurnTypeAlreadyExists);
+
+    conf.burns.push_back(bbb_burn::new<C>());
 }
 
 public fun remove_aftermath_swap<CoinIn>(
@@ -146,6 +141,19 @@ public fun remove_aftermath_swap<CoinIn>(
     assert!(idx.is_some(), EAftermathSwapNotFound);
 
     conf.af_swaps.swap_remove(idx.destroy_some());
+}
+
+public fun remove_burn_type<C>(
+    conf: &mut BBBConfig,
+    _: &BBBAdminCap,
+) {
+    let coin_type = type_name::get<C>();
+    let idx = conf.burns.find_index!(|burn| {
+        burn.coin_type() == coin_type
+    });
+    assert!(idx.is_some(), EBurnTypeNotFound);
+
+    conf.burns.swap_remove(idx.destroy_some());
 }
 
 // === test functions ===

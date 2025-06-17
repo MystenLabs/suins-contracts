@@ -1,7 +1,9 @@
 module suins_bbb::bbb_burn;
 
+use std::{
+    type_name::{Self, TypeName},
+};
 use suins_bbb::{
-    bbb_config::{BBBConfig},
     bbb_vault::{BBBVault},
 };
 
@@ -9,20 +11,28 @@ use suins_bbb::{
 
 macro fun burn_address(): address { @0x0 }
 
-// === errors ===
+// === structs ===
 
-const ENotBurnable: u64 = 100;
+/// Coin burn configuration.
+/// Its existence determines if the coin is burnable.
+public struct Burn has copy, drop, store {
+    coin_type: TypeName,
+}
+
+public fun coin_type(burn: &Burn): &TypeName { &burn.coin_type }
+
+public(package) fun new<C>(): Burn {
+    Burn { coin_type: type_name::get<C>() }
+}
 
 // === public functions ===
 
 /// Burn all `Balance<C>` in the vault by sending it to the burn address.
 public fun burn<C>(
-    config: &BBBConfig,
+    _config: &Burn,
     vault: &mut BBBVault,
     ctx: &mut TxContext,
 ) {
-    assert!(config.is_burnable<C>(), ENotBurnable);
-
     let balance = vault.withdraw<C>();
     if (balance.value() == 0) {
         balance.destroy_zero();
