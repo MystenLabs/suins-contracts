@@ -34,7 +34,7 @@ export const cnf = {
         /** Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point. */
         default_slippage: 980_000_000_000_000_000n, // 2%
     },
-    bbb: {
+    bbb: { // TODO: update values for prod
         package: "0x2ec3309b921aa1f819ff566d66bcb3bd045dbaf1fbe58f3141ac6e8f7a9e5d51", // dev-only
         upgradeCapObj: "0x05d6b63f19b67efb1f9834dbf1537ff9780e2c607cff3878dcdb284ab68ca54d", // dev-only
         adminCapObj: "0x1a99fd768f5666426972040ac1a2f56c5a1798afac08257b336f9b2eba5f6be7", // dev-only
@@ -61,55 +61,25 @@ export const cnf = {
 } as const;
 
 /** Aftermath swap configurations. */
-export const af_swaps: AftermathSwap[] = [
+export const af_swaps = [
     {   // USDC -> SUI
-        type_in: cnf.coins.USDC.type,
-        type_out: cnf.coins.SUI.type,
-        decimals_in: cnf.coins.USDC.decimals,
-        decimals_out: cnf.coins.SUI.decimals,
-        feed_in: cnf.coins.USDC.feed,
-        feed_out: cnf.coins.SUI.feed,
+        coin_in: cnf.coins.USDC,
+        coin_out: cnf.coins.SUI,
         pool: cnf.aftermath.pools.sui_usdc,
-        slippage: cnf.aftermath.default_slippage,
-        max_age_secs: cnf.pyth.default_max_age_secs,
     },
     {   // SUI -> NS
-        type_in: cnf.coins.SUI.type,
-        type_out: cnf.coins.NS.type,
-        decimals_in: cnf.coins.SUI.decimals,
-        decimals_out: cnf.coins.NS.decimals,
-        feed_in: cnf.coins.SUI.feed,
-        feed_out: cnf.coins.NS.feed,
+        coin_in: cnf.coins.SUI,
+        coin_out: cnf.coins.NS,
         pool: cnf.aftermath.pools.sui_ns,
-        slippage: cnf.aftermath.default_slippage,
-        max_age_secs: cnf.pyth.default_max_age_secs,
+    },
+    {   // SUI -> USDC // TODO: dev-only, comment out
+        coin_in: cnf.coins.SUI,
+        coin_out: cnf.coins.USDC,
+        pool: cnf.aftermath.pools.sui_usdc,
+    },
+    {   // NS -> SUI // TODO: dev-only, comment out
+        coin_in: cnf.coins.NS,
+        coin_out: cnf.coins.SUI,
+        pool: cnf.aftermath.pools.sui_ns,
     },
 ] as const;
-
-/** Aftermath swap configuration. */
-export type AftermathSwap = {
-    /** Type of coin to be swapped into `type_out` */
-    type_in: string,
-    /** Type of coin to be received from the swap */
-    type_out: string,
-    /** Number of decimals used by `type_in` */
-    decimals_in: number,
-    /** Number of decimals used by `type_out` */
-    decimals_out: number,
-    /** Pyth `PriceFeed` identifier for `type_in` without the `0x` prefix */
-    feed_in: string,
-    /** Pyth `PriceFeed` identifier for `type_out` without the `0x` prefix */
-    feed_out: string,
-    /** Aftermath `Pool` object */
-    pool: {
-        /**  Object ID */
-        id: string,
-        /** The `T` in `Pool<T>` */
-        lp_type: string,
-    },
-    /** Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point.
-     * E.g., 2% slippage = 980_000_000_000_000_000 (represents 0.98). */
-    slippage: bigint,
-    /** How stale the Pyth price can be, in seconds. */
-    max_age_secs: bigint,
-}
