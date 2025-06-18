@@ -1,11 +1,3 @@
-import { SuiClient } from "@mysten/sui/client";
-
-export function newSuiClient(): SuiClient {
-    return new SuiClient({
-        url: "https://suins-rpc.mainnet.sui.io:443",
-    });
-}
-
 /** Mainnet configuration. */
 export const cnf = {
     wormhole: {
@@ -31,6 +23,11 @@ export const cnf = {
                 lp_type: "0xf847c541b3076eea83cbaddcc244d25415b7c6828c1542cae4ab152d809896b6::af_lp::AF_LP",
             },
         },
+        poolRegistry: "0xfcc774493db2c45c79f688f88d28023a3e7d98e4ee9f48bbf5c7990f651577ae",
+        protocolFeeVault: "0xf194d9b1bcad972e45a7dd67dd49b3ee1e3357a00a50850c52cd51bb450e13b4",
+        treasury: "0x28e499dff5e864a2eafe476269a4f5035f1c16f338da7be18b103499abf271ce",
+        insuranceFund: "0xf0c40d67b078000e18032334c3325c47b9ec9f3d9ae4128be820d54663d14e3b",
+        referralVault: "0x35d35b0e5b177593d8c3a801462485572fc30861e6ce96a55af6dc4730709278",
         /** Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point. */
         default_slippage: 980_000_000_000_000_000n, // 2%
     },
@@ -61,25 +58,61 @@ export const cnf = {
 } as const;
 
 /** Aftermath swap configurations. */
-export const af_swaps = [
+export const af_swaps: AftermathSwap[] = [
     {   // USDC -> SUI
         coin_in: cnf.coins.USDC,
         coin_out: cnf.coins.SUI,
         pool: cnf.aftermath.pools.sui_usdc,
+        slippage: cnf.aftermath.default_slippage,
+        max_age_secs: cnf.pyth.default_max_age_secs,
     },
     {   // SUI -> NS
         coin_in: cnf.coins.SUI,
         coin_out: cnf.coins.NS,
         pool: cnf.aftermath.pools.sui_ns,
+        slippage: cnf.aftermath.default_slippage,
+        max_age_secs: cnf.pyth.default_max_age_secs,
     },
     {   // SUI -> USDC // TODO: dev-only, comment out
         coin_in: cnf.coins.SUI,
         coin_out: cnf.coins.USDC,
         pool: cnf.aftermath.pools.sui_usdc,
+        slippage: cnf.aftermath.default_slippage,
+        max_age_secs: cnf.pyth.default_max_age_secs,
     },
     {   // NS -> SUI // TODO: dev-only, comment out
         coin_in: cnf.coins.NS,
         coin_out: cnf.coins.SUI,
         pool: cnf.aftermath.pools.sui_ns,
+        slippage: cnf.aftermath.default_slippage,
+        max_age_secs: cnf.pyth.default_max_age_secs,
     },
 ] as const;
+
+/** Aftermath swap configuration. */
+export type AftermathSwap = {
+    /** The coin to be swapped into `coin_out` */
+    coin_in: {
+        type: string,
+        decimals: number,
+        feed: string,
+    }
+    /** The coin to be received from the swap */
+    coin_out: {
+        type: string,
+        decimals: number,
+        feed: string,
+    }
+    /** Aftermath `Pool` object */
+    pool: AftermathPool,
+    /** Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point. */
+    slippage: bigint,
+    /** How stale the Pyth price can be, in seconds. */
+    max_age_secs: bigint,
+}
+
+/** Aftermath `Pool` object. */
+export type AftermathPool = {
+    id: string,
+    lp_type: string,
+}
