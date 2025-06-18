@@ -1,7 +1,11 @@
 module suins_bbb::bbb_burn;
 
 use std::{
+    ascii::{String},
     type_name::{Self, TypeName},
+};
+use sui::{
+    event::{emit},
 };
 use suins_bbb::{
     bbb_admin::BBBAdminCap,
@@ -39,7 +43,19 @@ public fun burn<C>(
         return
     };
 
+    emit(Burned {
+        coin_type: type_name::get<C>().into_string(),
+        amount: balance.value(),
+    });
+
     transfer::public_transfer(
         balance.into_coin(ctx), burn_address!()
     )
+}
+
+// === events ===
+
+public struct Burned has drop, copy {
+    coin_type: String,
+    amount: u64,
 }
