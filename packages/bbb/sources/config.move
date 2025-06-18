@@ -3,16 +3,10 @@ module suins_bbb::bbb_config;
 use std::{
     type_name::{Self},
 };
-use amm::{
-    pool::Pool,
-};
-use pyth::{
-    price_feed::{PriceFeed},
-};
 use suins_bbb::{
-    bbb_admin::{BBBAdminCap},
-    bbb_aftermath_swap::{Self, AftermathSwap},
-    bbb_burn::{Self, Burn},
+    bbb_admin::BBBAdminCap,
+    bbb_aftermath_swap::AftermathSwap,
+    bbb_burn::Burn,
 };
 
 // === errors ===
@@ -21,8 +15,6 @@ const EBurnTypeAlreadyExists: u64 = 100;
 const EAftermathSwapAlreadyExists: u64 = 101;
 const EBurnTypeNotFound: u64 = 102;
 const EAftermathSwapNotFound: u64 = 103;
-const EInvalidCoinInType: u64 = 104;
-const EInvalidCoinOutType: u64 = 105;
 
 // === structs ===
 
@@ -83,60 +75,38 @@ public fun get_burn<C>(
 
 // === public admin functions ===
 
-public fun add_aftermath_swap<CoinIn, CoinOut, L>(
+public fun add_aftermath_swap(
     conf: &mut BBBConfig,
     _cap: &BBBAdminCap,
-    decimals_in: u8,
-    decimals_out: u8,
-    feed_in: &PriceFeed,
-    feed_out: &PriceFeed,
-    af_pool: &Pool<L>,
-    slippage: u64,
-    max_age_secs: u64,
+    af_swap: AftermathSwap,
 ) {
-    let type_in = type_name::get<CoinIn>();
-    let already_exists = conf.af_swaps.any!(|swap_config| {
-        swap_config.type_in() == type_in
+    let already_exists = conf.af_swaps.any!(|existing| {
+        existing.type_in() == af_swap.type_in()
     });
     assert!(!already_exists, EAftermathSwapAlreadyExists);
 
-    let type_out = type_name::get<CoinOut>();
-    assert!(af_pool.type_names().contains(&type_in.into_string()), EInvalidCoinInType);
-    assert!(af_pool.type_names().contains(&type_out.into_string()), EInvalidCoinOutType);
-
-    conf.af_swaps.push_back(bbb_aftermath_swap::new(
-        type_in,
-        type_out,
-        decimals_in,
-        decimals_out,
-        feed_in.get_price_identifier().get_bytes(),
-        feed_out.get_price_identifier().get_bytes(),
-        object::id(af_pool),
-        slippage,
-        max_age_secs,
-    ));
+    conf.af_swaps.push_back(af_swap);
 }
 
-public fun add_burn_type<C>(
+public fun add_burn_type(
     conf: &mut BBBConfig,
     _cap: &BBBAdminCap,
+    burn: Burn,
 ) {
-    let coin_type = type_name::get<C>();
-    let already_exists = conf.burns.any!(|burn| {
-        burn.coin_type() == coin_type
+    let already_exists = conf.burns.any!(|existing| {
+        existing.coin_type() == burn.coin_type()
     });
     assert!(!already_exists, EBurnTypeAlreadyExists);
 
-    conf.burns.push_back(bbb_burn::new<C>());
+    conf.burns.push_back(burn);
 }
 
 public fun remove_aftermath_swap<CoinIn>(
     conf: &mut BBBConfig,
     _: &BBBAdminCap,
 ) {
-    let type_in = type_name::get<CoinIn>();
-    let idx = conf.af_swaps.find_index!(|swap_config| {
-        swap_config.type_in() == type_in
+    let idx = conf.af_swaps.find_index!(|existing| {
+        existing.type_in() == type_name::get<CoinIn>()
     });
     assert!(idx.is_some(), EAftermathSwapNotFound);
 
@@ -147,9 +117,8 @@ public fun remove_burn_type<C>(
     conf: &mut BBBConfig,
     _: &BBBAdminCap,
 ) {
-    let coin_type = type_name::get<C>();
-    let idx = conf.burns.find_index!(|burn| {
-        burn.coin_type() == coin_type
+    let idx = conf.burns.find_index!(|existing| {
+        existing.coin_type() == type_name::get<C>()
     });
     assert!(idx.is_some(), EBurnTypeNotFound);
 

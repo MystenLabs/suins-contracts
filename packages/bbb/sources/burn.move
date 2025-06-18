@@ -4,6 +4,7 @@ use std::{
     type_name::{Self, TypeName},
 };
 use suins_bbb::{
+    bbb_admin::BBBAdminCap,
     bbb_vault::{BBBVault},
 };
 
@@ -14,14 +15,13 @@ macro fun burn_address(): address { @0x0 }
 // === structs ===
 
 /// Coin burn configuration.
-/// Its existence determines if the coin is burnable.
 public struct Burn has copy, drop, store {
     coin_type: TypeName,
 }
 
 public fun coin_type(burn: &Burn): &TypeName { &burn.coin_type }
 
-public(package) fun new<C>(): Burn {
+public fun new<C>(_cap: &BBBAdminCap): Burn {
     Burn { coin_type: type_name::get<C>() }
 }
 
