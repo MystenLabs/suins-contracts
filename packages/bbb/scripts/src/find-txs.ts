@@ -9,7 +9,7 @@ let txDigests: string[] = [];
     const txs = await client.queryTransactionBlocks({
         filter: {
             MoveFunction: {
-                package: cnf.aftermathAmmPkgId,
+                package: cnf.aftermath.ammPackage,
                 module: "swap",
                 function: "swap_exact_in",
             },

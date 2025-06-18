@@ -10,12 +10,25 @@ export function newSuiClient(): SuiClient {
  * Mainnet configuration.
  */
 export const cnf = {
-    // aftermathAmmPkgId: "0xefe170ec0be4d762196bedecd7a065816576198a6527c99282a2551aaa7da38c", // v1
-    // aftermathAmmPkgId: "0xf948935b111990c2b604900c9b2eeb8f24dcf9868a45d1ea1653a5f282c10e29", // v3
-    aftermathAmmPkgId: "0xc4049b2d1cc0f6e017fda8260e4377cecd236bd7f56a54fee120816e72e2e0dd", // v2
-    wormholeStateObjId: "0xaeab97f96cf9877fee2883315d459552b2b921edc16d7ceac6eab944dd88919c",
-    pythStateObjId: "0x1f9310238ee9298fb703c3419030b35b22bb1cc37113e3bb5007c99aec79e5b8",
-    pythEndpoint: "https://hermes.pyth.network",
+    wormhole: {
+        stateObj: "0xaeab97f96cf9877fee2883315d459552b2b921edc16d7ceac6eab944dd88919c",
+    },
+    pyth: {
+        endpoint: "https://hermes.pyth.network",
+        stateObj: "0x1f9310238ee9298fb703c3419030b35b22bb1cc37113e3bb5007c99aec79e5b8",
+    },
+    aftermath: {
+        ammPackage: "0xc4049b2d1cc0f6e017fda8260e4377cecd236bd7f56a54fee120816e72e2e0dd", // v2
+        // aftermathAmmPkgId: "0xefe170ec0be4d762196bedecd7a065816576198a6527c99282a2551aaa7da38c", // v1
+        // aftermathAmmPkgId: "0xf948935b111990c2b604900c9b2eeb8f24dcf9868a45d1ea1653a5f282c10e29", // v3
+    },
+    bbb: {
+        package: "0x2ec3309b921aa1f819ff566d66bcb3bd045dbaf1fbe58f3141ac6e8f7a9e5d51", // dev-only
+        upgradeCapObj: "0x05d6b63f19b67efb1f9834dbf1537ff9780e2c607cff3878dcdb284ab68ca54d", // dev-only
+        adminCapObj: "0x1a99fd768f5666426972040ac1a2f56c5a1798afac08257b336f9b2eba5f6be7", // dev-only
+        vaultObj: "0xba4ebdd68cf195b040bcdae3fd88c53a0b47c059c630470197121dd4301326ed", // dev-only
+        configObj: "0xef249ee56957f473dcefe2a6d8336a0a5d7f213ff69d1db1aca9bd2f54613116", // dev-only
+    },
     coins: {
         SUI: {
             type: "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI",

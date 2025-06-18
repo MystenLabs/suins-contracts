@@ -8,7 +8,7 @@ async function getPriceInfoObject(
     feed: string,
 ): Promise<string[]> {
     // Initialize connection to the Sui Price Service
-    const connection = new SuiPriceServiceConnection(cnf.pythEndpoint);
+    const connection = new SuiPriceServiceConnection(cnf.pyth.endpoint);
 
     // List of price feed IDs
     const priceIDs = [
@@ -20,7 +20,7 @@ async function getPriceInfoObject(
 
     // Initialize Sui Client and Pyth Client
     const suiClient = newSuiClient();
-    const pythClient = new SuiPythClient(suiClient, cnf.pythStateObjId, cnf.wormholeStateObjId);
+    const pythClient = new SuiPythClient(suiClient, cnf.pyth.stateObj, cnf.wormhole.stateObj);
 
     return await pythClient.updatePriceFeeds(tx, priceUpdateData, priceIDs); // returns priceInfoObjectIds
 }
