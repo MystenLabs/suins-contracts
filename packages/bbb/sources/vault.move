@@ -8,6 +8,9 @@ use sui::{
     bag::{Self, Bag},
     coin::{Coin},
 };
+use suins_bbb::{
+    bbb_admin::BBBAdminCap,
+};
 
 // === structs ===
 
@@ -54,6 +57,14 @@ public fun deposit<C>(
             .borrow_mut<TypeName, Balance<C>>(coin_type)
             .join(balance);
     };
+}
+
+public fun dev_only_admin_withdraw<C>( // TODO: remove
+    vault: &mut BBBVault,
+    _cap: &BBBAdminCap,
+    ctx: &mut TxContext,
+): Coin<C> {
+    vault.withdraw<C>().into_coin(ctx)
 }
 
 // === package functions ===
