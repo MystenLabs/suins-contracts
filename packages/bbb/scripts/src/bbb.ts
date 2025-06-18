@@ -1,7 +1,8 @@
 import { Command } from "commander";
 import { Transaction, type TransactionResult } from "@mysten/sui/transactions";
 import { cnf, af_swaps, type AftermathSwap, type AftermathPool } from "./config.js";
-import { getPriceInfoObject, newSuiClient, objectArg, remove0x, signAndExecuteTx, type ObjectInput } from "./utils.js";
+import { getPriceInfoObject, newSuiClient, objectArg, signAndExecuteTx, type ObjectInput } from "./utils.js";
+import { fromHex } from "@mysten/sui/utils";
 
 if (require.main === module) {
     const program = new Command();
@@ -55,7 +56,7 @@ if (require.main === module) {
                 // getPriceInfoObject(tx, cnf.coins.USDC.feed),
             ]);
 
-            const swap_cnf = af_swaps[0]!; // TODO
+            const swap_cnf = af_swaps[1]!; // TODO
             const swap_obj = aftermath_swap_new({ tx, packageId, adminCapObj, swap: swap_cnf });
             aftermath_swap_swap({
                 tx,
@@ -101,8 +102,8 @@ function aftermath_swap_new({
             objectArg(tx, adminCapObj),
             tx.pure.u8(swap.coin_in.decimals),
             tx.pure.u8(swap.coin_out.decimals),
-            tx.pure.string(remove0x(swap.coin_in.feed)),
-            tx.pure.string(remove0x(swap.coin_out.feed)),
+            tx.pure.vector("u8", fromHex(swap.coin_in.feed)),
+            tx.pure.vector("u8", fromHex(swap.coin_out.feed)),
             objectArg(tx, swap.pool.id),
             tx.pure.u64(swap.slippage),
             tx.pure.u64(swap.max_age_secs),
