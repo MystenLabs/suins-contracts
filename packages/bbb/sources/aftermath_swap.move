@@ -61,7 +61,7 @@ public struct AftermathSwap has copy, drop, store {
     /// Aftermath `Pool` object `ID`
     pool_id: ID,
     /// Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point.
-    /// E.g., 2% slippage = 980_000_000_000_000_000 (represents 0.98)
+    /// E.g., 2% slippage = 980_000_000_000_000_000 (represents 0.98).
     slippage: u64,
     /// How stale the Pyth price can be, in seconds.
     max_age_secs: u64,

@@ -6,9 +6,7 @@ export function newSuiClient(): SuiClient {
     });
 }
 
-/**
- * Mainnet configuration.
- */
+/** Mainnet configuration. */
 export const cnf = {
     wormhole: {
         stateObj: "0xaeab97f96cf9877fee2883315d459552b2b921edc16d7ceac6eab944dd88919c",
@@ -17,18 +15,24 @@ export const cnf = {
         endpoint: "https://hermes.pyth.network",
         stateObj: "0x1f9310238ee9298fb703c3419030b35b22bb1cc37113e3bb5007c99aec79e5b8",
         /** How stale the Pyth price can be, in seconds. */
-        max_age_secs: "60",
+        default_max_age_secs: 60n,
     },
     aftermath: {
         ammPackage: "0xc4049b2d1cc0f6e017fda8260e4377cecd236bd7f56a54fee120816e72e2e0dd", // v2
         // aftermathAmmPkgId: "0xefe170ec0be4d762196bedecd7a065816576198a6527c99282a2551aaa7da38c", // v1
         // aftermathAmmPkgId: "0xf948935b111990c2b604900c9b2eeb8f24dcf9868a45d1ea1653a5f282c10e29", // v3
         pools: {
-            sui_usdc: "0xb0cc4ce941a6c6ac0ca6d8e6875ae5d86edbec392c3333d008ca88f377e5e181",
-            sui_ns: "0xee7a281296e0a316eff84e7ea0d5f3eb19d1860c2d4ed598c086ceaa9bf78c75",
+            sui_usdc: {
+                id: "0xb0cc4ce941a6c6ac0ca6d8e6875ae5d86edbec392c3333d008ca88f377e5e181",
+                lp_type: "0xd1a3eab6e9659407cb2a5a529d13b4102e498619466fc2d01cb0a6547bbdb376::af_lp::AF_LP",
+            },
+            sui_ns: {
+                id: "0xee7a281296e0a316eff84e7ea0d5f3eb19d1860c2d4ed598c086ceaa9bf78c75",
+                lp_type: "0xf847c541b3076eea83cbaddcc244d25415b7c6828c1542cae4ab152d809896b6::af_lp::AF_LP",
+            },
         },
         /** Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point. */
-        slippage: "980_000_000_000_000_000", // 2%
+        default_slippage: 980_000_000_000_000_000n, // 2%
     },
     bbb: {
         package: "0x2ec3309b921aa1f819ff566d66bcb3bd045dbaf1fbe58f3141ac6e8f7a9e5d51", // dev-only
@@ -55,3 +59,57 @@ export const cnf = {
         },
     },
 } as const;
+
+/** Aftermath swap configurations. */
+export const af_swaps: AftermathSwap[] = [
+    {   // USDC -> SUI
+        type_in: cnf.coins.USDC.type,
+        type_out: cnf.coins.SUI.type,
+        decimals_in: cnf.coins.USDC.decimals,
+        decimals_out: cnf.coins.SUI.decimals,
+        feed_in: cnf.coins.USDC.feed,
+        feed_out: cnf.coins.SUI.feed,
+        pool: cnf.aftermath.pools.sui_usdc,
+        slippage: cnf.aftermath.default_slippage,
+        max_age_secs: cnf.pyth.default_max_age_secs,
+    },
+    {   // SUI -> NS
+        type_in: cnf.coins.SUI.type,
+        type_out: cnf.coins.NS.type,
+        decimals_in: cnf.coins.SUI.decimals,
+        decimals_out: cnf.coins.NS.decimals,
+        feed_in: cnf.coins.SUI.feed,
+        feed_out: cnf.coins.NS.feed,
+        pool: cnf.aftermath.pools.sui_ns,
+        slippage: cnf.aftermath.default_slippage,
+        max_age_secs: cnf.pyth.default_max_age_secs,
+    },
+] as const;
+
+/** Aftermath swap configuration. */
+export type AftermathSwap = {
+    /** Type of coin to be swapped into `type_out` */
+    type_in: string,
+    /** Type of coin to be received from the swap */
+    type_out: string,
+    /** Number of decimals used by `type_in` */
+    decimals_in: number,
+    /** Number of decimals used by `type_out` */
+    decimals_out: number,
+    /** Pyth `PriceFeed` identifier for `type_in` without the `0x` prefix */
+    feed_in: string,
+    /** Pyth `PriceFeed` identifier for `type_out` without the `0x` prefix */
+    feed_out: string,
+    /** Aftermath `Pool` object */
+    pool: {
+        /**  Object ID */
+        id: string,
+        /** The `T` in `Pool<T>` */
+        lp_type: string,
+    },
+    /** Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point.
+     * E.g., 2% slippage = 980_000_000_000_000_000 (represents 0.98). */
+    slippage: bigint,
+    /** How stale the Pyth price can be, in seconds. */
+    max_age_secs: bigint,
+}
