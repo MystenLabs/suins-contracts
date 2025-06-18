@@ -1,6 +1,8 @@
 import { Command } from "commander";
 
-import { cnf, newSuiClient } from "./config.js";
+import { cnf, af_swaps, newSuiClient } from "./config.js";
+import { remove0x } from "./utils.js";
+import { Transaction } from "@mysten/sui/transactions";
 
 if (require.main === module) {
     const program = new Command();
@@ -22,6 +24,29 @@ if (require.main === module) {
                 },
             });
             console.log(JSON.stringify(config, null, 2));
+        });
+
+    program
+        .command("init")
+        .description("Initialize the BBBConfig object (one-off)")
+        .action(async () => {
+            const tx = new Transaction();
+            for (const swap of af_swaps) {
+                tx.moveCall({
+                    target: `${cnf.bbb.package}::bbb_aftermath_swap::new`,
+                    typeArguments: [swap.coin_in.type, swap.coin_out.type, swap.pool.lp_type],
+                    arguments: [
+                        tx.object(cnf.bbb.adminCapObj),
+                        tx.pure.u8(swap.coin_in.decimals),
+                        tx.pure.u8(swap.coin_out.decimals),
+                        tx.pure.string(remove0x(swap.coin_in.feed)),
+                        tx.pure.string(remove0x(swap.coin_out.feed)),
+                        tx.object(swap.pool.id),
+                        tx.pure.u64(cnf.aftermath.default_slippage),
+                        tx.pure.u64(cnf.pyth.default_max_age_secs),
+                    ],
+                });
+            }
         });
 
     program.parse();
