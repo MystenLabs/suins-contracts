@@ -1,4 +1,4 @@
-import { getAftermathAmmPkgId, newSuiClient } from "./common";
+import { cnf, newSuiClient } from "./common";
 
 const client = newSuiClient();
 
@@ -9,7 +9,7 @@ let txDigests: string[] = [];
     const txs = await client.queryTransactionBlocks({
         filter: {
             MoveFunction: {
-                package: getAftermathAmmPkgId(),
+                package: cnf.aftermathAmmPkgId,
                 module: "swap",
                 function: "swap_exact_in",
             },
