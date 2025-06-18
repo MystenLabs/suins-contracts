@@ -27,6 +27,7 @@ use referral_vault::{
     referral_vault::ReferralVault,
 };
 use suins_bbb::{
+    bbb_admin::BBBAdminCap,
     bbb_pyth::calc_expected_coin_out,
     bbb_vault::BBBVault,
 };
@@ -74,17 +75,20 @@ public fun pool_id(config: &AftermathSwap): &ID { &config.pool_id }
 public fun slippage(config: &AftermathSwap): u64 { config.slippage }
 public fun max_age_secs(config: &AftermathSwap): u64 { config.max_age_secs }
 
-public(package) fun new(
-    type_in: TypeName,
-    type_out: TypeName,
+public fun new<CoinIn, CoinOut, L>(
+    _cap: &BBBAdminCap,
     decimals_in: u8,
     decimals_out: u8,
     feed_in: vector<u8>,
     feed_out: vector<u8>,
-    pool_id: ID,
+    pool: &Pool<L>,
     slippage: u64,
     max_age_secs: u64,
 ): AftermathSwap {
+    let type_in = type_name::get<CoinIn>();
+    let type_out = type_name::get<CoinOut>();
+    assert!(pool.type_names().contains(&type_in.into_string()), EInvalidCoinInType);
+    assert!(pool.type_names().contains(&type_out.into_string()), EInvalidCoinOutType);
     AftermathSwap {
         type_in,
         type_out,
@@ -92,7 +96,7 @@ public(package) fun new(
         decimals_out,
         feed_in,
         feed_out,
-        pool_id,
+        pool_id: object::id(pool),
         slippage,
         max_age_secs,
     }
