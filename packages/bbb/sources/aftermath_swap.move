@@ -1,10 +1,12 @@
 module suins_bbb::bbb_aftermath_swap;
 
 use std::{
-    type_name::{Self,TypeName},
+    ascii::{String},
+    type_name::{Self, TypeName},
 };
 use sui::{
     clock::Clock,
+    event::{emit},
 };
 use pyth::{
     price_info::PriceInfoObject,
@@ -139,27 +141,29 @@ public fun swap<L, CoinIn, CoinOut>(
     assert!(feed_id_out.get_bytes() == conf.feed_out(), EFeedOutMismatch);
 
     // check pool id and coin types match the config
+    let type_in = type_name::get<CoinIn>();
+    let type_out = type_name::get<CoinOut>();
     assert!(object::id(pool) == conf.pool_id(), EInvalidPool);
-    assert!(type_name::get<CoinIn>() == conf.type_in(), EInvalidCoinInType);
-    assert!(type_name::get<CoinOut>() == conf.type_out(), EInvalidCoinOutType);
+    assert!(type_in == conf.type_in(), EInvalidCoinInType);
+    assert!(type_out == conf.type_out(), EInvalidCoinOutType);
 
     // withdraw all CoinIn from vault
-    let balance = vault.withdraw<CoinIn>();
-    let coin_in = balance.into_coin(ctx);
+    let coin_in = vault.withdraw<CoinIn>().into_coin(ctx);
+    let amount_in = coin_in.value();
 
-    // return early if the vault is empty
-    if (coin_in.value() == 0) {
+    // return early if zero
+    if (amount_in == 0) {
         coin_in.destroy_zero();
         return
     };
 
     // calculate expected CoinOut amount
-    let expected_coin_out = calc_expected_coin_out(
+    let expected_out = calc_expected_coin_out(
         info_in,
         info_out,
         conf.decimals_in,
         conf.decimals_out,
-        coin_in.value(),
+        amount_in,
         conf.max_age_secs,
         clock,
     );
@@ -173,11 +177,30 @@ public fun swap<L, CoinIn, CoinOut>(
         insurance_fund,
         referral_vault,
         coin_in,
-        expected_coin_out,
+        expected_out,
         conf.slippage,
         ctx,
     );
+    let amount_out = coin_out.value();
 
     // deposit CoinOut into vault
     vault.deposit<CoinOut>(coin_out);
+
+    emit(Swapped {
+        type_in: type_name::get<CoinIn>().into_string(),
+        type_out: type_name::get<CoinOut>().into_string(),
+        amount_in,
+        amount_out,
+        expected_out,
+    });
+}
+
+// === events ===
+
+public struct Swapped has drop, copy {
+    type_in: String,
+    type_out: String,
+    amount_in: u64,
+    amount_out: u64,
+    expected_out: u64,
 }
