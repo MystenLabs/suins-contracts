@@ -1,7 +1,7 @@
 import { Command } from "commander";
 
 import { cnf, af_swaps, newSuiClient } from "./config.js";
-import { remove0x } from "./utils.js";
+import { remove0x, signAndExecuteTx } from "./utils.js";
 import { Transaction } from "@mysten/sui/transactions";
 
 if (require.main === module) {
@@ -27,9 +27,10 @@ if (require.main === module) {
         });
 
     program
-        .command("init")
+        .command("init") // TODO add burn config
         .description("Initialize the BBBConfig object (one-off)")
         .action(async () => {
+            console.debug("initializing BBBConfig object...");
             const tx = new Transaction();
             for (const swap of af_swaps) {
                 tx.moveCall({
@@ -47,6 +48,10 @@ if (require.main === module) {
                     ],
                 });
             }
+            const resp = await signAndExecuteTx({ tx, dryRun: true });
+            // console.log(JSON.stringify(resp, null, 2));
+            console.debug("tx status:", resp.effects?.status.status);
+            console.debug("tx digest:", resp.digest);
         });
 
     program.parse();
