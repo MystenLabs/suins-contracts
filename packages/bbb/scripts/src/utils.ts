@@ -1,20 +1,19 @@
-import { SuiClient, type SuiTransactionBlockResponse, type SuiTransactionBlockResponseOptions } from "@mysten/sui/client";
-import { type Transaction } from "@mysten/sui/transactions";
+import { SuiClient, type SuiObjectRef, type SuiTransactionBlockResponse, type SuiTransactionBlockResponseOptions } from "@mysten/sui/client";
+import { type Transaction, type TransactionObjectInput } from "@mysten/sui/transactions";
 import { decodeSuiPrivateKey, Keypair } from "@mysten/sui/cryptography";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { Secp256k1Keypair } from "@mysten/sui/keypairs/secp256k1";
 import { Secp256r1Keypair } from "@mysten/sui/keypairs/secp256r1";
+import { SuiPriceServiceConnection, SuiPythClient } from "./pyth/pyth.js";
+import { cnf } from "./config.js";
+
+// === sui ===
 
 /** Get a new mainnet client. */
 export function newSuiClient(): SuiClient {
     return new SuiClient({
         url: "https://suins-rpc.mainnet.sui.io:443",
     });
-}
-
-/** Remove the `0x` prefix from a Sui address / object ID. */
-export function remove0x(address: string): string {
-    return address.startsWith("0x") ? address.slice(2) : address;
 }
 
 /** Sign and execute a transaction using the `PRIVATE_KEY` environment variable. */
@@ -86,4 +85,58 @@ function pairFromSecretKey(secretKey: string): Keypair
     }
 
     throw new Error(`Unrecognized keypair schema: ${pair.schema}`);
+}
+
+/**
+ * Either a `TransactionObjectInput` or a `SuiObjectRef`.
+ */
+export type ObjectInput = TransactionObjectInput | SuiObjectRef;
+
+/**
+ * Transform an `ObjectInput` into an argument for `Transaction.moveCall()`.
+ */
+export function objectArg(
+    tx: Transaction,
+    obj: ObjectInput,
+) {
+    return isSuiObjectRef(obj)
+        ? tx.objectRef(obj)
+        : tx.object(obj);
+}
+
+/** Type guard to check if an object is a `SuiObjectRef`. */
+export function isSuiObjectRef(obj: unknown): obj is SuiObjectRef {
+    return typeof obj === "object" && obj !== null
+        && "objectId" in obj
+        && "version" in obj
+        && "digest" in obj;
+}
+
+export async function getPriceInfoObject(
+    tx: Transaction,
+    feed: string,
+): Promise<string[]> {
+    // Initialize connection to the Sui Price Service
+    const connection = new SuiPriceServiceConnection(cnf.pyth.endpoint);
+
+    // List of price feed IDs
+    const priceIDs = [
+        feed, // ASSET/USD price ID
+    ];
+
+    // Fetch price feed update data
+    const priceUpdateData = await connection.getPriceFeedsUpdateData(priceIDs);
+
+    // Initialize Sui Client and Pyth Client
+    const suiClient = newSuiClient();
+    const pythClient = new SuiPythClient(suiClient, cnf.pyth.stateObj, cnf.wormhole.stateObj);
+
+    return await pythClient.updatePriceFeeds(tx, priceUpdateData, priceIDs); // returns priceInfoObjectIds
+}
+
+// === misc ===
+
+/** Remove the `0x` prefix from a Sui address / object ID. */
+export function remove0x(address: string): string {
+    return address.startsWith("0x") ? address.slice(2) : address;
 }

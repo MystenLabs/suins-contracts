@@ -77,7 +77,7 @@ public fun pool_id(config: &AftermathSwap): &ID { &config.pool_id }
 public fun slippage(config: &AftermathSwap): u64 { config.slippage }
 public fun max_age_secs(config: &AftermathSwap): u64 { config.max_age_secs }
 
-public fun new<CoinIn, CoinOut, L>(
+public fun new<CoinIn, CoinOut, L>( // TODO: change type arg order to match other functions
     _cap: &BBBAdminCap,
     decimals_in: u8,
     decimals_out: u8,

@@ -1,12 +1,13 @@
 import { Command } from "commander";
-
-import { cnf, af_swaps, newSuiClient } from "./config.js";
-import { remove0x, signAndExecuteTx } from "./utils.js";
-import { Transaction } from "@mysten/sui/transactions";
+import { Transaction, type TransactionResult } from "@mysten/sui/transactions";
+import { cnf, af_swaps, type AftermathSwap, type AftermathPool } from "./config.js";
+import { getPriceInfoObject, newSuiClient, objectArg, remove0x, signAndExecuteTx, type ObjectInput } from "./utils.js";
 
 if (require.main === module) {
     const program = new Command();
     const client = newSuiClient();
+    const packageId = cnf.bbb.package;
+    const adminCapObj = cnf.bbb.adminCapObj;
 
     program
         .name("bbb")
@@ -33,26 +34,138 @@ if (require.main === module) {
             console.debug("initializing BBBConfig object...");
             const tx = new Transaction();
             for (const swap of af_swaps) {
-                tx.moveCall({
-                    target: `${cnf.bbb.package}::bbb_aftermath_swap::new`,
-                    typeArguments: [swap.coin_in.type, swap.coin_out.type, swap.pool.lp_type],
-                    arguments: [
-                        tx.object(cnf.bbb.adminCapObj),
-                        tx.pure.u8(swap.coin_in.decimals),
-                        tx.pure.u8(swap.coin_out.decimals),
-                        tx.pure.string(remove0x(swap.coin_in.feed)),
-                        tx.pure.string(remove0x(swap.coin_out.feed)),
-                        tx.object(swap.pool.id),
-                        tx.pure.u64(cnf.aftermath.default_slippage),
-                        tx.pure.u64(cnf.pyth.default_max_age_secs),
-                    ],
-                });
+                aftermath_swap_new({ tx, packageId, adminCapObj, swap });
             }
             const resp = await signAndExecuteTx({ tx, dryRun: true });
-            // console.log(JSON.stringify(resp, null, 2));
+            console.debug("tx status:", resp.effects?.status.status);
+            console.debug("tx digest:", resp.digest);
+        });
+
+    program
+        .command("swap-and-burn")
+        .description("Swap and burn coins")
+        .action(async () => {
+            console.debug("initiating swap and burn...");
+
+            console.debug("fetching price info objects...")
+            const tx = new Transaction();
+            const [infoSui, infoNs] = await Promise.all([
+                getPriceInfoObject(tx, cnf.coins.SUI.feed),
+                getPriceInfoObject(tx, cnf.coins.NS.feed),
+                // getPriceInfoObject(tx, cnf.coins.USDC.feed),
+            ]);
+
+            const swap_cnf = af_swaps[0]!; // TODO
+            const swap_obj = aftermath_swap_new({ tx, packageId, adminCapObj, swap: swap_cnf });
+            aftermath_swap_swap({
+                tx,
+                packageId,
+                coinIn: swap_cnf.coin_in.type,
+                coinOut: swap_cnf.coin_out.type,
+                bbbSwap: swap_obj,
+                bbbVault: cnf.bbb.vaultObj,
+                pythInfoIn: infoSui[0]!, // TODO
+                pythInfoOut: infoNs[0]!, // TODO
+                afPool: swap_cnf.pool,
+                afPoolRegistry: cnf.aftermath.poolRegistry,
+                afProtocolFeeVault: cnf.aftermath.protocolFeeVault,
+                afTreasury: cnf.aftermath.treasury,
+                afInsuranceFund: cnf.aftermath.insuranceFund,
+                afReferralVault: cnf.aftermath.referralVault,
+            });
+            const resp = await signAndExecuteTx({ tx, dryRun: true });
             console.debug("tx status:", resp.effects?.status.status);
             console.debug("tx digest:", resp.digest);
         });
 
     program.parse();
+}
+
+// === tx commands ===
+
+function aftermath_swap_new({
+    tx,
+    packageId,
+    adminCapObj,
+    swap,
+}: {
+    tx: Transaction,
+    packageId: string,
+    adminCapObj: ObjectInput,
+    swap: AftermathSwap,
+}): TransactionResult {
+    return tx.moveCall({
+        target: `${packageId}::bbb_aftermath_swap::new`,
+        typeArguments: [swap.coin_in.type, swap.coin_out.type, swap.pool.lp_type],
+        arguments: [
+            objectArg(tx, adminCapObj),
+            tx.pure.u8(swap.coin_in.decimals),
+            tx.pure.u8(swap.coin_out.decimals),
+            tx.pure.string(remove0x(swap.coin_in.feed)),
+            tx.pure.string(remove0x(swap.coin_out.feed)),
+            objectArg(tx, swap.pool.id),
+            tx.pure.u64(swap.slippage),
+            tx.pure.u64(swap.max_age_secs),
+        ],
+    });
+}
+
+function aftermath_swap_swap({
+    tx,
+    packageId,
+    // ours
+    coinIn,
+    coinOut,
+    bbbSwap,
+    bbbVault,
+    // pyth
+    pythInfoIn,
+    pythInfoOut,
+    // aftermath
+    afPool,
+    afPoolRegistry,
+    afProtocolFeeVault,
+    afTreasury,
+    afInsuranceFund,
+    afReferralVault,
+}: {
+    tx: Transaction,
+    packageId: string,
+    // ours
+    coinIn: string,
+    coinOut: string,
+    bbbSwap: ObjectInput,
+    bbbVault: ObjectInput,
+    // pyth
+    pythInfoIn: ObjectInput,
+    pythInfoOut: ObjectInput,
+    // aftermath
+    afPool: AftermathPool,
+    afPoolRegistry: ObjectInput,
+    afProtocolFeeVault: ObjectInput,
+    afTreasury: ObjectInput,
+    afInsuranceFund: ObjectInput,
+    afReferralVault: ObjectInput,
+}): TransactionResult {
+    return tx.moveCall({
+        target: `${packageId}::bbb_aftermath_swap::swap`,
+        typeArguments: [afPool.lp_type, coinIn, coinOut],
+        arguments: [
+            // ours
+            objectArg(tx, bbbSwap),
+            objectArg(tx, bbbVault),
+            // pyth
+            objectArg(tx, pythInfoIn),
+            objectArg(tx, pythInfoOut),
+            // aftermath
+            objectArg(tx, afPool.id),
+            objectArg(tx, afPoolRegistry),
+            objectArg(tx, afProtocolFeeVault),
+            objectArg(tx, afTreasury),
+            objectArg(tx, afInsuranceFund),
+            objectArg(tx, afReferralVault),
+            // sui
+            tx.object.clock(),
+        ],
+    });
 }
