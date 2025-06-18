@@ -114,7 +114,7 @@ public fun new<CoinIn, CoinOut, L>(
 /// - `EZeroAmountOut`: `amount_in` is worth zero amount of `Coin<CoinOut>`.
 /// - `EInvalidSwapAmountOut`: the swap would result in more than `MAX_SWAP_AMOUNT_OUT`
 ///    worth of `Coin<CoinOut>` exiting the Pool.
-public fun swap_aftermath<L, CoinIn, CoinOut>(
+public fun swap<L, CoinIn, CoinOut>(
     // ours
     conf: &AftermathSwap,
     vault: &mut BBBVault,
@@ -140,14 +140,8 @@ public fun swap_aftermath<L, CoinIn, CoinOut>(
 
     // check pool id and coin types match the config
     assert!(object::id(pool) == conf.pool_id(), EInvalidPool);
-    assert!( // technically not needed because `swap_exact_in` guarantees this
-        pool.type_names().contains(&type_name::get<CoinIn>().into_string()),
-        EInvalidCoinInType,
-    );
-    assert!( // technically not needed because `swap_exact_in` guarantees this
-        pool.type_names().contains(&type_name::get<CoinOut>().into_string()),
-        EInvalidCoinOutType,
-    );
+    assert!(type_name::get<CoinIn>() == conf.type_in(), EInvalidCoinInType);
+    assert!(type_name::get<CoinOut>() == conf.type_out(), EInvalidCoinOutType);
 
     // withdraw all CoinIn from vault
     let balance = vault.withdraw<CoinIn>();

@@ -103,7 +103,7 @@ public fun add_burn_type(
 
 public fun remove_aftermath_swap<CoinIn>(
     conf: &mut BBBConfig,
-    _: &BBBAdminCap,
+    _cap: &BBBAdminCap,
 ) {
     let idx = conf.af_swaps.find_index!(|existing| {
         existing.type_in() == type_name::get<CoinIn>()
@@ -115,7 +115,7 @@ public fun remove_aftermath_swap<CoinIn>(
 
 public fun remove_burn_type<C>(
     conf: &mut BBBConfig,
-    _: &BBBAdminCap,
+    _cap: &BBBAdminCap,
 ) {
     let idx = conf.burns.find_index!(|existing| {
         existing.coin_type() == type_name::get<C>()
