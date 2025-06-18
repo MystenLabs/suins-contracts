@@ -1,4 +1,4 @@
-import { cnf, newSuiClient } from "./common";
+import { cnf, newSuiClient } from "../config";
 
 const client = newSuiClient();
 

@@ -1,7 +1,7 @@
 import { Transaction } from "@mysten/sui/transactions";
-import { SuiPriceServiceConnection, SuiPythClient } from './pyth/pyth.js';
+import { SuiPriceServiceConnection, SuiPythClient } from '../pyth/pyth.js';
 
-import { cnf, newSuiClient } from "./common";
+import { cnf, newSuiClient } from "../config.js";
 
 async function getPriceInfoObject(
     tx: Transaction,
