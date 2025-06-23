@@ -1,5 +1,5 @@
-import { Transaction } from "@mysten/sui/transactions";
-import { Command } from "commander";
+import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
+import { Command, Option } from "commander";
 import { afSwaps, cnf } from "./config.js";
 import { BBBConfigSchema } from "./schema/bbb_config.js";
 import * as sdk from "./sdk.js";
@@ -10,9 +10,17 @@ import {
     signAndExecuteTx,
 } from "./utils.js";
 
-// === CLI ===
+// === constants ===
 
 const program = new Command();
+const client = newSuiClient();
+const packageId = cnf.bbb.packageId;
+const adminCapObj = cnf.bbb.adminCapObj;
+const bbbVaultObj = cnf.bbb.vaultObj;
+const bbbConfigObj = cnf.bbb.configObj;
+
+// === CLI ===
+
 program.name("bbb").description("Buy Back & Burn CLI tool").version("1.0.0");
 program
     .command("get-config")
@@ -23,6 +31,16 @@ program
     .description("Initialize the BBBConfig object (one-off)")
     .action(cmdInit);
 program
+    .command("deposit")
+    .description("Deposit coins into the BBBVault")
+    .addOption(
+        new Option("-c, --coin-ticker <coin-ticker>", "coin ticker")
+            .choices(Object.keys(cnf.coins))
+            .makeOptionMandatory(),
+    )
+    .requiredOption("-a, --amount <amount>", 'human-readable amount (0.1 SUI = "0.1")')
+    .action(cmdDeposit);
+program
     .command("swap-and-burn")
     .description("Swap and burn coins")
     .action(cmdSwapAndBurn);
@@ -30,12 +48,6 @@ program
 program.parse();
 
 // === commands ===
-
-const client = newSuiClient();
-const packageId = cnf.bbb.packageId;
-const adminCapObj = cnf.bbb.adminCapObj;
-const bbbVaultObj = cnf.bbb.vaultObj;
-const bbbConfigObj = cnf.bbb.configObj;
 
 async function cmdGetConfig() {
     const resp = await client.getObject({
@@ -79,6 +91,40 @@ async function cmdInit() {
             afSwapObj: swapObj,
         });
     }
+    const resp = await signAndExecuteTx({ tx, dryRun: true });
+    console.debug("tx status:", resp.effects?.status.status);
+    console.debug("tx digest:", resp.digest);
+}
+
+async function cmdDeposit({
+    coinTicker,
+    amount,
+}: {
+    coinTicker: keyof typeof cnf.coins;
+    amount: string;
+}) {
+    const coinInfo = cnf.coins[coinTicker];
+
+    const amountNum = parseFloat(amount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+        throw new Error(`Invalid amount: ${amount}. Must be a positive number.`);
+    }
+
+    console.log(`depositing ${amount} ${coinTicker} into BBBVault...`);
+
+    const tx = new Transaction();
+    const coinObj = coinWithBalance({
+        balance: BigInt(Math.floor(amountNum * 10**coinInfo.decimals)),
+        type: coinInfo.type,
+    });
+
+    sdk.bbb_vault.deposit({
+        tx,
+        packageId,
+        coinType: coinInfo.type,
+        bbbVaultObj,
+        coinObj,
+    });
     const resp = await signAndExecuteTx({ tx, dryRun: true });
     console.debug("tx status:", resp.effects?.status.status);
     console.debug("tx digest:", resp.digest);
