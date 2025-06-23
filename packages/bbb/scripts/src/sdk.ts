@@ -20,11 +20,7 @@ export const bbb_aftermath_swap = {
     }): TransactionResult => {
         return tx.moveCall({
             target: `${packageId}::bbb_aftermath_swap::new`,
-            typeArguments: [
-                swap.coin_in.type,
-                swap.coin_out.type,
-                swap.pool.lp_type,
-            ],
+            typeArguments: [swap.coin_in.type, swap.coin_out.type, swap.pool.lp_type],
             arguments: [
                 tx.object(adminCapObj),
                 tx.pure.u8(swap.coin_in.decimals),

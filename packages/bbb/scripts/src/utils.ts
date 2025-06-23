@@ -1,7 +1,4 @@
-import {
-    SuiClient,
-    type SuiTransactionBlockResponse,
-} from "@mysten/sui/client";
+import { SuiClient, type SuiTransactionBlockResponse } from "@mysten/sui/client";
 import { decodeSuiPrivateKey, type Keypair } from "@mysten/sui/cryptography";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { Secp256k1Keypair } from "@mysten/sui/keypairs/secp256k1";
@@ -63,9 +60,7 @@ export async function signAndExecuteTx({
     });
 
     if (resp.effects?.status.status !== "success") {
-        throw new Error(
-            `executeTransactionBlock failed: ${resp.effects?.status.error}`,
-        );
+        throw new Error(`executeTransactionBlock failed: ${resp.effects?.status.error}`);
     }
 
     if (waitForTx) {
@@ -118,18 +113,13 @@ export function shortenAddress(
             return match;
         }
         // otherwise, abbreviate the address
-        return (
-            prefix + match.slice(2, 2 + start) + separator + match.slice(-end)
-        );
+        return prefix + match.slice(2, 2 + start) + separator + match.slice(-end);
     });
 }
 
 // === pyth ===
 
-export async function getPriceInfoObject(
-    tx: Transaction,
-    feed: string,
-): Promise<string> {
+export async function getPriceInfoObject(tx: Transaction, feed: string): Promise<string> {
     // Initialize connection to the Sui Price Service
     const connection = new SuiPriceServiceConnection(cnf.pyth.endpoint);
 
@@ -149,11 +139,7 @@ export async function getPriceInfoObject(
         cnf.wormhole.stateObj,
     );
 
-    const objIds = await pythClient.updatePriceFeeds(
-        tx,
-        priceUpdateData,
-        priceIDs,
-    );
+    const objIds = await pythClient.updatePriceFeeds(tx, priceUpdateData, priceIDs);
     // biome-ignore lint/style/noNonNullAssertion: does exist
     return objIds[0]!;
 }

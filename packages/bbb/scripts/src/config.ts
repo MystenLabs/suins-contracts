@@ -58,7 +58,7 @@ export const cnf = {
 } as const;
 
 /** Aftermath swap configurations. */
-export const af_swaps: AftermathSwap[] = [
+export const afSwaps: AftermathSwap[] = [
     {   // USDC -> SUI
         coin_in: cnf.coins.USDC,
         coin_out: cnf.coins.SUI,
