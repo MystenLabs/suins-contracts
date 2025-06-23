@@ -1,3 +1,4 @@
+import { toHex } from "@mysten/sui/utils";
 import { z } from "zod/v4";
 
 export const BBBConfigSchema = z.object({
@@ -15,8 +16,12 @@ export const BBBConfigSchema = z.object({
                     fields: z.object({
                         decimals_in: z.number(),
                         decimals_out: z.number(),
-                        feed_in: z.array(z.number()),
-                        feed_out: z.array(z.number()),
+                        feed_in: z
+                            .array(z.number())
+                            .transform((arr) => `0x${toHex(Uint8Array.from(arr))}`),
+                        feed_out: z
+                            .array(z.number())
+                            .transform((arr) => `0x${toHex(Uint8Array.from(arr))}`),
                         max_age_secs: z.string(),
                         pool_id: z.string(),
                         slippage: z.string(),
