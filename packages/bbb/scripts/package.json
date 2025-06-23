@@ -10,7 +10,8 @@
   "dependencies": {
     "@mysten/sui": "^1.34.0",
     "axios": "^1.10.0",
-    "axios-retry": "^4.5.0"
+    "axios-retry": "^4.5.0",
+    "zod": "^3.25.67"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.5",
