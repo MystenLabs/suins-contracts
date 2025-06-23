@@ -73,13 +73,6 @@ export const afSwaps: AftermathSwap[] = [
         slippage: cnf.aftermath.default_slippage,
         max_age_secs: cnf.pyth.default_max_age_secs,
     },
-    {   // NS -> SUI // dev-only // TODO: remove
-        coin_in: cnf.coins.NS,
-        coin_out: cnf.coins.SUI,
-        pool: cnf.aftermath.pools.sui_ns,
-        slippage: cnf.aftermath.default_slippage,
-        max_age_secs: cnf.pyth.default_max_age_secs,
-    },
 ] as const;
 
 /** Aftermath swap configuration. */
