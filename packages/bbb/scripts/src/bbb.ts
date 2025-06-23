@@ -45,6 +45,12 @@ if (require.main === module) {
         .action(async () => {
             console.debug("initializing BBBConfig object...");
             const tx = new Transaction();
+            burn_new({
+                tx,
+                packageId,
+                adminCapObj,
+                coinType: cnf.coins.NS.type,
+            });
             for (const swap of af_swaps) {
                 aftermath_swap_new({ tx, packageId, adminCapObj, swap });
             }
@@ -188,5 +194,23 @@ function aftermath_swap_swap({
             // sui
             tx.object.clock(),
         ],
+    });
+}
+
+function burn_new({
+    tx,
+    packageId,
+    adminCapObj,
+    coinType,
+}: {
+    tx: Transaction;
+    packageId: string;
+    adminCapObj: ObjectInput;
+    coinType: string;
+}): TransactionResult {
+    return tx.moveCall({
+        target: `${packageId}::bbb_burn::new`,
+        typeArguments: [coinType],
+        arguments: [objectArg(tx, adminCapObj)],
     });
 }
