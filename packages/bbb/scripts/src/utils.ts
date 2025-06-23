@@ -42,9 +42,9 @@ export async function signAndExecuteTx({
             sender: signer.toSuiAddress(),
             transactionBlock: tx,
         });
-        if (result.effects?.status.status !== "success") {
+        if (result.effects.status.status !== "success") {
             throw new Error(
-                `devInspect failed: ${JSON.stringify(result, null, 2)}`,
+                `devInspectTransactionBlock failed: ${result.effects.status.error}`,
             );
         }
         return { digest: "", ...result };
@@ -61,6 +61,12 @@ export async function signAndExecuteTx({
             showEvents: true,
         },
     });
+
+    if (resp.effects?.status.status !== "success") {
+        throw new Error(
+            `executeTransactionBlock failed: ${resp.effects?.status.error}`,
+        );
+    }
 
     if (waitForTx) {
         await suiClient.waitForTransaction({
