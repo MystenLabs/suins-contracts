@@ -2,6 +2,11 @@
   "name": "scripts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "lint": "biome check src/",
+    "lint:fix": "biome check --write src/",
+    "typecheck": "tsc --noEmit"
+  },
   "dependencies": {
     "@mysten/sui": "^1.34.0",
     "axios": "^1.10.0",
