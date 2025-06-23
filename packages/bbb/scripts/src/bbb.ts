@@ -1,8 +1,19 @@
-import { Command } from "commander";
 import { Transaction, type TransactionResult } from "@mysten/sui/transactions";
-import { cnf, af_swaps, type AftermathSwap, type AftermathPool } from "./config.js";
-import { getPriceInfoObject, newSuiClient, objectArg, signAndExecuteTx, type ObjectInput } from "./utils.js";
 import { fromHex } from "@mysten/sui/utils";
+import { Command } from "commander";
+import {
+    type AftermathPool,
+    type AftermathSwap,
+    af_swaps,
+    cnf,
+} from "./config.js";
+import {
+    getPriceInfoObject,
+    newSuiClient,
+    type ObjectInput,
+    objectArg,
+    signAndExecuteTx,
+} from "./utils.js";
 
 if (require.main === module) {
     const program = new Command();
@@ -48,7 +59,7 @@ if (require.main === module) {
         .action(async () => {
             console.debug("initiating swap and burn...");
 
-            console.debug("fetching price info objects...")
+            console.debug("fetching price info objects...");
             const tx = new Transaction();
             const [infoSui, infoNs] = await Promise.all([
                 getPriceInfoObject(tx, cnf.coins.SUI.feed),
@@ -57,7 +68,12 @@ if (require.main === module) {
             ]);
 
             const swap_cnf = af_swaps[1]!; // TODO
-            const swap_obj = aftermath_swap_new({ tx, packageId, adminCapObj, swap: swap_cnf });
+            const swap_obj = aftermath_swap_new({
+                tx,
+                packageId,
+                adminCapObj,
+                swap: swap_cnf,
+            });
             aftermath_swap_swap({
                 tx,
                 packageId,
@@ -90,14 +106,18 @@ function aftermath_swap_new({
     adminCapObj,
     swap,
 }: {
-    tx: Transaction,
-    packageId: string,
-    adminCapObj: ObjectInput,
-    swap: AftermathSwap,
+    tx: Transaction;
+    packageId: string;
+    adminCapObj: ObjectInput;
+    swap: AftermathSwap;
 }): TransactionResult {
     return tx.moveCall({
         target: `${packageId}::bbb_aftermath_swap::new`,
-        typeArguments: [swap.coin_in.type, swap.coin_out.type, swap.pool.lp_type],
+        typeArguments: [
+            swap.coin_in.type,
+            swap.coin_out.type,
+            swap.pool.lp_type,
+        ],
         arguments: [
             objectArg(tx, adminCapObj),
             tx.pure.u8(swap.coin_in.decimals),
@@ -130,23 +150,23 @@ function aftermath_swap_swap({
     afInsuranceFund,
     afReferralVault,
 }: {
-    tx: Transaction,
-    packageId: string,
+    tx: Transaction;
+    packageId: string;
     // ours
-    coinIn: string,
-    coinOut: string,
-    bbbSwap: ObjectInput,
-    bbbVault: ObjectInput,
+    coinIn: string;
+    coinOut: string;
+    bbbSwap: ObjectInput;
+    bbbVault: ObjectInput;
     // pyth
-    pythInfoIn: ObjectInput,
-    pythInfoOut: ObjectInput,
+    pythInfoIn: ObjectInput;
+    pythInfoOut: ObjectInput;
     // aftermath
-    afPool: AftermathPool,
-    afPoolRegistry: ObjectInput,
-    afProtocolFeeVault: ObjectInput,
-    afTreasury: ObjectInput,
-    afInsuranceFund: ObjectInput,
-    afReferralVault: ObjectInput,
+    afPool: AftermathPool;
+    afPoolRegistry: ObjectInput;
+    afProtocolFeeVault: ObjectInput;
+    afTreasury: ObjectInput;
+    afInsuranceFund: ObjectInput;
+    afReferralVault: ObjectInput;
 }): TransactionResult {
     return tx.moveCall({
         target: `${packageId}::bbb_aftermath_swap::swap`,
