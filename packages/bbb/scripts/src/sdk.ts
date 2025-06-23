@@ -115,6 +115,25 @@ export const bbb_burn = {
             arguments: [tx.object(adminCapObj)],
         });
     },
+    burn: ({
+        tx,
+        packageId,
+        coinType,
+        burnObj,
+        bbbVaultObj,
+    }: {
+        tx: Transaction;
+        packageId: string;
+        coinType: string;
+        burnObj: TransactionObjectInput;
+        bbbVaultObj: TransactionObjectInput;
+    }): TransactionResult => {
+        return tx.moveCall({
+            target: `${packageId}::bbb_burn::burn`,
+            typeArguments: [coinType],
+            arguments: [tx.object(burnObj), tx.object(bbbVaultObj)],
+        });
+    },
 } as const;
 
 export const bbb_config = {

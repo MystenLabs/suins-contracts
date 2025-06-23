@@ -4,6 +4,7 @@ import { afSwaps, cnf } from "./config.js";
 import { BalanceDfSchema } from "./schema/balance_df.js";
 import { BBBConfigSchema } from "./schema/bbb_config.js";
 import { BBBVaultSchema } from "./schema/bbb_vault.js";
+import { BurnedEventSchema } from "./schema/burned_event.js";
 import { SwappedEventSchema } from "./schema/swapped_event.js";
 import * as sdk from "./sdk.js";
 import {
@@ -14,6 +15,8 @@ import {
 } from "./utils.js";
 
 // === constants ===
+
+const dryRun = true;
 
 const program = new Command();
 const client = newSuiClient();
@@ -122,7 +125,7 @@ async function cmdInit() {
             afSwapObj: swapObj,
         });
     }
-    const resp = await signAndExecuteTx({ tx, dryRun: true });
+    const resp = await signAndExecuteTx({ tx, dryRun });
     console.log("tx status:", resp.effects?.status.status);
     console.log("tx digest:", resp.digest);
 }
@@ -156,13 +159,15 @@ async function cmdDeposit({
         bbbVaultObj,
         coinObj,
     });
-    const resp = await signAndExecuteTx({ tx, dryRun: true });
+    const resp = await signAndExecuteTx({ tx, dryRun });
     console.log("tx status:", resp.effects?.status.status);
     console.log("tx digest:", resp.digest);
 }
 
 async function cmdSwapAndBurn() {
     const tx = new Transaction();
+
+    // swap
 
     // console.log("fetching price info objects...");
     const pythPriceInfoIds = await Promise.all(
@@ -171,7 +176,6 @@ async function cmdSwapAndBurn() {
             priceInfo: await getPriceInfoObject(tx, coin.feed),
         })),
     );
-
     for (const afSwap of afSwaps) {
         // console.log(
         //     `swapping  ${shortenAddress(afSwap.coin_in.type).padEnd(24)} for` +
@@ -218,14 +222,42 @@ async function cmdSwapAndBurn() {
         });
     }
 
-    const resp = await signAndExecuteTx({ tx, dryRun: true });
+    // burn
+
+    const burnObj = sdk.bbb_config.get_burn({
+        tx,
+        packageId,
+        bbbConfigObj,
+        coinType: cnf.coins.NS.type,
+    });
+    sdk.bbb_burn.burn({
+        tx,
+        packageId,
+        coinType: cnf.coins.NS.type,
+        burnObj,
+        bbbVaultObj,
+    });
+
+    // logging
+
+    const resp = await signAndExecuteTx({ tx, dryRun });
+    const burnEvents = resp.events
+        ?.filter((e) => e.type.endsWith("::bbb_burn::Burned"))
+        .map((e) => BurnedEventSchema.parse(e).parsedJson);
     const swapEvents = resp.events
         ?.filter((e) => e.type.endsWith("::bbb_aftermath_swap::Swapped"))
         .map((e) => SwappedEventSchema.parse(e).parsedJson);
-    console.log(JSON.stringify({
-        time: new Date().toISOString(),
-        tx_status: resp.effects?.status.status,
-        tx_digest: resp.digest,
-        swaps: swapEvents,
-    }, null, 2));
+    console.log(
+        JSON.stringify(
+            {
+                time: new Date().toISOString(),
+                tx_status: resp.effects?.status.status,
+                tx_digest: resp.digest,
+                swaps: swapEvents,
+                burns: burnEvents,
+            },
+            null,
+            2,
+        ),
+    );
 }
