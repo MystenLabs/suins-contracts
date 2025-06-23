@@ -1,7 +1,9 @@
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 import { Command, Option } from "commander";
 import { afSwaps, cnf } from "./config.js";
+import { BalanceDfSchema } from "./schema/balance_df.js";
 import { BBBConfigSchema } from "./schema/bbb_config.js";
+import { BBBVaultSchema } from "./schema/bbb_vault.js";
 import * as sdk from "./sdk.js";
 import {
     getPriceInfoObject,
@@ -27,6 +29,10 @@ program
     .description("Fetch the BBBConfig object")
     .action(cmdGetConfig);
 program
+    .command("get-balances")
+    .description("Fetch the coin balances in the BBBVault")
+    .action(cmdGetBalances);
+program
     .command("init")
     .description("Initialize the BBBConfig object (one-off)")
     .action(cmdInit);
@@ -50,12 +56,36 @@ program.parse();
 // === commands ===
 
 async function cmdGetConfig() {
-    const resp = await client.getObject({
+    const objResp = await client.getObject({
         id: bbbConfigObj,
         options: { showContent: true },
     });
-    const obj = BBBConfigSchema.parse(resp);
+    const obj = BBBConfigSchema.parse(objResp.data);
     console.log(JSON.stringify(obj, null, 2));
+}
+
+async function cmdGetBalances() {
+    console.log(`fetching BBBVault object (${shortenAddress(bbbVaultObj)})...`);
+    const objResp = await client.getObject({
+        id: bbbVaultObj,
+        options: { showContent: true },
+    });
+    const vaultObj = BBBVaultSchema.parse(objResp.data);
+    const dfPage = await client.getDynamicFields({
+        parentId: vaultObj.content.fields.balances.fields.id.id,
+    });
+    const balanceDfResps = await client.multiGetObjects({
+        ids: dfPage.data.map((df) => df.objectId),
+        options: { showContent: true },
+    });
+    const balanceDfObjs = balanceDfResps.map((resp) => BalanceDfSchema.parse(resp.data));
+    for (const bal of balanceDfObjs) {
+        const ticker = bal.content.fields.name.fields.name.split("::")[2];
+        console.log(`${ticker}: ${bal.content.fields.value}`);
+    }
+    if (balanceDfObjs.length === 0) {
+        console.log("no balances found");
+    }
 }
 
 async function cmdInit() {
@@ -106,7 +136,7 @@ async function cmdDeposit({
     const coinInfo = cnf.coins[coinTicker];
 
     const amountNum = parseFloat(amount);
-    if (isNaN(amountNum) || amountNum <= 0) {
+    if (Number.isNaN(amountNum) || amountNum <= 0) {
         throw new Error(`Invalid amount: ${amount}. Must be a positive number.`);
     }
 
@@ -114,7 +144,7 @@ async function cmdDeposit({
 
     const tx = new Transaction();
     const coinObj = coinWithBalance({
-        balance: BigInt(Math.floor(amountNum * 10**coinInfo.decimals)),
+        balance: BigInt(Math.floor(amountNum * 10 ** coinInfo.decimals)),
         type: coinInfo.type,
     });
 
