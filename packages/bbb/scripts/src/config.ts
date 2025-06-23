@@ -58,7 +58,7 @@ export const cnf = {
 } as const;
 
 /** Aftermath swap configurations. */
-export const af_swaps: AftermathSwap[] = [
+export const af_swaps: AftermathSwap[] = [ // TODO: remove dev swaps
     {   // USDC -> SUI
         coin_in: cnf.coins.USDC,
         coin_out: cnf.coins.SUI,
@@ -73,14 +73,14 @@ export const af_swaps: AftermathSwap[] = [
         slippage: cnf.aftermath.default_slippage,
         max_age_secs: cnf.pyth.default_max_age_secs,
     },
-    {   // SUI -> USDC // TODO: dev-only, comment out
+    {   // SUI -> USDC // dev-only
         coin_in: cnf.coins.SUI,
         coin_out: cnf.coins.USDC,
         pool: cnf.aftermath.pools.sui_usdc,
         slippage: cnf.aftermath.default_slippage,
         max_age_secs: cnf.pyth.default_max_age_secs,
     },
-    {   // NS -> SUI // TODO: dev-only, comment out
+    {   // NS -> SUI // dev-only
         coin_in: cnf.coins.NS,
         coin_out: cnf.coins.SUI,
         pool: cnf.aftermath.pools.sui_ns,
@@ -92,17 +92,9 @@ export const af_swaps: AftermathSwap[] = [
 /** Aftermath swap configuration. */
 export type AftermathSwap = {
     /** The coin to be swapped into `coin_out` */
-    coin_in: {
-        type: string,
-        decimals: number,
-        feed: string,
-    }
+    coin_in: CoinInfo,
     /** The coin to be received from the swap */
-    coin_out: {
-        type: string,
-        decimals: number,
-        feed: string,
-    }
+    coin_out: CoinInfo,
     /** Aftermath `Pool` object */
     pool: AftermathPool,
     /** Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point. */
@@ -111,8 +103,19 @@ export type AftermathSwap = {
     max_age_secs: bigint,
 }
 
+export type CoinInfo = {
+    /** The `T` in `Coin<T>` */
+    type: string,
+    /** Number of decimals */
+    decimals: number,
+    /** Pyth feed ID */
+    feed: string,
+}
+
 /** Aftermath `Pool` object. */
 export type AftermathPool = {
+    /** Object ID */
     id: string,
+    /** LP token type */
     lp_type: string,
 }
