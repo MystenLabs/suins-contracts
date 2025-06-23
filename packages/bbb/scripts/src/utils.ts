@@ -1,11 +1,18 @@
-import { SuiClient, type SuiObjectRef, type SuiTransactionBlockResponse } from "@mysten/sui/client";
-import { type Transaction, type TransactionObjectInput } from "@mysten/sui/transactions";
-import { decodeSuiPrivateKey, Keypair } from "@mysten/sui/cryptography";
+import {
+    SuiClient,
+    type SuiObjectRef,
+    type SuiTransactionBlockResponse,
+} from "@mysten/sui/client";
+import { decodeSuiPrivateKey, type Keypair } from "@mysten/sui/cryptography";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { Secp256k1Keypair } from "@mysten/sui/keypairs/secp256k1";
 import { Secp256r1Keypair } from "@mysten/sui/keypairs/secp256r1";
-import { SuiPriceServiceConnection, SuiPythClient } from "./pyth/pyth.js";
+import type {
+    Transaction,
+    TransactionObjectInput,
+} from "@mysten/sui/transactions";
 import { cnf } from "./config.js";
+import { SuiPriceServiceConnection, SuiPythClient } from "./pyth/pyth.js";
 
 // === sui ===
 
@@ -40,21 +47,23 @@ export async function signAndExecuteTx({
             transactionBlock: tx,
         });
         if (result.effects?.status.status !== "success") {
-            throw new Error("devInspect failed: " + JSON.stringify(result, null, 2));
+            throw new Error(
+                `devInspect failed: ${JSON.stringify(result, null, 2)}`,
+            );
         }
         return { digest: "", ...result };
     }
 
     const txBytes = await tx.build({ client: suiClient });
-    const signedTx = await signer.signTransaction(txBytes)
+    const signedTx = await signer.signTransaction(txBytes);
 
     const resp = await suiClient.executeTransactionBlock({
-      transactionBlock: signedTx.bytes,
-      signature: signedTx.signature,
-      options: {
-        showEffects: true,
-        showEvents: true,
-      },
+        transactionBlock: signedTx.bytes,
+        signature: signedTx.signature,
+        options: {
+            showEffects: true,
+            showEvents: true,
+        },
     });
 
     if (waitForTx) {
@@ -70,8 +79,7 @@ export async function signAndExecuteTx({
 /**
  * Build a `Keypair` from a secret key string like `suiprivkey1...`.
  */
-function pairFromSecretKey(secretKey: string): Keypair
-{
+function pairFromSecretKey(secretKey: string): Keypair {
     const pair = decodeSuiPrivateKey(secretKey);
 
     if (pair.scheme === "ED25519") {
@@ -95,21 +103,19 @@ export type ObjectInput = TransactionObjectInput | SuiObjectRef;
 /**
  * Transform an `ObjectInput` into an argument for `Transaction.moveCall()`.
  */
-export function objectArg(
-    tx: Transaction,
-    obj: ObjectInput,
-) {
-    return isSuiObjectRef(obj)
-        ? tx.objectRef(obj)
-        : tx.object(obj);
+export function objectArg(tx: Transaction, obj: ObjectInput) {
+    return isSuiObjectRef(obj) ? tx.objectRef(obj) : tx.object(obj);
 }
 
 /** Type guard to check if an object is a `SuiObjectRef`. */
 export function isSuiObjectRef(obj: unknown): obj is SuiObjectRef {
-    return typeof obj === "object" && obj !== null
-        && "objectId" in obj
-        && "version" in obj
-        && "digest" in obj;
+    return (
+        typeof obj === "object" &&
+        obj !== null &&
+        "objectId" in obj &&
+        "version" in obj &&
+        "digest" in obj
+    );
 }
 
 // === pyth ===
@@ -131,7 +137,11 @@ export async function getPriceInfoObject(
 
     // Initialize Sui Client and Pyth Client
     const suiClient = newSuiClient();
-    const pythClient = new SuiPythClient(suiClient, cnf.pyth.stateObj, cnf.wormhole.stateObj);
+    const pythClient = new SuiPythClient(
+        suiClient,
+        cnf.pyth.stateObj,
+        cnf.wormhole.stateObj,
+    );
 
     return await pythClient.updatePriceFeeds(tx, priceUpdateData, priceIDs); // returns priceInfoObjectIds
 }
