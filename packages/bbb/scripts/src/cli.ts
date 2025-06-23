@@ -41,6 +41,15 @@ program
     .description("Initialize the BBBConfig object (one-off)")
     .action(cmdInit);
 program
+    .command("remove-swap")
+    .description("Remove a swap from the BBBConfig object")
+    .addOption(
+        new Option("-c, --coin-ticker <coin-ticker>", "coin ticker")
+            .choices(Object.keys(cnf.coins))
+            .makeOptionMandatory(),
+    )
+    .action(cmdRemoveSwap);
+program
     .command("deposit")
     .description("Deposit coins into the BBBVault")
     .addOption(
@@ -125,6 +134,20 @@ async function cmdInit() {
             afSwapObj: swapObj,
         });
     }
+    const resp = await signAndExecuteTx({ tx, dryRun });
+    console.log("tx status:", resp.effects?.status.status);
+    console.log("tx digest:", resp.digest);
+}
+
+async function cmdRemoveSwap({ coinTicker }: { coinTicker: keyof typeof cnf.coins }) {
+    const tx = new Transaction();
+    sdk.bbb_config.remove_aftermath_swap({
+        tx,
+        packageId,
+        bbbConfigObj,
+        adminCapObj,
+        coinInType: cnf.coins[coinTicker].type,
+    });
     const resp = await signAndExecuteTx({ tx, dryRun });
     console.log("tx status:", resp.effects?.status.status);
     console.log("tx digest:", resp.digest);
