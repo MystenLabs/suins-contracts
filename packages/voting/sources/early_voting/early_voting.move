@@ -94,7 +94,7 @@ fun add_early_voting_proposal(
 // === devInspect functions ===
 
 /// get proposal IDs from newest to oldest
-fun get_proposal_ids(
+public(package) fun get_proposal_ids(
     gov: &NSGovernance,
     offset: u64,
     limit: u64,

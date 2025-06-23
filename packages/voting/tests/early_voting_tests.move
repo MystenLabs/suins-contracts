@@ -497,3 +497,32 @@ fun test_try_to_add_parallel_proposals() {
 
     abort 1337
 }
+
+#[test]
+fun test_get_proposal_ids() {
+    let mut setup = setup();
+    setup.next_tx(admin_addr!());
+    let cap = setup.ts().take_from_sender<NSGovernanceCap>();
+
+    // create 10 proposals
+    10u8.do!(|_| {
+        let proposal = setup.proposal__new__end_time(option::some(min_voting_period_ms!()));
+        early_voting::add_proposal_v2(&cap, setup.gov_mut(), proposal);
+        setup.add_time(min_voting_period_ms!() + 1);
+    });
+
+    let gov = setup.gov();
+    assert_eq(early_voting::get_proposal_ids(gov, 0, 0).length(), 0);
+    assert_eq(early_voting::get_proposal_ids(gov, 0, 1).length(), 1);
+    assert_eq(early_voting::get_proposal_ids(gov, 0, 9).length(), 9);
+    assert_eq(early_voting::get_proposal_ids(gov, 0, 10).length(), 10);
+    assert_eq(early_voting::get_proposal_ids(gov, 0, 999).length(), 10);
+    assert_eq(early_voting::get_proposal_ids(gov, 1, 1).length(), 1);
+    assert_eq(early_voting::get_proposal_ids(gov, 1, 999).length(), 9);
+    assert_eq(early_voting::get_proposal_ids(gov, 7, 2).length(), 2);
+    assert_eq(early_voting::get_proposal_ids(gov, 7, 999).length(), 3);
+    assert_eq(early_voting::get_proposal_ids(gov, 10, 999).length(), 0);
+
+    destroy(cap);
+    setup.destroy();
+}

@@ -49,6 +49,7 @@ public struct TestSetup {
 
 public fun ts(setup: &TestSetup): &Scenario { &setup.ts }
 public fun clock(setup: &TestSetup): &Clock { &setup.clock }
+public fun gov(setup: &TestSetup): &NSGovernance { &setup.gov }
 public fun gov_mut(setup: &mut TestSetup): &mut NSGovernance { &mut setup.gov }
 public fun config(setup: &TestSetup): &StakingConfig { &setup.config }
 public fun config_mut(setup: &mut TestSetup): &mut StakingConfig { &mut setup.config }
