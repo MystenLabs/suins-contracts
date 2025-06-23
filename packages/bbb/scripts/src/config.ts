@@ -32,7 +32,7 @@ export const cnf = {
         default_slippage: 980_000_000_000_000_000n, // 2%
     },
     bbb: { // TODO: update values for prod
-        package: "0x2ec3309b921aa1f819ff566d66bcb3bd045dbaf1fbe58f3141ac6e8f7a9e5d51", // dev-only
+        packageId: "0x2ec3309b921aa1f819ff566d66bcb3bd045dbaf1fbe58f3141ac6e8f7a9e5d51", // dev-only
         upgradeCapObj: "0x05d6b63f19b67efb1f9834dbf1537ff9780e2c607cff3878dcdb284ab68ca54d", // dev-only
         adminCapObj: "0x1a99fd768f5666426972040ac1a2f56c5a1798afac08257b336f9b2eba5f6be7", // dev-only
         vaultObj: "0xba4ebdd68cf195b040bcdae3fd88c53a0b47c059c630470197121dd4301326ed", // dev-only
@@ -58,7 +58,7 @@ export const cnf = {
 } as const;
 
 /** Aftermath swap configurations. */
-export const af_swaps: AftermathSwap[] = [ // TODO: remove dev swaps
+export const af_swaps: AftermathSwap[] = [
     {   // USDC -> SUI
         coin_in: cnf.coins.USDC,
         coin_out: cnf.coins.SUI,
@@ -73,14 +73,7 @@ export const af_swaps: AftermathSwap[] = [ // TODO: remove dev swaps
         slippage: cnf.aftermath.default_slippage,
         max_age_secs: cnf.pyth.default_max_age_secs,
     },
-    {   // SUI -> USDC // dev-only
-        coin_in: cnf.coins.SUI,
-        coin_out: cnf.coins.USDC,
-        pool: cnf.aftermath.pools.sui_usdc,
-        slippage: cnf.aftermath.default_slippage,
-        max_age_secs: cnf.pyth.default_max_age_secs,
-    },
-    {   // NS -> SUI // dev-only
+    {   // NS -> SUI // dev-only // TODO: remove
         coin_in: cnf.coins.NS,
         coin_out: cnf.coins.SUI,
         pool: cnf.aftermath.pools.sui_ns,
