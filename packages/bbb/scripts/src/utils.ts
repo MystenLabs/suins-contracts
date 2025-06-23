@@ -105,7 +105,7 @@ export function shortenAddress(
 ): string {
     if (!text) return "";
 
-    const addressRegex = /0[xX][a-fA-F0-9]{1,}/g;
+    const addressRegex = /\b0[xX][0-9a-fA-F]{1,64}\b/g;
 
     return text.replace(addressRegex, (match) => {
         // check if the address is too short to be abbreviated
