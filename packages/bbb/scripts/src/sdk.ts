@@ -235,3 +235,25 @@ export const bbb_config = {
         });
     },
 } as const;
+
+export const bbb_vault = {
+    deposit: ({
+        tx,
+        packageId,
+        coinType,
+        bbbVaultObj,
+        coinObj,
+    }: {
+        tx: Transaction;
+        packageId: string;
+        coinType: string;
+        bbbVaultObj: TransactionObjectInput;
+        coinObj: TransactionObjectInput;
+    }): TransactionResult => {
+        return tx.moveCall({
+            target: `${packageId}::bbb_vault::deposit`,
+            typeArguments: [coinType],
+            arguments: [tx.object(bbbVaultObj), tx.object(coinObj)],
+        });
+    },
+} as const;
