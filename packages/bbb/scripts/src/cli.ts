@@ -4,6 +4,7 @@ import { afSwaps, cnf } from "./config.js";
 import { BalanceDfSchema } from "./schema/balance_df.js";
 import { BBBConfigSchema } from "./schema/bbb_config.js";
 import { BBBVaultSchema } from "./schema/bbb_vault.js";
+import { SwappedEventSchema } from "./schema/swapped_event.js";
 import * as sdk from "./sdk.js";
 import {
     getPriceInfoObject,
@@ -89,7 +90,7 @@ async function cmdGetBalances() {
 }
 
 async function cmdInit() {
-    console.debug("initializing BBBConfig object...");
+    console.log("initializing BBBConfig object...");
     const tx = new Transaction();
     // add NS burn config
     const burnObj = sdk.bbb_burn.new({
@@ -122,8 +123,8 @@ async function cmdInit() {
         });
     }
     const resp = await signAndExecuteTx({ tx, dryRun: true });
-    console.debug("tx status:", resp.effects?.status.status);
-    console.debug("tx digest:", resp.digest);
+    console.log("tx status:", resp.effects?.status.status);
+    console.log("tx digest:", resp.digest);
 }
 
 async function cmdDeposit({
@@ -156,14 +157,14 @@ async function cmdDeposit({
         coinObj,
     });
     const resp = await signAndExecuteTx({ tx, dryRun: true });
-    console.debug("tx status:", resp.effects?.status.status);
-    console.debug("tx digest:", resp.digest);
+    console.log("tx status:", resp.effects?.status.status);
+    console.log("tx digest:", resp.digest);
 }
 
 async function cmdSwapAndBurn() {
     const tx = new Transaction();
 
-    console.debug("fetching price info objects...");
+    // console.log("fetching price info objects...");
     const pythPriceInfoIds = await Promise.all(
         Object.values(cnf.coins).map(async (coin) => ({
             coinType: coin.type,
@@ -172,10 +173,10 @@ async function cmdSwapAndBurn() {
     );
 
     for (const afSwap of afSwaps) {
-        console.log(
-            `swapping  ${shortenAddress(afSwap.coin_in.type).padEnd(24)} for` +
-                `  ${shortenAddress(afSwap.coin_out.type).padEnd(24)}`,
-        );
+        // console.log(
+        //     `swapping  ${shortenAddress(afSwap.coin_in.type).padEnd(24)} for` +
+        //         `  ${shortenAddress(afSwap.coin_out.type).padEnd(24)}`,
+        // );
         const pythInfoObjIn = pythPriceInfoIds.find(
             (info) => info.coinType === afSwap.coin_in.type,
         )?.priceInfo;
@@ -218,6 +219,13 @@ async function cmdSwapAndBurn() {
     }
 
     const resp = await signAndExecuteTx({ tx, dryRun: true });
-    console.debug("tx status:", resp.effects?.status.status);
-    console.debug("tx digest:", resp.digest);
+    const swapEvents = resp.events
+        ?.filter((e) => e.type.endsWith("::bbb_aftermath_swap::Swapped"))
+        .map((e) => SwappedEventSchema.parse(e).parsedJson);
+    console.log(JSON.stringify({
+        time: new Date().toISOString(),
+        tx_status: resp.effects?.status.status,
+        tx_digest: resp.digest,
+        swaps: swapEvents,
+    }, null, 2));
 }
