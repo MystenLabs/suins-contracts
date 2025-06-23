@@ -1,16 +1,12 @@
 import {
     SuiClient,
-    type SuiObjectRef,
     type SuiTransactionBlockResponse,
 } from "@mysten/sui/client";
 import { decodeSuiPrivateKey, type Keypair } from "@mysten/sui/cryptography";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { Secp256k1Keypair } from "@mysten/sui/keypairs/secp256k1";
 import { Secp256r1Keypair } from "@mysten/sui/keypairs/secp256r1";
-import type {
-    Transaction,
-    TransactionObjectInput,
-} from "@mysten/sui/transactions";
+import type { Transaction } from "@mysten/sui/transactions";
 import { cnf } from "./config.js";
 import { SuiPriceServiceConnection, SuiPythClient } from "./pyth/pyth.js";
 
@@ -93,29 +89,6 @@ function pairFromSecretKey(secretKey: string): Keypair {
     }
 
     throw new Error(`Unrecognized keypair schema: ${pair.schema}`);
-}
-
-/**
- * Either a `TransactionObjectInput` or a `SuiObjectRef`.
- */
-export type ObjectInput = TransactionObjectInput | SuiObjectRef;
-
-/**
- * Transform an `ObjectInput` into an argument for `Transaction.moveCall()`.
- */
-export function objectArg(tx: Transaction, obj: ObjectInput) {
-    return isSuiObjectRef(obj) ? tx.objectRef(obj) : tx.object(obj);
-}
-
-/** Type guard to check if an object is a `SuiObjectRef`. */
-export function isSuiObjectRef(obj: unknown): obj is SuiObjectRef {
-    return (
-        typeof obj === "object" &&
-        obj !== null &&
-        "objectId" in obj &&
-        "version" in obj &&
-        "digest" in obj
-    );
 }
 
 // === pyth ===
