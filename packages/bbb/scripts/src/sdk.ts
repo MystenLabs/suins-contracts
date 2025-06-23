@@ -214,10 +214,7 @@ export const bbb_config = {
         return tx.moveCall({
             target: `${packageId}::bbb_config::remove_aftermath_swap`,
             typeArguments: [coinInType],
-            arguments: [
-                tx.object(configObj),
-                tx.object(adminCapObj),
-            ],
+            arguments: [tx.object(configObj), tx.object(adminCapObj)],
         });
     },
     remove_burn_type: ({
@@ -236,10 +233,7 @@ export const bbb_config = {
         return tx.moveCall({
             target: `${packageId}::bbb_config::remove_burn_type`,
             typeArguments: [coinType],
-            arguments: [
-                tx.object(configObj),
-                tx.object(adminCapObj),
-            ],
+            arguments: [tx.object(configObj), tx.object(adminCapObj)],
         });
     },
 } as const;

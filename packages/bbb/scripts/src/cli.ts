@@ -1,6 +1,7 @@
 import { Transaction } from "@mysten/sui/transactions";
 import { Command } from "commander";
 import { af_swaps, cnf } from "./config.js";
+import { BBBConfigSchema } from "./schema/bbb_config.js";
 import * as sdk from "./sdk.js";
 import { getPriceInfoObject, newSuiClient, signAndExecuteTx } from "./utils.js";
 
@@ -21,13 +22,12 @@ if (require.main === module) {
         .command("get-config")
         .description("Fetch the BBBConfig object")
         .action(async () => {
-            const config = await client.getObject({
+            const resp = await client.getObject({
                 id: configObj,
-                options: {
-                    showContent: true,
-                },
+                options: { showContent: true },
             });
-            console.log(JSON.stringify(config, null, 2));
+            const obj = BBBConfigSchema.parse(resp);
+            console.log(JSON.stringify(obj, null, 2));
         });
 
     program
