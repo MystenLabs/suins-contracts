@@ -15,6 +15,8 @@ import {
     signAndExecuteTx,
 } from "./utils.js";
 
+// === CLI ===
+
 if (require.main === module) {
     const program = new Command();
     const client = newSuiClient();
@@ -45,14 +47,14 @@ if (require.main === module) {
         .action(async () => {
             console.debug("initializing BBBConfig object...");
             const tx = new Transaction();
-            burn_new({
+            bbb_burn.new({
                 tx,
                 packageId,
                 adminCapObj,
                 coinType: cnf.coins.NS.type,
             });
             for (const swap of af_swaps) {
-                aftermath_swap_new({ tx, packageId, adminCapObj, swap });
+                bbb_aftermath_swap.new({ tx, packageId, adminCapObj, swap });
             }
             const resp = await signAndExecuteTx({ tx, dryRun: true });
             console.debug("tx status:", resp.effects?.status.status);
@@ -74,13 +76,13 @@ if (require.main === module) {
             ]);
 
             const swap_cnf = af_swaps[1]!; // TODO
-            const swap_obj = aftermath_swap_new({
+            const swap_obj = bbb_aftermath_swap.new({
                 tx,
                 packageId,
                 adminCapObj,
                 swap: swap_cnf,
             });
-            aftermath_swap_swap({
+            bbb_aftermath_swap.swap({
                 tx,
                 packageId,
                 coinIn: swap_cnf.coin_in.type,
@@ -106,111 +108,115 @@ if (require.main === module) {
 
 // === tx commands ===
 
-function aftermath_swap_new({
-    tx,
-    packageId,
-    adminCapObj,
-    swap,
-}: {
-    tx: Transaction;
-    packageId: string;
-    adminCapObj: ObjectInput;
-    swap: AftermathSwap;
-}): TransactionResult {
-    return tx.moveCall({
-        target: `${packageId}::bbb_aftermath_swap::new`,
-        typeArguments: [
-            swap.coin_in.type,
-            swap.coin_out.type,
-            swap.pool.lp_type,
-        ],
-        arguments: [
-            objectArg(tx, adminCapObj),
-            tx.pure.u8(swap.coin_in.decimals),
-            tx.pure.u8(swap.coin_out.decimals),
-            tx.pure.vector("u8", fromHex(swap.coin_in.feed)),
-            tx.pure.vector("u8", fromHex(swap.coin_out.feed)),
-            objectArg(tx, swap.pool.id),
-            tx.pure.u64(swap.slippage),
-            tx.pure.u64(swap.max_age_secs),
-        ],
-    });
-}
+const bbb_aftermath_swap = {
+    new: ({
+        tx,
+        packageId,
+        adminCapObj,
+        swap,
+    }: {
+        tx: Transaction;
+        packageId: string;
+        adminCapObj: ObjectInput;
+        swap: AftermathSwap;
+    }): TransactionResult => {
+        return tx.moveCall({
+            target: `${packageId}::bbb_aftermath_swap::new`,
+            typeArguments: [
+                swap.coin_in.type,
+                swap.coin_out.type,
+                swap.pool.lp_type,
+            ],
+            arguments: [
+                objectArg(tx, adminCapObj),
+                tx.pure.u8(swap.coin_in.decimals),
+                tx.pure.u8(swap.coin_out.decimals),
+                tx.pure.vector("u8", fromHex(swap.coin_in.feed)),
+                tx.pure.vector("u8", fromHex(swap.coin_out.feed)),
+                objectArg(tx, swap.pool.id),
+                tx.pure.u64(swap.slippage),
+                tx.pure.u64(swap.max_age_secs),
+            ],
+        });
+    },
 
-function aftermath_swap_swap({
-    tx,
-    packageId,
-    // ours
-    coinIn,
-    coinOut,
-    bbbSwap,
-    bbbVault,
-    // pyth
-    pythInfoIn,
-    pythInfoOut,
-    // aftermath
-    afPool,
-    afPoolRegistry,
-    afProtocolFeeVault,
-    afTreasury,
-    afInsuranceFund,
-    afReferralVault,
-}: {
-    tx: Transaction;
-    packageId: string;
-    // ours
-    coinIn: string;
-    coinOut: string;
-    bbbSwap: ObjectInput;
-    bbbVault: ObjectInput;
-    // pyth
-    pythInfoIn: ObjectInput;
-    pythInfoOut: ObjectInput;
-    // aftermath
-    afPool: AftermathPool;
-    afPoolRegistry: ObjectInput;
-    afProtocolFeeVault: ObjectInput;
-    afTreasury: ObjectInput;
-    afInsuranceFund: ObjectInput;
-    afReferralVault: ObjectInput;
-}): TransactionResult {
-    return tx.moveCall({
-        target: `${packageId}::bbb_aftermath_swap::swap`,
-        typeArguments: [afPool.lp_type, coinIn, coinOut],
-        arguments: [
-            // ours
-            objectArg(tx, bbbSwap),
-            objectArg(tx, bbbVault),
-            // pyth
-            objectArg(tx, pythInfoIn),
-            objectArg(tx, pythInfoOut),
-            // aftermath
-            objectArg(tx, afPool.id),
-            objectArg(tx, afPoolRegistry),
-            objectArg(tx, afProtocolFeeVault),
-            objectArg(tx, afTreasury),
-            objectArg(tx, afInsuranceFund),
-            objectArg(tx, afReferralVault),
-            // sui
-            tx.object.clock(),
-        ],
-    });
-}
+    swap: ({
+        tx,
+        packageId,
+        // ours
+        coinIn,
+        coinOut,
+        bbbSwap,
+        bbbVault,
+        // pyth
+        pythInfoIn,
+        pythInfoOut,
+        // aftermath
+        afPool,
+        afPoolRegistry,
+        afProtocolFeeVault,
+        afTreasury,
+        afInsuranceFund,
+        afReferralVault,
+    }: {
+        tx: Transaction;
+        packageId: string;
+        // ours
+        coinIn: string;
+        coinOut: string;
+        bbbSwap: ObjectInput;
+        bbbVault: ObjectInput;
+        // pyth
+        pythInfoIn: ObjectInput;
+        pythInfoOut: ObjectInput;
+        // aftermath
+        afPool: AftermathPool;
+        afPoolRegistry: ObjectInput;
+        afProtocolFeeVault: ObjectInput;
+        afTreasury: ObjectInput;
+        afInsuranceFund: ObjectInput;
+        afReferralVault: ObjectInput;
+    }): TransactionResult => {
+        return tx.moveCall({
+            target: `${packageId}::bbb_aftermath_swap::swap`,
+            typeArguments: [afPool.lp_type, coinIn, coinOut],
+            arguments: [
+                // ours
+                objectArg(tx, bbbSwap),
+                objectArg(tx, bbbVault),
+                // pyth
+                objectArg(tx, pythInfoIn),
+                objectArg(tx, pythInfoOut),
+                // aftermath
+                objectArg(tx, afPool.id),
+                objectArg(tx, afPoolRegistry),
+                objectArg(tx, afProtocolFeeVault),
+                objectArg(tx, afTreasury),
+                objectArg(tx, afInsuranceFund),
+                objectArg(tx, afReferralVault),
+                // sui
+                tx.object.clock(),
+            ],
+        });
+    },
+} as const;
 
-function burn_new({
-    tx,
-    packageId,
-    adminCapObj,
-    coinType,
-}: {
-    tx: Transaction;
-    packageId: string;
-    adminCapObj: ObjectInput;
-    coinType: string;
-}): TransactionResult {
-    return tx.moveCall({
-        target: `${packageId}::bbb_burn::new`,
-        typeArguments: [coinType],
-        arguments: [objectArg(tx, adminCapObj)],
-    });
-}
+const bbb_burn = {
+    new: ({
+        tx,
+        packageId,
+        adminCapObj,
+        coinType,
+    }: {
+        tx: Transaction;
+        packageId: string;
+        adminCapObj: ObjectInput;
+        coinType: string;
+    }): TransactionResult => {
+        return tx.moveCall({
+            target: `${packageId}::bbb_burn::new`,
+            typeArguments: [coinType],
+            arguments: [objectArg(tx, adminCapObj)],
+        });
+    },
+} as const;
