@@ -91,23 +91,32 @@ fun add_early_voting_proposal(
         .push_back(pointer);
 }
 
-// === view functions ===
+// === devInspect functions ===
 
-/// get the proposal IDs from newest to oldest
-public fun get_proposal_ids(
+/// get proposal IDs from newest to oldest
+fun get_proposal_ids(
     gov: &NSGovernance,
+    offset: u64,
+    limit: u64,
 ): vector<address> {
     if (!gov.has_app<EarlyVoting>()) {
         return vector[]
     };
     let early_voting: &EarlyVoting = gov.app();
-    let mut i = early_voting.0.length();
+
+    let total = early_voting.0.length();
+    if (offset >= total) {
+        return vector[]
+    };
+
     let mut proposals = vector<address>[];
-    while (i > 0) {
+    let mut i = total - offset;
+    while (i > 0 && proposals.length() < limit) {
         i = i - 1;
         let proposal = early_voting.0.borrow(i);
         proposals.push_back(proposal.proposal_id.to_address());
     };
+
     proposals
 }
 
