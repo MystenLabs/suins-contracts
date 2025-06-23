@@ -91,12 +91,39 @@ function pairFromSecretKey(secretKey: string): Keypair {
     throw new Error(`Unrecognized keypair schema: ${pair.schema}`);
 }
 
+/**
+ * Abbreviate a Sui address for display purposes (lossy). Default format is '0x1234…5678',
+ * given an address like '0x1234000000000000000000000000000000000000000000000000000000005678'.
+ */
+export function shortenAddress(
+    text: string | null | undefined,
+    start = 4,
+    end = 4,
+    separator = "…",
+    prefix = "0x",
+): string {
+    if (!text) return "";
+
+    const addressRegex = /0[xX][a-fA-F0-9]{1,}/g;
+
+    return text.replace(addressRegex, (match) => {
+        // check if the address is too short to be abbreviated
+        if (match.length - prefix.length <= start + end) {
+            return match;
+        }
+        // otherwise, abbreviate the address
+        return (
+            prefix + match.slice(2, 2 + start) + separator + match.slice(-end)
+        );
+    });
+}
+
 // === pyth ===
 
 export async function getPriceInfoObject(
     tx: Transaction,
     feed: string,
-): Promise<string[]> {
+): Promise<string> {
     // Initialize connection to the Sui Price Service
     const connection = new SuiPriceServiceConnection(cnf.pyth.endpoint);
 
@@ -116,5 +143,11 @@ export async function getPriceInfoObject(
         cnf.wormhole.stateObj,
     );
 
-    return await pythClient.updatePriceFeeds(tx, priceUpdateData, priceIDs); // returns priceInfoObjectIds
+    const objIds = await pythClient.updatePriceFeeds(
+        tx,
+        priceUpdateData,
+        priceIDs,
+    );
+    // biome-ignore lint/style/noNonNullAssertion: does exist
+    return objIds[0]!;
 }

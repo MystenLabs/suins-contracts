@@ -4,7 +4,7 @@ import type {
     TransactionResult,
 } from "@mysten/sui/transactions";
 import { fromHex } from "@mysten/sui/utils";
-import type { AftermathPool, AftermathSwap } from "./config.js";
+import type { AftermathSwap } from "./config.js";
 
 export const bbb_aftermath_swap = {
     new: ({
@@ -42,56 +42,58 @@ export const bbb_aftermath_swap = {
         tx,
         packageId,
         // ours
-        coinIn,
-        coinOut,
-        bbbSwap,
-        bbbVault,
+        coinInType,
+        coinOutType,
+        afSwapObj,
+        bbbVaultObj,
         // pyth
-        pythInfoIn,
-        pythInfoOut,
+        pythInfoObjIn,
+        pythInfoObjOut,
         // aftermath
-        afPool,
-        afPoolRegistry,
-        afProtocolFeeVault,
-        afTreasury,
-        afInsuranceFund,
-        afReferralVault,
+        afPoolType,
+        afPoolObj,
+        afPoolRegistryObj,
+        afProtocolFeeVaultObj,
+        afTreasuryObj,
+        afInsuranceFundObj,
+        afReferralVaultObj,
     }: {
         tx: Transaction;
         packageId: string;
         // ours
-        coinIn: string;
-        coinOut: string;
-        bbbSwap: TransactionObjectInput;
-        bbbVault: TransactionObjectInput;
+        coinInType: string;
+        coinOutType: string;
+        afSwapObj: TransactionObjectInput;
+        bbbVaultObj: TransactionObjectInput;
         // pyth
-        pythInfoIn: TransactionObjectInput;
-        pythInfoOut: TransactionObjectInput;
+        pythInfoObjIn: TransactionObjectInput;
+        pythInfoObjOut: TransactionObjectInput;
         // aftermath
-        afPool: AftermathPool;
-        afPoolRegistry: TransactionObjectInput;
-        afProtocolFeeVault: TransactionObjectInput;
-        afTreasury: TransactionObjectInput;
-        afInsuranceFund: TransactionObjectInput;
-        afReferralVault: TransactionObjectInput;
+        afPoolType: string;
+        afPoolObj: TransactionObjectInput;
+        afPoolRegistryObj: TransactionObjectInput;
+        afProtocolFeeVaultObj: TransactionObjectInput;
+        afTreasuryObj: TransactionObjectInput;
+        afInsuranceFundObj: TransactionObjectInput;
+        afReferralVaultObj: TransactionObjectInput;
     }): TransactionResult => {
         return tx.moveCall({
             target: `${packageId}::bbb_aftermath_swap::swap`,
-            typeArguments: [afPool.lp_type, coinIn, coinOut],
+            typeArguments: [afPoolType, coinInType, coinOutType],
             arguments: [
                 // ours
-                tx.object(bbbSwap),
-                tx.object(bbbVault),
+                tx.object(afSwapObj),
+                tx.object(bbbVaultObj),
                 // pyth
-                tx.object(pythInfoIn),
-                tx.object(pythInfoOut),
+                tx.object(pythInfoObjIn),
+                tx.object(pythInfoObjOut),
                 // aftermath
-                tx.object(afPool.id),
-                tx.object(afPoolRegistry),
-                tx.object(afProtocolFeeVault),
-                tx.object(afTreasury),
-                tx.object(afInsuranceFund),
-                tx.object(afReferralVault),
+                tx.object(afPoolObj),
+                tx.object(afPoolRegistryObj),
+                tx.object(afProtocolFeeVaultObj),
+                tx.object(afTreasuryObj),
+                tx.object(afInsuranceFundObj),
+                tx.object(afReferralVaultObj),
                 // sui
                 tx.object.clock(),
             ],
@@ -123,54 +125,54 @@ export const bbb_config = {
     get_aftermath_swap: ({
         tx,
         packageId,
-        configObj,
+        bbbConfigObj,
         coinType,
     }: {
         tx: Transaction;
         packageId: string;
-        configObj: TransactionObjectInput;
+        bbbConfigObj: TransactionObjectInput;
         coinType: string;
     }): TransactionResult => {
         return tx.moveCall({
             target: `${packageId}::bbb_config::get_aftermath_swap`,
             typeArguments: [coinType],
-            arguments: [tx.object(configObj)],
+            arguments: [tx.object(bbbConfigObj)],
         });
     },
     get_burn: ({
         tx,
         packageId,
-        configObj,
+        bbbConfigObj,
         coinType,
     }: {
         tx: Transaction;
         packageId: string;
-        configObj: TransactionObjectInput;
+        bbbConfigObj: TransactionObjectInput;
         coinType: string;
     }): TransactionResult => {
         return tx.moveCall({
             target: `${packageId}::bbb_config::get_burn`,
             typeArguments: [coinType],
-            arguments: [tx.object(configObj)],
+            arguments: [tx.object(bbbConfigObj)],
         });
     },
     add_aftermath_swap: ({
         tx,
         packageId,
-        configObj,
+        bbbConfigObj,
         adminCapObj,
         afSwapObj,
     }: {
         tx: Transaction;
         packageId: string;
-        configObj: TransactionObjectInput;
+        bbbConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
         afSwapObj: TransactionObjectInput;
     }): TransactionResult => {
         return tx.moveCall({
             target: `${packageId}::bbb_config::add_aftermath_swap`,
             arguments: [
-                tx.object(configObj),
+                tx.object(bbbConfigObj),
                 tx.object(adminCapObj),
                 tx.object(afSwapObj),
             ],
@@ -179,20 +181,20 @@ export const bbb_config = {
     add_burn_type: ({
         tx,
         packageId,
-        configObj,
+        bbbConfigObj,
         adminCapObj,
         burnObj,
     }: {
         tx: Transaction;
         packageId: string;
-        configObj: TransactionObjectInput;
+        bbbConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
         burnObj: TransactionObjectInput;
     }): TransactionResult => {
         return tx.moveCall({
             target: `${packageId}::bbb_config::add_burn_type`,
             arguments: [
-                tx.object(configObj),
+                tx.object(bbbConfigObj),
                 tx.object(adminCapObj),
                 tx.object(burnObj),
             ],
@@ -201,39 +203,39 @@ export const bbb_config = {
     remove_aftermath_swap: ({
         tx,
         packageId,
-        configObj,
+        bbbConfigObj,
         adminCapObj,
         coinInType,
     }: {
         tx: Transaction;
         packageId: string;
-        configObj: TransactionObjectInput;
+        bbbConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
         coinInType: string;
     }): TransactionResult => {
         return tx.moveCall({
             target: `${packageId}::bbb_config::remove_aftermath_swap`,
             typeArguments: [coinInType],
-            arguments: [tx.object(configObj), tx.object(adminCapObj)],
+            arguments: [tx.object(bbbConfigObj), tx.object(adminCapObj)],
         });
     },
     remove_burn_type: ({
         tx,
         packageId,
-        configObj,
+        bbbConfigObj,
         adminCapObj,
         coinType,
     }: {
         tx: Transaction;
         packageId: string;
-        configObj: TransactionObjectInput;
+        bbbConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
         coinType: string;
     }): TransactionResult => {
         return tx.moveCall({
             target: `${packageId}::bbb_config::remove_burn_type`,
             typeArguments: [coinType],
-            arguments: [tx.object(configObj), tx.object(adminCapObj)],
+            arguments: [tx.object(bbbConfigObj), tx.object(adminCapObj)],
         });
     },
 } as const;
