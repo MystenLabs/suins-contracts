@@ -3,15 +3,20 @@ import { Command } from "commander";
 import { af_swaps, cnf } from "./config.js";
 import { BBBConfigSchema } from "./schema/bbb_config.js";
 import * as sdk from "./sdk.js";
-import { getPriceInfoObject, newSuiClient, signAndExecuteTx } from "./utils.js";
+import {
+    getPriceInfoObject,
+    newSuiClient,
+    shortenAddress,
+    signAndExecuteTx,
+} from "./utils.js";
 
 if (require.main === module) {
     const program = new Command();
     const client = newSuiClient();
     const packageId = cnf.bbb.packageId;
     const adminCapObj = cnf.bbb.adminCapObj;
-    const bbbVault = cnf.bbb.vaultObj;
-    const configObj = cnf.bbb.configObj;
+    const bbbVaultObj = cnf.bbb.vaultObj;
+    const bbbConfigObj = cnf.bbb.configObj;
 
     program
         .name("bbb")
@@ -23,7 +28,7 @@ if (require.main === module) {
         .description("Fetch the BBBConfig object")
         .action(async () => {
             const resp = await client.getObject({
-                id: configObj,
+                id: bbbConfigObj,
                 options: { showContent: true },
             });
             const obj = BBBConfigSchema.parse(resp);
@@ -46,7 +51,7 @@ if (require.main === module) {
             sdk.bbb_config.add_burn_type({
                 tx,
                 packageId,
-                configObj,
+                bbbConfigObj,
                 adminCapObj,
                 burnObj,
             });
@@ -61,7 +66,7 @@ if (require.main === module) {
                 sdk.bbb_config.add_aftermath_swap({
                     tx,
                     packageId,
-                    configObj,
+                    bbbConfigObj,
                     adminCapObj,
                     afSwapObj: swapObj,
                 });
@@ -75,39 +80,68 @@ if (require.main === module) {
         .command("swap-and-burn")
         .description("Swap and burn coins")
         .action(async () => {
-            console.debug("initiating swap and burn...");
-
             console.debug("fetching price info objects...");
             const tx = new Transaction();
-            const [infoSui, infoNs] = await Promise.all([
-                getPriceInfoObject(tx, cnf.coins.SUI.feed),
-                getPriceInfoObject(tx, cnf.coins.NS.feed),
-                // getPriceInfoObject(tx, cnf.coins.USDC.feed),
-            ]);
 
-            const swap_cnf = af_swaps[1]!; // TODO
-            const swap_obj = sdk.bbb_aftermath_swap.new({
-                tx,
-                packageId,
-                adminCapObj,
-                swap: swap_cnf,
-            });
-            sdk.bbb_aftermath_swap.swap({
-                tx,
-                packageId,
-                coinIn: swap_cnf.coin_in.type,
-                coinOut: swap_cnf.coin_out.type,
-                bbbSwap: swap_obj,
-                bbbVault,
-                pythInfoIn: infoSui[0]!, // TODO
-                pythInfoOut: infoNs[0]!, // TODO
-                afPool: swap_cnf.pool,
-                afPoolRegistry: cnf.aftermath.poolRegistry,
-                afProtocolFeeVault: cnf.aftermath.protocolFeeVault,
-                afTreasury: cnf.aftermath.treasury,
-                afInsuranceFund: cnf.aftermath.insuranceFund,
-                afReferralVault: cnf.aftermath.referralVault,
-            });
+            const pythPriceInfoIds = await Promise.all(
+                Object.values(cnf.coins).map(async (coin) => ({
+                    coinType: coin.type,
+                    priceInfo: await getPriceInfoObject(tx, coin.feed),
+                })),
+            );
+
+            for (const swapCnf of af_swaps) {
+                const pythInfoObjIn = pythPriceInfoIds.find(
+                    (info) => info.coinType === swapCnf.coin_in.type,
+                )?.priceInfo;
+                if (!pythInfoObjIn) {
+                    throw new Error(
+                        `No Pyth PriceInfoObject found for ${swapCnf.coin_in.type}`,
+                    );
+                }
+                const pythInfoObjOut = pythPriceInfoIds.find(
+                    (info) => info.coinType === swapCnf.coin_out.type,
+                )?.priceInfo;
+                if (!pythInfoObjOut) {
+                    throw new Error(
+                        `No Pyth PriceInfoObject found for ${swapCnf.coin_out.type}`,
+                    );
+                }
+                console.log(
+                    "swapping ",
+                    shortenAddress(swapCnf.coin_in.type).padEnd(24),
+                    "for ",
+                    shortenAddress(swapCnf.coin_out.type),
+                );
+                const afSwapObj = sdk.bbb_config.get_aftermath_swap({
+                    tx,
+                    packageId,
+                    bbbConfigObj,
+                    coinType: swapCnf.coin_in.type,
+                });
+
+                sdk.bbb_aftermath_swap.swap({
+                    tx,
+                    packageId,
+                    // ours
+                    coinInType: swapCnf.coin_in.type,
+                    coinOutType: swapCnf.coin_out.type,
+                    afSwapObj,
+                    bbbVaultObj,
+                    // pyth
+                    pythInfoObjIn,
+                    pythInfoObjOut,
+                    // aftermath
+                    afPoolType: swapCnf.pool.lp_type,
+                    afPoolObj: swapCnf.pool.id,
+                    afPoolRegistryObj: cnf.aftermath.poolRegistry,
+                    afProtocolFeeVaultObj: cnf.aftermath.protocolFeeVault,
+                    afTreasuryObj: cnf.aftermath.treasury,
+                    afInsuranceFundObj: cnf.aftermath.insuranceFund,
+                    afReferralVaultObj: cnf.aftermath.referralVault,
+                });
+            }
+
             const resp = await signAndExecuteTx({ tx, dryRun: true });
             console.debug("tx status:", resp.effects?.status.status);
             console.debug("tx digest:", resp.digest);

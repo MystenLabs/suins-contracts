@@ -118,7 +118,7 @@ public fun new<CoinIn, CoinOut, L>( // TODO: change type arg order to match othe
 ///    worth of `Coin<CoinOut>` exiting the Pool.
 public fun swap<L, CoinIn, CoinOut>(
     // ours
-    conf: &AftermathSwap,
+    af_swap: &AftermathSwap,
     vault: &mut BBBVault,
     // pyth
     info_in: &PriceInfoObject,
@@ -137,15 +137,15 @@ public fun swap<L, CoinIn, CoinOut>(
     // check price feed ids match the config
     let feed_id_in = info_in.get_price_info_from_price_info_object().get_price_identifier();
     let feed_id_out = info_out.get_price_info_from_price_info_object().get_price_identifier();
-    assert!(feed_id_in.get_bytes() == conf.feed_in(), EFeedInMismatch);
-    assert!(feed_id_out.get_bytes() == conf.feed_out(), EFeedOutMismatch);
+    assert!(feed_id_in.get_bytes() == af_swap.feed_in(), EFeedInMismatch);
+    assert!(feed_id_out.get_bytes() == af_swap.feed_out(), EFeedOutMismatch);
 
     // check pool id and coin types match the config
     let type_in = type_name::get<CoinIn>();
     let type_out = type_name::get<CoinOut>();
-    assert!(object::id(pool) == conf.pool_id(), EInvalidPool);
-    assert!(type_in == conf.type_in(), EInvalidCoinInType);
-    assert!(type_out == conf.type_out(), EInvalidCoinOutType);
+    assert!(object::id(pool) == af_swap.pool_id(), EInvalidPool);
+    assert!(type_in == af_swap.type_in(), EInvalidCoinInType);
+    assert!(type_out == af_swap.type_out(), EInvalidCoinOutType);
 
     // withdraw all CoinIn from vault
     let coin_in = vault.withdraw<CoinIn>().into_coin(ctx);
@@ -161,10 +161,10 @@ public fun swap<L, CoinIn, CoinOut>(
     let expected_out = calc_expected_coin_out(
         info_in,
         info_out,
-        conf.decimals_in,
-        conf.decimals_out,
+        af_swap.decimals_in,
+        af_swap.decimals_out,
         amount_in,
-        conf.max_age_secs,
+        af_swap.max_age_secs,
         clock,
     );
 
@@ -178,7 +178,7 @@ public fun swap<L, CoinIn, CoinOut>(
         referral_vault,
         coin_in,
         expected_out,
-        conf.slippage,
+        af_swap.slippage,
         ctx,
     );
     let amount_out = coin_out.value();
