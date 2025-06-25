@@ -225,6 +225,7 @@ program
             if (!pythInfoObjOut) {
                 throw new Error(`PriceInfoObject not found for ${afSwap.coinOut.type}`);
             }
+
             const afSwapObj = sdk.bbb_config.get_aftermath_swap({
                 tx,
                 packageId,
@@ -272,9 +273,10 @@ program
             });
         }
 
-        // logging
-
         const resp = await signAndExecuteTx({ tx, dryRun });
+
+        // log
+
         const burnEvents = resp.events
             ?.filter((e) => e.type.endsWith("::bbb_burn::Burned"))
             .map((e) => BurnedEventSchema.parse(e).parsedJson);

@@ -1,3 +1,6 @@
+# app-specific
+log.txt
+
 # dependencies (bun install)
 node_modules
 
