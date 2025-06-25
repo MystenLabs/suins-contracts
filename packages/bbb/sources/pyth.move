@@ -8,6 +8,9 @@ use pyth::{
     pyth::Self,
 };
 
+const EInvalidPriceIn: u64 = 100;
+const EInvalidPriceOut: u64 = 101;
+
 public(package) fun calc_amount_out(
     info_in: &PriceInfoObject,
     info_out: &PriceInfoObject,
@@ -24,6 +27,9 @@ public(package) fun calc_amount_out(
     let price_out = pyth::get_price_no_older_than(info_out, clock, max_age_secs);
     let price_usd_out = price_out.get_price().get_magnitude_if_positive();
     let price_exp_out = price_out.get_expo().get_magnitude_if_negative() as u8;
+
+    assert!(price_usd_in > 0, EInvalidPriceIn);
+    assert!(price_usd_out > 0, EInvalidPriceOut);
 
     // do the math
     calc_amount_out_internal(
