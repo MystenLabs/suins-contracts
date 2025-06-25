@@ -9,8 +9,9 @@ import { SwappedEventSchema } from "./schema/swapped_event.js";
 import * as sdk from "./sdk.js";
 import {
     getPriceInfoObject,
+    logJson,
+    logTxResp,
     newSuiClient,
-    shortenAddress,
     signAndExecuteTx,
 } from "./utils.js";
 
@@ -33,20 +34,18 @@ program
     .command("get-config")
     .description("Fetch the BBBConfig object")
     .action(async () => {
-        console.log(`fetching BBBConfig object (${shortenAddress(bbbConfigObj)})...`);
         const objResp = await client.getObject({
             id: bbbConfigObj,
             options: { showContent: true },
         });
         const obj = BBBConfigSchema.parse(objResp.data);
-        console.log(JSON.stringify(obj, null, 2));
+        logJson(obj);
     });
 
 program
     .command("get-balances")
     .description("Fetch the coin balances in the BBBVault")
     .action(async () => {
-        console.log(`fetching BBBVault object (${shortenAddress(bbbVaultObj)})...`);
         const objResp = await client.getObject({
             id: bbbVaultObj,
             options: { showContent: true },
@@ -62,20 +61,19 @@ program
         const balanceDfObjs = balanceDfResps.map((resp) =>
             BalanceDfSchema.parse(resp.data),
         );
-        for (const bal of balanceDfObjs) {
-            const ticker = bal.content.fields.name.fields.name.split("::")[2];
-            console.log(`${ticker}: ${bal.content.fields.value}`);
-        }
-        if (balanceDfObjs.length === 0) {
-            console.log("no balances found");
-        }
+        const balances = balanceDfObjs.map((bal) => {
+            return {
+                ticker: bal.content.fields.name.fields.name.split("::")[2],
+                balance: bal.content.fields.value,
+            };
+        });
+        logJson(balances);
     });
 
 program
     .command("init")
     .description("Initialize the BBBConfig object (one-off)")
     .action(async () => {
-        console.log("initializing BBBConfig object...");
         const tx = new Transaction();
         // add NS burn config
         const burnObj = sdk.bbb_burn.new({
@@ -108,8 +106,7 @@ program
             });
         }
         const resp = await signAndExecuteTx({ tx, dryRun });
-        console.log("tx status:", resp.effects?.status.status);
-        console.log("tx digest:", resp.digest);
+        logTxResp(resp);
     });
 
 program
@@ -121,7 +118,6 @@ program
             .makeOptionMandatory(),
     )
     .action(async ({ coinTicker }: { coinTicker: keyof typeof cnf.coins }) => {
-        console.log(`removing ${coinTicker} swap config from BBBConfig object...`);
         const tx = new Transaction();
         sdk.bbb_config.remove_aftermath_swap({
             tx,
@@ -131,8 +127,7 @@ program
             coinInType: cnf.coins[coinTicker].type,
         });
         const resp = await signAndExecuteTx({ tx, dryRun });
-        console.log("tx status:", resp.effects?.status.status);
-        console.log("tx digest:", resp.digest);
+        logTxResp(resp);
     });
 
 program
@@ -152,7 +147,6 @@ program
             coinTicker: keyof typeof cnf.coins;
             amount: string;
         }) => {
-            console.log(`depositing ${amount} ${coinTicker} into BBBVault...`);
             const coinInfo = cnf.coins[coinTicker];
             const amountNum = parseFloat(amount);
             if (Number.isNaN(amountNum) || amountNum <= 0) {
@@ -173,8 +167,7 @@ program
             });
 
             const resp = await signAndExecuteTx({ tx, dryRun });
-            console.log("tx status:", resp.effects?.status.status);
-            console.log("tx digest:", resp.digest);
+            logTxResp(resp);
         },
     );
 
@@ -259,19 +252,13 @@ program
         const swapEvents = resp.events
             ?.filter((e) => e.type.endsWith("::bbb_aftermath_swap::Swapped"))
             .map((e) => SwappedEventSchema.parse(e).parsedJson);
-        console.log(
-            JSON.stringify(
-                {
-                    time: new Date().toISOString(),
-                    tx_status: resp.effects?.status.status,
-                    tx_digest: resp.digest,
-                    swaps: swapEvents,
-                    burns: burnEvents,
-                },
-                null,
-                2,
-            ),
-        );
+        logJson({
+            time: new Date().toISOString(),
+            tx_status: resp.effects?.status.status,
+            tx_digest: resp.digest,
+            swaps: swapEvents,
+            burns: burnEvents,
+        });
     });
 
 program.parse();

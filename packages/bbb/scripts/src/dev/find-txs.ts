@@ -25,7 +25,7 @@ txDigests = txs.data
     // .filter((tx) => tx.effects?.status.status === "success")
     .map((tx) => tx.digest);
 //     if (txDigests.length === 0) {
-//         console.debug(`No txs found, fetching next page...`);
+//         console.log(`No txs found, fetching next page...`);
 //     }
 // }
 

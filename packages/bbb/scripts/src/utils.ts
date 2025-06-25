@@ -117,6 +117,17 @@ export function shortenAddress(
     });
 }
 
+export function logJson(obj: unknown) {
+    console.log(JSON.stringify(obj, null, 2));
+}
+
+export function logTxResp(resp: SuiTransactionBlockResponse) {
+    logJson({
+        tx_status: resp.effects?.status.status,
+        tx_digest: resp.digest,
+    });
+}
+
 // === pyth ===
 
 export async function getPriceInfoObject(tx: Transaction, feed: string): Promise<string> {
