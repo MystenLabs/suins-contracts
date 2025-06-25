@@ -110,6 +110,27 @@ program
     });
 
 program
+    .command("remove-burn")
+    .description("Remove a burn coin type from the BBBConfig object")
+    .addOption(
+        new Option("-c, --coin-ticker <coin-ticker>", "coin ticker")
+            .choices(Object.keys(cnf.coins))
+            .makeOptionMandatory(),
+    )
+    .action(async ({ coinTicker }: { coinTicker: keyof typeof cnf.coins }) => {
+        const tx = new Transaction();
+        sdk.bbb_config.remove_burn_type({
+            tx,
+            packageId,
+            bbbConfigObj,
+            adminCapObj,
+            coinType: cnf.coins[coinTicker].type,
+        });
+        const resp = await signAndExecuteTx({ tx, dryRun });
+        logTxResp(resp);
+    });
+
+program
     .command("remove-swap")
     .description("Remove an Aftermath swap config from the BBBConfig object")
     .addOption(
