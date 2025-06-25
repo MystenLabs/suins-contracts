@@ -8,7 +8,7 @@ use pyth::{
     pyth::Self,
 };
 
-public(package) fun calc_expected_coin_out(
+public(package) fun calc_amount_out(
     info_in: &PriceInfoObject,
     info_out: &PriceInfoObject,
     decimals_in: u8,
@@ -26,7 +26,7 @@ public(package) fun calc_expected_coin_out(
     let price_exp_out = price_out.get_expo().get_magnitude_if_negative() as u8;
 
     // do the math
-    calc_internal(
+    calc_amount_out_internal(
         price_usd_in,
         price_exp_in,
         decimals_in,
@@ -37,7 +37,7 @@ public(package) fun calc_expected_coin_out(
     )
 }
 
-public(package) fun calc_internal(
+public(package) fun calc_amount_out_internal(
     price_usd_in: u64,
     price_exp_in: u8,
     coin_decimals_in: u8,

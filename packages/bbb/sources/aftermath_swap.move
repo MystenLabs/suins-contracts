@@ -30,7 +30,7 @@ use referral_vault::{
 };
 use suins_bbb::{
     bbb_admin::BBBAdminCap,
-    bbb_pyth::calc_expected_coin_out,
+    bbb_pyth::calc_amount_out,
     bbb_vault::BBBVault,
 };
 
@@ -158,7 +158,7 @@ public fun swap<L, CoinIn, CoinOut>(
     };
 
     // calculate expected CoinOut amount
-    let expected_out = calc_expected_coin_out(
+    let expected_out = calc_amount_out(
         info_in,
         info_out,
         af_swap.decimals_in,
