@@ -186,7 +186,6 @@ program
 
         // swap
 
-        // console.log("fetching price info objects...");
         const pythPriceInfoIds = await Promise.all(
             Object.values(cnf.coins).map(async (coin) => ({
                 coinType: coin.type,
@@ -194,10 +193,6 @@ program
             })),
         );
         for (const afSwap of afSwaps) {
-            // console.log(
-            //     `swapping  ${shortenAddress(afSwap.coin_in.type).padEnd(24)} for` +
-            //         `  ${shortenAddress(afSwap.coin_out.type).padEnd(24)}`,
-            // );
             const pythInfoObjIn = pythPriceInfoIds.find(
                 (info) => info.coinType === afSwap.coin_in.type,
             )?.priceInfo;

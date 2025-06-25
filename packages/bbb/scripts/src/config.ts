@@ -78,30 +78,30 @@ export const afSwaps: AftermathSwap[] = [
 /** Aftermath swap configuration. */
 export type AftermathSwap = {
     /** The coin to be swapped into `coin_out` */
-    coin_in: CoinInfo,
+    coin_in: CoinInfo;
     /** The coin to be received from the swap */
-    coin_out: CoinInfo,
+    coin_out: CoinInfo;
     /** Aftermath `Pool` object */
-    pool: AftermathPool,
+    pool: AftermathPool;
     /** Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point. */
-    slippage: bigint,
+    slippage: bigint;
     /** How stale the Pyth price can be, in seconds. */
-    max_age_secs: bigint,
-}
+    max_age_secs: bigint;
+};
 
 export type CoinInfo = {
     /** The `T` in `Coin<T>` */
-    type: string,
+    type: string;
     /** Number of decimals */
-    decimals: number,
+    decimals: number;
     /** Pyth feed ID */
-    feed: string,
-}
+    feed: string;
+};
 
 /** Aftermath `Pool` object. */
 export type AftermathPool = {
     /** Object ID */
-    id: string,
+    id: string;
     /** LP token type */
-    lp_type: string,
-}
+    lp_type: string;
+};
