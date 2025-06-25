@@ -1,6 +1,6 @@
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 import { Command, Option } from "commander";
-import { afSwaps, cnf } from "./config.js";
+import { afSwaps, burnTypes, cnf } from "./config.js";
 import { BalanceDfSchema } from "./schema/balance_df.js";
 import { BBBConfigSchema } from "./schema/bbb_config.js";
 import { BBBVaultSchema } from "./schema/bbb_vault.js";
@@ -35,22 +35,24 @@ program
     .description("Initialize the BBBConfig object (one-off)")
     .action(async () => {
         const tx = new Transaction();
-        // add NS burn config
-        const burnObj = sdk.bbb_burn.new({
-            tx,
-            packageId,
-            adminCapObj,
-            coinType: cnf.coins.NS.type,
-        });
-        sdk.bbb_config.add_burn_type({
-            tx,
-            packageId,
-            bbbConfigObj,
-            adminCapObj,
-            burnObj,
-        });
+        // add burn types
+        for (const coinType of Object.values(burnTypes)) {
+            const burnObj = sdk.bbb_burn.new({
+                tx,
+                packageId,
+                adminCapObj,
+                coinType,
+            });
+            sdk.bbb_config.add_burn_type({
+                tx,
+                packageId,
+                bbbConfigObj,
+                adminCapObj,
+                burnObj,
+            });
+        }
         // add swap configs
-        for (const swap of afSwaps) {
+        for (const swap of Object.values(afSwaps)) {
             const swapObj = sdk.bbb_aftermath_swap.new({
                 tx,
                 packageId,
@@ -159,17 +161,17 @@ program
     .description("Remove a burn coin type from the BBBConfig object")
     .addOption(
         new Option("-c, --coin-ticker <coin-ticker>", "coin ticker")
-            .choices(Object.keys(cnf.coins))
+            .choices(Object.keys(burnTypes))
             .makeOptionMandatory(),
     )
-    .action(async ({ coinTicker }: { coinTicker: keyof typeof cnf.coins }) => {
+    .action(async ({ coinTicker }: { coinTicker: keyof typeof burnTypes }) => {
         const tx = new Transaction();
         sdk.bbb_config.remove_burn_type({
             tx,
             packageId,
             bbbConfigObj,
             adminCapObj,
-            coinType: cnf.coins[coinTicker].type,
+            coinType: burnTypes[coinTicker],
         });
         const resp = await signAndExecuteTx({ tx, dryRun });
         logTxResp(resp);
@@ -180,17 +182,17 @@ program
     .description("Remove an Aftermath swap config from the BBBConfig object")
     .addOption(
         new Option("-c, --coin-ticker <coin-ticker>", "coin ticker")
-            .choices(Object.keys(cnf.coins))
+            .choices(Object.keys(afSwaps))
             .makeOptionMandatory(),
     )
-    .action(async ({ coinTicker }: { coinTicker: keyof typeof cnf.coins }) => {
+    .action(async ({ coinTicker }: { coinTicker: keyof typeof afSwaps }) => {
         const tx = new Transaction();
         sdk.bbb_config.remove_aftermath_swap({
             tx,
             packageId,
             bbbConfigObj,
             adminCapObj,
-            coinInType: cnf.coins[coinTicker].type,
+            coinInType: afSwaps[coinTicker].coinIn.type,
         });
         const resp = await signAndExecuteTx({ tx, dryRun });
         logTxResp(resp);
@@ -207,10 +209,10 @@ program
         const pythPriceInfoIds = await Promise.all(
             Object.values(cnf.coins).map(async (coin) => ({
                 coinType: coin.type,
-                priceInfo: await getPriceInfoObject(tx, coin.feed),
+                priceInfo: await getPriceInfoObject(tx, coin.pyth_feed),
             })),
         );
-        for (const afSwap of afSwaps) {
+        for (const afSwap of Object.values(afSwaps)) {
             const pythInfoObjIn = pythPriceInfoIds.find(
                 (info) => info.coinType === afSwap.coinIn.type,
             )?.priceInfo;
@@ -254,19 +256,21 @@ program
 
         // burn
 
-        const burnObj = sdk.bbb_config.get_burn({
-            tx,
-            packageId,
-            bbbConfigObj,
-            coinType: cnf.coins.NS.type,
-        });
-        sdk.bbb_burn.burn({
-            tx,
-            packageId,
-            coinType: cnf.coins.NS.type,
-            burnObj,
-            bbbVaultObj,
-        });
+        for (const coinType of Object.values(burnTypes)) {
+            const burnObj = sdk.bbb_config.get_burn({
+                tx,
+                packageId,
+                bbbConfigObj,
+                coinType,
+            });
+            sdk.bbb_burn.burn({
+                tx,
+                packageId,
+                coinType,
+                burnObj,
+                bbbVaultObj,
+            });
+        }
 
         // logging
 
