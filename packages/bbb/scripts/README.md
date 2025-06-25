@@ -1,15 +1,22 @@
-# scripts
+# Buy Back & Burn CLI tool
 
-To install dependencies:
+## Installation
 
-```bash
-bun install
+1. Install [Bun](https://bun.sh/docs/installation)
+2. Install dependencies: `bun i`
+
+## Initial onchain configuration
+
+This can only be executed by the `BBBAdminCap` holder.
+
+```shell
+bun src/cli.ts init
 ```
 
-To run:
+## Buy Back & Burn
 
-```bash
-bun run index.ts
+Anyone can execute this.
+
+```shell
+bun src/cli.ts swap-and-burn >> log.txt
 ```
-
-This project was created using `bun init` in bun v1.2.15. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
