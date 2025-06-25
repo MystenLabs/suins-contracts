@@ -77,7 +77,7 @@ public fun pool_id(af_swap: &AftermathSwap): &ID { &af_swap.pool_id }
 public fun slippage(af_swap: &AftermathSwap): u64 { af_swap.slippage }
 public fun max_age_secs(af_swap: &AftermathSwap): u64 { af_swap.max_age_secs }
 
-public fun new<CoinIn, CoinOut, L>( // TODO: change type arg order to match other functions
+public fun new<L, CoinIn, CoinOut>(
     _cap: &BBBAdminCap,
     decimals_in: u8,
     decimals_out: u8,
