@@ -1,36 +1,5 @@
 /** Mainnet configuration. */
 export const cnf = {
-    wormhole: {
-        stateObj: "0xaeab97f96cf9877fee2883315d459552b2b921edc16d7ceac6eab944dd88919c",
-    },
-    pyth: {
-        endpoint: "https://hermes.pyth.network",
-        stateObj: "0x1f9310238ee9298fb703c3419030b35b22bb1cc37113e3bb5007c99aec79e5b8",
-        /** How stale a Pyth price can be, in seconds. */
-        default_max_age_secs: 60n,
-    },
-    aftermath: {
-        ammPackage: "0xc4049b2d1cc0f6e017fda8260e4377cecd236bd7f56a54fee120816e72e2e0dd", // v2
-        // aftermathAmmPkgId: "0xefe170ec0be4d762196bedecd7a065816576198a6527c99282a2551aaa7da38c", // v1
-        // aftermathAmmPkgId: "0xf948935b111990c2b604900c9b2eeb8f24dcf9868a45d1ea1653a5f282c10e29", // v3
-        pools: {
-            sui_usdc: {
-                id: "0xb0cc4ce941a6c6ac0ca6d8e6875ae5d86edbec392c3333d008ca88f377e5e181",
-                lp_type: "0xd1a3eab6e9659407cb2a5a529d13b4102e498619466fc2d01cb0a6547bbdb376::af_lp::AF_LP",
-            },
-            sui_ns: {
-                id: "0xee7a281296e0a316eff84e7ea0d5f3eb19d1860c2d4ed598c086ceaa9bf78c75",
-                lp_type: "0xf847c541b3076eea83cbaddcc244d25415b7c6828c1542cae4ab152d809896b6::af_lp::AF_LP",
-            },
-        },
-        poolRegistry: "0xfcc774493db2c45c79f688f88d28023a3e7d98e4ee9f48bbf5c7990f651577ae",
-        protocolFeeVault: "0xf194d9b1bcad972e45a7dd67dd49b3ee1e3357a00a50850c52cd51bb450e13b4",
-        treasury: "0x28e499dff5e864a2eafe476269a4f5035f1c16f338da7be18b103499abf271ce",
-        insuranceFund: "0xf0c40d67b078000e18032334c3325c47b9ec9f3d9ae4128be820d54663d14e3b",
-        referralVault: "0x35d35b0e5b177593d8c3a801462485572fc30861e6ce96a55af6dc4730709278",
-        /** Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point. */
-        default_slippage: 975_000_000_000_000_000n, // 2.5%
-    },
     bbb: { // TODO: update values for prod
         packageId: "0x76f24ad1015376527db2319ed2c5d87b0605bb18a5d1ad514138444ead23eb17", // dev-only
         upgradeCapObj: "0x669f915fb9271de2ea1dae2caa4b7518d56352cc7110415e24ee8062a84e135c", // dev-only
@@ -55,53 +24,53 @@ export const cnf = {
             decimals: 6,
         },
     },
+    wormhole: {
+        stateObj: "0xaeab97f96cf9877fee2883315d459552b2b921edc16d7ceac6eab944dd88919c",
+    },
+    pyth: {
+        endpoint: "https://hermes.pyth.network",
+        stateObj: "0x1f9310238ee9298fb703c3419030b35b22bb1cc37113e3bb5007c99aec79e5b8",
+        /** How stale a Pyth price can be, in seconds. */
+        defaultMaxAgeSecs: 60n,
+    },
+    aftermath: {
+        ammPackage: "0xc4049b2d1cc0f6e017fda8260e4377cecd236bd7f56a54fee120816e72e2e0dd", // v2
+        // aftermathAmmPkgId: "0xefe170ec0be4d762196bedecd7a065816576198a6527c99282a2551aaa7da38c", // v1
+        // aftermathAmmPkgId: "0xf948935b111990c2b604900c9b2eeb8f24dcf9868a45d1ea1653a5f282c10e29", // v3
+        pools: {
+            sui_usdc: {
+                id: "0xb0cc4ce941a6c6ac0ca6d8e6875ae5d86edbec392c3333d008ca88f377e5e181",
+                lpType: "0xd1a3eab6e9659407cb2a5a529d13b4102e498619466fc2d01cb0a6547bbdb376::af_lp::AF_LP",
+            },
+            sui_ns: {
+                id: "0xee7a281296e0a316eff84e7ea0d5f3eb19d1860c2d4ed598c086ceaa9bf78c75",
+                lpType: "0xf847c541b3076eea83cbaddcc244d25415b7c6828c1542cae4ab152d809896b6::af_lp::AF_LP",
+            },
+        },
+        poolRegistry: "0xfcc774493db2c45c79f688f88d28023a3e7d98e4ee9f48bbf5c7990f651577ae",
+        protocolFeeVault: "0xf194d9b1bcad972e45a7dd67dd49b3ee1e3357a00a50850c52cd51bb450e13b4",
+        treasury: "0x28e499dff5e864a2eafe476269a4f5035f1c16f338da7be18b103499abf271ce",
+        insuranceFund: "0xf0c40d67b078000e18032334c3325c47b9ec9f3d9ae4128be820d54663d14e3b",
+        referralVault: "0x35d35b0e5b177593d8c3a801462485572fc30861e6ce96a55af6dc4730709278",
+        /** Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point. */
+        defaultSlippage: 975_000_000_000_000_000n, // 2.5%
+    },
 } as const;
 
 /** Aftermath swap configurations. */
-export const afSwaps: AftermathSwap[] = [
+export const afSwaps = [
     {   // USDC -> SUI
-        coin_in: cnf.coins.USDC,
-        coin_out: cnf.coins.SUI,
+        coinIn: cnf.coins.USDC,
+        coinOut: cnf.coins.SUI,
         pool: cnf.aftermath.pools.sui_usdc,
-        slippage: cnf.aftermath.default_slippage,
-        max_age_secs: cnf.pyth.default_max_age_secs,
+        slippage: cnf.aftermath.defaultSlippage,
+        maxAgeSecs: cnf.pyth.defaultMaxAgeSecs,
     },
     {   // SUI -> NS
-        coin_in: cnf.coins.SUI,
-        coin_out: cnf.coins.NS,
+        coinIn: cnf.coins.SUI,
+        coinOut: cnf.coins.NS,
         pool: cnf.aftermath.pools.sui_ns,
-        slippage: cnf.aftermath.default_slippage,
-        max_age_secs: cnf.pyth.default_max_age_secs,
+        slippage: cnf.aftermath.defaultSlippage,
+        maxAgeSecs: cnf.pyth.defaultMaxAgeSecs,
     },
 ] as const;
-
-/** Aftermath swap configuration. */
-export type AftermathSwap = {
-    /** The coin to be swapped into `coin_out` */
-    coin_in: CoinInfo;
-    /** The coin to be received from the swap */
-    coin_out: CoinInfo;
-    /** Aftermath `Pool` object */
-    pool: AftermathPool;
-    /** Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point. */
-    slippage: bigint;
-    /** How stale the Pyth price can be, in seconds. */
-    max_age_secs: bigint;
-};
-
-export type CoinInfo = {
-    /** The `T` in `Coin<T>` */
-    type: string;
-    /** Number of decimals */
-    decimals: number;
-    /** Pyth feed ID */
-    feed: string;
-};
-
-/** Aftermath `Pool` object. */
-export type AftermathPool = {
-    /** Object ID */
-    id: string;
-    /** LP token type */
-    lp_type: string;
-};

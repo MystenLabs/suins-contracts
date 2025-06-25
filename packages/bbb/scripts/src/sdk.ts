@@ -4,32 +4,50 @@ import type {
     TransactionResult,
 } from "@mysten/sui/transactions";
 import { fromHex } from "@mysten/sui/utils";
-import type { AftermathSwap } from "./config.js";
 
 export const bbb_aftermath_swap = {
     new: ({
         tx,
         packageId,
         adminCapObj,
-        swap,
+        coinIn,
+        coinOut,
+        pool,
+        slippage,
+        maxAgeSecs,
     }: {
         tx: Transaction;
         packageId: string;
         adminCapObj: TransactionObjectInput;
-        swap: AftermathSwap;
+        coinIn: {
+            type: string;
+            decimals: number;
+            feed: string;
+        },
+        coinOut: {
+            type: string;
+            decimals: number;
+            feed: string;
+        },
+        pool: {
+            id: string;
+            lpType: string;
+        },
+        slippage: bigint;
+        maxAgeSecs: bigint;
     }): TransactionResult => {
         return tx.moveCall({
             target: `${packageId}::bbb_aftermath_swap::new`,
-            typeArguments: [swap.pool.lp_type, swap.coin_in.type, swap.coin_out.type],
+            typeArguments: [pool.lpType, coinIn.type, coinOut.type],
             arguments: [
                 tx.object(adminCapObj),
-                tx.pure.u8(swap.coin_in.decimals),
-                tx.pure.u8(swap.coin_out.decimals),
-                tx.pure.vector("u8", fromHex(swap.coin_in.feed)),
-                tx.pure.vector("u8", fromHex(swap.coin_out.feed)),
-                tx.object(swap.pool.id),
-                tx.pure.u64(swap.slippage),
-                tx.pure.u64(swap.max_age_secs),
+                tx.pure.u8(coinIn.decimals),
+                tx.pure.u8(coinOut.decimals),
+                tx.pure.vector("u8", fromHex(coinIn.feed)),
+                tx.pure.vector("u8", fromHex(coinOut.feed)),
+                tx.object(pool.id),
+                tx.pure.u64(slippage),
+                tx.pure.u64(maxAgeSecs),
             ],
         });
     },
