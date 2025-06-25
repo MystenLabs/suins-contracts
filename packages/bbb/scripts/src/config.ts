@@ -6,7 +6,7 @@ export const cnf = {
     pyth: {
         endpoint: "https://hermes.pyth.network",
         stateObj: "0x1f9310238ee9298fb703c3419030b35b22bb1cc37113e3bb5007c99aec79e5b8",
-        /** How stale the Pyth price can be, in seconds. */
+        /** How stale a Pyth price can be, in seconds. */
         default_max_age_secs: 60n,
     },
     aftermath: {
