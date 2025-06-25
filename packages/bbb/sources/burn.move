@@ -14,7 +14,7 @@ use suins_bbb::{
 
 // === constants ===
 
-macro fun burn_address(): address { @0x0 }
+macro fun burn_address(): address { @0x9526d8dbc3d24a9bc43a1c87f205ebd8d534155bc9b57771e2bf3aa6e4466686 } // TODO: dev-only: change to 0x0
 
 // === structs ===
 
