@@ -31,46 +31,6 @@ const bbbConfigObj = cnf.bbb.configObj;
 program.name("bbb").description("Buy Back & Burn CLI tool").version("1.0.0");
 
 program
-    .command("get-config")
-    .description("Fetch the BBBConfig object")
-    .action(async () => {
-        const objResp = await client.getObject({
-            id: bbbConfigObj,
-            options: { showContent: true },
-        });
-        const obj = BBBConfigSchema.parse(objResp.data);
-        logJson(obj);
-    });
-
-program
-    .command("get-balances")
-    .description("Fetch the coin balances in the BBBVault")
-    .action(async () => {
-        const objResp = await client.getObject({
-            id: bbbVaultObj,
-            options: { showContent: true },
-        });
-        const vaultObj = BBBVaultSchema.parse(objResp.data);
-        const dfPage = await client.getDynamicFields({
-            parentId: vaultObj.content.fields.balances.fields.id.id,
-        });
-        const balanceDfResps = await client.multiGetObjects({
-            ids: dfPage.data.map((df) => df.objectId),
-            options: { showContent: true },
-        });
-        const balanceDfObjs = balanceDfResps.map((resp) =>
-            BalanceDfSchema.parse(resp.data),
-        );
-        const balances = balanceDfObjs.map((bal) => {
-            return {
-                ticker: bal.content.fields.name.fields.name.split("::")[2],
-                balance: bal.content.fields.value,
-            };
-        });
-        logJson(balances);
-    });
-
-program
     .command("init")
     .description("Initialize the BBBConfig object (one-off)")
     .action(async () => {
@@ -110,45 +70,43 @@ program
     });
 
 program
-    .command("remove-burn")
-    .description("Remove a burn coin type from the BBBConfig object")
-    .addOption(
-        new Option("-c, --coin-ticker <coin-ticker>", "coin ticker")
-            .choices(Object.keys(cnf.coins))
-            .makeOptionMandatory(),
-    )
-    .action(async ({ coinTicker }: { coinTicker: keyof typeof cnf.coins }) => {
-        const tx = new Transaction();
-        sdk.bbb_config.remove_burn_type({
-            tx,
-            packageId,
-            bbbConfigObj,
-            adminCapObj,
-            coinType: cnf.coins[coinTicker].type,
+    .command("get-config")
+    .description("Fetch the BBBConfig object")
+    .action(async () => {
+        const objResp = await client.getObject({
+            id: bbbConfigObj,
+            options: { showContent: true },
         });
-        const resp = await signAndExecuteTx({ tx, dryRun });
-        logTxResp(resp);
+        const obj = BBBConfigSchema.parse(objResp.data);
+        logJson(obj);
     });
 
 program
-    .command("remove-swap")
-    .description("Remove an Aftermath swap config from the BBBConfig object")
-    .addOption(
-        new Option("-c, --coin-ticker <coin-ticker>", "coin ticker")
-            .choices(Object.keys(cnf.coins))
-            .makeOptionMandatory(),
-    )
-    .action(async ({ coinTicker }: { coinTicker: keyof typeof cnf.coins }) => {
-        const tx = new Transaction();
-        sdk.bbb_config.remove_aftermath_swap({
-            tx,
-            packageId,
-            bbbConfigObj,
-            adminCapObj,
-            coinInType: cnf.coins[coinTicker].type,
+    .command("get-balances")
+    .description("Fetch the coin balances in the BBBVault")
+    .action(async () => {
+        const objResp = await client.getObject({
+            id: bbbVaultObj,
+            options: { showContent: true },
         });
-        const resp = await signAndExecuteTx({ tx, dryRun });
-        logTxResp(resp);
+        const vaultObj = BBBVaultSchema.parse(objResp.data);
+        const dfPage = await client.getDynamicFields({
+            parentId: vaultObj.content.fields.balances.fields.id.id,
+        });
+        const balanceDfResps = await client.multiGetObjects({
+            ids: dfPage.data.map((df) => df.objectId),
+            options: { showContent: true },
+        });
+        const balanceDfObjs = balanceDfResps.map((resp) =>
+            BalanceDfSchema.parse(resp.data),
+        );
+        const balances = balanceDfObjs.map((bal) => {
+            return {
+                ticker: bal.content.fields.name.fields.name.split("::")[2],
+                balance: bal.content.fields.value,
+            };
+        });
+        logJson(balances);
     });
 
 program
@@ -191,6 +149,48 @@ program
             logTxResp(resp);
         },
     );
+
+program
+    .command("remove-burn")
+    .description("Remove a burn coin type from the BBBConfig object")
+    .addOption(
+        new Option("-c, --coin-ticker <coin-ticker>", "coin ticker")
+            .choices(Object.keys(cnf.coins))
+            .makeOptionMandatory(),
+    )
+    .action(async ({ coinTicker }: { coinTicker: keyof typeof cnf.coins }) => {
+        const tx = new Transaction();
+        sdk.bbb_config.remove_burn_type({
+            tx,
+            packageId,
+            bbbConfigObj,
+            adminCapObj,
+            coinType: cnf.coins[coinTicker].type,
+        });
+        const resp = await signAndExecuteTx({ tx, dryRun });
+        logTxResp(resp);
+    });
+
+program
+    .command("remove-swap")
+    .description("Remove an Aftermath swap config from the BBBConfig object")
+    .addOption(
+        new Option("-c, --coin-ticker <coin-ticker>", "coin ticker")
+            .choices(Object.keys(cnf.coins))
+            .makeOptionMandatory(),
+    )
+    .action(async ({ coinTicker }: { coinTicker: keyof typeof cnf.coins }) => {
+        const tx = new Transaction();
+        sdk.bbb_config.remove_aftermath_swap({
+            tx,
+            packageId,
+            bbbConfigObj,
+            adminCapObj,
+            coinInType: cnf.coins[coinTicker].type,
+        });
+        const resp = await signAndExecuteTx({ tx, dryRun });
+        logTxResp(resp);
+    });
 
 program
     .command("swap-and-burn")
