@@ -71,3 +71,12 @@ public(package) fun withdraw<C>(
             .withdraw_all()
     }
 }
+
+// === test functions ===
+
+#[test_only]
+public fun new_for_testing(
+    ctx: &mut TxContext,
+): BBBVault {
+    new(ctx)
+}
