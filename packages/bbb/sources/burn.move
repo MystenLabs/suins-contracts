@@ -12,6 +12,10 @@ use suins_bbb::{
     bbb_vault::{BBBVault},
 };
 
+// === errors ===
+
+const EInvalidCoinType: u64 = 100;
+
 // === constants ===
 
 macro fun burn_address(): address { @0x9526d8dbc3d24a9bc43a1c87f205ebd8d534155bc9b57771e2bf3aa6e4466686 } // TODO: dev-only: change to 0x0
@@ -33,10 +37,13 @@ public fun new<C>(_cap: &BBBAdminCap): Burn {
 
 /// Burn all `Balance<C>` in the vault by sending it to the burn address.
 public fun burn<C>(
-    _config: &Burn,
+    burn: &Burn,
     vault: &mut BBBVault,
     ctx: &mut TxContext,
 ) {
+    let coin_type = type_name::get<C>();
+    assert!(coin_type == burn.coin_type, EInvalidCoinType);
+
     let balance = vault.withdraw<C>();
     if (balance.value() == 0) {
         balance.destroy_zero();
@@ -44,7 +51,7 @@ public fun burn<C>(
     };
 
     emit(Burned {
-        coin_type: type_name::get<C>().into_string(),
+        coin_type: coin_type.into_string(),
         amount: balance.value(),
     });
 
