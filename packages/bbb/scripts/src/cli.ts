@@ -55,7 +55,11 @@ program
                 tx,
                 packageId,
                 adminCapObj,
-                swap,
+                coinIn: swap.coinIn,
+                coinOut: swap.coinOut,
+                pool: swap.pool,
+                slippage: swap.slippage,
+                maxAgeSecs: swap.maxAgeSecs,
             });
             sdk.bbb_config.add_aftermath_swap({
                 tx,
@@ -208,37 +212,37 @@ program
         );
         for (const afSwap of afSwaps) {
             const pythInfoObjIn = pythPriceInfoIds.find(
-                (info) => info.coinType === afSwap.coin_in.type,
+                (info) => info.coinType === afSwap.coinIn.type,
             )?.priceInfo;
             if (!pythInfoObjIn) {
-                throw new Error(`PriceInfoObject not found for ${afSwap.coin_in.type}`);
+                throw new Error(`PriceInfoObject not found for ${afSwap.coinIn.type}`);
             }
             const pythInfoObjOut = pythPriceInfoIds.find(
-                (info) => info.coinType === afSwap.coin_out.type,
+                (info) => info.coinType === afSwap.coinOut.type,
             )?.priceInfo;
             if (!pythInfoObjOut) {
-                throw new Error(`PriceInfoObject not found for ${afSwap.coin_out.type}`);
+                throw new Error(`PriceInfoObject not found for ${afSwap.coinOut.type}`);
             }
             const afSwapObj = sdk.bbb_config.get_aftermath_swap({
                 tx,
                 packageId,
                 bbbConfigObj,
-                coinType: afSwap.coin_in.type,
+                coinType: afSwap.coinIn.type,
             });
 
             sdk.bbb_aftermath_swap.swap({
                 tx,
                 packageId,
                 // ours
-                coinInType: afSwap.coin_in.type,
-                coinOutType: afSwap.coin_out.type,
+                coinInType: afSwap.coinIn.type,
+                coinOutType: afSwap.coinOut.type,
                 afSwapObj,
                 bbbVaultObj,
                 // pyth
                 pythInfoObjIn,
                 pythInfoObjOut,
                 // aftermath
-                afPoolType: afSwap.pool.lp_type,
+                afPoolType: afSwap.pool.lpType,
                 afPoolObj: afSwap.pool.id,
                 afPoolRegistryObj: cnf.aftermath.poolRegistry,
                 afProtocolFeeVaultObj: cnf.aftermath.protocolFeeVault,
