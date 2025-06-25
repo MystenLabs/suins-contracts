@@ -1,7 +1,7 @@
 import { Transaction } from "@mysten/sui/transactions";
 
 import { cnf } from "../config.js";
-import { getPriceInfoObject } from "../utils.js";
+import { getPriceInfoObject, logJson } from "../utils.js";
 
 // === CLI ===
 
@@ -12,7 +12,9 @@ if (require.main === module) {
         getPriceInfoObject(tx, cnf.coins.NS.feed),
         getPriceInfoObject(tx, cnf.coins.USDC.feed),
     ]);
-    console.log("SUI: ", infos[0][0]);
-    console.log("NS:  ", infos[1][0]);
-    console.log("USDC:", infos[2][0]);
+    logJson({
+        SUI: infos[0],
+        NS: infos[1],
+        USDC: infos[2],
+    });
 }
