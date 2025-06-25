@@ -32,11 +32,11 @@ export const cnf = {
         default_slippage: 975_000_000_000_000_000n, // 2.5%
     },
     bbb: { // TODO: update values for prod
-        packageId: "0x2ec3309b921aa1f819ff566d66bcb3bd045dbaf1fbe58f3141ac6e8f7a9e5d51", // dev-only
-        upgradeCapObj: "0x05d6b63f19b67efb1f9834dbf1537ff9780e2c607cff3878dcdb284ab68ca54d", // dev-only
-        adminCapObj: "0x1a99fd768f5666426972040ac1a2f56c5a1798afac08257b336f9b2eba5f6be7", // dev-only
-        vaultObj: "0xba4ebdd68cf195b040bcdae3fd88c53a0b47c059c630470197121dd4301326ed", // dev-only
-        configObj: "0xef249ee56957f473dcefe2a6d8336a0a5d7f213ff69d1db1aca9bd2f54613116", // dev-only
+        packageId: "0x76f24ad1015376527db2319ed2c5d87b0605bb18a5d1ad514138444ead23eb17", // dev-only
+        upgradeCapObj: "0x669f915fb9271de2ea1dae2caa4b7518d56352cc7110415e24ee8062a84e135c", // dev-only
+        adminCapObj: "0x9ae1edc33d0b34b7a6e317d70b1feb1b71146b994c4e752cbb155b6e06cfbf2b", // dev-only
+        vaultObj: "0x3e4075ff437932f691c678845f3afd94d4318331550dadb8bc35822031685685", // dev-only
+        configObj: "0x840586b363bb7730cc6ef75bbeca5b05a318f3f7b4199ca5316fc6754e243f28", // dev-only
     },
     coins: {
         SUI: {
