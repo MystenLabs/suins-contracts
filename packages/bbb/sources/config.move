@@ -124,12 +124,3 @@ public fun remove_burn_type<C>(
 
     conf.burns.swap_remove(idx.destroy_some());
 }
-
-// === test functions ===
-
-#[test_only]
-public fun new_for_testing(
-    ctx: &mut TxContext,
-): BBBConfig {
-    new(ctx)
-}

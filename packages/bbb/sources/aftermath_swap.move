@@ -67,15 +67,15 @@ public struct AftermathSwap has copy, drop, store {
     max_age_secs: u64,
 }
 
-public fun type_in(config: &AftermathSwap): &TypeName { &config.type_in }
-public fun type_out(config: &AftermathSwap): &TypeName { &config.type_out }
-public fun decimals_in(config: &AftermathSwap): u8 { config.decimals_in }
-public fun decimals_out(config: &AftermathSwap): u8 { config.decimals_out }
-public fun feed_in(config: &AftermathSwap): &vector<u8> { &config.feed_in }
-public fun feed_out(config: &AftermathSwap): &vector<u8> { &config.feed_out }
-public fun pool_id(config: &AftermathSwap): &ID { &config.pool_id }
-public fun slippage(config: &AftermathSwap): u64 { config.slippage }
-public fun max_age_secs(config: &AftermathSwap): u64 { config.max_age_secs }
+public fun type_in(af_swap: &AftermathSwap): &TypeName { &af_swap.type_in }
+public fun type_out(af_swap: &AftermathSwap): &TypeName { &af_swap.type_out }
+public fun decimals_in(af_swap: &AftermathSwap): u8 { af_swap.decimals_in }
+public fun decimals_out(af_swap: &AftermathSwap): u8 { af_swap.decimals_out }
+public fun feed_in(af_swap: &AftermathSwap): &vector<u8> { &af_swap.feed_in }
+public fun feed_out(af_swap: &AftermathSwap): &vector<u8> { &af_swap.feed_out }
+public fun pool_id(af_swap: &AftermathSwap): &ID { &af_swap.pool_id }
+public fun slippage(af_swap: &AftermathSwap): u64 { af_swap.slippage }
+public fun max_age_secs(af_swap: &AftermathSwap): u64 { af_swap.max_age_secs }
 
 public fun new<CoinIn, CoinOut, L>( // TODO: change type arg order to match other functions
     _cap: &BBBAdminCap,

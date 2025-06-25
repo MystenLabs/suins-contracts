@@ -6,6 +6,12 @@ public struct BBBAdminCap has key, store {
     id: UID,
 }
 
+public fun id(cap: &BBBAdminCap): ID { cap.id.to_inner() }
+
+fun new(ctx: &mut TxContext): BBBAdminCap {
+    BBBAdminCap { id: object::new(ctx) }
+}
+
 // === initialization ===
 
 public struct BBB_ADMIN has drop {}
@@ -14,6 +20,5 @@ fun init(
     _otw: BBB_ADMIN,
     ctx: &mut TxContext,
 ) {
-    let cap = BBBAdminCap { id: object::new(ctx) };
-    transfer::transfer(cap, ctx.sender());
+    transfer::transfer(new(ctx), ctx.sender());
 }

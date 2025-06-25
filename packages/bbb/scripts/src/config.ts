@@ -29,7 +29,7 @@ export const cnf = {
         insuranceFund: "0xf0c40d67b078000e18032334c3325c47b9ec9f3d9ae4128be820d54663d14e3b",
         referralVault: "0x35d35b0e5b177593d8c3a801462485572fc30861e6ce96a55af6dc4730709278",
         /** Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point. */
-        default_slippage: 980_000_000_000_000_000n, // 2%
+        default_slippage: 975_000_000_000_000_000n, // 2.5%
     },
     bbb: { // TODO: update values for prod
         packageId: "0x2ec3309b921aa1f819ff566d66bcb3bd045dbaf1fbe58f3141ac6e8f7a9e5d51", // dev-only
