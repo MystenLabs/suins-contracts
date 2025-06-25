@@ -22,17 +22,17 @@ export const bbb_aftermath_swap = {
         coinIn: {
             type: string;
             decimals: number;
-            feed: string;
-        },
+            pyth_feed: string;
+        };
         coinOut: {
             type: string;
             decimals: number;
-            feed: string;
-        },
+            pyth_feed: string;
+        };
         pool: {
             id: string;
             lpType: string;
-        },
+        };
         slippage: bigint;
         maxAgeSecs: bigint;
     }): TransactionResult => {
@@ -43,8 +43,8 @@ export const bbb_aftermath_swap = {
                 tx.object(adminCapObj),
                 tx.pure.u8(coinIn.decimals),
                 tx.pure.u8(coinOut.decimals),
-                tx.pure.vector("u8", fromHex(coinIn.feed)),
-                tx.pure.vector("u8", fromHex(coinOut.feed)),
+                tx.pure.vector("u8", fromHex(coinIn.pyth_feed)),
+                tx.pure.vector("u8", fromHex(coinOut.pyth_feed)),
                 tx.object(pool.id),
                 tx.pure.u64(slippage),
                 tx.pure.u64(maxAgeSecs),
