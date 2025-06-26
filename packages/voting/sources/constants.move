@@ -15,10 +15,10 @@ public(package) macro fun max_voting_period_ms(): u64 {
 
 /// 1 day in milliseconds
 public(package) macro fun day_ms(): u64 {
-    86_400_000
+    86400000
 }
 
 /// 30 days in milliseconds
 public(package) macro fun month_ms(): u64 {
-    2_592_000_000
+    2592000000
 }

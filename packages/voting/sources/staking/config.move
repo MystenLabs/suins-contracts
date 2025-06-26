@@ -9,7 +9,7 @@ use sui::{
     event::{emit},
 };
 use suins_voting::{
-    constants::{month_ms},
+    constants::{day_ms, month_ms},
     staking_admin::{StakingAdminCap},
 };
 
@@ -23,7 +23,7 @@ const EInvalidMinBalance: u64 = 104;
 
 // === constants (initial values, and min/max values the admin can set) ===
 
-public(package) macro fun init_cooldown_ms(): u64 { 1000 * 60 * 60 * 24 * 3 } // 3 days
+public(package) macro fun init_cooldown_ms(): u64 { day_ms!() * 3 } // 3 days
 public(package) macro fun min_cooldown_ms(): u64 { 0 } // instant
 public(package) macro fun max_cooldown_ms(): u64 { month_ms!() } // 30 days
 
