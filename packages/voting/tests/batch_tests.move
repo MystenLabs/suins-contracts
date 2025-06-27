@@ -388,8 +388,8 @@ fun test_new_e_balance_too_low() {
     abort 123
 }
 
-#[test, expected_failure(abort_code = staking_batch::EInvalidLockPeriod)]
-fun test_new_e_invalid_lock_period_above_max() {
+#[test, expected_failure(abort_code = staking_batch::ELockPeriodAboveMax)]
+fun test_new_e_lock_period_above_max() {
     let mut setup = setup();
     let max_lock_months = setup.config().max_lock_months();
     let balance = setup.config().min_balance();
@@ -419,8 +419,8 @@ fun test_lock_e_cooldown_already_requested() {
     abort 123
 }
 
-#[test, expected_failure(abort_code = staking_batch::EInvalidLockPeriod)]
-fun test_lock_e_invalid_lock_period_shorter_than_current() {
+#[test, expected_failure(abort_code = staking_batch::ELockPeriodNotAboveCurrent)]
+fun test_lock_e_lock_period_not_above_current() {
     let mut setup = setup();
     let mut batch = setup.batch__new__min_bal(6);
     // try to extend lock with a shorter period
@@ -428,13 +428,23 @@ fun test_lock_e_invalid_lock_period_shorter_than_current() {
     abort 123
 }
 
-#[test, expected_failure(abort_code = staking_batch::EInvalidLockPeriod)]
-fun test_lock_e_invalid_lock_period_too_long() {
+#[test, expected_failure(abort_code = staking_batch::ELockPeriodAboveMax)]
+fun test_lock_e_lock_period_above_max() {
     let mut setup = setup();
     // try to extend lock beyond maximum
     let max_lock_months = setup.config().max_lock_months();
     let mut batch = setup.batch__new__min_bal(6);
     batch.lock(setup.config(), max_lock_months + 1, setup.clock());
+    abort 123
+}
+
+#[test, expected_failure(abort_code = staking_batch::ELockPeriodMustEndInFuture)]
+fun test_lock_e_lock_period_must_end_in_future() {
+    let mut setup = setup();
+    let mut batch = setup.batch__new__min_bal(0);
+    setup.add_time(month_ms!() * 4);
+    // try to lock with a unlock_ms == now
+    batch.lock(setup.config(), 4, setup.clock());
     abort 123
 }
 
@@ -564,8 +574,8 @@ fun test_admin_new_e_balance_too_low() {
     abort 123
 }
 
-#[test, expected_failure(abort_code = staking_batch::EInvalidLockPeriod)]
-fun test_admin_new_e_invalid_lock_period() {
+#[test, expected_failure(abort_code = staking_batch::ELockPeriodAboveMax)]
+fun test_admin_new_e_lock_period_above_max() {
     let mut setup = setup();
 
     let balance = setup.config().min_balance();

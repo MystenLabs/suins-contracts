@@ -24,16 +24,18 @@ use suins_voting::{
 
 // === errors ===
 
-const EInvalidLockPeriod: u64 = 100;
-const EBalanceTooLow: u64 = 101;
-const EBatchLocked: u64 = 102;
-const ECooldownAlreadyRequested: u64 = 103;
-const ECooldownNotRequested: u64 = 104;
-const ECooldownNotOver: u64 = 105;
-const EBatchIsVoting: u64 = 106;
-const EVotingUntilMsInPast: u64 = 107;
-const EVotingUntilMsNotExtended: u64 = 108;
-const EInvalidStartMs: u64 = 109;
+const ELockPeriodAboveMax: u64 = 100;
+const ELockPeriodNotAboveCurrent: u64 = 101;
+const ELockPeriodMustEndInFuture: u64 = 102;
+const EBalanceTooLow: u64 = 103;
+const EBatchLocked: u64 = 104;
+const ECooldownAlreadyRequested: u64 = 105;
+const ECooldownNotRequested: u64 = 106;
+const ECooldownNotOver: u64 = 107;
+const EBatchIsVoting: u64 = 108;
+const EVotingUntilMsInPast: u64 = 109;
+const EVotingUntilMsNotExtended: u64 = 110;
+const EInvalidStartMs: u64 = 111;
 
 // === structs ===
 
@@ -109,13 +111,17 @@ public fun lock(
 ) {
     assert!(!batch.is_voting(clock), EBatchIsVoting);
     assert!(!batch.is_cooldown_requested(), ECooldownAlreadyRequested);
+
+    assert!(new_lock_months <= config.max_lock_months(), ELockPeriodAboveMax);
+
     let old_unlock_ms = batch.unlock_ms;
     let old_lock_months = (old_unlock_ms - batch.start_ms) / month_ms!();
-    assert!(new_lock_months > old_lock_months, EInvalidLockPeriod);
-    assert!(new_lock_months <= config.max_lock_months(), EInvalidLockPeriod);
+    assert!(new_lock_months > old_lock_months, ELockPeriodNotAboveCurrent);
+
+    let new_unlock_ms = batch.start_ms + (new_lock_months * month_ms!());
+    assert!(new_unlock_ms > clock.timestamp_ms(), ELockPeriodMustEndInFuture);
 
     // Lock the batch
-    let new_unlock_ms = batch.start_ms + (new_lock_months * month_ms!());
     batch.unlock_ms = new_unlock_ms;
 
     emit(EventLock {
@@ -230,7 +236,7 @@ fun new_internal(
     ctx: &mut TxContext,
 ): StakingBatch {
     assert!(coin.value() >= config.min_balance(), EBalanceTooLow);
-    assert!(lock_months <= config.max_lock_months(), EInvalidLockPeriod);
+    assert!(lock_months <= config.max_lock_months(), ELockPeriodAboveMax);
     assert!(start_ms <= clock.timestamp_ms(), EInvalidStartMs);
 
     let value = coin.value();
