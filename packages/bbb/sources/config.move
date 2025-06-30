@@ -19,6 +19,8 @@ const EAftermathSwapNotFound: u64 = 103;
 // === structs ===
 
 /// Buy Back & Burn configuration. Singleton.
+/// TODO: consider splitting this into BurnConfig and AftermathConfig,
+/// that way in the future we can add CetusConfig, etc, without breaking upgrades.
 public struct BBBConfig has key {
     id: UID,
     /// Aftermath swap configurations
