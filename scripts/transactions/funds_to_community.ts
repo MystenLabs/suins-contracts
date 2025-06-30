@@ -9,35 +9,11 @@ import { prepareMultisigTx } from '../utils/utils';
 const fundsToTreasury = async () => {
 	const txb = new Transaction();
 	const config = mainPackage.mainnet;
+	const coin = '0x1fdc78834208a8f777b45a6ed0bed664cf45f32421a6d60cfa8923755ea8d87d'; // NS coin
 
-	const adminCapObj = txb.object(config.adminCap);
+	const amountPerWallet = 7700 * 1_000_000; // NS
 
-	const oldSuiProfits = txb.moveCall({
-		target: `${config.packageId}::suins::withdraw`,
-		arguments: [adminCapObj, txb.object(config.suins)],
-	});
-
-	const nsProfits = txb.moveCall({
-		target: `${config.packageId}::suins::withdraw_custom`,
-		arguments: [txb.object(config.suins), adminCapObj],
-		typeArguments: [config.coins.NS.type],
-	});
-
-	const usdcProfits = txb.moveCall({
-		target: `${config.packageId}::suins::withdraw_custom`,
-		arguments: [txb.object(config.suins), adminCapObj],
-		typeArguments: [config.coins.USDC.type],
-	});
-
-	const newSuiProfits = txb.moveCall({
-		target: `${config.packageId}::suins::withdraw_custom`,
-		arguments: [txb.object(config.suins), adminCapObj],
-		typeArguments: [config.coins.SUI.type],
-	});
-
-	const amountPerWallet = 5555 * 1_000_000; // NS
-
-	const [coin1, coin2, coin3, coin4] = txb.splitCoins(nsProfits, [
+	const [coin1, coin2, coin3, coin4] = txb.splitCoins(coin, [
 		amountPerWallet,
 		amountPerWallet,
 		amountPerWallet,
@@ -68,10 +44,6 @@ const fundsToTreasury = async () => {
 		txb.pure.address('0x1cabbf164d13044f32e34cd075c1bd90596af9798e187d89035aa56d2683267c'),
 	);
 
-	txb.transferObjects(
-		[oldSuiProfits, nsProfits, usdcProfits, newSuiProfits],
-		txb.pure.address(config.adminAddress!),
-	);
 	await prepareMultisigTx(txb, 'mainnet', config.adminAddress);
 };
 
