@@ -12,8 +12,8 @@ use sui_indexer_alt_framework::FieldCount;
 use sui_name_service::Domain as NsDomain;
 use sui_types::base_types::ObjectID;
 
-move_contract! {alias = "sui", package = "0x2"}
-move_contract! {alias = "suins", package = "@suins/core", deps = [crate::models::sui]}
+move_contract! {alias = "sui", package = "0x2", base_path = crate::models}
+move_contract! {alias = "suins", package = "@suins/core", base_path = crate::models}
 
 #[derive(Queryable, Selectable, Insertable, AsChangeset, Debug, FieldCount, Clone)]
 #[diesel(table_name = domains)]

@@ -6,14 +6,14 @@ expression: rows
   {
     "name": "remove.test.sui",
     "parent": "test.sui",
-    "expiration_timestamp_ms": 1706205350000,
+    "expiration_timestamp_ms": "1706205350000",
     "nft_id": "0xdd513860269b0768c6ed77ddaf48cd579ba0c2995e793eab182d6ab861818250",
     "field_id": "0x79b123c73d073ba73c9e6f0817e63270d716db3c7945ecde477b22df7d026e43",
     "target_address": null,
     "data": {
       "contents": []
     },
-    "last_checkpoint_updated": 22280030,
+    "last_checkpoint_updated": "22280030",
     "subdomain_wrapper_id": "0x48de1a7eef5956c4f3478849654abd94dcf5b206c631328c50518091b0eee9b0"
   }
 ]
