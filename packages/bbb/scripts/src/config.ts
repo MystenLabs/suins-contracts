@@ -1,11 +1,11 @@
 /** Mainnet configuration. */
 export const cnf = {
     bbb: { // TODO: update values for prod
-        packageId: "0x76f24ad1015376527db2319ed2c5d87b0605bb18a5d1ad514138444ead23eb17", // dev-only
-        upgradeCapObj: "0x669f915fb9271de2ea1dae2caa4b7518d56352cc7110415e24ee8062a84e135c", // dev-only
-        adminCapObj: "0x9ae1edc33d0b34b7a6e317d70b1feb1b71146b994c4e752cbb155b6e06cfbf2b", // dev-only
-        vaultObj: "0x3e4075ff437932f691c678845f3afd94d4318331550dadb8bc35822031685685", // dev-only
-        configObj: "0x840586b363bb7730cc6ef75bbeca5b05a318f3f7b4199ca5316fc6754e243f28", // dev-only
+        packageId: "0x68cabe8f36b01b0a245422838cc30b405f9d6e7068a6b3a8cd02cac85a7641eb", // dev-only
+        upgradeCapObj: "0x8154a2bc4b3969f66b785aeb5741e5a6f1c3410a8ae0f4a48cc096f20f42ebec", // dev-only
+        adminCapObj: "0x2d238a1289a7ea0c420f221b5bfc587f2e931005eeafa15b8bc4cd0209d8f398", // dev-only
+        vaultObj: "0x8b68482bd32712520b8b76e7f4a460764706c347f205f6c0b88888d9e315c5ad", // dev-only
+        configObj: "0x7499d787189ffcd90d8857276aa5cf0bc3251d3bd42de9ba94720f4b5ec07d3f", // dev-only
     },
     coins: {
         SUI: {
