@@ -40,24 +40,27 @@ fun init(_otw: BBB_VAULT, ctx: &mut TxContext) {
 
 // === public functions ===
 
+/// Deposit a coin into the vault.
+/// Anybody can deposit any coin type.
 public fun deposit<C>(
     vault: &mut BBBVault,
     coin: Coin<C>,
 ) {
-    let balance = coin.into_balance();
     let balances = &mut vault.balances;
     let coin_type = type_name::get<C>();
     if (!balances.contains(coin_type)) {
-        balances.add(coin_type, balance);
+        balances.add(coin_type, coin.into_balance());
     } else {
         balances
             .borrow_mut<TypeName, Balance<C>>(coin_type)
-            .join(balance);
+            .join(coin.into_balance());
     };
 }
 
 // === package functions ===
 
+/// Withdraw all `Balance<C>` from the vault.
+/// Returns zero balance if the coin type is not in the vault.
 public(package) fun withdraw<C>(
     vault: &mut BBBVault,
 ): Balance<C> {

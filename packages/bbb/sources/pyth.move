@@ -11,6 +11,9 @@ use pyth::{
 const EInvalidPriceIn: u64 = 100;
 const EInvalidPriceOut: u64 = 101;
 
+/// Calculate the expected output amount for a swap using Pyth price feeds.
+/// Converts `amount_in` of the input coin to equivalent value in output coin.
+/// E.g. if 1 SUI is worth $3, then 1e9 SUI (amount_in) -> 3e6 USDC (return value)
 public(package) fun calc_amount_out(
     info_in: &PriceInfoObject,
     info_out: &PriceInfoObject,
@@ -43,6 +46,8 @@ public(package) fun calc_amount_out(
     )
 }
 
+/// Internal price calculation.
+/// Function is not private only so we can unit test.
 public(package) fun calc_amount_out_internal(
     price_usd_in: u64,
     price_exp_in: u8,

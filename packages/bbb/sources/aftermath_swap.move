@@ -45,6 +45,8 @@ const EInvalidCoinOutType: u64 = 104;
 // === structs ===
 
 /// Aftermath swap configuration.
+/// Grants the right to swap `Balance<type_in>` for `Balance<type_out>` in the vault.
+/// Only the admin can create it.
 public struct AftermathSwap has copy, drop, store {
     /// Type of coin to be swapped into `type_out`
     type_in: TypeName,
@@ -109,13 +111,6 @@ public fun new<L, CoinIn, CoinOut>(
 /// Swap the `CoinIn` in the vault for an equal-valued amount of `CoinOut`,
 /// and deposit the resulting `CoinOut` into the vault.
 /// Uses Aftermath's AMM. Protocol fees are charged on the `CoinIn` being swapped.
-///
-/// Aborts:
-/// - `EZeroValue`: `coin_in` has a value of zero.
-/// - `ESlippage`: `actual_amount_out` lies outside `acceptable_slippage`.
-/// - `EZeroAmountOut`: `amount_in` is worth zero amount of `Coin<CoinOut>`.
-/// - `EInvalidSwapAmountOut`: the swap would result in more than `MAX_SWAP_AMOUNT_OUT`
-///    worth of `Coin<CoinOut>` exiting the Pool.
 public fun swap<L, CoinIn, CoinOut>(
     // ours
     af_swap: &AftermathSwap,
