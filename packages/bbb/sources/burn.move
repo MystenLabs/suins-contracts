@@ -23,6 +23,8 @@ macro fun burn_address(): address { @0x9526d8dbc3d24a9bc43a1c87f205ebd8d534155bc
 // === structs ===
 
 /// Coin burn configuration.
+/// Grants the right to burn `Balance<coin_type>` in the vault.
+/// Only the admin can create it.
 public struct Burn has copy, drop, store {
     coin_type: TypeName,
 }
