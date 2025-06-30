@@ -41,6 +41,7 @@ const EFeedInMismatch: u64 = 101;
 const EFeedOutMismatch: u64 = 102;
 const EInvalidCoinInType: u64 = 103;
 const EInvalidCoinOutType: u64 = 104;
+const EAmountOutTooLow: u64 = 105;
 
 // === structs ===
 
@@ -177,6 +178,10 @@ public fun swap<L, CoinIn, CoinOut>(
         ctx,
     );
     let amount_out = coin_out.value();
+
+    // check that we received enough CoinOut
+    let minimum_out = ((expected_out as u256) * (af_swap.slippage as u256)) / 1_000_000_000_000_000_000;
+    assert!(amount_out >= minimum_out as u64, EAmountOutTooLow);
 
     // deposit CoinOut into vault
     vault.deposit<CoinOut>(coin_out);
