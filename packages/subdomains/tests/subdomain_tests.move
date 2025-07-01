@@ -5,7 +5,11 @@
 module suins_subdomains::subdomain_tests;
 
 use std::string::{String, utf8};
-use sui::{clock::{Self, Clock}, test_scenario::{Self as ts, Scenario, ctx}};
+use sui::{
+    clock::{Self, Clock},
+    test_scenario::{Self as ts, Scenario, ctx},
+    vec_map::{Self, VecMap}
+};
 use suins::{
     constants::{grace_period_ms, year_ms},
     domain,
@@ -40,8 +44,21 @@ fun test_multiple_operation_cases() {
         scenario,
     );
 
+    let mut metadata = vec_map::empty();
+    metadata.insert(utf8(b"avatar"), utf8(b"value1"));
+    metadata.insert(utf8(b"content_hash"), utf8(b"value2"));
+    metadata.insert(utf8(b"walrus_site_id"), utf8(b"value3"));
+
     create_leaf_subdomain(&parent, utf8(b"leaf.test.sui"), TEST_ADDRESS, scenario);
+    create_leaf_subdomain_with_metadata(
+        &parent,
+        utf8(b"leaf.test2.sui"),
+        TEST_ADDRESS,
+        metadata,
+        scenario,
+    );
     remove_leaf_subdomain(&parent, utf8(b"leaf.test.sui"), scenario);
+    remove_leaf_subdomain(&parent, utf8(b"leaf.test2.sui"), scenario);
 
     // Create a node name with the same name as the leaf that was deleted.
     let another_child = create_node_subdomain(
@@ -316,6 +333,31 @@ public fun create_leaf_subdomain(
     let clock = ts::take_shared<Clock>(scenario);
 
     subdomains::new_leaf(&mut suins, parent, &clock, name, target, ctx(scenario));
+
+    ts::return_shared(suins);
+    ts::return_shared(clock);
+}
+
+public fun create_leaf_subdomain_with_metadata(
+    parent: &SuinsRegistration,
+    name: String,
+    target: address,
+    metadata: VecMap<String, String>,
+    scenario: &mut Scenario,
+) {
+    ts::next_tx(scenario, USER_ADDRESS);
+    let mut suins = ts::take_shared<SuiNS>(scenario);
+    let clock = ts::take_shared<Clock>(scenario);
+
+    subdomains::new_leaf_with_metadata(
+        &mut suins,
+        parent,
+        &clock,
+        name,
+        target,
+        metadata,
+        ctx(scenario),
+    );
 
     ts::return_shared(suins);
     ts::return_shared(clock);

@@ -37,6 +37,10 @@ use suins::{
 use suins_denylist::denylist;
 use suins_subdomains::config::{Self, SubDomainConfig};
 
+const AVATAR: vector<u8> = b"avatar";
+const CONTENT_HASH: vector<u8> = b"content_hash";
+const WALRUS_SITE_ID: vector<u8> = b"walrus_site_id";
+
 /// Tries to create a subdomain that expires later than the parent or below the minimum.
 const EInvalidExpirationDate: u64 = 1;
 /// Tries to create a subdomain with a parent that is not allowed to do so.
@@ -49,6 +53,8 @@ const ESubdomainReplaced: u64 = 4;
 const EParentChanged: u64 = 5;
 /// Checks whether a name is allowed or not (against blocked names list)
 const ENotAllowedName: u64 = 6;
+/// Checks whether a key is supported or not (e.g. avatar, content_hash, etc).
+const EUnsupportedKey: u64 = 7;
 
 /// Enabled metadata value.
 const ACTIVE_METADATA_VALUE: vector<u8> = b"1";
@@ -74,6 +80,42 @@ public fun new_leaf(
     let subdomain = domain::new(subdomain_name);
     // all validation logic for subdomain creation / management.
     internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, true);
+
+    // Aborts with `suins::registry::ERecordExists` if the subdomain already exists.
+    registry_mut(suins).add_leaf_record(subdomain, clock, target, ctx)
+}
+
+public fun new_leaf_with_metadata(
+    suins: &mut SuiNS,
+    parent: &SuinsRegistration,
+    clock: &Clock,
+    subdomain_name: String,
+    target: address,
+    metadata: VecMap<String, String>,
+    ctx: &mut TxContext,
+) {
+    assert!(!denylist::is_blocked_name(suins, subdomain_name), ENotAllowedName);
+
+    let subdomain = domain::new(subdomain_name);
+    // all validation logic for subdomain creation / management.
+    internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, true);
+
+    let registry = registry_mut(suins);
+    let mut data = *registry.get_data(subdomain);
+    let n = metadata.size();
+    let mut i = 0;
+    while (i < n) {
+        let (key_ref, value_ref) = metadata.get_entry_by_idx(i);
+        let key_bytes = *key_ref.as_bytes();
+        assert!(
+            key_bytes == AVATAR || key_bytes == CONTENT_HASH || key_bytes == WALRUS_SITE_ID,
+            EUnsupportedKey,
+        );
+        data.insert(*key_ref, *value_ref);
+        i = i + 1;
+    };
+
+    registry.set_data(subdomain, data);
 
     // Aborts with `suins::registry::ERecordExists` if the subdomain already exists.
     registry_mut(suins).add_leaf_record(subdomain, clock, target, ctx)
