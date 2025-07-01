@@ -55,6 +55,17 @@ export const cnf = {
         /** Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point. */
         defaultSlippage: 975_000_000_000_000_000n, // 2.5%
     },
+    cetus: {
+        globalConfigObjId: "0xdaa46292632c3c4d8f31f23ea0f9b36a28ff3677e9684980e4438403a67a3d8f",
+        pools: {
+            sui_usdc: {
+                id: "0x51e883ba7c0b566a26cbc8a94cd33eb0abd418a77cc1e60ad22fd9b1f29cd2ab",
+            },
+            sui_ns: {
+                id: "0x763f63cbada3a932c46972c6c6dcf1abd8a9a73331908a1d7ef24c2232d85520",
+            },
+        }
+    }
 } as const;
 
 /** Coin types that can be burned. */
