@@ -113,7 +113,7 @@ public fun add_leaf_metadata(
 ) {
     let subdomain = domain::new(subdomain_name);
     // all validation logic for subdomain creation / management.
-    internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, true);
+    internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, false);
 
     let registry = registry_mut(suins);
     let mut data = vec_map::empty();
@@ -136,7 +136,7 @@ public fun remove_leaf_metadata(
 ) {
     let subdomain = domain::new(subdomain_name);
     // all validation logic for subdomain creation / management.
-    internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, true);
+    internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, false);
 
     let registry = registry_mut(suins);
     let mut data = *registry.get_data(subdomain);
