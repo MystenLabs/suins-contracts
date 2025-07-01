@@ -14,33 +14,33 @@ futures = "0.3.31"
 anyhow = "1.0.98"
 serde = "1.0.219"
 serde_json = "1.0.140"
-sui-indexer-alt-framework = { git = "https://github.com/MystenLabs/sui.git", rev = "298d049" }
-sui-name-service = { git = "https://github.com/MystenLabs/sui.git", rev = "298d049" }
+sui-indexer-alt-framework = { git = "https://github.com/MystenLabs/sui.git", rev = "197ebfbc1ff03d83f908e23281e7269b65cf350d" }
+sui-name-service = { git = "https://github.com/MystenLabs/sui.git", rev = "197ebfbc1ff03d83f908e23281e7269b65cf350d" }
 fastcrypto = { git = "https://github.com/MystenLabs/fastcrypto" }
-reqwest = { version = "^0.12", features = ["blocking", "json"] }
 bcs = "0.1.6"
+tempfile = "3.20.0"
 
+sui-indexer-alt-metrics = { git = "https://github.com/MystenLabs/sui.git", rev = "197ebfbc1ff03d83f908e23281e7269b65cf350d" }
+telemetry-subscribers = { git = "https://github.com/MystenLabs/sui.git", rev = "197ebfbc1ff03d83f908e23281e7269b65cf350d" }
+sui-pg-db = { git = "https://github.com/MystenLabs/sui.git", rev = "197ebfbc1ff03d83f908e23281e7269b65cf350d" }
+move-core-types = { git = "https://github.com/MystenLabs/sui.git", rev = "197ebfbc1ff03d83f908e23281e7269b65cf350d" }
+sui-types = { git = "https://github.com/MystenLabs/sui.git", rev = "197ebfbc1ff03d83f908e23281e7269b65cf350d" }
 prometheus = "0.13.4"
 
-sui-indexer-alt-metrics = { git = "https://github.com/MystenLabs/sui.git", rev = "298d049" }
-telemetry-subscribers = { git = "https://github.com/MystenLabs/sui.git", rev = "298d049" }
-sui-pg-db = { git = "https://github.com/MystenLabs/sui.git", rev = "298d049" }
-move-core-types = { git = "https://github.com/MystenLabs/sui.git", rev = "298d049" }
-sui-types = { git = "https://github.com/MystenLabs/sui.git", rev = "298d049" }
+move-binding-derive = { git = "https://github.com/MystenLabs/move-binding.git", rev = "3f12e4f" }
+move-types = { git = "https://github.com/MystenLabs/move-binding.git", rev = "3f12e4f" }
 
-move-binding-derive = { git = "https://github.com/MystenLabs/move-binding.git", rev = "2300e3c" }
-move-types = { git = "https://github.com/MystenLabs/move-binding.git", rev = "2300e3c" }
-
-sui-sdk-types = { git = "https://github.com/mystenlabs/sui-rust-sdk", package = "sui-sdk-types", features = ["serde"], rev = "86a9e06" }
-sui-transaction-builder = { git = "https://github.com/mystenlabs/sui-rust-sdk", rev = "86a9e06" }
+sui-sdk-types = { git = "https://github.com/mystenlabs/sui-rust-sdk", features = ["serde"], rev = "f0c8068" }
+sui-transaction-builder = { git = "https://github.com/mystenlabs/sui-rust-sdk", rev = "f0c8068" }
 
 clap = { version = "4.5.37", features = ["env"] }
 diesel = { version = "2.2.7", features = ["postgres", "uuid", "chrono", "serde_json", "numeric"] }
 diesel-async = { version = "0.5.2", features = ["bb8", "postgres"] }
 diesel_migrations = "2.2.0"
+url = "2.5.4"
 
 [dev-dependencies]
-sui-storage = { git = "https://github.com/MystenLabs/sui.git", rev = "298d049" }
+sui-storage = { git = "https://github.com/MystenLabs/sui.git", rev = "197ebfbc1ff03d83f908e23281e7269b65cf350d" }
 sqlx = {version = "0.8.3", features = ["runtime-tokio", "postgres", "chrono"]}
 fastcrypto = { git = "https://github.com/MystenLabs/fastcrypto" }
 insta = { version = "1.43.1", features = ["json"] }
