@@ -20,6 +20,7 @@ const WALRUS_SITE_ID: vector<u8> = b"walrus_site_id";
 use fun registry_mut as SuiNS.registry_mut;
 
 const EUnsupportedKey: u64 = 0;
+const EUnauthorized: u64 = 1;
 
 /// Authorization token for the controller (v2) which
 /// is used to call protected functions.
@@ -100,6 +101,35 @@ public fun unset_user_data(suins: &mut SuiNS, nft: &SuinsRegistration, key: Stri
         data.remove(&key);
     };
 
+    registry.set_data(domain, data);
+}
+
+/// User-facing function - add a new key-value pair to the name record's data.
+public fun set_user_data_leaf_subname(
+    suins: &mut SuiNS,
+    domain_name: String,
+    key: String,
+    value: String,
+    ctx: &TxContext,
+) {
+    let registry = suins.registry_mut();
+    let domain = domain::new(domain_name);
+    let target_address = registry.get_target_address(domain);
+    assert!(ctx.sender() == target_address.borrow_with_default(&@0x0), EUnauthorized);
+
+    let mut data = *registry.get_data(domain);
+    
+    let key_bytes = *key.as_bytes();
+    assert!(
+        key_bytes == AVATAR || key_bytes == CONTENT_HASH || key_bytes == WALRUS_SITE_ID,
+        EUnsupportedKey,
+    );
+
+    if (data.contains(&key)) {
+        data.remove(&key);
+    };
+
+    data.insert(key, value);
     registry.set_data(domain, data);
 }
 

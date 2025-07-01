@@ -291,6 +291,12 @@ public fun get_data(self: &Registry, domain: Domain): &VecMap<String, String> {
     record.data()
 }
 
+/// Returns the `target_address` associated with the given `Domain`.
+public fun get_target_address(self: &Registry, domain: Domain): Option<address> {
+    let record = &self.registry[domain];
+    record.target_address()
+}
+
 // === Private Functions ===
 
 /// Checks whether a subdomain record is `leaf`.
