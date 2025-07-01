@@ -4,7 +4,8 @@ edition = "2024.beta"
 
 [dependencies]
 Pyth = { git = "https://github.com/pyth-network/pyth-crosschain.git", subdir = "target_chains/sui/contracts", rev = "sui-contract-mainnet" }
-AftermathAmm = { git = "https://github.com/AftermathFinance/move-interfaces.git", subdir = "packages/amm/amm", rev = "main" }
+AftermathAmm = { git = "https://github.com/AftermathFinance/move-interfaces.git", subdir = "packages/amm/amm", rev = "82ec985" }
+CetusClmm = { git = "https://github.com/CetusProtocol/cetus-clmm-interface.git", subdir = "sui/cetus_clmm", rev = "mainnet-v1.26.1" }
 
 [addresses]
 suins_bbb = "0x0"
