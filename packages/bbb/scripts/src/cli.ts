@@ -298,7 +298,7 @@ program
     .description("Cetus swap demo")
     .action(async () => {
         const tx = new Transaction();
-        const demoPkgId = "0x4ddf33945177b5d1c3ab2658f9fa302365a66e0806942eeb76aed37bbaab49d6";
+        const demoPkgId = "0x5b065e17dcd53c5eb2d1b6e902da2f65bb4be367c8afadeee4ebc649abb84a4d";
         const a2b: boolean = true;
         const ZERO_POINT_ONE_USDC = 1_000_000n / 10n;
         const ZERO_POINT_ONE_SUI = 1_000_000_000n / 10n;
