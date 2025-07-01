@@ -4,7 +4,6 @@ use sui::{
     balance::{Self},
     clock::{Clock},
     coin::{Coin},
-    transfer::{public_transfer}
 };
 use cetus_clmm::{
     config::{GlobalConfig},
@@ -12,51 +11,38 @@ use cetus_clmm::{
     tick_math::{min_sqrt_price},
 };
 
-public fun swap<CoinA, CoinB>(
-    global_config: &GlobalConfig,
-    pool: &mut Pool<CoinA, CoinB>,
-    mut coin_a: Coin<CoinA>,
+const EInvalidOwedAmount: u64 = 100;
+
+public fun swap<CoinIn, CoinOut>(
+    config: &GlobalConfig,
+    pool: &mut Pool<CoinIn, CoinOut>,
+    coin_in: Coin<CoinIn>,
     clock: &Clock,
     ctx: &mut TxContext,
-): Coin<CoinB> {
-    let amount_in = coin_a.value();
-
-    // flash swap
-    let (balance_a, balance_b, receipt) = flash_swap<CoinA, CoinB>(
-        global_config,
+): Coin<CoinOut> {
+    // borrow CoinOut from pool
+    let (balance_in_zero, balance_out, receipt) = flash_swap<CoinIn, CoinOut>(
+        config,
         pool,
         true, // a2b
         true, // by_amount_in
-        amount_in,
-        min_sqrt_price(),
+        coin_in.value(), // amount_in
+        min_sqrt_price(), // sqrt_price_limit
         clock,
     );
+    balance_in_zero.destroy_zero();
 
-    balance_a.destroy_zero();
-    let pay_amount = swap_pay_amount<CoinA, CoinB>(&receipt);
-    let coin_b_out = balance_b.into_coin(ctx);
+    // check we owe exactly what we input
+    assert!(receipt.swap_pay_amount() == coin_in.value(), EInvalidOwedAmount);
 
-    assert!(pay_amount == amount_in, 0);
+    // repay the flash loan with coin_in
+    repay_flash_swap<CoinIn, CoinOut>(
+        config,
+        pool,
+        coin_in.into_balance(),
+        balance::zero<CoinOut>(),
+        receipt,
+    );
 
-    // repay flash swap
-    let balance_a_repay = coin_a.split(pay_amount, ctx).into_balance();
-    let balance_b_repay = balance::zero<CoinB>();
-    repay_flash_swap<CoinA, CoinB>(global_config, pool, balance_a_repay, balance_b_repay, receipt);
-
-    // cleanup
-    transfer_or_destroy_coin<CoinA>(coin_a, ctx);
-
-    coin_b_out
-}
-
-#[allow(lint(self_transfer))]
-fun transfer_or_destroy_coin<CoinType>(
-    coin: Coin<CoinType>,
-    ctx: &TxContext,
-) {
-    if (coin.value() > 0) {
-        public_transfer(coin, ctx.sender());
-    } else {
-        coin.destroy_zero();
-    };
+    balance_out.into_coin(ctx)
 }
