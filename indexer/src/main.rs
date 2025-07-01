@@ -1,6 +1,7 @@
 use anyhow::Context;
 use clap::Parser;
 use move_core_types::language_storage::StructTag;
+use move_types::MoveStruct;
 use prometheus::Registry;
 use std::net::SocketAddr;
 use sui_indexer_alt_framework::ingestion::ClientArgs;
@@ -9,7 +10,13 @@ use sui_indexer_alt_metrics::db::DbConnectionStatsCollector;
 use sui_indexer_alt_metrics::{MetricsArgs, MetricsService};
 use sui_pg_db::{Db, DbArgs};
 use sui_types::base_types::SuiAddress;
+use suins_indexer::handlers::convert_struct_tag;
 use suins_indexer::handlers::domain_handler::DomainHandler;
+use suins_indexer::models::sui::dynamic_field::Field;
+use suins_indexer::models::suins::domain::Domain;
+use suins_indexer::models::suins::name_record::NameRecord;
+use suins_indexer::models::suins::subdomain_registration::SubDomainRegistration;
+use suins_indexer::MAINNET_REGISTRY_ID;
 use suins_indexer::MAINNET_REMOTE_STORE_URL;
 use suins_indexer::MIGRATIONS;
 use tokio_util::sync::CancellationToken;
@@ -35,16 +42,16 @@ struct Args {
     remote_store_url: Url,
 
     /// Optional registry table id override, defaulted to Sui mainnet name service registry table id.
-    #[clap(env, long)]
-    registry_id: Option<SuiAddress>,
+    #[clap(env, long, default_value = MAINNET_REGISTRY_ID)]
+    registry_id: SuiAddress,
 
     /// Optional subdomain wrapper type override, defaulted to Sui mainnet subdomain wrapper type.
-    #[clap(env, long)]
-    subdomain_wrapper_type: Option<StructTag>,
+    #[clap(env, long, default_value_t = convert_struct_tag(SubDomainRegistration::struct_type()))]
+    subdomain_wrapper_type: StructTag,
 
-    /// Optional name record type override, defaulted to Sui mainnet name name record type.
-    #[clap(env, long)]
-    name_record_type: Option<StructTag>,
+    /// Optional name record type override, defaulted to Sui mainnet name record type.
+    #[clap(env, long, default_value_t = convert_struct_tag(Field::<Domain, NameRecord>::struct_type()))]
+    name_record_type: StructTag,
 }
 
 #[tokio::main]
@@ -104,13 +111,7 @@ async fn main() -> Result<(), anyhow::Error> {
     )
     .await?;
 
-    let handler = if let (Some(registry_id), Some(subdomain_wrapper_type), Some(name_record_type)) =
-        (registry_id, subdomain_wrapper_type, name_record_type)
-    {
-        DomainHandler::new(registry_id, subdomain_wrapper_type, name_record_type)
-    } else {
-        DomainHandler::default()
-    };
+    let handler = DomainHandler::new(registry_id, subdomain_wrapper_type, name_record_type);
 
     indexer
         .concurrent_pipeline(handler, Default::default())

@@ -1,4 +1,3 @@
-use crate::handlers::convert_struct_tag;
 use crate::models::sui::dynamic_field::Field;
 use crate::models::suins::domain::Domain;
 use crate::models::suins::name_record::NameRecord;
@@ -13,9 +12,7 @@ use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use futures::future::try_join_all;
 use move_core_types::language_storage::StructTag;
-use move_types::MoveStruct;
 use std::collections::HashSet;
-use std::str::FromStr;
 use std::sync::Arc;
 use sui_indexer_alt_framework::pipeline::concurrent::Handler;
 use sui_indexer_alt_framework::pipeline::Processor;
@@ -39,19 +36,6 @@ pub struct DomainHandler {
     registry_table_id: SuiAddress,
     subdomain_wrapper_type: StructTag,
     name_record_type: StructTag,
-}
-
-impl Default for DomainHandler {
-    fn default() -> Self {
-        Self {
-            registry_table_id: SuiAddress::from_str(
-                "0xe64cd9db9f829c6cc405d9790bd71567ae07259855f4fba6f02c84f52298c106",
-            )
-            .unwrap(),
-            subdomain_wrapper_type: convert_struct_tag(SubDomainRegistration::struct_type()),
-            name_record_type: convert_struct_tag(Field::<Domain, NameRecord>::struct_type()),
-        }
-    }
 }
 
 impl DomainHandler {
