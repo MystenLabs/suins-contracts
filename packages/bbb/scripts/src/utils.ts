@@ -16,6 +16,13 @@ export function newSuiClient(): SuiClient {
     });
 }
 
+export function getSigner(): Keypair {
+    if (!process.env.PRIVATE_KEY) {
+        throw new Error("PRIVATE_KEY environment variable is not set");
+    }
+    return pairFromSecretKey(process.env.PRIVATE_KEY);
+}
+
 /** Sign and execute a transaction using the `PRIVATE_KEY` environment variable. */
 export async function signAndExecuteTx({
     tx,
@@ -26,10 +33,7 @@ export async function signAndExecuteTx({
     dryRun?: boolean;
     waitForTx?: boolean;
 }): Promise<SuiTransactionBlockResponse> {
-    if (!process.env.PRIVATE_KEY) {
-        throw new Error("PRIVATE_KEY environment variable is not set");
-    }
-    const signer = pairFromSecretKey(process.env.PRIVATE_KEY);
+    const signer = getSigner();
     tx.setSender(signer.toSuiAddress());
 
     const suiClient = newSuiClient();

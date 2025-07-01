@@ -12,6 +12,7 @@ import {
     logJson,
     logTxResp,
     newSuiClient,
+    getSigner,
     signAndExecuteTx,
 } from "./utils.js";
 
@@ -290,6 +291,34 @@ program
             swaps: swapEvents,
             burns: burnEvents,
         });
+    });
+
+    program
+    .command("cetus-demo")
+    .description("Cetus swap demo")
+    .action(async () => {
+        const tx = new Transaction();
+        const demoPkgId = "0x4ddf33945177b5d1c3ab2658f9fa302365a66e0806942eeb76aed37bbaab49d6";
+        const a2b: boolean = true;
+        const ZERO_POINT_ONE_USDC = 1_000_000n / 10n;
+        const ZERO_POINT_ONE_SUI = 1_000_000_000n / 10n;
+        const coinIn = coinWithBalance({
+            balance: a2b ? ZERO_POINT_ONE_USDC : ZERO_POINT_ONE_SUI,
+            type: a2b ? cnf.coins.USDC.type : cnf.coins.SUI.type,
+        });
+        const coin = tx.moveCall({
+            target: `${demoPkgId}::cetus_swap::swap_${a2b ? "a2b" : "b2a"}`,
+            typeArguments: [cnf.coins.USDC.type, cnf.coins.SUI.type],
+            arguments: [
+                tx.object(cnf.cetus.globalConfigObjId),
+                tx.object(cnf.cetus.pools.sui_usdc.id),
+                coinIn,
+                tx.object.clock(),
+            ],
+        });
+        tx.transferObjects([coin], getSigner().toSuiAddress());
+        const resp = await signAndExecuteTx({ tx, dryRun });
+        logTxResp(resp);
     });
 
 program.parse();
