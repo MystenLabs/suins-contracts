@@ -85,6 +85,24 @@ public fun new_leaf(
     registry_mut(suins).add_leaf_record(subdomain, clock, target, ctx)
 }
 
+/// Removes a `leaf` subdomain from the registry.
+/// Management of the `leaf` subdomain can only be achieved through the parent's valid NFT.
+public fun remove_leaf(
+    suins: &mut SuiNS,
+    parent: &SuinsRegistration,
+    clock: &Clock,
+    subdomain_name: String,
+) {
+    let subdomain = domain::new(subdomain_name);
+
+    // All validation logic for subdomain creation / management.
+    // We pass `false` as last argument because even if we don't have create capabilities (anymore),
+    // we can still remove a leaf name (we just can't add a new one).
+    internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, false);
+
+    registry_mut(suins).remove_leaf_record(subdomain)
+}
+
 public fun add_leaf_metadata(
     suins: &mut SuiNS,
     parent: &SuinsRegistration,
@@ -93,8 +111,6 @@ public fun add_leaf_metadata(
     key: String,
     value: String,
 ) {
-    assert!(!denylist::is_blocked_name(suins, subdomain_name), ENotAllowedName);
-
     let subdomain = domain::new(subdomain_name);
     // all validation logic for subdomain creation / management.
     internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, true);
@@ -118,7 +134,6 @@ public fun remove_leaf_metadata(
     subdomain_name: String,
     key: String,
 ) {
-    assert!(!denylist::is_blocked_name(suins, subdomain_name), ENotAllowedName);
     let subdomain = domain::new(subdomain_name);
     // all validation logic for subdomain creation / management.
     internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, true);
@@ -130,24 +145,6 @@ public fun remove_leaf_metadata(
     };
 
     registry.set_data(subdomain, data);
-}
-
-/// Removes a `leaf` subdomain from the registry.
-/// Management of the `leaf` subdomain can only be achieved through the parent's valid NFT.
-public fun remove_leaf(
-    suins: &mut SuiNS,
-    parent: &SuinsRegistration,
-    clock: &Clock,
-    subdomain_name: String,
-) {
-    let subdomain = domain::new(subdomain_name);
-
-    // All validation logic for subdomain creation / management.
-    // We pass `false` as last argument because even if we don't have create capabilities (anymore),
-    // we can still remove a leaf name (we just can't add a new one).
-    internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, false);
-
-    registry_mut(suins).remove_leaf_record(subdomain)
 }
 
 /// Creates a new `node` subdomain
