@@ -25,7 +25,7 @@
 module suins_subdomains::subdomains;
 
 use std::string::{String, utf8};
-use sui::{clock::Clock, dynamic_field as df, vec_map::VecMap};
+use sui::{clock::Clock, dynamic_field as df, vec_map::{Self, VecMap}};
 use suins::{
     constants::{subdomain_allow_extension_key, subdomain_allow_creation_key},
     domain::{Self, Domain, is_subdomain},
@@ -85,6 +85,8 @@ public fun new_leaf(
     registry_mut(suins).add_leaf_record(subdomain, clock, target, ctx)
 }
 
+/// Creates a `leaf` subdomain with metadata
+/// A `leaf` subdomain, is a subdomain that is managed by the parent's NFT.
 public fun new_leaf_with_metadata(
     suins: &mut SuiNS,
     parent: &SuinsRegistration,
@@ -101,7 +103,7 @@ public fun new_leaf_with_metadata(
     internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, true);
 
     let registry = registry_mut(suins);
-    let mut data = *registry.get_data(subdomain);
+    let mut data = vec_map::empty();
     let n = metadata.size();
     let mut i = 0;
     while (i < n) {
@@ -115,10 +117,9 @@ public fun new_leaf_with_metadata(
         i = i + 1;
     };
 
-    registry.set_data(subdomain, data);
-
     // Aborts with `suins::registry::ERecordExists` if the subdomain already exists.
-    registry_mut(suins).add_leaf_record(subdomain, clock, target, ctx)
+    registry.add_leaf_record(subdomain, clock, target, ctx);
+    registry.set_data(subdomain, data);
 }
 
 /// Removes a `leaf` subdomain from the registry.

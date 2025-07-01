@@ -50,15 +50,15 @@ fun test_multiple_operation_cases() {
     metadata.insert(utf8(b"walrus_site_id"), utf8(b"value3"));
 
     create_leaf_subdomain(&parent, utf8(b"leaf.test.sui"), TEST_ADDRESS, scenario);
+    remove_leaf_subdomain(&parent, utf8(b"leaf.test.sui"), scenario);
     create_leaf_subdomain_with_metadata(
         &parent,
-        utf8(b"leaf.test2.sui"),
+        utf8(b"leaf.test.sui"),
         TEST_ADDRESS,
         metadata,
         scenario,
     );
     remove_leaf_subdomain(&parent, utf8(b"leaf.test.sui"), scenario);
-    remove_leaf_subdomain(&parent, utf8(b"leaf.test2.sui"), scenario);
 
     // Create a node name with the same name as the leaf that was deleted.
     let another_child = create_node_subdomain(
