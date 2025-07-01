@@ -118,7 +118,7 @@ public fun set_user_data_leaf_subname(
     assert!(ctx.sender() == target_address.borrow_with_default(&@0x0), EUnauthorized);
 
     let mut data = *registry.get_data(domain);
-    
+
     let key_bytes = *key.as_bytes();
     assert!(
         key_bytes == AVATAR || key_bytes == CONTENT_HASH || key_bytes == WALRUS_SITE_ID,
