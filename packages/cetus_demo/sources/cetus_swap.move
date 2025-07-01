@@ -13,36 +13,36 @@ use cetus_clmm::{
 
 const EInvalidOwedAmount: u64 = 100;
 
-public fun swap<CoinIn, CoinOut>(
+public fun swap_a2b<CoinA, CoinB>(
     config: &GlobalConfig,
-    pool: &mut Pool<CoinIn, CoinOut>,
-    coin_in: Coin<CoinIn>,
+    pool: &mut Pool<CoinA, CoinB>,
+    coin_a: Coin<CoinA>,
     clock: &Clock,
     ctx: &mut TxContext,
-): Coin<CoinOut> {
-    // borrow CoinOut from pool
-    let (balance_in_zero, balance_out, receipt) = flash_swap<CoinIn, CoinOut>(
+): Coin<CoinB> {
+    // borrow CoinB from pool
+    let (balance_a_zero, balance_b, receipt) = flash_swap<CoinA, CoinB>(
         config,
         pool,
         true, // a2b
         true, // by_amount_in
-        coin_in.value(), // amount_in
+        coin_a.value(), // amount
         min_sqrt_price(), // sqrt_price_limit
         clock,
     );
-    balance_in_zero.destroy_zero();
+    balance_a_zero.destroy_zero();
 
     // check we owe exactly what we input
-    assert!(receipt.swap_pay_amount() == coin_in.value(), EInvalidOwedAmount);
+    assert!(receipt.swap_pay_amount() == coin_a.value(), EInvalidOwedAmount);
 
-    // repay the flash loan with coin_in
-    repay_flash_swap<CoinIn, CoinOut>(
+    // repay the flash loan with coin_a
+    repay_flash_swap<CoinA, CoinB>(
         config,
         pool,
-        coin_in.into_balance(),
-        balance::zero<CoinOut>(),
+        coin_a.into_balance(),
+        balance::zero<CoinB>(),
         receipt,
     );
 
-    balance_out.into_coin(ctx)
+    balance_b.into_coin(ctx)
 }
