@@ -10,19 +10,16 @@ fun flash_swap<CoinA, CoinB>(
     clock: &sui::clock::Clock,
     ctx: &mut sui::tx_context::TxContext,
 ): (sui::coin::Coin<CoinA>, sui::coin::Coin<CoinB>, cetus_clmm::pool::FlashSwapReceipt<CoinA, CoinB>, u64) {
-    let (mut balance_a, mut balance_b, mut receipt) = cetus_clmm::pool::flash_swap<CoinA, CoinB>(
+    let (balance_a, balance_b, receipt) = cetus_clmm::pool::flash_swap<CoinA, CoinB>(
         global_config, pool, a2b, by_amount_in, amount, sqrt_price_limit, clock
     );
-    let flash_receipt = receipt;
-    let coin_b_balance = balance_b;
-    let coin_a_balance = balance_a;
-    let pay_amount = cetus_clmm::pool::swap_pay_amount<CoinA, CoinB>(&flash_receipt);
-    let mut _unused_amount = if (by_amount_in) {
-        amount
-    } else {
+    let pay_amount = cetus_clmm::pool::swap_pay_amount<CoinA, CoinB>(&receipt);
+    (
+        sui::coin::from_balance<CoinA>(balance_a, ctx),
+        sui::coin::from_balance<CoinB>(balance_b, ctx),
+        receipt,
         pay_amount
-    };
-    (sui::coin::from_balance<CoinA>(coin_a_balance, ctx), sui::coin::from_balance<CoinB>(coin_b_balance, ctx), flash_receipt, pay_amount)
+    )
 }
 
 fun repay_flash_swap<CoinA, CoinB>(
@@ -34,16 +31,17 @@ fun repay_flash_swap<CoinA, CoinB>(
     receipt: cetus_clmm::pool::FlashSwapReceipt<CoinA, CoinB>,
     ctx: &mut sui::tx_context::TxContext,
 ): (sui::coin::Coin<CoinA>, sui::coin::Coin<CoinB>) {
-    let (mut balance_a_repay, mut balance_b_repay) = if (is_a2b) {
-        let mut balance_a = sui::coin::into_balance<CoinA>(
-            sui::coin::split<CoinA>(&mut coin_a, cetus_clmm::pool::swap_pay_amount<CoinA, CoinB>(&receipt), ctx),
-        );
-        (balance_a, sui::balance::zero<CoinB>())
+    let pay_amount = cetus_clmm::pool::swap_pay_amount<CoinA, CoinB>(&receipt);
+    let (balance_a_repay, balance_b_repay) = if (is_a2b) {
+        (
+            sui::coin::into_balance<CoinA>(sui::coin::split<CoinA>(&mut coin_a, pay_amount, ctx)),
+            sui::balance::zero<CoinB>()
+        )
     } else {
-        let mut balance_b = sui::coin::into_balance<CoinB>(
-            sui::coin::split<CoinB>(&mut coin_b, cetus_clmm::pool::swap_pay_amount<CoinA, CoinB>(&receipt), ctx),
-        );
-        (sui::balance::zero<CoinA>(), balance_b)
+        (
+            sui::balance::zero<CoinA>(),
+            sui::coin::into_balance<CoinB>(sui::coin::split<CoinB>(&mut coin_b, pay_amount, ctx))
+        )
     };
     cetus_clmm::pool::repay_flash_swap<CoinA, CoinB>(global_config, pool, balance_a_repay, balance_b_repay, receipt);
     (coin_a, coin_b)
@@ -78,8 +76,15 @@ public fun repay_flash_swap_a2b<CoinA, CoinB>(
     receipt: cetus_clmm::pool::FlashSwapReceipt<CoinA, CoinB>,
     ctx: &mut sui::tx_context::TxContext,
 ): sui::coin::Coin<CoinA> {
-    let zero_coin_b = sui::coin::zero<CoinB>(ctx);
-    let (remaining_coin_a, remaining_coin_b) = repay_flash_swap<CoinA, CoinB>(global_config, pool, true, coin_a, zero_coin_b, receipt, ctx);
+    let (remaining_coin_a, remaining_coin_b) = repay_flash_swap<CoinA, CoinB>(
+        global_config,
+        pool,
+        true,
+        coin_a,
+        sui::coin::zero<CoinB>(ctx),
+        receipt,
+        ctx
+    );
     transfer_or_destroy_coin<CoinB>(remaining_coin_b, ctx);
     remaining_coin_a
 }
