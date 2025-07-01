@@ -8,7 +8,7 @@ use sui::{
 use cetusclmm::{
     config::{GlobalConfig},
     pool::{Pool, flash_swap, repay_flash_swap, swap_pay_amount},
-    tick_math::{min_sqrt_price},
+    tick_math::{min_sqrt_price, max_sqrt_price},
 };
 
 const EInvalidOwedAmount: u64 = 100;
@@ -61,7 +61,7 @@ public fun swap_b2a<CoinA, CoinB>(
         false, // a2b=false: swap from CoinB to CoinA
         true, // by_amount_in
         coin_b.value(), // amount
-        min_sqrt_price(), // sqrt_price_limit
+        max_sqrt_price(), // sqrt_price_limit
         clock,
     );
     balance_b_zero.destroy_zero();
