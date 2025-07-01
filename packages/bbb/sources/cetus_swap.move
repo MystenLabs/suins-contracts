@@ -1,73 +1,62 @@
 module suins_bbb::bbb_cetus_swap;
 
-public fun swap_a2b<CoinA, CoinB>(
-    global_config: &cetus_clmm::config::GlobalConfig,
-    pool: &mut cetus_clmm::pool::Pool<CoinA, CoinB>,
-    coin_a: sui::coin::Coin<CoinA>,
-    clock: &sui::clock::Clock,
-    ctx: &mut sui::tx_context::TxContext,
-): sui::coin::Coin<CoinB> {
-    let amount_in = sui::coin::value<CoinA>(&coin_a);
-    let (unused_coin_a, coin_b_out, receipt, pay_amount) = flash_swap<CoinA, CoinB>(
+use sui::{
+    balance::{Self},
+    clock::{Clock},
+    coin::{Coin},
+    transfer::{public_transfer}
+};
+use cetus_clmm::{
+    config::{GlobalConfig},
+    pool::{Pool, flash_swap, repay_flash_swap, swap_pay_amount},
+    tick_math::{min_sqrt_price},
+};
+
+public fun swap<CoinA, CoinB>(
+    global_config: &GlobalConfig,
+    pool: &mut Pool<CoinA, CoinB>,
+    mut coin_a: Coin<CoinA>,
+    clock: &Clock,
+    ctx: &mut TxContext,
+): Coin<CoinB> {
+    let amount_in = coin_a.value();
+
+    // flash swap
+    let (balance_a, balance_b, receipt) = flash_swap<CoinA, CoinB>(
         global_config,
         pool,
+        true, // a2b
+        true, // by_amount_in
         amount_in,
-        true,
-        cetus_clmm::tick_math::min_sqrt_price(),
+        min_sqrt_price(),
         clock,
-        ctx,
     );
+
+    balance_a.destroy_zero();
+    let pay_amount = swap_pay_amount<CoinA, CoinB>(&receipt);
+    let coin_b_out = balance_b.into_coin(ctx);
+
     assert!(pay_amount == amount_in, 0);
-    let remaining_coin_a = repay_flash_swap<CoinA, CoinB>(global_config, pool, coin_a, receipt, ctx);
-    transfer_or_destroy_coin<CoinA>(remaining_coin_a, ctx);
-    sui::coin::destroy_zero<CoinA>(unused_coin_a);
+
+    // repay flash swap
+    let balance_a_repay = coin_a.split(pay_amount, ctx).into_balance();
+    let balance_b_repay = balance::zero<CoinB>();
+    repay_flash_swap<CoinA, CoinB>(global_config, pool, balance_a_repay, balance_b_repay, receipt);
+
+    // cleanup
+    transfer_or_destroy_coin<CoinA>(coin_a, ctx);
+
     coin_b_out
 }
 
-fun flash_swap<CoinA, CoinB>(
-    global_config: &cetus_clmm::config::GlobalConfig,
-    pool: &mut cetus_clmm::pool::Pool<CoinA, CoinB>,
-    amount: u64,
-    by_amount_in: bool,
-    sqrt_price_limit: u128,
-    clock: &sui::clock::Clock,
-    ctx: &mut sui::tx_context::TxContext,
-): (sui::coin::Coin<CoinA>, sui::coin::Coin<CoinB>, cetus_clmm::pool::FlashSwapReceipt<CoinA, CoinB>, u64) {
-    let is_a2b = true;
-    let (balance_a, balance_b, receipt) = cetus_clmm::pool::flash_swap<CoinA, CoinB>(
-        global_config, pool, is_a2b, by_amount_in, amount, sqrt_price_limit, clock
-    );
-    let pay_amount = cetus_clmm::pool::swap_pay_amount<CoinA, CoinB>(&receipt);
-    (
-        sui::coin::from_balance<CoinA>(balance_a, ctx),
-        sui::coin::from_balance<CoinB>(balance_b, ctx),
-        receipt,
-        pay_amount
-    )
-}
-
-fun repay_flash_swap<CoinA, CoinB>(
-    global_config: &cetus_clmm::config::GlobalConfig,
-    pool: &mut cetus_clmm::pool::Pool<CoinA, CoinB>,
-    mut coin_a: sui::coin::Coin<CoinA>,
-    receipt: cetus_clmm::pool::FlashSwapReceipt<CoinA, CoinB>,
-    ctx: &mut sui::tx_context::TxContext,
-): sui::coin::Coin<CoinA> {
-    let pay_amount = cetus_clmm::pool::swap_pay_amount<CoinA, CoinB>(&receipt);
-    let balance_a_repay = sui::coin::into_balance<CoinA>(sui::coin::split<CoinA>(&mut coin_a, pay_amount, ctx));
-    let balance_b_repay = sui::balance::zero<CoinB>();
-
-    cetus_clmm::pool::repay_flash_swap<CoinA, CoinB>(global_config, pool, balance_a_repay, balance_b_repay, receipt);
-    coin_a
-}
-
+#[allow(lint(self_transfer))]
 fun transfer_or_destroy_coin<CoinType>(
-    coin: sui::coin::Coin<CoinType>,
-    ctx: &sui::tx_context::TxContext,
+    coin: Coin<CoinType>,
+    ctx: &TxContext,
 ) {
-    if (sui::coin::value<CoinType>(&coin) > 0) {
-        sui::transfer::public_transfer<sui::coin::Coin<CoinType>>(coin, sui::tx_context::sender(ctx));
+    if (coin.value() > 0) {
+        public_transfer(coin, ctx.sender());
     } else {
-        sui::coin::destroy_zero<CoinType>(coin);
+        coin.destroy_zero();
     };
 }
