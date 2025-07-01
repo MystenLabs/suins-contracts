@@ -1,4 +1,4 @@
-module suins_bbb::bbb_cetus_swap;
+module cetus_demo::cetus_swap;
 
 use sui::{
     balance::{Self},

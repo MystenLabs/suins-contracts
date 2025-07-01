@@ -1,0 +1,9 @@
+[package]
+name = "cetus_demo"
+edition = "2024.beta"
+
+[dependencies]
+CetusClmm = { git = "https://github.com/CetusProtocol/cetus-clmm-interface.git", subdir = "sui/cetus_clmm", rev = "mainnet-v1.26.1" }
+
+[addresses]
+cetus_demo = "0x0"
