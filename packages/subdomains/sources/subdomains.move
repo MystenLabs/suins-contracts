@@ -85,16 +85,13 @@ public fun new_leaf(
     registry_mut(suins).add_leaf_record(subdomain, clock, target, ctx)
 }
 
-/// Creates a `leaf` subdomain with metadata
-/// A `leaf` subdomain, is a subdomain that is managed by the parent's NFT.
-public fun new_leaf_with_metadata(
+public fun add_leaf_metadata(
     suins: &mut SuiNS,
     parent: &SuinsRegistration,
     clock: &Clock,
     subdomain_name: String,
-    target: address,
-    metadata: VecMap<String, String>,
-    ctx: &mut TxContext,
+    key: String,
+    value: String,
 ) {
     assert!(!denylist::is_blocked_name(suins, subdomain_name), ENotAllowedName);
 
@@ -104,21 +101,34 @@ public fun new_leaf_with_metadata(
 
     let registry = registry_mut(suins);
     let mut data = vec_map::empty();
-    let n = metadata.size();
-    let mut i = 0;
-    while (i < n) {
-        let (key_ref, value_ref) = metadata.get_entry_by_idx(i);
-        let key_bytes = *key_ref.as_bytes();
-        assert!(
-            key_bytes == AVATAR || key_bytes == CONTENT_HASH || key_bytes == WALRUS_SITE_ID,
-            EUnsupportedKey,
-        );
-        data.insert(*key_ref, *value_ref);
-        i = i + 1;
+    let key_bytes = *key.as_bytes();
+    assert!(
+        key_bytes == AVATAR || key_bytes == CONTENT_HASH || key_bytes == WALRUS_SITE_ID,
+        EUnsupportedKey,
+    );
+    data.insert(key, value);
+
+    registry.set_data(subdomain, data);
+}
+
+public fun remove_leaf_metadata(
+    suins: &mut SuiNS,
+    parent: &SuinsRegistration,
+    clock: &Clock,
+    subdomain_name: String,
+    key: String,
+) {
+    assert!(!denylist::is_blocked_name(suins, subdomain_name), ENotAllowedName);
+    let subdomain = domain::new(subdomain_name);
+    // all validation logic for subdomain creation / management.
+    internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, true);
+
+    let registry = registry_mut(suins);
+    let mut data = *registry.get_data(subdomain);
+    if (data.contains(&key)) {
+        data.remove(&key);
     };
 
-    // Aborts with `suins::registry::ERecordExists` if the subdomain already exists.
-    registry.add_leaf_record(subdomain, clock, target, ctx);
     registry.set_data(subdomain, data);
 }
 

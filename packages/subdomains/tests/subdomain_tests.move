@@ -5,11 +5,7 @@
 module suins_subdomains::subdomain_tests;
 
 use std::string::{String, utf8};
-use sui::{
-    clock::{Self, Clock},
-    test_scenario::{Self as ts, Scenario, ctx},
-    vec_map::{Self, VecMap}
-};
+use sui::{clock::{Self, Clock}, test_scenario::{Self as ts, Scenario, ctx}};
 use suins::{
     constants::{grace_period_ms, year_ms},
     domain,
@@ -44,20 +40,25 @@ fun test_multiple_operation_cases() {
         scenario,
     );
 
-    let mut metadata = vec_map::empty();
-    metadata.insert(utf8(b"avatar"), utf8(b"value1"));
-    metadata.insert(utf8(b"content_hash"), utf8(b"value2"));
-    metadata.insert(utf8(b"walrus_site_id"), utf8(b"value3"));
-
     create_leaf_subdomain(&parent, utf8(b"leaf.test.sui"), TEST_ADDRESS, scenario);
-    remove_leaf_subdomain(&parent, utf8(b"leaf.test.sui"), scenario);
-    create_leaf_subdomain_with_metadata(
+    add_leaf_metadata(&parent, utf8(b"leaf.test.sui"), utf8(b"avatar"), utf8(b"value1"), scenario);
+    add_leaf_metadata(
         &parent,
         utf8(b"leaf.test.sui"),
-        TEST_ADDRESS,
-        metadata,
+        utf8(b"content_hash"),
+        utf8(b"value2"),
         scenario,
     );
+    add_leaf_metadata(
+        &parent,
+        utf8(b"leaf.test.sui"),
+        utf8(b"walrus_site_id"),
+        utf8(b"value3"),
+        scenario,
+    );
+    remove_leaf_metadata(&parent, utf8(b"leaf.test.sui"), utf8(b"avatar"), scenario);
+    remove_leaf_metadata(&parent, utf8(b"leaf.test.sui"), utf8(b"content_hash"), scenario);
+    remove_leaf_metadata(&parent, utf8(b"leaf.test.sui"), utf8(b"walrus_site_id"), scenario);
     remove_leaf_subdomain(&parent, utf8(b"leaf.test.sui"), scenario);
 
     // Create a node name with the same name as the leaf that was deleted.
@@ -338,26 +339,41 @@ public fun create_leaf_subdomain(
     ts::return_shared(clock);
 }
 
-public fun create_leaf_subdomain_with_metadata(
+public fun add_leaf_metadata(
     parent: &SuinsRegistration,
-    name: String,
-    target: address,
-    metadata: VecMap<String, String>,
+    subdomain_name: String,
+    key: String,
+    value: String,
     scenario: &mut Scenario,
 ) {
     ts::next_tx(scenario, USER_ADDRESS);
     let mut suins = ts::take_shared<SuiNS>(scenario);
     let clock = ts::take_shared<Clock>(scenario);
 
-    subdomains::new_leaf_with_metadata(
+    subdomains::add_leaf_metadata(
         &mut suins,
         parent,
         &clock,
-        name,
-        target,
-        metadata,
-        ctx(scenario),
+        subdomain_name,
+        key,
+        value,
     );
+
+    ts::return_shared(suins);
+    ts::return_shared(clock);
+}
+
+public fun remove_leaf_metadata(
+    parent: &SuinsRegistration,
+    subdomain_name: String,
+    key: String,
+    scenario: &mut Scenario,
+) {
+    ts::next_tx(scenario, USER_ADDRESS);
+    let mut suins = ts::take_shared<SuiNS>(scenario);
+    let clock = ts::take_shared<Clock>(scenario);
+
+    subdomains::remove_leaf_metadata(&mut suins, parent, &clock, subdomain_name, key);
 
     ts::return_shared(suins);
     ts::return_shared(clock);
