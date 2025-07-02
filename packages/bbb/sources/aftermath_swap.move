@@ -186,7 +186,7 @@ public fun swap<L, CoinIn, CoinOut>(
     // deposit CoinOut into vault
     vault.deposit<CoinOut>(coin_out);
 
-    emit(Swapped {
+    emit(AftermathSwapEvent {
         type_in: type_name::get<CoinIn>().into_string(),
         type_out: type_name::get<CoinOut>().into_string(),
         amount_in,
@@ -197,7 +197,7 @@ public fun swap<L, CoinIn, CoinOut>(
 
 // === events ===
 
-public struct Swapped has drop, copy {
+public struct AftermathSwapEvent has drop, copy {
     type_in: String,
     type_out: String,
     amount_in: u64,

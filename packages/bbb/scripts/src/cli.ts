@@ -1,19 +1,18 @@
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 import { Command, Option } from "commander";
 import { afSwaps, burnTypes, cnf } from "./config.js";
+import { AftermathSwapEventSchema } from "./schema/aftermath_swap.js";
 import { BalanceDfSchema } from "./schema/balance_df.js";
-import { BBBAftermathConfigSchema } from "./schema/bbb_aftermath_config.js";
-import { BBBBurnConfigSchema } from "./schema/bbb_burn_config.js";
-import { BBBVaultSchema } from "./schema/bbb_vault.js";
-import { BurnedEventSchema } from "./schema/burned_event.js";
-import { SwappedEventSchema } from "./schema/swapped_event.js";
+import { BurnEventSchema } from "./schema/burn.js";
+import { AftermathConfigSchema, BurnConfigSchema } from "./schema/config.js";
+import { BBBVaultSchema } from "./schema/vault.js";
 import * as sdk from "./sdk.js";
 import {
     getPriceInfoObject,
+    getSigner,
     logJson,
     logTxResp,
     newSuiClient,
-    getSigner,
     signAndExecuteTx,
 } from "./utils.js";
 
@@ -93,8 +92,8 @@ program
             }),
         ]);
 
-        const burnConfig = BBBBurnConfigSchema.parse(burnConfigResp.data);
-        const aftermathConfig = BBBAftermathConfigSchema.parse(aftermathConfigResp.data);
+        const burnConfig = BurnConfigSchema.parse(burnConfigResp.data);
+        const aftermathConfig = AftermathConfigSchema.parse(aftermathConfigResp.data);
 
         logJson({
             burnConfig,
@@ -293,11 +292,11 @@ program
         // log
 
         const burnEvents = resp.events
-            ?.filter((e) => e.type.endsWith("::bbb_burn::Burned"))
-            .map((e) => BurnedEventSchema.parse(e).parsedJson);
+            ?.filter((e) => e.type.endsWith("::bbb_burn::BurnEvent"))
+            .map((e) => BurnEventSchema.parse(e).parsedJson);
         const swapEvents = resp.events
-            ?.filter((e) => e.type.endsWith("::bbb_aftermath_swap::Swapped"))
-            .map((e) => SwappedEventSchema.parse(e).parsedJson);
+            ?.filter((e) => e.type.endsWith("::bbb_aftermath_swap::AftermathSwapEvent"))
+            .map((e) => AftermathSwapEventSchema.parse(e).parsedJson);
         logJson({
             time: new Date().toISOString(),
             tx_status: resp.effects?.status.status,
@@ -307,12 +306,13 @@ program
         });
     });
 
-    program
+program
     .command("cetus-demo")
     .description("Cetus swap demo")
     .action(async () => {
         const tx = new Transaction();
-        const demoPkgId = "0x5b065e17dcd53c5eb2d1b6e902da2f65bb4be367c8afadeee4ebc649abb84a4d";
+        const demoPkgId =
+            "0x5b065e17dcd53c5eb2d1b6e902da2f65bb4be367c8afadeee4ebc649abb84a4d";
         const a2b: boolean = true;
         const ZERO_POINT_ONE_USDC = 1_000_000n / 10n;
         const ZERO_POINT_ONE_SUI = 1_000_000_000n / 10n;
