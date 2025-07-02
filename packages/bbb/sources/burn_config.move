@@ -20,19 +20,21 @@ public struct BurnConfig has key {
     id: UID,
     burns: vector<Burn>,
 }
-public fun burns(cnf: &BurnConfig): &vector<Burn> { &cnf.burns }
+
+public fun id(self: &BurnConfig): &UID { &self.id }
+public fun burns(self: &BurnConfig): &vector<Burn> { &self.burns }
 
 // === public functions ===
 
 public fun get<C>(
-    conf: &BurnConfig,
+    self: &BurnConfig,
 ): Burn {
     let coin_type = type_name::get<C>();
-    let idx = conf.burns.find_index!(|burn| {
+    let idx = self.burns.find_index!(|burn| {
         burn.coin_type() == coin_type
     });
     assert!(idx.is_some(), EBurnTypeNotFound);
-    conf.burns[idx.destroy_some()]
+    self.burns[idx.destroy_some()]
 }
 
 // === admin functions ===
@@ -48,26 +50,26 @@ public fun new(
 }
 
 public fun add(
-    conf: &mut BurnConfig,
+    self: &mut BurnConfig,
     _cap: &BBBAdminCap,
     burn: Burn,
 ) {
-    let already_exists = conf.burns.any!(|existing| {
+    let already_exists = self.burns.any!(|existing| {
         existing.coin_type() == burn.coin_type()
     });
     assert!(!already_exists, EBurnTypeAlreadyExists);
 
-    conf.burns.push_back(burn);
+    self.burns.push_back(burn);
 }
 
 public fun remove<C>(
-    conf: &mut BurnConfig,
+    self: &mut BurnConfig,
     _cap: &BBBAdminCap,
 ) {
-    let idx = conf.burns.find_index!(|existing| {
+    let idx = self.burns.find_index!(|existing| {
         existing.coin_type() == type_name::get<C>()
     });
     assert!(idx.is_some(), EBurnTypeNotFound);
 
-    conf.burns.swap_remove(idx.destroy_some());
+    self.burns.swap_remove(idx.destroy_some());
 }

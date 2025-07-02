@@ -115,7 +115,7 @@ public fun new<L, CoinIn, CoinOut>(
 /// Uses Aftermath's AMM. Protocol fees are charged on the `CoinIn` being swapped.
 public fun swap<L, CoinIn, CoinOut>(
     // ours
-    af_swap: &AftermathSwap,
+    self: &AftermathSwap,
     vault: &mut BBBVault,
     // pyth
     info_in: &PriceInfoObject,
@@ -134,15 +134,15 @@ public fun swap<L, CoinIn, CoinOut>(
     // check price feed ids match the config
     let feed_id_in = info_in.get_price_info_from_price_info_object().get_price_identifier();
     let feed_id_out = info_out.get_price_info_from_price_info_object().get_price_identifier();
-    assert!(feed_id_in.get_bytes() == af_swap.feed_in(), EFeedInMismatch);
-    assert!(feed_id_out.get_bytes() == af_swap.feed_out(), EFeedOutMismatch);
+    assert!(feed_id_in.get_bytes() == self.feed_in(), EFeedInMismatch);
+    assert!(feed_id_out.get_bytes() == self.feed_out(), EFeedOutMismatch);
 
     // check pool id and coin types match the config
-    assert!(object::id(pool) == af_swap.pool_id(), EInvalidPool);
+    assert!(object::id(pool) == self.pool_id(), EInvalidPool);
     let type_in = type_name::get<CoinIn>();
     let type_out = type_name::get<CoinOut>();
-    assert!(type_in == af_swap.type_in(), EInvalidCoinInType);
-    assert!(type_out == af_swap.type_out(), EInvalidCoinOutType);
+    assert!(type_in == self.type_in(), EInvalidCoinInType);
+    assert!(type_out == self.type_out(), EInvalidCoinOutType);
 
     // withdraw all CoinIn from vault
     let coin_in = vault.withdraw<CoinIn>().into_coin(ctx);
@@ -158,10 +158,10 @@ public fun swap<L, CoinIn, CoinOut>(
     let expected_out = calc_amount_out(
         info_in,
         info_out,
-        af_swap.decimals_in,
-        af_swap.decimals_out,
+        self.decimals_in,
+        self.decimals_out,
         amount_in,
-        af_swap.max_age_secs,
+        self.max_age_secs,
         clock,
     );
 
@@ -175,13 +175,13 @@ public fun swap<L, CoinIn, CoinOut>(
         referral_vault,
         coin_in,
         expected_out,
-        af_swap.slippage,
+        self.slippage,
         ctx,
     );
     let amount_out = coin_out.value();
 
     // check that we received enough CoinOut
-    let minimum_out = ((expected_out as u256) * (af_swap.slippage as u256)) / slippage_scale!();
+    let minimum_out = ((expected_out as u256) * (self.slippage as u256)) / slippage_scale!();
     assert!(amount_out >= minimum_out as u64, EAmountOutTooLow);
 
     // deposit CoinOut into vault

@@ -29,7 +29,7 @@ public struct Burn has copy, drop, store {
     coin_type: TypeName,
 }
 
-public fun coin_type(burn: &Burn): &TypeName { &burn.coin_type }
+public fun coin_type(self: &Burn): &TypeName { &self.coin_type }
 
 public fun new<C>(_cap: &BBBAdminCap): Burn {
     Burn { coin_type: type_name::get<C>() }
@@ -39,12 +39,12 @@ public fun new<C>(_cap: &BBBAdminCap): Burn {
 
 /// Burn all `Balance<C>` in the vault by sending it to the burn address.
 public fun burn<C>(
-    burn: &Burn,
+    self: &Burn,
     vault: &mut BBBVault,
     ctx: &mut TxContext,
 ) {
     let coin_type = type_name::get<C>();
-    assert!(coin_type == burn.coin_type, EInvalidCoinType);
+    assert!(coin_type == self.coin_type, EInvalidCoinType);
 
     let balance = vault.withdraw<C>();
     if (balance.value() == 0) {
