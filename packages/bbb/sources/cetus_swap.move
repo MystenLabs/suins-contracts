@@ -172,7 +172,45 @@ public fun swap<CoinA, CoinB>(
             expected_out: expected_b,
         });
     } else {
+        // withdraw all CoinB from vault
+        let coin_in_b = vault.withdraw<CoinB>().into_coin(ctx);
+        let amount_in_b = coin_in_b.value();
 
+        // return early if zero
+        if (amount_in_b == 0) {
+            coin_in_b.destroy_zero();
+            return
+        };
+
+        // calculate expected CoinA amount
+        let expected_a = calc_amount_out(
+            info_b,
+            info_a,
+            cetus_swap.decimals_b,
+            cetus_swap.decimals_a,
+            amount_in_b,
+            cetus_swap.max_age_secs,
+            clock,
+        );
+
+        // swap CoinB for CoinA
+        let coin_out_a = swap_b2a(cetus_config, pool, coin_in_b, clock, ctx);
+        let amount_out_a = coin_out_a.value();
+
+        // check that we received enough CoinA
+        let minimum_out_a = ((expected_a as u256) * (cetus_swap.slippage as u256)) / 1_000_000_000_000_000_000;
+        assert!(amount_out_a >= minimum_out_a as u64, EAmountOutTooLow);
+
+        // deposit CoinA into vault
+        vault.deposit<CoinA>(coin_out_a);
+
+        emit(CetusSwapEvent {
+            type_in: type_b.into_string(),
+            type_out: type_a.into_string(),
+            amount_in: amount_in_b,
+            amount_out: amount_out_a,
+            expected_out: expected_a,
+        });
     }
 }
 
