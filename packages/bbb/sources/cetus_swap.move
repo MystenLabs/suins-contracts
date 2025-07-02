@@ -20,6 +20,7 @@ use cetusclmm::{
 };
 use suins_bbb::{
     bbb_admin::{BBBAdminCap},
+    bbb_constants::{slippage_scale},
     bbb_pyth::{calc_amount_out},
     bbb_vault::{BBBVault},
 };
@@ -158,7 +159,7 @@ public fun swap<CoinA, CoinB>(
         let amount_out_b = coin_out_b.value();
 
         // check that we received enough CoinB
-        let minimum_out_b = ((expected_b as u256) * (cetus_swap.slippage as u256)) / 1_000_000_000_000_000_000;
+        let minimum_out_b = ((expected_b as u256) * (cetus_swap.slippage as u256)) / slippage_scale!();
         assert!(amount_out_b >= minimum_out_b as u64, EAmountOutTooLow);
 
         // deposit CoinB into vault
@@ -198,7 +199,7 @@ public fun swap<CoinA, CoinB>(
         let amount_out_a = coin_out_a.value();
 
         // check that we received enough CoinA
-        let minimum_out_a = ((expected_a as u256) * (cetus_swap.slippage as u256)) / 1_000_000_000_000_000_000;
+        let minimum_out_a = ((expected_a as u256) * (cetus_swap.slippage as u256)) / slippage_scale!();
         assert!(amount_out_a >= minimum_out_a as u64, EAmountOutTooLow);
 
         // deposit CoinA into vault
