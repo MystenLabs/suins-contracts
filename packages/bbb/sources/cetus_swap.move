@@ -101,7 +101,40 @@ public fun new<CoinA, CoinB>(
 
 // === public functions ===
 
+/// Swap the `CoinA` in the vault for an equal-valued amount of `CoinB`, or vice versa,
+/// and deposit the resulting `CoinB` into the vault.
+/// Uses Cetus's AMM. Protocol fees are charged on the coin being swapped.
 public fun swap<CoinA, CoinB>(
+    // ours
+    cetus_swap: &CetusSwap,
+    vault: &mut BBBVault,
+    // pyth
+    info_a: &PriceInfoObject,
+    info_b: &PriceInfoObject,
+    // cetus
+    cetus_config: &GlobalConfig,
+    pool: &mut Pool<CoinA, CoinB>,
+    // sui
+    clock: &Clock,
+    ctx: &mut TxContext,
+) {
+    // check price feed ids match the config
+    let feed_id_a = info_a.get_price_info_from_price_info_object().get_price_identifier();
+    let feed_id_b = info_b.get_price_info_from_price_info_object().get_price_identifier();
+    assert!(feed_id_a.get_bytes() == cetus_swap.feed_a(), EFeedInMismatch);
+    assert!(feed_id_b.get_bytes() == cetus_swap.feed_b(), EFeedOutMismatch);
+
+    // check pool id and coin types match the config
+    assert!(object::id(pool) == cetus_swap.pool_id(), EInvalidPool);
+    let type_a = type_name::get<CoinA>();
+    let type_b = type_name::get<CoinB>();
+    assert!(type_a == cetus_swap.type_a(), EInvalidCoinAType);
+    assert!(type_b == cetus_swap.type_b(), EInvalidCoinBType);
+}
+
+// === private functions ===
+
+public fun swap_internal<CoinA, CoinB>( // TODO make private
     a2b: bool,
     cetus_config: &GlobalConfig,
     pool: &mut Pool<CoinA, CoinB>,
@@ -165,4 +198,19 @@ public fun swap<CoinA, CoinB>(
 
         (balance_out_a.into_coin(ctx), balance_out_b_zero.into_coin(ctx))
     }
+}
+
+
+// === events ===
+
+public struct CetusSwapEvent has drop, copy {
+    a2b: bool,
+    type_a: String,
+    type_b: String,
+    amount_in_a: u64,
+    amount_in_b: u64,
+    amount_out_a: u64,
+    amount_out_b: u64,
+    expected_a: u64,
+    expected_b: u64,
 }

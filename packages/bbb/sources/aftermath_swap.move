@@ -137,9 +137,9 @@ public fun swap<L, CoinIn, CoinOut>(
     assert!(feed_id_out.get_bytes() == af_swap.feed_out(), EFeedOutMismatch);
 
     // check pool id and coin types match the config
+    assert!(object::id(pool) == af_swap.pool_id(), EInvalidPool);
     let type_in = type_name::get<CoinIn>();
     let type_out = type_name::get<CoinOut>();
-    assert!(object::id(pool) == af_swap.pool_id(), EInvalidPool);
     assert!(type_in == af_swap.type_in(), EInvalidCoinInType);
     assert!(type_out == af_swap.type_out(), EInvalidCoinOutType);
 
