@@ -2,7 +2,8 @@ import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 import { Command, Option } from "commander";
 import { afSwaps, burnTypes, cnf } from "./config.js";
 import { BalanceDfSchema } from "./schema/balance_df.js";
-import { BBBConfigSchema } from "./schema/bbb_config.js";
+import { BBBAftermathConfigSchema } from "./schema/bbb_aftermath_config.js";
+import { BBBBurnConfigSchema } from "./schema/bbb_burn_config.js";
 import { BBBVaultSchema } from "./schema/bbb_vault.js";
 import { BurnedEventSchema } from "./schema/burned_event.js";
 import { SwappedEventSchema } from "./schema/swapped_event.js";
@@ -77,17 +78,29 @@ program
         logTxResp(resp);
     });
 
-// program
-//     .command("get-config")
-//     .description("Fetch the BBBConfig object")
-//     .action(async () => {
-//         const objResp = await client.getObject({
-//             id: bbbConfigObj,
-//             options: { showContent: true },
-//         });
-//         const obj = BBBConfigSchema.parse(objResp.data);
-//         logJson(obj);
-//     });
+program
+    .command("get-config")
+    .description("Fetch the config objects")
+    .action(async () => {
+        const [burnConfigResp, aftermathConfigResp] = await Promise.all([
+            client.getObject({
+                id: bbbBurnConfigObj,
+                options: { showContent: true },
+            }),
+            client.getObject({
+                id: bbbAftermathConfigObj,
+                options: { showContent: true },
+            }),
+        ]);
+
+        const burnConfig = BBBBurnConfigSchema.parse(burnConfigResp.data);
+        const aftermathConfig = BBBAftermathConfigSchema.parse(aftermathConfigResp.data);
+
+        logJson({
+            burnConfig,
+            aftermathConfig,
+        });
+    });
 
 program
     .command("get-balances")
