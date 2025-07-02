@@ -19,23 +19,23 @@ const EAftermathSwapNotFound: u64 = 103;
 // === structs ===
 
 /// Enables burning selected coin types.
-public struct BBBBurnConfig has key {
+public struct BurnConfig has key {
     id: UID,
     burns: vector<Burn>,
 }
-public fun burns(cnf: &BBBBurnConfig): &vector<Burn> { &cnf.burns }
+public fun burns(cnf: &BurnConfig): &vector<Burn> { &cnf.burns }
 
 /// Enables coin swaps via Aftermath.
-public struct BBBAftermathConfig has key {
+public struct AftermathConfig has key {
     id: UID,
     af_swaps: vector<AftermathSwap>,
 }
-public fun af_swaps(cnf: &BBBAftermathConfig): &vector<AftermathSwap> { &cnf.af_swaps }
+public fun af_swaps(cnf: &AftermathConfig): &vector<AftermathSwap> { &cnf.af_swaps }
 
 // === public functions ===
 
 public fun get_burn<C>(
-    conf: &BBBBurnConfig,
+    conf: &BurnConfig,
 ): Burn {
     let coin_type = type_name::get<C>();
     let idx = conf.burns.find_index!(|burn| {
@@ -46,7 +46,7 @@ public fun get_burn<C>(
 }
 
 public fun get_aftermath_swap<CoinIn>(
-    conf: &BBBAftermathConfig,
+    conf: &AftermathConfig,
 ): AftermathSwap {
     let type_in = type_name::get<CoinIn>();
     let idx = conf.af_swaps.find_index!(|swap| {
@@ -61,8 +61,8 @@ public fun get_aftermath_swap<CoinIn>(
 public fun new_burn_config(
     _cap: &BBBAdminCap,
     ctx: &mut TxContext,
-): BBBBurnConfig {
-    BBBBurnConfig {
+): BurnConfig {
+    BurnConfig {
         id: object::new(ctx),
         burns: vector::empty(),
     }
@@ -71,15 +71,15 @@ public fun new_burn_config(
 public fun new_aftermath_config(
     _cap: &BBBAdminCap,
     ctx: &mut TxContext,
-): BBBAftermathConfig {
-    BBBAftermathConfig {
+): AftermathConfig {
+    AftermathConfig {
         id: object::new(ctx),
         af_swaps: vector::empty(),
     }
 }
 
 public fun add_burn_type(
-    conf: &mut BBBBurnConfig,
+    conf: &mut BurnConfig,
     _cap: &BBBAdminCap,
     burn: Burn,
 ) {
@@ -92,7 +92,7 @@ public fun add_burn_type(
 }
 
 public fun add_aftermath_swap(
-    conf: &mut BBBAftermathConfig,
+    conf: &mut AftermathConfig,
     _cap: &BBBAdminCap,
     af_swap: AftermathSwap,
 ) {
@@ -105,7 +105,7 @@ public fun add_aftermath_swap(
 }
 
 public fun remove_burn_type<C>(
-    conf: &mut BBBBurnConfig,
+    conf: &mut BurnConfig,
     _cap: &BBBAdminCap,
 ) {
     let idx = conf.burns.find_index!(|existing| {
@@ -117,7 +117,7 @@ public fun remove_burn_type<C>(
 }
 
 public fun remove_aftermath_swap<CoinIn>(
-    conf: &mut BBBAftermathConfig,
+    conf: &mut AftermathConfig,
     _cap: &BBBAdminCap,
 ) {
     let idx = conf.af_swaps.find_index!(|existing| {

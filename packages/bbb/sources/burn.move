@@ -52,7 +52,7 @@ public fun burn<C>(
         return
     };
 
-    emit(Burned {
+    emit(BurnEvent {
         coin_type: coin_type.into_string(),
         amount: balance.value(),
     });
@@ -64,7 +64,7 @@ public fun burn<C>(
 
 // === events ===
 
-public struct Burned has drop, copy {
+public struct BurnEvent has drop, copy {
     coin_type: String,
     amount: u64,
 }
