@@ -6,7 +6,7 @@ module suins::controller;
 use std::string::String;
 use sui::{clock::Clock, tx_context::sender};
 use suins::{
-    domain,
+    domain::{Self, is_parent_of},
     registry::Registry,
     subdomain_registration::SubDomainRegistration,
     suins::{Self, SuiNS},
@@ -20,6 +20,7 @@ const WALRUS_SITE_ID: vector<u8> = b"walrus_site_id";
 use fun registry_mut as SuiNS.registry_mut;
 
 const EUnsupportedKey: u64 = 0;
+const EInvalidParent: u64 = 1;
 
 /// Authorization token for the controller (v2) which
 /// is used to call protected functions.
@@ -88,6 +89,37 @@ public fun set_user_data(
     registry.set_data(domain, data);
 }
 
+/// User-facing function - add a new key-value pair to the name record's data.
+/// This is used for leaf subdomains.
+public fun set_user_data_leaf_subname(
+    suins: &mut SuiNS,
+    nft: &SuinsRegistration,
+    key: String,
+    value: String,
+    subdomain_name: String,
+    clock: &Clock,
+) {
+    let registry = suins.registry_mut();
+    let parent_domain = nft.domain();
+    let subdomain = domain::new(subdomain_name);
+    let mut data = *registry.get_data(subdomain);
+    assert!(is_parent_of(&parent_domain, &subdomain), EInvalidParent);
+
+    registry.assert_nft_is_authorized(nft, clock);
+    let key_bytes = *key.as_bytes();
+    assert!(
+        key_bytes == AVATAR || key_bytes == CONTENT_HASH || key_bytes == WALRUS_SITE_ID,
+        EUnsupportedKey,
+    );
+
+    if (data.contains(&key)) {
+        data.remove(&key);
+    };
+
+    data.insert(key, value);
+    registry.set_data(subdomain, data);
+}
+
 /// User-facing function - remove a key from the name record's data.
 public fun unset_user_data(suins: &mut SuiNS, nft: &SuinsRegistration, key: String, clock: &Clock) {
     let registry = suins.registry_mut();
@@ -101,6 +133,31 @@ public fun unset_user_data(suins: &mut SuiNS, nft: &SuinsRegistration, key: Stri
     };
 
     registry.set_data(domain, data);
+}
+
+/// User-facing function - remove a key from the name record's data.
+/// This is used for leaf subdomains.
+public fun unset_user_data_leaf_subname(
+    suins: &mut SuiNS,
+    nft: &SuinsRegistration,
+    key: String,
+    subdomain_name: String,
+    clock: &Clock,
+) {
+    let registry = suins.registry_mut();
+    let parent_domain = nft.domain();
+    let subdomain = domain::new(subdomain_name);
+    let mut data = *registry.get_data(subdomain);
+
+    assert!(is_parent_of(&parent_domain, &subdomain), EInvalidParent);
+
+    registry.assert_nft_is_authorized(nft, clock);
+
+    if (data.contains(&key)) {
+        data.remove(&key);
+    };
+
+    registry.set_data(subdomain, data);
 }
 
 public fun burn_expired(suins: &mut SuiNS, nft: SuinsRegistration, clock: &Clock) {
