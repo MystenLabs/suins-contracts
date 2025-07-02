@@ -30,6 +30,7 @@ use referral_vault::{
 };
 use suins_bbb::{
     bbb_admin::{BBBAdminCap},
+    bbb_constants::{slippage_scale},
     bbb_pyth::{calc_amount_out},
     bbb_vault::{BBBVault},
 };
@@ -180,7 +181,7 @@ public fun swap<L, CoinIn, CoinOut>(
     let amount_out = coin_out.value();
 
     // check that we received enough CoinOut
-    let minimum_out = ((expected_out as u256) * (af_swap.slippage as u256)) / 1_000_000_000_000_000_000;
+    let minimum_out = ((expected_out as u256) * (af_swap.slippage as u256)) / slippage_scale!();
     assert!(amount_out >= minimum_out as u64, EAmountOutTooLow);
 
     // deposit CoinOut into vault
