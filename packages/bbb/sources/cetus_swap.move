@@ -14,7 +14,7 @@ use cetusclmm::{
 const EInvalidOwedAmount: u64 = 100;
 
 public fun swap_a2b<CoinA, CoinB>(
-    config: &GlobalConfig,
+    cetus_config: &GlobalConfig,
     pool: &mut Pool<CoinA, CoinB>,
     coin_a: Coin<CoinA>,
     clock: &Clock,
@@ -22,7 +22,7 @@ public fun swap_a2b<CoinA, CoinB>(
 ): Coin<CoinB> {
     // borrow CoinB from pool
     let (balance_a_zero, balance_b, receipt) = flash_swap<CoinA, CoinB>(
-        config,
+        cetus_config,
         pool,
         true, // a2b=true: swap from CoinA to CoinB
         true, // by_amount_in
@@ -37,7 +37,7 @@ public fun swap_a2b<CoinA, CoinB>(
 
     // repay the flash loan with coin_a
     repay_flash_swap<CoinA, CoinB>(
-        config,
+        cetus_config,
         pool,
         coin_a.into_balance(),
         balance::zero<CoinB>(),
@@ -48,7 +48,7 @@ public fun swap_a2b<CoinA, CoinB>(
 }
 
 public fun swap_b2a<CoinA, CoinB>(
-    config: &GlobalConfig,
+    cetus_config: &GlobalConfig,
     pool: &mut Pool<CoinA, CoinB>,
     coin_b: Coin<CoinB>,
     clock: &Clock,
@@ -56,7 +56,7 @@ public fun swap_b2a<CoinA, CoinB>(
 ): Coin<CoinA> {
     // borrow CoinA from pool
     let (balance_a, balance_b_zero, receipt) = flash_swap<CoinA, CoinB>(
-        config,
+        cetus_config,
         pool,
         false, // a2b=false: swap from CoinB to CoinA
         true, // by_amount_in
@@ -71,7 +71,7 @@ public fun swap_b2a<CoinA, CoinB>(
 
     // repay the flash loan with coin_b
     repay_flash_swap<CoinA, CoinB>(
-        config,
+        cetus_config,
         pool,
         balance::zero<CoinA>(),
         coin_b.into_balance(),

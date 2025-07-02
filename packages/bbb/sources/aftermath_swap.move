@@ -5,43 +5,43 @@ use std::{
     type_name::{Self, TypeName},
 };
 use sui::{
-    clock::Clock,
+    clock::{Clock},
     event::{emit},
 };
 use pyth::{
     price_info::PriceInfoObject,
 };
 use amm::{
-    swap::swap_exact_in,
-    pool::Pool,
+    swap::{swap_exact_in},
+    pool::{Pool},
     pool_registry::PoolRegistry,
 };
 use protocol_fee_vault::{
-    vault::ProtocolFeeVault,
+    vault::{ProtocolFeeVault},
 };
 use treasury::{
-    treasury::Treasury,
+    treasury::{Treasury},
 };
 use insurance_fund::{
-    insurance_fund::InsuranceFund,
+    insurance_fund::{InsuranceFund},
 };
 use referral_vault::{
-    referral_vault::ReferralVault,
+    referral_vault::{ReferralVault},
 };
 use suins_bbb::{
-    bbb_admin::BBBAdminCap,
-    bbb_pyth::calc_amount_out,
-    bbb_vault::BBBVault,
+    bbb_admin::{BBBAdminCap},
+    bbb_pyth::{calc_amount_out},
+    bbb_vault::{BBBVault},
 };
 
 // === errors ===
 
-const EInvalidPool: u64 = 100;
-const EFeedInMismatch: u64 = 101;
-const EFeedOutMismatch: u64 = 102;
-const EInvalidCoinInType: u64 = 103;
-const EInvalidCoinOutType: u64 = 104;
-const EAmountOutTooLow: u64 = 105;
+const EInvalidPool: u64 = 1000;
+const EFeedInMismatch: u64 = 1001;
+const EFeedOutMismatch: u64 = 1002;
+const EInvalidCoinInType: u64 = 1003;
+const EInvalidCoinOutType: u64 = 1004;
+const EAmountOutTooLow: u64 = 1005;
 
 // === structs ===
 
@@ -70,15 +70,15 @@ public struct AftermathSwap has copy, drop, store {
     max_age_secs: u64,
 }
 
-public fun type_in(af_swap: &AftermathSwap): &TypeName { &af_swap.type_in }
-public fun type_out(af_swap: &AftermathSwap): &TypeName { &af_swap.type_out }
-public fun decimals_in(af_swap: &AftermathSwap): u8 { af_swap.decimals_in }
-public fun decimals_out(af_swap: &AftermathSwap): u8 { af_swap.decimals_out }
-public fun feed_in(af_swap: &AftermathSwap): &vector<u8> { &af_swap.feed_in }
-public fun feed_out(af_swap: &AftermathSwap): &vector<u8> { &af_swap.feed_out }
-public fun pool_id(af_swap: &AftermathSwap): &ID { &af_swap.pool_id }
-public fun slippage(af_swap: &AftermathSwap): u64 { af_swap.slippage }
-public fun max_age_secs(af_swap: &AftermathSwap): u64 { af_swap.max_age_secs }
+public fun type_in(self: &AftermathSwap): &TypeName { &self.type_in }
+public fun type_out(self: &AftermathSwap): &TypeName { &self.type_out }
+public fun decimals_in(self: &AftermathSwap): u8 { self.decimals_in }
+public fun decimals_out(self: &AftermathSwap): u8 { self.decimals_out }
+public fun feed_in(self: &AftermathSwap): &vector<u8> { &self.feed_in }
+public fun feed_out(self: &AftermathSwap): &vector<u8> { &self.feed_out }
+public fun pool_id(self: &AftermathSwap): &ID { &self.pool_id }
+public fun slippage(self: &AftermathSwap): u64 { self.slippage }
+public fun max_age_secs(self: &AftermathSwap): u64 { self.max_age_secs }
 
 public fun new<L, CoinIn, CoinOut>(
     _cap: &BBBAdminCap,
@@ -187,8 +187,8 @@ public fun swap<L, CoinIn, CoinOut>(
     vault.deposit<CoinOut>(coin_out);
 
     emit(AftermathSwapEvent {
-        type_in: type_name::get<CoinIn>().into_string(),
-        type_out: type_name::get<CoinOut>().into_string(),
+        type_in: type_in.into_string(),
+        type_out: type_out.into_string(),
         amount_in,
         amount_out,
         expected_out,
