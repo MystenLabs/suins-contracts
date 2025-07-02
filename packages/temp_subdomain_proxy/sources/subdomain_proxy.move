@@ -11,7 +11,7 @@
 module suins_temp_subdomain_proxy::subdomain_proxy;
 
 use std::string::String;
-use sui::clock::Clock;
+use sui::{clock::Clock, vec_map::VecMap};
 use suins::{controller, subdomain_registration::SubDomainRegistration, suins::SuiNS};
 use suins_subdomains::subdomains;
 
@@ -51,6 +51,26 @@ public fun new_leaf(
         clock,
         subdomain_name,
         target,
+        ctx,
+    );
+}
+
+public fun new_leaf_with_metadata(
+    suins: &mut SuiNS,
+    subdomain: &SubDomainRegistration,
+    clock: &Clock,
+    subdomain_name: String,
+    target: address,
+    metadata: VecMap<String, String>,
+    ctx: &mut TxContext,
+) {
+    subdomains::new_leaf_with_metadata(
+        suins,
+        subdomain.nft(),
+        clock,
+        subdomain_name,
+        target,
+        metadata,
         ctx,
     );
 }
