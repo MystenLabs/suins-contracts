@@ -7,7 +7,7 @@ use std::{
 use sui::{
     balance::{Self},
     clock::{Clock},
-    coin::{Coin},
+    coin::{Self, Coin},
     event::{emit},
 };
 use pyth::{
@@ -130,6 +130,62 @@ public fun swap<CoinA, CoinB>(
     let type_b = type_name::get<CoinB>();
     assert!(type_a == cetus_swap.type_a(), EInvalidCoinAType);
     assert!(type_b == cetus_swap.type_b(), EInvalidCoinBType);
+
+    if (cetus_swap.a2b) {
+        // withdraw all CoinA from vault
+        let coin_in_a = vault.withdraw<CoinA>().into_coin(ctx);
+        let amount_in_a = coin_in_a.value();
+
+        // return early if zero
+        if (amount_in_a == 0) {
+            coin_in_a.destroy_zero();
+            return
+        };
+
+        // calculate expected CoinB amount
+        let expected_a = 0;
+        let expected_b = calc_amount_out(
+            info_a,
+            info_b,
+            cetus_swap.decimals_a,
+            cetus_swap.decimals_b,
+            amount_in_a,
+            cetus_swap.max_age_secs,
+            clock,
+        );
+
+        // swap CoinA for CoinB
+        let coin_in_b = coin::zero<CoinB>(ctx);
+        let amount_in_b = coin_in_b.value();
+        let (coin_out_a, coin_out_b) = swap_internal(
+            cetus_swap.a2b, cetus_config, pool, coin_in_a, coin_in_b, clock, ctx
+        );
+        let amount_out_a = coin_out_a.value();
+        let amount_out_b = coin_out_b.value();
+
+        coin_out_a.destroy_zero();
+
+        // check that we received enough CoinB
+        let minimum_out_b = ((expected_b as u256) * (cetus_swap.slippage as u256)) / 1_000_000_000_000_000_000;
+        assert!(amount_out_b >= minimum_out_b as u64, EAmountOutTooLow);
+
+        // deposit CoinB into vault
+        vault.deposit<CoinB>(coin_out_b);
+
+        emit(CetusSwapEvent {
+            a2b: cetus_swap.a2b,
+            type_a: type_a.into_string(),
+            type_b: type_b.into_string(),
+            amount_in_a,
+            amount_in_b,
+            amount_out_a,
+            amount_out_b,
+            expected_a,
+            expected_b,
+        });
+    } else {
+
+    }
 }
 
 // === private functions ===
