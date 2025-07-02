@@ -117,6 +117,24 @@ public fun set_user_data(
     );
 }
 
+public fun set_user_data_leaf_subname(
+    suins: &mut SuiNS,
+    subdomain: &SubDomainRegistration,
+    key: String,
+    value: String,
+    subdomain_name: String,
+    clock: &Clock,
+) {
+    controller::set_user_data_leaf_subname(
+        suins,
+        subdomain.nft(),
+        key,
+        value,
+        subdomain_name,
+        clock,
+    );
+}
+
 public fun unset_user_data(
     suins: &mut SuiNS,
     subdomain: &SubDomainRegistration,
@@ -127,6 +145,22 @@ public fun unset_user_data(
         suins,
         subdomain.nft(),
         key,
+        clock,
+    );
+}
+
+public fun unset_user_data_leaf_subname(
+    suins: &mut SuiNS,
+    subdomain: &SubDomainRegistration,
+    key: String,
+    subdomain_name: String,
+    clock: &Clock,
+) {
+    controller::unset_user_data_leaf_subname(
+        suins,
+        subdomain.nft(),
+        key,
+        subdomain_name,
         clock,
     );
 }
