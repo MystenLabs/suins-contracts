@@ -22,10 +22,11 @@ const dryRun = true;
 
 const program = new Command();
 const client = newSuiClient();
-const packageId = cnf.bbb.packageId;
+const packageId = cnf.bbb.package;
 const adminCapObj = cnf.bbb.adminCapObj;
 const bbbVaultObj = cnf.bbb.vaultObj;
-const bbbConfigObj = cnf.bbb.configObj;
+const bbbBurnConfigObj = cnf.bbb.burnConfigObj;
+const bbbAftermathConfigObj = cnf.bbb.aftermathConfigObj;
 
 // === CLI ===
 
@@ -47,7 +48,7 @@ program
             sdk.bbb_config.add_burn_type({
                 tx,
                 packageId,
-                bbbConfigObj,
+                bbbBurnConfigObj,
                 adminCapObj,
                 burnObj,
             });
@@ -67,7 +68,7 @@ program
             sdk.bbb_config.add_aftermath_swap({
                 tx,
                 packageId,
-                bbbConfigObj,
+                bbbAftermathConfigObj,
                 adminCapObj,
                 afSwapObj: swapObj,
             });
@@ -76,17 +77,17 @@ program
         logTxResp(resp);
     });
 
-program
-    .command("get-config")
-    .description("Fetch the BBBConfig object")
-    .action(async () => {
-        const objResp = await client.getObject({
-            id: bbbConfigObj,
-            options: { showContent: true },
-        });
-        const obj = BBBConfigSchema.parse(objResp.data);
-        logJson(obj);
-    });
+// program
+//     .command("get-config")
+//     .description("Fetch the BBBConfig object")
+//     .action(async () => {
+//         const objResp = await client.getObject({
+//             id: bbbConfigObj,
+//             options: { showContent: true },
+//         });
+//         const obj = BBBConfigSchema.parse(objResp.data);
+//         logJson(obj);
+//     });
 
 program
     .command("get-balances")
@@ -170,7 +171,7 @@ program
         sdk.bbb_config.remove_burn_type({
             tx,
             packageId,
-            bbbConfigObj,
+            bbbBurnConfigObj,
             adminCapObj,
             coinType: burnTypes[coinTicker],
         });
@@ -191,7 +192,7 @@ program
         sdk.bbb_config.remove_aftermath_swap({
             tx,
             packageId,
-            bbbConfigObj,
+            bbbAftermathConfigObj,
             adminCapObj,
             coinInType: afSwaps[coinTicker].coinIn.type,
         });
@@ -230,7 +231,7 @@ program
             const afSwapObj = sdk.bbb_config.get_aftermath_swap({
                 tx,
                 packageId,
-                bbbConfigObj,
+                bbbAftermathConfigObj,
                 coinType: afSwap.coinIn.type,
             });
 
@@ -262,7 +263,7 @@ program
             const burnObj = sdk.bbb_config.get_burn({
                 tx,
                 packageId,
-                bbbConfigObj,
+                bbbBurnConfigObj,
                 coinType,
             });
             sdk.bbb_burn.burn({

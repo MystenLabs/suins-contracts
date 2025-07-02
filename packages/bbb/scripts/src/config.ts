@@ -1,11 +1,12 @@
 /** Mainnet configuration. */
 export const cnf = {
     bbb: { // TODO: update values for prod
-        packageId: "0x68cabe8f36b01b0a245422838cc30b405f9d6e7068a6b3a8cd02cac85a7641eb", // dev-only
+        package: "0x68cabe8f36b01b0a245422838cc30b405f9d6e7068a6b3a8cd02cac85a7641eb", // dev-only
         upgradeCapObj: "0x8154a2bc4b3969f66b785aeb5741e5a6f1c3410a8ae0f4a48cc096f20f42ebec", // dev-only
         adminCapObj: "0x2d238a1289a7ea0c420f221b5bfc587f2e931005eeafa15b8bc4cd0209d8f398", // dev-only
         vaultObj: "0x8b68482bd32712520b8b76e7f4a460764706c347f205f6c0b88888d9e315c5ad", // dev-only
-        configObj: "0x7499d787189ffcd90d8857276aa5cf0bc3251d3bd42de9ba94720f4b5ec07d3f", // dev-only
+        burnConfigObj: "TODO", // dev-only
+        aftermathConfigObj: "TODO", // dev-only
     },
     coins: {
         SUI: {
