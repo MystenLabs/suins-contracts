@@ -7,7 +7,7 @@ use std::{
 use sui::{
     balance::{Self},
     clock::{Clock},
-    coin::{Self, Coin},
+    coin::{Coin},
     event::{emit},
 };
 use pyth::{
@@ -143,7 +143,6 @@ public fun swap<CoinA, CoinB>(
         };
 
         // calculate expected CoinB amount
-        let expected_a = 0;
         let expected_b = calc_amount_out(
             info_a,
             info_b,
@@ -155,15 +154,8 @@ public fun swap<CoinA, CoinB>(
         );
 
         // swap CoinA for CoinB
-        let coin_in_b = coin::zero<CoinB>(ctx);
-        let amount_in_b = coin_in_b.value();
-        let (coin_out_a, coin_out_b) = swap_internal(
-            cetus_swap.a2b, cetus_config, pool, coin_in_a, coin_in_b, clock, ctx
-        );
-        let amount_out_a = coin_out_a.value();
+        let coin_out_b = swap_a2b(cetus_config, pool, coin_in_a, clock, ctx);
         let amount_out_b = coin_out_b.value();
-
-        coin_out_a.destroy_zero();
 
         // check that we received enough CoinB
         let minimum_out_b = ((expected_b as u256) * (cetus_swap.slippage as u256)) / 1_000_000_000_000_000_000;
@@ -173,15 +165,11 @@ public fun swap<CoinA, CoinB>(
         vault.deposit<CoinB>(coin_out_b);
 
         emit(CetusSwapEvent {
-            a2b: cetus_swap.a2b,
-            type_a: type_a.into_string(),
-            type_b: type_b.into_string(),
-            amount_in_a,
-            amount_in_b,
-            amount_out_a,
-            amount_out_b,
-            expected_a,
-            expected_b,
+            type_in: type_a.into_string(),
+            type_out: type_b.into_string(),
+            amount_in: amount_in_a,
+            amount_out: amount_out_b,
+            expected_out: expected_b,
         });
     } else {
 
@@ -190,83 +178,80 @@ public fun swap<CoinA, CoinB>(
 
 // === private functions ===
 
-public fun swap_internal<CoinA, CoinB>( // TODO make private
-    a2b: bool,
+public fun swap_a2b<CoinA, CoinB>( // TODO make private
     cetus_config: &GlobalConfig,
     pool: &mut Pool<CoinA, CoinB>,
-    coin_in_a: Coin<CoinA>,
-    coin_in_b: Coin<CoinB>,
+    coin_a: Coin<CoinA>,
     clock: &Clock,
     ctx: &mut TxContext,
-): (Coin<CoinA>, Coin<CoinB>) {
-    if (a2b) {
-        coin_in_b.destroy_zero();
+): Coin<CoinB> {
+    // borrow CoinB from pool
+    let (balance_a_zero, balance_b, receipt) = flash_swap<CoinA, CoinB>(
+        cetus_config,
+        pool,
+        true, // a2b=true: swap from CoinA to CoinB
+        true, // by_amount_in
+        coin_a.value(), // amount
+        min_sqrt_price(), // sqrt_price_limit
+        clock,
+    );
+    balance_a_zero.destroy_zero();
 
-        // borrow CoinB from pool
-        let (balance_out_a_zero, balance_out_b, receipt) = flash_swap<CoinA, CoinB>(
-            cetus_config,
-            pool,
-            true, // a2b=true: swap from CoinA to CoinB
-            true, // by_amount_in
-            coin_in_a.value(), // amount
-            min_sqrt_price(), // sqrt_price_limit
-            clock,
-        );
+    // check we owe exactly what we input
+    assert!(receipt.swap_pay_amount() == coin_a.value(), EInvalidOwedAmount);
 
-        // check we owe exactly what we input
-        assert!(receipt.swap_pay_amount() == coin_in_a.value(), EInvalidOwedAmount);
+    // repay the flash loan with coin_a
+    repay_flash_swap<CoinA, CoinB>(
+        cetus_config,
+        pool,
+        coin_a.into_balance(),
+        balance::zero<CoinB>(),
+        receipt,
+    );
 
-        // repay the flash loan with coin_in_a
-        repay_flash_swap<CoinA, CoinB>(
-            cetus_config,
-            pool,
-            coin_in_a.into_balance(),
-            balance::zero<CoinB>(),
-            receipt,
-        );
-
-        (balance_out_a_zero.into_coin(ctx), balance_out_b.into_coin(ctx))
-    } else {
-        coin_in_a.destroy_zero();
-
-        // borrow CoinA from pool
-        let (balance_out_a, balance_out_b_zero, receipt) = flash_swap<CoinA, CoinB>(
-            cetus_config,
-            pool,
-            false, // a2b=false: swap from CoinB to CoinA
-            true, // by_amount_in
-            coin_in_b.value(), // amount
-            max_sqrt_price(), // sqrt_price_limit
-            clock,
-        );
-
-        // check we owe exactly what we input
-        assert!(receipt.swap_pay_amount() == coin_in_b.value(), EInvalidOwedAmount);
-
-        // repay the flash loan with coin_in_b
-        repay_flash_swap<CoinA, CoinB>(
-            cetus_config,
-            pool,
-            balance::zero<CoinA>(),
-            coin_in_b.into_balance(),
-            receipt,
-        );
-
-        (balance_out_a.into_coin(ctx), balance_out_b_zero.into_coin(ctx))
-    }
+    balance_b.into_coin(ctx)
 }
 
+public fun swap_b2a<CoinA, CoinB>( // TODO make private
+    cetus_config: &GlobalConfig,
+    pool: &mut Pool<CoinA, CoinB>,
+    coin_b: Coin<CoinB>,
+    clock: &Clock,
+    ctx: &mut TxContext,
+): Coin<CoinA> {
+    // borrow CoinA from pool
+    let (balance_a, balance_b_zero, receipt) = flash_swap<CoinA, CoinB>(
+        cetus_config,
+        pool,
+        false, // a2b=false: swap from CoinB to CoinA
+        true, // by_amount_in
+        coin_b.value(), // amount
+        max_sqrt_price(), // sqrt_price_limit
+        clock,
+    );
+    balance_b_zero.destroy_zero();
+
+    // check we owe exactly what we input
+    assert!(receipt.swap_pay_amount() == coin_b.value(), EInvalidOwedAmount);
+
+    // repay the flash loan with coin_b
+    repay_flash_swap<CoinA, CoinB>(
+        cetus_config,
+        pool,
+        balance::zero<CoinA>(),
+        coin_b.into_balance(),
+        receipt,
+    );
+
+    balance_a.into_coin(ctx)
+}
 
 // === events ===
 
 public struct CetusSwapEvent has drop, copy {
-    a2b: bool,
-    type_a: String,
-    type_b: String,
-    amount_in_a: u64,
-    amount_in_b: u64,
-    amount_out_a: u64,
-    amount_out_b: u64,
-    expected_a: u64,
-    expected_b: u64,
+    type_in: String,
+    type_out: String,
+    amount_in: u64,
+    amount_out: u64,
+    expected_out: u64,
 }
