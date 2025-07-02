@@ -18,21 +18,23 @@ const EAftermathSwapNotFound: u64 = 101;
 /// Enables coin swaps via Aftermath.
 public struct AftermathConfig has key {
     id: UID,
-    af_swaps: vector<AftermathSwap>,
+    swaps: vector<AftermathSwap>,
 }
-public fun af_swaps(cnf: &AftermathConfig): &vector<AftermathSwap> { &cnf.af_swaps }
+
+public fun id(self: &AftermathConfig): &UID { &self.id }
+public fun swaps(self: &AftermathConfig): &vector<AftermathSwap> { &self.swaps }
 
 // === public functions ===
 
 public fun get<CoinIn>(
-    conf: &AftermathConfig,
+    self: &AftermathConfig,
 ): AftermathSwap {
     let type_in = type_name::get<CoinIn>();
-    let idx = conf.af_swaps.find_index!(|swap| {
+    let idx = self.swaps.find_index!(|swap| {
         swap.type_in() == type_in
     });
     assert!(idx.is_some(), EAftermathSwapNotFound);
-    conf.af_swaps[idx.destroy_some()]
+    self.swaps[idx.destroy_some()]
 }
 
 // === admin functions ===
@@ -43,31 +45,31 @@ public fun new(
 ): AftermathConfig {
     AftermathConfig {
         id: object::new(ctx),
-        af_swaps: vector::empty(),
+        swaps: vector::empty(),
     }
 }
 
 public fun add(
-    conf: &mut AftermathConfig,
+    self: &mut AftermathConfig,
     _cap: &BBBAdminCap,
     af_swap: AftermathSwap,
 ) {
-    let already_exists = conf.af_swaps.any!(|existing| {
+    let already_exists = self.swaps.any!(|existing| {
         existing.type_in() == af_swap.type_in()
     });
     assert!(!already_exists, EAftermathSwapAlreadyExists);
 
-    conf.af_swaps.push_back(af_swap);
+    self.swaps.push_back(af_swap);
 }
 
 public fun remove<CoinIn>(
-    conf: &mut AftermathConfig,
+    self: &mut AftermathConfig,
     _cap: &BBBAdminCap,
 ) {
-    let idx = conf.af_swaps.find_index!(|existing| {
+    let idx = self.swaps.find_index!(|existing| {
         existing.type_in() == type_name::get<CoinIn>()
     });
     assert!(idx.is_some(), EAftermathSwapNotFound);
 
-    conf.af_swaps.swap_remove(idx.destroy_some());
+    self.swaps.swap_remove(idx.destroy_some());
 }

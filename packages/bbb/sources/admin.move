@@ -6,7 +6,7 @@ public struct BBBAdminCap has key, store {
     id: UID,
 }
 
-public fun id(cap: &BBBAdminCap): ID { cap.id.to_inner() }
+public fun id(self: &BBBAdminCap): ID { self.id.to_inner() }
 
 fun new(ctx: &mut TxContext): BBBAdminCap {
     BBBAdminCap { id: object::new(ctx) }

@@ -107,7 +107,7 @@ public fun new<CoinA, CoinB>(
 /// Uses Cetus's AMM. Protocol fees are charged on the coin being swapped.
 public fun swap<CoinA, CoinB>(
     // ours
-    cetus_swap: &CetusSwap,
+    self: &CetusSwap,
     vault: &mut BBBVault,
     // pyth
     info_a: &PriceInfoObject,
@@ -122,17 +122,17 @@ public fun swap<CoinA, CoinB>(
     // check price feed ids match the config
     let feed_id_a = info_a.get_price_info_from_price_info_object().get_price_identifier();
     let feed_id_b = info_b.get_price_info_from_price_info_object().get_price_identifier();
-    assert!(feed_id_a.get_bytes() == cetus_swap.feed_a(), EFeedInMismatch);
-    assert!(feed_id_b.get_bytes() == cetus_swap.feed_b(), EFeedOutMismatch);
+    assert!(feed_id_a.get_bytes() == self.feed_a(), EFeedInMismatch);
+    assert!(feed_id_b.get_bytes() == self.feed_b(), EFeedOutMismatch);
 
     // check pool id and coin types match the config
-    assert!(object::id(pool) == cetus_swap.pool_id(), EInvalidPool);
+    assert!(object::id(pool) == self.pool_id(), EInvalidPool);
     let type_a = type_name::get<CoinA>();
     let type_b = type_name::get<CoinB>();
-    assert!(type_a == cetus_swap.type_a(), EInvalidCoinAType);
-    assert!(type_b == cetus_swap.type_b(), EInvalidCoinBType);
+    assert!(type_a == self.type_a(), EInvalidCoinAType);
+    assert!(type_b == self.type_b(), EInvalidCoinBType);
 
-    if (cetus_swap.a2b) {
+    if (self.a2b) {
         // withdraw all CoinA from vault
         let coin_in_a = vault.withdraw<CoinA>().into_coin(ctx);
         let amount_in_a = coin_in_a.value();
@@ -147,10 +147,10 @@ public fun swap<CoinA, CoinB>(
         let expected_b = calc_amount_out(
             info_a,
             info_b,
-            cetus_swap.decimals_a,
-            cetus_swap.decimals_b,
+            self.decimals_a,
+            self.decimals_b,
             amount_in_a,
-            cetus_swap.max_age_secs,
+            self.max_age_secs,
             clock,
         );
 
@@ -159,7 +159,7 @@ public fun swap<CoinA, CoinB>(
         let amount_out_b = coin_out_b.value();
 
         // check that we received enough CoinB
-        let minimum_out_b = ((expected_b as u256) * (cetus_swap.slippage as u256)) / slippage_scale!();
+        let minimum_out_b = ((expected_b as u256) * (self.slippage as u256)) / slippage_scale!();
         assert!(amount_out_b >= minimum_out_b as u64, EAmountOutTooLow);
 
         // deposit CoinB into vault
@@ -187,10 +187,10 @@ public fun swap<CoinA, CoinB>(
         let expected_a = calc_amount_out(
             info_b,
             info_a,
-            cetus_swap.decimals_b,
-            cetus_swap.decimals_a,
+            self.decimals_b,
+            self.decimals_a,
             amount_in_b,
-            cetus_swap.max_age_secs,
+            self.max_age_secs,
             clock,
         );
 
@@ -199,7 +199,7 @@ public fun swap<CoinA, CoinB>(
         let amount_out_a = coin_out_a.value();
 
         // check that we received enough CoinA
-        let minimum_out_a = ((expected_a as u256) * (cetus_swap.slippage as u256)) / slippage_scale!();
+        let minimum_out_a = ((expected_a as u256) * (self.slippage as u256)) / slippage_scale!();
         assert!(amount_out_a >= minimum_out_a as u64, EAmountOutTooLow);
 
         // deposit CoinA into vault
