@@ -14,6 +14,7 @@ use std::string::String;
 use sui::clock::Clock;
 use suins::{controller, subdomain_registration::SubDomainRegistration, suins::SuiNS};
 use suins_subdomains::subdomains;
+use sui::vec_map::VecMap;
 
 public fun new(
     suins: &mut SuiNS,
@@ -51,6 +52,26 @@ public fun new_leaf(
         clock,
         subdomain_name,
         target,
+        ctx,
+    );
+}
+
+public fun new_leaf_with_metadata(
+    suins: &mut SuiNS,
+    subdomain: &SubDomainRegistration,
+    clock: &Clock,
+    subdomain_name: String,
+    target: address,
+    metadata: VecMap<String, String>,
+    ctx: &mut TxContext,
+) {
+    subdomains::new_leaf_with_metadata(
+        suins,
+        subdomain.nft(),
+        clock,
+        subdomain_name,
+        target,
+        metadata,
         ctx,
     );
 }
