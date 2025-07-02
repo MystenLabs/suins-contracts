@@ -154,44 +154,28 @@ export const bbb_burn = {
     },
 } as const;
 
-export const bbb_config = {
+export const bbb_burn_config = {
     // === public functions ===
-    get_burn: ({
+    get: ({
         tx,
         packageId,
-        bbbBurnConfigObj,
+        burnConfigObj,
         coinType,
     }: {
         tx: Transaction;
         packageId: string;
-        bbbBurnConfigObj: TransactionObjectInput;
+        burnConfigObj: TransactionObjectInput;
         coinType: string;
     }): TransactionResult => {
         return tx.moveCall({
-            target: `${packageId}::bbb_config::get_burn`,
+            target: `${packageId}::bbb_burn_config::get`,
             typeArguments: [coinType],
-            arguments: [tx.object(bbbBurnConfigObj)],
+            arguments: [tx.object(burnConfigObj)],
         });
     },
-    get_aftermath_swap: ({
-        tx,
-        packageId,
-        bbbAftermathConfigObj,
-        coinType,
-    }: {
-        tx: Transaction;
-        packageId: string;
-        bbbAftermathConfigObj: TransactionObjectInput;
-        coinType: string;
-    }): TransactionResult => {
-        return tx.moveCall({
-            target: `${packageId}::bbb_config::get_aftermath_swap`,
-            typeArguments: [coinType],
-            arguments: [tx.object(bbbAftermathConfigObj)],
-        });
-    },
+
     // === admin functions ===
-    new_burn_config: ({
+    new: ({
         tx,
         packageId,
         adminCapObj,
@@ -201,104 +185,131 @@ export const bbb_config = {
         adminCapObj: TransactionObjectInput;
     }): TransactionResult => {
         return tx.moveCall({
-            target: `${packageId}::bbb_config::new_burn_config`,
+            target: `${packageId}::bbb_burn_config::new`,
             arguments: [tx.object(adminCapObj)],
         });
     },
-    new_aftermath_config: ({
+
+    add: ({
         tx,
         packageId,
-        adminCapObj,
-    }: {
-        tx: Transaction;
-        packageId: string;
-        adminCapObj: TransactionObjectInput;
-    }): TransactionResult => {
-        return tx.moveCall({
-            target: `${packageId}::bbb_config::new_aftermath_config`,
-            arguments: [tx.object(adminCapObj)],
-        });
-    },
-    add_burn_type: ({
-        tx,
-        packageId,
-        bbbBurnConfigObj,
+        burnConfigObj,
         adminCapObj,
         burnObj,
     }: {
         tx: Transaction;
         packageId: string;
-        bbbBurnConfigObj: TransactionObjectInput;
+        burnConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
         burnObj: TransactionObjectInput;
     }): TransactionResult => {
         return tx.moveCall({
-            target: `${packageId}::bbb_config::add_burn_type`,
+            target: `${packageId}::bbb_burn_config::add`,
             arguments: [
-                tx.object(bbbBurnConfigObj),
+                tx.object(burnConfigObj),
                 tx.object(adminCapObj),
                 tx.object(burnObj),
             ],
         });
     },
-    add_aftermath_swap: ({
+
+    remove: ({
         tx,
         packageId,
-        bbbAftermathConfigObj,
-        adminCapObj,
-        afSwapObj,
-    }: {
-        tx: Transaction;
-        packageId: string;
-        bbbAftermathConfigObj: TransactionObjectInput;
-        adminCapObj: TransactionObjectInput;
-        afSwapObj: TransactionObjectInput;
-    }): TransactionResult => {
-        return tx.moveCall({
-            target: `${packageId}::bbb_config::add_aftermath_swap`,
-            arguments: [
-                tx.object(bbbAftermathConfigObj),
-                tx.object(adminCapObj),
-                tx.object(afSwapObj),
-            ],
-        });
-    },
-    remove_burn_type: ({
-        tx,
-        packageId,
-        bbbBurnConfigObj,
+        burnConfigObj,
         adminCapObj,
         coinType,
     }: {
         tx: Transaction;
         packageId: string;
-        bbbBurnConfigObj: TransactionObjectInput;
+        burnConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
         coinType: string;
     }): TransactionResult => {
         return tx.moveCall({
-            target: `${packageId}::bbb_config::remove_burn_type`,
+            target: `${packageId}::bbb_burn_config::remove`,
             typeArguments: [coinType],
-            arguments: [tx.object(bbbBurnConfigObj), tx.object(adminCapObj)],
+            arguments: [tx.object(burnConfigObj), tx.object(adminCapObj)],
         });
     },
-    remove_aftermath_swap: ({
+} as const;
+
+export const bbb_aftermath_config = {
+    // === public functions ===
+    get: ({
         tx,
         packageId,
-        bbbAftermathConfigObj,
+        aftermathConfigObj,
+        coinType,
+    }: {
+        tx: Transaction;
+        packageId: string;
+        aftermathConfigObj: TransactionObjectInput;
+        coinType: string;
+    }): TransactionResult => {
+        return tx.moveCall({
+            target: `${packageId}::bbb_aftermath_config::get`,
+            typeArguments: [coinType],
+            arguments: [tx.object(aftermathConfigObj)],
+        });
+    },
+
+    // === admin functions ===
+    new: ({
+        tx,
+        packageId,
+        adminCapObj,
+    }: {
+        tx: Transaction;
+        packageId: string;
+        adminCapObj: TransactionObjectInput;
+    }): TransactionResult => {
+        return tx.moveCall({
+            target: `${packageId}::bbb_aftermath_config::new`,
+            arguments: [tx.object(adminCapObj)],
+        });
+    },
+
+    add: ({
+        tx,
+        packageId,
+        aftermathConfigObj,
+        adminCapObj,
+        afSwapObj,
+    }: {
+        tx: Transaction;
+        packageId: string;
+        aftermathConfigObj: TransactionObjectInput;
+        adminCapObj: TransactionObjectInput;
+        afSwapObj: TransactionObjectInput;
+    }): TransactionResult => {
+        return tx.moveCall({
+            target: `${packageId}::bbb_aftermath_config::add`,
+            arguments: [
+                tx.object(aftermathConfigObj),
+                tx.object(adminCapObj),
+                tx.object(afSwapObj),
+            ],
+        });
+    },
+
+    remove: ({
+        tx,
+        packageId,
+        aftermathConfigObj,
         adminCapObj,
         coinInType,
     }: {
         tx: Transaction;
         packageId: string;
-        bbbAftermathConfigObj: TransactionObjectInput;
+        aftermathConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
         coinInType: string;
     }): TransactionResult => {
         return tx.moveCall({
-            target: `${packageId}::bbb_config::remove_aftermath_swap`,
+            target: `${packageId}::bbb_aftermath_config::remove`,
             typeArguments: [coinInType],
-            arguments: [tx.object(bbbAftermathConfigObj), tx.object(adminCapObj)],
+            arguments: [tx.object(aftermathConfigObj), tx.object(adminCapObj)],
         });
     },
 } as const;

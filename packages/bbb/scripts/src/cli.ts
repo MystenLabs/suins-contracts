@@ -1,10 +1,11 @@
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 import { Command, Option } from "commander";
 import { afSwaps, burnTypes, cnf } from "./config.js";
+import { AftermathConfigSchema } from "./schema/aftermath_config.js";
 import { AftermathSwapEventSchema } from "./schema/aftermath_swap.js";
 import { BalanceDfSchema } from "./schema/balance_df.js";
 import { BurnEventSchema } from "./schema/burn.js";
-import { AftermathConfigSchema, BurnConfigSchema } from "./schema/config.js";
+import { BurnConfigSchema } from "./schema/burn_config.js";
 import { BBBVaultSchema } from "./schema/vault.js";
 import * as sdk from "./sdk.js";
 import {
@@ -25,8 +26,8 @@ const client = newSuiClient();
 const packageId = cnf.bbb.package;
 const adminCapObj = cnf.bbb.adminCapObj;
 const bbbVaultObj = cnf.bbb.vaultObj;
-const bbbBurnConfigObj = cnf.bbb.burnConfigObj;
-const bbbAftermathConfigObj = cnf.bbb.aftermathConfigObj;
+const burnConfigObj = cnf.bbb.burnConfigObj;
+const aftermathConfigObj = cnf.bbb.aftermathConfigObj;
 
 // === CLI ===
 
@@ -45,10 +46,10 @@ program
                 adminCapObj,
                 coinType,
             });
-            sdk.bbb_config.add_burn_type({
+            sdk.bbb_burn_config.add({
                 tx,
                 packageId,
-                bbbBurnConfigObj,
+                burnConfigObj,
                 adminCapObj,
                 burnObj,
             });
@@ -65,10 +66,10 @@ program
                 slippage: swap.slippage,
                 maxAgeSecs: swap.maxAgeSecs,
             });
-            sdk.bbb_config.add_aftermath_swap({
+            sdk.bbb_aftermath_config.add({
                 tx,
                 packageId,
-                bbbAftermathConfigObj,
+                aftermathConfigObj,
                 adminCapObj,
                 afSwapObj: swapObj,
             });
@@ -83,11 +84,11 @@ program
     .action(async () => {
         const [burnConfigResp, aftermathConfigResp] = await Promise.all([
             client.getObject({
-                id: bbbBurnConfigObj,
+                id: burnConfigObj,
                 options: { showContent: true },
             }),
             client.getObject({
-                id: bbbAftermathConfigObj,
+                id: aftermathConfigObj,
                 options: { showContent: true },
             }),
         ]);
@@ -180,10 +181,10 @@ program
     )
     .action(async ({ coinTicker }: { coinTicker: keyof typeof burnTypes }) => {
         const tx = new Transaction();
-        sdk.bbb_config.remove_burn_type({
+        sdk.bbb_burn_config.remove({
             tx,
             packageId,
-            bbbBurnConfigObj,
+            burnConfigObj,
             adminCapObj,
             coinType: burnTypes[coinTicker],
         });
@@ -201,10 +202,10 @@ program
     )
     .action(async ({ coinTicker }: { coinTicker: keyof typeof afSwaps }) => {
         const tx = new Transaction();
-        sdk.bbb_config.remove_aftermath_swap({
+        sdk.bbb_aftermath_config.remove({
             tx,
             packageId,
-            bbbAftermathConfigObj,
+            aftermathConfigObj,
             adminCapObj,
             coinInType: afSwaps[coinTicker].coinIn.type,
         });
@@ -240,10 +241,10 @@ program
                 throw new Error(`PriceInfoObject not found for ${afSwap.coinOut.type}`);
             }
 
-            const afSwapObj = sdk.bbb_config.get_aftermath_swap({
+            const afSwapObj = sdk.bbb_aftermath_config.get({
                 tx,
                 packageId,
-                bbbAftermathConfigObj,
+                aftermathConfigObj,
                 coinType: afSwap.coinIn.type,
             });
 
@@ -272,10 +273,10 @@ program
         // burn
 
         for (const coinType of Object.values(burnTypes)) {
-            const burnObj = sdk.bbb_config.get_burn({
+            const burnObj = sdk.bbb_burn_config.get({
                 tx,
                 packageId,
-                bbbBurnConfigObj,
+                burnConfigObj,
                 coinType,
             });
             sdk.bbb_burn.burn({
