@@ -1,7 +1,7 @@
 import { toHex } from "@mysten/sui/utils";
 import { z } from "zod/v4";
 
-export const BBBConfigSchema = z.object({
+export const BBBAftermathConfigSchema = z.object({
     objectId: z.string(),
     version: z.string(),
     digest: z.string(),
@@ -30,17 +30,6 @@ export const BBBConfigSchema = z.object({
                             fields: z.object({ name: z.string() }),
                         }),
                         type_out: z.object({
-                            type: z.string(),
-                            fields: z.object({ name: z.string() }),
-                        }),
-                    }),
-                }),
-            ),
-            burns: z.array(
-                z.object({
-                    type: z.string(),
-                    fields: z.object({
-                        coin_type: z.object({
                             type: z.string(),
                             fields: z.object({ name: z.string() }),
                         }),
