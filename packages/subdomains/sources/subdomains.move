@@ -25,7 +25,7 @@
 module suins_subdomains::subdomains;
 
 use std::string::{String, utf8};
-use sui::{clock::Clock, dynamic_field as df, vec_map::{Self, VecMap}};
+use sui::{clock::Clock, dynamic_field as df, vec_map::VecMap};
 use suins::{
     constants::{subdomain_allow_extension_key, subdomain_allow_creation_key},
     domain::{Self, Domain, is_subdomain},
@@ -119,7 +119,7 @@ public fun add_leaf_metadata(
     internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, false);
 
     let registry = registry_mut(suins);
-    let mut data = vec_map::empty();
+    let mut data = *registry.get_data(subdomain);
     let key_bytes = *key.as_bytes();
     assert!(
         key_bytes == AVATAR || key_bytes == CONTENT_HASH || key_bytes == WALRUS_SITE_ID,
