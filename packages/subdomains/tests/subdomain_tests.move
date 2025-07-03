@@ -271,6 +271,48 @@ fun tries_to_created_nested_leaf_subdomain() {
     abort 1337
 }
 
+#[test, expected_failure(abort_code = ::suins_subdomains::subdomains::ENotLeafRecord)]
+fun add_leaf_metadata_not_leaf_record() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+
+    let parent = create_sld_name(utf8(b"test.sui"), scenario);
+
+    let _child = create_node_subdomain(
+        &parent,
+        utf8(b"node.test.sui"),
+        MIN_SUBDOMAIN_DURATION,
+        true,
+        true,
+        scenario,
+    );
+
+    add_leaf_metadata(&parent, utf8(b"node.test.sui"), utf8(b"avatar"), utf8(b"value1"), scenario);
+
+    abort 1337
+}
+
+#[test, expected_failure(abort_code = ::suins_subdomains::subdomains::ENotLeafRecord)]
+fun remove_leaf_metadata_not_leaf_record() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+
+    let parent = create_sld_name(utf8(b"test.sui"), scenario);
+
+    let _child = create_node_subdomain(
+        &parent,
+        utf8(b"node.test.sui"),
+        MIN_SUBDOMAIN_DURATION,
+        true,
+        true,
+        scenario,
+    );
+
+    remove_leaf_metadata(&parent, utf8(b"node.test.sui"), utf8(b"avatar"), scenario);
+
+    abort 1337
+}
+
 // == Helpers ==
 
 public fun test_init(): Scenario {
