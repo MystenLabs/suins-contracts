@@ -9,6 +9,10 @@ export const cnf = {
         aftermathConfigObj: "0xTODO", // dev-only
         cetusConfigObj: "0xTODO", // dev-only
     },
+    /** Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point. */
+    defaultSlippage: 975_000_000_000_000_000n, // 2.5%
+    /** How stale a Pyth price can be, in seconds. */
+    defaultMaxAgeSecs: 60n,
     coins: {
         SUI: {
             type: "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI",
@@ -32,8 +36,6 @@ export const cnf = {
     pyth: {
         endpoint: "https://hermes.pyth.network",
         stateObj: "0x1f9310238ee9298fb703c3419030b35b22bb1cc37113e3bb5007c99aec79e5b8",
-        /** How stale a Pyth price can be, in seconds. */
-        defaultMaxAgeSecs: 60n,
     },
     aftermath: {
         ammPackage: "0xc4049b2d1cc0f6e017fda8260e4377cecd236bd7f56a54fee120816e72e2e0dd", // v2
@@ -54,16 +56,14 @@ export const cnf = {
         treasury: "0x28e499dff5e864a2eafe476269a4f5035f1c16f338da7be18b103499abf271ce",
         insuranceFund: "0xf0c40d67b078000e18032334c3325c47b9ec9f3d9ae4128be820d54663d14e3b",
         referralVault: "0x35d35b0e5b177593d8c3a801462485572fc30861e6ce96a55af6dc4730709278",
-        /** Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point. */
-        defaultSlippage: 975_000_000_000_000_000n, // 2.5%
     },
     cetus: {
         globalConfigObjId: "0xdaa46292632c3c4d8f31f23ea0f9b36a28ff3677e9684980e4438403a67a3d8f",
         pools: {
-            sui_usdc: {
+            usdc_sui: {
                 id: "0x51e883ba7c0b566a26cbc8a94cd33eb0abd418a77cc1e60ad22fd9b1f29cd2ab",
             },
-            sui_ns: {
+            ns_sui: {
                 id: "0x763f63cbada3a932c46972c6c6dcf1abd8a9a73331908a1d7ef24c2232d85520",
             },
         }
@@ -81,14 +81,34 @@ export const afSwaps = {
         coinIn: cnf.coins.USDC,
         coinOut: cnf.coins.SUI,
         pool: cnf.aftermath.pools.sui_usdc,
-        slippage: cnf.aftermath.defaultSlippage,
-        maxAgeSecs: cnf.pyth.defaultMaxAgeSecs,
+        slippage: cnf.defaultSlippage,
+        maxAgeSecs: cnf.defaultMaxAgeSecs,
     },
     SUI: { // -> NS
         coinIn: cnf.coins.SUI,
         coinOut: cnf.coins.NS,
         pool: cnf.aftermath.pools.sui_ns,
-        slippage: cnf.aftermath.defaultSlippage,
-        maxAgeSecs: cnf.pyth.defaultMaxAgeSecs,
+        slippage: cnf.defaultSlippage,
+        maxAgeSecs: cnf.defaultMaxAgeSecs,
+    },
+} as const;
+
+/** Cetus swap configurations. */
+export const cetusSwaps = {
+    USDC: { // -> SUI
+        coinA: cnf.coins.USDC,
+        coinB: cnf.coins.SUI,
+        pool: cnf.cetus.pools.usdc_sui,
+        a2b: true,
+        slippage: cnf.defaultSlippage,
+        maxAgeSecs: cnf.defaultMaxAgeSecs,
+    },
+    SUI: { // -> NS
+        coinA: cnf.coins.NS,
+        coinB: cnf.coins.SUI,
+        pool: cnf.cetus.pools.ns_sui,
+        a2b: false,
+        slippage: cnf.defaultSlippage,
+        maxAgeSecs: cnf.defaultMaxAgeSecs,
     },
 } as const;
