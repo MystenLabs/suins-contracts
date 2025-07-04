@@ -18,8 +18,12 @@ public struct BBBVault has key {
     balances: Bag,
 }
 
+// === accessors ===
+
 public fun id(vault: &BBBVault): ID { vault.id.to_inner() }
 public fun balances(vault: &BBBVault): &Bag { &vault.balances }
+
+// === constructors ===
 
 fun new(
     ctx: &mut TxContext,

@@ -9,7 +9,7 @@ use sui::{
     event::{emit},
 };
 use pyth::{
-    price_info::PriceInfoObject,
+    price_info::{PriceInfoObject},
 };
 use amm::{
     swap::{swap_exact_in},
@@ -44,6 +44,16 @@ const EInvalidCoinInType: u64 = 1003;
 const EInvalidCoinOutType: u64 = 1004;
 const EAmountOutTooLow: u64 = 1005;
 
+// === events ===
+
+public struct AftermathSwapEvent has copy, drop {
+    type_in: String,
+    type_out: String,
+    amount_in: u64,
+    amount_out: u64,
+    expected_out: u64,
+}
+
 // === structs ===
 
 /// Aftermath swap configuration.
@@ -71,6 +81,8 @@ public struct AftermathSwap has copy, drop, store {
     max_age_secs: u64,
 }
 
+// === accessors ===
+
 public fun type_in(self: &AftermathSwap): &TypeName { &self.type_in }
 public fun type_out(self: &AftermathSwap): &TypeName { &self.type_out }
 public fun decimals_in(self: &AftermathSwap): u8 { self.decimals_in }
@@ -80,6 +92,8 @@ public fun feed_out(self: &AftermathSwap): &vector<u8> { &self.feed_out }
 public fun pool_id(self: &AftermathSwap): &ID { &self.pool_id }
 public fun slippage(self: &AftermathSwap): u64 { self.slippage }
 public fun max_age_secs(self: &AftermathSwap): u64 { self.max_age_secs }
+
+// === constructors ===
 
 public fun new<L, CoinIn, CoinOut>(
     _cap: &BBBAdminCap,
@@ -194,14 +208,4 @@ public fun swap<L, CoinIn, CoinOut>(
         amount_out,
         expected_out,
     });
-}
-
-// === events ===
-
-public struct AftermathSwapEvent has copy, drop {
-    type_in: String,
-    type_out: String,
-    amount_in: u64,
-    amount_out: u64,
-    expected_out: u64,
 }

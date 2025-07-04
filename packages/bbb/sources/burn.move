@@ -20,6 +20,13 @@ const EInvalidCoinType: u64 = 100;
 
 macro fun burn_address(): address { @0x9526d8dbc3d24a9bc43a1c87f205ebd8d534155bc9b57771e2bf3aa6e4466686 } // TODO: dev-only: change to 0x0
 
+// === events ===
+
+public struct BurnEvent has copy, drop {
+    coin_type: String,
+    amount: u64,
+}
+
 // === structs ===
 
 /// Coin burn configuration.
@@ -29,9 +36,15 @@ public struct Burn has copy, drop, store {
     coin_type: TypeName,
 }
 
+// === accessors ===
+
 public fun coin_type(self: &Burn): &TypeName { &self.coin_type }
 
-public fun new<C>(_cap: &BBBAdminCap): Burn {
+// === constructors ===
+
+public fun new<C>(
+    _cap: &BBBAdminCap,
+): Burn {
     Burn { coin_type: type_name::get<C>() }
 }
 
@@ -60,11 +73,4 @@ public fun burn<C>(
     transfer::public_transfer(
         balance.into_coin(ctx), burn_address!()
     )
-}
-
-// === events ===
-
-public struct BurnEvent has copy, drop {
-    coin_type: String,
-    amount: u64,
 }

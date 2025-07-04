@@ -11,7 +11,7 @@ use sui::{
     event::{emit},
 };
 use pyth::{
-    price_info::PriceInfoObject,
+    price_info::{PriceInfoObject},
 };
 use cetusclmm::{
     config::{GlobalConfig},
@@ -34,6 +34,16 @@ const EInvalidCoinAType: u64 = 1003;
 const EInvalidCoinBType: u64 = 1004;
 const EAmountOutTooLow: u64 = 1005;
 const EInvalidOwedAmount: u64 = 1006;
+
+// === events ===
+
+public struct CetusSwapEvent has copy, drop {
+    type_in: String,
+    type_out: String,
+    amount_in: u64,
+    amount_out: u64,
+    expected_out: u64,
+}
 
 // === structs ===
 
@@ -64,6 +74,8 @@ public struct CetusSwap has copy, drop, store {
     max_age_secs: u64,
 }
 
+// === accessors ===
+
 public fun a2b(self: &CetusSwap): bool { self.a2b }
 public fun type_a(self: &CetusSwap): &TypeName { &self.type_a }
 public fun type_b(self: &CetusSwap): &TypeName { &self.type_b }
@@ -74,6 +86,8 @@ public fun feed_b(self: &CetusSwap): &vector<u8> { &self.feed_b }
 public fun pool_id(self: &CetusSwap): &ID { &self.pool_id }
 public fun slippage(self: &CetusSwap): u64 { self.slippage }
 public fun max_age_secs(self: &CetusSwap): u64 { self.max_age_secs }
+
+// === constructors ===
 
 public fun new<CoinA, CoinB>(
     _cap: &BBBAdminCap,
@@ -283,14 +297,4 @@ public fun swap_b2a<CoinA, CoinB>( // TODO make private
     );
 
     balance_a.into_coin(ctx)
-}
-
-// === events ===
-
-public struct CetusSwapEvent has copy, drop {
-    type_in: String,
-    type_out: String,
-    amount_in: u64,
-    amount_out: u64,
-    expected_out: u64,
 }
