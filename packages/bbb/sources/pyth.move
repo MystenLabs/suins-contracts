@@ -8,8 +8,8 @@ use pyth::{
     pyth::Self,
 };
 
-const EInvalidPriceIn: u64 = 100;
-const EInvalidPriceOut: u64 = 101;
+const EInvalidPriceIn: u64 = 1000;
+const EInvalidPriceOut: u64 = 1001;
 
 /// Calculate the expected output amount for a swap using Pyth price feeds.
 /// Converts `amount_in` of the input coin to equivalent value in output coin.

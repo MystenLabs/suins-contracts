@@ -11,7 +11,7 @@ use suins_bbb::{
 // === errors ===
 
 const ECetusSwapAlreadyExists: u64 = 1000;
-const ECetusSwapNotFound: u64 = 101;
+const ECetusSwapNotFound: u64 = 1001;
 
 // === structs ===
 
