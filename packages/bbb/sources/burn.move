@@ -64,7 +64,7 @@ public fun burn<C>(
 
 // === events ===
 
-public struct BurnEvent has drop, copy {
+public struct BurnEvent has copy, drop {
     coin_type: String,
     amount: u64,
 }
