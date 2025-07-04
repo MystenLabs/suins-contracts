@@ -91,6 +91,14 @@ public fun remove<CoinIn>(
     self.swaps.swap_remove(idx.destroy_some());
 }
 
+/// Remove all swaps from the config.
+public fun remove_all(
+    self: &mut CetusConfig,
+    _cap: &BBBAdminCap,
+) {
+    self.swaps.length().do!(|_| self.swaps.pop_back());
+}
+
 /// Delete the object.
 public fun destroy(
     self: CetusConfig,

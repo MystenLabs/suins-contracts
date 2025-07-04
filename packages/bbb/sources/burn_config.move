@@ -40,7 +40,7 @@ public fun new(
 
 // === public functions ===
 
-/// Get the burn configuration for `CoinType`.
+/// Get the burn for `CoinType`.
 /// Errors if not found.
 public fun get<CoinType>(
     self: &BurnConfig,
@@ -55,7 +55,7 @@ public fun get<CoinType>(
 
 // === admin functions ===
 
-/// Add a burn configuration for `CoinType`.
+/// Add a burn for `CoinType`.
 /// Errors if the coin type already exists.
 public fun add(
     self: &mut BurnConfig,
@@ -70,7 +70,7 @@ public fun add(
     self.burns.push_back(burn);
 }
 
-/// Remove the burn configuration for `CoinType`.
+/// Remove the burn for `CoinType`.
 /// Errors if the coin type does not exist.
 public fun remove<CoinType>(
     self: &mut BurnConfig,
@@ -82,6 +82,14 @@ public fun remove<CoinType>(
     assert!(idx.is_some(), EBurnTypeNotFound);
 
     self.burns.swap_remove(idx.destroy_some());
+}
+
+/// Remove all burns.
+public fun remove_all(
+    self: &mut BurnConfig,
+    _cap: &BBBAdminCap,
+) {
+    self.burns.length().do!(|_| self.burns.pop_back());
 }
 
 /// Delete the object.
