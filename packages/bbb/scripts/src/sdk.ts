@@ -195,6 +195,212 @@ export const bbb_aftermath_swap = {
     },
 } as const;
 
+export const bbb_cetus_config = {
+    // === public functions ===
+    get: ({
+        tx,
+        packageId,
+        cetusConfigObj,
+        coinInType,
+    }: {
+        tx: Transaction;
+        packageId: string;
+        cetusConfigObj: TransactionObjectInput;
+        coinInType: string;
+    }): TransactionResult => {
+        return tx.moveCall({
+            target: `${packageId}::bbb_cetus_config::get`,
+            typeArguments: [coinInType],
+            arguments: [tx.object(cetusConfigObj)],
+        });
+    },
+    // === admin functions ===
+    new: ({
+        tx,
+        packageId,
+        adminCapObj,
+    }: {
+        tx: Transaction;
+        packageId: string;
+        adminCapObj: TransactionObjectInput;
+    }): TransactionResult => {
+        return tx.moveCall({
+            target: `${packageId}::bbb_cetus_config::new`,
+            arguments: [tx.object(adminCapObj)],
+        });
+    },
+    add: ({
+        tx,
+        packageId,
+        cetusConfigObj,
+        adminCapObj,
+        cetusSwapObj,
+    }: {
+        tx: Transaction;
+        packageId: string;
+        cetusConfigObj: TransactionObjectInput;
+        adminCapObj: TransactionObjectInput;
+        cetusSwapObj: TransactionObjectInput;
+    }): TransactionResult => {
+        return tx.moveCall({
+            target: `${packageId}::bbb_cetus_config::add`,
+            arguments: [
+                tx.object(cetusConfigObj),
+                tx.object(adminCapObj),
+                tx.object(cetusSwapObj),
+            ],
+        });
+    },
+    remove: ({
+        tx,
+        packageId,
+        cetusConfigObj,
+        adminCapObj,
+        coinInType,
+    }: {
+        tx: Transaction;
+        packageId: string;
+        cetusConfigObj: TransactionObjectInput;
+        adminCapObj: TransactionObjectInput;
+        coinInType: string;
+    }): TransactionResult => {
+        return tx.moveCall({
+            target: `${packageId}::bbb_cetus_config::remove`,
+            typeArguments: [coinInType],
+            arguments: [tx.object(cetusConfigObj), tx.object(adminCapObj)],
+        });
+    },
+    remove_all: ({
+        tx,
+        packageId,
+        cetusConfigObj,
+        adminCapObj,
+    }: {
+        tx: Transaction;
+        packageId: string;
+        cetusConfigObj: TransactionObjectInput;
+        adminCapObj: TransactionObjectInput;
+    }): TransactionResult => {
+        return tx.moveCall({
+            target: `${packageId}::bbb_cetus_config::remove_all`,
+            arguments: [tx.object(cetusConfigObj), tx.object(adminCapObj)],
+        });
+    },
+    destroy: ({
+        tx,
+        packageId,
+        cetusConfigObj,
+        adminCapObj,
+    }: {
+        tx: Transaction;
+        packageId: string;
+        cetusConfigObj: TransactionObjectInput;
+        adminCapObj: TransactionObjectInput;
+    }): TransactionResult => {
+        return tx.moveCall({
+            target: `${packageId}::bbb_cetus_config::destroy`,
+            arguments: [tx.object(cetusConfigObj), tx.object(adminCapObj)],
+        });
+    },
+} as const;
+
+export const bbb_cetus_swap = {
+    new: ({
+        tx,
+        packageId,
+        coinAType,
+        coinBType,
+        adminCapObj,
+        a2b,
+        decimalsA,
+        decimalsB,
+        feedA,
+        feedB,
+        pool,
+        slippage,
+        maxAgeSecs,
+    }: {
+        tx: Transaction;
+        packageId: string;
+        coinAType: string;
+        coinBType: string;
+        adminCapObj: TransactionObjectInput;
+        a2b: boolean;
+        decimalsA: number;
+        decimalsB: number;
+        feedA: string;
+        feedB: string;
+        pool: {
+            id: string;
+        };
+        slippage: bigint;
+        maxAgeSecs: bigint;
+    }): TransactionResult => {
+        return tx.moveCall({
+            target: `${packageId}::bbb_cetus_swap::new`,
+            typeArguments: [coinAType, coinBType],
+            arguments: [
+                tx.object(adminCapObj),
+                tx.pure.bool(a2b),
+                tx.pure.u8(decimalsA),
+                tx.pure.u8(decimalsB),
+                tx.pure.vector("u8", fromHex(feedA)),
+                tx.pure.vector("u8", fromHex(feedB)),
+                tx.object(pool.id),
+                tx.pure.u64(slippage),
+                tx.pure.u64(maxAgeSecs),
+            ],
+        });
+    },
+    swap: ({
+        tx,
+        packageId,
+        // ours
+        coinAType,
+        coinBType,
+        cetusSwapObj,
+        bbbVaultObj,
+        // pyth
+        pythInfoObjA,
+        pythInfoObjB,
+        // cetus
+        cetusConfigObj,
+        cetusPoolObj,
+    }: {
+        tx: Transaction;
+        packageId: string;
+        // ours
+        coinAType: string;
+        coinBType: string;
+        cetusSwapObj: TransactionObjectInput;
+        bbbVaultObj: TransactionObjectInput;
+        // pyth
+        pythInfoObjA: TransactionObjectInput;
+        pythInfoObjB: TransactionObjectInput;
+        // cetus
+        cetusConfigObj: TransactionObjectInput;
+        cetusPoolObj: TransactionObjectInput;
+    }): TransactionResult => {
+        return tx.moveCall({
+            target: `${packageId}::bbb_cetus_swap::swap`,
+            typeArguments: [coinAType, coinBType],
+            arguments: [
+                // ours
+                tx.object(cetusSwapObj),
+                tx.object(bbbVaultObj),
+                // pyth
+                tx.object(pythInfoObjA),
+                tx.object(pythInfoObjB),
+                // cetus
+                tx.object(cetusConfigObj),
+                tx.object(cetusPoolObj),
+                // sui
+                tx.object.clock(),
+            ],
+        });
+    },
+} as const;
+
 export const bbb_burn_config = {
     // === public functions ===
     get: ({
