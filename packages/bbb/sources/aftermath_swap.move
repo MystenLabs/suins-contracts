@@ -198,7 +198,7 @@ public fun swap<L, CoinIn, CoinOut>(
 
 // === events ===
 
-public struct AftermathSwapEvent has drop, copy {
+public struct AftermathSwapEvent has copy, drop {
     type_in: String,
     type_out: String,
     amount_in: u64,

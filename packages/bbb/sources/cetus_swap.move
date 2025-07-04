@@ -287,7 +287,7 @@ public fun swap_b2a<CoinA, CoinB>( // TODO make private
 
 // === events ===
 
-public struct CetusSwapEvent has drop, copy {
+public struct CetusSwapEvent has copy, drop {
     type_in: String,
     type_out: String,
     amount_in: u64,
