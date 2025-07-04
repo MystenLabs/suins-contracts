@@ -15,7 +15,11 @@ const EAftermathSwapNotFound: u64 = 101;
 
 // === structs ===
 
-/// Enables coin swaps via Aftermath.
+/// Registry of available Aftermath swaps.
+///
+/// Each coin type can only appear on the input side of a swap once.
+/// E.g. there can only be 1 swap that converts SUI to another coin,
+/// but there can be multiple swaps that convert other coins to SUI.
 public struct AftermathConfig has key {
     id: UID,
     swaps: vector<AftermathSwap>,
@@ -26,6 +30,8 @@ public fun swaps(self: &AftermathConfig): &vector<AftermathSwap> { &self.swaps }
 
 // === public functions ===
 
+/// Get the swap that takes `CoinIn` as input.
+/// Errors if not found.
 public fun get<CoinIn>(
     self: &AftermathConfig,
 ): AftermathSwap {
@@ -49,25 +55,29 @@ public fun new(
     }
 }
 
+/// Add a swap to the config.
+/// Errors if the swap's input coin type already exists.
 public fun add(
     self: &mut AftermathConfig,
     _cap: &BBBAdminCap,
-    af_swap: AftermathSwap,
+    swap: AftermathSwap,
 ) {
-    let already_exists = self.swaps.any!(|existing| {
-        existing.type_in() == af_swap.type_in()
+    let already_exists = self.swaps.any!(|old| {
+        old.type_in() == swap.type_in()
     });
     assert!(!already_exists, EAftermathSwapAlreadyExists);
 
-    self.swaps.push_back(af_swap);
+    self.swaps.push_back(swap);
 }
 
+/// Remove a swap from the config.
+/// Errors if the swap's input coin type doesn't exist.
 public fun remove<CoinIn>(
     self: &mut AftermathConfig,
     _cap: &BBBAdminCap,
 ) {
-    let idx = self.swaps.find_index!(|existing| {
-        existing.type_in() == type_name::get<CoinIn>()
+    let idx = self.swaps.find_index!(|old| {
+        old.type_in() == type_name::get<CoinIn>()
     });
     assert!(idx.is_some(), EAftermathSwapNotFound);
 
