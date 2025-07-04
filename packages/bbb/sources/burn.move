@@ -14,7 +14,7 @@ use suins_bbb::{
 
 // === errors ===
 
-const EInvalidCoinType: u64 = 100;
+const EInvalidCoinType: u64 = 1000;
 
 // === constants ===
 
