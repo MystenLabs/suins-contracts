@@ -173,7 +173,6 @@ export const bbb_burn_config = {
             arguments: [tx.object(burnConfigObj)],
         });
     },
-
     // === admin functions ===
     new: ({
         tx,
@@ -189,7 +188,6 @@ export const bbb_burn_config = {
             arguments: [tx.object(adminCapObj)],
         });
     },
-
     add: ({
         tx,
         packageId,
@@ -212,7 +210,6 @@ export const bbb_burn_config = {
             ],
         });
     },
-
     remove: ({
         tx,
         packageId,
@@ -229,6 +226,38 @@ export const bbb_burn_config = {
         return tx.moveCall({
             target: `${packageId}::bbb_burn_config::remove`,
             typeArguments: [coinType],
+            arguments: [tx.object(burnConfigObj), tx.object(adminCapObj)],
+        });
+    },
+    remove_all: ({
+        tx,
+        packageId,
+        burnConfigObj,
+        adminCapObj,
+    }: {
+        tx: Transaction;
+        packageId: string;
+        burnConfigObj: TransactionObjectInput;
+        adminCapObj: TransactionObjectInput;
+    }): TransactionResult => {
+        return tx.moveCall({
+            target: `${packageId}::bbb_burn_config::remove_all`,
+            arguments: [tx.object(burnConfigObj), tx.object(adminCapObj)],
+        });
+    },
+    destroy: ({
+        tx,
+        packageId,
+        burnConfigObj,
+        adminCapObj,
+    }: {
+        tx: Transaction;
+        packageId: string;
+        burnConfigObj: TransactionObjectInput;
+        adminCapObj: TransactionObjectInput;
+    }): TransactionResult => {
+        return tx.moveCall({
+            target: `${packageId}::bbb_burn_config::destroy`,
             arguments: [tx.object(burnConfigObj), tx.object(adminCapObj)],
         });
     },
