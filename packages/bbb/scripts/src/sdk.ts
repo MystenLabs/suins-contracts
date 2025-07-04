@@ -24,7 +24,6 @@ export const bbb_aftermath_config = {
             arguments: [tx.object(aftermathConfigObj)],
         });
     },
-
     // === admin functions ===
     new: ({
         tx,
@@ -40,7 +39,6 @@ export const bbb_aftermath_config = {
             arguments: [tx.object(adminCapObj)],
         });
     },
-
     add: ({
         tx,
         packageId,
@@ -63,7 +61,6 @@ export const bbb_aftermath_config = {
             ],
         });
     },
-
     remove: ({
         tx,
         packageId,
@@ -80,6 +77,38 @@ export const bbb_aftermath_config = {
         return tx.moveCall({
             target: `${packageId}::bbb_aftermath_config::remove`,
             typeArguments: [coinInType],
+            arguments: [tx.object(aftermathConfigObj), tx.object(adminCapObj)],
+        });
+    },
+    remove_all: ({
+        tx,
+        packageId,
+        aftermathConfigObj,
+        adminCapObj,
+    }: {
+        tx: Transaction;
+        packageId: string;
+        aftermathConfigObj: TransactionObjectInput;
+        adminCapObj: TransactionObjectInput;
+    }): TransactionResult => {
+        return tx.moveCall({
+            target: `${packageId}::bbb_aftermath_config::remove_all`,
+            arguments: [tx.object(aftermathConfigObj), tx.object(adminCapObj)],
+        });
+    },
+    destroy: ({
+        tx,
+        packageId,
+        aftermathConfigObj,
+        adminCapObj,
+    }: {
+        tx: Transaction;
+        packageId: string;
+        aftermathConfigObj: TransactionObjectInput;
+        adminCapObj: TransactionObjectInput;
+    }): TransactionResult => {
+        return tx.moveCall({
+            target: `${packageId}::bbb_aftermath_config::destroy`,
             arguments: [tx.object(aftermathConfigObj), tx.object(adminCapObj)],
         });
     },
@@ -131,7 +160,6 @@ export const bbb_aftermath_swap = {
             ],
         });
     },
-
     swap: ({
         tx,
         packageId,

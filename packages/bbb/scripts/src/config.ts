@@ -1,12 +1,13 @@
 /** Mainnet configuration. */
 export const cnf = {
     bbb: { // TODO: update values for prod
-        package: "0x68cabe8f36b01b0a245422838cc30b405f9d6e7068a6b3a8cd02cac85a7641eb", // dev-only
-        upgradeCapObj: "0x8154a2bc4b3969f66b785aeb5741e5a6f1c3410a8ae0f4a48cc096f20f42ebec", // dev-only
-        adminCapObj: "0x2d238a1289a7ea0c420f221b5bfc587f2e931005eeafa15b8bc4cd0209d8f398", // dev-only
-        vaultObj: "0x8b68482bd32712520b8b76e7f4a460764706c347f205f6c0b88888d9e315c5ad", // dev-only
-        burnConfigObj: "TODO", // dev-only
-        aftermathConfigObj: "TODO", // dev-only
+        package: "0x17ee27d855267562a3e31c4bdf5c43f2b9b6ec0a97ea17d49938de4d4871aff2", // dev-only
+        upgradeCapObj: "0x13263d13bf468b936a1a018c5e779d1d8c93362efe3da27785d3771989c873a1", // dev-only
+        adminCapObj: "0xf00f69d63a46d5b5f1cdce3ce3bcd0645e811885ae8905db94a54d38ead619d3", // dev-only
+        vaultObj: "0x9f2ce332f3785f5566a33ee47933b822256f5559f3456fe09f263938b33e1216", // dev-only
+        burnConfigObj: "0xTODO", // dev-only
+        aftermathConfigObj: "0xTODO", // dev-only
+        cetusConfigObj: "0xTODO", // dev-only
     },
     coins: {
         SUI: {
