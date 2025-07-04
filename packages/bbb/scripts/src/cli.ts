@@ -1,6 +1,6 @@
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 import { Command, Option } from "commander";
-import { afSwaps, burnTypes, cnf } from "./config.js";
+import { afSwaps, burnTypes, cetusSwaps, cnf } from "./config.js";
 import { AftermathConfigSchema } from "./schema/aftermath_config.js";
 import { AftermathSwapEventSchema } from "./schema/aftermath_swap.js";
 import { BalanceDfSchema } from "./schema/balance_df.js";
@@ -28,33 +28,35 @@ const adminCapObj = cnf.bbb.adminCapObj;
 const bbbVaultObj = cnf.bbb.vaultObj;
 const burnConfigObj = cnf.bbb.burnConfigObj;
 const aftermathConfigObj = cnf.bbb.aftermathConfigObj;
+const _cetusConfigObj = cnf.bbb.cetusConfigObj;
 
 // === CLI ===
 
 program.name("bbb").description("Buy Back & Burn CLI tool").version("1.0.0");
 
 program
-    .command("init")
-    .description("Initialize the BBBConfig object (one-off)")
+    .command("config-new")
+    .description("Create, configure, and share all config objects (one-off)")
     .action(async () => {
         const tx = new Transaction();
-        // add burn types
+        // burns
+        const newBurnConfigObj = sdk.bbb_burn_config.new({ tx, packageId, adminCapObj });
         for (const coinType of Object.values(burnTypes)) {
-            const burnObj = sdk.bbb_burn.new({
-                tx,
-                packageId,
-                adminCapObj,
-                coinType,
-            });
+            const burnObj = sdk.bbb_burn.new({ tx, packageId, adminCapObj, coinType });
             sdk.bbb_burn_config.add({
                 tx,
                 packageId,
-                burnConfigObj,
+                burnConfigObj: newBurnConfigObj,
                 adminCapObj,
                 burnObj,
             });
         }
-        // add swap configs
+        // aftermath swaps
+        const newAftermathConfigObj = sdk.bbb_aftermath_config.new({
+            tx,
+            packageId,
+            adminCapObj,
+        });
         for (const swap of Object.values(afSwaps)) {
             const swapObj = sdk.bbb_aftermath_swap.new({
                 tx,
@@ -69,11 +71,42 @@ program
             sdk.bbb_aftermath_config.add({
                 tx,
                 packageId,
-                aftermathConfigObj,
+                aftermathConfigObj: newAftermathConfigObj,
                 adminCapObj,
                 afSwapObj: swapObj,
             });
         }
+        // cetus swaps
+        const newCetusConfigObj = sdk.bbb_cetus_config.new({
+            tx,
+            packageId,
+            adminCapObj,
+        });
+        for (const swap of Object.values(cetusSwaps)) {
+            const swapObj = sdk.bbb_cetus_swap.new({
+                tx,
+                packageId,
+                coinAType: swap.coinA.type,
+                coinBType: swap.coinB.type,
+                a2b: swap.a2b,
+                decimalsA: swap.coinA.decimals,
+                decimalsB: swap.coinB.decimals,
+                feedA: swap.coinA.pyth_feed,
+                feedB: swap.coinB.pyth_feed,
+                pool: swap.pool,
+                slippage: swap.slippage,
+                maxAgeSecs: swap.maxAgeSecs,
+                adminCapObj,
+            });
+            sdk.bbb_cetus_config.add({
+                tx,
+                packageId,
+                cetusConfigObj: newCetusConfigObj,
+                adminCapObj,
+                cetusSwapObj: swapObj,
+            });
+        }
+
         const resp = await signAndExecuteTx({ tx, dryRun });
         logTxResp(resp);
     });
@@ -326,7 +359,7 @@ program
             typeArguments: [cnf.coins.USDC.type, cnf.coins.SUI.type],
             arguments: [
                 tx.object(cnf.cetus.globalConfigObjId),
-                tx.object(cnf.cetus.pools.sui_usdc.id),
+                tx.object(cnf.cetus.pools.usdc_sui.id),
                 coinIn,
                 tx.object.clock(),
             ],
