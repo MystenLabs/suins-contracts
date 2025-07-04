@@ -90,3 +90,12 @@ public fun remove<CoinIn>(
     assert!(idx.is_some(), ECetusSwapNotFound);
     self.swaps.swap_remove(idx.destroy_some());
 }
+
+/// Delete the object.
+public fun destroy(
+    self: CetusConfig,
+    _cap: &BBBAdminCap,
+) {
+    let CetusConfig { id, swaps: _ } = self;
+    object::delete(id);
+}

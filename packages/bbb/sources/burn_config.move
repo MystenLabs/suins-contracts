@@ -40,10 +40,12 @@ public fun new(
 
 // === public functions ===
 
-public fun get<C>(
+/// Get the burn configuration for `CoinType`.
+/// Errors if not found.
+public fun get<CoinType>(
     self: &BurnConfig,
 ): Burn {
-    let coin_type = type_name::get<C>();
+    let coin_type = type_name::get<CoinType>();
     let idx = self.burns.find_index!(|burn| {
         burn.coin_type() == coin_type
     });
@@ -53,6 +55,8 @@ public fun get<C>(
 
 // === admin functions ===
 
+/// Add a burn configuration for `CoinType`.
+/// Errors if the coin type already exists.
 public fun add(
     self: &mut BurnConfig,
     _cap: &BBBAdminCap,
@@ -66,14 +70,25 @@ public fun add(
     self.burns.push_back(burn);
 }
 
-public fun remove<C>(
+/// Remove the burn configuration for `CoinType`.
+/// Errors if the coin type does not exist.
+public fun remove<CoinType>(
     self: &mut BurnConfig,
     _cap: &BBBAdminCap,
 ) {
     let idx = self.burns.find_index!(|existing| {
-        existing.coin_type() == type_name::get<C>()
+        existing.coin_type() == type_name::get<CoinType>()
     });
     assert!(idx.is_some(), EBurnTypeNotFound);
 
     self.burns.swap_remove(idx.destroy_some());
+}
+
+/// Delete the object.
+public fun destroy(
+    self: BurnConfig,
+    _cap: &BBBAdminCap,
+) {
+    let BurnConfig { id, burns: _ } = self;
+    object::delete(id);
 }

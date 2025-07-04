@@ -87,3 +87,12 @@ public fun remove<CoinIn>(
 
     self.swaps.swap_remove(idx.destroy_some());
 }
+
+/// Delete the object.
+public fun destroy(
+    self: AftermathConfig,
+    _cap: &BBBAdminCap,
+) {
+    let AftermathConfig { id, swaps: _ } = self;
+    object::delete(id);
+}
