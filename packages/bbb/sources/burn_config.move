@@ -15,14 +15,28 @@ const EBurnTypeNotFound: u64 = 1001;
 
 // === structs ===
 
-/// Enables burning selected coin types.
+/// Registry of burnable coin types.
 public struct BurnConfig has key {
     id: UID,
     burns: vector<Burn>,
 }
 
+// === accessors ===
+
 public fun id(self: &BurnConfig): &UID { &self.id }
 public fun burns(self: &BurnConfig): &vector<Burn> { &self.burns }
+
+// === constructors ===
+
+public fun new(
+    _cap: &BBBAdminCap,
+    ctx: &mut TxContext,
+): BurnConfig {
+    BurnConfig {
+        id: object::new(ctx),
+        burns: vector::empty(),
+    }
+}
 
 // === public functions ===
 
@@ -38,16 +52,6 @@ public fun get<C>(
 }
 
 // === admin functions ===
-
-public fun new(
-    _cap: &BBBAdminCap,
-    ctx: &mut TxContext,
-): BurnConfig {
-    BurnConfig {
-        id: object::new(ctx),
-        burns: vector::empty(),
-    }
-}
 
 public fun add(
     self: &mut BurnConfig,

@@ -4,8 +4,8 @@ use std::{
     type_name::{Self},
 };
 use suins_bbb::{
-    bbb_admin::BBBAdminCap,
-    bbb_cetus_swap::CetusSwap,
+    bbb_admin::{BBBAdminCap},
+    bbb_cetus_swap::{CetusSwap},
 };
 
 // === errors ===
@@ -25,8 +25,22 @@ public struct CetusConfig has key {
     swaps: vector<CetusSwap>,
 }
 
+// === accessors ===
+
 public fun id(self: &CetusConfig): &UID { &self.id }
 public fun swaps(self: &CetusConfig): &vector<CetusSwap> { &self.swaps }
+
+// === constructors ===
+
+public fun new(
+    _cap: &BBBAdminCap,
+    ctx: &mut TxContext,
+): CetusConfig {
+    CetusConfig {
+        id: object::new(ctx),
+        swaps: vector::empty(),
+    }
+}
 
 // === public functions ===
 
@@ -45,16 +59,6 @@ public fun get<CoinIn>(
 }
 
 // === admin functions ===
-
-public fun new(
-    _cap: &BBBAdminCap,
-    ctx: &mut TxContext,
-): CetusConfig {
-    CetusConfig {
-        id: object::new(ctx),
-        swaps: vector::empty(),
-    }
-}
 
 /// Add a swap to the config.
 /// Errors if the swap's input coin type already exists.

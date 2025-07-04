@@ -4,8 +4,8 @@ use std::{
     type_name::{Self},
 };
 use suins_bbb::{
-    bbb_admin::BBBAdminCap,
-    bbb_aftermath_swap::AftermathSwap,
+    bbb_admin::{BBBAdminCap},
+    bbb_aftermath_swap::{AftermathSwap},
 };
 
 // === errors ===
@@ -25,8 +25,22 @@ public struct AftermathConfig has key {
     swaps: vector<AftermathSwap>,
 }
 
+// === accessors ===
+
 public fun id(self: &AftermathConfig): &UID { &self.id }
 public fun swaps(self: &AftermathConfig): &vector<AftermathSwap> { &self.swaps }
+
+// === constructors ===
+
+public fun new(
+    _cap: &BBBAdminCap,
+    ctx: &mut TxContext,
+): AftermathConfig {
+    AftermathConfig {
+        id: object::new(ctx),
+        swaps: vector::empty(),
+    }
+}
 
 // === public functions ===
 
@@ -44,16 +58,6 @@ public fun get<CoinIn>(
 }
 
 // === admin functions ===
-
-public fun new(
-    _cap: &BBBAdminCap,
-    ctx: &mut TxContext,
-): AftermathConfig {
-    AftermathConfig {
-        id: object::new(ctx),
-        swaps: vector::empty(),
-    }
-}
 
 /// Add a swap to the config.
 /// Errors if the swap's input coin type already exists.
