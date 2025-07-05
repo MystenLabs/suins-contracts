@@ -54,7 +54,12 @@ program
             });
         }
         // aftermath swaps
-        sdk.bbb_aftermath_config.remove_all({ tx, packageId, adminCapObj, aftermathConfigObj });
+        sdk.bbb_aftermath_config.remove_all({
+            tx,
+            packageId,
+            adminCapObj,
+            aftermathConfigObj,
+        });
         for (const swap of Object.values(afSwaps)) {
             const swapObj = sdk.bbb_aftermath_swap.new({
                 tx,
@@ -215,10 +220,12 @@ program
     );
 
 program
-    .command("swap-and-burn")
+    .command("swap-and-burn") // TODO clean up
     .description("Swap and burn coins")
     .action(async () => {
         const tx = new Transaction();
+
+        // get pyth price info objects
 
         const pythPriceInfoIds = await Promise.all(
             Object.values(cnf.coins).map(async (coin) => ({
@@ -227,13 +234,16 @@ program
             })),
         ).catch((err) => {
             logJson({
+                time: new Date().toISOString(),
                 error: "Failed to fetch price info objects",
-                message: err.message,
+                message: err instanceof Error ? err.message : String(err),
             });
             process.exit(1);
         });
 
-        const swapAf = (tx: Transaction) => {
+        // helpers
+
+        const swapAftermath = (tx: Transaction) => {
             for (const swap of Object.values(afSwaps)) {
                 const pythInfoObjIn = pythPriceInfoIds.find(
                     (info) => info.coinType === swap.coinIn.type,
@@ -320,68 +330,105 @@ program
             }
         };
 
-        // devInspect both swap methods
+        const burn = (tx: Transaction) => {
+            for (const coinType of Object.values(burnTypes)) {
+                const burnObj = sdk.bbb_burn_config.get({
+                    tx,
+                    packageId,
+                    burnConfigObj,
+                    coinType,
+                });
+                sdk.bbb_burn.burn({
+                    tx,
+                    packageId,
+                    coinType,
+                    burnObj,
+                    bbbVaultObj,
+                });
+            }
+        };
 
-        const devInspectSwaps = async (tx: Transaction, swapFn: (tx: Transaction) => void) => {
+        // find most profitable swap route
+
+        const devInspectSwapAndBurn = async (swapFn: (tx: Transaction) => void) => {
             try {
                 const tx = new Transaction();
                 swapFn(tx);
+                burn(tx);
                 const dryRunResp = await signAndExecuteTx({ tx, dryRun: true });
                 return { resp: dryRunResp, error: null };
             } catch (err) {
-                return { resp: null, error: {
-                    error: "Failed to devInspect swaps",
-                    message: err instanceof Error ? err.message : String(err),
-                } };
+                return {
+                    resp: null,
+                    error: err instanceof Error ? err.message : String(err),
+                };
             }
         };
-        const afDryRun = await devInspectSwaps(tx, swapAf);
-        const cetusDryRun = await devInspectSwaps(tx, swapCetus);
 
-        // swap via Cetus by default, fall back to Aftermath
-        if (!cetusDryRun.error) {
-            swapCetus(tx);
-        } else if (!afDryRun.error) {
-            swapAf(tx);
+        const swapFns = [swapAftermath, swapCetus];
+
+        const dryRuns = await Promise.all(
+            swapFns.map(async (swapFn) => ({
+                swapFn,
+                dryRun: await devInspectSwapAndBurn(swapFn),
+            })),
+        );
+
+        const successfulRuns = dryRuns
+            .filter((run) => run.dryRun.resp && !run.dryRun.error)
+            .map((run) => ({
+                swapFn: run.swapFn,
+                burnedNS: extractBurnedNS(run.dryRun.resp!),
+            }));
+
+        const mostProfitable =
+            successfulRuns.length === 0
+                ? null
+                : successfulRuns.reduce((best, current) =>
+                      current.burnedNS > best.burnedNS ? current : best,
+                  );
+
+        // swap via most profitable route
+
+        if (mostProfitable) {
+            mostProfitable.swapFn(tx);
         } else {
             logJson({
-                error: "All swap methods failed",
-                cetusError: cetusDryRun.error,
-                afError: afDryRun.error,
+                time: new Date().toISOString(),
+                error: "All swap routes failed",
+                routeErrors: dryRuns
+                    .filter((run) => run.dryRun.error !== null)
+                    .map((run) => ({
+                        swapFn: run.swapFn.name,
+                        error: run.dryRun.error,
+                    })),
             });
             process.exit(1);
         }
 
-        // burn
+        // burn NS
 
-        for (const coinType of Object.values(burnTypes)) {
-            const burnObj = sdk.bbb_burn_config.get({
-                tx,
-                packageId,
-                burnConfigObj,
-                coinType,
+        burn(tx);
+
+        // execute tx
+
+        try {
+            const resp = await signAndExecuteTx({ tx, dryRun });
+            logJson({
+                time: new Date().toISOString(),
+                tx_status: resp.effects?.status.status,
+                tx_digest: resp.digest,
+                afSwaps: extractAfSwapEvents(resp),
+                cetusSwaps: extractCetusSwapEvents(resp),
+                burns: extractBurnEvents(resp),
             });
-            sdk.bbb_burn.burn({
-                tx,
-                packageId,
-                coinType,
-                burnObj,
-                bbbVaultObj,
+        } catch (err) {
+            logJson({
+                time: new Date().toISOString(),
+                error: "Failed to execute tx",
+                message: err instanceof Error ? err.message : String(err),
             });
         }
-
-        const resp = await signAndExecuteTx({ tx, dryRun });
-
-        // log
-
-        logJson({
-            time: new Date().toISOString(),
-            tx_status: resp.effects?.status.status,
-            tx_digest: resp.digest,
-            afSwaps: extractAfSwapEvents(resp),
-            cetusSwaps: extractCetusSwapEvents(resp),
-            burns: extractBurnEvents(resp),
-        });
     });
 
 program.parse();
@@ -389,27 +436,34 @@ program.parse();
 // === helpers ===
 
 function extractAfSwapEvents(resp: SuiTransactionBlockResponse) {
-    return resp.events
-        ?.filter((e) => e.type.endsWith("::bbb_aftermath_swap::AftermathSwapEvent"))
+    return (resp.events ?? [])
+        .filter((e) => e.type.endsWith("::bbb_aftermath_swap::AftermathSwapEvent"))
         .map((e) => AftermathSwapEventSchema.parse(e).parsedJson);
 }
 
 function extractCetusSwapEvents(resp: SuiTransactionBlockResponse) {
-    return resp.events
-        ?.filter((e) => e.type.endsWith("::bbb_cetus_swap::CetusSwapEvent"))
+    return (resp.events ?? [])
+        .filter((e) => e.type.endsWith("::bbb_cetus_swap::CetusSwapEvent"))
         .map((e) => CetusSwapEventSchema.parse(e).parsedJson);
 }
 
 function extractBurnEvents(resp: SuiTransactionBlockResponse) {
-    return resp.events
-        ?.filter((e) => e.type.endsWith("::bbb_burn::BurnEvent"))
+    return (resp.events ?? [])
+        .filter((e) => e.type.endsWith("::bbb_burn::BurnEvent"))
         .map((e) => BurnEventSchema.parse(e).parsedJson);
 }
 
-function calculateGasUsed(resp: SuiTransactionBlockResponse) {
-    return (
-        Number(resp.effects?.gasUsed.computationCost) +
-        Number(resp.effects?.gasUsed.storageCost) -
-        Number(resp.effects?.gasUsed.storageRebate)
-    );
+function extractBurnedNS(resp: SuiTransactionBlockResponse): bigint {
+    const nsTypeWithout0x = cnf.coins.NS.type.slice(2);
+    return extractBurnEvents(resp)
+        .filter((e) => e.coin_type === nsTypeWithout0x)
+        .reduce((acc, e) => acc + BigInt(e.amount), 0n);
 }
+
+// function calculateGasUsed(resp: SuiTransactionBlockResponse) {
+//     return (
+//         Number(resp.effects?.gasUsed.computationCost) +
+//         Number(resp.effects?.gasUsed.storageCost) -
+//         Number(resp.effects?.gasUsed.storageRebate)
+//     );
+// }
