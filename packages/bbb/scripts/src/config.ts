@@ -1,13 +1,13 @@
 /** Mainnet configuration. */
 export const cnf = {
     bbb: { // TODO: update values for prod
-        package: "0x17ee27d855267562a3e31c4bdf5c43f2b9b6ec0a97ea17d49938de4d4871aff2", // dev-only
-        upgradeCapObj: "0x13263d13bf468b936a1a018c5e779d1d8c93362efe3da27785d3771989c873a1", // dev-only
-        adminCapObj: "0xf00f69d63a46d5b5f1cdce3ce3bcd0645e811885ae8905db94a54d38ead619d3", // dev-only
-        vaultObj: "0x9f2ce332f3785f5566a33ee47933b822256f5559f3456fe09f263938b33e1216", // dev-only
-        burnConfigObj: "0xTODO", // dev-only
-        aftermathConfigObj: "0xTODO", // dev-only
-        cetusConfigObj: "0xTODO", // dev-only
+        package: "0x776762a519de54204cede99fcc3f1eb1b86dddc10031e911179b17321298bb29", // dev-only
+        upgradeCapObj: "0xa402430a25de59fae02a81f48db8e1ff908792e2b78eef81ecfaa388160014be", // dev-only
+        adminCapObj: "0x4dd7e336a20cb765e220a4f5edb352e93a8ff6558ce638a7e60e34ee1ccab0f5", // dev-only
+        vaultObj: "0x94d67c936027b62b373f67843e25998f395a97d267095b43cf5010f01a334b61", // dev-only
+        burnConfigObj: "0xe32990d54690e2d3a4e2b93c40c944c84757f31d402b8aa5cfee25f501f5266e", // dev-only
+        aftermathConfigObj: "0x44c67a02c012a58c508085cff4990eb941d2d7ca7ce0e4dfb7f3594885632ed7", // dev-only
+        cetusConfigObj: "0x4361982e75877c34773ae26c96c28c447461b3131690d9b93d8660ab1dcf285e", // dev-only
     },
     /** Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point. */
     defaultSlippage: 975_000_000_000_000_000n, // 2.5%
