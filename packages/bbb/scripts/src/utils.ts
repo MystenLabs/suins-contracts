@@ -45,7 +45,7 @@ export async function signAndExecuteTx({
         });
         if (result.effects.status.status !== "success") {
             throw new Error(
-                `devInspectTransactionBlock failed: ${result.effects.status.error}`,
+                `devInspect failed: ${result.effects.status.error}`,
             );
         }
         return { digest: "", ...result };
@@ -65,7 +65,7 @@ export async function signAndExecuteTx({
     });
 
     if (resp.effects?.status.status !== "success") {
-        throw new Error(`executeTransactionBlock failed: ${resp.effects?.status.error}`);
+        throw new Error(`transaction failed: ${resp.effects?.status.error}`);
     }
 
     if (waitForTx) {

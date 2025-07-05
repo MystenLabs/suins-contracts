@@ -320,31 +320,37 @@ program
             }
         };
 
-        // find most profitable route
-        const afDryRunTx = new Transaction();
-        swapAf(afDryRunTx);
-        const afDryRunResp = await signAndExecuteTx({ tx: afDryRunTx, dryRun: true });
+        // devInspect both swap methods
 
-        const cetusDryRunTx = new Transaction();
-        swapCetus(cetusDryRunTx);
-        const cetusDryRunResp = await signAndExecuteTx({
-            tx: cetusDryRunTx,
-            dryRun: true,
-        });
+        const devInspectSwaps = async (tx: Transaction, swapFn: (tx: Transaction) => void) => {
+            try {
+                const tx = new Transaction();
+                swapFn(tx);
+                const dryRunResp = await signAndExecuteTx({ tx, dryRun: true });
+                return { resp: dryRunResp, error: null };
+            } catch (err) {
+                return { resp: null, error: {
+                    error: "Failed to devInspect swaps",
+                    message: err instanceof Error ? err.message : String(err),
+                } };
+            }
+        };
+        const afDryRun = await devInspectSwaps(tx, swapAf);
+        const cetusDryRun = await devInspectSwaps(tx, swapCetus);
 
-        logJson({
-            afSwaps: extractAfSwapEvents(afDryRunResp),
-            afGas: calculateGasUsed(afDryRunResp),
-            cetusSwaps: extractCetusSwapEvents(cetusDryRunResp),
-            cetusGas: calculateGasUsed(cetusDryRunResp),
-        });
-
-        return;
-
-        // actual swaps
-
-        swapAf(tx);
-        swapCetus(tx);
+        // swap via Cetus by default, fall back to Aftermath
+        if (!cetusDryRun.error) {
+            swapCetus(tx);
+        } else if (!afDryRun.error) {
+            swapAf(tx);
+        } else {
+            logJson({
+                error: "All swap methods failed",
+                cetusError: cetusDryRun.error,
+                afError: afDryRun.error,
+            });
+            process.exit(1);
+        }
 
         // burn
 
