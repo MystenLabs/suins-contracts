@@ -36,7 +36,7 @@ const cetusConfigObj = cnf.bbb.cetusConfigObj;
 program.name("bbb").description("Buy Back & Burn CLI tool").version("1.0.0");
 
 program
-    .command("init")
+    .command("init") // TODO: allow this to be run multiple times with remove_all
     .description("Initialize the config objects (one-off)")
     .action(async () => {
         const tx = new Transaction();
@@ -209,48 +209,6 @@ program
             logTxResp(resp);
         },
     );
-
-program
-    .command("remove-burn")
-    .description("Remove a burn coin type from the BBBConfig object")
-    .addOption(
-        new Option("-c, --coin-ticker <coin-ticker>", "coin ticker")
-            .choices(Object.keys(burnTypes))
-            .makeOptionMandatory(),
-    )
-    .action(async ({ coinTicker }: { coinTicker: keyof typeof burnTypes }) => {
-        const tx = new Transaction();
-        sdk.bbb_burn_config.remove({
-            tx,
-            packageId,
-            burnConfigObj,
-            adminCapObj,
-            coinType: burnTypes[coinTicker],
-        });
-        const resp = await signAndExecuteTx({ tx, dryRun });
-        logTxResp(resp);
-    });
-
-program
-    .command("remove-swap")
-    .description("Remove an Aftermath swap config from the BBBConfig object")
-    .addOption(
-        new Option("-c, --coin-ticker <coin-ticker>", "coin ticker")
-            .choices(Object.keys(afSwaps))
-            .makeOptionMandatory(),
-    )
-    .action(async ({ coinTicker }: { coinTicker: keyof typeof afSwaps }) => {
-        const tx = new Transaction();
-        sdk.bbb_aftermath_config.remove({
-            tx,
-            packageId,
-            aftermathConfigObj,
-            adminCapObj,
-            coinInType: afSwaps[coinTicker].coinIn.type,
-        });
-        const resp = await signAndExecuteTx({ tx, dryRun });
-        logTxResp(resp);
-    });
 
 program
     .command("swap-and-burn")
