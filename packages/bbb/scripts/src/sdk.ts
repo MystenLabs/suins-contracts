@@ -49,10 +49,7 @@ export const bbb_aftermath_config = {
         return tx.moveCall({
             target: `${packageId}::bbb_aftermath_config::remove`,
             typeArguments: [arg.coinInType],
-            arguments: [
-                tx.object(arg.aftermathConfigObj),
-                tx.object(arg.adminCapObj),
-            ],
+            arguments: [tx.object(arg.aftermathConfigObj), tx.object(arg.adminCapObj)],
         });
     },
     remove_all: (arg: {
@@ -64,10 +61,7 @@ export const bbb_aftermath_config = {
         const { tx, packageId } = arg;
         return tx.moveCall({
             target: `${packageId}::bbb_aftermath_config::remove_all`,
-            arguments: [
-                tx.object(arg.aftermathConfigObj),
-                tx.object(arg.adminCapObj),
-            ],
+            arguments: [tx.object(arg.aftermathConfigObj), tx.object(arg.adminCapObj)],
         });
     },
 } as const;
@@ -201,10 +195,7 @@ export const bbb_cetus_config = {
         return tx.moveCall({
             target: `${packageId}::bbb_cetus_config::remove`,
             typeArguments: [arg.coinInType],
-            arguments: [
-                tx.object(arg.cetusConfigObj),
-                tx.object(arg.adminCapObj),
-            ],
+            arguments: [tx.object(arg.cetusConfigObj), tx.object(arg.adminCapObj)],
         });
     },
     remove_all: (arg: {
@@ -216,10 +207,7 @@ export const bbb_cetus_config = {
         const { tx, packageId } = arg;
         return tx.moveCall({
             target: `${packageId}::bbb_cetus_config::remove_all`,
-            arguments: [
-                tx.object(arg.cetusConfigObj),
-                tx.object(arg.adminCapObj),
-            ],
+            arguments: [tx.object(arg.cetusConfigObj), tx.object(arg.adminCapObj)],
         });
     },
 } as const;

@@ -6,6 +6,7 @@ import { AftermathSwapEventSchema } from "./schema/aftermath_swap.js";
 import { BalanceDfSchema } from "./schema/balance_df.js";
 import { BurnEventSchema } from "./schema/burn.js";
 import { BurnConfigSchema } from "./schema/burn_config.js";
+import { CetusConfigSchema } from "./schema/cetus_config.js";
 import { BBBVaultSchema } from "./schema/vault.js";
 import * as sdk from "./sdk.js";
 import {
@@ -114,7 +115,7 @@ program
     .command("get-config")
     .description("Fetch the config objects")
     .action(async () => {
-        const [burnConfigResp, aftermathConfigResp] = await Promise.all([
+        const [burnConfigResp, aftermathConfigResp, cetusConfigResp] = await Promise.all([
             client.getObject({
                 id: burnConfigObj,
                 options: { showContent: true },
@@ -123,14 +124,20 @@ program
                 id: aftermathConfigObj,
                 options: { showContent: true },
             }),
+            client.getObject({
+                id: cetusConfigObj,
+                options: { showContent: true },
+            }),
         ]);
 
         const burnConfig = BurnConfigSchema.parse(burnConfigResp.data);
         const aftermathConfig = AftermathConfigSchema.parse(aftermathConfigResp.data);
+        const cetusConfig = CetusConfigSchema.parse(cetusConfigResp.data);
 
         logJson({
-            burnConfig,
-            aftermathConfig,
+            burnConfig: burnConfig.content.fields,
+            aftermathConfig: aftermathConfig.content.fields,
+            cetusConfig: cetusConfig.content.fields,
         });
     });
 
