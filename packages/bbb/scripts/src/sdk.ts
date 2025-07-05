@@ -90,6 +90,20 @@ export const bbb_aftermath_config = {
                 ],
             });
     },
+    // === framework functions ===
+    share: (arg: {
+        packageId: string;
+        obj: TransactionObjectInput;
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: "0x2::transfer::public_share_object",
+                typeArguments: [
+                    `${arg.packageId}::bbb_aftermath_config::AftermathConfig`,
+                ],
+                arguments: [tx.object(arg.obj)],
+            });
+    },
 } as const;
 
 export const bbb_aftermath_swap = {
@@ -251,6 +265,18 @@ export const bbb_cetus_config = {
                 arguments: [tx.object(arg.cetusConfigObj), tx.object(arg.adminCapObj)],
             });
     },
+    // === framework functions ===
+    share: (arg: {
+        packageId: string;
+        obj: TransactionObjectInput;
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: "0x2::transfer::public_share_object",
+                typeArguments: [`${arg.packageId}::bbb_cetus_config::CetusConfig`],
+                arguments: [tx.object(arg.obj)],
+            });
+    },
 } as const;
 
 export const bbb_cetus_swap = {
@@ -398,6 +424,18 @@ export const bbb_burn_config = {
             tx.moveCall({
                 target: `${arg.packageId}::bbb_burn_config::destroy`,
                 arguments: [tx.object(arg.burnConfigObj), tx.object(arg.adminCapObj)],
+            });
+    },
+    // === framework functions ===
+    share: (arg: {
+        packageId: string;
+        obj: TransactionObjectInput;
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: "0x2::transfer::public_share_object",
+                typeArguments: [`${arg.packageId}::bbb_burn_config::BBBConfig`],
+                arguments: [tx.object(arg.obj)],
             });
     },
 } as const;
