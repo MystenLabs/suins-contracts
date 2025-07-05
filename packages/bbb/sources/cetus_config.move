@@ -20,7 +20,7 @@ const ECetusSwapNotFound: u64 = 1001;
 /// Each coin type can only appear on the input side of a swap once.
 /// E.g. there can only be 1 swap that converts SUI to another coin,
 /// but there can be multiple swaps that convert other coins to SUI.
-public struct CetusConfig has key, store {
+public struct CetusConfig has key {
     id: UID,
     swaps: vector<CetusSwap>,
 }
@@ -32,14 +32,21 @@ public fun swaps(self: &CetusConfig): &vector<CetusSwap> { &self.swaps }
 
 // === constructors ===
 
-public fun new(
-    _cap: &BBBAdminCap,
+fun new(
     ctx: &mut TxContext,
 ): CetusConfig {
     CetusConfig {
         id: object::new(ctx),
         swaps: vector::empty(),
     }
+}
+
+// === initialization ===
+
+public struct BBB_CETUS_CONFIG has drop {}
+
+fun init(_otw: BBB_CETUS_CONFIG, ctx: &mut TxContext) {
+    transfer::share_object(new(ctx));
 }
 
 // === public functions ===
