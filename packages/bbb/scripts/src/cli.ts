@@ -40,24 +40,27 @@ program
     .action(async () => {
         const tx = new Transaction();
         // burns
-        const newBurnConfigObj = sdk.bbb_burn_config.new({ packageId, adminCapObj });
+        const newBurnConfigObj = sdk.bbb_burn_config.new({ tx, packageId, adminCapObj });
         for (const coinType of Object.values(burnTypes)) {
-            const burnObj = sdk.bbb_burn.new({ packageId, adminCapObj, coinType });
+            const burnObj = sdk.bbb_burn.new({ tx, packageId, adminCapObj, coinType });
             sdk.bbb_burn_config.add({
+                tx,
                 packageId,
                 burnConfigObj: newBurnConfigObj,
                 adminCapObj,
                 burnObj,
             });
         }
-        sdk.bbb_burn_config.share({ packageId, obj: newBurnConfigObj });
+        sdk.bbb_burn_config.share({ tx, packageId, obj: newBurnConfigObj });
         // aftermath swaps
         const newAftermathConfigObj = sdk.bbb_aftermath_config.new({
+            tx,
             packageId,
             adminCapObj,
         });
         for (const swap of Object.values(afSwaps)) {
             const swapObj = sdk.bbb_aftermath_swap.new({
+                tx,
                 packageId,
                 adminCapObj,
                 coinIn: swap.coinIn,
@@ -67,20 +70,23 @@ program
                 maxAgeSecs: swap.maxAgeSecs,
             });
             sdk.bbb_aftermath_config.add({
+                tx,
                 packageId,
                 aftermathConfigObj: newAftermathConfigObj,
                 adminCapObj,
                 afSwapObj: swapObj,
             });
         }
-        sdk.bbb_aftermath_config.share({ packageId, obj: newAftermathConfigObj });
+        sdk.bbb_aftermath_config.share({ tx, packageId, obj: newAftermathConfigObj });
         // cetus swaps
         const newCetusConfigObj = sdk.bbb_cetus_config.new({
+            tx,
             packageId,
             adminCapObj,
         });
         for (const swap of Object.values(cetusSwaps)) {
             const swapObj = sdk.bbb_cetus_swap.new({
+                tx,
                 packageId,
                 coinAType: swap.coinA.type,
                 coinBType: swap.coinB.type,
@@ -95,13 +101,14 @@ program
                 adminCapObj,
             });
             sdk.bbb_cetus_config.add({
+                tx,
                 packageId,
                 cetusConfigObj: newCetusConfigObj,
                 adminCapObj,
                 cetusSwapObj: swapObj,
             });
         }
-        sdk.bbb_cetus_config.share({ packageId, obj: newCetusConfigObj });
+        sdk.bbb_cetus_config.share({ tx, packageId, obj: newCetusConfigObj });
 
         const resp = await signAndExecuteTx({ tx, dryRun });
         const createdObjs = resp.objectChanges?.filter(
@@ -199,6 +206,7 @@ program
                 type: coinInfo.type,
             });
             sdk.bbb_vault.deposit({
+                tx,
                 packageId,
                 coinType: coinInfo.type,
                 bbbVaultObj,
@@ -221,6 +229,7 @@ program
     .action(async ({ coinTicker }: { coinTicker: keyof typeof burnTypes }) => {
         const tx = new Transaction();
         sdk.bbb_burn_config.remove({
+            tx,
             packageId,
             burnConfigObj,
             adminCapObj,
@@ -241,6 +250,7 @@ program
     .action(async ({ coinTicker }: { coinTicker: keyof typeof afSwaps }) => {
         const tx = new Transaction();
         sdk.bbb_aftermath_config.remove({
+            tx,
             packageId,
             aftermathConfigObj,
             adminCapObj,
@@ -279,12 +289,14 @@ program
             }
 
             const afSwapObj = sdk.bbb_aftermath_config.get({
+                tx,
                 packageId,
                 aftermathConfigObj,
                 coinType: afSwap.coinIn.type,
             });
 
             sdk.bbb_aftermath_swap.swap({
+                tx,
                 packageId,
                 // ours
                 coinInType: afSwap.coinIn.type,
@@ -309,11 +321,13 @@ program
 
         for (const coinType of Object.values(burnTypes)) {
             const burnObj = sdk.bbb_burn_config.get({
+                tx,
                 packageId,
                 burnConfigObj,
                 coinType,
             });
             sdk.bbb_burn.burn({
+                tx,
                 packageId,
                 coinType,
                 burnObj,
