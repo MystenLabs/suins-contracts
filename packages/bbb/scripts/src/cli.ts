@@ -304,33 +304,4 @@ program
         });
     });
 
-program
-    .command("cetus-demo")
-    .description("Cetus swap demo")
-    .action(async () => {
-        const tx = new Transaction();
-        const demoPkgId =
-            "0x5b065e17dcd53c5eb2d1b6e902da2f65bb4be367c8afadeee4ebc649abb84a4d";
-        const a2b: boolean = true;
-        const ZERO_POINT_ONE_USDC = 1_000_000n / 10n;
-        const ZERO_POINT_ONE_SUI = 1_000_000_000n / 10n;
-        const coinIn = coinWithBalance({
-            balance: a2b ? ZERO_POINT_ONE_USDC : ZERO_POINT_ONE_SUI,
-            type: a2b ? cnf.coins.USDC.type : cnf.coins.SUI.type,
-        });
-        const coin = tx.moveCall({
-            target: `${demoPkgId}::cetus_swap::swap_${a2b ? "a2b" : "b2a"}`,
-            typeArguments: [cnf.coins.USDC.type, cnf.coins.SUI.type],
-            arguments: [
-                tx.object(cnf.cetus.globalConfigObjId),
-                tx.object(cnf.cetus.pools.usdc_sui.id),
-                coinIn,
-                tx.object.clock(),
-            ],
-        });
-        tx.transferObjects([coin], getSigner().toSuiAddress());
-        const resp = await signAndExecuteTx({ tx, dryRun });
-        logTxResp(resp);
-    });
-
 program.parse();
