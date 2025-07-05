@@ -1,3 +1,4 @@
+import type { SuiTransactionBlockResponse } from "@mysten/sui/client";
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 import { Command, Option } from "commander";
 import { afSwaps, burnTypes, cetusSwaps, cnf } from "./config.js";
@@ -229,90 +230,118 @@ program
             process.exit(1);
         });
 
-        // aftermath swaps
-        for (const swap of Object.values(afSwaps)) {
-            const pythInfoObjIn = pythPriceInfoIds.find(
-                (info) => info.coinType === swap.coinIn.type,
-            )?.priceInfo;
-            if (!pythInfoObjIn) {
-                throw new Error(`PriceInfoObject not found for ${swap.coinIn.type}`);
+        const swapAf = (tx: Transaction) => {
+            for (const swap of Object.values(afSwaps)) {
+                const pythInfoObjIn = pythPriceInfoIds.find(
+                    (info) => info.coinType === swap.coinIn.type,
+                )?.priceInfo;
+                if (!pythInfoObjIn) {
+                    throw new Error(`PriceInfoObject not found for ${swap.coinIn.type}`);
+                }
+
+                const pythInfoObjOut = pythPriceInfoIds.find(
+                    (info) => info.coinType === swap.coinOut.type,
+                )?.priceInfo;
+                if (!pythInfoObjOut) {
+                    throw new Error(`PriceInfoObject not found for ${swap.coinOut.type}`);
+                }
+
+                const afSwapObj = sdk.bbb_aftermath_config.get({
+                    tx,
+                    packageId,
+                    aftermathConfigObj,
+                    coinType: swap.coinIn.type,
+                });
+
+                sdk.bbb_aftermath_swap.swap({
+                    tx,
+                    packageId,
+                    // ours
+                    coinInType: swap.coinIn.type,
+                    coinOutType: swap.coinOut.type,
+                    afSwapObj,
+                    bbbVaultObj,
+                    // pyth
+                    pythInfoObjIn,
+                    pythInfoObjOut,
+                    // aftermath
+                    afPoolType: swap.pool.lpType,
+                    afPoolObj: swap.pool.id,
+                    afPoolRegistryObj: cnf.aftermath.poolRegistry,
+                    afProtocolFeeVaultObj: cnf.aftermath.protocolFeeVault,
+                    afTreasuryObj: cnf.aftermath.treasury,
+                    afInsuranceFundObj: cnf.aftermath.insuranceFund,
+                    afReferralVaultObj: cnf.aftermath.referralVault,
+                });
             }
+        };
 
-            const pythInfoObjOut = pythPriceInfoIds.find(
-                (info) => info.coinType === swap.coinOut.type,
-            )?.priceInfo;
-            if (!pythInfoObjOut) {
-                throw new Error(`PriceInfoObject not found for ${swap.coinOut.type}`);
+        const swapCetus = (tx: Transaction) => {
+            for (const swap of Object.values(cetusSwaps)) {
+                const pythInfoObjA = pythPriceInfoIds.find(
+                    (info) => info.coinType === swap.coinA.type,
+                )?.priceInfo;
+                if (!pythInfoObjA) {
+                    throw new Error(`PriceInfoObject not found for ${swap.coinA.type}`);
+                }
+
+                const pythInfoObjB = pythPriceInfoIds.find(
+                    (info) => info.coinType === swap.coinB.type,
+                )?.priceInfo;
+                if (!pythInfoObjB) {
+                    throw new Error(`PriceInfoObject not found for ${swap.coinB.type}`);
+                }
+
+                const cetusSwapObj = sdk.bbb_cetus_config.get({
+                    tx,
+                    packageId,
+                    cetusConfigObj,
+                    coinInType: swap.a2b ? swap.coinA.type : swap.coinB.type,
+                });
+
+                sdk.bbb_cetus_swap.swap({
+                    tx,
+                    packageId,
+                    // ours
+                    coinAType: swap.coinA.type,
+                    coinBType: swap.coinB.type,
+                    cetusSwapObj,
+                    bbbVaultObj,
+                    // pyth
+                    pythInfoObjA,
+                    pythInfoObjB,
+                    // cetus
+                    cetusConfigObj: cnf.cetus.globalConfigObjId,
+                    cetusPoolObj: swap.pool.id,
+                });
             }
+        };
 
-            const afSwapObj = sdk.bbb_aftermath_config.get({
-                tx,
-                packageId,
-                aftermathConfigObj,
-                coinType: swap.coinIn.type,
-            });
+        // find most profitable route
+        const afDryRunTx = new Transaction();
+        swapAf(afDryRunTx);
+        const afDryRunResp = await signAndExecuteTx({ tx: afDryRunTx, dryRun: true });
 
-            sdk.bbb_aftermath_swap.swap({
-                tx,
-                packageId,
-                // ours
-                coinInType: swap.coinIn.type,
-                coinOutType: swap.coinOut.type,
-                afSwapObj,
-                bbbVaultObj,
-                // pyth
-                pythInfoObjIn,
-                pythInfoObjOut,
-                // aftermath
-                afPoolType: swap.pool.lpType,
-                afPoolObj: swap.pool.id,
-                afPoolRegistryObj: cnf.aftermath.poolRegistry,
-                afProtocolFeeVaultObj: cnf.aftermath.protocolFeeVault,
-                afTreasuryObj: cnf.aftermath.treasury,
-                afInsuranceFundObj: cnf.aftermath.insuranceFund,
-                afReferralVaultObj: cnf.aftermath.referralVault,
-            });
-        }
+        const cetusDryRunTx = new Transaction();
+        swapCetus(cetusDryRunTx);
+        const cetusDryRunResp = await signAndExecuteTx({
+            tx: cetusDryRunTx,
+            dryRun: true,
+        });
 
-        // cetus swaps
-        for (const swap of Object.values(cetusSwaps)) {
-            const pythInfoObjA = pythPriceInfoIds.find(
-                (info) => info.coinType === swap.coinA.type,
-            )?.priceInfo;
-            if (!pythInfoObjA) {
-                throw new Error(`PriceInfoObject not found for ${swap.coinA.type}`);
-            }
+        logJson({
+            afSwaps: extractAfSwapEvents(afDryRunResp),
+            afGas: calculateGasUsed(afDryRunResp),
+            cetusSwaps: extractCetusSwapEvents(cetusDryRunResp),
+            cetusGas: calculateGasUsed(cetusDryRunResp),
+        });
 
-            const pythInfoObjB = pythPriceInfoIds.find(
-                (info) => info.coinType === swap.coinB.type,
-            )?.priceInfo;
-            if (!pythInfoObjB) {
-                throw new Error(`PriceInfoObject not found for ${swap.coinB.type}`);
-            }
+        return;
 
-            const cetusSwapObj = sdk.bbb_cetus_config.get({
-                tx,
-                packageId,
-                cetusConfigObj,
-                coinInType: swap.a2b ? swap.coinA.type : swap.coinB.type,
-            });
+        // actual swaps
 
-            sdk.bbb_cetus_swap.swap({
-                tx,
-                packageId,
-                // ours
-                coinAType: swap.coinA.type,
-                coinBType: swap.coinB.type,
-                cetusSwapObj,
-                bbbVaultObj,
-                // pyth
-                pythInfoObjA,
-                pythInfoObjB,
-                // cetus
-                cetusConfigObj: cnf.cetus.globalConfigObjId,
-                cetusPoolObj: swap.pool.id,
-            });
-        }
+        swapAf(tx);
+        swapCetus(tx);
 
         // burn
 
@@ -336,23 +365,42 @@ program
 
         // log
 
-        const afSwapEvents = resp.events
-            ?.filter((e) => e.type.endsWith("::bbb_aftermath_swap::AftermathSwapEvent"))
-            .map((e) => AftermathSwapEventSchema.parse(e).parsedJson);
-        const cetusSwapEvents = resp.events
-            ?.filter((e) => e.type.endsWith("::bbb_cetus_swap::CetusSwapEvent"))
-            .map((e) => CetusSwapEventSchema.parse(e).parsedJson);
-        const burnEvents = resp.events
-            ?.filter((e) => e.type.endsWith("::bbb_burn::BurnEvent"))
-            .map((e) => BurnEventSchema.parse(e).parsedJson);
         logJson({
             time: new Date().toISOString(),
             tx_status: resp.effects?.status.status,
             tx_digest: resp.digest,
-            afSwaps: afSwapEvents,
-            cetusSwaps: cetusSwapEvents,
-            burns: burnEvents,
+            afSwaps: extractAfSwapEvents(resp),
+            cetusSwaps: extractCetusSwapEvents(resp),
+            burns: extractBurnEvents(resp),
         });
     });
 
 program.parse();
+
+// === helpers ===
+
+function extractAfSwapEvents(resp: SuiTransactionBlockResponse) {
+    return resp.events
+        ?.filter((e) => e.type.endsWith("::bbb_aftermath_swap::AftermathSwapEvent"))
+        .map((e) => AftermathSwapEventSchema.parse(e).parsedJson);
+}
+
+function extractCetusSwapEvents(resp: SuiTransactionBlockResponse) {
+    return resp.events
+        ?.filter((e) => e.type.endsWith("::bbb_cetus_swap::CetusSwapEvent"))
+        .map((e) => CetusSwapEventSchema.parse(e).parsedJson);
+}
+
+function extractBurnEvents(resp: SuiTransactionBlockResponse) {
+    return resp.events
+        ?.filter((e) => e.type.endsWith("::bbb_burn::BurnEvent"))
+        .map((e) => BurnEventSchema.parse(e).parsedJson);
+}
+
+function calculateGasUsed(resp: SuiTransactionBlockResponse) {
+    return (
+        Number(resp.effects?.gasUsed.computationCost) +
+        Number(resp.effects?.gasUsed.storageCost) -
+        Number(resp.effects?.gasUsed.storageRebate)
+    );
+}
