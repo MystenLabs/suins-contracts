@@ -11,7 +11,6 @@ import { BBBVaultSchema } from "./schema/vault.js";
 import * as sdk from "./sdk.js";
 import {
     getPriceInfoObject,
-    getSigner,
     logJson,
     logTxResp,
     newSuiClient,
@@ -216,49 +215,49 @@ program
     .action(async () => {
         const tx = new Transaction();
 
-        // swap
-
         const pythPriceInfoIds = await Promise.all(
             Object.values(cnf.coins).map(async (coin) => ({
                 coinType: coin.type,
                 priceInfo: await getPriceInfoObject(tx, coin.pyth_feed),
             })),
         );
-        for (const afSwap of Object.values(afSwaps)) {
+
+        // swap with aftermath
+        for (const swap of Object.values(afSwaps)) {
             const pythInfoObjIn = pythPriceInfoIds.find(
-                (info) => info.coinType === afSwap.coinIn.type,
+                (info) => info.coinType === swap.coinIn.type,
             )?.priceInfo;
             if (!pythInfoObjIn) {
-                throw new Error(`PriceInfoObject not found for ${afSwap.coinIn.type}`);
+                throw new Error(`PriceInfoObject not found for ${swap.coinIn.type}`);
             }
             const pythInfoObjOut = pythPriceInfoIds.find(
-                (info) => info.coinType === afSwap.coinOut.type,
+                (info) => info.coinType === swap.coinOut.type,
             )?.priceInfo;
             if (!pythInfoObjOut) {
-                throw new Error(`PriceInfoObject not found for ${afSwap.coinOut.type}`);
+                throw new Error(`PriceInfoObject not found for ${swap.coinOut.type}`);
             }
 
             const afSwapObj = sdk.bbb_aftermath_config.get({
                 tx,
                 packageId,
                 aftermathConfigObj,
-                coinType: afSwap.coinIn.type,
+                coinType: swap.coinIn.type,
             });
 
             sdk.bbb_aftermath_swap.swap({
                 tx,
                 packageId,
                 // ours
-                coinInType: afSwap.coinIn.type,
-                coinOutType: afSwap.coinOut.type,
+                coinInType: swap.coinIn.type,
+                coinOutType: swap.coinOut.type,
                 afSwapObj,
                 bbbVaultObj,
                 // pyth
                 pythInfoObjIn,
                 pythInfoObjOut,
                 // aftermath
-                afPoolType: afSwap.pool.lpType,
-                afPoolObj: afSwap.pool.id,
+                afPoolType: swap.pool.lpType,
+                afPoolObj: swap.pool.id,
                 afPoolRegistryObj: cnf.aftermath.poolRegistry,
                 afProtocolFeeVaultObj: cnf.aftermath.protocolFeeVault,
                 afTreasuryObj: cnf.aftermath.treasury,
@@ -289,17 +288,17 @@ program
 
         // log
 
+        const afSwapEvents = resp.events
+            ?.filter((e) => e.type.endsWith("::bbb_aftermath_swap::AftermathSwapEvent"))
+            .map((e) => AftermathSwapEventSchema.parse(e).parsedJson);
         const burnEvents = resp.events
             ?.filter((e) => e.type.endsWith("::bbb_burn::BurnEvent"))
             .map((e) => BurnEventSchema.parse(e).parsedJson);
-        const swapEvents = resp.events
-            ?.filter((e) => e.type.endsWith("::bbb_aftermath_swap::AftermathSwapEvent"))
-            .map((e) => AftermathSwapEventSchema.parse(e).parsedJson);
         logJson({
             time: new Date().toISOString(),
             tx_status: resp.effects?.status.status,
             tx_digest: resp.digest,
-            swaps: swapEvents,
+            swaps: afSwapEvents,
             burns: burnEvents,
         });
     });
