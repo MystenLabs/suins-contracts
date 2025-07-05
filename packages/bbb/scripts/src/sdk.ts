@@ -21,17 +21,6 @@ export const bbb_aftermath_config = {
         });
     },
     // === admin functions ===
-    new: (arg: {
-        tx: Transaction;
-        packageId: string;
-        adminCapObj: TransactionObjectInput;
-    }): TransactionResult => {
-        const { tx, packageId } = arg;
-        return tx.moveCall({
-            target: `${packageId}::bbb_aftermath_config::new`,
-            arguments: [tx.object(arg.adminCapObj)],
-        });
-    },
     add: (arg: {
         tx: Transaction;
         packageId: string;
@@ -94,19 +83,6 @@ export const bbb_aftermath_config = {
                 tx.object(arg.aftermathConfigObj),
                 tx.object(arg.adminCapObj),
             ],
-        });
-    },
-    // === framework functions ===
-    share: (arg: {
-        tx: Transaction;
-        packageId: string;
-        obj: TransactionObjectInput;
-    }): TransactionResult => {
-        const { tx, packageId } = arg;
-        return tx.moveCall({
-            target: "0x2::transfer::public_share_object",
-            typeArguments: [`${packageId}::bbb_aftermath_config::AftermathConfig`],
-            arguments: [tx.object(arg.obj)],
         });
     },
 } as const;
@@ -212,17 +188,6 @@ export const bbb_cetus_config = {
         });
     },
     // === admin functions ===
-    new: (arg: {
-        tx: Transaction;
-        packageId: string;
-        adminCapObj: TransactionObjectInput;
-    }): TransactionResult => {
-        const { tx, packageId } = arg;
-        return tx.moveCall({
-            target: `${packageId}::bbb_cetus_config::new`,
-            arguments: [tx.object(arg.adminCapObj)],
-        });
-    },
     add: (arg: {
         tx: Transaction;
         packageId: string;
@@ -285,19 +250,6 @@ export const bbb_cetus_config = {
                 tx.object(arg.cetusConfigObj),
                 tx.object(arg.adminCapObj),
             ],
-        });
-    },
-    // === framework functions ===
-    share: (arg: {
-        tx: Transaction;
-        packageId: string;
-        obj: TransactionObjectInput;
-    }): TransactionResult => {
-        const { tx, packageId } = arg;
-        return tx.moveCall({
-            target: "0x2::transfer::public_share_object",
-            typeArguments: [`${packageId}::bbb_cetus_config::CetusConfig`],
-            arguments: [tx.object(arg.obj)],
         });
     },
 } as const;
@@ -391,17 +343,6 @@ export const bbb_burn_config = {
         });
     },
     // === admin functions ===
-    new: (arg: {
-        tx: Transaction;
-        packageId: string;
-        adminCapObj: TransactionObjectInput;
-    }): TransactionResult => {
-        const { tx, packageId } = arg;
-        return tx.moveCall({
-            target: `${packageId}::bbb_burn_config::new`,
-            arguments: [tx.object(arg.adminCapObj)],
-        });
-    },
     add: (arg: {
         tx: Transaction;
         packageId: string;
@@ -455,19 +396,6 @@ export const bbb_burn_config = {
         return tx.moveCall({
             target: `${packageId}::bbb_burn_config::destroy`,
             arguments: [tx.object(arg.burnConfigObj), tx.object(arg.adminCapObj)],
-        });
-    },
-    // === framework functions ===
-    share: (arg: {
-        tx: Transaction;
-        packageId: string;
-        obj: TransactionObjectInput;
-    }): TransactionResult => {
-        const { tx, packageId } = arg;
-        return tx.moveCall({
-            target: "0x2::transfer::public_share_object",
-            typeArguments: [`${packageId}::bbb_burn_config::BurnConfig`],
-            arguments: [tx.object(arg.obj)],
         });
     },
 } as const;

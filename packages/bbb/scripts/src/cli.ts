@@ -28,36 +28,29 @@ const adminCapObj = cnf.bbb.adminCapObj;
 const bbbVaultObj = cnf.bbb.vaultObj;
 const burnConfigObj = cnf.bbb.burnConfigObj;
 const aftermathConfigObj = cnf.bbb.aftermathConfigObj;
-const _cetusConfigObj = cnf.bbb.cetusConfigObj;
+const cetusConfigObj = cnf.bbb.cetusConfigObj;
 
 // === CLI ===
 
 program.name("bbb").description("Buy Back & Burn CLI tool").version("1.0.0");
 
 program
-    .command("config-new")
-    .description("Create, configure, and share all config objects (one-off)")
+    .command("init")
+    .description("Initialize the config objects (one-off)")
     .action(async () => {
         const tx = new Transaction();
         // burns
-        const newBurnConfigObj = sdk.bbb_burn_config.new({ tx, packageId, adminCapObj });
         for (const coinType of Object.values(burnTypes)) {
             const burnObj = sdk.bbb_burn.new({ tx, packageId, adminCapObj, coinType });
             sdk.bbb_burn_config.add({
                 tx,
                 packageId,
-                burnConfigObj: newBurnConfigObj,
+                burnConfigObj,
                 adminCapObj,
                 burnObj,
             });
         }
-        sdk.bbb_burn_config.share({ tx, packageId, obj: newBurnConfigObj });
         // aftermath swaps
-        const newAftermathConfigObj = sdk.bbb_aftermath_config.new({
-            tx,
-            packageId,
-            adminCapObj,
-        });
         for (const swap of Object.values(afSwaps)) {
             const swapObj = sdk.bbb_aftermath_swap.new({
                 tx,
@@ -72,18 +65,12 @@ program
             sdk.bbb_aftermath_config.add({
                 tx,
                 packageId,
-                aftermathConfigObj: newAftermathConfigObj,
+                aftermathConfigObj,
                 adminCapObj,
                 afSwapObj: swapObj,
             });
         }
-        sdk.bbb_aftermath_config.share({ tx, packageId, obj: newAftermathConfigObj });
         // cetus swaps
-        const newCetusConfigObj = sdk.bbb_cetus_config.new({
-            tx,
-            packageId,
-            adminCapObj,
-        });
         for (const swap of Object.values(cetusSwaps)) {
             const swapObj = sdk.bbb_cetus_swap.new({
                 tx,
@@ -103,12 +90,11 @@ program
             sdk.bbb_cetus_config.add({
                 tx,
                 packageId,
-                cetusConfigObj: newCetusConfigObj,
+                cetusConfigObj,
                 adminCapObj,
                 cetusSwapObj: swapObj,
             });
         }
-        sdk.bbb_cetus_config.share({ tx, packageId, obj: newCetusConfigObj });
 
         const resp = await signAndExecuteTx({ tx, dryRun });
         const createdObjs = resp.objectChanges?.filter(
