@@ -1,13 +1,13 @@
 /** Mainnet configuration. */
 export const cnf = {
     bbb: { // TODO: update values for prod
-        package: "0x776762a519de54204cede99fcc3f1eb1b86dddc10031e911179b17321298bb29", // dev-only
-        upgradeCapObj: "0xa402430a25de59fae02a81f48db8e1ff908792e2b78eef81ecfaa388160014be", // dev-only
-        adminCapObj: "0x4dd7e336a20cb765e220a4f5edb352e93a8ff6558ce638a7e60e34ee1ccab0f5", // dev-only
-        vaultObj: "0x94d67c936027b62b373f67843e25998f395a97d267095b43cf5010f01a334b61", // dev-only
-        burnConfigObj: "0xe32990d54690e2d3a4e2b93c40c944c84757f31d402b8aa5cfee25f501f5266e", // dev-only
-        aftermathConfigObj: "0x44c67a02c012a58c508085cff4990eb941d2d7ca7ce0e4dfb7f3594885632ed7", // dev-only
-        cetusConfigObj: "0x4361982e75877c34773ae26c96c28c447461b3131690d9b93d8660ab1dcf285e", // dev-only
+        package: "0x88753520710e6dfb294a2803452dea8b99f883279ac793dac1cc5cf8c3705075", // dev-only
+        upgradeCapObj: "0x21ff0fe6800e56a1f57a0b2045508ba4a2b627e46d0475aa41f47743ddca21d9", // dev-only
+        adminCapObj: "0x61cc9d070d24f23f0af02a51c949c38ca7d1a0fe70641db9555e960f14f81952", // dev-only
+        vaultObj: "0x4ae2f2ae2dd395da97631a620f47971d0a7a2a0d53500e7de9872b2434aae361", // dev-only
+        burnConfigObj: "0x1989debf716f2461015643a0e61ac97ec78d5b9a24b9ee66cc7dd729981c48be", // dev-only
+        aftermathConfigObj: "0x1e710b578e6110c60078d2a5538283df8edea0378a6dd6f0adae0b97909f1757", // dev-only
+        cetusConfigObj: "0xc4829c4e4590c2f8dc5b0c56f4889293bc3dd652d8932810e5c42a0d75fbd680", // dev-only
     },
     /** Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point. */
     defaultSlippage: 975_000_000_000_000_000n, // 2.5%
