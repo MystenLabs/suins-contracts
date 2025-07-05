@@ -20,7 +20,7 @@ const EAftermathSwapNotFound: u64 = 1001;
 /// Each coin type can only appear on the input side of a swap once.
 /// E.g. there can only be 1 swap that converts SUI to another coin,
 /// but there can be multiple swaps that convert other coins to SUI.
-public struct AftermathConfig has key, store {
+public struct AftermathConfig has key {
     id: UID,
     swaps: vector<AftermathSwap>,
 }
@@ -32,14 +32,21 @@ public fun swaps(self: &AftermathConfig): &vector<AftermathSwap> { &self.swaps }
 
 // === constructors ===
 
-public fun new(
-    _cap: &BBBAdminCap,
+fun new(
     ctx: &mut TxContext,
 ): AftermathConfig {
     AftermathConfig {
         id: object::new(ctx),
         swaps: vector::empty(),
     }
+}
+
+// === initialization ===
+
+public struct BBB_AFTERMATH_CONFIG has drop {}
+
+fun init(_otw: BBB_AFTERMATH_CONFIG, ctx: &mut TxContext) {
+    transfer::share_object(new(ctx));
 }
 
 // === public functions ===

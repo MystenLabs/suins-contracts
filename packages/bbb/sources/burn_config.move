@@ -16,7 +16,7 @@ const EBurnTypeNotFound: u64 = 1001;
 // === structs ===
 
 /// Registry of burnable coin types.
-public struct BurnConfig has key, store {
+public struct BurnConfig has key {
     id: UID,
     burns: vector<Burn>,
 }
@@ -28,14 +28,21 @@ public fun burns(self: &BurnConfig): &vector<Burn> { &self.burns }
 
 // === constructors ===
 
-public fun new(
-    _cap: &BBBAdminCap,
+fun new(
     ctx: &mut TxContext,
 ): BurnConfig {
     BurnConfig {
         id: object::new(ctx),
         burns: vector::empty(),
     }
+}
+
+// === initialization ===
+
+public struct BBB_BURN_CONFIG has drop {}
+
+fun init(_otw: BBB_BURN_CONFIG, ctx: &mut TxContext) {
+    transfer::share_object(new(ctx));
 }
 
 // === public functions ===
