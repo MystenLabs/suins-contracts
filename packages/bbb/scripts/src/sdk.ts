@@ -8,84 +8,92 @@ import { fromHex } from "@mysten/sui/utils";
 export const bbb_aftermath_config = {
     // === public functions ===
     get: (arg: {
-        tx: Transaction;
         packageId: string;
         aftermathConfigObj: TransactionObjectInput;
         coinType: string;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_aftermath_config::get`,
-            typeArguments: [arg.coinType],
-            arguments: [arg.tx.object(arg.aftermathConfigObj)],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_aftermath_config::get`,
+                typeArguments: [arg.coinType],
+                arguments: [tx.object(arg.aftermathConfigObj)],
+            });
     },
     // === admin functions ===
     new: (arg: {
-        tx: Transaction;
         packageId: string;
         adminCapObj: TransactionObjectInput;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_aftermath_config::new`,
-            arguments: [arg.tx.object(arg.adminCapObj)],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_aftermath_config::new`,
+                arguments: [tx.object(arg.adminCapObj)],
+            });
     },
     add: (arg: {
-        tx: Transaction;
         packageId: string;
         aftermathConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
         afSwapObj: TransactionObjectInput;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_aftermath_config::add`,
-            arguments: [
-                arg.tx.object(arg.aftermathConfigObj),
-                arg.tx.object(arg.adminCapObj),
-                arg.tx.object(arg.afSwapObj),
-            ],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_aftermath_config::add`,
+                arguments: [
+                    tx.object(arg.aftermathConfigObj),
+                    tx.object(arg.adminCapObj),
+                    tx.object(arg.afSwapObj),
+                ],
+            });
     },
     remove: (arg: {
-        tx: Transaction;
         packageId: string;
         aftermathConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
         coinInType: string;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_aftermath_config::remove`,
-            typeArguments: [arg.coinInType],
-            arguments: [arg.tx.object(arg.aftermathConfigObj), arg.tx.object(arg.adminCapObj)],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_aftermath_config::remove`,
+                typeArguments: [arg.coinInType],
+                arguments: [
+                    tx.object(arg.aftermathConfigObj),
+                    tx.object(arg.adminCapObj),
+                ],
+            });
     },
     remove_all: (arg: {
-        tx: Transaction;
         packageId: string;
         aftermathConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_aftermath_config::remove_all`,
-            arguments: [arg.tx.object(arg.aftermathConfigObj), arg.tx.object(arg.adminCapObj)],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_aftermath_config::remove_all`,
+                arguments: [
+                    tx.object(arg.aftermathConfigObj),
+                    tx.object(arg.adminCapObj),
+                ],
+            });
     },
     destroy: (arg: {
-        tx: Transaction;
         packageId: string;
         aftermathConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_aftermath_config::destroy`,
-            arguments: [arg.tx.object(arg.aftermathConfigObj), arg.tx.object(arg.adminCapObj)],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_aftermath_config::destroy`,
+                arguments: [
+                    tx.object(arg.aftermathConfigObj),
+                    tx.object(arg.adminCapObj),
+                ],
+            });
     },
 } as const;
 
 export const bbb_aftermath_swap = {
     new: (arg: {
-        tx: Transaction;
         packageId: string;
         adminCapObj: TransactionObjectInput;
         coinIn: {
@@ -104,24 +112,24 @@ export const bbb_aftermath_swap = {
         };
         slippage: bigint;
         maxAgeSecs: bigint;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_aftermath_swap::new`,
-            typeArguments: [arg.pool.lpType, arg.coinIn.type, arg.coinOut.type],
-            arguments: [
-                arg.tx.object(arg.adminCapObj),
-                arg.tx.pure.u8(arg.coinIn.decimals),
-                arg.tx.pure.u8(arg.coinOut.decimals),
-                arg.tx.pure.vector("u8", fromHex(arg.coinIn.pyth_feed)),
-                arg.tx.pure.vector("u8", fromHex(arg.coinOut.pyth_feed)),
-                arg.tx.object(arg.pool.id),
-                arg.tx.pure.u64(arg.slippage),
-                arg.tx.pure.u64(arg.maxAgeSecs),
-            ],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_aftermath_swap::new`,
+                typeArguments: [arg.pool.lpType, arg.coinIn.type, arg.coinOut.type],
+                arguments: [
+                    tx.object(arg.adminCapObj),
+                    tx.pure.u8(arg.coinIn.decimals),
+                    tx.pure.u8(arg.coinOut.decimals),
+                    tx.pure.vector("u8", fromHex(arg.coinIn.pyth_feed)),
+                    tx.pure.vector("u8", fromHex(arg.coinOut.pyth_feed)),
+                    tx.object(arg.pool.id),
+                    tx.pure.u64(arg.slippage),
+                    tx.pure.u64(arg.maxAgeSecs),
+                ],
+            });
     },
     swap: (arg: {
-        tx: Transaction;
         packageId: string;
         // ours
         coinInType: string;
@@ -139,112 +147,112 @@ export const bbb_aftermath_swap = {
         afTreasuryObj: TransactionObjectInput;
         afInsuranceFundObj: TransactionObjectInput;
         afReferralVaultObj: TransactionObjectInput;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_aftermath_swap::swap`,
-            typeArguments: [arg.afPoolType, arg.coinInType, arg.coinOutType],
-            arguments: [
-                // ours
-                arg.tx.object(arg.afSwapObj),
-                arg.tx.object(arg.bbbVaultObj),
-                // pyth
-                arg.tx.object(arg.pythInfoObjIn),
-                arg.tx.object(arg.pythInfoObjOut),
-                // aftermath
-                arg.tx.object(arg.afPoolObj),
-                arg.tx.object(arg.afPoolRegistryObj),
-                arg.tx.object(arg.afProtocolFeeVaultObj),
-                arg.tx.object(arg.afTreasuryObj),
-                arg.tx.object(arg.afInsuranceFundObj),
-                arg.tx.object(arg.afReferralVaultObj),
-                // sui
-                arg.tx.object.clock(),
-            ],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_aftermath_swap::swap`,
+                typeArguments: [arg.afPoolType, arg.coinInType, arg.coinOutType],
+                arguments: [
+                    // ours
+                    tx.object(arg.afSwapObj),
+                    tx.object(arg.bbbVaultObj),
+                    // pyth
+                    tx.object(arg.pythInfoObjIn),
+                    tx.object(arg.pythInfoObjOut),
+                    // aftermath
+                    tx.object(arg.afPoolObj),
+                    tx.object(arg.afPoolRegistryObj),
+                    tx.object(arg.afProtocolFeeVaultObj),
+                    tx.object(arg.afTreasuryObj),
+                    tx.object(arg.afInsuranceFundObj),
+                    tx.object(arg.afReferralVaultObj),
+                    // sui
+                    tx.object.clock(),
+                ],
+            });
     },
 } as const;
 
 export const bbb_cetus_config = {
     // === public functions ===
     get: (arg: {
-        tx: Transaction;
         packageId: string;
         cetusConfigObj: TransactionObjectInput;
         coinInType: string;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_cetus_config::get`,
-            typeArguments: [arg.coinInType],
-            arguments: [arg.tx.object(arg.cetusConfigObj)],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_cetus_config::get`,
+                typeArguments: [arg.coinInType],
+                arguments: [tx.object(arg.cetusConfigObj)],
+            });
     },
     // === admin functions ===
     new: (arg: {
-        tx: Transaction;
         packageId: string;
         adminCapObj: TransactionObjectInput;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_cetus_config::new`,
-            arguments: [arg.tx.object(arg.adminCapObj)],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_cetus_config::new`,
+                arguments: [tx.object(arg.adminCapObj)],
+            });
     },
     add: (arg: {
-        tx: Transaction;
         packageId: string;
         cetusConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
         cetusSwapObj: TransactionObjectInput;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_cetus_config::add`,
-            arguments: [
-                arg.tx.object(arg.cetusConfigObj),
-                arg.tx.object(arg.adminCapObj),
-                arg.tx.object(arg.cetusSwapObj),
-            ],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_cetus_config::add`,
+                arguments: [
+                    tx.object(arg.cetusConfigObj),
+                    tx.object(arg.adminCapObj),
+                    tx.object(arg.cetusSwapObj),
+                ],
+            });
     },
     remove: (arg: {
-        tx: Transaction;
         packageId: string;
         cetusConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
         coinInType: string;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_cetus_config::remove`,
-            typeArguments: [arg.coinInType],
-            arguments: [arg.tx.object(arg.cetusConfigObj), arg.tx.object(arg.adminCapObj)],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_cetus_config::remove`,
+                typeArguments: [arg.coinInType],
+                arguments: [tx.object(arg.cetusConfigObj), tx.object(arg.adminCapObj)],
+            });
     },
     remove_all: (arg: {
-        tx: Transaction;
         packageId: string;
         cetusConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_cetus_config::remove_all`,
-            arguments: [arg.tx.object(arg.cetusConfigObj), arg.tx.object(arg.adminCapObj)],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_cetus_config::remove_all`,
+                arguments: [tx.object(arg.cetusConfigObj), tx.object(arg.adminCapObj)],
+            });
     },
     destroy: (arg: {
-        tx: Transaction;
         packageId: string;
         cetusConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_cetus_config::destroy`,
-            arguments: [arg.tx.object(arg.cetusConfigObj), arg.tx.object(arg.adminCapObj)],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_cetus_config::destroy`,
+                arguments: [tx.object(arg.cetusConfigObj), tx.object(arg.adminCapObj)],
+            });
     },
 } as const;
 
 export const bbb_cetus_swap = {
     new: (arg: {
-        tx: Transaction;
         packageId: string;
         coinAType: string;
         coinBType: string;
@@ -259,25 +267,25 @@ export const bbb_cetus_swap = {
         };
         slippage: bigint;
         maxAgeSecs: bigint;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_cetus_swap::new`,
-            typeArguments: [arg.coinAType, arg.coinBType],
-            arguments: [
-                arg.tx.object(arg.adminCapObj),
-                arg.tx.pure.bool(arg.a2b),
-                arg.tx.pure.u8(arg.decimalsA),
-                arg.tx.pure.u8(arg.decimalsB),
-                arg.tx.pure.vector("u8", fromHex(arg.feedA)),
-                arg.tx.pure.vector("u8", fromHex(arg.feedB)),
-                arg.tx.object(arg.pool.id),
-                arg.tx.pure.u64(arg.slippage),
-                arg.tx.pure.u64(arg.maxAgeSecs),
-            ],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_cetus_swap::new`,
+                typeArguments: [arg.coinAType, arg.coinBType],
+                arguments: [
+                    tx.object(arg.adminCapObj),
+                    tx.pure.bool(arg.a2b),
+                    tx.pure.u8(arg.decimalsA),
+                    tx.pure.u8(arg.decimalsB),
+                    tx.pure.vector("u8", fromHex(arg.feedA)),
+                    tx.pure.vector("u8", fromHex(arg.feedB)),
+                    tx.object(arg.pool.id),
+                    tx.pure.u64(arg.slippage),
+                    tx.pure.u64(arg.maxAgeSecs),
+                ],
+            });
     },
     swap: (arg: {
-        tx: Transaction;
         packageId: string;
         // ours
         coinAType: string;
@@ -290,145 +298,146 @@ export const bbb_cetus_swap = {
         // cetus
         cetusConfigObj: TransactionObjectInput;
         cetusPoolObj: TransactionObjectInput;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_cetus_swap::swap`,
-            typeArguments: [arg.coinAType, arg.coinBType],
-            arguments: [
-                // ours
-                arg.tx.object(arg.cetusSwapObj),
-                arg.tx.object(arg.bbbVaultObj),
-                // pyth
-                arg.tx.object(arg.pythInfoObjA),
-                arg.tx.object(arg.pythInfoObjB),
-                // cetus
-                arg.tx.object(arg.cetusConfigObj),
-                arg.tx.object(arg.cetusPoolObj),
-                // sui
-                arg.tx.object.clock(),
-            ],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_cetus_swap::swap`,
+                typeArguments: [arg.coinAType, arg.coinBType],
+                arguments: [
+                    // ours
+                    tx.object(arg.cetusSwapObj),
+                    tx.object(arg.bbbVaultObj),
+                    // pyth
+                    tx.object(arg.pythInfoObjA),
+                    tx.object(arg.pythInfoObjB),
+                    // cetus
+                    tx.object(arg.cetusConfigObj),
+                    tx.object(arg.cetusPoolObj),
+                    // sui
+                    tx.object.clock(),
+                ],
+            });
     },
 } as const;
 
 export const bbb_burn_config = {
     // === public functions ===
     get: (arg: {
-        tx: Transaction;
         packageId: string;
         burnConfigObj: TransactionObjectInput;
         coinType: string;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_burn_config::get`,
-            typeArguments: [arg.coinType],
-            arguments: [arg.tx.object(arg.burnConfigObj)],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_burn_config::get`,
+                typeArguments: [arg.coinType],
+                arguments: [tx.object(arg.burnConfigObj)],
+            });
     },
     // === admin functions ===
     new: (arg: {
-        tx: Transaction;
         packageId: string;
         adminCapObj: TransactionObjectInput;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_burn_config::new`,
-            arguments: [arg.tx.object(arg.adminCapObj)],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_burn_config::new`,
+                arguments: [tx.object(arg.adminCapObj)],
+            });
     },
     add: (arg: {
-        tx: Transaction;
         packageId: string;
         burnConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
         burnObj: TransactionObjectInput;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_burn_config::add`,
-            arguments: [
-                arg.tx.object(arg.burnConfigObj),
-                arg.tx.object(arg.adminCapObj),
-                arg.tx.object(arg.burnObj),
-            ],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_burn_config::add`,
+                arguments: [
+                    tx.object(arg.burnConfigObj),
+                    tx.object(arg.adminCapObj),
+                    tx.object(arg.burnObj),
+                ],
+            });
     },
     remove: (arg: {
-        tx: Transaction;
         packageId: string;
         burnConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
         coinType: string;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_burn_config::remove`,
-            typeArguments: [arg.coinType],
-            arguments: [arg.tx.object(arg.burnConfigObj), arg.tx.object(arg.adminCapObj)],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_burn_config::remove`,
+                typeArguments: [arg.coinType],
+                arguments: [tx.object(arg.burnConfigObj), tx.object(arg.adminCapObj)],
+            });
     },
     remove_all: (arg: {
-        tx: Transaction;
         packageId: string;
         burnConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_burn_config::remove_all`,
-            arguments: [arg.tx.object(arg.burnConfigObj), arg.tx.object(arg.adminCapObj)],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_burn_config::remove_all`,
+                arguments: [tx.object(arg.burnConfigObj), tx.object(arg.adminCapObj)],
+            });
     },
     destroy: (arg: {
-        tx: Transaction;
         packageId: string;
         burnConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_burn_config::destroy`,
-            arguments: [arg.tx.object(arg.burnConfigObj), arg.tx.object(arg.adminCapObj)],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_burn_config::destroy`,
+                arguments: [tx.object(arg.burnConfigObj), tx.object(arg.adminCapObj)],
+            });
     },
 } as const;
 
 export const bbb_burn = {
     new: (arg: {
-        tx: Transaction;
         packageId: string;
         adminCapObj: TransactionObjectInput;
         coinType: string;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_burn::new`,
-            typeArguments: [arg.coinType],
-            arguments: [arg.tx.object(arg.adminCapObj)],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_burn::new`,
+                typeArguments: [arg.coinType],
+                arguments: [tx.object(arg.adminCapObj)],
+            });
     },
     burn: (arg: {
-        tx: Transaction;
         packageId: string;
         coinType: string;
         burnObj: TransactionObjectInput;
         bbbVaultObj: TransactionObjectInput;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_burn::burn`,
-            typeArguments: [arg.coinType],
-            arguments: [arg.tx.object(arg.burnObj), arg.tx.object(arg.bbbVaultObj)],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_burn::burn`,
+                typeArguments: [arg.coinType],
+                arguments: [tx.object(arg.burnObj), tx.object(arg.bbbVaultObj)],
+            });
     },
 } as const;
 
 export const bbb_vault = {
     deposit: (arg: {
-        tx: Transaction;
         packageId: string;
         coinType: string;
         bbbVaultObj: TransactionObjectInput;
         coinObj: TransactionObjectInput;
-    }): TransactionResult => {
-        return arg.tx.moveCall({
-            target: `${arg.packageId}::bbb_vault::deposit`,
-            typeArguments: [arg.coinType],
-            arguments: [arg.tx.object(arg.bbbVaultObj), arg.tx.object(arg.coinObj)],
-        });
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_vault::deposit`,
+                typeArguments: [arg.coinType],
+                arguments: [tx.object(arg.bbbVaultObj), tx.object(arg.coinObj)],
+            });
     },
 } as const;

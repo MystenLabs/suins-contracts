@@ -40,11 +40,10 @@ program
     .action(async () => {
         const tx = new Transaction();
         // burns
-        const newBurnConfigObj = sdk.bbb_burn_config.new({ tx, packageId, adminCapObj });
+        const newBurnConfigObj = sdk.bbb_burn_config.new({ packageId, adminCapObj });
         for (const coinType of Object.values(burnTypes)) {
-            const burnObj = sdk.bbb_burn.new({ tx, packageId, adminCapObj, coinType });
+            const burnObj = sdk.bbb_burn.new({ packageId, adminCapObj, coinType });
             sdk.bbb_burn_config.add({
-                tx,
                 packageId,
                 burnConfigObj: newBurnConfigObj,
                 adminCapObj,
@@ -53,13 +52,11 @@ program
         }
         // aftermath swaps
         const newAftermathConfigObj = sdk.bbb_aftermath_config.new({
-            tx,
             packageId,
             adminCapObj,
         });
         for (const swap of Object.values(afSwaps)) {
             const swapObj = sdk.bbb_aftermath_swap.new({
-                tx,
                 packageId,
                 adminCapObj,
                 coinIn: swap.coinIn,
@@ -69,7 +66,6 @@ program
                 maxAgeSecs: swap.maxAgeSecs,
             });
             sdk.bbb_aftermath_config.add({
-                tx,
                 packageId,
                 aftermathConfigObj: newAftermathConfigObj,
                 adminCapObj,
@@ -78,13 +74,11 @@ program
         }
         // cetus swaps
         const newCetusConfigObj = sdk.bbb_cetus_config.new({
-            tx,
             packageId,
             adminCapObj,
         });
         for (const swap of Object.values(cetusSwaps)) {
             const swapObj = sdk.bbb_cetus_swap.new({
-                tx,
                 packageId,
                 coinAType: swap.coinA.type,
                 coinBType: swap.coinB.type,
@@ -99,7 +93,6 @@ program
                 adminCapObj,
             });
             sdk.bbb_cetus_config.add({
-                tx,
                 packageId,
                 cetusConfigObj: newCetusConfigObj,
                 adminCapObj,
@@ -192,7 +185,6 @@ program
                 type: coinInfo.type,
             });
             sdk.bbb_vault.deposit({
-                tx,
                 packageId,
                 coinType: coinInfo.type,
                 bbbVaultObj,
@@ -215,7 +207,6 @@ program
     .action(async ({ coinTicker }: { coinTicker: keyof typeof burnTypes }) => {
         const tx = new Transaction();
         sdk.bbb_burn_config.remove({
-            tx,
             packageId,
             burnConfigObj,
             adminCapObj,
@@ -236,7 +227,6 @@ program
     .action(async ({ coinTicker }: { coinTicker: keyof typeof afSwaps }) => {
         const tx = new Transaction();
         sdk.bbb_aftermath_config.remove({
-            tx,
             packageId,
             aftermathConfigObj,
             adminCapObj,
@@ -275,14 +265,12 @@ program
             }
 
             const afSwapObj = sdk.bbb_aftermath_config.get({
-                tx,
                 packageId,
                 aftermathConfigObj,
                 coinType: afSwap.coinIn.type,
             });
 
             sdk.bbb_aftermath_swap.swap({
-                tx,
                 packageId,
                 // ours
                 coinInType: afSwap.coinIn.type,
@@ -307,13 +295,11 @@ program
 
         for (const coinType of Object.values(burnTypes)) {
             const burnObj = sdk.bbb_burn_config.get({
-                tx,
                 packageId,
                 burnConfigObj,
                 coinType,
             });
             sdk.bbb_burn.burn({
-                tx,
                 packageId,
                 coinType,
                 burnObj,
