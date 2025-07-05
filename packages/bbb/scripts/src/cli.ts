@@ -63,8 +63,8 @@ program
                 coinIn: swap.coinIn,
                 coinOut: swap.coinOut,
                 pool: swap.pool,
-                slippage: swap.slippage,
-                maxAgeSecs: swap.maxAgeSecs,
+                slippage: cnf.defaultSlippage,
+                maxAgeSecs: cnf.defaultMaxAgeSecs,
             });
             sdk.bbb_aftermath_config.add({
                 tx,
@@ -88,8 +88,8 @@ program
                 feedA: swap.coinA.pyth_feed,
                 feedB: swap.coinB.pyth_feed,
                 pool: swap.pool,
-                slippage: swap.slippage,
-                maxAgeSecs: swap.maxAgeSecs,
+                slippage: cnf.defaultSlippage,
+                maxAgeSecs: cnf.defaultMaxAgeSecs,
                 adminCapObj,
             });
             sdk.bbb_cetus_config.add({
