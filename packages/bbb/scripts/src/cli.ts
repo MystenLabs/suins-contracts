@@ -37,11 +37,12 @@ const cetusConfigObj = cnf.bbb.cetusConfigObj;
 program.name("bbb").description("Buy Back & Burn CLI tool").version("1.0.0");
 
 program
-    .command("init") // TODO: allow this to be run multiple times with remove_all
-    .description("Initialize the config objects (one-off)")
+    .command("set-config")
+    .description("Update the config objects according to config.ts")
     .action(async () => {
         const tx = new Transaction();
         // burns
+        sdk.bbb_burn_config.remove_all({ tx, packageId, adminCapObj, burnConfigObj });
         for (const coinType of Object.values(burnTypes)) {
             const burnObj = sdk.bbb_burn.new({ tx, packageId, adminCapObj, coinType });
             sdk.bbb_burn_config.add({
@@ -53,6 +54,7 @@ program
             });
         }
         // aftermath swaps
+        sdk.bbb_aftermath_config.remove_all({ tx, packageId, adminCapObj, aftermathConfigObj });
         for (const swap of Object.values(afSwaps)) {
             const swapObj = sdk.bbb_aftermath_swap.new({
                 tx,
@@ -73,6 +75,7 @@ program
             });
         }
         // cetus swaps
+        sdk.bbb_cetus_config.remove_all({ tx, packageId, adminCapObj, cetusConfigObj });
         for (const swap of Object.values(cetusSwaps)) {
             const swapObj = sdk.bbb_cetus_swap.new({
                 tx,
