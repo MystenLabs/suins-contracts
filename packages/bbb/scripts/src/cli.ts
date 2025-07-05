@@ -101,8 +101,18 @@ program
         }
 
         const resp = await signAndExecuteTx({ tx, dryRun });
-        logTxResp(resp);
-        // TODO extract created object ids
+        const createdObjs = resp.objectChanges?.filter(
+            (change) => change.type === "created",
+        );
+        logJson({
+            tx_status: resp.effects?.status.status,
+            tx_digest: resp.digest,
+            createdObjs: createdObjs?.map((obj) => ({
+                objectType: obj.objectType,
+                objectId: obj.objectId,
+                owner: obj.owner,
+            })),
+        });
     });
 
 program

@@ -60,6 +60,7 @@ export async function signAndExecuteTx({
         options: {
             showEffects: true,
             showEvents: true,
+            showObjectChanges: true,
         },
     });
 
