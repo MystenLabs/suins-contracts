@@ -81,15 +81,11 @@ export const afSwaps = {
         coinIn: cnf.coins.USDC,
         coinOut: cnf.coins.SUI,
         pool: cnf.aftermath.pools.sui_usdc,
-        slippage: cnf.defaultSlippage,
-        maxAgeSecs: cnf.defaultMaxAgeSecs,
     },
     SUI: { // -> NS
         coinIn: cnf.coins.SUI,
         coinOut: cnf.coins.NS,
         pool: cnf.aftermath.pools.sui_ns,
-        slippage: cnf.defaultSlippage,
-        maxAgeSecs: cnf.defaultMaxAgeSecs,
     },
 } as const;
 
@@ -100,15 +96,11 @@ export const cetusSwaps = {
         coinB: cnf.coins.SUI,
         pool: cnf.cetus.pools.usdc_sui,
         a2b: true,
-        slippage: cnf.defaultSlippage,
-        maxAgeSecs: cnf.defaultMaxAgeSecs,
     },
     SUI: { // -> NS
         coinA: cnf.coins.NS,
         coinB: cnf.coins.SUI,
         pool: cnf.cetus.pools.ns_sui,
         a2b: false,
-        slippage: cnf.defaultSlippage,
-        maxAgeSecs: cnf.defaultMaxAgeSecs,
     },
 } as const;
