@@ -50,6 +50,7 @@ program
                 burnObj,
             });
         }
+        sdk.bbb_burn_config.share({ packageId, obj: newBurnConfigObj });
         // aftermath swaps
         const newAftermathConfigObj = sdk.bbb_aftermath_config.new({
             packageId,
@@ -72,6 +73,7 @@ program
                 afSwapObj: swapObj,
             });
         }
+        sdk.bbb_aftermath_config.share({ packageId, obj: newAftermathConfigObj });
         // cetus swaps
         const newCetusConfigObj = sdk.bbb_cetus_config.new({
             packageId,
@@ -99,6 +101,7 @@ program
                 cetusSwapObj: swapObj,
             });
         }
+        sdk.bbb_cetus_config.share({ packageId, obj: newCetusConfigObj });
 
         const resp = await signAndExecuteTx({ tx, dryRun });
         const createdObjs = resp.objectChanges?.filter(
