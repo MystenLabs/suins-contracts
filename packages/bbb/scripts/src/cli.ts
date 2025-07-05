@@ -118,9 +118,8 @@ program
             tx_status: resp.effects?.status.status,
             tx_digest: resp.digest,
             createdObjs: createdObjs?.map((obj) => ({
-                objectType: obj.objectType,
-                objectId: obj.objectId,
-                owner: obj.owner,
+                type: obj.objectType,
+                id: obj.objectId,
             })),
         });
     });
