@@ -16,7 +16,7 @@ const EBurnTypeNotFound: u64 = 1001;
 // === structs ===
 
 /// Registry of burnable coin types.
-public struct BurnConfig has key {
+public struct BurnConfig has key, store {
     id: UID,
     burns: vector<Burn>,
 }

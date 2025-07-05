@@ -20,7 +20,7 @@ const ECetusSwapNotFound: u64 = 1001;
 /// Each coin type can only appear on the input side of a swap once.
 /// E.g. there can only be 1 swap that converts SUI to another coin,
 /// but there can be multiple swaps that convert other coins to SUI.
-public struct CetusConfig has key {
+public struct CetusConfig has key, store {
     id: UID,
     swaps: vector<CetusSwap>,
 }
