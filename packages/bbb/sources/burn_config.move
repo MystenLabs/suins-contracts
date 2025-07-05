@@ -98,12 +98,3 @@ public fun remove_all(
 ) {
     self.burns.length().do!(|_| self.burns.pop_back());
 }
-
-/// Delete the object.
-public fun destroy(
-    self: BurnConfig,
-    _cap: &BBBAdminCap,
-) {
-    let BurnConfig { id, burns: _ } = self;
-    object::delete(id);
-}

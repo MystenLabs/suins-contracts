@@ -70,21 +70,6 @@ export const bbb_aftermath_config = {
             ],
         });
     },
-    destroy: (arg: {
-        tx: Transaction;
-        packageId: string;
-        aftermathConfigObj: TransactionObjectInput;
-        adminCapObj: TransactionObjectInput;
-    }): TransactionResult => {
-        const { tx, packageId } = arg;
-        return tx.moveCall({
-            target: `${packageId}::bbb_aftermath_config::destroy`,
-            arguments: [
-                tx.object(arg.aftermathConfigObj),
-                tx.object(arg.adminCapObj),
-            ],
-        });
-    },
 } as const;
 
 export const bbb_aftermath_swap = {
@@ -237,21 +222,6 @@ export const bbb_cetus_config = {
             ],
         });
     },
-    destroy: (arg: {
-        tx: Transaction;
-        packageId: string;
-        cetusConfigObj: TransactionObjectInput;
-        adminCapObj: TransactionObjectInput;
-    }): TransactionResult => {
-        const { tx, packageId } = arg;
-        return tx.moveCall({
-            target: `${packageId}::bbb_cetus_config::destroy`,
-            arguments: [
-                tx.object(arg.cetusConfigObj),
-                tx.object(arg.adminCapObj),
-            ],
-        });
-    },
 } as const;
 
 export const bbb_cetus_swap = {
@@ -383,18 +353,6 @@ export const bbb_burn_config = {
         const { tx, packageId } = arg;
         return tx.moveCall({
             target: `${packageId}::bbb_burn_config::remove_all`,
-            arguments: [tx.object(arg.burnConfigObj), tx.object(arg.adminCapObj)],
-        });
-    },
-    destroy: (arg: {
-        tx: Transaction;
-        packageId: string;
-        burnConfigObj: TransactionObjectInput;
-        adminCapObj: TransactionObjectInput;
-    }): TransactionResult => {
-        const { tx, packageId } = arg;
-        return tx.moveCall({
-            target: `${packageId}::bbb_burn_config::destroy`,
             arguments: [tx.object(arg.burnConfigObj), tx.object(arg.adminCapObj)],
         });
     },

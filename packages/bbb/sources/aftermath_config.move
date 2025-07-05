@@ -102,12 +102,3 @@ public fun remove_all(
 ) {
     self.swaps.length().do!(|_| self.swaps.pop_back());
 }
-
-/// Delete the object.
-public fun destroy(
-    self: AftermathConfig,
-    _cap: &BBBAdminCap,
-) {
-    let AftermathConfig { id, swaps: _ } = self;
-    object::delete(id);
-}
