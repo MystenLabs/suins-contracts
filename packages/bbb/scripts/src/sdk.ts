@@ -9,8 +9,8 @@ export const bbb_aftermath_config = {
     // === public functions ===
     get: (arg: {
         packageId: string;
-        aftermathConfigObj: TransactionObjectInput;
         coinType: string;
+        aftermathConfigObj: TransactionObjectInput;
     }): ((tx: Transaction) => TransactionResult) => {
         return (tx: Transaction) =>
             tx.moveCall({
@@ -48,9 +48,9 @@ export const bbb_aftermath_config = {
     },
     remove: (arg: {
         packageId: string;
+        coinInType: string;
         aftermathConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
-        coinInType: string;
     }): ((tx: Transaction) => TransactionResult) => {
         return (tx: Transaction) =>
             tx.moveCall({
@@ -177,8 +177,8 @@ export const bbb_cetus_config = {
     // === public functions ===
     get: (arg: {
         packageId: string;
-        cetusConfigObj: TransactionObjectInput;
         coinInType: string;
+        cetusConfigObj: TransactionObjectInput;
     }): ((tx: Transaction) => TransactionResult) => {
         return (tx: Transaction) =>
             tx.moveCall({
@@ -216,9 +216,9 @@ export const bbb_cetus_config = {
     },
     remove: (arg: {
         packageId: string;
+        coinInType: string;
         cetusConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
-        coinInType: string;
     }): ((tx: Transaction) => TransactionResult) => {
         return (tx: Transaction) =>
             tx.moveCall({
@@ -324,8 +324,8 @@ export const bbb_burn_config = {
     // === public functions ===
     get: (arg: {
         packageId: string;
-        burnConfigObj: TransactionObjectInput;
         coinType: string;
+        burnConfigObj: TransactionObjectInput;
     }): ((tx: Transaction) => TransactionResult) => {
         return (tx: Transaction) =>
             tx.moveCall({
@@ -363,9 +363,9 @@ export const bbb_burn_config = {
     },
     remove: (arg: {
         packageId: string;
+        coinType: string;
         burnConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
-        coinType: string;
     }): ((tx: Transaction) => TransactionResult) => {
         return (tx: Transaction) =>
             tx.moveCall({
@@ -401,8 +401,8 @@ export const bbb_burn_config = {
 export const bbb_burn = {
     new: (arg: {
         packageId: string;
-        adminCapObj: TransactionObjectInput;
         coinType: string;
+        adminCapObj: TransactionObjectInput;
     }): ((tx: Transaction) => TransactionResult) => {
         return (tx: Transaction) =>
             tx.moveCall({

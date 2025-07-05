@@ -102,6 +102,7 @@ program
 
         const resp = await signAndExecuteTx({ tx, dryRun });
         logTxResp(resp);
+        // TODO extract created object ids
     });
 
 program
