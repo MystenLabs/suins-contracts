@@ -93,42 +93,7 @@ export const bbb_aftermath_config = {
 } as const;
 
 export const bbb_aftermath_swap = {
-    new: (arg: {
-        packageId: string;
-        adminCapObj: TransactionObjectInput;
-        coinIn: {
-            type: string;
-            decimals: number;
-            pyth_feed: string;
-        };
-        coinOut: {
-            type: string;
-            decimals: number;
-            pyth_feed: string;
-        };
-        pool: {
-            id: string;
-            lpType: string;
-        };
-        slippage: bigint;
-        maxAgeSecs: bigint;
-    }): ((tx: Transaction) => TransactionResult) => {
-        return (tx: Transaction) =>
-            tx.moveCall({
-                target: `${arg.packageId}::bbb_aftermath_swap::new`,
-                typeArguments: [arg.pool.lpType, arg.coinIn.type, arg.coinOut.type],
-                arguments: [
-                    tx.object(arg.adminCapObj),
-                    tx.pure.u8(arg.coinIn.decimals),
-                    tx.pure.u8(arg.coinOut.decimals),
-                    tx.pure.vector("u8", fromHex(arg.coinIn.pyth_feed)),
-                    tx.pure.vector("u8", fromHex(arg.coinOut.pyth_feed)),
-                    tx.object(arg.pool.id),
-                    tx.pure.u64(arg.slippage),
-                    tx.pure.u64(arg.maxAgeSecs),
-                ],
-            });
-    },
+    // === public functions ===
     swap: (arg: {
         packageId: string;
         // ours
@@ -168,6 +133,43 @@ export const bbb_aftermath_swap = {
                     tx.object(arg.afReferralVaultObj),
                     // sui
                     tx.object.clock(),
+                ],
+            });
+    },
+    // === admin functions ===
+    new: (arg: {
+        packageId: string;
+        adminCapObj: TransactionObjectInput;
+        coinIn: {
+            type: string;
+            decimals: number;
+            pyth_feed: string;
+        };
+        coinOut: {
+            type: string;
+            decimals: number;
+            pyth_feed: string;
+        };
+        pool: {
+            id: string;
+            lpType: string;
+        };
+        slippage: bigint;
+        maxAgeSecs: bigint;
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_aftermath_swap::new`,
+                typeArguments: [arg.pool.lpType, arg.coinIn.type, arg.coinOut.type],
+                arguments: [
+                    tx.object(arg.adminCapObj),
+                    tx.pure.u8(arg.coinIn.decimals),
+                    tx.pure.u8(arg.coinOut.decimals),
+                    tx.pure.vector("u8", fromHex(arg.coinIn.pyth_feed)),
+                    tx.pure.vector("u8", fromHex(arg.coinOut.pyth_feed)),
+                    tx.object(arg.pool.id),
+                    tx.pure.u64(arg.slippage),
+                    tx.pure.u64(arg.maxAgeSecs),
                 ],
             });
     },
@@ -252,39 +254,7 @@ export const bbb_cetus_config = {
 } as const;
 
 export const bbb_cetus_swap = {
-    new: (arg: {
-        packageId: string;
-        coinAType: string;
-        coinBType: string;
-        adminCapObj: TransactionObjectInput;
-        a2b: boolean;
-        decimalsA: number;
-        decimalsB: number;
-        feedA: string;
-        feedB: string;
-        pool: {
-            id: string;
-        };
-        slippage: bigint;
-        maxAgeSecs: bigint;
-    }): ((tx: Transaction) => TransactionResult) => {
-        return (tx: Transaction) =>
-            tx.moveCall({
-                target: `${arg.packageId}::bbb_cetus_swap::new`,
-                typeArguments: [arg.coinAType, arg.coinBType],
-                arguments: [
-                    tx.object(arg.adminCapObj),
-                    tx.pure.bool(arg.a2b),
-                    tx.pure.u8(arg.decimalsA),
-                    tx.pure.u8(arg.decimalsB),
-                    tx.pure.vector("u8", fromHex(arg.feedA)),
-                    tx.pure.vector("u8", fromHex(arg.feedB)),
-                    tx.object(arg.pool.id),
-                    tx.pure.u64(arg.slippage),
-                    tx.pure.u64(arg.maxAgeSecs),
-                ],
-            });
-    },
+    // === public functions ===
     swap: (arg: {
         packageId: string;
         // ours
@@ -315,6 +285,40 @@ export const bbb_cetus_swap = {
                     tx.object(arg.cetusPoolObj),
                     // sui
                     tx.object.clock(),
+                ],
+            });
+    },
+    // === admin functions ===
+    new: (arg: {
+        packageId: string;
+        coinAType: string;
+        coinBType: string;
+        adminCapObj: TransactionObjectInput;
+        a2b: boolean;
+        decimalsA: number;
+        decimalsB: number;
+        feedA: string;
+        feedB: string;
+        pool: {
+            id: string;
+        };
+        slippage: bigint;
+        maxAgeSecs: bigint;
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_cetus_swap::new`,
+                typeArguments: [arg.coinAType, arg.coinBType],
+                arguments: [
+                    tx.object(arg.adminCapObj),
+                    tx.pure.bool(arg.a2b),
+                    tx.pure.u8(arg.decimalsA),
+                    tx.pure.u8(arg.decimalsB),
+                    tx.pure.vector("u8", fromHex(arg.feedA)),
+                    tx.pure.vector("u8", fromHex(arg.feedB)),
+                    tx.object(arg.pool.id),
+                    tx.pure.u64(arg.slippage),
+                    tx.pure.u64(arg.maxAgeSecs),
                 ],
             });
     },
@@ -399,18 +403,7 @@ export const bbb_burn_config = {
 } as const;
 
 export const bbb_burn = {
-    new: (arg: {
-        packageId: string;
-        coinType: string;
-        adminCapObj: TransactionObjectInput;
-    }): ((tx: Transaction) => TransactionResult) => {
-        return (tx: Transaction) =>
-            tx.moveCall({
-                target: `${arg.packageId}::bbb_burn::new`,
-                typeArguments: [arg.coinType],
-                arguments: [tx.object(arg.adminCapObj)],
-            });
-    },
+    // === public functions ===
     burn: (arg: {
         packageId: string;
         coinType: string;
@@ -424,9 +417,23 @@ export const bbb_burn = {
                 arguments: [tx.object(arg.burnObj), tx.object(arg.bbbVaultObj)],
             });
     },
+    // === admin functions ===
+    new: (arg: {
+        packageId: string;
+        coinType: string;
+        adminCapObj: TransactionObjectInput;
+    }): ((tx: Transaction) => TransactionResult) => {
+        return (tx: Transaction) =>
+            tx.moveCall({
+                target: `${arg.packageId}::bbb_burn::new`,
+                typeArguments: [arg.coinType],
+                arguments: [tx.object(arg.adminCapObj)],
+            });
+    },
 } as const;
 
 export const bbb_vault = {
+    // === public functions ===
     deposit: (arg: {
         packageId: string;
         coinType: string;
