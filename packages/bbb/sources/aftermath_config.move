@@ -20,7 +20,7 @@ const EAftermathSwapNotFound: u64 = 1001;
 /// Each coin type can only appear on the input side of a swap once.
 /// E.g. there can only be 1 swap that converts SUI to another coin,
 /// but there can be multiple swaps that convert other coins to SUI.
-public struct AftermathConfig has key {
+public struct AftermathConfig has key, store {
     id: UID,
     swaps: vector<AftermathSwap>,
 }
