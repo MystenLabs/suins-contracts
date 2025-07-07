@@ -220,7 +220,7 @@ program
     );
 
 program
-    .command("swap-and-burn") // TODO clean up
+    .command("swap-and-burn")
     .description("Swap and burn coins")
     .action(async () => {
         const tx = new Transaction();
@@ -247,7 +247,7 @@ program
             const pythInfoObj = pythPriceInfoIds.find(
                 (info) => info.coinType === coinType,
             )?.priceInfo;
-            if (!pythInfoObj) {
+            if (!pythInfoObj) { // should never happen unless config.ts is misconfigured
                 logJson({
                     time: new Date().toISOString(),
                     error: `PriceInfoObject not found for ${coinType}`,
@@ -255,7 +255,7 @@ program
                 process.exit(1);
             }
             return pythInfoObj;
-        }
+        };
 
         const swapAftermath = (tx: Transaction): void => {
             for (const swap of Object.values(afSwaps)) {
@@ -342,8 +342,6 @@ program
             }
         };
 
-        // find most profitable swap route
-
         const devInspectSwapAndBurn = async (swapFn: (tx: Transaction) => void) => {
             try {
                 const tx = new Transaction();
@@ -359,6 +357,8 @@ program
             }
         };
 
+        // find most profitable swap route by checking how much NS is burned
+
         const swapFns = [swapAftermath, swapCetus];
 
         const dryRuns = await Promise.all(
@@ -369,7 +369,7 @@ program
         );
 
         const successfulRuns = dryRuns
-            .filter((run) => run.dryRun.resp && !run.dryRun.error)
+            .filter((run) => !run.dryRun.error)
             .map((run) => ({
                 swapFn: run.swapFn,
                 burnedNS: extractBurnedNS(run.dryRun.resp!),
@@ -382,16 +382,11 @@ program
                       current.burnedNS > best.burnedNS ? current : best,
                   );
 
-        // swap via most profitable route
-
-        if (mostProfitable) {
-            mostProfitable.swapFn(tx);
-        } else {
+        if (!mostProfitable) {
             logJson({
                 time: new Date().toISOString(),
                 error: "All swap routes failed",
                 routeErrors: dryRuns
-                    .filter((run) => run.dryRun.error !== null)
                     .map((run) => ({
                         swapFn: run.swapFn.name,
                         error: run.dryRun.error,
@@ -400,8 +395,9 @@ program
             process.exit(1);
         }
 
-        // burn NS
+        // swap and burn
 
+        mostProfitable.swapFn(tx);
         burn(tx);
 
         // execute tx

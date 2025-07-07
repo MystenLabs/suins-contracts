@@ -154,6 +154,5 @@ export async function getPriceInfoObject(tx: Transaction, feed: string): Promise
     );
 
     const objIds = await pythClient.updatePriceFeeds(tx, priceUpdateData, priceIDs);
-    // biome-ignore lint/style/noNonNullAssertion: does exist
     return objIds[0]!;
 }
