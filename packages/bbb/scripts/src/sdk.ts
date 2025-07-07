@@ -10,13 +10,14 @@ export const bbb_aftermath_config = {
     get: (arg: {
         tx: Transaction;
         packageId: string;
-        coinType: string;
+        coinInType: string;
+        coinOutType: string;
         aftermathConfigObj: TransactionObjectInput;
     }): TransactionResult => {
         const { tx, packageId } = arg;
         return tx.moveCall({
             target: `${packageId}::bbb_aftermath_config::get`,
-            typeArguments: [arg.coinType],
+            typeArguments: [arg.coinInType, arg.coinOutType],
             arguments: [tx.object(arg.aftermathConfigObj)],
         });
     },
@@ -42,13 +43,14 @@ export const bbb_aftermath_config = {
         tx: Transaction;
         packageId: string;
         coinInType: string;
+        coinOutType: string;
         aftermathConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
     }): TransactionResult => {
         const { tx, packageId } = arg;
         return tx.moveCall({
             target: `${packageId}::bbb_aftermath_config::remove`,
-            typeArguments: [arg.coinInType],
+            typeArguments: [arg.coinInType, arg.coinOutType],
             arguments: [tx.object(arg.aftermathConfigObj), tx.object(arg.adminCapObj)],
         });
     },
@@ -157,12 +159,13 @@ export const bbb_cetus_config = {
         tx: Transaction;
         packageId: string;
         coinInType: string;
+        coinOutType: string;
         cetusConfigObj: TransactionObjectInput;
     }): TransactionResult => {
         const { tx, packageId } = arg;
         return tx.moveCall({
             target: `${packageId}::bbb_cetus_config::get`,
-            typeArguments: [arg.coinInType],
+            typeArguments: [arg.coinInType, arg.coinOutType],
             arguments: [tx.object(arg.cetusConfigObj)],
         });
     },
@@ -188,13 +191,14 @@ export const bbb_cetus_config = {
         tx: Transaction;
         packageId: string;
         coinInType: string;
+        coinOutType: string;
         cetusConfigObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
     }): TransactionResult => {
         const { tx, packageId } = arg;
         return tx.moveCall({
             target: `${packageId}::bbb_cetus_config::remove`,
-            typeArguments: [arg.coinInType],
+            typeArguments: [arg.coinInType, arg.coinOutType],
             arguments: [tx.object(arg.cetusConfigObj), tx.object(arg.adminCapObj)],
         });
     },
