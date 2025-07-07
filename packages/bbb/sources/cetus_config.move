@@ -16,10 +16,7 @@ const ECetusSwapNotFound: u64 = 1001;
 // === structs ===
 
 /// Registry of available Cetus swaps.
-///
-/// Each coin type can only appear on the input side of a swap once.
-/// E.g. there can only be 1 swap that converts SUI to another coin,
-/// but there can be multiple swaps that convert other coins to SUI.
+/// Each coin pair (CoinIn, CoinOut) can only appear once.
 public struct CetusConfig has key {
     id: UID,
     swaps: vector<CetusSwap>,
@@ -51,15 +48,19 @@ fun init(_otw: BBB_CETUS_CONFIG, ctx: &mut TxContext) {
 
 // === public functions ===
 
-/// Get the swap that takes `CoinIn` as input.
+/// Get the swap that converts `CoinIn` to `CoinOut`.
 /// Errors if not found.
-public fun get<CoinIn>(
+public fun get<CoinIn, CoinOut>(
     self: &CetusConfig,
 ): CetusSwap {
-    let type_in = type_name::get<CoinIn>();
     let idx = self.swaps.find_index!(|swap| {
-        let swap_type_in = if (swap.a2b()) swap.type_a() else swap.type_b();
-        type_in == swap_type_in
+        let (type_in, type_out) = if (swap.a2b()) {
+            (swap.type_a(), swap.type_b())
+        } else {
+            (swap.type_b(), swap.type_a())
+        };
+        type_name::get<CoinIn>() == type_in &&
+        type_name::get<CoinOut>() == type_out
     });
     assert!(idx.is_some(), ECetusSwapNotFound);
     self.swaps[idx.destroy_some()]
@@ -68,31 +69,43 @@ public fun get<CoinIn>(
 // === admin functions ===
 
 /// Add a swap to the config.
-/// Errors if the swap's input coin type already exists.
+/// Errors if the swap's coin pair already exists.
 public fun add(
     self: &mut CetusConfig,
     _cap: &BBBAdminCap,
     swap: CetusSwap,
 ) {
-    let new_type_in = if (swap.a2b()) swap.type_a() else swap.type_b();
+    let (new_in, new_out) = if (swap.a2b()) {
+        (swap.type_a(), swap.type_b())
+    } else {
+        (swap.type_b(), swap.type_a())
+    };
     let already_exists = self.swaps.any!(|old| {
-        let old_type_in = if (old.a2b()) old.type_a() else old.type_b();
-        new_type_in == old_type_in
+        let (old_in, old_out) = if (old.a2b()) {
+            (old.type_a(), old.type_b())
+        } else {
+            (old.type_b(), old.type_a())
+        };
+        new_in == old_in && new_out == old_out
     });
     assert!(!already_exists, ECetusSwapAlreadyExists);
     self.swaps.push_back(swap);
 }
 
 /// Remove a swap from the config.
-/// Errors if the swap's input coin type doesn't exist.
-public fun remove<CoinIn>(
+/// Errors if the swap's coin pair doesn't exist.
+public fun remove<CoinIn, CoinOut>(
     self: &mut CetusConfig,
     _cap: &BBBAdminCap,
 ) {
-    let type_in = type_name::get<CoinIn>();
     let idx = self.swaps.find_index!(|old| {
-        let old_type_in = if (old.a2b()) old.type_a() else old.type_b();
-        type_in == old_type_in
+        let (old_in, old_out) = if (old.a2b()) {
+            (old.type_a(), old.type_b())
+        } else {
+            (old.type_b(), old.type_a())
+        };
+        type_name::get<CoinIn>() == old_in &&
+        type_name::get<CoinOut>() == old_out
     });
     assert!(idx.is_some(), ECetusSwapNotFound);
     self.swaps.swap_remove(idx.destroy_some());
