@@ -2,7 +2,9 @@ use crate::models::sui::dynamic_field::Field;
 use crate::models::suins::domain::Domain;
 use crate::models::suins::name_record::NameRecord;
 use crate::models::suins::subdomain_registration::SubDomainRegistration;
-use crate::models::{NameRecordChange, SuinsCheckpointData, SuinsIndexerCheckpoint};
+use crate::models::{
+    NameRecordChange, SuinsCheckpointData, SuinsIndexerCheckpoint, VerifiedDomain,
+};
 use anyhow::anyhow;
 use async_trait::async_trait;
 use diesel::dsl::case_when;
@@ -12,7 +14,7 @@ use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use futures::future::try_join_all;
 use move_core_types::language_storage::StructTag;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use sui_indexer_alt_framework::pipeline::concurrent::Handler;
 use sui_indexer_alt_framework::pipeline::Processor;
@@ -157,14 +159,21 @@ impl Handler for DomainHandler {
     ) -> anyhow::Result<usize> {
         use crate::schema::domains::*;
         // split data
-        let (updates, removals) =
-            values
-                .iter()
-                .fold((vec![], vec![]), |(mut updates, mut removals), value| {
-                    updates.extend(value.updates.clone());
-                    removals.push((value.checkpoint, value.removals.clone()));
-                    (updates, removals)
-                });
+        let (updates, removals) = values.iter().fold(
+            (HashMap::<String, VerifiedDomain>::new(), vec![]),
+            |(mut updates, mut removals), value| {
+                for update in value.updates.iter().cloned() {
+                    let update = if let Some(old) = updates.remove(&update.name) {
+                        old.merge(update)
+                    } else {
+                        update
+                    };
+                    updates.insert(update.name.clone(), update);
+                }
+                removals.push((value.checkpoint, value.removals.clone()));
+                (updates, removals)
+            },
+        );
 
         Ok(conn
             .transaction(|conn| {
@@ -177,7 +186,7 @@ impl Handler for DomainHandler {
                     if !updates.is_empty() {
                         // Bulk insert all updates and override with data.
                         changes += diesel::insert_into(table)
-                            .values(updates)
+                            .values(updates.values().collect::<Vec<_>>())
                             .on_conflict(name)
                             .do_update()
                             .set((
