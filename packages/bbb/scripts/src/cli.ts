@@ -263,7 +263,8 @@ program
                     tx,
                     packageId,
                     aftermathConfigObj,
-                    coinType: swap.coinIn.type,
+                    coinInType: swap.coinIn.type,
+                    coinOutType: swap.coinOut.type,
                 });
 
                 sdk.bbb_aftermath_swap.swap({
@@ -310,6 +311,7 @@ program
                     packageId,
                     cetusConfigObj,
                     coinInType: swap.a2b ? swap.coinA.type : swap.coinB.type,
+                    coinOutType: swap.a2b ? swap.coinB.type : swap.coinA.type,
                 });
 
                 sdk.bbb_cetus_swap.swap({
