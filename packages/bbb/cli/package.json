@@ -1,5 +1,5 @@
 {
-  "name": "scripts",
+  "name": "bbb-cli",
   "type": "module",
   "private": true,
   "scripts": {
@@ -8,13 +8,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@mysten/sui": "^1.34.0",
+    "@mysten/sui": "^1.35.0",
     "axios": "^1.10.0",
     "axios-retry": "^4.5.0",
-    "zod": "^3.25.67"
+    "zod": "^3.25.75"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.0.5",
+    "@biomejs/biome": "^2.0.6",
     "@types/bun": "latest",
     "typescript": "^5.8.3"
   }
