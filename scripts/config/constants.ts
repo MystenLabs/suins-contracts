@@ -127,7 +127,7 @@ export const mainPackage: Config = {
 		},
 		subNamesPackageId: '0x5afdc6b0c6c2821cd422f8985aea3c36acc6c76bf35520b3d7f47d1f5dc8bf54',
 		tempSubdomainsProxyPackageId:
-			'0x295a0749dae0e76126757c305f218f929df0656df66a6361f8b6c6480a943f12',
+			'0xf0c12144cb6e237a28b75368fd7a03fb2c484923a4b471da96e059f9e34edce7',
 		discord: {
 			discordCap: '',
 			discordObjectId: '',
