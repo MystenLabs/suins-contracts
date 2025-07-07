@@ -16,10 +16,7 @@ const EAftermathSwapNotFound: u64 = 1001;
 // === structs ===
 
 /// Registry of available Aftermath swaps.
-///
-/// Each coin type can only appear on the input side of a swap once.
-/// E.g. there can only be 1 swap that converts SUI to another coin,
-/// but there can be multiple swaps that convert other coins to SUI.
+/// Each coin pair (CoinIn, CoinOut) can only appear once.
 public struct AftermathConfig has key {
     id: UID,
     swaps: vector<AftermathSwap>,
@@ -51,14 +48,14 @@ fun init(_otw: BBB_AFTERMATH_CONFIG, ctx: &mut TxContext) {
 
 // === public functions ===
 
-/// Get the swap that takes `CoinIn` as input.
+/// Get the swap that converts `CoinIn` to `CoinOut`.
 /// Errors if not found.
-public fun get<CoinIn>(
+public fun get<CoinIn, CoinOut>(
     self: &AftermathConfig,
 ): AftermathSwap {
-    let type_in = type_name::get<CoinIn>();
     let idx = self.swaps.find_index!(|swap| {
-        swap.type_in() == type_in
+        swap.type_in() == type_name::get<CoinIn>() &&
+        swap.type_out() == type_name::get<CoinOut>()
     });
     assert!(idx.is_some(), EAftermathSwapNotFound);
     self.swaps[idx.destroy_some()]
@@ -67,14 +64,15 @@ public fun get<CoinIn>(
 // === admin functions ===
 
 /// Add a swap to the config.
-/// Errors if the swap's input coin type already exists.
+/// Errors if the swap's coin pair already exists.
 public fun add(
     self: &mut AftermathConfig,
     _cap: &BBBAdminCap,
     swap: AftermathSwap,
 ) {
     let already_exists = self.swaps.any!(|old| {
-        old.type_in() == swap.type_in()
+        old.type_in() == swap.type_in() &&
+        old.type_out() == swap.type_out()
     });
     assert!(!already_exists, EAftermathSwapAlreadyExists);
 
@@ -82,13 +80,14 @@ public fun add(
 }
 
 /// Remove a swap from the config.
-/// Errors if the swap's input coin type doesn't exist.
-public fun remove<CoinIn>(
+/// Errors if the swap's coin pair doesn't exist.
+public fun remove<CoinIn, CoinOut>(
     self: &mut AftermathConfig,
     _cap: &BBBAdminCap,
 ) {
     let idx = self.swaps.find_index!(|old| {
-        old.type_in() == type_name::get<CoinIn>()
+        old.type_in() == type_name::get<CoinIn>() &&
+        old.type_out() == type_name::get<CoinOut>()
     });
     assert!(idx.is_some(), EAftermathSwapNotFound);
 

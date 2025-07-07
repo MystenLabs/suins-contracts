@@ -249,7 +249,7 @@ program
                     (info) => info.coinType === swap.coinIn.type,
                 )?.priceInfo;
                 if (!pythInfoObjIn) {
-                    throw new Error(`PriceInfoObject not found for ${swap.coinIn.type}`);
+                    throw new Error(`PriceInfoObject not found for ${swap.coinIn.type}`); // TODO: exit gracefully
                 }
 
                 const pythInfoObjOut = pythPriceInfoIds.find(
