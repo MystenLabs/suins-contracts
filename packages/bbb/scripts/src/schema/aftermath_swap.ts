@@ -6,12 +6,10 @@ export const AftermathSwapSchema = z.object({
     fields: z.object({
         decimals_in: z.number(),
         decimals_out: z.number(),
-        feed_in: z
-            .array(z.number())
-            .transform((arr) => `0x${toHex(Uint8Array.from(arr))}`),
+        feed_in: z.array(z.number()).transform((arr) => `${toHex(Uint8Array.from(arr))}`),
         feed_out: z
             .array(z.number())
-            .transform((arr) => `0x${toHex(Uint8Array.from(arr))}`),
+            .transform((arr) => `${toHex(Uint8Array.from(arr))}`),
         max_age_secs: z.string(),
         pool_id: z.string(),
         slippage: z.string(),

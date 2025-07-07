@@ -4,7 +4,7 @@ import { Command, Option } from "commander";
 import { afSwaps, burnTypes, cetusSwaps, cnf } from "./config.js";
 import { AftermathConfigSchema } from "./schema/aftermath_config.js";
 import { AftermathSwapEventSchema } from "./schema/aftermath_swap.js";
-import { BalanceDfSchema } from "./schema/balance_df.js";
+import { BalanceDynamicFieldSchema } from "./schema/balance_df.js";
 import { BurnEventSchema } from "./schema/burn.js";
 import { BurnConfigSchema } from "./schema/burn_config.js";
 import { CetusConfigSchema } from "./schema/cetus_config.js";
@@ -37,8 +37,8 @@ const cetusConfigObj = cnf.bbb.cetusConfigObj;
 program.name("bbb").description("Buy Back & Burn CLI tool").version("1.0.0");
 
 program
-    .command("set-config")
-    .description("Update the config objects according to config.ts")
+    .command("sync-config")
+    .description("Update onchain config according to config.ts")
     .action(async () => {
         const tx = new Transaction();
         // burns
@@ -167,7 +167,7 @@ program
             options: { showContent: true },
         });
         const balanceDfObjs = balanceDfResps.map((resp) =>
-            BalanceDfSchema.parse(resp.data),
+            BalanceDynamicFieldSchema.parse(resp.data),
         );
         const balances = balanceDfObjs.map((bal) => {
             return {
@@ -247,7 +247,8 @@ program
             const pythInfoObj = pythPriceInfoIds.find(
                 (info) => info.coinType === coinType,
             )?.priceInfo;
-            if (!pythInfoObj) { // should never happen unless config.ts is misconfigured
+            if (!pythInfoObj) {
+                // should never happen unless config.ts is misconfigured
                 logJson({
                     time: new Date().toISOString(),
                     error: `PriceInfoObject not found for ${coinType}`,
@@ -386,11 +387,10 @@ program
             logJson({
                 time: new Date().toISOString(),
                 error: "All swap routes failed",
-                routeErrors: dryRuns
-                    .map((run) => ({
-                        swapFn: run.swapFn.name,
-                        error: run.dryRun.error,
-                    })),
+                routeErrors: dryRuns.map((run) => ({
+                    swapFn: run.swapFn.name,
+                    error: run.dryRun.error,
+                })),
             });
             process.exit(1);
         }
