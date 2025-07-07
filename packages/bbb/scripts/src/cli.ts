@@ -225,7 +225,7 @@ program
     .action(async () => {
         const tx = new Transaction();
 
-        // get pyth price info objects
+        // get all Pyth price info objects
 
         const pythPriceInfoIds = await Promise.all(
             Object.values(cnf.coins).map(async (coin) => ({
@@ -236,28 +236,31 @@ program
             logJson({
                 time: new Date().toISOString(),
                 error: "Failed to fetch price info objects",
-                message: err instanceof Error ? err.message : String(err),
+                detail: err instanceof Error ? err.message : String(err),
             });
             process.exit(1);
         });
 
         // helpers
 
-        const swapAftermath = (tx: Transaction) => {
-            for (const swap of Object.values(afSwaps)) {
-                const pythInfoObjIn = pythPriceInfoIds.find(
-                    (info) => info.coinType === swap.coinIn.type,
-                )?.priceInfo;
-                if (!pythInfoObjIn) {
-                    throw new Error(`PriceInfoObject not found for ${swap.coinIn.type}`); // TODO: exit gracefully
-                }
+        const findPriceInfoOrExit = (coinType: string): string => {
+            const pythInfoObj = pythPriceInfoIds.find(
+                (info) => info.coinType === coinType,
+            )?.priceInfo;
+            if (!pythInfoObj) {
+                logJson({
+                    time: new Date().toISOString(),
+                    error: `PriceInfoObject not found for ${coinType}`,
+                });
+                process.exit(1);
+            }
+            return pythInfoObj;
+        }
 
-                const pythInfoObjOut = pythPriceInfoIds.find(
-                    (info) => info.coinType === swap.coinOut.type,
-                )?.priceInfo;
-                if (!pythInfoObjOut) {
-                    throw new Error(`PriceInfoObject not found for ${swap.coinOut.type}`);
-                }
+        const swapAftermath = (tx: Transaction): void => {
+            for (const swap of Object.values(afSwaps)) {
+                const pythInfoObjIn = findPriceInfoOrExit(swap.coinIn.type);
+                const pythInfoObjOut = findPriceInfoOrExit(swap.coinOut.type);
 
                 const afSwapObj = sdk.bbb_aftermath_config.get({
                     tx,
@@ -290,21 +293,10 @@ program
             }
         };
 
-        const swapCetus = (tx: Transaction) => {
+        const swapCetus = (tx: Transaction): void => {
             for (const swap of Object.values(cetusSwaps)) {
-                const pythInfoObjA = pythPriceInfoIds.find(
-                    (info) => info.coinType === swap.coinA.type,
-                )?.priceInfo;
-                if (!pythInfoObjA) {
-                    throw new Error(`PriceInfoObject not found for ${swap.coinA.type}`);
-                }
-
-                const pythInfoObjB = pythPriceInfoIds.find(
-                    (info) => info.coinType === swap.coinB.type,
-                )?.priceInfo;
-                if (!pythInfoObjB) {
-                    throw new Error(`PriceInfoObject not found for ${swap.coinB.type}`);
-                }
+                const pythInfoObjA = findPriceInfoOrExit(swap.coinA.type);
+                const pythInfoObjB = findPriceInfoOrExit(swap.coinB.type);
 
                 const cetusSwapObj = sdk.bbb_cetus_config.get({
                     tx,
@@ -428,7 +420,7 @@ program
             logJson({
                 time: new Date().toISOString(),
                 error: "Failed to execute tx",
-                message: err instanceof Error ? err.message : String(err),
+                detail: err instanceof Error ? err.message : String(err),
             });
         }
     });
