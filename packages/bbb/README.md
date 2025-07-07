@@ -19,4 +19,4 @@ A permissionless token buyback and burn mechanism for SuiNS, enabling automated 
 
 A command-line interface is provided to configure the system and execute swaps and burns.
 
-See [scripts/README.md](scripts/README.md) for more details.
+See [cli/README.md](cli/README.md) for more details.
