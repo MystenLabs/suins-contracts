@@ -4,11 +4,11 @@ A permissionless token buyback and burn mechanism for SuiNS, enabling automated 
 
 ## Features
 
-- Uses Aftermath AMM for swaps.
 - Uses Pyth for slippage protection.
+- Supports Cetus and Aftermath for swaps.
 - Supports arbitrary swap pairs and burn types.
-- Admin configures swap pairs and burn types dynamically.
-- Anyone can trigger swaps and burns permissionlessly.
+- Admin can configure swaps and burn dynamically.
+- Anyone can execute swaps and burns permissionlessly.
 
 ## Flow
 

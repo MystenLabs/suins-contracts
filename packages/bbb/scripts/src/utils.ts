@@ -9,21 +9,14 @@ import { SuiPriceServiceConnection, SuiPythClient } from "./pyth/pyth.js";
 
 // === sui ===
 
-/** Get a new mainnet client. */
+/** Get a new mainnet client */
 export function newSuiClient(): SuiClient {
     return new SuiClient({
         url: "https://suins-rpc.mainnet.sui.io:443",
     });
 }
 
-export function getSigner(): Keypair {
-    if (!process.env.PRIVATE_KEY) {
-        throw new Error("PRIVATE_KEY environment variable is not set");
-    }
-    return pairFromSecretKey(process.env.PRIVATE_KEY);
-}
-
-/** Sign and execute a transaction using the `PRIVATE_KEY` environment variable. */
+/** Sign and execute a transaction using the `PRIVATE_KEY` environment variable */
 export async function signAndExecuteTx({
     tx,
     dryRun = true,
@@ -69,16 +62,22 @@ export async function signAndExecuteTx({
     if (waitForTx) {
         await suiClient.waitForTransaction({
             digest: resp.digest,
-            pollInterval: 200,
+            pollInterval: 250,
         });
     }
 
     return resp;
 }
 
-/**
- * Build a `Keypair` from a secret key string like `suiprivkey1...`.
- */
+/** Build a `Keypair` from the `PRIVATE_KEY` environment variable */
+function getSigner(): Keypair {
+    if (!process.env.PRIVATE_KEY) {
+        throw new Error("PRIVATE_KEY environment variable is not set");
+    }
+    return pairFromSecretKey(process.env.PRIVATE_KEY);
+}
+
+/** Build a `Keypair` from a secret key string like `suiprivkey1...` */
 function pairFromSecretKey(secretKey: string): Keypair {
     const pair = decodeSuiPrivateKey(secretKey);
 
@@ -93,42 +92,6 @@ function pairFromSecretKey(secretKey: string): Keypair {
     }
 
     throw new Error(`Unrecognized keypair schema: ${pair.schema}`);
-}
-
-/**
- * Abbreviate a Sui address for display purposes (lossy). Default format is '0x1234…5678',
- * given an address like '0x1234000000000000000000000000000000000000000000000000000000005678'.
- */
-export function shortenAddress(
-    text: string | null | undefined,
-    start = 4,
-    end = 4,
-    separator = "…",
-    prefix = "0x",
-): string {
-    if (!text) return "";
-
-    const addressRegex = /\b0[xX][0-9a-fA-F]{1,64}\b/g;
-
-    return text.replace(addressRegex, (match) => {
-        // check if the address is too short to be abbreviated
-        if (match.length - prefix.length <= start + end) {
-            return match;
-        }
-        // otherwise, abbreviate the address
-        return prefix + match.slice(2, 2 + start) + separator + match.slice(-end);
-    });
-}
-
-export function logJson(obj: unknown) {
-    console.log(JSON.stringify(obj, null, 2));
-}
-
-export function logTxResp(resp: SuiTransactionBlockResponse) {
-    logJson({
-        tx_status: resp.effects?.status.status,
-        tx_digest: resp.digest,
-    });
 }
 
 // === pyth ===
@@ -155,4 +118,17 @@ export async function getPriceInfoObject(tx: Transaction, feed: string): Promise
 
     const objIds = await pythClient.updatePriceFeeds(tx, priceUpdateData, priceIDs);
     return objIds[0]!;
+}
+
+// === logging ===
+
+export function logJson(obj: unknown) {
+    console.log(JSON.stringify(obj, null, 2));
+}
+
+export function logTxResp(resp: SuiTransactionBlockResponse) {
+    logJson({
+        tx_status: resp.effects?.status.status,
+        tx_digest: resp.digest,
+    });
 }

@@ -7,12 +7,8 @@ export const CetusSwapSchema = z.object({
         a2b: z.boolean(),
         decimals_a: z.number(),
         decimals_b: z.number(),
-        feed_a: z
-            .array(z.number())
-            .transform((arr) => `0x${toHex(Uint8Array.from(arr))}`),
-        feed_b: z
-            .array(z.number())
-            .transform((arr) => `0x${toHex(Uint8Array.from(arr))}`),
+        feed_a: z.array(z.number()).transform((arr) => `${toHex(Uint8Array.from(arr))}`),
+        feed_b: z.array(z.number()).transform((arr) => `${toHex(Uint8Array.from(arr))}`),
         max_age_secs: z.string(),
         pool_id: z.string(),
         slippage: z.string(),

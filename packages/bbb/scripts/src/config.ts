@@ -1,4 +1,4 @@
-/** Mainnet configuration. */
+/** Mainnet configuration */
 export const cnf = {
     bbb: { // TODO: update values for prod
         package: "0x4051e63dd9fe859285bd52d240118ea718347055658b5593afcdf39a9db2602b", // dev-only
@@ -9,9 +9,9 @@ export const cnf = {
         aftermathConfigObj: "0xa572d8fb5bdde6c0ce70f826287f427f1fd06d79eab2d08a69f304cad70f4c24", // dev-only
         cetusConfigObj: "0x24d07c9b1f3e1c47bb5115588e533a260a0324dce96621e8b0fdd1d3a138f0df", // dev-only
     },
-    /** Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point. */
+    /** Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point */
     defaultSlippage: 975_000_000_000_000_000n, // 2.5%
-    /** How stale a Pyth price can be, in seconds. */
+    /** How stale a Pyth price can be, in seconds */
     defaultMaxAgeSecs: 60n,
     coins: {
         SUI: {
@@ -38,9 +38,11 @@ export const cnf = {
         stateObj: "0x1f9310238ee9298fb703c3419030b35b22bb1cc37113e3bb5007c99aec79e5b8",
     },
     aftermath: {
-        ammPackage: "0xc4049b2d1cc0f6e017fda8260e4377cecd236bd7f56a54fee120816e72e2e0dd", // v2
-        // aftermathAmmPkgId: "0xefe170ec0be4d762196bedecd7a065816576198a6527c99282a2551aaa7da38c", // v1
-        // aftermathAmmPkgId: "0xf948935b111990c2b604900c9b2eeb8f24dcf9868a45d1ea1653a5f282c10e29", // v3
+        poolRegistry: "0xfcc774493db2c45c79f688f88d28023a3e7d98e4ee9f48bbf5c7990f651577ae",
+        protocolFeeVault: "0xf194d9b1bcad972e45a7dd67dd49b3ee1e3357a00a50850c52cd51bb450e13b4",
+        treasury: "0x28e499dff5e864a2eafe476269a4f5035f1c16f338da7be18b103499abf271ce",
+        insuranceFund: "0xf0c40d67b078000e18032334c3325c47b9ec9f3d9ae4128be820d54663d14e3b",
+        referralVault: "0x35d35b0e5b177593d8c3a801462485572fc30861e6ce96a55af6dc4730709278",
         pools: {
             sui_usdc: {
                 id: "0xb0cc4ce941a6c6ac0ca6d8e6875ae5d86edbec392c3333d008ca88f377e5e181",
@@ -51,11 +53,6 @@ export const cnf = {
                 lpType: "0xf847c541b3076eea83cbaddcc244d25415b7c6828c1542cae4ab152d809896b6::af_lp::AF_LP",
             },
         },
-        poolRegistry: "0xfcc774493db2c45c79f688f88d28023a3e7d98e4ee9f48bbf5c7990f651577ae",
-        protocolFeeVault: "0xf194d9b1bcad972e45a7dd67dd49b3ee1e3357a00a50850c52cd51bb450e13b4",
-        treasury: "0x28e499dff5e864a2eafe476269a4f5035f1c16f338da7be18b103499abf271ce",
-        insuranceFund: "0xf0c40d67b078000e18032334c3325c47b9ec9f3d9ae4128be820d54663d14e3b",
-        referralVault: "0x35d35b0e5b177593d8c3a801462485572fc30861e6ce96a55af6dc4730709278",
     },
     cetus: {
         globalConfigObjId: "0xdaa46292632c3c4d8f31f23ea0f9b36a28ff3677e9684980e4438403a67a3d8f",
@@ -70,12 +67,12 @@ export const cnf = {
     }
 } as const;
 
-/** Coin types that can be burned. */
+/** Coin types that can be burned */
 export const burnTypes = {
     NS: cnf.coins.NS.type,
 } as const;
 
-/** Aftermath swap configurations. */
+/** Aftermath swaps in the order they should be executed */
 export const afSwaps = {
     USDC: { // -> SUI
         coinIn: cnf.coins.USDC,
@@ -89,7 +86,7 @@ export const afSwaps = {
     },
 } as const;
 
-/** Cetus swap configurations. */
+/** Cetus swaps in the order they should be executed */
 export const cetusSwaps = {
     USDC: { // -> SUI
         coinA: cnf.coins.USDC,

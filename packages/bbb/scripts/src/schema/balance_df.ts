@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-export const BalanceDfSchema = z.object({
+export const BalanceDynamicFieldSchema = z.object({
     objectId: z.string(),
     version: z.string(),
     digest: z.string(),
