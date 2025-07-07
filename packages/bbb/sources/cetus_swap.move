@@ -231,7 +231,7 @@ public fun swap<CoinA, CoinB>(
 
 // === private functions ===
 
-public fun swap_a2b<CoinA, CoinB>( // TODO make private
+fun swap_a2b<CoinA, CoinB>(
     cetus_config: &GlobalConfig,
     pool: &mut Pool<CoinA, CoinB>,
     coin_a: Coin<CoinA>,
@@ -265,7 +265,7 @@ public fun swap_a2b<CoinA, CoinB>( // TODO make private
     balance_b.into_coin(ctx)
 }
 
-public fun swap_b2a<CoinA, CoinB>( // TODO make private
+fun swap_b2a<CoinA, CoinB>(
     cetus_config: &GlobalConfig,
     pool: &mut Pool<CoinA, CoinB>,
     coin_b: Coin<CoinB>,
