@@ -125,7 +125,7 @@ export const mainPackage: Config = {
 			packageId: '0x7976f9bfe81dcbdbb635efb0ecb02844cd79109d3a698d05c06ca9fd2f97d262',
 			discountHouseId: '0x9f1ac0f49ddaec4fd2248ae1cc63ed91946f43a236b333439efb9126f31f8e9b',
 		},
-		subNamesPackageId: '0x3c272bc45f9157b7818ece4f7411bdfa8af46303b071aca4e18c03119c9ff636',
+		subNamesPackageId: '0x5afdc6b0c6c2821cd422f8985aea3c36acc6c76bf35520b3d7f47d1f5dc8bf54',
 		tempSubdomainsProxyPackageId:
 			'0x295a0749dae0e76126757c305f218f929df0656df66a6361f8b6c6480a943f12',
 		discord: {
