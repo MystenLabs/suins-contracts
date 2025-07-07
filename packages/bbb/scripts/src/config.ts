@@ -5,9 +5,9 @@ export const cnf = {
         upgradeCapObj: "0x9f5357a2c9464e7b334ba3a88805aacf03628c30ac66c77fa3b7f79a4620aec1", // dev-only
         adminCapObj: "0x9132027a331dc39cc5193a069f955003c303baa80311b862e8f9e3f2d557493c", // dev-only
         vaultObj: "0x63e42a9fe631002bc01798e183f085d9599938062251250ef3540f8c8225468f", // dev-only
-        burnConfigObj: "0xdbca5d062d3a994c9fc61cf7a9c3adf7a9c17ecde4744181e212f13550e50702", // dev-only
-        aftermathConfigObj: "0xa572d8fb5bdde6c0ce70f826287f427f1fd06d79eab2d08a69f304cad70f4c24", // dev-only
-        cetusConfigObj: "0x24d07c9b1f3e1c47bb5115588e533a260a0324dce96621e8b0fdd1d3a138f0df", // dev-only
+        burnRegistryObj: "0xdbca5d062d3a994c9fc61cf7a9c3adf7a9c17ecde4744181e212f13550e50702", // dev-only
+        aftermathRegistryObj: "0xa572d8fb5bdde6c0ce70f826287f427f1fd06d79eab2d08a69f304cad70f4c24", // dev-only
+        cetusRegistryObj: "0x24d07c9b1f3e1c47bb5115588e533a260a0324dce96621e8b0fdd1d3a138f0df", // dev-only
     },
     /** Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point */
     defaultSlippage: 975_000_000_000_000_000n, // 2.5%

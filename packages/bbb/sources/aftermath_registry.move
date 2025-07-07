@@ -1,4 +1,4 @@
-module suins_bbb::bbb_aftermath_config;
+module suins_bbb::bbb_aftermath_registry;
 
 use std::{
     type_name::{Self},
@@ -17,22 +17,22 @@ const EAftermathSwapNotFound: u64 = 1001;
 
 /// Registry of available Aftermath swaps.
 /// Each coin pair (CoinIn, CoinOut) can only appear once.
-public struct AftermathConfig has key {
+public struct AftermathRegistry has key {
     id: UID,
     swaps: vector<AftermathSwap>,
 }
 
 // === accessors ===
 
-public fun id(self: &AftermathConfig): &UID { &self.id }
-public fun swaps(self: &AftermathConfig): &vector<AftermathSwap> { &self.swaps }
+public fun id(self: &AftermathRegistry): &UID { &self.id }
+public fun swaps(self: &AftermathRegistry): &vector<AftermathSwap> { &self.swaps }
 
 // === constructors ===
 
 fun new(
     ctx: &mut TxContext,
-): AftermathConfig {
-    AftermathConfig {
+): AftermathRegistry {
+    AftermathRegistry {
         id: object::new(ctx),
         swaps: vector::empty(),
     }
@@ -40,9 +40,9 @@ fun new(
 
 // === initialization ===
 
-public struct BBB_AFTERMATH_CONFIG has drop {}
+public struct BBB_AFTERMATH_REGISTRY has drop {}
 
-fun init(_otw: BBB_AFTERMATH_CONFIG, ctx: &mut TxContext) {
+fun init(_otw: BBB_AFTERMATH_REGISTRY, ctx: &mut TxContext) {
     transfer::share_object(new(ctx));
 }
 
@@ -51,7 +51,7 @@ fun init(_otw: BBB_AFTERMATH_CONFIG, ctx: &mut TxContext) {
 /// Get the swap that converts `CoinIn` to `CoinOut`.
 /// Errors if not found.
 public fun get<CoinIn, CoinOut>(
-    self: &AftermathConfig,
+    self: &AftermathRegistry,
 ): AftermathSwap {
     let idx = self.swaps.find_index!(|swap| {
         swap.type_in() == type_name::get<CoinIn>() &&
@@ -63,10 +63,10 @@ public fun get<CoinIn, CoinOut>(
 
 // === admin functions ===
 
-/// Add a swap to the config.
+/// Add a swap to the registry.
 /// Errors if the swap's coin pair already exists.
 public fun add(
-    self: &mut AftermathConfig,
+    self: &mut AftermathRegistry,
     _cap: &BBBAdminCap,
     swap: AftermathSwap,
 ) {
@@ -79,10 +79,10 @@ public fun add(
     self.swaps.push_back(swap);
 }
 
-/// Remove a swap from the config.
+/// Remove a swap from the registry.
 /// Errors if the swap's coin pair doesn't exist.
 public fun remove<CoinIn, CoinOut>(
-    self: &mut AftermathConfig,
+    self: &mut AftermathRegistry,
     _cap: &BBBAdminCap,
 ) {
     let idx = self.swaps.find_index!(|old| {
@@ -94,9 +94,9 @@ public fun remove<CoinIn, CoinOut>(
     self.swaps.swap_remove(idx.destroy_some());
 }
 
-/// Remove all swaps from the config.
+/// Remove all swaps from the registry.
 public fun remove_all(
-    self: &mut AftermathConfig,
+    self: &mut AftermathRegistry,
     _cap: &BBBAdminCap,
 ) {
     self.swaps.length().do!(|_| self.swaps.pop_back());

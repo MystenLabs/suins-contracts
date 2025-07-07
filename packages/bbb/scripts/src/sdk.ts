@@ -5,35 +5,35 @@ import type {
 } from "@mysten/sui/transactions";
 import { fromHex } from "@mysten/sui/utils";
 
-export const bbb_aftermath_config = {
+export const bbb_aftermath_registry = {
     // === public functions ===
     get: (arg: {
         tx: Transaction;
         packageId: string;
         coinInType: string;
         coinOutType: string;
-        aftermathConfigObj: TransactionObjectInput;
+        aftermathRegistryObj: TransactionObjectInput;
     }): TransactionResult => {
         const { tx, packageId } = arg;
         return tx.moveCall({
-            target: `${packageId}::bbb_aftermath_config::get`,
+            target: `${packageId}::bbb_aftermath_registry::get`,
             typeArguments: [arg.coinInType, arg.coinOutType],
-            arguments: [tx.object(arg.aftermathConfigObj)],
+            arguments: [tx.object(arg.aftermathRegistryObj)],
         });
     },
     // === admin functions ===
     add: (arg: {
         tx: Transaction;
         packageId: string;
-        aftermathConfigObj: TransactionObjectInput;
+        aftermathRegistryObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
         afSwapObj: TransactionObjectInput;
     }): TransactionResult => {
         const { tx, packageId } = arg;
         return tx.moveCall({
-            target: `${packageId}::bbb_aftermath_config::add`,
+            target: `${packageId}::bbb_aftermath_registry::add`,
             arguments: [
-                tx.object(arg.aftermathConfigObj),
+                tx.object(arg.aftermathRegistryObj),
                 tx.object(arg.adminCapObj),
                 tx.object(arg.afSwapObj),
             ],
@@ -44,26 +44,26 @@ export const bbb_aftermath_config = {
         packageId: string;
         coinInType: string;
         coinOutType: string;
-        aftermathConfigObj: TransactionObjectInput;
+        aftermathRegistryObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
     }): TransactionResult => {
         const { tx, packageId } = arg;
         return tx.moveCall({
-            target: `${packageId}::bbb_aftermath_config::remove`,
+            target: `${packageId}::bbb_aftermath_registry::remove`,
             typeArguments: [arg.coinInType, arg.coinOutType],
-            arguments: [tx.object(arg.aftermathConfigObj), tx.object(arg.adminCapObj)],
+            arguments: [tx.object(arg.aftermathRegistryObj), tx.object(arg.adminCapObj)],
         });
     },
     remove_all: (arg: {
         tx: Transaction;
         packageId: string;
-        aftermathConfigObj: TransactionObjectInput;
+        aftermathRegistryObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
     }): TransactionResult => {
         const { tx, packageId } = arg;
         return tx.moveCall({
-            target: `${packageId}::bbb_aftermath_config::remove_all`,
-            arguments: [tx.object(arg.aftermathConfigObj), tx.object(arg.adminCapObj)],
+            target: `${packageId}::bbb_aftermath_registry::remove_all`,
+            arguments: [tx.object(arg.aftermathRegistryObj), tx.object(arg.adminCapObj)],
         });
     },
 } as const;
@@ -153,35 +153,35 @@ export const bbb_aftermath_swap = {
     },
 } as const;
 
-export const bbb_cetus_config = {
+export const bbb_cetus_registry = {
     // === public functions ===
     get: (arg: {
         tx: Transaction;
         packageId: string;
         coinInType: string;
         coinOutType: string;
-        cetusConfigObj: TransactionObjectInput;
+        cetusRegistryObj: TransactionObjectInput;
     }): TransactionResult => {
         const { tx, packageId } = arg;
         return tx.moveCall({
-            target: `${packageId}::bbb_cetus_config::get`,
+            target: `${packageId}::bbb_cetus_registry::get`,
             typeArguments: [arg.coinInType, arg.coinOutType],
-            arguments: [tx.object(arg.cetusConfigObj)],
+            arguments: [tx.object(arg.cetusRegistryObj)],
         });
     },
     // === admin functions ===
     add: (arg: {
         tx: Transaction;
         packageId: string;
-        cetusConfigObj: TransactionObjectInput;
+        cetusRegistryObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
         cetusSwapObj: TransactionObjectInput;
     }): TransactionResult => {
         const { tx, packageId } = arg;
         return tx.moveCall({
-            target: `${packageId}::bbb_cetus_config::add`,
+            target: `${packageId}::bbb_cetus_registry::add`,
             arguments: [
-                tx.object(arg.cetusConfigObj),
+                tx.object(arg.cetusRegistryObj),
                 tx.object(arg.adminCapObj),
                 tx.object(arg.cetusSwapObj),
             ],
@@ -192,26 +192,26 @@ export const bbb_cetus_config = {
         packageId: string;
         coinInType: string;
         coinOutType: string;
-        cetusConfigObj: TransactionObjectInput;
+        cetusRegistryObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
     }): TransactionResult => {
         const { tx, packageId } = arg;
         return tx.moveCall({
-            target: `${packageId}::bbb_cetus_config::remove`,
+            target: `${packageId}::bbb_cetus_registry::remove`,
             typeArguments: [arg.coinInType, arg.coinOutType],
-            arguments: [tx.object(arg.cetusConfigObj), tx.object(arg.adminCapObj)],
+            arguments: [tx.object(arg.cetusRegistryObj), tx.object(arg.adminCapObj)],
         });
     },
     remove_all: (arg: {
         tx: Transaction;
         packageId: string;
-        cetusConfigObj: TransactionObjectInput;
+        cetusRegistryObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
     }): TransactionResult => {
         const { tx, packageId } = arg;
         return tx.moveCall({
-            target: `${packageId}::bbb_cetus_config::remove_all`,
-            arguments: [tx.object(arg.cetusConfigObj), tx.object(arg.adminCapObj)],
+            target: `${packageId}::bbb_cetus_registry::remove_all`,
+            arguments: [tx.object(arg.cetusRegistryObj), tx.object(arg.adminCapObj)],
         });
     },
 } as const;
@@ -230,7 +230,7 @@ export const bbb_cetus_swap = {
         pythInfoObjA: TransactionObjectInput;
         pythInfoObjB: TransactionObjectInput;
         // cetus
-        cetusConfigObj: TransactionObjectInput;
+        cetusRegistryObj: TransactionObjectInput;
         cetusPoolObj: TransactionObjectInput;
     }): TransactionResult => {
         const { tx, packageId } = arg;
@@ -245,7 +245,7 @@ export const bbb_cetus_swap = {
                 tx.object(arg.pythInfoObjA),
                 tx.object(arg.pythInfoObjB),
                 // cetus
-                tx.object(arg.cetusConfigObj),
+                tx.object(arg.cetusRegistryObj),
                 tx.object(arg.cetusPoolObj),
                 // sui
                 tx.object.clock(),
@@ -289,34 +289,34 @@ export const bbb_cetus_swap = {
     },
 } as const;
 
-export const bbb_burn_config = {
+export const bbb_burn_registry = {
     // === public functions ===
     get: (arg: {
         tx: Transaction;
         packageId: string;
         coinType: string;
-        burnConfigObj: TransactionObjectInput;
+        burnRegistryObj: TransactionObjectInput;
     }): TransactionResult => {
         const { tx, packageId } = arg;
         return tx.moveCall({
-            target: `${packageId}::bbb_burn_config::get`,
+            target: `${packageId}::bbb_burn_registry::get`,
             typeArguments: [arg.coinType],
-            arguments: [tx.object(arg.burnConfigObj)],
+            arguments: [tx.object(arg.burnRegistryObj)],
         });
     },
     // === admin functions ===
     add: (arg: {
         tx: Transaction;
         packageId: string;
-        burnConfigObj: TransactionObjectInput;
+        burnRegistryObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
         burnObj: TransactionObjectInput;
     }): TransactionResult => {
         const { tx, packageId } = arg;
         return tx.moveCall({
-            target: `${packageId}::bbb_burn_config::add`,
+            target: `${packageId}::bbb_burn_registry::add`,
             arguments: [
-                tx.object(arg.burnConfigObj),
+                tx.object(arg.burnRegistryObj),
                 tx.object(arg.adminCapObj),
                 tx.object(arg.burnObj),
             ],
@@ -326,26 +326,26 @@ export const bbb_burn_config = {
         tx: Transaction;
         packageId: string;
         coinType: string;
-        burnConfigObj: TransactionObjectInput;
+        burnRegistryObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
     }): TransactionResult => {
         const { tx, packageId } = arg;
         return tx.moveCall({
-            target: `${packageId}::bbb_burn_config::remove`,
+            target: `${packageId}::bbb_burn_registry::remove`,
             typeArguments: [arg.coinType],
-            arguments: [tx.object(arg.burnConfigObj), tx.object(arg.adminCapObj)],
+            arguments: [tx.object(arg.burnRegistryObj), tx.object(arg.adminCapObj)],
         });
     },
     remove_all: (arg: {
         tx: Transaction;
         packageId: string;
-        burnConfigObj: TransactionObjectInput;
+        burnRegistryObj: TransactionObjectInput;
         adminCapObj: TransactionObjectInput;
     }): TransactionResult => {
         const { tx, packageId } = arg;
         return tx.moveCall({
-            target: `${packageId}::bbb_burn_config::remove_all`,
-            arguments: [tx.object(arg.burnConfigObj), tx.object(arg.adminCapObj)],
+            target: `${packageId}::bbb_burn_registry::remove_all`,
+            arguments: [tx.object(arg.burnRegistryObj), tx.object(arg.adminCapObj)],
         });
     },
 } as const;

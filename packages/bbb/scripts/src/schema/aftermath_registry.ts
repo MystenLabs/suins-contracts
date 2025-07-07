@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
-import { CetusSwapSchema } from "./cetus_swap.js";
+import { AftermathSwapSchema } from "./aftermath_swap.js";
 
-export const CetusConfigSchema = z.object({
+export const AftermathRegistrySchema = z.object({
     objectId: z.string(),
     version: z.string(),
     digest: z.string(),
@@ -11,7 +11,7 @@ export const CetusConfigSchema = z.object({
         hasPublicTransfer: z.boolean(),
         fields: z.object({
             id: z.object({ id: z.string() }),
-            swaps: z.array(CetusSwapSchema),
+            swaps: z.array(AftermathSwapSchema),
         }),
     }),
 });

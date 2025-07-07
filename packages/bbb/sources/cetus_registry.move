@@ -1,4 +1,4 @@
-module suins_bbb::bbb_cetus_config;
+module suins_bbb::bbb_cetus_registry;
 
 use std::{
     type_name::{Self},
@@ -17,22 +17,22 @@ const ECetusSwapNotFound: u64 = 1001;
 
 /// Registry of available Cetus swaps.
 /// Each coin pair (CoinIn, CoinOut) can only appear once.
-public struct CetusConfig has key {
+public struct CetusRegistry has key {
     id: UID,
     swaps: vector<CetusSwap>,
 }
 
 // === accessors ===
 
-public fun id(self: &CetusConfig): &UID { &self.id }
-public fun swaps(self: &CetusConfig): &vector<CetusSwap> { &self.swaps }
+public fun id(self: &CetusRegistry): &UID { &self.id }
+public fun swaps(self: &CetusRegistry): &vector<CetusSwap> { &self.swaps }
 
 // === constructors ===
 
 fun new(
     ctx: &mut TxContext,
-): CetusConfig {
-    CetusConfig {
+): CetusRegistry {
+    CetusRegistry {
         id: object::new(ctx),
         swaps: vector::empty(),
     }
@@ -40,9 +40,9 @@ fun new(
 
 // === initialization ===
 
-public struct BBB_CETUS_CONFIG has drop {}
+public struct BBB_CETUS_REGISTRY has drop {}
 
-fun init(_otw: BBB_CETUS_CONFIG, ctx: &mut TxContext) {
+fun init(_otw: BBB_CETUS_REGISTRY, ctx: &mut TxContext) {
     transfer::share_object(new(ctx));
 }
 
@@ -51,7 +51,7 @@ fun init(_otw: BBB_CETUS_CONFIG, ctx: &mut TxContext) {
 /// Get the swap that converts `CoinIn` to `CoinOut`.
 /// Errors if not found.
 public fun get<CoinIn, CoinOut>(
-    self: &CetusConfig,
+    self: &CetusRegistry,
 ): CetusSwap {
     let idx = self.swaps.find_index!(|swap| {
         let (type_in, type_out) = if (swap.a2b()) {
@@ -68,10 +68,10 @@ public fun get<CoinIn, CoinOut>(
 
 // === admin functions ===
 
-/// Add a swap to the config.
+/// Add a swap to the registry.
 /// Errors if the swap's coin pair already exists.
 public fun add(
-    self: &mut CetusConfig,
+    self: &mut CetusRegistry,
     _cap: &BBBAdminCap,
     swap: CetusSwap,
 ) {
@@ -92,10 +92,10 @@ public fun add(
     self.swaps.push_back(swap);
 }
 
-/// Remove a swap from the config.
+/// Remove a swap from the registry.
 /// Errors if the swap's coin pair doesn't exist.
 public fun remove<CoinIn, CoinOut>(
-    self: &mut CetusConfig,
+    self: &mut CetusRegistry,
     _cap: &BBBAdminCap,
 ) {
     let idx = self.swaps.find_index!(|old| {
@@ -111,9 +111,9 @@ public fun remove<CoinIn, CoinOut>(
     self.swaps.swap_remove(idx.destroy_some());
 }
 
-/// Remove all swaps from the config.
+/// Remove all swaps from the registry.
 public fun remove_all(
-    self: &mut CetusConfig,
+    self: &mut CetusRegistry,
     _cap: &BBBAdminCap,
 ) {
     self.swaps.length().do!(|_| self.swaps.pop_back());

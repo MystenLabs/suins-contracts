@@ -1,4 +1,3 @@
-import { cnf } from "../config.js";
 import { newSuiClient } from "../utils.js";
 
 // const ammPackage = "0xefe170ec0be4d762196bedecd7a065816576198a6527c99282a2551aaa7da38c"; // v1

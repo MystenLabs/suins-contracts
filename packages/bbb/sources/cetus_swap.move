@@ -127,7 +127,7 @@ public fun swap<CoinA, CoinB>(
     info_a: &PriceInfoObject,
     info_b: &PriceInfoObject,
     // cetus
-    cetus_config: &GlobalConfig,
+    cetus_registry: &GlobalConfig,
     pool: &mut Pool<CoinA, CoinB>,
     // sui
     clock: &Clock,
@@ -169,7 +169,7 @@ public fun swap<CoinA, CoinB>(
         );
 
         // swap CoinA for CoinB
-        let coin_out_b = swap_a2b(cetus_config, pool, coin_in_a, clock, ctx);
+        let coin_out_b = swap_a2b(cetus_registry, pool, coin_in_a, clock, ctx);
         let amount_out_b = coin_out_b.value();
 
         // check that we received enough CoinB
@@ -209,7 +209,7 @@ public fun swap<CoinA, CoinB>(
         );
 
         // swap CoinB for CoinA
-        let coin_out_a = swap_b2a(cetus_config, pool, coin_in_b, clock, ctx);
+        let coin_out_a = swap_b2a(cetus_registry, pool, coin_in_b, clock, ctx);
         let amount_out_a = coin_out_a.value();
 
         // check that we received enough CoinA
@@ -232,7 +232,7 @@ public fun swap<CoinA, CoinB>(
 // === private functions ===
 
 fun swap_a2b<CoinA, CoinB>(
-    cetus_config: &GlobalConfig,
+    cetus_registry: &GlobalConfig,
     pool: &mut Pool<CoinA, CoinB>,
     coin_a: Coin<CoinA>,
     clock: &Clock,
@@ -240,7 +240,7 @@ fun swap_a2b<CoinA, CoinB>(
 ): Coin<CoinB> {
     // borrow CoinB from pool
     let (balance_a_zero, balance_b, receipt) = flash_swap<CoinA, CoinB>(
-        cetus_config,
+        cetus_registry,
         pool,
         true, // a2b=true: swap from CoinA to CoinB
         true, // by_amount_in
@@ -255,7 +255,7 @@ fun swap_a2b<CoinA, CoinB>(
 
     // repay the flash loan with coin_a
     repay_flash_swap<CoinA, CoinB>(
-        cetus_config,
+        cetus_registry,
         pool,
         coin_a.into_balance(),
         balance::zero<CoinB>(),
@@ -266,7 +266,7 @@ fun swap_a2b<CoinA, CoinB>(
 }
 
 fun swap_b2a<CoinA, CoinB>(
-    cetus_config: &GlobalConfig,
+    cetus_registry: &GlobalConfig,
     pool: &mut Pool<CoinA, CoinB>,
     coin_b: Coin<CoinB>,
     clock: &Clock,
@@ -274,7 +274,7 @@ fun swap_b2a<CoinA, CoinB>(
 ): Coin<CoinA> {
     // borrow CoinA from pool
     let (balance_a, balance_b_zero, receipt) = flash_swap<CoinA, CoinB>(
-        cetus_config,
+        cetus_registry,
         pool,
         false, // a2b=false: swap from CoinB to CoinA
         true, // by_amount_in
@@ -289,7 +289,7 @@ fun swap_b2a<CoinA, CoinB>(
 
     // repay the flash loan with coin_b
     repay_flash_swap<CoinA, CoinB>(
-        cetus_config,
+        cetus_registry,
         pool,
         balance::zero<CoinA>(),
         coin_b.into_balance(),
