@@ -1,4 +1,4 @@
-module suins_bbb::bbb_burn_config;
+module suins_bbb::bbb_burn_registry;
 
 use std::{
     type_name::{Self},
@@ -16,22 +16,22 @@ const EBurnTypeNotFound: u64 = 1001;
 // === structs ===
 
 /// Registry of burnable coin types.
-public struct BurnConfig has key {
+public struct BurnRegistry has key {
     id: UID,
     burns: vector<Burn>,
 }
 
 // === accessors ===
 
-public fun id(self: &BurnConfig): &UID { &self.id }
-public fun burns(self: &BurnConfig): &vector<Burn> { &self.burns }
+public fun id(self: &BurnRegistry): &UID { &self.id }
+public fun burns(self: &BurnRegistry): &vector<Burn> { &self.burns }
 
 // === constructors ===
 
 fun new(
     ctx: &mut TxContext,
-): BurnConfig {
-    BurnConfig {
+): BurnRegistry {
+    BurnRegistry {
         id: object::new(ctx),
         burns: vector::empty(),
     }
@@ -39,9 +39,9 @@ fun new(
 
 // === initialization ===
 
-public struct BBB_BURN_CONFIG has drop {}
+public struct BBB_BURN_REGISTRY has drop {}
 
-fun init(_otw: BBB_BURN_CONFIG, ctx: &mut TxContext) {
+fun init(_otw: BBB_BURN_REGISTRY, ctx: &mut TxContext) {
     transfer::share_object(new(ctx));
 }
 
@@ -50,7 +50,7 @@ fun init(_otw: BBB_BURN_CONFIG, ctx: &mut TxContext) {
 /// Get the burn for `CoinType`.
 /// Errors if not found.
 public fun get<CoinType>(
-    self: &BurnConfig,
+    self: &BurnRegistry,
 ): Burn {
     let coin_type = type_name::get<CoinType>();
     let idx = self.burns.find_index!(|burn| {
@@ -65,7 +65,7 @@ public fun get<CoinType>(
 /// Add a burn for `CoinType`.
 /// Errors if the coin type already exists.
 public fun add(
-    self: &mut BurnConfig,
+    self: &mut BurnRegistry,
     _cap: &BBBAdminCap,
     burn: Burn,
 ) {
@@ -80,7 +80,7 @@ public fun add(
 /// Remove the burn for `CoinType`.
 /// Errors if the coin type does not exist.
 public fun remove<CoinType>(
-    self: &mut BurnConfig,
+    self: &mut BurnRegistry,
     _cap: &BBBAdminCap,
 ) {
     let idx = self.burns.find_index!(|existing| {
@@ -93,7 +93,7 @@ public fun remove<CoinType>(
 
 /// Remove all burns.
 public fun remove_all(
-    self: &mut BurnConfig,
+    self: &mut BurnRegistry,
     _cap: &BBBAdminCap,
 ) {
     self.burns.length().do!(|_| self.burns.pop_back());

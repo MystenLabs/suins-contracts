@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
-import { BurnSchema } from "./burn.js";
+import { CetusSwapSchema } from "./cetus_swap.js";
 
-export const BurnConfigSchema = z.object({
+export const CetusRegistrySchema = z.object({
     objectId: z.string(),
     version: z.string(),
     digest: z.string(),
@@ -11,7 +11,7 @@ export const BurnConfigSchema = z.object({
         hasPublicTransfer: z.boolean(),
         fields: z.object({
             id: z.object({ id: z.string() }),
-            burns: z.array(BurnSchema),
+            swaps: z.array(CetusSwapSchema),
         }),
     }),
 });

@@ -2,12 +2,12 @@ import type { SuiTransactionBlockResponse } from "@mysten/sui/client";
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 import { Command, Option } from "commander";
 import { afSwaps, burnTypes, cetusSwaps, cnf } from "./config.js";
-import { AftermathConfigSchema } from "./schema/aftermath_config.js";
+import { AftermathRegistrySchema } from "./schema/aftermath_registry.js";
 import { AftermathSwapEventSchema } from "./schema/aftermath_swap.js";
 import { BalanceDynamicFieldSchema } from "./schema/balance_df.js";
 import { BurnEventSchema } from "./schema/burn.js";
-import { BurnConfigSchema } from "./schema/burn_config.js";
-import { CetusConfigSchema } from "./schema/cetus_config.js";
+import { BurnRegistrySchema } from "./schema/burn_registry.js";
+import { CetusRegistrySchema } from "./schema/cetus_registry.js";
 import { CetusSwapEventSchema } from "./schema/cetus_swap.js";
 import { BBBVaultSchema } from "./schema/vault.js";
 import * as sdk from "./sdk.js";
@@ -28,9 +28,9 @@ const client = newSuiClient();
 const packageId = cnf.bbb.package;
 const adminCapObj = cnf.bbb.adminCapObj;
 const bbbVaultObj = cnf.bbb.vaultObj;
-const burnConfigObj = cnf.bbb.burnConfigObj;
-const aftermathConfigObj = cnf.bbb.aftermathConfigObj;
-const cetusConfigObj = cnf.bbb.cetusConfigObj;
+const burnRegistryObj = cnf.bbb.burnRegistryObj;
+const aftermathRegistryObj = cnf.bbb.aftermathRegistryObj;
+const cetusRegistryObj = cnf.bbb.cetusRegistryObj;
 
 // === CLI ===
 
@@ -42,23 +42,23 @@ program
     .action(async () => {
         const tx = new Transaction();
         // burns
-        sdk.bbb_burn_config.remove_all({ tx, packageId, adminCapObj, burnConfigObj });
+        sdk.bbb_burn_registry.remove_all({ tx, packageId, adminCapObj, burnRegistryObj });
         for (const coinType of Object.values(burnTypes)) {
             const burnObj = sdk.bbb_burn.new({ tx, packageId, adminCapObj, coinType });
-            sdk.bbb_burn_config.add({
+            sdk.bbb_burn_registry.add({
                 tx,
                 packageId,
-                burnConfigObj,
+                burnRegistryObj,
                 adminCapObj,
                 burnObj,
             });
         }
         // aftermath swaps
-        sdk.bbb_aftermath_config.remove_all({
+        sdk.bbb_aftermath_registry.remove_all({
             tx,
             packageId,
             adminCapObj,
-            aftermathConfigObj,
+            aftermathRegistryObj,
         });
         for (const swap of Object.values(afSwaps)) {
             const swapObj = sdk.bbb_aftermath_swap.new({
@@ -71,16 +71,21 @@ program
                 slippage: cnf.defaultSlippage,
                 maxAgeSecs: cnf.defaultMaxAgeSecs,
             });
-            sdk.bbb_aftermath_config.add({
+            sdk.bbb_aftermath_registry.add({
                 tx,
                 packageId,
-                aftermathConfigObj,
+                aftermathRegistryObj,
                 adminCapObj,
                 afSwapObj: swapObj,
             });
         }
         // cetus swaps
-        sdk.bbb_cetus_config.remove_all({ tx, packageId, adminCapObj, cetusConfigObj });
+        sdk.bbb_cetus_registry.remove_all({
+            tx,
+            packageId,
+            adminCapObj,
+            cetusRegistryObj,
+        });
         for (const swap of Object.values(cetusSwaps)) {
             const swapObj = sdk.bbb_cetus_swap.new({
                 tx,
@@ -97,10 +102,10 @@ program
                 maxAgeSecs: cnf.defaultMaxAgeSecs,
                 adminCapObj,
             });
-            sdk.bbb_cetus_config.add({
+            sdk.bbb_cetus_registry.add({
                 tx,
                 packageId,
-                cetusConfigObj,
+                cetusRegistryObj,
                 adminCapObj,
                 cetusSwapObj: swapObj,
             });
@@ -124,29 +129,29 @@ program
     .command("get-config")
     .description("Fetch the config objects")
     .action(async () => {
-        const [burnConfigResp, aftermathConfigResp, cetusConfigResp] = await Promise.all([
+        const [burnResp, afResp, cetusResp] = await Promise.all([
             client.getObject({
-                id: burnConfigObj,
+                id: burnRegistryObj,
                 options: { showContent: true },
             }),
             client.getObject({
-                id: aftermathConfigObj,
+                id: aftermathRegistryObj,
                 options: { showContent: true },
             }),
             client.getObject({
-                id: cetusConfigObj,
+                id: cetusRegistryObj,
                 options: { showContent: true },
             }),
         ]);
 
-        const burnConfig = BurnConfigSchema.parse(burnConfigResp.data);
-        const aftermathConfig = AftermathConfigSchema.parse(aftermathConfigResp.data);
-        const cetusConfig = CetusConfigSchema.parse(cetusConfigResp.data);
+        const burnRegistry = BurnRegistrySchema.parse(burnResp.data);
+        const aftermathRegistry = AftermathRegistrySchema.parse(afResp.data);
+        const cetusRegistry = CetusRegistrySchema.parse(cetusResp.data);
 
         logJson({
-            burnConfig: burnConfig.content.fields,
-            aftermathConfig: aftermathConfig.content.fields,
-            cetusConfig: cetusConfig.content.fields,
+            burnRegistry: burnRegistry.content.fields,
+            aftermathRegistry: aftermathRegistry.content.fields,
+            cetusRegistry: cetusRegistry.content.fields,
         });
     });
 
@@ -263,10 +268,10 @@ program
                 const pythInfoObjIn = findPriceInfoOrExit(swap.coinIn.type);
                 const pythInfoObjOut = findPriceInfoOrExit(swap.coinOut.type);
 
-                const afSwapObj = sdk.bbb_aftermath_config.get({
+                const afSwapObj = sdk.bbb_aftermath_registry.get({
                     tx,
                     packageId,
-                    aftermathConfigObj,
+                    aftermathRegistryObj,
                     coinInType: swap.coinIn.type,
                     coinOutType: swap.coinOut.type,
                 });
@@ -299,10 +304,10 @@ program
                 const pythInfoObjA = findPriceInfoOrExit(swap.coinA.type);
                 const pythInfoObjB = findPriceInfoOrExit(swap.coinB.type);
 
-                const cetusSwapObj = sdk.bbb_cetus_config.get({
+                const cetusSwapObj = sdk.bbb_cetus_registry.get({
                     tx,
                     packageId,
-                    cetusConfigObj,
+                    cetusRegistryObj,
                     coinInType: swap.a2b ? swap.coinA.type : swap.coinB.type,
                     coinOutType: swap.a2b ? swap.coinB.type : swap.coinA.type,
                 });
@@ -319,7 +324,7 @@ program
                     pythInfoObjA,
                     pythInfoObjB,
                     // cetus
-                    cetusConfigObj: cnf.cetus.globalConfigObjId,
+                    cetusRegistryObj: cnf.cetus.globalConfigObjId,
                     cetusPoolObj: swap.pool.id,
                 });
             }
@@ -327,10 +332,10 @@ program
 
         const burn = (tx: Transaction) => {
             for (const coinType of Object.values(burnTypes)) {
-                const burnObj = sdk.bbb_burn_config.get({
+                const burnObj = sdk.bbb_burn_registry.get({
                     tx,
                     packageId,
-                    burnConfigObj,
+                    burnRegistryObj,
                     coinType,
                 });
                 sdk.bbb_burn.burn({
