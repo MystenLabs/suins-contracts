@@ -122,8 +122,8 @@ public fun new<CoinA, CoinB>(
 
 // === public functions ===
 
-/// Swap the `CoinA` in the vault for an equal-valued amount of `CoinB`, or vice versa,
-/// and deposit the resulting `CoinB` into the vault.
+/// Swap `CoinA` in the vault for `CoinB` or vice versa, depending on `a2b`,
+/// and deposit the resulting coin into the vault.
 /// Uses Cetus's AMM. Protocol fees are charged on the coin being swapped.
 public fun swap<CoinA, CoinB>(
     // ours
@@ -139,14 +139,16 @@ public fun swap<CoinA, CoinB>(
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
-    // check price feed ids match the config
+    // check that Pyth price feeds match the config
     let feed_id_a = info_a.get_price_info_from_price_info_object().get_price_identifier();
     let feed_id_b = info_b.get_price_info_from_price_info_object().get_price_identifier();
     assert!(feed_id_a.get_bytes() == self.feed_a(), EFeedInMismatch);
     assert!(feed_id_b.get_bytes() == self.feed_b(), EFeedOutMismatch);
 
-    // check pool id and coin types match the config
+    // check that Cetus pool matches the config
     assert!(object::id(pool) == self.pool_id(), EInvalidPool);
+
+    // check that coin types match the config
     let type_a = type_name::get<CoinA>();
     let type_b = type_name::get<CoinB>();
     assert!(type_a == self.type_a(), EInvalidCoinAType);
