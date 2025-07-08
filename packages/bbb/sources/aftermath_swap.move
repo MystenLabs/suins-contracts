@@ -45,6 +45,7 @@ const EInvalidCoinOutType: u64 = 1004;
 const EAmountOutTooLow: u64 = 1005;
 const ESlippageTooHigh: u64 = 1006;
 const ESlippageTooLow: u64 = 1007;
+const EMaxAgeTooHigh: u64 = 1008;
 
 // === events ===
 
@@ -113,6 +114,7 @@ public fun new<L, CoinIn, CoinOut>(
     assert!(pool.type_names().contains(&type_out.into_string()), EInvalidCoinOutType);
     assert!(slippage as u256 <= slippage_scale!(), ESlippageTooHigh);
     assert!(slippage as u256 >= slippage_scale!() / 2, ESlippageTooLow);
+    assert!(max_age_secs < 3600, EMaxAgeTooHigh);
     AftermathSwap {
         type_in,
         type_out,

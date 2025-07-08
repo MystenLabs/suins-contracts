@@ -36,6 +36,7 @@ const EAmountOutTooLow: u64 = 1005;
 const EInvalidOwedAmount: u64 = 1006;
 const ESlippageTooHigh: u64 = 1007;
 const ESlippageTooLow: u64 = 1008;
+const EMaxAgeTooHigh: u64 = 1009;
 
 // === events ===
 
@@ -104,6 +105,7 @@ public fun new<CoinA, CoinB>(
 ): CetusSwap {
     assert!(slippage as u256 <= slippage_scale!(), ESlippageTooHigh);
     assert!(slippage as u256 >= slippage_scale!() / 2, ESlippageTooLow);
+    assert!(max_age_secs < 3600, EMaxAgeTooHigh);
     CetusSwap {
         a2b,
         type_a: type_name::get<CoinA>(),
