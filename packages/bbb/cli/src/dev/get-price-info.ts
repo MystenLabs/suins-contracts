@@ -8,9 +8,9 @@ import { getPriceInfoObject, logJson } from "../utils.js";
 if (require.main === module) {
     const tx = new Transaction();
     const infos = await Promise.all([
-        getPriceInfoObject(tx, cnf.coins.SUI.pyth_feed),
-        getPriceInfoObject(tx, cnf.coins.NS.pyth_feed),
-        getPriceInfoObject(tx, cnf.coins.USDC.pyth_feed),
+        getPriceInfoObject(tx, cnf.coins.SUI.pythFeed),
+        getPriceInfoObject(tx, cnf.coins.NS.pythFeed),
+        getPriceInfoObject(tx, cnf.coins.USDC.pythFeed),
     ]);
     logJson({
         SUI: infos[0],

@@ -12,7 +12,7 @@ use sui::{
 // === structs ===
 
 /// Buy Back & Burn vault. Singleton.
-/// Holds the coin balances that will be burned (or swapped & burned).
+/// Holds the coin balances that will be swapped and burned.
 public struct BBBVault has key {
     id: UID,
     balances: Bag,
@@ -77,13 +77,4 @@ public(package) fun withdraw<C>(
             .borrow_mut<TypeName, Balance<C>>(coin_type)
             .withdraw_all()
     }
-}
-
-// === test functions ===
-
-#[test_only]
-public fun new_for_testing(
-    ctx: &mut TxContext,
-): BBBVault {
-    new(ctx)
 }

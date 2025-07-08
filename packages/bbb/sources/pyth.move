@@ -13,7 +13,7 @@ const EInvalidPriceOut: u64 = 1001;
 
 /// Calculate the expected output amount for a swap using Pyth price feeds.
 /// Converts `amount_in` of the input coin to equivalent value in output coin.
-/// E.g. if 1 SUI is worth $3, then 1e9 SUI (amount_in) -> 3e6 USDC (return value)
+/// E.g. if 1 SUI is worth $3, then 1e9 SUI (amount_in) -> 3e6 USDC (return value).
 public(package) fun calc_amount_out(
     info_in: &PriceInfoObject,
     info_out: &PriceInfoObject,

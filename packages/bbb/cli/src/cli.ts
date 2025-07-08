@@ -95,8 +95,8 @@ program
                 a2b: swap.a2b,
                 decimalsA: swap.coinA.decimals,
                 decimalsB: swap.coinB.decimals,
-                feedA: swap.coinA.pyth_feed,
-                feedB: swap.coinB.pyth_feed,
+                feedA: swap.coinA.pythFeed,
+                feedB: swap.coinB.pythFeed,
                 pool: swap.pool,
                 slippage: cnf.defaultSlippage,
                 maxAgeSecs: cnf.defaultMaxAgeSecs,
@@ -235,7 +235,7 @@ program
         const pythPriceInfoIds = await Promise.all(
             Object.values(cnf.coins).map(async (coin) => ({
                 coinType: coin.type,
-                priceInfo: await getPriceInfoObject(tx, coin.pyth_feed),
+                priceInfo: await getPriceInfoObject(tx, coin.pythFeed),
             })),
         ).catch((err) => {
             logJson({
