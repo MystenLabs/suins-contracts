@@ -237,6 +237,17 @@ public fun swap<CoinA, CoinB>(
     }
 }
 
+/// Get the input and output coin types based on the `a2b` flag.
+public fun input_output_types(
+    swap: &CetusSwap,
+): (&TypeName, &TypeName) {
+    if (swap.a2b()) {
+        (swap.type_a(), swap.type_b())
+    } else {
+        (swap.type_b(), swap.type_a())
+    }
+}
+
 // === private functions ===
 
 fun swap_a2b<CoinA, CoinB>(
