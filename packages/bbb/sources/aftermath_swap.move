@@ -43,6 +43,8 @@ const EFeedOutMismatch: u64 = 1002;
 const EInvalidCoinInType: u64 = 1003;
 const EInvalidCoinOutType: u64 = 1004;
 const EAmountOutTooLow: u64 = 1005;
+const ESlippageTooHigh: u64 = 1006;
+const ESlippageTooLow: u64 = 1007;
 
 // === events ===
 
@@ -77,7 +79,7 @@ public struct AftermathSwap has copy, drop, store {
     /// Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point.
     /// E.g., 2% slippage = 980_000_000_000_000_000 (represents 0.98).
     slippage: u64,
-    /// How stale the Pyth price can be, in seconds.
+    /// Freshness requirement for the Pyth price, in seconds.
     max_age_secs: u64,
 }
 
@@ -109,6 +111,8 @@ public fun new<L, CoinIn, CoinOut>(
     let type_out = type_name::get<CoinOut>();
     assert!(pool.type_names().contains(&type_in.into_string()), EInvalidCoinInType);
     assert!(pool.type_names().contains(&type_out.into_string()), EInvalidCoinOutType);
+    assert!(slippage as u256 <= slippage_scale!(), ESlippageTooHigh);
+    assert!(slippage as u256 >= slippage_scale!() / 2, ESlippageTooLow);
     AftermathSwap {
         type_in,
         type_out,

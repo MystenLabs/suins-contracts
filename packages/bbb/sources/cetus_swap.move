@@ -34,6 +34,8 @@ const EInvalidCoinAType: u64 = 1003;
 const EInvalidCoinBType: u64 = 1004;
 const EAmountOutTooLow: u64 = 1005;
 const EInvalidOwedAmount: u64 = 1006;
+const ESlippageTooHigh: u64 = 1007;
+const ESlippageTooLow: u64 = 1008;
 
 // === events ===
 
@@ -53,9 +55,9 @@ public struct CetusSwapEvent has copy, drop {
 public struct CetusSwap has copy, drop, store {
     /// Whether to swap from `type_a` to `type_b` or vice versa.
     a2b: bool,
-    /// Type of coin to be swapped into `type_b`
+    /// First coin type in the pool
     type_a: TypeName,
-    /// Type of coin to be received from the swap
+    /// Second coin type in the pool
     type_b: TypeName,
     /// Number of decimals used by `type_a`
     decimals_a: u8,
@@ -70,7 +72,7 @@ public struct CetusSwap has copy, drop, store {
     /// Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point.
     /// E.g., 2% slippage = 980_000_000_000_000_000 (represents 0.98).
     slippage: u64,
-    /// How stale the Pyth price can be, in seconds.
+    /// Freshness requirement for the Pyth price, in seconds.
     max_age_secs: u64,
 }
 
@@ -100,6 +102,8 @@ public fun new<CoinA, CoinB>(
     slippage: u64,
     max_age_secs: u64,
 ): CetusSwap {
+    assert!(slippage as u256 <= slippage_scale!(), ESlippageTooHigh);
+    assert!(slippage as u256 >= slippage_scale!() / 2, ESlippageTooLow);
     CetusSwap {
         a2b,
         type_a: type_name::get<CoinA>(),
