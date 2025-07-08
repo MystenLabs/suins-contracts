@@ -151,14 +151,16 @@ public fun swap<L, CoinIn, CoinOut>(
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
-    // check price feed ids match the config
+    // check that Pyth price feeds match the config
     let feed_id_in = info_in.get_price_info_from_price_info_object().get_price_identifier();
     let feed_id_out = info_out.get_price_info_from_price_info_object().get_price_identifier();
     assert!(feed_id_in.get_bytes() == self.feed_in(), EFeedInMismatch);
     assert!(feed_id_out.get_bytes() == self.feed_out(), EFeedOutMismatch);
 
-    // check pool id and coin types match the config
+    // check that Aftermath pool matches the config
     assert!(object::id(pool) == self.pool_id(), EInvalidPool);
+
+    // check that coin types match the config
     let type_in = type_name::get<CoinIn>();
     let type_out = type_name::get<CoinOut>();
     assert!(type_in == self.type_in(), EInvalidCoinInType);
