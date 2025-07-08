@@ -64,7 +64,7 @@ public fun get<CoinIn, CoinOut>(
 // === admin functions ===
 
 /// Add a swap to the registry.
-/// Errors if the swap's coin pair already exists.
+/// Errors if the coin pair already exists in the registry.
 public fun add(
     self: &mut AftermathRegistry,
     _cap: &BBBAdminCap,
@@ -80,14 +80,14 @@ public fun add(
 }
 
 /// Remove a swap from the registry.
-/// Errors if the swap's coin pair doesn't exist.
+/// Errors if the coin pair doesn't exist in the registry.
 public fun remove<CoinIn, CoinOut>(
     self: &mut AftermathRegistry,
     _cap: &BBBAdminCap,
 ) {
-    let idx = self.swaps.find_index!(|old| {
-        old.type_in() == type_name::get<CoinIn>() &&
-        old.type_out() == type_name::get<CoinOut>()
+    let idx = self.swaps.find_index!(|swap| {
+        swap.type_in() == type_name::get<CoinIn>() &&
+        swap.type_out() == type_name::get<CoinOut>()
     });
     assert!(idx.is_some(), EAftermathSwapNotFound);
 
