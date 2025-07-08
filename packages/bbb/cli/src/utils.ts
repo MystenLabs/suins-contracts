@@ -122,6 +122,11 @@ export async function getPriceInfoObject(tx: Transaction, feed: string): Promise
 
 // === logging ===
 
+// @ts-expect-error Property 'toJSON' does not exist on type 'BigInt'
+BigInt.prototype.toJSON = function () {
+    return this.toString();
+};
+
 export function logJson(obj: unknown) {
     console.log(JSON.stringify(obj, null, 2));
 }
