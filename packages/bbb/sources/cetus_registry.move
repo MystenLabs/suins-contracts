@@ -53,14 +53,15 @@ fun init(_otw: BBB_CETUS_REGISTRY, ctx: &mut TxContext) {
 public fun get<CoinIn, CoinOut>(
     self: &CetusRegistry,
 ): CetusSwap {
+    let type_in = type_name::get<CoinIn>();
+    let type_out = type_name::get<CoinOut>();
     let idx = self.swaps.find_index!(|swap| {
-        let (type_in, type_out) = if (swap.a2b()) {
+        let (swap_in, swap_out) = if (swap.a2b()) {
             (swap.type_a(), swap.type_b())
         } else {
             (swap.type_b(), swap.type_a())
         };
-        type_name::get<CoinIn>() == type_in &&
-        type_name::get<CoinOut>() == type_out
+        type_in == swap_in && type_out == swap_out
     });
     assert!(idx.is_some(), ECetusSwapNotFound);
     self.swaps[idx.destroy_some()]
@@ -69,7 +70,7 @@ public fun get<CoinIn, CoinOut>(
 // === admin functions ===
 
 /// Add a swap to the registry.
-/// Errors if the swap's coin pair already exists.
+/// Errors if the coin pair already exists in the registry.
 public fun add(
     self: &mut CetusRegistry,
     _cap: &BBBAdminCap,
@@ -93,19 +94,20 @@ public fun add(
 }
 
 /// Remove a swap from the registry.
-/// Errors if the swap's coin pair doesn't exist.
+/// Errors if the coin pair doesn't exist in the registry.
 public fun remove<CoinIn, CoinOut>(
     self: &mut CetusRegistry,
     _cap: &BBBAdminCap,
 ) {
-    let idx = self.swaps.find_index!(|old| {
-        let (old_in, old_out) = if (old.a2b()) {
-            (old.type_a(), old.type_b())
+    let type_in = type_name::get<CoinIn>();
+    let type_out = type_name::get<CoinOut>();
+    let idx = self.swaps.find_index!(|swap| {
+        let (swap_in, swap_out) = if (swap.a2b()) {
+            (swap.type_a(), swap.type_b())
         } else {
-            (old.type_b(), old.type_a())
+            (swap.type_b(), swap.type_a())
         };
-        type_name::get<CoinIn>() == old_in &&
-        type_name::get<CoinOut>() == old_out
+        type_in == swap_in && type_out == swap_out
     });
     assert!(idx.is_some(), ECetusSwapNotFound);
     self.swaps.swap_remove(idx.destroy_some());
