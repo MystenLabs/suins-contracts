@@ -1,7 +1,7 @@
 import type { SuiTransactionBlockResponse } from "@mysten/sui/client";
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 import { Command, Option } from "commander";
-import { afSwaps, burnTypes, cetusSwaps, cnf, minimumBalances } from "./config.js";
+import { cnf } from "./config.js";
 import { AftermathRegistrySchema } from "./schema/aftermath_registry.js";
 import { AftermathSwapEventSchema } from "./schema/aftermath_swap.js";
 import { BalanceDynamicFieldSchema } from "./schema/balance_df.js";
@@ -25,12 +25,12 @@ const dryRun = true;
 
 const program = new Command();
 const client = newSuiClient();
-const packageId = cnf.bbb.package;
-const adminCapObj = cnf.bbb.adminCapObj;
-const bbbVaultObj = cnf.bbb.vaultObj;
-const burnRegistryObj = cnf.bbb.burnRegistryObj;
-const aftermathRegistryObj = cnf.bbb.aftermathRegistryObj;
-const cetusRegistryObj = cnf.bbb.cetusRegistryObj;
+const packageId = cnf.ids.bbb.package;
+const adminCapObj = cnf.ids.bbb.adminCapObj;
+const bbbVaultObj = cnf.ids.bbb.vaultObj;
+const burnRegistryObj = cnf.ids.bbb.burnRegistryObj;
+const aftermathRegistryObj = cnf.ids.bbb.aftermathRegistryObj;
+const cetusRegistryObj = cnf.ids.bbb.cetusRegistryObj;
 
 // === CLI ===
 
@@ -43,7 +43,7 @@ program
         const tx = new Transaction();
         // burns
         sdk.bbb_burn_registry.remove_all({ tx, packageId, adminCapObj, burnRegistryObj });
-        for (const coinType of Object.values(burnTypes)) {
+        for (const coinType of Object.values(cnf.burnTypes)) {
             const burnObj = sdk.bbb_burn.new({ tx, packageId, adminCapObj, coinType });
             sdk.bbb_burn_registry.add({
                 tx,
@@ -60,7 +60,7 @@ program
             adminCapObj,
             aftermathRegistryObj,
         });
-        for (const swap of Object.values(afSwaps)) {
+        for (const swap of Object.values(cnf.afSwaps)) {
             const swapObj = sdk.bbb_aftermath_swap.new({
                 tx,
                 packageId,
@@ -86,7 +86,7 @@ program
             adminCapObj,
             cetusRegistryObj,
         });
-        for (const swap of Object.values(cetusSwaps)) {
+        for (const swap of Object.values(cnf.cetusSwaps)) {
             const swapObj = sdk.bbb_cetus_swap.new({
                 tx,
                 packageId,
@@ -210,7 +210,7 @@ program
     .action(async () => {
         // check if any of the minimum balances are met
         const balances = await getBalances();
-        const hasMinimumBalance = Object.entries(minimumBalances).some(
+        const hasMinimumBalance = Object.entries(cnf.minimumBalances).some(
             ([ticker, minBalance]) => {
                 const balance = balances.find((bal) => bal.ticker === ticker)?.balance;
                 return balance && BigInt(balance) >= minBalance;
@@ -259,7 +259,7 @@ program
         };
 
         const swapAftermath = (tx: Transaction): void => {
-            for (const swap of Object.values(afSwaps)) {
+            for (const swap of Object.values(cnf.afSwaps)) {
                 const pythInfoObjIn = findPriceInfoOrExit(swap.coinIn.type);
                 const pythInfoObjOut = findPriceInfoOrExit(swap.coinOut.type);
 
@@ -285,17 +285,17 @@ program
                     // aftermath
                     afPoolType: swap.pool.lpType,
                     afPoolObj: swap.pool.id,
-                    afPoolRegistryObj: cnf.aftermath.poolRegistry,
-                    afProtocolFeeVaultObj: cnf.aftermath.protocolFeeVault,
-                    afTreasuryObj: cnf.aftermath.treasury,
-                    afInsuranceFundObj: cnf.aftermath.insuranceFund,
-                    afReferralVaultObj: cnf.aftermath.referralVault,
+                    afPoolRegistryObj: cnf.ids.aftermath.poolRegistry,
+                    afProtocolFeeVaultObj: cnf.ids.aftermath.protocolFeeVault,
+                    afTreasuryObj: cnf.ids.aftermath.treasury,
+                    afInsuranceFundObj: cnf.ids.aftermath.insuranceFund,
+                    afReferralVaultObj: cnf.ids.aftermath.referralVault,
                 });
             }
         };
 
         const swapCetus = (tx: Transaction): void => {
-            for (const swap of Object.values(cetusSwaps)) {
+            for (const swap of Object.values(cnf.cetusSwaps)) {
                 const pythInfoObjA = findPriceInfoOrExit(swap.coinA.type);
                 const pythInfoObjB = findPriceInfoOrExit(swap.coinB.type);
 
@@ -319,14 +319,14 @@ program
                     pythInfoObjA,
                     pythInfoObjB,
                     // cetus
-                    cetusRegistryObj: cnf.cetus.globalConfigObjId,
+                    cetusRegistryObj: cnf.ids.cetus.globalConfigObjId,
                     cetusPoolObj: swap.pool.id,
                 });
             }
         };
 
         const burn = (tx: Transaction) => {
-            for (const coinType of Object.values(burnTypes)) {
+            for (const coinType of Object.values(cnf.burnTypes)) {
                 const burnObj = sdk.bbb_burn_registry.get({
                     tx,
                     packageId,
@@ -444,8 +444,7 @@ function extractBurnEvents(resp: SuiTransactionBlockResponse) {
 }
 
 function extractBurnedNS(resp: SuiTransactionBlockResponse): bigint {
-    return extractBurnEvents(resp)
-        .reduce((acc, e) => acc + BigInt(e.amount), 0n);
+    return extractBurnEvents(resp).reduce((acc, e) => acc + BigInt(e.amount), 0n);
 }
 
 async function getBalances() {
