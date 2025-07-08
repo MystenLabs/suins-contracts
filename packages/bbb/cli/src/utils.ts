@@ -98,7 +98,7 @@ function pairFromSecretKey(secretKey: string): Keypair {
 
 export async function getPriceInfoObject(tx: Transaction, feed: string): Promise<string> {
     // Initialize connection to the Sui Price Service
-    const connection = new SuiPriceServiceConnection(cnf.pyth.endpoint);
+    const connection = new SuiPriceServiceConnection(cnf.ids.pyth.endpoint);
 
     // List of price feed IDs
     const priceIDs = [
@@ -112,8 +112,8 @@ export async function getPriceInfoObject(tx: Transaction, feed: string): Promise
     const suiClient = newSuiClient();
     const pythClient = new SuiPythClient(
         suiClient,
-        cnf.pyth.stateObj,
-        cnf.wormhole.stateObj,
+        cnf.ids.pyth.stateObj,
+        cnf.ids.wormhole.stateObj,
     );
 
     const objIds = await pythClient.updatePriceFeeds(tx, priceUpdateData, priceIDs);
