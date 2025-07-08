@@ -369,6 +369,13 @@ program
             })),
         );
 
+        const failedDryRuns = dryRuns
+            .filter((run) => !!run.dryRun.error)
+            .map((run) => ({
+                swapFn: run.swapFn.name,
+                error: run.dryRun.error!,
+            }));
+
         const successfulRuns = dryRuns
             .filter((run) => !run.dryRun.error)
             .map((run) => ({
@@ -411,6 +418,7 @@ program
                 afSwaps: extractAfSwapEvents(resp),
                 cetusSwaps: extractCetusSwapEvents(resp),
                 burns: extractBurnEvents(resp),
+                failedDryRuns,
             });
         } catch (err) {
             logJson({
