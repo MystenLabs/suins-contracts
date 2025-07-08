@@ -78,7 +78,6 @@ export const afSwaps = {
         coinIn: cnf.coins.USDC,
         coinOut: cnf.coins.SUI,
         pool: cnf.aftermath.pools.sui_usdc,
-        minimumAmountIn: 1_000_000n, // TODO
     },
     SUI: { // -> NS
         coinIn: cnf.coins.SUI,
@@ -101,4 +100,14 @@ export const cetusSwaps = {
         pool: cnf.cetus.pools.ns_sui,
         a2b: false,
     },
+} as const;
+
+/**
+ * `swap-and-burn` executes the tx only if `BBBVault` contains
+ * at least the minimum balance for ANY ONE of these coins.
+ */
+export const minimumBalances = {
+    USDC: 1_000_000n,
+    SUI: 1_000_000_000n,
+    NS: 1_000_000n,
 } as const;

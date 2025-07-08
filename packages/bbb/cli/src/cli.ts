@@ -1,7 +1,7 @@
 import type { SuiTransactionBlockResponse } from "@mysten/sui/client";
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 import { Command, Option } from "commander";
-import { afSwaps, burnTypes, cetusSwaps, cnf } from "./config.js";
+import { afSwaps, burnTypes, cetusSwaps, cnf, minimumBalances } from "./config.js";
 import { AftermathRegistrySchema } from "./schema/aftermath_registry.js";
 import { AftermathSwapEventSchema } from "./schema/aftermath_swap.js";
 import { BalanceDynamicFieldSchema } from "./schema/balance_df.js";
@@ -159,27 +159,7 @@ program
     .command("get-balances")
     .description("Fetch the coin balances in the BBBVault")
     .action(async () => {
-        const objResp = await client.getObject({
-            id: bbbVaultObj,
-            options: { showContent: true },
-        });
-        const vaultObj = BBBVaultSchema.parse(objResp.data);
-        const dfPage = await client.getDynamicFields({
-            parentId: vaultObj.content.fields.balances.fields.id.id,
-        });
-        const balanceDfResps = await client.multiGetObjects({
-            ids: dfPage.data.map((df) => df.objectId),
-            options: { showContent: true },
-        });
-        const balanceDfObjs = balanceDfResps.map((resp) =>
-            BalanceDynamicFieldSchema.parse(resp.data),
-        );
-        const balances = balanceDfObjs.map((bal) => {
-            return {
-                ticker: bal.content.fields.name.fields.name.split("::")[2],
-                balance: bal.content.fields.value,
-            };
-        });
+        const balances = await getBalances();
         logJson(balances);
     });
 
@@ -228,10 +208,25 @@ program
     .command("swap-and-burn")
     .description("Swap and burn coins")
     .action(async () => {
-        const tx = new Transaction();
+        // check if any of the minimum balances are met
+        const balances = await getBalances();
+        const hasMinimumBalance = Object.entries(minimumBalances).some(
+            ([ticker, minBalance]) => {
+                const balance = balances.find((bal) => bal.ticker === ticker)?.balance;
+                return balance && BigInt(balance) >= minBalance;
+            },
+        );
+        if (!hasMinimumBalance) {
+            logJson({
+                time: new Date().toISOString(),
+                info: "Minimum balances not met",
+                balances,
+            });
+            process.exit(0);
+        }
 
         // get all Pyth price info objects
-
+        const tx = new Transaction();
         const pythPriceInfoIds = await Promise.all(
             Object.values(cnf.coins).map(async (coin) => ({
                 coinType: coin.type,
@@ -449,16 +444,28 @@ function extractBurnEvents(resp: SuiTransactionBlockResponse) {
 }
 
 function extractBurnedNS(resp: SuiTransactionBlockResponse): bigint {
-    const nsTypeWithout0x = cnf.coins.NS.type.slice(2);
     return extractBurnEvents(resp)
-        .filter((e) => e.coin_type === nsTypeWithout0x)
         .reduce((acc, e) => acc + BigInt(e.amount), 0n);
 }
 
-// function calculateGasUsed(resp: SuiTransactionBlockResponse) {
-//     return (
-//         Number(resp.effects?.gasUsed.computationCost) +
-//         Number(resp.effects?.gasUsed.storageCost) -
-//         Number(resp.effects?.gasUsed.storageRebate)
-//     );
-// }
+async function getBalances() {
+    const objResp = await client.getObject({
+        id: bbbVaultObj,
+        options: { showContent: true },
+    });
+    const vaultObj = BBBVaultSchema.parse(objResp.data);
+    const dfPage = await client.getDynamicFields({
+        parentId: vaultObj.content.fields.balances.fields.id.id,
+    });
+    const balanceDfResps = await client.multiGetObjects({
+        ids: dfPage.data.map((df) => df.objectId),
+        options: { showContent: true },
+    });
+    const balanceDfObjs = balanceDfResps.map((resp) =>
+        BalanceDynamicFieldSchema.parse(resp.data),
+    );
+    return balanceDfObjs.map((bal) => ({
+        ticker: bal.content.fields.name.fields.name.split("::")[2] ?? "UNKNOWN",
+        balance: bal.content.fields.value,
+    }));
+}
