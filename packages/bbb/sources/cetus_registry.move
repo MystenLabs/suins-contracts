@@ -118,5 +118,5 @@ public fun remove_all(
     self: &mut CetusRegistry,
     _cap: &BBBAdminCap,
 ) {
-    self.swaps.length().do!(|_| self.swaps.pop_back());
+    self.swaps = vector::empty();
 }

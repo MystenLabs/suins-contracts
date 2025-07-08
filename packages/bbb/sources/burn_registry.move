@@ -96,5 +96,5 @@ public fun remove_all(
     self: &mut BurnRegistry,
     _cap: &BBBAdminCap,
 ) {
-    self.burns.length().do!(|_| self.burns.pop_back());
+    self.burns = vector::empty();
 }
