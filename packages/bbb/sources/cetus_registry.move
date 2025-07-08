@@ -56,11 +56,7 @@ public fun get<CoinIn, CoinOut>(
     let type_in = type_name::get<CoinIn>();
     let type_out = type_name::get<CoinOut>();
     let idx = self.swaps.find_index!(|swap| {
-        let (swap_in, swap_out) = if (swap.a2b()) {
-            (swap.type_a(), swap.type_b())
-        } else {
-            (swap.type_b(), swap.type_a())
-        };
+        let (swap_in, swap_out) = swap.input_output_types();
         type_in == swap_in && type_out == swap_out
     });
     assert!(idx.is_some(), ECetusSwapNotFound);
@@ -76,17 +72,9 @@ public fun add(
     _cap: &BBBAdminCap,
     swap: CetusSwap,
 ) {
-    let (new_in, new_out) = if (swap.a2b()) {
-        (swap.type_a(), swap.type_b())
-    } else {
-        (swap.type_b(), swap.type_a())
-    };
+    let (new_in, new_out) = swap.input_output_types();
     let already_exists = self.swaps.any!(|old| {
-        let (old_in, old_out) = if (old.a2b()) {
-            (old.type_a(), old.type_b())
-        } else {
-            (old.type_b(), old.type_a())
-        };
+        let (old_in, old_out) = old.input_output_types();
         new_in == old_in && new_out == old_out
     });
     assert!(!already_exists, ECetusSwapAlreadyExists);
@@ -102,11 +90,7 @@ public fun remove<CoinIn, CoinOut>(
     let type_in = type_name::get<CoinIn>();
     let type_out = type_name::get<CoinOut>();
     let idx = self.swaps.find_index!(|swap| {
-        let (swap_in, swap_out) = if (swap.a2b()) {
-            (swap.type_a(), swap.type_b())
-        } else {
-            (swap.type_b(), swap.type_a())
-        };
+        let (swap_in, swap_out) = swap.input_output_types();
         type_in == swap_in && type_out == swap_out
     });
     assert!(idx.is_some(), ECetusSwapNotFound);
