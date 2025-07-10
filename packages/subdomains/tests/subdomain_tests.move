@@ -100,6 +100,35 @@ fun test_multiple_operation_cases() {
     ts::end(scenario_val);
 }
 
+#[test, expected_failure(abort_code = ::suins_subdomains::config::EInvalidParent)]
+fun test_add_leaf_metadata_wrong_parent() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+
+    let parent = create_sld_name(utf8(b"test.sui"), scenario);
+    let parent2 = create_sld_name(utf8(b"test2.sui"), scenario);
+
+    create_leaf_subdomain(&parent, utf8(b"leaf.test.sui"), TEST_ADDRESS, scenario);
+    add_leaf_metadata(&parent2, utf8(b"leaf.test.sui"), utf8(b"avatar"), utf8(b"value1"), scenario);
+
+    abort
+}
+
+#[test, expected_failure(abort_code = ::suins_subdomains::config::EInvalidParent)]
+fun test_remove_leaf_metadata_wrong_parent() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+
+    let parent = create_sld_name(utf8(b"test.sui"), scenario);
+    let parent2 = create_sld_name(utf8(b"test2.sui"), scenario);
+
+    create_leaf_subdomain(&parent, utf8(b"leaf.test.sui"), TEST_ADDRESS, scenario);
+    add_leaf_metadata(&parent, utf8(b"leaf.test.sui"), utf8(b"avatar"), utf8(b"value1"), scenario);
+    remove_leaf_metadata(&parent2, utf8(b"leaf.test.sui"), utf8(b"avatar"), scenario);
+
+    abort
+}
+
 #[test, expected_failure(abort_code = ::suins_subdomains::subdomains::EInvalidExpirationDate)]
 fun expiration_past_parents_expiration() {
     let mut scenario_val = test_init();
