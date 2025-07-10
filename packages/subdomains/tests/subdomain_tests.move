@@ -41,6 +41,34 @@ fun test_multiple_operation_cases() {
     );
 
     create_leaf_subdomain(&parent, utf8(b"leaf.test.sui"), TEST_ADDRESS, scenario);
+    add_leaf_metadata(&parent, utf8(b"leaf.test.sui"), utf8(b"avatar"), utf8(b"value1"), scenario);
+    add_leaf_metadata(
+        &parent,
+        utf8(b"leaf.test.sui"),
+        utf8(b"content_hash"),
+        utf8(b"value2"),
+        scenario,
+    );
+    add_leaf_metadata(
+        &parent,
+        utf8(b"leaf.test.sui"),
+        utf8(b"walrus_site_id"),
+        utf8(b"value3"),
+        scenario,
+    );
+
+    ts::next_tx(scenario, USER_ADDRESS);
+    let mut suins = ts::take_shared<SuiNS>(scenario);
+    let subdomain = domain::new(utf8(b"leaf.test.sui"));
+    let data = *registry_mut(&mut suins).get_data(subdomain);
+    assert!(data.get((&utf8(b"avatar"))) == utf8(b"value1"));
+    assert!(data.get((&utf8(b"content_hash"))) == utf8(b"value2"));
+    assert!(data.get((&utf8(b"walrus_site_id"))) == utf8(b"value3"));
+    ts::return_shared(suins);
+
+    remove_leaf_metadata(&parent, utf8(b"leaf.test.sui"), utf8(b"avatar"), scenario);
+    remove_leaf_metadata(&parent, utf8(b"leaf.test.sui"), utf8(b"content_hash"), scenario);
+    remove_leaf_metadata(&parent, utf8(b"leaf.test.sui"), utf8(b"walrus_site_id"), scenario);
     remove_leaf_subdomain(&parent, utf8(b"leaf.test.sui"), scenario);
 
     // Create a node name with the same name as the leaf that was deleted.
@@ -82,6 +110,35 @@ fun test_multiple_operation_cases() {
     ts::end(scenario_val);
 }
 
+#[test, expected_failure(abort_code = ::suins_subdomains::config::EInvalidParent)]
+fun test_add_leaf_metadata_wrong_parent() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+
+    let parent = create_sld_name(utf8(b"test.sui"), scenario);
+    let parent2 = create_sld_name(utf8(b"test2.sui"), scenario);
+
+    create_leaf_subdomain(&parent, utf8(b"leaf.test.sui"), TEST_ADDRESS, scenario);
+    add_leaf_metadata(&parent2, utf8(b"leaf.test.sui"), utf8(b"avatar"), utf8(b"value1"), scenario);
+
+    abort
+}
+
+#[test, expected_failure(abort_code = ::suins_subdomains::config::EInvalidParent)]
+fun test_remove_leaf_metadata_wrong_parent() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+
+    let parent = create_sld_name(utf8(b"test.sui"), scenario);
+    let parent2 = create_sld_name(utf8(b"test2.sui"), scenario);
+
+    create_leaf_subdomain(&parent, utf8(b"leaf.test.sui"), TEST_ADDRESS, scenario);
+    add_leaf_metadata(&parent, utf8(b"leaf.test.sui"), utf8(b"avatar"), utf8(b"value1"), scenario);
+    remove_leaf_metadata(&parent2, utf8(b"leaf.test.sui"), utf8(b"avatar"), scenario);
+
+    abort
+}
+
 #[test, expected_failure(abort_code = ::suins_subdomains::subdomains::EInvalidExpirationDate)]
 fun expiration_past_parents_expiration() {
     let mut scenario_val = test_init();
@@ -97,7 +154,7 @@ fun expiration_past_parents_expiration() {
         scenario,
     );
 
-    abort 1337
+    abort
 }
 
 #[test, expected_failure(abort_code = ::suins_subdomains::config::EInvalidParent)]
@@ -116,7 +173,7 @@ fun invalid_parent_failure() {
         scenario,
     );
 
-    abort 1337
+    abort
 }
 
 #[
@@ -149,7 +206,7 @@ fun tries_to_create_subdomain_with_disallowed_node_parent() {
         scenario,
     );
 
-    abort 1337
+    abort
 }
 
 #[
@@ -174,7 +231,7 @@ fun tries_to_extend_without_permissions() {
 
     extend_node_subdomain(&mut child, 2, scenario);
 
-    abort 1337
+    abort
 }
 
 #[test, expected_failure(abort_code = ::suins_subdomains::subdomains::EParentChanged)]
@@ -203,7 +260,7 @@ fun tries_to_extend_while_parent_changed() {
     // any extension.
     extend_node_subdomain(&mut child, 2, scenario);
 
-    abort 1337
+    abort
 }
 
 #[test, expected_failure(abort_code = ::suins::registry::ERecordExpired)]
@@ -229,7 +286,7 @@ fun tries_to_use_expired_subdomain_to_create_new() {
         scenario,
     );
 
-    abort 1337
+    abort
 }
 
 #[test, expected_failure(abort_code = ::suins_subdomains::subdomains::EInvalidExpirationDate)]
@@ -240,7 +297,7 @@ fun tries_to_create_too_short_subdomain() {
 
     let _child = create_node_subdomain(&parent, utf8(b"node.test.sui"), 1, true, true, scenario);
 
-    abort 1337
+    abort
 }
 
 #[test, expected_failure(abort_code = ::suins_subdomains::config::EInvalidParent)]
@@ -250,7 +307,49 @@ fun tries_to_created_nested_leaf_subdomain() {
     let parent = create_sld_name(utf8(b"test.sui"), scenario);
     create_leaf_subdomain(&parent, utf8(b"node.node.test.sui"), TEST_ADDRESS, scenario);
 
-    abort 1337
+    abort
+}
+
+#[test, expected_failure(abort_code = ::suins_subdomains::subdomains::ENotLeafRecord)]
+fun add_leaf_metadata_not_leaf_record() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+
+    let parent = create_sld_name(utf8(b"test.sui"), scenario);
+
+    let _child = create_node_subdomain(
+        &parent,
+        utf8(b"node.test.sui"),
+        MIN_SUBDOMAIN_DURATION,
+        true,
+        true,
+        scenario,
+    );
+
+    add_leaf_metadata(&parent, utf8(b"node.test.sui"), utf8(b"avatar"), utf8(b"value1"), scenario);
+
+    abort
+}
+
+#[test, expected_failure(abort_code = ::suins_subdomains::subdomains::ENotLeafRecord)]
+fun remove_leaf_metadata_not_leaf_record() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+
+    let parent = create_sld_name(utf8(b"test.sui"), scenario);
+
+    let _child = create_node_subdomain(
+        &parent,
+        utf8(b"node.test.sui"),
+        MIN_SUBDOMAIN_DURATION,
+        true,
+        true,
+        scenario,
+    );
+
+    remove_leaf_metadata(&parent, utf8(b"node.test.sui"), utf8(b"avatar"), scenario);
+
+    abort
 }
 
 // == Helpers ==
@@ -316,6 +415,46 @@ public fun create_leaf_subdomain(
     let clock = ts::take_shared<Clock>(scenario);
 
     subdomains::new_leaf(&mut suins, parent, &clock, name, target, ctx(scenario));
+
+    ts::return_shared(suins);
+    ts::return_shared(clock);
+}
+
+public fun add_leaf_metadata(
+    parent: &SuinsRegistration,
+    subdomain_name: String,
+    key: String,
+    value: String,
+    scenario: &mut Scenario,
+) {
+    ts::next_tx(scenario, USER_ADDRESS);
+    let mut suins = ts::take_shared<SuiNS>(scenario);
+    let clock = ts::take_shared<Clock>(scenario);
+
+    subdomains::add_leaf_metadata(
+        &mut suins,
+        parent,
+        &clock,
+        subdomain_name,
+        key,
+        value,
+    );
+
+    ts::return_shared(suins);
+    ts::return_shared(clock);
+}
+
+public fun remove_leaf_metadata(
+    parent: &SuinsRegistration,
+    subdomain_name: String,
+    key: String,
+    scenario: &mut Scenario,
+) {
+    ts::next_tx(scenario, USER_ADDRESS);
+    let mut suins = ts::take_shared<SuiNS>(scenario);
+    let clock = ts::take_shared<Clock>(scenario);
+
+    subdomains::remove_leaf_metadata(&mut suins, parent, &clock, subdomain_name, key);
 
     ts::return_shared(suins);
     ts::return_shared(clock);
