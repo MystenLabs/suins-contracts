@@ -61,9 +61,9 @@ fun test_multiple_operation_cases() {
     let mut suins = ts::take_shared<SuiNS>(scenario);
     let subdomain = domain::new(utf8(b"leaf.test.sui"));
     let data = *registry_mut(&mut suins).get_data(subdomain);
-    assert!(data.contains(&utf8(b"avatar")));
-    assert!(data.contains(&utf8(b"content_hash")));
-    assert!(data.contains(&utf8(b"walrus_site_id")));
+    assert!(data.get((&utf8(b"avatar"))) == utf8(b"value1"));
+    assert!(data.get((&utf8(b"content_hash"))) == utf8(b"value2"));
+    assert!(data.get((&utf8(b"walrus_site_id"))) == utf8(b"value3"));
     ts::return_shared(suins);
 
     remove_leaf_metadata(&parent, utf8(b"leaf.test.sui"), utf8(b"avatar"), scenario);
