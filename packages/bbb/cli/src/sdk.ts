@@ -76,7 +76,7 @@ export const bbb_aftermath_swap = {
         // ours
         coinInType: string;
         coinOutType: string;
-        afSwapObj: TransactionObjectInput;
+        afSwapPromiseObj: TransactionObjectInput;
         bbbVaultObj: TransactionObjectInput;
         // pyth
         pythInfoObjIn: TransactionObjectInput;
@@ -96,7 +96,7 @@ export const bbb_aftermath_swap = {
             typeArguments: [arg.afPoolType, arg.coinInType, arg.coinOutType],
             arguments: [
                 // ours
-                tx.object(arg.afSwapObj),
+                tx.object(arg.afSwapPromiseObj),
                 tx.object(arg.bbbVaultObj),
                 // pyth
                 tx.object(arg.pythInfoObjIn),
@@ -224,7 +224,7 @@ export const bbb_cetus_swap = {
         // ours
         coinAType: string;
         coinBType: string;
-        cetusSwapObj: TransactionObjectInput;
+        cetusSwapPromiseObj: TransactionObjectInput;
         bbbVaultObj: TransactionObjectInput;
         // pyth
         pythInfoObjA: TransactionObjectInput;
@@ -239,7 +239,7 @@ export const bbb_cetus_swap = {
             typeArguments: [arg.coinAType, arg.coinBType],
             arguments: [
                 // ours
-                tx.object(arg.cetusSwapObj),
+                tx.object(arg.cetusSwapPromiseObj),
                 tx.object(arg.bbbVaultObj),
                 // pyth
                 tx.object(arg.pythInfoObjA),
@@ -356,14 +356,14 @@ export const bbb_burn = {
         tx: Transaction;
         packageId: string;
         coinType: string;
-        burnObj: TransactionObjectInput;
+        burnPromiseObj: TransactionObjectInput;
         bbbVaultObj: TransactionObjectInput;
     }): TransactionResult => {
         const { tx, packageId } = arg;
         return tx.moveCall({
             target: `${packageId}::bbb_burn::burn`,
             typeArguments: [arg.coinType],
-            arguments: [tx.object(arg.burnObj), tx.object(arg.bbbVaultObj)],
+            arguments: [tx.object(arg.burnPromiseObj), tx.object(arg.bbbVaultObj)],
         });
     },
     // === admin functions ===
