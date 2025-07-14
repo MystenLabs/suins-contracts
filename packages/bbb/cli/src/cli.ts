@@ -263,7 +263,7 @@ program
                 const pythInfoObjIn = findPriceInfoOrExit(swap.coinIn.type);
                 const pythInfoObjOut = findPriceInfoOrExit(swap.coinOut.type);
 
-                const afSwapObj = sdk.bbb_aftermath_registry.get({
+                const afSwapPromiseObj = sdk.bbb_aftermath_registry.get({
                     tx,
                     packageId,
                     aftermathRegistryObj,
@@ -277,7 +277,7 @@ program
                     // ours
                     coinInType: swap.coinIn.type,
                     coinOutType: swap.coinOut.type,
-                    afSwapObj,
+                    afSwapPromiseObj,
                     bbbVaultObj,
                     // pyth
                     pythInfoObjIn,
@@ -299,7 +299,7 @@ program
                 const pythInfoObjA = findPriceInfoOrExit(swap.coinA.type);
                 const pythInfoObjB = findPriceInfoOrExit(swap.coinB.type);
 
-                const cetusSwapObj = sdk.bbb_cetus_registry.get({
+                const cetusSwapPromiseObj = sdk.bbb_cetus_registry.get({
                     tx,
                     packageId,
                     cetusRegistryObj,
@@ -313,7 +313,7 @@ program
                     // ours
                     coinAType: swap.coinA.type,
                     coinBType: swap.coinB.type,
-                    cetusSwapObj,
+                    cetusSwapPromiseObj,
                     bbbVaultObj,
                     // pyth
                     pythInfoObjA,
@@ -327,7 +327,7 @@ program
 
         const burn = (tx: Transaction) => {
             for (const coinType of Object.values(cnf.burnTypes)) {
-                const burnObj = sdk.bbb_burn_registry.get({
+                const burnPromiseObj = sdk.bbb_burn_registry.get({
                     tx,
                     packageId,
                     burnRegistryObj,
@@ -337,7 +337,7 @@ program
                     tx,
                     packageId,
                     coinType,
-                    burnObj,
+                    burnPromiseObj,
                     bbbVaultObj,
                 });
             }
