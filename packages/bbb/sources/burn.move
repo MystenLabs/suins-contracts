@@ -36,6 +36,11 @@ public struct Burn has copy, drop, store {
     coin_type: TypeName,
 }
 
+/// Hot potato to ensure the Burn is used within the same tx
+public struct BurnPromise {
+    burn: Burn,
+}
+
 // === accessors ===
 
 public fun coin_type(self: &Burn): &TypeName { &self.coin_type }
@@ -48,14 +53,21 @@ public fun new<C>(
     Burn { coin_type: type_name::get<C>() }
 }
 
+public(package) fun new_promise(
+    burn: Burn,
+): BurnPromise {
+    BurnPromise { burn }
+}
+
 // === public functions ===
 
 /// Burn all `Balance<C>` in the vault by sending it to the burn address.
 public fun burn<C>(
-    self: &Burn,
+    promise: BurnPromise,
     vault: &mut BBBVault,
     ctx: &mut TxContext,
 ) {
+    let BurnPromise { burn: self } = promise;
     let coin_type = type_name::get<C>();
     assert!(coin_type == self.coin_type, EInvalidCoinType);
 

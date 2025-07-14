@@ -4,8 +4,8 @@ use std::{
     type_name::{Self},
 };
 use suins_bbb::{
-    bbb_admin::BBBAdminCap,
-    bbb_burn::Burn,
+    bbb_admin::{BBBAdminCap},
+    bbb_burn::{Self, Burn, BurnPromise},
 };
 
 // === errors ===
@@ -51,13 +51,15 @@ fun init(_otw: BBB_BURN_REGISTRY, ctx: &mut TxContext) {
 /// Errors if not found.
 public fun get<CoinType>(
     self: &BurnRegistry,
-): Burn {
+): BurnPromise {
     let coin_type = type_name::get<CoinType>();
     let idx = self.burns.find_index!(|burn| {
         burn.coin_type() == coin_type
     });
     assert!(idx.is_some(), EBurnTypeNotFound);
-    self.burns[idx.destroy_some()]
+    bbb_burn::new_promise(
+        self.burns[idx.destroy_some()] // copy
+    )
 }
 
 // === admin functions ===
