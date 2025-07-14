@@ -5,7 +5,7 @@ use std::{
 };
 use suins_bbb::{
     bbb_admin::{BBBAdminCap},
-    bbb_aftermath_swap::{AftermathSwap},
+    bbb_aftermath_swap::{Self, AftermathSwap, AftermathSwapPromise},
 };
 
 // === errors ===
@@ -52,13 +52,15 @@ fun init(_otw: BBB_AFTERMATH_REGISTRY, ctx: &mut TxContext) {
 /// Errors if not found.
 public fun get<CoinIn, CoinOut>(
     self: &AftermathRegistry,
-): AftermathSwap {
+): AftermathSwapPromise {
     let idx = self.swaps.find_index!(|swap| {
         swap.type_in() == type_name::get<CoinIn>() &&
         swap.type_out() == type_name::get<CoinOut>()
     });
     assert!(idx.is_some(), EAftermathSwapNotFound);
-    self.swaps[idx.destroy_some()]
+    bbb_aftermath_swap::new_promise(
+        self.swaps[idx.destroy_some()] // copy
+    )
 }
 
 // === admin functions ===

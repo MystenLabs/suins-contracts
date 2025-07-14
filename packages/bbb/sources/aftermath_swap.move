@@ -84,6 +84,11 @@ public struct AftermathSwap has copy, drop, store {
     max_age_secs: u64,
 }
 
+/// Hot potato to ensure the AftermathSwap is used within the same tx
+public struct AftermathSwapPromise {
+    swap: AftermathSwap,
+}
+
 // === accessors ===
 
 public fun type_in(self: &AftermathSwap): &TypeName { &self.type_in }
@@ -128,6 +133,12 @@ public fun new<L, CoinIn, CoinOut>(
     }
 }
 
+public(package) fun new_promise(
+    swap: AftermathSwap,
+): AftermathSwapPromise {
+    AftermathSwapPromise { swap }
+}
+
 // === public functions ===
 
 /// Swap the `CoinIn` in the vault for an equal-valued amount of `CoinOut`,
@@ -135,7 +146,7 @@ public fun new<L, CoinIn, CoinOut>(
 /// Uses Aftermath's AMM. Protocol fees are charged on the `CoinIn` being swapped.
 public fun swap<L, CoinIn, CoinOut>(
     // ours
-    self: &AftermathSwap,
+    promise: AftermathSwapPromise,
     vault: &mut BBBVault,
     // pyth
     info_in: &PriceInfoObject,
@@ -151,6 +162,8 @@ public fun swap<L, CoinIn, CoinOut>(
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
+    let AftermathSwapPromise { swap: self } = promise;
+
     // check that Pyth price feeds match the config
     let feed_id_in = info_in.get_price_info_from_price_info_object().get_price_identifier();
     let feed_id_out = info_out.get_price_info_from_price_info_object().get_price_identifier();

@@ -77,6 +77,11 @@ public struct CetusSwap has copy, drop, store {
     max_age_secs: u64,
 }
 
+/// Hot potato to ensure the CetusSwap is used within the same tx
+public struct CetusSwapPromise {
+    swap: CetusSwap,
+}
+
 // === accessors ===
 
 public fun a2b(self: &CetusSwap): bool { self.a2b }
@@ -120,6 +125,12 @@ public fun new<CoinA, CoinB>(
     }
 }
 
+public(package) fun new_promise(
+    swap: CetusSwap,
+): CetusSwapPromise {
+    CetusSwapPromise { swap }
+}
+
 // === public functions ===
 
 /// Swap `CoinA` in the vault for `CoinB` or vice versa, depending on `a2b`,
@@ -127,7 +138,7 @@ public fun new<CoinA, CoinB>(
 /// Uses Cetus's AMM. Protocol fees are charged on the coin being swapped.
 public fun swap<CoinA, CoinB>(
     // ours
-    self: &CetusSwap,
+    promise: CetusSwapPromise,
     vault: &mut BBBVault,
     // pyth
     info_a: &PriceInfoObject,
@@ -139,6 +150,8 @@ public fun swap<CoinA, CoinB>(
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
+    let CetusSwapPromise { swap: self } = promise;
+
     // check that Pyth price feeds match the config
     let feed_id_a = info_a.get_price_info_from_price_info_object().get_price_identifier();
     let feed_id_b = info_b.get_price_info_from_price_info_object().get_price_identifier();

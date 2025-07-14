@@ -5,7 +5,7 @@ use std::{
 };
 use suins_bbb::{
     bbb_admin::{BBBAdminCap},
-    bbb_cetus_swap::{CetusSwap},
+    bbb_cetus_swap::{Self, CetusSwap, CetusSwapPromise},
 };
 
 // === errors ===
@@ -52,7 +52,7 @@ fun init(_otw: BBB_CETUS_REGISTRY, ctx: &mut TxContext) {
 /// Errors if not found.
 public fun get<CoinIn, CoinOut>(
     self: &CetusRegistry,
-): CetusSwap {
+): CetusSwapPromise {
     let type_in = type_name::get<CoinIn>();
     let type_out = type_name::get<CoinOut>();
     let idx = self.swaps.find_index!(|swap| {
@@ -60,7 +60,9 @@ public fun get<CoinIn, CoinOut>(
         type_in == swap_in && type_out == swap_out
     });
     assert!(idx.is_some(), ECetusSwapNotFound);
-    self.swaps[idx.destroy_some()]
+    bbb_cetus_swap::new_promise(
+        self.swaps[idx.destroy_some()] // copy
+    )
 }
 
 // === admin functions ===
