@@ -24,7 +24,7 @@ public struct CetusRegistry has key {
 
 // === accessors ===
 
-public fun id(self: &CetusRegistry): &UID { &self.id }
+public fun id(self: &CetusRegistry): ID { self.id.to_inner() }
 public fun swaps(self: &CetusRegistry): &vector<CetusSwap> { &self.swaps }
 
 // === constructors ===
