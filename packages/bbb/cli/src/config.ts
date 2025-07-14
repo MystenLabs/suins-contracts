@@ -1,12 +1,12 @@
 /** Buy Back & Burn IDs */
 const bbb = { // TODO: update values for prod
-    package: "0x1a1d67691a07353f01d7bf8072ce5e103e348016e483c6806ede191fe9b5bf6a", // dev-only
-    upgradeCapObj: "0x7acd287999ecaa0dba0c5095e0d8f5b62de103e6ca210b9429ff5b3c78f2ee4d", // dev-only
-    adminCapObj: "0x722e44f27e50cb9da0cb3969b14c549231106a61d761e3be0e0d51d78b5be008", // dev-only
-    vaultObj: "0xb628d9fcf7e49ffc72797b55ce364fc6044722039f20ff607940331fc305285d", // dev-only
-    burnRegistryObj: "0x4bedaf5827cb871a1ff88ea126977ec0c1b7afe3a9699ab33489da24334b8d8e", // dev-only
-    aftermathRegistryObj: "0xa125a7b7360fff1f9d7bd114f7e41c86ee66bd90cff45ed0c5c617f191c64239", // dev-only
-    cetusRegistryObj: "0x2bb93168196283f0470ac08743af077c0aaa57ac8970137e0ad7d50c52094e65", // dev-only
+    package: "0x9f41dadb335bc56697e55cd50e3d655cb57d220ab1550f9902ce815f1b4d39d6", // dev-only
+    upgradeCapObj: "0xdffb5bb6dd79508d2f4b90984fe92f5c39579dc68425705cef8de27c7bdc9883", // dev-only
+    adminCapObj: "0xe00e38d5f22a4b798c9b9c2f2a3859777b5f404c11d375a0d2bc11f71f108025", // dev-only
+    vaultObj: "0xa60a7f5cab8c50ff51ef68e104c71699294db4f0435c5885e9fc14c5237b474d", // dev-only
+    burnRegistryObj: "0xed44e56536422aa9e7c96c865e2f68554e784ee7cb3de7f6d704d9bf4b1d8ac9", // dev-only
+    aftermathRegistryObj: "0x3737171aaa7e556f89d9ef2b7241c51dc86cfc15127fd5841f3484c3e20dc5e3", // dev-only
+    cetusRegistryObj: "0x0303763bf8d7b44a01c9f316b4438d4bc125a8c7c2b55f4d017b24abefb50202", // dev-only
 } as const;
 
 /** Wormhole IDs */
