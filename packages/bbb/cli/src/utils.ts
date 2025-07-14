@@ -133,7 +133,7 @@ export function logJson(obj: unknown) {
 
 export function logTxResp(resp: SuiTransactionBlockResponse) {
     logJson({
-        tx_status: resp.effects?.status.status,
-        tx_digest: resp.digest,
+        txStatus: resp.effects?.status.status,
+        txDigest: resp.digest,
     });
 }
