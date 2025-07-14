@@ -116,8 +116,8 @@ program
             (change) => change.type === "created",
         );
         logJson({
-            tx_status: resp.effects?.status.status,
-            tx_digest: resp.digest,
+            txStatus: resp.effects?.status.status,
+            txDigest: resp.digest,
             createdObjs: createdObjs?.map((obj) => ({
                 type: obj.objectType,
                 id: obj.objectId,
@@ -413,8 +413,9 @@ program
             const resp = await signAndExecuteTx({ tx, dryRun });
             logJson({
                 time: new Date().toISOString(),
-                tx_status: resp.effects?.status.status,
-                tx_digest: resp.digest,
+                txStatus: resp.effects?.status.status,
+                txDigest: resp.digest,
+                gasUsed: calculateGasUsed(resp),
                 afSwaps: extractAfSwapEvents(resp),
                 cetusSwaps: extractCetusSwapEvents(resp),
                 burns: extractBurnEvents(resp),
@@ -475,4 +476,12 @@ async function getBalances() {
         ticker: bal.content.fields.name.fields.name.split("::")[2] ?? "UNKNOWN",
         balance: bal.content.fields.value,
     }));
+}
+
+function calculateGasUsed(resp: SuiTransactionBlockResponse): bigint {
+    return (
+        BigInt(resp.effects?.gasUsed.computationCost ?? 0n) +
+        BigInt(resp.effects?.gasUsed.storageCost ?? 0n) -
+        BigInt(resp.effects?.gasUsed.storageRebate ?? 0n)
+    );
 }
