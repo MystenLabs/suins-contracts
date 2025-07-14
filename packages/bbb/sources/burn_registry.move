@@ -23,7 +23,7 @@ public struct BurnRegistry has key {
 
 // === accessors ===
 
-public fun id(self: &BurnRegistry): &UID { &self.id }
+public fun id(self: &BurnRegistry): ID { self.id.to_inner() }
 public fun burns(self: &BurnRegistry): &vector<Burn> { &self.burns }
 
 // === constructors ===

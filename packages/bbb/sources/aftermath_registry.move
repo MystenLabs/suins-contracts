@@ -24,7 +24,7 @@ public struct AftermathRegistry has key {
 
 // === accessors ===
 
-public fun id(self: &AftermathRegistry): &UID { &self.id }
+public fun id(self: &AftermathRegistry): ID { self.id.to_inner() }
 public fun swaps(self: &AftermathRegistry): &vector<AftermathSwap> { &self.swaps }
 
 // === constructors ===
