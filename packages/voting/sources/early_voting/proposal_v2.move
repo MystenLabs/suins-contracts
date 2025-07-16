@@ -85,6 +85,9 @@ public struct ProposalV2 has key {
     reward: Balance<NS>,
     /// Initial value of `ProposalV2.reward` (reward.value() decreases as we distribute it)
     total_reward: u64,
+    /// The address that created the proposal.
+    /// If the threshold is not reached, rewards are returned to this address.
+    creator: address,
 }
 
 // === public functions ===
@@ -151,6 +154,7 @@ public fun new(
         total_power: 0,
         reward: reward.into_balance(),
         total_reward,
+        creator: ctx.sender(),
     }
 }
 
@@ -218,9 +222,10 @@ public fun vote(
 public fun finalize(
     proposal: &mut ProposalV2,
     clock: &Clock,
+    ctx: &mut TxContext,
 ) {
     assert!(proposal.winning_option.is_none(), EProposalAlreadyFinalized);
-    proposal.finalize_internal(clock);
+    proposal.finalize_internal(clock, ctx);
 }
 
 /// Distribute NS rewards to all voters once voting has ended.
@@ -232,7 +237,7 @@ public fun distribute_rewards(
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
-    proposal.finalize_internal(clock);
+    proposal.finalize_internal(clock, ctx);
 
     let mut transfers: u64 = 0;
     while (transfers < max_returns_per_tx!() && !proposal.voter_powers.is_empty()) {
@@ -246,11 +251,11 @@ public fun distribute_rewards(
         transfers = transfers + 1;
     };
 
-    // once all rewards have been distributed, send any remaining NS to the caller
+    // once all rewards have been distributed, send any remaining NS to the creator
     if (proposal.voter_powers.is_empty() && proposal.reward.value() > 0) {
         let dust_value = proposal.reward.value();
         let dust_coin = proposal.reward.split(dust_value).into_coin(ctx);
-        transfer::public_transfer(dust_coin, ctx.sender());
+        transfer::public_transfer(dust_coin, proposal.creator);
     }
 }
 
@@ -262,7 +267,7 @@ public fun claim_reward(
     clock: &Clock,
     ctx: &mut TxContext,
 ): Balance<NS> {
-    proposal.finalize_internal(clock);
+    proposal.finalize_internal(clock, ctx);
     proposal.get_user_reward(stats, ctx.sender())
 }
 
@@ -301,7 +306,7 @@ public(package) fun share(proposal: ProposalV2) {
 
 /// Finalizes a proposal after the end time is reached.
 /// If the proposal has already been finalized, it does nothing.
-fun finalize_internal(proposal: &mut ProposalV2, clock: &Clock) {
+fun finalize_internal(proposal: &mut ProposalV2, clock: &Clock, ctx: &mut TxContext) {
     assert!(proposal.is_end_time_reached(clock), EEndTimeNotReached);
 
     // if the proposal has already been finalized, do nothing.
@@ -310,6 +315,12 @@ fun finalize_internal(proposal: &mut ProposalV2, clock: &Clock) {
     // handle no threshold reached case.
     if (!proposal.is_threshold_reached()) {
         proposal.winning_option.fill(voting_option::threshold_not_reached());
+        // return the reward to the creator of the proposal
+        proposal.total_reward = 0;
+        transfer::public_transfer(
+            proposal.reward.withdraw_all().into_coin(ctx),
+            proposal.creator,
+        );
         return
     };
 
@@ -388,3 +399,4 @@ public fun voter_powers(proposal: &ProposalV2): &LinkedTable<address, u64> { &pr
 public fun total_power(proposal: &ProposalV2): u64 { proposal.total_power }
 public fun reward(proposal: &ProposalV2): &Balance<NS> { &proposal.reward }
 public fun total_reward(proposal: &ProposalV2): u64 { proposal.total_reward }
+public fun creator(proposal: &ProposalV2): address { proposal.creator }
