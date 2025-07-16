@@ -45,6 +45,8 @@ public struct BurnPromise {
 
 public fun coin_type(self: &Burn): &TypeName { &self.coin_type }
 
+public fun inner(promise: &BurnPromise): &Burn { &promise.burn }
+
 // === constructors ===
 
 public fun new<C>(
