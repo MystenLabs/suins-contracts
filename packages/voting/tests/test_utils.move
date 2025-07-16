@@ -165,7 +165,7 @@ public fun batch__admin_new(
     start_ms: u64,
     recipient: address,
 ) {
-    let cap = setup.ts().take_from_sender<StakingAdminCap>();
+    let cap = setup.ts.take_from_sender<StakingAdminCap>();
     let coin = setup.mint_ns(balance);
     staking_batch::admin_new(
         &cap,
@@ -256,6 +256,13 @@ public fun proposal__vote__new_batch_and_keep(
         setup.ts.ctx(),
     );
     batch.keep(setup.ts.ctx());
+}
+
+public fun proposal__finalize(
+    setup: &mut TestSetup,
+    proposal: &mut ProposalV2,
+) {
+    proposal.finalize(&setup.clock, setup.ts.ctx());
 }
 
 public fun proposal__distribute_rewards(

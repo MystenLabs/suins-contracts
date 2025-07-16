@@ -15,7 +15,7 @@ use suins_voting::{
     constants::{day_ms, max_voting_period_ms, min_voting_period_ms},
     proposal_v2::{Self, max_returns_per_tx},
     voting_option::{Self, threshold_not_reached, tie_rejected},
-    test_utils::{setup, setup_default_config, random_addr, assert_owns_ns, proposal__new__end_time, reward_amount},
+    test_utils::{setup, setup_default_config, random_addr, assert_owns_ns, proposal__new__end_time, reward_amount, admin_addr},
 };
 
 // === constants ===
@@ -86,7 +86,7 @@ fun test_end_to_end_ok() {
     // finalize proposal and distribute rewards
     setup.next_tx(USER_3); // anyone can do this
     setup.add_time(voting_period_ms);
-    proposal.finalize(setup.clock());
+    setup.proposal__finalize(&mut proposal);
     setup.proposal__distribute_rewards(&mut proposal);
     assert_eq(*proposal.winning_option().borrow(), voting_option::new(b"Yes".to_string()));
 
@@ -117,7 +117,7 @@ fun test_threshold_not_reached_ok() {
 
     // Finalize proposal
     setup.add_time(proposal.end_time_ms());
-    proposal.finalize(setup.clock());
+    setup.proposal__finalize(&mut proposal);
 
     assert_eq(*proposal.winning_option().borrow(), threshold_not_reached());
 
@@ -137,7 +137,7 @@ fun test_tied_vote_ok() {
 
     // Time passes, finalize proposal
     setup.set_time(proposal.end_time_ms());
-    proposal.finalize(setup.clock());
+    setup.proposal__finalize(&mut proposal);
 
     assert_eq(*proposal.winning_option().borrow(), tie_rejected());
 
@@ -160,7 +160,7 @@ fun test_abstain_ok() {
 
     // Time passes, finalize proposal
     setup.set_time(proposal.end_time_ms());
-    proposal.finalize(setup.clock());
+    setup.proposal__finalize(&mut proposal);
 
     // Yes should win despite having fewer votes, since Abstain is ignored for winner selection
     assert_eq(*proposal.winning_option().borrow(), voting_option::new(b"Yes".to_string()));
@@ -211,7 +211,7 @@ fun test_proposal_with_no_rewards_ok() {
 
     // finalize proposal
     setup.add_time(proposal.end_time_ms());
-    proposal.finalize(setup.clock());
+    setup.proposal__finalize(&mut proposal);
 
     // user_1 claims reward coin with 0 value
     setup.next_tx(USER_1);
@@ -255,8 +255,8 @@ fun test_distribute_rewards_ok_and_recover_dust() {
     // user_2 receives 0.666666 NS
     setup.next_tx(USER_2);
     setup.assert_owns_ns(666_666);
-    // user_3 receives 0.000001 NS
-    setup.next_tx(USER_3);
+    // proposal creator receives leftover 0.000001 NS
+    setup.next_tx(admin_addr!());
     setup.assert_owns_ns(1);
 
     destroy(proposal);
@@ -503,7 +503,7 @@ fun try_finalize_before_endtime() {
         option::some(max_voting_period_ms!()),
     );
     setup.add_time(max_voting_period_ms!() - 1);
-    proposal.finalize(setup.clock());
+    setup.proposal__finalize(&mut proposal);
     abort 123
 }
 
@@ -525,7 +525,7 @@ fun try_self_finalize_before_end_time() {
         option::some(max_voting_period_ms!()),
     );
     setup.add_time(max_voting_period_ms!() - 1);
-    proposal.finalize(setup.clock());
+    setup.proposal__finalize(&mut proposal);
     abort 123
 }
 
@@ -537,7 +537,7 @@ fun try_finalize_twice() {
 
     proposal.set_threshold(1);
     setup.add_time(min_voting_period_ms!() + 2);
-    proposal.finalize(setup.clock());
+    setup.proposal__finalize(&mut proposal);
 
     assert_eq(proposal.is_threshold_reached(), false);
 
@@ -549,7 +549,7 @@ fun try_finalize_twice() {
         true
     );
 
-    proposal.finalize(setup.clock());
+    setup.proposal__finalize(&mut proposal);
 
     abort 123
 }

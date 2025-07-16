@@ -238,15 +238,14 @@ fun test_e2e() {
 fun test_e2e_no_quorum() {
     let mut setup = setup();
     // Add a proposal. Total voting power will be (300K) + (600K + 300K) = 1.2M
-    {
-        setup.next_tx(admin_addr!());
-        let cap = setup.ts().take_from_sender<NSGovernanceCap>();
+    setup.next_tx(admin_addr!());
+    let cap = setup.ts().take_from_sender<NSGovernanceCap>();
 
-        let proposal = setup.proposal__new__default();
-        early_voting::add_proposal_v2(&cap, setup.gov_mut(), proposal);
+    let proposal = setup.proposal__new__default();
+    let total_reward = proposal.total_reward();
+    early_voting::add_proposal_v2(&cap, setup.gov_mut(), proposal);
 
-        setup.ts().return_to_sender(cap);
-    };
+    setup.ts().return_to_sender(cap);
     // User 1 votes "Abstain" with 300K (25% of all votes)
     {
         setup.next_tx(USER1);
@@ -296,7 +295,7 @@ fun test_e2e_no_quorum() {
         let mut proposal = setup.ts().take_shared<ProposalV2>();
         let reward = setup.proposal__claim_reward(&mut proposal);
 
-        assert_eq(reward.value(), 750_000);
+        assert_eq(reward.value(), 0); // no rewards if threshold not reached
 
         assert_eq(
             proposal.winning_option().borrow().value(),
@@ -305,6 +304,13 @@ fun test_e2e_no_quorum() {
 
         destroy(reward);
         ts::return_shared(proposal);
+    };
+    // check that proposal creator got the rewards back
+    {
+        setup.next_tx(admin_addr!());
+        let coin = setup.ts().take_from_sender<Coin<NS>>();
+        assert_eq(coin.value(), total_reward);
+        destroy(coin);
     };
 
     setup.destroy();
