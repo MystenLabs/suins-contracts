@@ -95,6 +95,8 @@ public fun pool_id(self: &CetusSwap): &ID { &self.pool_id }
 public fun slippage(self: &CetusSwap): u64 { self.slippage }
 public fun max_age_secs(self: &CetusSwap): u64 { self.max_age_secs }
 
+public fun inner(promise: &CetusSwapPromise): &CetusSwap { &promise.swap }
+
 // === constructors ===
 
 public fun new<CoinA, CoinB>(

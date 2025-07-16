@@ -101,6 +101,8 @@ public fun pool_id(self: &AftermathSwap): &ID { &self.pool_id }
 public fun slippage(self: &AftermathSwap): u64 { self.slippage }
 public fun max_age_secs(self: &AftermathSwap): u64 { self.max_age_secs }
 
+public fun inner(promise: &AftermathSwapPromise): &AftermathSwap { &promise.swap }
+
 // === constructors ===
 
 public fun new<L, CoinIn, CoinOut>(
