@@ -163,22 +163,24 @@ module suins::auction {
         let domain = suins_registration.domain();
         let domain_name = domain.to_string().into_bytes();
         let owner = tx_context::sender(ctx);
+        let auction = Auction {
+            id: object::new(ctx),
+            owner,
+            start_time,
+            end_time,
+            min_bid,
+            highest_bidder: @0x0,
+            highest_bid_balance: balance::zero<SUI>(),
+            suins_registration,
+        };
+        let auction_id = object::id(&auction);
         auction_table.table.add(
             domain_name,
-            Auction {
-                id: object::new(ctx),
-                owner,
-                start_time,
-                end_time,
-                min_bid,
-                highest_bidder: @0x0,
-                highest_bid_balance: balance::zero<SUI>(),
-                suins_registration,
-            }
+            auction,
         );
 
         event::emit(AuctionCreatedEvent {
-            auction_id: object::id(auction_table),
+            auction_id,
             domain_name,
             owner,
             start_time,
@@ -216,7 +218,7 @@ module suins::auction {
         auction.highest_bid_balance.join(coin.into_balance());
 
         event::emit(BidPlacedEvent {
-            auction_id: object::id(auction_table),
+            auction_id: object::id(auction),
             domain_name,
             bidder,
             amount: bid_amount,
@@ -232,6 +234,8 @@ module suins::auction {
     ) {
         assert!(auction_table.table.contains(domain_name), ENotAuctioned);
 
+        let auction = auction_table.table.remove(domain_name);
+        let auction_id = object::id(&auction);
         let Auction {
             id,
             owner,
@@ -241,7 +245,7 @@ module suins::auction {
             highest_bidder,
             highest_bid_balance,
             suins_registration,
-        } =  auction_table.table.remove(domain_name);
+        } = auction;
 
         let now = clock.timestamp_ms() / 1000;
         assert!(now > end_time, ENotEnded);
@@ -257,7 +261,7 @@ module suins::auction {
         };
 
         event::emit(AuctionFinalizedEvent {
-            auction_id: object::id(auction_table),
+            auction_id,
             domain_name,
             winner: highest_bidder,
             amount: highest_bid_value,
@@ -275,6 +279,8 @@ module suins::auction {
     ):  SuinsRegistration {
         assert!(auction_table.table.contains(domain_name), ENotAuctioned);
 
+        let auction = auction_table.table.remove(domain_name);
+        let auction_id = object::id(&auction);
         let Auction {
             id,
             owner,
@@ -284,7 +290,7 @@ module suins::auction {
             highest_bidder,
             highest_bid_balance,
             suins_registration,
-        } =  auction_table.table.remove(domain_name);
+        } =  auction;
 
         let caller = tx_context::sender(ctx);
         assert!(owner == caller, ENotOwner);
@@ -301,7 +307,7 @@ module suins::auction {
         object::delete(id);
 
         event::emit(AuctionCancelledEvent {
-            auction_id: object::id(auction_table),
+            auction_id,
             domain_name,
             owner: caller,
         });
