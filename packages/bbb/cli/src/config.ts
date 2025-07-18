@@ -118,13 +118,10 @@ export const cnf = {
      * `swap-and-burn` executes the tx only if `BBBVault` contains
      * at least the minimum balance for ANY ONE of these coins.
      */
-    minimumBalances: { // TODO: uncomment for prod
-        // USDC: 1_000_000n,
-        // SUI: 1_000_000_000n,
-        // NS: 1_000_000n,
-        USDC: 1n,
-        SUI: 1n,
-        NS: 1n,
+    minimumBalances: {
+        USDC: 1_000_000n,
+        SUI: 1_000_000_000n,
+        NS: 1_000_000n,
     },
     /** Swap slippage tolerance as `1 - slippage` in 18-decimal fixed point */
     defaultSlippage: 975_000_000_000_000_000n, // 2.5%
