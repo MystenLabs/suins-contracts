@@ -18,13 +18,14 @@ use suins_payments::{
     testns::TESTNS,
     testusdc::TESTUSDC
 };
+use suins_bbb::bbb_vault::{Self, BBBVault};
 
 public struct PaymentTestsCurrency has drop {}
 public struct SPAM has drop {}
 
 const SUINS_ADDRESS: address = @0xA001;
 
-public fun setup(ctx: &mut TxContext): (SuiNS, AdminCap) {
+public fun setup(ctx: &mut TxContext): (SuiNS, AdminCap, BBBVault) {
     let mut suins = setup_suins(ctx);
     let admin_cap = suins::create_admin_cap_for_testing(ctx);
     admin_cap.authorize_app<PaymentsApp>(&mut suins);
@@ -32,13 +33,13 @@ public fun setup(ctx: &mut TxContext): (SuiNS, AdminCap) {
     suins_payments::testusdc::test_init(ctx);
     suins_payments::testns::test_init(ctx);
 
-    (suins, admin_cap)
+    (suins, admin_cap, bbb_vault::new_for_testing(ctx))
 }
 
 #[test, expected_failure(abort_code = ::suins_payments::payments::EBaseCurrencySetupMissing)]
 fun base_currency_not_in_list_e() {
     let mut test = ts::begin(SUINS_ADDRESS);
-    let (_suins, _admin_cap) = setup(test.ctx());
+    let (_suins, _admin_cap, _bbb_vault) = setup(test.ctx());
 
     test.next_tx(SUINS_ADDRESS);
     let usdc_metadata = test.take_from_sender<CoinMetadata<TESTUSDC>>();
@@ -53,7 +54,8 @@ fun base_currency_not_in_list_e() {
     let _config = new_payments_config(
         setups,
         type_name::get<SPAM>(),
-        60,
+        60, // max_age: 1 minute
+        80_00, // burn_bps: 80%
     );
 
     abort 1337
@@ -62,7 +64,7 @@ fun base_currency_not_in_list_e() {
 #[test, expected_failure(abort_code = ::suins_payments::payments::EInsufficientPayment)]
 fun payment_insufficient_e() {
     let mut test = ts::begin(SUINS_ADDRESS);
-    let (mut suins, admin_cap) = setup(test.ctx());
+    let (mut suins, admin_cap, mut bbb_vault) = setup(test.ctx());
 
     test.next_tx(SUINS_ADDRESS);
     let usdc_metadata = test.take_from_sender<CoinMetadata<TESTUSDC>>();
@@ -77,7 +79,8 @@ fun payment_insufficient_e() {
     let config = new_payments_config(
         setups,
         type_name::get<TESTUSDC>(),
-        60,
+        60, // max_age: 1 minute
+        80_00, // burn_bps = 80%
     );
 
     admin_cap.add_config<PaymentsConfig>(&mut suins, config);
@@ -91,8 +94,10 @@ fun payment_insufficient_e() {
     // 20 is required for registration, only 10 is minted
     let _receipt = handle_base_payment<TESTUSDC>(
         &mut suins,
+        &mut bbb_vault,
         intent,
         coin::mint_for_testing<TESTUSDC>(10, test.ctx()),
+        test.ctx(),
     );
 
     abort 1337
@@ -101,7 +106,7 @@ fun payment_insufficient_e() {
 #[test, expected_failure(abort_code = ::suins_payments::payments::EInvalidPaymentType)]
 fun invalid_payment_type_e() {
     let mut test = ts::begin(SUINS_ADDRESS);
-    let (mut suins, admin_cap) = setup(test.ctx());
+    let (mut suins, admin_cap, mut bbb_vault) = setup(test.ctx());
 
     test.next_tx(SUINS_ADDRESS);
     let usdc_metadata = test.take_from_sender<CoinMetadata<TESTUSDC>>();
@@ -116,7 +121,8 @@ fun invalid_payment_type_e() {
     let config = new_payments_config(
         setups,
         type_name::get<TESTUSDC>(),
-        60,
+        60, // max_age: 1 minute
+        80_00, // burn_bps: 80%
     );
 
     admin_cap.add_config<PaymentsConfig>(&mut suins, config);
@@ -130,8 +136,10 @@ fun invalid_payment_type_e() {
     // 20 is required for registration, paying with SPAM fails
     let _receipt = handle_base_payment<SPAM>(
         &mut suins,
+        &mut bbb_vault,
         intent,
         coin::mint_for_testing<SPAM>(20, test.ctx()),
+        test.ctx(),
     );
 
     abort 1337
@@ -140,7 +148,7 @@ fun invalid_payment_type_e() {
 #[test]
 fun test_add_payment_config() {
     let mut test = ts::begin(SUINS_ADDRESS);
-    let (mut suins, admin_cap) = setup(test.ctx());
+    let (mut suins, admin_cap, mut bbb_vault) = setup(test.ctx());
 
     test.next_tx(SUINS_ADDRESS);
     let usdc_metadata = test.take_from_sender<CoinMetadata<TESTUSDC>>();
@@ -162,7 +170,8 @@ fun test_add_payment_config() {
     let config = new_payments_config(
         setups,
         type_name::get<TESTUSDC>(),
-        60,
+        60, // max_age: 1 minute
+        80_00, // burn_bps: 80%
     );
 
     admin_cap.add_config<PaymentsConfig>(&mut suins, config);
@@ -176,8 +185,10 @@ fun test_add_payment_config() {
     // 20 is required for registration, paying with 20 usdc is successful
     let receipt = handle_base_payment<TESTUSDC>(
         &mut suins,
+        &mut bbb_vault,
         intent,
         coin::mint_for_testing<TESTUSDC>(20, test.ctx()),
+        test.ctx(),
     );
 
     test.return_to_sender(usdc_metadata);
@@ -186,5 +197,6 @@ fun test_add_payment_config() {
     destroy(receipt);
     destroy(admin_cap);
     destroy(suins);
+    destroy(bbb_vault);
     test.end();
 }
