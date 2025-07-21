@@ -10,6 +10,7 @@ use suins::{
         Self,
         AuctionTable,
         OfferTable,
+        AdminCap,
     },
     constants::mist_per_sui,
     domain,
@@ -1299,6 +1300,34 @@ fun try_accept_counteroffer_wrong_caller()  {
 
         // Clean up
         test_scenario::return_shared(offer_table);
+    };
+
+    // Final cleanup
+    clock::destroy_for_testing(clock);
+    test_scenario::end(scenario_val);
+}
+
+#[test, expected_failure(abort_code = auction::ENotUpgrade)]
+fun try_call_with_wrong_auction_table_version()  {
+    let (mut scenario_val, clock) = setup_test();
+    let scenario = &mut scenario_val;
+
+    // Generate a new domain
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+
+    // Migrate
+    test_scenario::next_tx(scenario, DOMAIN_OWNER);
+    {
+        let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
+        let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+        let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
+        
+        auction::migrate(&admin_cap, &mut auction_table, &mut offer_table);
+
+        // Clean up
+        test_scenario::return_shared(auction_table);
+        test_scenario::return_shared(offer_table);
+        test_scenario::return_to_sender(scenario, admin_cap);
     };
 
     // Final cleanup
