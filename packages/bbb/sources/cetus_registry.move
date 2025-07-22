@@ -1,0 +1,90 @@
+module suins_bbb::bbb_cetus_registry;
+
+use std::type_name;
+use suins_bbb::{bbb_admin::BBBAdminCap, bbb_cetus_swap::{Self, CetusSwap, CetusSwapPromise}};
+
+// === errors ===
+
+const ECetusSwapAlreadyExists: u64 = 1000;
+const ECetusSwapNotFound: u64 = 1001;
+
+// === structs ===
+
+/// Registry of available Cetus swaps.
+/// Each coin pair (CoinIn, CoinOut) can only appear once.
+public struct CetusRegistry has key {
+    id: UID,
+    swaps: vector<CetusSwap>,
+}
+
+// === accessors ===
+
+public fun id(self: &CetusRegistry): ID { self.id.to_inner() }
+
+public fun swaps(self: &CetusRegistry): &vector<CetusSwap> { &self.swaps }
+
+// === constructors ===
+
+fun new(ctx: &mut TxContext): CetusRegistry {
+    CetusRegistry {
+        id: object::new(ctx),
+        swaps: vector::empty(),
+    }
+}
+
+// === initialization ===
+
+public struct BBB_CETUS_REGISTRY has drop {}
+
+fun init(_otw: BBB_CETUS_REGISTRY, ctx: &mut TxContext) {
+    transfer::share_object(new(ctx));
+}
+
+// === public functions ===
+
+/// Get the swap that converts `CoinIn` to `CoinOut`.
+/// Errors if not found.
+public fun get<CoinIn, CoinOut>(self: &CetusRegistry): CetusSwapPromise {
+    let type_in = type_name::get<CoinIn>();
+    let type_out = type_name::get<CoinOut>();
+    let idx = self.swaps.find_index!(|swap| {
+        let (swap_in, swap_out) = swap.input_output_types();
+        type_in == swap_in && type_out == swap_out
+    });
+    assert!(idx.is_some(), ECetusSwapNotFound);
+    bbb_cetus_swap::new_promise(
+        self.swaps[idx.destroy_some()] // copy
+    )
+}
+
+// === admin functions ===
+
+/// Add a swap to the registry.
+/// Errors if the coin pair already exists in the registry.
+public fun add(self: &mut CetusRegistry, _cap: &BBBAdminCap, swap: CetusSwap) {
+    let (new_in, new_out) = swap.input_output_types();
+    let already_exists = self.swaps.any!(|old| {
+        let (old_in, old_out) = old.input_output_types();
+        new_in == old_in && new_out == old_out
+    });
+    assert!(!already_exists, ECetusSwapAlreadyExists);
+    self.swaps.push_back(swap);
+}
+
+/// Remove a swap from the registry.
+/// Errors if the coin pair doesn't exist in the registry.
+public fun remove<CoinIn, CoinOut>(self: &mut CetusRegistry, _cap: &BBBAdminCap) {
+    let type_in = type_name::get<CoinIn>();
+    let type_out = type_name::get<CoinOut>();
+    let idx = self.swaps.find_index!(|swap| {
+        let (swap_in, swap_out) = swap.input_output_types();
+        type_in == swap_in && type_out == swap_out
+    });
+    assert!(idx.is_some(), ECetusSwapNotFound);
+    self.swaps.swap_remove(idx.destroy_some());
+}
+
+/// Remove all swaps from the registry.
+public fun remove_all(self: &mut CetusRegistry, _cap: &BBBAdminCap) {
+    self.swaps = vector::empty();
+}
