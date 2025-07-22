@@ -1,13 +1,7 @@
 module suins_bbb::bbb_vault;
 
-use std::{
-    type_name::{Self, TypeName},
-};
-use sui::{
-    balance::{Self, Balance},
-    bag::{Self, Bag},
-    coin::{Coin},
-};
+use std::type_name::{Self, TypeName};
+use sui::{bag::{Self, Bag}, balance::{Self, Balance}, coin::Coin};
 
 // === structs ===
 
@@ -21,13 +15,12 @@ public struct BBBVault has key {
 // === accessors ===
 
 public fun id(vault: &BBBVault): ID { vault.id.to_inner() }
+
 public fun balances(vault: &BBBVault): &Bag { &vault.balances }
 
 // === constructors ===
 
-fun new(
-    ctx: &mut TxContext,
-): BBBVault {
+fun new(ctx: &mut TxContext): BBBVault {
     BBBVault {
         id: object::new(ctx),
         balances: bag::new(ctx),
@@ -46,18 +39,13 @@ fun init(_otw: BBB_VAULT, ctx: &mut TxContext) {
 
 /// Deposit a coin into the vault.
 /// Anybody can deposit any coin type.
-public fun deposit<C>(
-    self: &mut BBBVault,
-    coin: Coin<C>,
-) {
+public fun deposit<C>(self: &mut BBBVault, coin: Coin<C>) {
     let balances = &mut self.balances;
     let coin_type = type_name::get<C>();
     if (!balances.contains(coin_type)) {
         balances.add(coin_type, coin.into_balance());
     } else {
-        balances
-            .borrow_mut<TypeName, Balance<C>>(coin_type)
-            .join(coin.into_balance());
+        balances.borrow_mut<TypeName, Balance<C>>(coin_type).join(coin.into_balance());
     };
 }
 
@@ -65,25 +53,19 @@ public fun deposit<C>(
 
 /// Withdraw all `Balance<C>` from the vault.
 /// Returns zero balance if the coin type is not in the vault.
-public(package) fun withdraw<C>(
-    self: &mut BBBVault,
-): Balance<C> {
+public(package) fun withdraw<C>(self: &mut BBBVault): Balance<C> {
     let balances = &mut self.balances;
     let coin_type = type_name::get<C>();
     if (!balances.contains(coin_type)) {
         balance::zero()
     } else {
-        balances
-            .borrow_mut<TypeName, Balance<C>>(coin_type)
-            .withdraw_all()
+        balances.borrow_mut<TypeName, Balance<C>>(coin_type).withdraw_all()
     }
 }
 
 // === test functions ===
 
 #[test_only]
-public fun new_for_testing(
-    ctx: &mut TxContext,
-): BBBVault {
+public fun new_for_testing(ctx: &mut TxContext): BBBVault {
     new(ctx)
 }

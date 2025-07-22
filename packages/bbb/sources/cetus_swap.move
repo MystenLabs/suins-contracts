@@ -1,28 +1,18 @@
 module suins_bbb::bbb_cetus_swap;
 
-use std::{
-    ascii::{String},
-    type_name::{Self, TypeName},
-};
-use sui::{
-    balance::{Self},
-    clock::{Clock},
-    coin::{Coin},
-    event::{emit},
-};
-use pyth::{
-    price_info::{PriceInfoObject},
-};
 use cetusclmm::{
-    config::{GlobalConfig},
+    config::GlobalConfig,
     pool::{Pool, flash_swap, repay_flash_swap, swap_pay_amount},
-    tick_math::{min_sqrt_price, max_sqrt_price},
+    tick_math::{min_sqrt_price, max_sqrt_price}
 };
+use pyth::price_info::PriceInfoObject;
+use std::{ascii::String, type_name::{Self, TypeName}};
+use sui::{balance, clock::Clock, coin::Coin, event::emit};
 use suins_bbb::{
-    bbb_admin::{BBBAdminCap},
-    bbb_constants::{slippage_scale},
-    bbb_pyth::{calc_amount_out},
-    bbb_vault::{BBBVault},
+    bbb_admin::BBBAdminCap,
+    bbb_constants::slippage_scale,
+    bbb_pyth::calc_amount_out,
+    bbb_vault::BBBVault
 };
 
 // === errors ===
@@ -85,14 +75,23 @@ public struct CetusSwapPromise {
 // === accessors ===
 
 public fun a2b(self: &CetusSwap): bool { self.a2b }
+
 public fun type_a(self: &CetusSwap): &TypeName { &self.type_a }
+
 public fun type_b(self: &CetusSwap): &TypeName { &self.type_b }
+
 public fun decimals_a(self: &CetusSwap): u8 { self.decimals_a }
+
 public fun decimals_b(self: &CetusSwap): u8 { self.decimals_b }
+
 public fun feed_a(self: &CetusSwap): &vector<u8> { &self.feed_a }
+
 public fun feed_b(self: &CetusSwap): &vector<u8> { &self.feed_b }
+
 public fun pool_id(self: &CetusSwap): &ID { &self.pool_id }
+
 public fun slippage(self: &CetusSwap): u64 { self.slippage }
+
 public fun max_age_secs(self: &CetusSwap): u64 { self.max_age_secs }
 
 public fun inner(promise: &CetusSwapPromise): &CetusSwap { &promise.swap }
@@ -127,9 +126,7 @@ public fun new<CoinA, CoinB>(
     }
 }
 
-public(package) fun new_promise(
-    swap: CetusSwap,
-): CetusSwapPromise {
+public(package) fun new_promise(swap: CetusSwap): CetusSwapPromise {
     CetusSwapPromise { swap }
 }
 
@@ -253,9 +250,7 @@ public fun swap<CoinA, CoinB>(
 }
 
 /// Get the input and output coin types based on the `a2b` flag.
-public fun input_output_types(
-    swap: &CetusSwap,
-): (&TypeName, &TypeName) {
+public fun input_output_types(swap: &CetusSwap): (&TypeName, &TypeName) {
     if (swap.a2b()) {
         (swap.type_a(), swap.type_b())
     } else {

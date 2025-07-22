@@ -1,21 +1,19 @@
 #[test_only]
 module suins_bbb::bbb_burn_tests;
 
-use std::{
-    type_name::{Self, TypeName},
-};
+use std::type_name::{Self, TypeName};
 use sui::{
-    balance::{Balance},
+    balance::Balance,
     coin::{Self, Coin},
-    test_utils::{assert_eq, destroy},
     test_scenario::{Self, Scenario},
+    test_utils::{assert_eq, destroy}
 };
 use suins_bbb::{
     bbb_admin::{Self, BBBAdminCap},
     bbb_burn::{Self, burn_address},
     bbb_burn_registry::{Self, BurnRegistry},
     bbb_vault::{Self, BBBVault},
-    fakecoin::{FAKECOIN},
+    fakecoin::FAKECOIN
 };
 
 #[test]
@@ -28,9 +26,7 @@ fun end_to_end() {
     let coin_type = type_name::get<FAKECOIN>();
     assert_eq(vault.balances().length(), 1);
     assert_eq(
-        vault.balances()
-            .borrow<TypeName, Balance<FAKECOIN>>(coin_type)
-            .value(),
+        vault.balances().borrow<TypeName, Balance<FAKECOIN>>(coin_type).value(),
         1000,
     );
 
@@ -39,9 +35,7 @@ fun end_to_end() {
 
     assert_eq(vault.balances().length(), 1);
     assert_eq(
-        vault.balances()
-            .borrow<TypeName, Balance<FAKECOIN>>(coin_type)
-            .value(),
+        vault.balances().borrow<TypeName, Balance<FAKECOIN>>(coin_type).value(),
         0,
     );
 
