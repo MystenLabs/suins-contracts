@@ -1,16 +1,8 @@
 module suins_bbb::bbb_burn;
 
-use std::{
-    ascii::{String},
-    type_name::{Self, TypeName},
-};
-use sui::{
-    event::{emit},
-};
-use suins_bbb::{
-    bbb_admin::BBBAdminCap,
-    bbb_vault::{BBBVault},
-};
+use std::{ascii::String, type_name::{Self, TypeName}};
+use sui::event::emit;
+use suins_bbb::{bbb_admin::BBBAdminCap, bbb_vault::BBBVault};
 
 // === errors ===
 
@@ -51,26 +43,18 @@ public fun inner(promise: &BurnPromise): &Burn { &promise.burn }
 
 // === constructors ===
 
-public fun new<C>(
-    _cap: &BBBAdminCap,
-): Burn {
+public fun new<C>(_cap: &BBBAdminCap): Burn {
     Burn { coin_type: type_name::get<C>() }
 }
 
-public(package) fun new_promise(
-    burn: Burn,
-): BurnPromise {
+public(package) fun new_promise(burn: Burn): BurnPromise {
     BurnPromise { burn }
 }
 
 // === public functions ===
 
 /// Burn all `Balance<C>` in the vault by sending it to the burn address.
-public fun burn<C>(
-    promise: BurnPromise,
-    vault: &mut BBBVault,
-    ctx: &mut TxContext,
-) {
+public fun burn<C>(promise: BurnPromise, vault: &mut BBBVault, ctx: &mut TxContext) {
     let BurnPromise { burn: self } = promise;
     let coin_type = type_name::get<C>();
     assert!(coin_type == self.coin_type, EInvalidCoinType);
@@ -87,6 +71,7 @@ public fun burn<C>(
     });
 
     transfer::public_transfer(
-        balance.into_coin(ctx), burn_address!()
+        balance.into_coin(ctx),
+        burn_address!(),
     )
 }

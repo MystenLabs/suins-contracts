@@ -1,12 +1,7 @@
 module suins_bbb::bbb_cetus_registry;
 
-use std::{
-    type_name::{Self},
-};
-use suins_bbb::{
-    bbb_admin::{BBBAdminCap},
-    bbb_cetus_swap::{Self, CetusSwap, CetusSwapPromise},
-};
+use std::type_name;
+use suins_bbb::{bbb_admin::BBBAdminCap, bbb_cetus_swap::{Self, CetusSwap, CetusSwapPromise}};
 
 // === errors ===
 
@@ -25,13 +20,12 @@ public struct CetusRegistry has key {
 // === accessors ===
 
 public fun id(self: &CetusRegistry): ID { self.id.to_inner() }
+
 public fun swaps(self: &CetusRegistry): &vector<CetusSwap> { &self.swaps }
 
 // === constructors ===
 
-fun new(
-    ctx: &mut TxContext,
-): CetusRegistry {
+fun new(ctx: &mut TxContext): CetusRegistry {
     CetusRegistry {
         id: object::new(ctx),
         swaps: vector::empty(),
@@ -50,9 +44,7 @@ fun init(_otw: BBB_CETUS_REGISTRY, ctx: &mut TxContext) {
 
 /// Get the swap that converts `CoinIn` to `CoinOut`.
 /// Errors if not found.
-public fun get<CoinIn, CoinOut>(
-    self: &CetusRegistry,
-): CetusSwapPromise {
+public fun get<CoinIn, CoinOut>(self: &CetusRegistry): CetusSwapPromise {
     let type_in = type_name::get<CoinIn>();
     let type_out = type_name::get<CoinOut>();
     let idx = self.swaps.find_index!(|swap| {
@@ -69,11 +61,7 @@ public fun get<CoinIn, CoinOut>(
 
 /// Add a swap to the registry.
 /// Errors if the coin pair already exists in the registry.
-public fun add(
-    self: &mut CetusRegistry,
-    _cap: &BBBAdminCap,
-    swap: CetusSwap,
-) {
+public fun add(self: &mut CetusRegistry, _cap: &BBBAdminCap, swap: CetusSwap) {
     let (new_in, new_out) = swap.input_output_types();
     let already_exists = self.swaps.any!(|old| {
         let (old_in, old_out) = old.input_output_types();
@@ -85,10 +73,7 @@ public fun add(
 
 /// Remove a swap from the registry.
 /// Errors if the coin pair doesn't exist in the registry.
-public fun remove<CoinIn, CoinOut>(
-    self: &mut CetusRegistry,
-    _cap: &BBBAdminCap,
-) {
+public fun remove<CoinIn, CoinOut>(self: &mut CetusRegistry, _cap: &BBBAdminCap) {
     let type_in = type_name::get<CoinIn>();
     let type_out = type_name::get<CoinOut>();
     let idx = self.swaps.find_index!(|swap| {
@@ -100,9 +85,6 @@ public fun remove<CoinIn, CoinOut>(
 }
 
 /// Remove all swaps from the registry.
-public fun remove_all(
-    self: &mut CetusRegistry,
-    _cap: &BBBAdminCap,
-) {
+public fun remove_all(self: &mut CetusRegistry, _cap: &BBBAdminCap) {
     self.swaps = vector::empty();
 }

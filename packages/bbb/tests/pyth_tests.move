@@ -1,12 +1,8 @@
 #[test_only]
 module suins_bbb::bbb_pyth_tests;
 
-use std::{
-    unit_test::assert_eq,
-};
-use suins_bbb::{
-    bbb_pyth::calc_amount_out_internal,
-};
+use std::unit_test::assert_eq;
+use suins_bbb::bbb_pyth::calc_amount_out_internal;
 
 const ONE_SUI: u64 = 1_000_000_000;
 const ONE_NS: u64 = 1_000_000;

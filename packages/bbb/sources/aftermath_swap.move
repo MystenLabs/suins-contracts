@@ -1,39 +1,19 @@
 module suins_bbb::bbb_aftermath_swap;
 
-use std::{
-    ascii::{String},
-    type_name::{Self, TypeName},
-};
-use sui::{
-    clock::{Clock},
-    event::{emit},
-};
-use pyth::{
-    price_info::{PriceInfoObject},
-};
-use amm::{
-    swap::{swap_exact_in},
-    pool::{Pool},
-    pool_registry::PoolRegistry,
-};
-use protocol_fee_vault::{
-    vault::{ProtocolFeeVault},
-};
-use treasury::{
-    treasury::{Treasury},
-};
-use insurance_fund::{
-    insurance_fund::{InsuranceFund},
-};
-use referral_vault::{
-    referral_vault::{ReferralVault},
-};
+use amm::{pool::Pool, pool_registry::PoolRegistry, swap::swap_exact_in};
+use insurance_fund::insurance_fund::InsuranceFund;
+use protocol_fee_vault::vault::ProtocolFeeVault;
+use pyth::price_info::PriceInfoObject;
+use referral_vault::referral_vault::ReferralVault;
+use std::{ascii::String, type_name::{Self, TypeName}};
+use sui::{clock::Clock, event::emit};
 use suins_bbb::{
-    bbb_admin::{BBBAdminCap},
-    bbb_constants::{slippage_scale},
-    bbb_pyth::{calc_amount_out},
-    bbb_vault::{BBBVault},
+    bbb_admin::BBBAdminCap,
+    bbb_constants::slippage_scale,
+    bbb_pyth::calc_amount_out,
+    bbb_vault::BBBVault
 };
+use treasury::treasury::Treasury;
 
 // === errors ===
 
@@ -92,13 +72,21 @@ public struct AftermathSwapPromise {
 // === accessors ===
 
 public fun type_in(self: &AftermathSwap): &TypeName { &self.type_in }
+
 public fun type_out(self: &AftermathSwap): &TypeName { &self.type_out }
+
 public fun decimals_in(self: &AftermathSwap): u8 { self.decimals_in }
+
 public fun decimals_out(self: &AftermathSwap): u8 { self.decimals_out }
+
 public fun feed_in(self: &AftermathSwap): &vector<u8> { &self.feed_in }
+
 public fun feed_out(self: &AftermathSwap): &vector<u8> { &self.feed_out }
+
 public fun pool_id(self: &AftermathSwap): &ID { &self.pool_id }
+
 public fun slippage(self: &AftermathSwap): u64 { self.slippage }
+
 public fun max_age_secs(self: &AftermathSwap): u64 { self.max_age_secs }
 
 public fun inner(promise: &AftermathSwapPromise): &AftermathSwap { &promise.swap }
@@ -135,9 +123,7 @@ public fun new<L, CoinIn, CoinOut>(
     }
 }
 
-public(package) fun new_promise(
-    swap: AftermathSwap,
-): AftermathSwapPromise {
+public(package) fun new_promise(swap: AftermathSwap): AftermathSwapPromise {
     AftermathSwapPromise { swap }
 }
 

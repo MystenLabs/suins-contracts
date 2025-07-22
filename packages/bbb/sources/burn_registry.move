@@ -1,12 +1,7 @@
 module suins_bbb::bbb_burn_registry;
 
-use std::{
-    type_name::{Self},
-};
-use suins_bbb::{
-    bbb_admin::{BBBAdminCap},
-    bbb_burn::{Self, Burn, BurnPromise},
-};
+use std::type_name;
+use suins_bbb::{bbb_admin::BBBAdminCap, bbb_burn::{Self, Burn, BurnPromise}};
 
 // === errors ===
 
@@ -24,13 +19,12 @@ public struct BurnRegistry has key {
 // === accessors ===
 
 public fun id(self: &BurnRegistry): ID { self.id.to_inner() }
+
 public fun burns(self: &BurnRegistry): &vector<Burn> { &self.burns }
 
 // === constructors ===
 
-fun new(
-    ctx: &mut TxContext,
-): BurnRegistry {
+fun new(ctx: &mut TxContext): BurnRegistry {
     BurnRegistry {
         id: object::new(ctx),
         burns: vector::empty(),
@@ -49,9 +43,7 @@ fun init(_otw: BBB_BURN_REGISTRY, ctx: &mut TxContext) {
 
 /// Get the burn for `CoinType`.
 /// Errors if not found.
-public fun get<CoinType>(
-    self: &BurnRegistry,
-): BurnPromise {
+public fun get<CoinType>(self: &BurnRegistry): BurnPromise {
     let coin_type = type_name::get<CoinType>();
     let idx = self.burns.find_index!(|burn| {
         burn.coin_type() == coin_type
@@ -66,11 +58,7 @@ public fun get<CoinType>(
 
 /// Add a burn for `CoinType`.
 /// Errors if the coin type already exists.
-public fun add(
-    self: &mut BurnRegistry,
-    _cap: &BBBAdminCap,
-    burn: Burn,
-) {
+public fun add(self: &mut BurnRegistry, _cap: &BBBAdminCap, burn: Burn) {
     let already_exists = self.burns.any!(|existing| {
         existing.coin_type() == burn.coin_type()
     });
@@ -81,10 +69,7 @@ public fun add(
 
 /// Remove the burn for `CoinType`.
 /// Errors if the coin type does not exist.
-public fun remove<CoinType>(
-    self: &mut BurnRegistry,
-    _cap: &BBBAdminCap,
-) {
+public fun remove<CoinType>(self: &mut BurnRegistry, _cap: &BBBAdminCap) {
     let idx = self.burns.find_index!(|existing| {
         existing.coin_type() == type_name::get<CoinType>()
     });
@@ -94,18 +79,13 @@ public fun remove<CoinType>(
 }
 
 /// Remove all burns.
-public fun remove_all(
-    self: &mut BurnRegistry,
-    _cap: &BBBAdminCap,
-) {
+public fun remove_all(self: &mut BurnRegistry, _cap: &BBBAdminCap) {
     self.burns = vector::empty();
 }
 
 // === test functions ===
 
 #[test_only]
-public fun new_for_testing(
-    ctx: &mut TxContext,
-): BurnRegistry {
+public fun new_for_testing(ctx: &mut TxContext): BurnRegistry {
     new(ctx)
 }

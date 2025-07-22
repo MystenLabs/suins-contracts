@@ -1,12 +1,7 @@
 module suins_bbb::bbb_pyth;
 
-use sui::{
-    clock::Clock,
-};
-use pyth::{
-    price_info::PriceInfoObject,
-    pyth::Self,
-};
+use pyth::{price_info::PriceInfoObject, pyth};
+use sui::clock::Clock;
 
 const EInvalidPriceIn: u64 = 1000;
 const EInvalidPriceOut: u64 = 1001;

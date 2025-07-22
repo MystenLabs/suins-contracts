@@ -1,14 +1,12 @@
 #[test_only]
 module suins_bbb::bbb_burn_registry_tests;
 
-use sui::{
-    test_utils::{assert_eq, destroy},
-};
+use sui::test_utils::{assert_eq, destroy};
 use suins_bbb::{
-    bbb_admin::{BBBAdminCap, Self},
-    bbb_burn::{Self},
-    bbb_burn_registry::{BurnRegistry, Self},
-    fakecoin::{FAKECOIN},
+    bbb_admin::{Self, BBBAdminCap},
+    bbb_burn,
+    bbb_burn_registry::{Self, BurnRegistry},
+    fakecoin::FAKECOIN
 };
 
 #[test]
