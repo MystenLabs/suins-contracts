@@ -4,8 +4,13 @@
 #[test_only]
 module suins_payments::payments_tests;
 
-use std::{string::utf8, type_name};
-use sui::{coin::{Self, CoinMetadata}, test_scenario::{Self as ts, ctx}, test_utils::destroy};
+use std::{string::utf8, type_name::{Self, TypeName}};
+use sui::{
+    balance::Balance,
+    coin::{Self, CoinMetadata},
+    test_scenario::{Self as ts, ctx},
+    test_utils::{assert_eq, destroy}
+};
 use suins::{payment, payment_tests::setup_suins, suins::{Self, SuiNS, AdminCap}};
 use suins_bbb::bbb_vault::{Self, BBBVault};
 use suins_payments::{
@@ -167,11 +172,12 @@ fun test_add_payment_config() {
     setups.push_back(usdc_type_data);
     setups.push_back(ns_type_data);
 
+    let burn_bps = 80_00; // 80%
     let config = new_payments_config(
         setups,
         type_name::get<TESTUSDC>(),
         60, // max_age: 1 minute
-        80_00, // burn_bps: 80%
+        burn_bps,
     );
 
     admin_cap.add_config<PaymentsConfig>(&mut suins, config);
@@ -190,6 +196,15 @@ fun test_add_payment_config() {
         coin::mint_for_testing<TESTUSDC>(20, test.ctx()),
         test.ctx(),
     );
+
+    // vault should have received a percentage of the payment
+    test.next_tx(SUINS_ADDRESS);
+    assert_eq(bbb_vault.balances().length(), 1);
+    let balance = bbb_vault
+        .balances()
+        .borrow<TypeName, Balance<TESTUSDC>>(type_name::get<TESTUSDC>());
+    let expected_value = 20 * burn_bps / 100_00;
+    assert_eq(balance.value(), expected_value);
 
     test.return_to_sender(usdc_metadata);
     test.return_to_sender(ns_metadata);
