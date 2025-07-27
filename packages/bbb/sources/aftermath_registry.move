@@ -48,9 +48,11 @@ fun init(_otw: BBB_AFTERMATH_REGISTRY, ctx: &mut TxContext) {
 /// Get the swap that converts `CoinIn` to `CoinOut`.
 /// Errors if not found.
 public fun get<CoinIn, CoinOut>(self: &AftermathRegistry): AftermathSwapPromise {
+    let type_in = type_name::get<CoinIn>();
+    let type_out = type_name::get<CoinOut>();
     let idx = self.swaps.find_index!(|swap| {
-        swap.type_in() == type_name::get<CoinIn>() &&
-        swap.type_out() == type_name::get<CoinOut>()
+        swap.type_in() == type_in &&
+        swap.type_out() == type_out
     });
     assert!(idx.is_some(), EAftermathSwapNotFound);
     bbb_aftermath_swap::new_promise(
@@ -68,19 +70,19 @@ public fun add(self: &mut AftermathRegistry, _cap: &BBBAdminCap, swap: Aftermath
         old.type_out() == swap.type_out()
     });
     assert!(!already_exists, EAftermathSwapAlreadyExists);
-
     self.swaps.push_back(swap);
 }
 
 /// Remove a swap from the registry.
 /// Errors if the coin pair doesn't exist in the registry.
 public fun remove<CoinIn, CoinOut>(self: &mut AftermathRegistry, _cap: &BBBAdminCap) {
+    let type_in = type_name::get<CoinIn>();
+    let type_out = type_name::get<CoinOut>();
     let idx = self.swaps.find_index!(|swap| {
-        swap.type_in() == type_name::get<CoinIn>() &&
-        swap.type_out() == type_name::get<CoinOut>()
+        swap.type_in() == type_in &&
+        swap.type_out() == type_out
     });
     assert!(idx.is_some(), EAftermathSwapNotFound);
-
     self.swaps.swap_remove(idx.destroy_some());
 }
 

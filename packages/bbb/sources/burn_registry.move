@@ -56,29 +56,28 @@ public fun get<CoinType>(self: &BurnRegistry): BurnPromise {
 
 // === admin functions ===
 
-/// Add a burn for `CoinType`.
+/// Add a burn for `CoinType` to the registry.
 /// Errors if the coin type already exists.
 public fun add(self: &mut BurnRegistry, _cap: &BBBAdminCap, burn: Burn) {
-    let already_exists = self.burns.any!(|existing| {
-        existing.coin_type() == burn.coin_type()
+    let already_exists = self.burns.any!(|old| {
+        old.coin_type() == burn.coin_type()
     });
     assert!(!already_exists, EBurnTypeAlreadyExists);
-
     self.burns.push_back(burn);
 }
 
-/// Remove the burn for `CoinType`.
+/// Remove the burn for `CoinType` from the registry.
 /// Errors if the coin type does not exist.
 public fun remove<CoinType>(self: &mut BurnRegistry, _cap: &BBBAdminCap) {
-    let idx = self.burns.find_index!(|existing| {
-        existing.coin_type() == type_name::get<CoinType>()
+    let coin_type = type_name::get<CoinType>();
+    let idx = self.burns.find_index!(|burn| {
+        burn.coin_type() == coin_type
     });
     assert!(idx.is_some(), EBurnTypeNotFound);
-
     self.burns.swap_remove(idx.destroy_some());
 }
 
-/// Remove all burns.
+/// Remove all burns from the registry.
 public fun remove_all(self: &mut BurnRegistry, _cap: &BBBAdminCap) {
     self.burns = vector::empty();
 }

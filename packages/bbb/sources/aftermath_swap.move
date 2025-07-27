@@ -132,6 +132,7 @@ public(package) fun new_promise(swap: AftermathSwap): AftermathSwapPromise {
 /// Swap the `CoinIn` in the vault for an equal-valued amount of `CoinOut`,
 /// and deposit the resulting `CoinOut` into the vault.
 /// Uses Aftermath's AMM. Protocol fees are charged on the `CoinIn` being swapped.
+/// Anybody can execute the swap.
 public fun swap<L, CoinIn, CoinOut>(
     // ours
     promise: AftermathSwapPromise,
@@ -155,17 +156,17 @@ public fun swap<L, CoinIn, CoinOut>(
     // check that Pyth price feeds match the config
     let feed_id_in = info_in.get_price_info_from_price_info_object().get_price_identifier();
     let feed_id_out = info_out.get_price_info_from_price_info_object().get_price_identifier();
-    assert!(feed_id_in.get_bytes() == self.feed_in(), EFeedInMismatch);
-    assert!(feed_id_out.get_bytes() == self.feed_out(), EFeedOutMismatch);
+    assert!(feed_id_in.get_bytes() == self.feed_in, EFeedInMismatch);
+    assert!(feed_id_out.get_bytes() == self.feed_out, EFeedOutMismatch);
 
     // check that Aftermath pool matches the config
-    assert!(object::id(pool) == self.pool_id(), EInvalidPool);
+    assert!(object::id(pool) == self.pool_id, EInvalidPool);
 
     // check that coin types match the config
     let type_in = type_name::get<CoinIn>();
     let type_out = type_name::get<CoinOut>();
-    assert!(type_in == self.type_in(), EInvalidCoinInType);
-    assert!(type_out == self.type_out(), EInvalidCoinOutType);
+    assert!(type_in == self.type_in, EInvalidCoinInType);
+    assert!(type_out == self.type_out, EInvalidCoinOutType);
 
     // withdraw all CoinIn from vault
     let coin_in = vault.withdraw<CoinIn>().into_coin(ctx);

@@ -132,9 +132,19 @@ public(package) fun new_promise(swap: CetusSwap): CetusSwapPromise {
 
 // === public functions ===
 
+/// Get the input and output coin types based on the `a2b` flag.
+public fun input_output_types(swap: &CetusSwap): (&TypeName, &TypeName) {
+    if (swap.a2b) {
+        (&swap.type_a, &swap.type_b)
+    } else {
+        (&swap.type_b, &swap.type_a)
+    }
+}
+
 /// Swap `CoinA` in the vault for `CoinB` or vice versa, depending on `a2b`,
 /// and deposit the resulting coin into the vault.
 /// Uses Cetus's AMM. Protocol fees are charged on the coin being swapped.
+/// Anybody can execute the swap.
 public fun swap<CoinA, CoinB>(
     // ours
     promise: CetusSwapPromise,
@@ -154,17 +164,17 @@ public fun swap<CoinA, CoinB>(
     // check that Pyth price feeds match the config
     let feed_id_a = info_a.get_price_info_from_price_info_object().get_price_identifier();
     let feed_id_b = info_b.get_price_info_from_price_info_object().get_price_identifier();
-    assert!(feed_id_a.get_bytes() == self.feed_a(), EFeedInMismatch);
-    assert!(feed_id_b.get_bytes() == self.feed_b(), EFeedOutMismatch);
+    assert!(feed_id_a.get_bytes() == self.feed_a, EFeedInMismatch);
+    assert!(feed_id_b.get_bytes() == self.feed_b, EFeedOutMismatch);
 
     // check that Cetus pool matches the config
-    assert!(object::id(pool) == self.pool_id(), EInvalidPool);
+    assert!(object::id(pool) == self.pool_id, EInvalidPool);
 
     // check that coin types match the config
     let type_a = type_name::get<CoinA>();
     let type_b = type_name::get<CoinB>();
-    assert!(type_a == self.type_a(), EInvalidCoinAType);
-    assert!(type_b == self.type_b(), EInvalidCoinBType);
+    assert!(type_a == self.type_a, EInvalidCoinAType);
+    assert!(type_b == self.type_b, EInvalidCoinBType);
 
     if (self.a2b) {
         // withdraw all CoinA from vault
@@ -246,15 +256,6 @@ public fun swap<CoinA, CoinB>(
             amount_out: amount_out_a,
             expected_out: expected_a,
         });
-    }
-}
-
-/// Get the input and output coin types based on the `a2b` flag.
-public fun input_output_types(swap: &CetusSwap): (&TypeName, &TypeName) {
-    if (swap.a2b()) {
-        (swap.type_a(), swap.type_b())
-    } else {
-        (swap.type_b(), swap.type_a())
     }
 }
 
