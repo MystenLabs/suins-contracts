@@ -11,7 +11,7 @@ const fundsToTreasury = async () => {
 	const config = mainPackage.mainnet;
 	const coin = '0x1fdc78834208a8f777b45a6ed0bed664cf45f32421a6d60cfa8923755ea8d87d'; // NS coin
 
-	const amountPerWallet = 7700 * 1_000_000; // NS
+	const amountPerWallet = 7400 * 1_000_000; // NS
 
 	const [coin1, coin2, coin3, coin4] = txb.splitCoins(coin, [
 		amountPerWallet,
