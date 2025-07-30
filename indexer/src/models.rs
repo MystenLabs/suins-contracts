@@ -30,6 +30,20 @@ pub struct VerifiedDomain {
     pub subdomain_wrapper_id: Option<String>,
 }
 
+impl VerifiedDomain {
+    pub fn merge(self, other: VerifiedDomain) -> VerifiedDomain {
+        let (mut new, old) = if self.last_checkpoint_updated > other.last_checkpoint_updated {
+            (self, other)
+        } else {
+            (other, self)
+        };
+        if new.subdomain_wrapper_id.is_none() {
+            new.subdomain_wrapper_id = old.subdomain_wrapper_id;
+        }
+        new
+    }
+}
+
 #[derive(FieldCount, Clone)]
 pub struct SuinsCheckpointData {
     pub updates: Vec<VerifiedDomain>,
