@@ -1,0 +1,77 @@
+module suins_bbb::bbb_burn;
+
+use std::{ascii::String, type_name::{Self, TypeName}};
+use sui::event::emit;
+use suins_bbb::{bbb_admin::BBBAdminCap, bbb_vault::BBBVault};
+
+// === errors ===
+
+const EInvalidCoinType: u64 = 1000;
+
+// === constants ===
+
+public(package) macro fun burn_address(): address {
+    @0x0
+}
+
+// === events ===
+
+public struct BurnEvent has copy, drop {
+    coin_type: String,
+    amount: u64,
+}
+
+// === structs ===
+
+/// Coin burn configuration.
+/// Grants the right to burn `Balance<coin_type>` in the vault.
+/// Only the admin can create it.
+public struct Burn has copy, drop, store {
+    coin_type: TypeName,
+}
+
+/// Hot potato to ensure the Burn is used within the same tx
+public struct BurnPromise {
+    burn: Burn,
+}
+
+// === accessors ===
+
+public fun coin_type(self: &Burn): &TypeName { &self.coin_type }
+
+public fun inner(promise: &BurnPromise): &Burn { &promise.burn }
+
+// === constructors ===
+
+public fun new<C>(_cap: &BBBAdminCap): Burn {
+    Burn { coin_type: type_name::get<C>() }
+}
+
+public(package) fun new_promise(burn: Burn): BurnPromise {
+    BurnPromise { burn }
+}
+
+// === public functions ===
+
+/// Burn all `Balance<C>` in the vault by sending it to the burn address.
+public fun burn<C>(promise: BurnPromise, vault: &mut BBBVault, ctx: &mut TxContext) {
+    let BurnPromise { burn: self } = promise;
+    let coin_type = type_name::get<C>();
+    assert!(coin_type == self.coin_type, EInvalidCoinType);
+
+    let balance = vault.withdraw<C>();
+    if (balance.value() == 0) {
+        balance.destroy_zero();
+        return
+    };
+
+    emit(BurnEvent {
+        coin_type: coin_type.into_string(),
+        amount: balance.value(),
+    });
+
+    transfer::public_transfer(
+        balance.into_coin(ctx),
+        burn_address!(),
+    )
+}
