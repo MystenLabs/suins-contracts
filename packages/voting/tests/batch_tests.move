@@ -10,6 +10,7 @@ use suins_voting::{
     constants::{month_ms},
     staking_admin::{StakingAdminCap},
     staking_batch::{Self, StakingBatch},
+    staking_config::{Self as cnf},
     test_utils::{setup, setup_default_config, admin_addr},
 };
 
@@ -422,9 +423,9 @@ fun test_lock_e_cooldown_already_requested() {
 #[test, expected_failure(abort_code = staking_batch::ELockPeriodNotAboveCurrent)]
 fun test_lock_e_lock_period_not_above_current() {
     let mut setup = setup();
-    let mut batch = setup.batch__new__min_bal(6);
+    let mut batch = setup.batch__new__min_bal(cnf::min_max_lock_months!());
     // try to extend lock with a shorter period
-    batch.lock(setup.config(), 3, setup.clock());
+    batch.lock(setup.config(), cnf::min_max_lock_months!() - 1, setup.clock());
     abort 123
 }
 
@@ -442,9 +443,9 @@ fun test_lock_e_lock_period_above_max() {
 fun test_lock_e_lock_period_must_end_in_future() {
     let mut setup = setup();
     let mut batch = setup.batch__new__min_bal(0);
-    setup.add_time(month_ms!() * 4);
+    setup.add_time(month_ms!());
     // try to lock with a unlock_ms == now
-    batch.lock(setup.config(), 4, setup.clock());
+    batch.lock(setup.config(), 1, setup.clock());
     abort 123
 }
 
