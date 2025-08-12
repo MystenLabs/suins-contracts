@@ -18,7 +18,7 @@ https://github.com/juzybits/suins-governance
 But we should merge it into:
 https://github.com/sui-foundation/suins-governance
 
-## Deployment process
+## Publish to mainnet
 
 This is a new package, not an upgrade (we reused a lot of the original governance code, but some changes are not backwards compatible).
 
@@ -43,6 +43,8 @@ Publishing the contract gives you these admin objects:
   - Grants the power to configure staking parameters (`config::{set_cooldown_ms|set_max_lock_months|set_max_boost_bps|set_monthly_boost_bps|set_min_balance|set_all}`).
   - Grants the power to create and transfer staked `Batch` objects with an arbitrary start time (`batch::admin_new`). This is required to execute the airdrop (see `${app_repo}/scripts/`).
 
+## Update the app
+
 Update `SUINS_PACKAGES.mainnet` in the app config `${app_repo}/src/constants/endpoints.ts`:
 - `votingPkgId`: the published packageId.
 - `governanceObjId`: the created `…::governance::NSGovernance` objectId.
@@ -51,3 +53,7 @@ Update `SUINS_PACKAGES.mainnet` in the app config `${app_repo}/src/constants/end
 - `coinType`: remains the same.
 
 When ready, deploy the app in production.
+
+## Execute the airdrop
+
+See [${app_repo}/scripts/README.md](https://github.com/juzybits/suins-governance/tree/staking/scripts).
