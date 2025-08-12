@@ -37,6 +37,10 @@ use suins::{
 use suins_denylist::denylist;
 use suins_subdomains::config::{Self, SubDomainConfig};
 
+const AVATAR: vector<u8> = b"avatar";
+const CONTENT_HASH: vector<u8> = b"content_hash";
+const WALRUS_SITE_ID: vector<u8> = b"walrus_site_id";
+
 /// Tries to create a subdomain that expires later than the parent or below the minimum.
 const EInvalidExpirationDate: u64 = 1;
 /// Tries to create a subdomain with a parent that is not allowed to do so.
@@ -49,6 +53,10 @@ const ESubdomainReplaced: u64 = 4;
 const EParentChanged: u64 = 5;
 /// Checks whether a name is allowed or not (against blocked names list)
 const ENotAllowedName: u64 = 6;
+/// Checks whether a key is supported or not (e.g. avatar, content_hash, etc).
+const EUnsupportedKey: u64 = 7;
+/// Checks whether the subdomain is a leaf record.
+const ENotLeafRecord: u64 = 8;
 
 /// Enabled metadata value.
 const ACTIVE_METADATA_VALUE: vector<u8> = b"1";
@@ -95,6 +103,52 @@ public fun remove_leaf(
     internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, false);
 
     registry_mut(suins).remove_leaf_record(subdomain)
+}
+
+public fun add_leaf_metadata(
+    suins: &mut SuiNS,
+    parent: &SuinsRegistration,
+    clock: &Clock,
+    subdomain_name: String,
+    key: String,
+    value: String,
+) {
+    let subdomain = domain::new(subdomain_name);
+    assert!(is_leaf_record(registry(suins), subdomain), ENotLeafRecord);
+    // all validation logic for subdomain creation / management.
+    internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, false);
+
+    let registry = registry_mut(suins);
+    let mut data = *registry.get_data(subdomain);
+    let key_bytes = *key.as_bytes();
+    assert!(
+        key_bytes == AVATAR || key_bytes == CONTENT_HASH || key_bytes == WALRUS_SITE_ID,
+        EUnsupportedKey,
+    );
+    data.insert(key, value);
+
+    registry.set_data(subdomain, data);
+}
+
+public fun remove_leaf_metadata(
+    suins: &mut SuiNS,
+    parent: &SuinsRegistration,
+    clock: &Clock,
+    subdomain_name: String,
+    key: String,
+) {
+    let subdomain = domain::new(subdomain_name);
+    assert!(is_leaf_record(registry(suins), subdomain), ENotLeafRecord);
+    // all validation logic for subdomain creation / management.
+    internal_validate_nft_can_manage_subdomain(suins, parent, clock, subdomain, false);
+
+    let registry = registry_mut(suins);
+    let mut data = *registry.get_data(subdomain);
+    if (data.contains(&key)) {
+        data.remove(&key);
+    };
+
+    registry.set_data(subdomain, data);
 }
 
 /// Creates a new `node` subdomain
@@ -332,6 +386,20 @@ fun internal_create_subdomain(
     df::add(nft.uid_mut(), ParentKey {}, parent_nft_id);
 
     registry.wrap_subdomain(nft, clock, ctx)
+}
+
+fun is_leaf_record(self: &Registry, domain: Domain): bool {
+    if (!domain.is_subdomain()) {
+        return false
+    };
+
+    let option_name_record = self.lookup(domain);
+
+    if (option_name_record.is_none()) {
+        return false
+    };
+
+    option_name_record.borrow().is_leaf_record()
 }
 
 // == Internal helper to access registry & app setup ==

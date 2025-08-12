@@ -12,8 +12,8 @@ use sui_indexer_alt_framework::FieldCount;
 use sui_name_service::Domain as NsDomain;
 use sui_types::base_types::ObjectID;
 
-move_contract! {alias = "sui", package = "0x2"}
-move_contract! {alias = "suins", package = "@suins/core", deps = [crate::models::sui]}
+move_contract! {alias = "sui", package = "0x2", base_path = crate::models}
+move_contract! {alias = "suins", package = "@suins/core", base_path = crate::models}
 
 #[derive(Queryable, Selectable, Insertable, AsChangeset, Debug, FieldCount, Clone)]
 #[diesel(table_name = domains)]
@@ -28,6 +28,20 @@ pub struct VerifiedDomain {
     pub data: serde_json::Value,
     pub last_checkpoint_updated: i64,
     pub subdomain_wrapper_id: Option<String>,
+}
+
+impl VerifiedDomain {
+    pub fn merge(self, other: VerifiedDomain) -> VerifiedDomain {
+        let (mut new, old) = if self.last_checkpoint_updated > other.last_checkpoint_updated {
+            (self, other)
+        } else {
+            (other, self)
+        };
+        if new.subdomain_wrapper_id.is_none() {
+            new.subdomain_wrapper_id = old.subdomain_wrapper_id;
+        }
+        new
+    }
 }
 
 #[derive(FieldCount, Clone)]
