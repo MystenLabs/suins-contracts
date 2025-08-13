@@ -41,7 +41,7 @@ Publishing the contract gives you these admin objects:
 - `StakingAdminCap`:
   - A new admin cap for staking-related operations.
   - Grants the power to configure staking parameters (`config::{set_cooldown_ms|set_max_lock_months|set_max_boost_bps|set_monthly_boost_bps|set_min_balance|set_all}`).
-  - Grants the power to create and transfer staked `Batch` objects with an arbitrary start time (`batch::admin_new`). This is required to execute the airdrop (see `${app_repo}/scripts/`).
+  - Grants the power to create and transfer staked `Batch` objects with an arbitrary start time (`batch::admin_new`). This is required to execute the airdrop.
 
 ## Update the app
 
@@ -56,4 +56,6 @@ When ready, deploy the app in production.
 
 ## Execute the airdrop
 
-See [${app_repo}/scripts/README.md](https://github.com/juzybits/suins-governance/tree/staking/scripts).
+Only the `StakingAdminCap` holder can execute the airdrop.
+
+See [${app_repo}/scripts/](https://github.com/juzybits/suins-governance/tree/staking/scripts) for instructions.
