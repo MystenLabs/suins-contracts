@@ -20,6 +20,7 @@ on:
           - Create MVR Names
           - Update MVR Metadata
           - Funds to Community
+          - Transfer Suins Name
       sui_tools_image:
         description: 'image reference of sui_tools'
         default: 'mysten/sui-tools:mainnet'
@@ -214,6 +215,17 @@ jobs:
           RPC_URL: ${{ inputs.rpc }}
         run: |
           cd scripts && pnpm ts-node transactions/funds_to_community.ts
+
+      - name: Transfer Suins Name
+        if: ${{ inputs.transaction_type == 'Transfer Suins Name' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+          RPC_URL: ${{ inputs.rpc }}
+        run: |
+          cd scripts && pnpm ts-node transactions/transfer_suins_name.ts
 
       - name: Show Transaction Data (To sign)
         run: |
