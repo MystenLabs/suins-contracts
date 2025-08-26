@@ -6,13 +6,8 @@
 /// This is a simple voting mechanism, without complex actions.
 module suins_voting::early_voting;
 
-use sui::{
-    event::{emit},
-};
-use suins_voting::{
-    governance::{NSGovernance, NSGovernanceCap},
-    proposal_v2::ProposalV2,
-};
+use sui::event::emit;
+use suins_voting::{governance::{NSGovernance, NSGovernanceCap}, proposal_v2::ProposalV2};
 
 const ECannotHaveParallelProposals: u64 = 1000;
 
@@ -80,25 +75,16 @@ fun add_early_voting_proposal(
     // avoid 2 parallel proposals.
     if (early_voting.0.length() > 0) {
         let last_proposal = early_voting.0.borrow(early_voting.0.length() - 1);
-        assert!(
-            last_proposal.end_time < start_time_ms,
-            ECannotHaveParallelProposals,
-        );
+        assert!(last_proposal.end_time < start_time_ms, ECannotHaveParallelProposals);
     };
 
-    early_voting
-        .0
-        .push_back(pointer);
+    early_voting.0.push_back(pointer);
 }
 
 // === devInspect functions ===
 
 /// get proposal IDs from newest to oldest
-public(package) fun get_proposal_ids(
-    gov: &NSGovernance,
-    offset: u64,
-    limit: u64,
-): vector<address> {
+public(package) fun get_proposal_ids(gov: &NSGovernance, offset: u64, limit: u64): vector<address> {
     if (!gov.has_app<EarlyVoting>()) {
         return vector[]
     };

@@ -1,21 +1,20 @@
 module suins_voting::proposal_v2_tests;
 
-// === imports ===
-
-use sui::{
-    clock::{Self},
-    coin::{Self, Coin},
-    test_utils::{assert_eq, destroy},
-    vec_set::{Self},
-};
-use suins_token::{
-    ns::NS,
-};
+use sui::{clock, coin::{Self, Coin}, test_utils::{assert_eq, destroy}, vec_set};
+use suins_token::ns::NS;
 use suins_voting::{
     constants::{day_ms, max_voting_period_ms, min_voting_period_ms},
     proposal_v2::{Self, max_returns_per_tx},
-    voting_option::{Self, threshold_not_reached, tie_rejected},
-    test_utils::{setup, setup_default_config, random_addr, assert_owns_ns, proposal__new__end_time, reward_amount, admin_addr},
+    test_utils::{
+        setup,
+        setup_default_config,
+        random_addr,
+        assert_owns_ns,
+        proposal__new__end_time,
+        reward_amount,
+        admin_addr
+    },
+    voting_option::{Self, threshold_not_reached, tie_rejected}
 };
 
 // === constants ===
@@ -78,7 +77,10 @@ fun test_end_to_end_ok() {
     // verify voting results
     let expected_total_power = batch1_power + batch2_power + batch3_power;
     assert_eq(proposal.total_power(), expected_total_power);
-    assert_eq(*proposal.votes().get(&voting_option::new(b"Yes".to_string())), batch1_power + batch2_power);
+    assert_eq(
+        *proposal.votes().get(&voting_option::new(b"Yes".to_string())),
+        batch1_power + batch2_power,
+    );
     assert_eq(*proposal.votes().get(&voting_option::new(b"Option A".to_string())), batch3_power);
     assert_eq(*proposal.votes().get(&voting_option::new(b"No".to_string())), 0);
     assert_eq(*proposal.votes().get(&voting_option::new(b"Abstain".to_string())), 0);
@@ -184,7 +186,7 @@ fun test_user_can_vote_same_option_multiple_times_ok() {
     let user_powers = proposal.voters();
     assert_eq(
         *user_powers.borrow(USER_1).get(&voting_option::new(b"Yes".to_string())),
-        expected_power
+        expected_power,
     );
 
     destroy(proposal);
@@ -325,7 +327,7 @@ fun test_stats_ok() {
     let u1p1_ns = min_bal * 9;
     let u1p1_reward = reward_amount!() * 9 / 10;
     setup.proposal__vote__new_batch_and_keep(&mut prop1, b"Yes", min_bal * 1);
-    setup.proposal__vote__new_batch_and_keep(&mut prop1, b"No",  min_bal * 8); // bro changed his mind
+    setup.proposal__vote__new_batch_and_keep(&mut prop1, b"No", min_bal * 8); // bro changed his mind
     assert_eq(setup.stats().user_tvl(USER_1), u1p1_ns);
 
     // user_2 votes on prop1 with 1 NS
@@ -543,10 +545,8 @@ fun try_finalize_twice() {
 
     // our chance to test the non-reached threshold result too.
     assert_eq(
-        proposal
-            .winning_option()
-            .is_some_and!(|opt| opt == threshold_not_reached()),
-        true
+        proposal.winning_option().is_some_and!(|opt| opt == threshold_not_reached()),
+        true,
     );
 
     setup.proposal__finalize(&mut proposal);

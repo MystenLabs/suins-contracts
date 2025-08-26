@@ -1,33 +1,26 @@
 #[test_only]
 module suins_voting::test_utils;
 
-// === imports ===
-
-use std::{
-    string::{String},
-};
+use std::string::String;
 use sui::{
-    balance::{Balance},
+    balance::Balance,
     clock::{Self, Clock},
     coin::{Self, Coin},
-    random::{Self},
+    random,
     test_scenario::{Self as ts, Scenario},
     test_utils::{Self, assert_eq},
-    vec_set::{VecSet},
+    vec_set::VecSet
 };
-use suins_token::{
-    ns::NS,
-};
+use suins_token::ns::NS;
 use suins_voting::{
-    constants::{min_voting_period_ms},
+    constants::min_voting_period_ms,
     governance::{Self, NSGovernance},
     proposal_v2::{Self, ProposalV2},
-    staking_admin::{Self},
-    staking_admin::{StakingAdminCap},
+    staking_admin::{Self, StakingAdminCap},
     staking_batch::{Self, StakingBatch},
     staking_config::{Self, Self as cnf, StakingConfig},
     stats::{Self, Stats},
-    voting_option::{Self, VotingOption},
+    voting_option::{Self, VotingOption}
 };
 
 // === constants ===
@@ -48,11 +41,17 @@ public struct TestSetup {
 }
 
 public fun ts(setup: &TestSetup): &Scenario { &setup.ts }
+
 public fun clock(setup: &TestSetup): &Clock { &setup.clock }
+
 public fun gov(setup: &TestSetup): &NSGovernance { &setup.gov }
+
 public fun gov_mut(setup: &mut TestSetup): &mut NSGovernance { &mut setup.gov }
+
 public fun config(setup: &TestSetup): &StakingConfig { &setup.config }
+
 public fun config_mut(setup: &mut TestSetup): &mut StakingConfig { &mut setup.config }
+
 public fun stats(setup: &TestSetup): &Stats { &setup.stats }
 
 /**
@@ -88,20 +87,40 @@ fun setup_internal(random_config: bool): TestSetup {
     if (random_config) {
         let mut gen = random::new_generator_for_testing();
         let cap = ts.take_from_sender<StakingAdminCap>();
-        config.set_cooldown_ms(&cap, gen.generate_u64_in_range(
-            cnf::min_cooldown_ms!(), cnf::max_cooldown_ms!())
+        config.set_cooldown_ms(
+            &cap,
+            gen.generate_u64_in_range(
+                cnf::min_cooldown_ms!(),
+                cnf::max_cooldown_ms!(),
+            ),
         );
-        config.set_monthly_boost_bps(&cap, gen.generate_u64_in_range(
-            cnf::min_monthly_boost_bps!(), cnf::max_monthly_boost_bps!())
+        config.set_monthly_boost_bps(
+            &cap,
+            gen.generate_u64_in_range(
+                cnf::min_monthly_boost_bps!(),
+                cnf::max_monthly_boost_bps!(),
+            ),
         );
-        config.set_max_boost_bps(&cap, gen.generate_u64_in_range(
-            cnf::min_max_boost_bps!(), cnf::max_max_boost_bps!())
+        config.set_max_boost_bps(
+            &cap,
+            gen.generate_u64_in_range(
+                cnf::min_max_boost_bps!(),
+                cnf::max_max_boost_bps!(),
+            ),
         );
-        config.set_max_lock_months(&cap, gen.generate_u64_in_range(
-            cnf::min_max_lock_months!(), cnf::max_max_lock_months!())
+        config.set_max_lock_months(
+            &cap,
+            gen.generate_u64_in_range(
+                cnf::min_max_lock_months!(),
+                cnf::max_max_lock_months!(),
+            ),
         );
-        config.set_min_balance(&cap, gen.generate_u64_in_range(
-            cnf::min_min_balance!(), cnf::max_min_balance!())
+        config.set_min_balance(
+            &cap,
+            gen.generate_u64_in_range(
+                cnf::min_min_balance!(),
+                cnf::max_min_balance!(),
+            ),
         );
         ts.return_to_sender(cap);
         ts.next_tx(admin_addr!());
@@ -112,11 +131,7 @@ fun setup_internal(random_config: bool): TestSetup {
 
 // === staking_batch helpers ===
 
-public fun batch__new(
-    setup: &mut TestSetup,
-    balance: u64,
-    lock_months: u64,
-): StakingBatch {
+public fun batch__new(setup: &mut TestSetup, balance: u64, lock_months: u64): StakingBatch {
     let balance = setup.mint_ns(balance);
     staking_batch::new(
         &setup.config,
@@ -128,33 +143,20 @@ public fun batch__new(
     )
 }
 
-public fun batch__new__min_bal(
-    setup: &mut TestSetup,
-    lock_months: u64,
-): StakingBatch {
+public fun batch__new__min_bal(setup: &mut TestSetup, lock_months: u64): StakingBatch {
     let balance = setup.config().min_balance();
     setup.batch__new(balance, lock_months)
 }
 
-public fun batch__unstake(
-    setup: &mut TestSetup,
-    batch: StakingBatch,
-): Balance<NS> {
+public fun batch__unstake(setup: &mut TestSetup, batch: StakingBatch): Balance<NS> {
     batch.unstake(&mut setup.stats, &setup.clock, setup.ts.ctx())
 }
 
-public fun batch__keep(
-    setup: &mut TestSetup,
-    batch: StakingBatch,
-) {
+public fun batch__keep(setup: &mut TestSetup, batch: StakingBatch) {
     batch.keep(setup.ts.ctx());
 }
 
-public fun assert_power(
-    setup: &TestSetup,
-    batch: &StakingBatch,
-    expected_power: u64,
-) {
+public fun assert_power(setup: &TestSetup, batch: &StakingBatch, expected_power: u64) {
     assert_eq(expected_power, batch.power(&setup.config, &setup.clock));
 }
 
@@ -199,7 +201,7 @@ public fun proposal__new(
         options,
         reward_coin,
         &setup.clock,
-        setup.ts.ctx()
+        setup.ts.ctx(),
     )
 }
 
@@ -214,9 +216,7 @@ public fun proposal__new__end_time(
     )
 }
 
-public fun proposal__new__default(
-    setup: &mut TestSetup,
-): ProposalV2 {
+public fun proposal__new__default(setup: &mut TestSetup): ProposalV2 {
     setup.proposal__new(
         voting_option::default_options(),
         reward_amount!(),
@@ -258,24 +258,15 @@ public fun proposal__vote__new_batch_and_keep(
     batch.keep(setup.ts.ctx());
 }
 
-public fun proposal__finalize(
-    setup: &mut TestSetup,
-    proposal: &mut ProposalV2,
-) {
+public fun proposal__finalize(setup: &mut TestSetup, proposal: &mut ProposalV2) {
     proposal.finalize(&setup.clock, setup.ts.ctx());
 }
 
-public fun proposal__distribute_rewards(
-    setup: &mut TestSetup,
-    proposal: &mut ProposalV2,
-) {
+public fun proposal__distribute_rewards(setup: &mut TestSetup, proposal: &mut ProposalV2) {
     proposal.distribute_rewards(&mut setup.stats, &setup.clock, setup.ts.ctx());
 }
 
-public fun proposal__claim_reward(
-    setup: &mut TestSetup,
-    proposal: &mut ProposalV2,
-): Balance<NS> {
+public fun proposal__claim_reward(setup: &mut TestSetup, proposal: &mut ProposalV2): Balance<NS> {
     proposal.claim_reward(&mut setup.stats, &setup.clock, setup.ts.ctx())
 }
 
@@ -285,40 +276,25 @@ public fun destroy(setup: TestSetup) {
     test_utils::destroy(setup);
 }
 
-public fun mint_ns(
-    setup: &mut TestSetup,
-    value: u64,
-): Coin<NS> {
+public fun mint_ns(setup: &mut TestSetup, value: u64): Coin<NS> {
     return coin::mint_for_testing<NS>(value, setup.ts.ctx())
 }
 
-public fun assert_owns_ns(
-    setup: &mut TestSetup,
-    expected_amount: u64,
-) {
+public fun assert_owns_ns(setup: &mut TestSetup, expected_amount: u64) {
     let last_coin = setup.ts.take_from_sender<Coin<NS>>();
     assert_eq(last_coin.value(), expected_amount);
     setup.ts.return_to_sender(last_coin);
 }
 
-public fun add_time(
-    setup: &mut TestSetup,
-    ms: u64,
-) {
+public fun add_time(setup: &mut TestSetup, ms: u64) {
     setup.clock.increment_for_testing(ms);
 }
 
-public fun set_time(
-    setup: &mut TestSetup,
-    ms: u64,
-) {
+public fun set_time(setup: &mut TestSetup, ms: u64) {
     setup.clock.set_for_testing(ms);
 }
 
-public fun next_tx(
-    setup: &mut TestSetup,
-    sender: address,
-) {
+public fun next_tx(setup: &mut TestSetup, sender: address) {
     setup.ts.next_tx(sender);
 }
 

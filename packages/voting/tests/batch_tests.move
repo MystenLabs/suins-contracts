@@ -1,17 +1,13 @@
 #[test_only]
 module suins_voting::staking_batch_tests;
 
-// === imports ===
-
-use sui::{
-    test_utils::{assert_eq, destroy},
-};
+use sui::test_utils::{assert_eq, destroy};
 use suins_voting::{
-    constants::{month_ms},
-    staking_admin::{StakingAdminCap},
+    constants::month_ms,
+    staking_admin::StakingAdminCap,
     staking_batch::{Self, StakingBatch},
-    staking_config::{Self as cnf},
-    test_utils::{setup, setup_default_config, admin_addr},
+    staking_config as cnf,
+    test_utils::{setup, setup_default_config, admin_addr}
 };
 
 // === constants ===
@@ -53,7 +49,10 @@ fun test_end_to_end_ok() {
     batch.lock(setup.config(), 6, setup.clock());
     assert_eq(batch.is_locked(setup.clock()), true);
     assert_eq(batch.unlock_ms(), initial_time + 6 * month_ms!());
-    let expected_power = (balance as u128 * boost * boost * boost * boost * boost * boost / 10000 / 10000 / 10000 / 10000 / 10000 / 10000) as u64;
+    let expected_power =
+        (
+            balance as u128 * boost * boost * boost * boost * boost * boost / 10000 / 10000 / 10000 / 10000 / 10000 / 10000,
+        ) as u64;
     assert_eq(batch.power(setup.config(), setup.clock()), expected_power);
 
     // wait until lock period ends
@@ -530,7 +529,6 @@ fun test_unstake_e_batch_is_voting() {
     let _balance = setup.batch__unstake(batch);
 
     abort 123
-
 }
 
 #[test, expected_failure(abort_code = staking_batch::EVotingUntilMsInPast)]

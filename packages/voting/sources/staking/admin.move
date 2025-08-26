@@ -11,10 +11,7 @@ public struct STAKING_ADMIN has drop {}
 
 // === initialization ===
 
-fun init(
-    _otw: STAKING_ADMIN,
-    ctx: &mut TxContext,
-) {
+fun init(_otw: STAKING_ADMIN, ctx: &mut TxContext) {
     let cap = StakingAdminCap { id: object::new(ctx) };
     transfer::transfer(cap, ctx.sender());
 }
@@ -22,9 +19,7 @@ fun init(
 // === test functions ===
 
 #[test_only]
-public fun init_for_testing(
-    ctx: &mut TxContext,
-) {
+public fun init_for_testing(ctx: &mut TxContext) {
     let otw = STAKING_ADMIN {};
     init(otw, ctx);
 }

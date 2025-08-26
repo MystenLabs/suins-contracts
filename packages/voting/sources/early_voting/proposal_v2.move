@@ -1,28 +1,22 @@
 module suins_voting::proposal_v2;
 
-// === imports ===
-
-use std::{
-    string::{String},
-};
+use std::string::String;
 use sui::{
     balance::{Self, Balance},
-    clock::{Clock},
-    coin::{Coin},
+    clock::Clock,
+    coin::Coin,
     linked_table::{Self, LinkedTable},
     vec_map::{Self, VecMap},
-    vec_set::{VecSet},
+    vec_set::VecSet
 };
-use suins_token::{
-    ns::{NS},
-};
+use suins_token::ns::NS;
 use suins_voting::{
     constants::{min_voting_period_ms, max_voting_period_ms},
     leaderboard::{Self, Leaderboard},
-    staking_batch::{StakingBatch},
-    staking_config::{StakingConfig},
-    stats::{Stats},
-    voting_option::{Self, VotingOption, abstain_option},
+    staking_batch::StakingBatch,
+    staking_config::StakingConfig,
+    stats::Stats,
+    voting_option::{Self, VotingOption, abstain_option}
 };
 
 // === errors ===
@@ -48,7 +42,6 @@ public macro fun max_returns_per_tx(): u64 { 125 }
 
 public struct ProposalV2 has key {
     /* Fields identical to v1 */
-
     /// We add proposals as DOFs, so UID allows us to look them up without DF queries
     id: UID,
     /// Serial number
@@ -69,14 +62,10 @@ public struct ProposalV2 has key {
     end_time_ms: u64,
     /// Voting power per option. Determines the winning option.
     votes: VecMap<VotingOption, u64>,
-
     /* Fields modified in v2 */
-
     /// Voting power per user and option.
     voters: LinkedTable<address, VecMap<VotingOption, u64>>,
-
     /* New fields in v2 */
-
     /// Total voting power per user. Becomes empty once all rewards have been distributed.
     voter_powers: LinkedTable<address, u64>,
     /// Total voting power that voted in this proposal.
@@ -107,16 +96,10 @@ public fun new(
     ctx: &mut TxContext,
 ): ProposalV2 {
     // min voting period checks
-    assert!(
-        end_time_ms >= clock.timestamp_ms() + min_voting_period_ms!(),
-        ETooShortVotingPeriod,
-    );
+    assert!(end_time_ms >= clock.timestamp_ms() + min_voting_period_ms!(), ETooShortVotingPeriod);
 
     // max voting period checks.
-    assert!(
-        end_time_ms <= clock.timestamp_ms() + max_voting_period_ms!(),
-        ETooLongVotingPeriod,
-    );
+    assert!(end_time_ms <= clock.timestamp_ms() + max_voting_period_ms!(), ETooLongVotingPeriod);
 
     // always include the abstain option in all proposals.
     if (!options.contains(&abstain_option())) {
@@ -127,10 +110,7 @@ public fun new(
 
     let mut votes: VecMap<VotingOption, u64> = vec_map::empty();
 
-    let mut vote_leaderboards: VecMap<
-        VotingOption,
-        Leaderboard,
-    > = vec_map::empty();
+    let mut vote_leaderboards: VecMap<VotingOption, Leaderboard> = vec_map::empty();
 
     options.into_keys().do!(|opt| {
         votes.insert(opt, 0);
@@ -219,11 +199,7 @@ public fun vote(
 /// Finalize the proposal after the end time is reached and the threshold is
 /// reached. The winning option is the one with the highest votes, except for
 /// the abstain option which is ignored.
-public fun finalize(
-    proposal: &mut ProposalV2,
-    clock: &Clock,
-    ctx: &mut TxContext,
-) {
+public fun finalize(proposal: &mut ProposalV2, clock: &Clock, ctx: &mut TxContext) {
     assert!(proposal.winning_option.is_none(), EProposalAlreadyFinalized);
     proposal.finalize_internal(clock, ctx);
 }
@@ -273,10 +249,7 @@ public fun claim_reward(
 
 // === package functions ===
 
-public(package) fun is_end_time_reached(
-    proposal: &ProposalV2,
-    clock: &Clock,
-): bool {
+public(package) fun is_end_time_reached(proposal: &ProposalV2, clock: &Clock): bool {
     clock.timestamp_ms() >= proposal.end_time_ms
 }
 
@@ -351,11 +324,7 @@ fun finalize_internal(proposal: &mut ProposalV2, clock: &Clock, ctx: &mut TxCont
 }
 
 /// Remove the voter from proposal.voter_powers, and return his reward
-fun get_user_reward(
-    proposal: &mut ProposalV2,
-    stats: &mut Stats,
-    user_addr: address,
-): Balance<NS> {
+fun get_user_reward(proposal: &mut ProposalV2, stats: &mut Stats, user_addr: address): Balance<NS> {
     assert!(proposal.voter_powers.contains(user_addr), EVoterNotFound);
 
     let user_power = proposal.voter_powers.remove(user_addr);
@@ -371,10 +340,7 @@ fun get_user_reward(
 }
 
 /// A voter's reward is proportional to their share of the total voting power.
-fun calculate_reward(
-    proposal: &ProposalV2,
-    user_power: u64,
-): u64 {
+fun calculate_reward(proposal: &ProposalV2, user_power: u64): u64 {
     if (proposal.total_power == 0) return 0;
     let total_reward = proposal.total_reward as u128;
     let total_power = proposal.total_power as u128;
@@ -385,18 +351,39 @@ fun calculate_reward(
 // === accessors ===
 
 public fun id(proposal: &ProposalV2): ID { proposal.id.to_inner() }
+
 public fun serial_no(proposal: &ProposalV2): u64 { proposal.serial_no }
+
 public fun threshold(proposal: &ProposalV2): u64 { proposal.threshold }
+
 public fun title(proposal: &ProposalV2): &String { &proposal.title }
+
 public fun description(proposal: &ProposalV2): &String { &proposal.description }
+
 public fun winning_option(proposal: &ProposalV2): &Option<VotingOption> { &proposal.winning_option }
-public fun vote_leaderboards(proposal: &ProposalV2): &VecMap<VotingOption, Leaderboard> { &proposal.vote_leaderboards }
+
+public fun vote_leaderboards(proposal: &ProposalV2): &VecMap<VotingOption, Leaderboard> {
+    &proposal.vote_leaderboards
+}
+
 public fun start_time_ms(proposal: &ProposalV2): u64 { proposal.start_time_ms }
+
 public fun end_time_ms(proposal: &ProposalV2): u64 { proposal.end_time_ms }
+
 public fun votes(proposal: &ProposalV2): &VecMap<VotingOption, u64> { &proposal.votes }
-public fun voters(proposal: &ProposalV2): &LinkedTable<address, VecMap<VotingOption, u64>> { &proposal.voters }
-public fun voter_powers(proposal: &ProposalV2): &LinkedTable<address, u64> { &proposal.voter_powers }
+
+public fun voters(proposal: &ProposalV2): &LinkedTable<address, VecMap<VotingOption, u64>> {
+    &proposal.voters
+}
+
+public fun voter_powers(proposal: &ProposalV2): &LinkedTable<address, u64> {
+    &proposal.voter_powers
+}
+
 public fun total_power(proposal: &ProposalV2): u64 { proposal.total_power }
+
 public fun reward(proposal: &ProposalV2): &Balance<NS> { &proposal.reward }
+
 public fun total_reward(proposal: &ProposalV2): u64 { proposal.total_reward }
+
 public fun creator(proposal: &ProposalV2): address { proposal.creator }

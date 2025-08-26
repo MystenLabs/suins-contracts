@@ -1,10 +1,6 @@
 module suins_voting::stats;
 
-// === imports ===
-
-use sui::{
-    table::{Self, Table},
-};
+use sui::table::{Self, Table};
 
 // === structs ===
 
@@ -40,10 +36,7 @@ public struct STATS has drop {}
 
 // === initialization ===
 
-fun init(
-    _otw: STATS,
-    ctx: &mut TxContext,
-) {
+fun init(_otw: STATS, ctx: &mut TxContext) {
     let stats = Stats {
         id: object::new(ctx),
         tvl: 0,
@@ -54,17 +47,11 @@ fun init(
 
 // === package functions ===
 
-public(package) fun add_tvl(
-    stats: &mut Stats,
-    balance: u64,
-) {
+public(package) fun add_tvl(stats: &mut Stats, balance: u64) {
     stats.tvl = stats.tvl + balance;
 }
 
-public(package) fun sub_tvl(
-    stats: &mut Stats,
-    balance: u64,
-) {
+public(package) fun sub_tvl(stats: &mut Stats, balance: u64) {
     stats.tvl = stats.tvl - balance;
 }
 
@@ -82,11 +69,7 @@ public(package) fun add_user_tvl(
     user_stats.tvl = user_stats.tvl + balance;
 }
 
-public(package) fun sub_user_tvl(
-    stats: &mut Stats,
-    user: address,
-    balance: u64,
-) {
+public(package) fun sub_user_tvl(stats: &mut Stats, user: address, balance: u64) {
     let user_stats = stats.users.borrow_mut(user);
     user_stats.tvl = user_stats.tvl - balance;
 }
@@ -105,10 +88,15 @@ public(package) fun add_user_vote(
     let user_stats = stats.users.borrow_mut(user);
 
     if (!user_stats.proposals.contains(proposal)) {
-        user_stats.proposals.add(proposal, UserProposalStats {
-            power: 0,
-            reward: 0,
-        });
+        user_stats
+            .proposals
+            .add(
+                proposal,
+                UserProposalStats {
+                    power: 0,
+                    reward: 0,
+                },
+            );
     };
 
     let proposal_stats = user_stats.proposals.borrow_mut(proposal);
@@ -141,15 +129,13 @@ fun new_user_stats(ctx: &mut TxContext): UserStats {
 // === accessors: Stats ===
 
 public fun tvl(stats: &Stats): u64 { stats.tvl }
+
 public fun users(stats: &Stats): &Table<address, UserStats> { &stats.users }
 
 // === accessors: UserStats ===
 
 /// Total NS a user is staking + locking currently.
-public fun user_tvl(
-    stats: &Stats,
-    user: address,
-): u64 {
+public fun user_tvl(stats: &Stats, user: address): u64 {
     return if (stats.users.contains(user)) {
         stats.users.borrow(user).tvl
     } else {
@@ -158,10 +144,7 @@ public fun user_tvl(
 }
 
 /// Total NS a user earned across all proposals.
-public fun user_rewards(
-    stats: &Stats,
-    user: address,
-): u64 {
+public fun user_rewards(stats: &Stats, user: address): u64 {
     return if (stats.users.contains(user)) {
         stats.users.borrow(user).rewards
     } else {
@@ -170,11 +153,7 @@ public fun user_rewards(
 }
 
 /// The voting power and NS reward for a user's participation in a proposal.
-public fun user_proposal_stats(
-    stats: &Stats,
-    user: address,
-    proposal: address,
-): (u64, u64) {
+public fun user_proposal_stats(stats: &Stats, user: address, proposal: address): (u64, u64) {
     if (!stats.users.contains(user)) {
         return (0, 0)
     };
@@ -189,9 +168,7 @@ public fun user_proposal_stats(
 // === test functions ===
 
 #[test_only]
-public fun init_for_testing(
-    ctx: &mut TxContext,
-) {
+public fun init_for_testing(ctx: &mut TxContext) {
     let otw = STATS {};
     init(otw, ctx);
 }

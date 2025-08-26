@@ -1,23 +1,14 @@
 module suins_voting::early_voting_v2_tests;
 
-// === imports ===
-
-use sui::{
-    clock::{Self},
-    coin::{Self, Coin},
-    test_scenario::{Self as ts},
-    test_utils::{assert_eq, destroy},
-};
-use suins_token::{
-    ns::NS,
-};
+use sui::{clock, coin::{Self, Coin}, test_scenario as ts, test_utils::{assert_eq, destroy}};
+use suins_token::ns::NS;
 use suins_voting::{
-    constants::{min_voting_period_ms},
+    constants::min_voting_period_ms,
     early_voting::{Self, serial_no_offset},
     governance::{Self, NSGovernance, NSGovernanceCap},
     proposal_v2::{Self, ProposalV2},
     test_utils::{setup, admin_addr},
-    voting_option::{Self},
+    voting_option
 };
 
 // === constants ===

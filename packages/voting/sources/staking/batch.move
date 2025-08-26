@@ -1,25 +1,13 @@
 module suins_voting::staking_batch;
 
-// === imports ===
-
-use std::{
-    string::{String},
-};
-use sui::{
-    balance::{Balance},
-    clock::{Clock},
-    coin::{Coin},
-    event::{emit},
-    package::{Self},
-};
-use suins_token::{
-    ns::NS,
-};
+use std::string::String;
+use sui::{balance::Balance, clock::Clock, coin::Coin, event::emit, package};
+use suins_token::ns::NS;
 use suins_voting::{
-    constants::{month_ms},
-    staking_admin::{StakingAdminCap},
-    staking_config::{StakingConfig},
-    stats::{Stats},
+    constants::month_ms,
+    staking_admin::StakingAdminCap,
+    staking_config::StakingConfig,
+    stats::Stats
 };
 
 // === errors ===
@@ -61,10 +49,7 @@ public struct STAKING_BATCH has drop {}
 
 // === initialization ===
 
-fun init(
-    otw: STAKING_BATCH,
-    ctx: &mut TxContext,
-) {
+fun init(otw: STAKING_BATCH, ctx: &mut TxContext) {
     package::claim_and_keep(otw, ctx);
 }
 
@@ -81,7 +66,14 @@ public fun new(
 ): StakingBatch {
     let start_ms = clock.timestamp_ms();
     let batch = new_internal(
-        config, stats, ctx.sender(), coin, start_ms, lock_months, clock, ctx
+        config,
+        stats,
+        ctx.sender(),
+        coin,
+        start_ms,
+        lock_months,
+        clock,
+        ctx,
     );
 
     emit(EventNew {
@@ -95,10 +87,7 @@ public fun new(
 }
 
 /// transfer the batch to the sender
-public fun keep(
-    batch: StakingBatch,
-    ctx: &TxContext,
-) {
+public fun keep(batch: StakingBatch, ctx: &TxContext) {
     transfer::transfer(batch, ctx.sender());
 }
 
@@ -134,11 +123,7 @@ public fun lock(
 }
 
 /// Request to unstake a batch, initiating cooldown period
-public fun request_unstake(
-    batch: &mut StakingBatch,
-    config: &StakingConfig,
-    clock: &Clock,
-) {
+public fun request_unstake(batch: &mut StakingBatch, config: &StakingConfig, clock: &Clock) {
     assert!(!batch.is_voting(clock), EBatchIsVoting);
     assert!(!batch.is_locked(clock), EBatchLocked);
     assert!(!batch.is_cooldown_requested(), ECooldownAlreadyRequested);
@@ -197,7 +182,14 @@ public fun admin_new(
     ctx: &mut TxContext,
 ) {
     let batch = new_internal(
-        config, stats, recipient, coin, start_ms, lock_months, clock, ctx
+        config,
+        stats,
+        recipient,
+        coin,
+        start_ms,
+        lock_months,
+        clock,
+        ctx,
     );
     transfer::transfer(batch, recipient);
 }
@@ -216,10 +208,7 @@ public(package) fun set_voting_until_ms(
     batch.voting_until_ms = voting_until_ms;
 }
 
-public(package) fun set_last_vote(
-    batch: &mut StakingBatch,
-    last_vote: String,
-) {
+public(package) fun set_last_vote(batch: &mut StakingBatch, last_vote: String) {
     batch.last_vote = option::some(last_vote);
 }
 
@@ -257,11 +246,7 @@ fun new_internal(
 // === view functions ===
 
 /// Calculate voting power for a batch based on locking and/or staking duration
-public fun power(
-    batch: &StakingBatch,
-    config: &StakingConfig,
-    clock: &Clock,
-): u64 {
+public fun power(batch: &StakingBatch, config: &StakingConfig, clock: &Clock): u64 {
     let mut power = batch.balance.value() as u128; // base power is the NS balance
     let mut months: u64; // how many monthly boosts to apply
     let max_months = config.max_lock_months();
@@ -294,47 +279,38 @@ public fun power(
     (power as u64)
 }
 
-public fun is_locked(
-    batch: &StakingBatch,
-    clock: &Clock,
-): bool {
+public fun is_locked(batch: &StakingBatch, clock: &Clock): bool {
     clock.timestamp_ms() < batch.unlock_ms
 }
 
-public fun is_unlocked(
-    batch: &StakingBatch,
-    clock: &Clock,
-): bool {
+public fun is_unlocked(batch: &StakingBatch, clock: &Clock): bool {
     !batch.is_locked(clock)
 }
 
-public fun is_cooldown_requested(
-    batch: &StakingBatch,
-): bool {
+public fun is_cooldown_requested(batch: &StakingBatch): bool {
     batch.cooldown_end_ms > 0
 }
 
-public fun is_cooldown_over(
-    batch: &StakingBatch,
-    clock: &Clock,
-): bool {
+public fun is_cooldown_over(batch: &StakingBatch, clock: &Clock): bool {
     batch.is_cooldown_requested() && clock.timestamp_ms() >= batch.cooldown_end_ms
 }
 
-public fun is_voting(
-    batch: &StakingBatch,
-    clock: &Clock,
-): bool {
+public fun is_voting(batch: &StakingBatch, clock: &Clock): bool {
     batch.voting_until_ms > 0 && clock.timestamp_ms() < batch.voting_until_ms
 }
 
 // === accessors ===
 
 public fun balance(batch: &StakingBatch): u64 { batch.balance.value() }
+
 public fun start_ms(batch: &StakingBatch): u64 { batch.start_ms }
+
 public fun unlock_ms(batch: &StakingBatch): u64 { batch.unlock_ms }
+
 public fun cooldown_end_ms(batch: &StakingBatch): u64 { batch.cooldown_end_ms }
+
 public fun voting_until_ms(batch: &StakingBatch): u64 { batch.voting_until_ms }
+
 public fun last_vote(batch: &StakingBatch): Option<String> { batch.last_vote }
 
 // === events ===
