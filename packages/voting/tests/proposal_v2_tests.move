@@ -1,3 +1,4 @@
+#[test_only]
 module suins_voting::proposal_v2_tests;
 
 use sui::{clock, coin::{Self, Coin}, test_utils::{assert_eq, destroy}, vec_set};

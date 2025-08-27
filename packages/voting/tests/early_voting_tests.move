@@ -1,3 +1,4 @@
+#[test_only]
 module suins_voting::early_voting_v2_tests;
 
 use sui::{clock, coin::{Self, Coin}, test_scenario as ts, test_utils::{assert_eq, destroy}};
