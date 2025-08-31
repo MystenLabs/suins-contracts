@@ -6,6 +6,7 @@ use suins_token::ns::NS;
 use suins_voting::{
     constants::{day_ms, max_voting_period_ms, min_voting_period_ms},
     proposal_v2::{Self, max_returns_per_tx},
+    staking_admin::StakingAdminCap,
     test_utils::{
         setup,
         setup_default_config,
@@ -432,6 +433,8 @@ fun test_vote_e_batch_in_cooldown_requested() {
 #[test, expected_failure(abort_code = proposal_v2::EBatchInCooldown)]
 fun test_vote_e_batch_in_cooldown_completed() {
     let mut setup = setup_default_config();
+    let cap = setup.ts().take_from_sender<StakingAdminCap>();
+    setup.config_mut().set_cooldown_ms(&cap, max_voting_period_ms!() / 2);
     let mut proposal = setup.proposal__new(
         voting_option::default_options(),
         1_000_000, // 1 NS
