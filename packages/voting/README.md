@@ -23,9 +23,9 @@ plain NS coins, now voting is done with staked NS.
         - If a user has already staked tokens, they can continue to stake new tokens as a new batch of staked tokens with a starting voting power equivalent to Day 1
         - Each batch of staked tokens will be viewable on the website for the user to see an itemized view of staking power (number of tokens, staked time, current voting power)
     - Unstake / Cool Down
-        - Unstake requires 3 days cool down period
+        - Unstake requires 14 days cool down period
         - Once the cool down period has been reached the user can unstake their tokens
-        - Batches in the cool down period (3 days) or cooled down (after 3 days) cannot participate in votes
+        - Batches in the cool down period (14 days) or cooled down (after 14 days) cannot participate in votes
 - Locking
     - Users can lock their tokens from 1-12 months
         - When locking tokens the voting power of locked tokens on Day 1 and beyond is equivalent to the total lock time.
