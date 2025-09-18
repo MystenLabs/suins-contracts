@@ -12,7 +12,7 @@
     "axios": "^1.10.0",
     "axios-retry": "^4.5.0",
     "commander": "^14.0.0",
-    "zod": "^3.25.75"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.6",
