@@ -1,12 +1,12 @@
 /** Buy Back & Burn IDs */
-const bbb = { // TODO: update values for prod
-    package: "0x9f41dadb335bc56697e55cd50e3d655cb57d220ab1550f9902ce815f1b4d39d6", // dev-only
-    upgradeCapObj: "0xdffb5bb6dd79508d2f4b90984fe92f5c39579dc68425705cef8de27c7bdc9883", // dev-only
-    adminCapObj: "0xe00e38d5f22a4b798c9b9c2f2a3859777b5f404c11d375a0d2bc11f71f108025", // dev-only
-    vaultObj: "0xa60a7f5cab8c50ff51ef68e104c71699294db4f0435c5885e9fc14c5237b474d", // dev-only
-    burnRegistryObj: "0xed44e56536422aa9e7c96c865e2f68554e784ee7cb3de7f6d704d9bf4b1d8ac9", // dev-only
-    aftermathRegistryObj: "0x3737171aaa7e556f89d9ef2b7241c51dc86cfc15127fd5841f3484c3e20dc5e3", // dev-only
-    cetusRegistryObj: "0x0303763bf8d7b44a01c9f316b4438d4bc125a8c7c2b55f4d017b24abefb50202", // dev-only
+const bbb = {
+    package: "0x6268d072063a311f6f0a1db516d06d97c06a3fa6d10e797cad578937a47b3992",
+    upgradeCapObj: "0x7be6340da3af6cf40f2d77f289e178631f8c3e479167099b93769c5f1b82e6f9",
+    adminCapObj: "0x2430ecf934f041d4bca0b0c72714af45b5ab8e0cb282f5daa654854a0e537301",
+    vaultObj: "0x869f5100c0ecc0b35c7edad87ba3d488fd291bdba4a7aae84b70d188f440f393",
+    burnRegistryObj: "0xbe398195b28fe8818368a8989fdbc9304863a9892c2fd89ade79f3c9ce69f58b",
+    aftermathRegistryObj: "0x0529baaaa75c706c2674a0a3d9778e8f3c349f40d2b02c44268d817f7a03afd4",
+    cetusRegistryObj: "0x6c89c8a37e35db6ca77c78fd1abaac4151466fc167067ec0e6ddd1ceb7256c2f",
 } as const;
 
 /** Wormhole IDs */
@@ -49,7 +49,7 @@ const cetus = {
         ns_sui: {
             id: "0x763f63cbada3a932c46972c6c6dcf1abd8a9a73331908a1d7ef24c2232d85520",
         },
-    }
+    },
 } as const;
 
 /** All supported coins */
@@ -88,12 +88,14 @@ export const cnf = {
     },
     /** Aftermath swaps in the order they should be executed */
     afSwaps: {
-        USDC: { // -> SUI
+        USDC: {
+            // -> SUI
             coinIn: coins.USDC,
             coinOut: coins.SUI,
             pool: aftermath.pools.sui_usdc,
         },
-        SUI: { // -> NS
+        SUI: {
+            // -> NS
             coinIn: coins.SUI,
             coinOut: coins.NS,
             pool: aftermath.pools.sui_ns,
@@ -101,13 +103,15 @@ export const cnf = {
     },
     /** Cetus swaps in the order they should be executed */
     cetusSwaps: {
-        USDC: { // -> SUI
+        USDC: {
+            // -> SUI
             coinA: coins.USDC,
             coinB: coins.SUI,
             pool: cetus.pools.usdc_sui,
             a2b: true,
         },
-        SUI: { // -> NS
+        SUI: {
+            // -> NS
             coinA: coins.NS,
             coinB: coins.SUI,
             pool: cetus.pools.ns_sui,

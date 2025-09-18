@@ -233,12 +233,14 @@ export const newPaymentsConfig = ({
 	coinTypeAndDiscount,
 	baseCurrencyType,
 	maxAge,
+	bps,
 }: {
 	txb: Transaction;
 	packageId: string;
 	coinTypeAndDiscount: [Record<string, string>, number][]; // Array of [{type: string, metadataId: string, feed: string}, discountPercentage] pairs
 	baseCurrencyType: string;
 	maxAge: number;
+	bps: number;
 }): TransactionArgument => {
 	const coinTypeDataList: TransactionArgument[] = [];
 
@@ -268,6 +270,7 @@ export const newPaymentsConfig = ({
 			}),
 			getTypeName({ txb, coinType: baseCurrencyType }),
 			txb.pure.u64(maxAge),
+			txb.pure.u64(bps),
 		],
 	});
 };

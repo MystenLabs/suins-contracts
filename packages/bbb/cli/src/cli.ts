@@ -11,17 +11,11 @@ import { CetusRegistrySchema } from "./schema/cetus_registry.js";
 import { CetusSwapEventSchema } from "./schema/cetus_swap.js";
 import { BBBVaultSchema } from "./schema/vault.js";
 import * as sdk from "./sdk.js";
-import {
-    getPriceInfoObject,
-    logJson,
-    logTxResp,
-    newSuiClient,
-    signAndExecuteTx,
-} from "./utils.js";
+import { getPriceInfoObject, logJson, logTxResp, newSuiClient, signAndExecuteTx } from "./utils.js";
 
 // === constants ===
 
-const dryRun = true;
+const dryRun = false;
 
 const program = new Command();
 const client = newSuiClient();
@@ -112,9 +106,7 @@ program
         }
 
         const resp = await signAndExecuteTx({ tx, dryRun });
-        const createdObjs = resp.objectChanges?.filter(
-            (change) => change.type === "created",
-        );
+        const createdObjs = resp.objectChanges?.filter((change) => change.type === "created");
         logJson({
             txStatus: resp.effects?.status.status,
             txDigest: resp.digest,
@@ -173,13 +165,7 @@ program
     )
     .requiredOption("-a, --amount <amount>", 'human-readable amount (0.1 SUI = "0.1")')
     .action(
-        async ({
-            coinTicker,
-            amount,
-        }: {
-            coinTicker: keyof typeof cnf.coins;
-            amount: string;
-        }) => {
+        async ({ coinTicker, amount }: { coinTicker: keyof typeof cnf.coins; amount: string }) => {
             const coinInfo = cnf.coins[coinTicker];
             const amountNum = parseFloat(amount);
             if (Number.isNaN(amountNum) || amountNum <= 0) {
@@ -469,9 +455,7 @@ async function getBalances() {
         ids: dfPage.data.map((df) => df.objectId),
         options: { showContent: true },
     });
-    const balanceDfObjs = balanceDfResps.map((resp) =>
-        BalanceDynamicFieldSchema.parse(resp.data),
-    );
+    const balanceDfObjs = balanceDfResps.map((resp) => BalanceDynamicFieldSchema.parse(resp.data));
     return balanceDfObjs.map((bal) => ({
         ticker: bal.content.fields.name.fields.name.split("::")[2] ?? "UNKNOWN",
         balance: bal.content.fields.value,
