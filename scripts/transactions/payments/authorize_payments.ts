@@ -2,13 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Transaction } from '@mysten/sui/transactions';
-import dotenv from 'dotenv';
 
 import { mainPackage, MAX_AGE, Network } from '../../config/constants';
 import { addConfig, authorizeApp, newPaymentsConfig } from '../../init/authorization';
 import { prepareMultisigTx, signAndExecute } from '../../utils/utils';
-
-dotenv.config();
 
 export const authorize = async (network: Network) => {
 	const txb = new Transaction();
