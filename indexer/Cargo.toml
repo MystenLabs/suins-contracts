@@ -14,17 +14,17 @@ futures = "0.3.31"
 anyhow = "1.0.98"
 serde = "1.0.219"
 serde_json = "1.0.140"
-sui-indexer-alt-framework = { git = "https://github.com/MystenLabs/sui.git", rev = "cd58464d654d43c23d3615d69826bf1a58ce61c3" }
-sui-name-service = { git = "https://github.com/MystenLabs/sui.git", rev = "cd58464d654d43c23d3615d69826bf1a58ce61c3" }
+sui-indexer-alt-framework = { git = "https://github.com/MystenLabs/sui.git", rev = "7f1b81169e966fc1af6e3cbb1a3180fb577af075" }
+sui-name-service = { git = "https://github.com/MystenLabs/sui.git", rev = "7f1b81169e966fc1af6e3cbb1a3180fb577af075" }
 fastcrypto = { git = "https://github.com/MystenLabs/fastcrypto" }
 bcs = "0.1.6"
 tempfile = "3.20.0"
 
-sui-indexer-alt-metrics = { git = "https://github.com/MystenLabs/sui.git", rev = "cd58464d654d43c23d3615d69826bf1a58ce61c3" }
-telemetry-subscribers = { git = "https://github.com/MystenLabs/sui.git", rev = "cd58464d654d43c23d3615d69826bf1a58ce61c3" }
-sui-pg-db = { git = "https://github.com/MystenLabs/sui.git", rev = "cd58464d654d43c23d3615d69826bf1a58ce61c3" }
-move-core-types = { git = "https://github.com/MystenLabs/sui.git", rev = "cd58464d654d43c23d3615d69826bf1a58ce61c3" }
-sui-types = { git = "https://github.com/MystenLabs/sui.git", rev = "cd58464d654d43c23d3615d69826bf1a58ce61c3" }
+sui-indexer-alt-metrics = { git = "https://github.com/MystenLabs/sui.git", rev = "7f1b81169e966fc1af6e3cbb1a3180fb577af075" }
+telemetry-subscribers = { git = "https://github.com/MystenLabs/sui.git", rev = "7f1b81169e966fc1af6e3cbb1a3180fb577af075" }
+sui-pg-db = { git = "https://github.com/MystenLabs/sui.git", rev = "7f1b81169e966fc1af6e3cbb1a3180fb577af075" }
+move-core-types = { git = "https://github.com/MystenLabs/sui.git", rev = "7f1b81169e966fc1af6e3cbb1a3180fb577af075" }
+sui-types = { git = "https://github.com/MystenLabs/sui.git", rev = "7f1b81169e966fc1af6e3cbb1a3180fb577af075" }
 prometheus = "0.13.4"
 
 move-binding-derive = { git = "https://github.com/MystenLabs/move-binding.git", rev = "3f12e4f" }
@@ -40,7 +40,7 @@ diesel_migrations = "2.2.0"
 url = "2.5.4"
 
 [dev-dependencies]
-sui-storage = { git = "https://github.com/MystenLabs/sui.git", rev = "cd58464d654d43c23d3615d69826bf1a58ce61c3" }
+sui-storage = { git = "https://github.com/MystenLabs/sui.git", rev = "7f1b81169e966fc1af6e3cbb1a3180fb577af075" }
 sqlx = {version = "0.8.3", features = ["runtime-tokio", "postgres", "chrono"]}
 fastcrypto = { git = "https://github.com/MystenLabs/fastcrypto" }
 insta = { version = "1.43.1", features = ["json"] }
