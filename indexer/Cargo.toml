@@ -27,8 +27,8 @@ move-core-types = { git = "https://github.com/MystenLabs/sui.git", rev = "83e72a
 sui-types = { git = "https://github.com/MystenLabs/sui.git", rev = "83e72a664e8853ecc316efd70a62762a07d04177" }
 prometheus = "0.13.4"
 
-move-binding-derive = { git = "https://github.com/MystenLabs/move-binding.git", rev = "7f75c427ef0f4d5d0dfaca75c93c35365200fe33" }
-move-types = { git = "https://github.com/MystenLabs/move-binding.git", rev = "7f75c427ef0f4d5d0dfaca75c93c35365200fe33" }
+move-binding-derive = { git = "https://github.com/MystenLabs/move-binding.git", rev = "2321fec265dd2c65560b412b712429d8c993c603" }
+move-types = { git = "https://github.com/MystenLabs/move-binding.git", rev = "2321fec265dd2c65560b412b712429d8c993c603" }
 
 sui-sdk-types = { git = "https://github.com/mystenlabs/sui-rust-sdk", features = ["serde"], rev = "048124e484f14b9bf2a402227c9bc255c7621bc1" }
 sui-transaction-builder = { git = "https://github.com/mystenlabs/sui-rust-sdk", rev = "048124e484f14b9bf2a402227c9bc255c7621bc1" }

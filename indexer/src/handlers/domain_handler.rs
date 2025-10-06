@@ -114,7 +114,7 @@ impl DomainHandler {
                 })?;
                 results
                     .subdomain_wrappers
-                    .insert(sub_domain.nft.domain_name, sub_domain.id.0.to_string());
+                    .insert(sub_domain.nft.domain_name, sub_domain.id.to_string());
             };
         }
         Ok(())
