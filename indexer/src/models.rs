@@ -72,7 +72,7 @@ impl SuinsIndexerCheckpoint {
 
             let name = to_ns_domain(&name_record.name);
             let parent = name.parent().to_string();
-            let nft_id = name_record.value.nft_id.to_string();
+            let nft_id = name_record.value.nft_id.0.to_string();
 
             updates.push(VerifiedDomain {
                 field_id: field_id.to_string(),
