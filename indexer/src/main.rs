@@ -106,6 +106,7 @@ async fn main() -> Result<(), anyhow::Error> {
             rpc_password: None,
         },
         Default::default(),
+        None,
         metrics.registry(),
         cancel.clone(),
     )

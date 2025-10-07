@@ -4,12 +4,12 @@ expression: rows
 ---
 [
   {
-    "name": "test.sui",
-    "parent": "sui",
-    "expiration_timestamp_ms": "1737739567137",
+    "name": "leaf.test.sui",
+    "parent": "test.sui",
+    "expiration_timestamp_ms": "0",
     "nft_id": "0xa4891f3754b203ef230a5e2a08822c835c808eab71e2bc6ca33a73cec9728376",
-    "field_id": "0x68dab6c226642aaf11f410b1784538ec2b7a836479742f853ea58ef136d16be3",
-    "target_address": "0xfe09cf0b3d77678b99250572624bf74fe3b12af915c5db95f0ed5d755612eb68",
+    "field_id": "0x1f79de658fd87e7746ab672f018a06d1c7b4b9045a97323c140c34e6f072733e",
+    "target_address": "0x0000000000000000000000000000000000000000000000000000000000000002",
     "data": {
       "contents": []
     },
@@ -30,12 +30,12 @@ expression: rows
     "subdomain_wrapper_id": "0x5fa94f7596779f6816cbca58d25aba4e8df094d428feea304f2a151be6f95422"
   },
   {
-    "name": "leaf.test.sui",
-    "parent": "test.sui",
-    "expiration_timestamp_ms": "0",
+    "name": "test.sui",
+    "parent": "sui",
+    "expiration_timestamp_ms": "1737739567137",
     "nft_id": "0xa4891f3754b203ef230a5e2a08822c835c808eab71e2bc6ca33a73cec9728376",
-    "field_id": "0x1f79de658fd87e7746ab672f018a06d1c7b4b9045a97323c140c34e6f072733e",
-    "target_address": "0x0000000000000000000000000000000000000000000000000000000000000002",
+    "field_id": "0x68dab6c226642aaf11f410b1784538ec2b7a836479742f853ea58ef136d16be3",
+    "target_address": "0xfe09cf0b3d77678b99250572624bf74fe3b12af915c5db95f0ed5d755612eb68",
     "data": {
       "contents": []
     },

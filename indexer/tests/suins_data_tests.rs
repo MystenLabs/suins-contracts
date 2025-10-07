@@ -106,7 +106,7 @@ where
 
     // Check results by comparing database tables with snapshots
     for table in tables_to_check {
-        let rows = read_table(&table, &url.to_string()).await?;
+        let rows = read_table(&table, &url.to_string(), Some("ORDER BY name ASC")).await?;
         assert_json_snapshot!(format!("{test_name}__{table}"), rows);
     }
     Ok(())
@@ -129,9 +129,9 @@ where
 
 /// Read the entire table from database as json value.
 /// note: bytea values will be hashed to reduce output size.
-async fn read_table(table_name: &str, db_url: &str) -> Result<Vec<Value>, anyhow::Error> {
+async fn read_table(table_name: &str, db_url: &str, order_statement: Option<&str>) -> Result<Vec<Value>, anyhow::Error> {
     let pool = PgPool::connect(db_url).await?;
-    let rows = sqlx::query(&format!("SELECT * FROM {table_name}"))
+    let rows = sqlx::query(&format!("SELECT * FROM {table_name} {}", order_statement.unwrap_or("")))
         .fetch_all(&pool)
         .await?;
 
