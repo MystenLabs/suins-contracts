@@ -8,13 +8,14 @@ It is intended to be placed in suins-contracts/packages/suins/sources/auction.mo
 module suins::auction {
     use sui::table::{Self, Table};
     use sui::object_table::{Self, ObjectTable};
-    use sui::coin::Coin;
+    use sui::coin::{Self,Coin};
     use sui::sui::SUI;
     use sui::clock::Clock;
     use sui::balance::{Self, Balance};
     use sui::event;
     use suins::suins_registration::SuinsRegistration;
-    use sui::coin;
+    use suins::controller::set_target_address;
+    use suins::suins::SuiNS;
 
     /// Error codes
     const ENotOwner: u64 = 0;
@@ -201,7 +202,7 @@ module suins::auction {
     }
 
     /// Create a new auction for a domain
-    public entry fun create_auction(
+    public fun create_auction(
         auction_table: &mut AuctionTable,
         start_time: u64,
         end_time: u64,
@@ -278,7 +279,8 @@ module suins::auction {
     }
  
     /// Finalize an auction after it ends, transfer domain and funds
-    public entry fun finalize_auction(
+    public fun finalize_auction(
+        suins: &mut SuiNS,
         auction_table: &mut AuctionTable,
         domain_name: vector<u8>,
         clock: &Clock,
@@ -306,6 +308,7 @@ module suins::auction {
         let highest_bid_value = balance::value(&highest_bid_balance);
 
         if (highest_bid_balance.value() > 0) {
+            set_target_address(suins, &suins_registration, option::some(highest_bidder), clock);
             transfer::public_transfer(coin::from_balance(highest_bid_balance, ctx), owner);
             transfer::public_transfer(suins_registration, highest_bidder);
         } else {
@@ -428,9 +431,11 @@ module suins::auction {
 
     /// Accept an offer 
     public fun accept_offer(
+        suins: &mut SuiNS,
         offer_table: &mut OfferTable,
         suins_registration: SuinsRegistration, 
         address: address,
+        clock: &Clock,
         ctx: &mut TxContext
     ) : Coin<SUI>
     {
@@ -443,6 +448,7 @@ module suins::auction {
             counter_offer: _,
         } =  offer_remove(offer_table, domain_name, address);
 
+        set_target_address(suins, &suins_registration, option::some(address), clock);
         transfer::public_transfer(suins_registration, address);
 
         event::emit(OfferAcceptedEvent {
