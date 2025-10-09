@@ -1,6 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+#[test_only]
 module suins_voting::leaderboard_tests;
 
 use suins_voting::leaderboard;

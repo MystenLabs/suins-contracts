@@ -10,6 +10,7 @@ sui.log.*
 !/scripts/tx/.gitkeep
 
 **/.env
+**/.env.*
 node_modules
 tx-data.txt*
 .DS_STORE*
@@ -17,3 +18,4 @@ published.json
 constants.sdk.json
 dist
 migration.patch
+/target

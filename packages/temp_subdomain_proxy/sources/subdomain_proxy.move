@@ -69,6 +69,40 @@ public fun remove_leaf(
     );
 }
 
+public fun add_leaf_metadata(
+    suins: &mut SuiNS,
+    parent: &SubDomainRegistration,
+    clock: &Clock,
+    subdomain_name: String,
+    key: String,
+    value: String,
+) {
+    subdomains::add_leaf_metadata(
+        suins,
+        parent.nft(),
+        clock,
+        subdomain_name,
+        key,
+        value,
+    );
+}
+
+public fun remove_leaf_metadata(
+    suins: &mut SuiNS,
+    parent: &SubDomainRegistration,
+    clock: &Clock,
+    subdomain_name: String,
+    key: String,
+) {
+    subdomains::remove_leaf_metadata(
+        suins,
+        parent.nft(),
+        clock,
+        subdomain_name,
+        key,
+    );
+}
+
 public fun edit_setup(
     suins: &mut SuiNS,
     parent: &SubDomainRegistration,

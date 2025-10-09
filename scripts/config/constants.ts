@@ -86,7 +86,7 @@ export const mainPackage: Config = {
 		},
 		treasuryAddress: '0x638791b625c4482bc1b917847cdf8aa76fe226c0f3e0a9b1aa595625989e98a1',
 		payments: {
-			packageId: '0x863d5f9760f302495398c8e4c6e9784bc17c44b079c826a1813715ef08cbe41a',
+			packageId: '0xdd0a4a34152a80d7841710e916a407b2a62961eee5b2188dcfdaa24194f66286',
 		},
 		pyth: {
 			pythStateId: '0x1f9310238ee9298fb703c3419030b35b22bb1cc37113e3bb5007c99aec79e5b8',
@@ -125,9 +125,9 @@ export const mainPackage: Config = {
 			packageId: '0x7976f9bfe81dcbdbb635efb0ecb02844cd79109d3a698d05c06ca9fd2f97d262',
 			discountHouseId: '0x9f1ac0f49ddaec4fd2248ae1cc63ed91946f43a236b333439efb9126f31f8e9b',
 		},
-		subNamesPackageId: '0x3c272bc45f9157b7818ece4f7411bdfa8af46303b071aca4e18c03119c9ff636',
+		subNamesPackageId: '0x5afdc6b0c6c2821cd422f8985aea3c36acc6c76bf35520b3d7f47d1f5dc8bf54',
 		tempSubdomainsProxyPackageId:
-			'0x295a0749dae0e76126757c305f218f929df0656df66a6361f8b6c6480a943f12',
+			'0xf0c12144cb6e237a28b75368fd7a03fb2c484923a4b471da96e059f9e34edce7',
 		discord: {
 			discordCap: '',
 			discordObjectId: '',

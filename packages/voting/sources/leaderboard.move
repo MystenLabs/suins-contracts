@@ -3,8 +3,7 @@
 
 module suins_voting::leaderboard;
 
-#[error]
-const EInvalidMaxSize: vector<u8> = b"Maximum leaderboard size cannot exceed 100 entries.";
+const EInvalidMaxSize: u64 = 1000;
 
 /// The maximum number of entries in the leaderboard
 /// Added to preserve size limits.
