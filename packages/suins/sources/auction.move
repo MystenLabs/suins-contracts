@@ -40,6 +40,7 @@ module suins::auction {
 
     /// Constants
     const VERSION: u64 = 1;
+    const BID_EXTEND_TIME: u64 = 5 * 60; // 5 minutes
 
     /// Authorization witness to call protected functions of suins.
     public struct AuctionWitness has drop {}
@@ -48,7 +49,7 @@ module suins::auction {
     public struct AdminCap has key, store {
         id: UID,
     }
-    
+
     /// Core Auction struct
     public struct Auction has key, store {
         id: UID,
@@ -58,7 +59,7 @@ module suins::auction {
         min_bid: u64,
         highest_bidder: address,
         highest_bid_balance: Balance<SUI>,
-        suins_registration: SuinsRegistration, 
+        suins_registration: SuinsRegistration,
     }
 
     /// Table mapping domain to Auction
@@ -205,7 +206,7 @@ module suins::auction {
         start_time: u64,
         end_time: u64,
         min_bid: u64,
-        suins_registration: SuinsRegistration, 
+        suins_registration: SuinsRegistration,
         ctx: &mut TxContext
     ) {
         assert!(is_valid_auction_version(auction_table), EInvalidAuctionTableVersion);
@@ -259,6 +260,11 @@ module suins::auction {
         let highest_bid_value = auction.highest_bid_balance.value();
         assert!(bid_amount >= auction.min_bid && bid_amount > highest_bid_value, EBidTooLow);
 
+        // If bid in last minutes, extend auction by minutes
+        if (auction.end_time - now <= BID_EXTEND_TIME) {
+            auction.end_time = auction.end_time + BID_EXTEND_TIME;
+        };
+
         if (highest_bid_value > 0) {
             let prev_balance = auction.highest_bid_balance.withdraw_all();
             transfer::public_transfer(coin::from_balance(prev_balance, ctx), auction.highest_bidder);
@@ -275,7 +281,7 @@ module suins::auction {
             amount: bid_amount,
         });
     }
- 
+
     /// Finalize an auction after it ends, transfer domain and funds
     public fun finalize_auction(
         suins: &mut SuiNS,
@@ -376,7 +382,7 @@ module suins::auction {
         domain_name: vector<u8>,
         coin: Coin<SUI>,
         ctx: &mut TxContext
-    ) 
+    )
     {
         assert!(is_valid_offer_version(offer_table), EInvalidOfferTableVersion);
         let coin_value = coin.value();
@@ -411,7 +417,7 @@ module suins::auction {
     {
         assert!(is_valid_offer_version(offer_table), EInvalidOfferTableVersion);
 
-        let caller = tx_context::sender(ctx); 
+        let caller = tx_context::sender(ctx);
 
         let Offer {
             balance,
@@ -420,7 +426,7 @@ module suins::auction {
 
         event::emit(OfferCancelledEvent {
             domain_name,
-            address: caller, 
+            address: caller,
             value: balance.value(),
         });
 
@@ -431,7 +437,7 @@ module suins::auction {
     public fun accept_offer(
         suins: &mut SuiNS,
         offer_table: &mut OfferTable,
-        suins_registration: SuinsRegistration, 
+        suins_registration: SuinsRegistration,
         address: address,
         clock: &Clock,
         ctx: &mut TxContext
@@ -462,10 +468,10 @@ module suins::auction {
     /// Decline an offer 
     public fun decline_offer(
         offer_table: &mut OfferTable,
-        suins_registration: &SuinsRegistration, 
+        suins_registration: &SuinsRegistration,
         address: address,
         ctx: &mut TxContext
-    ) 
+    )
     {
         assert!(is_valid_offer_version(offer_table), EInvalidOfferTableVersion);
 
@@ -490,11 +496,11 @@ module suins::auction {
     /// Make a counter offer 
     public fun make_counter_offer(
         offer_table: &mut OfferTable,
-        suins_registration: &SuinsRegistration, 
+        suins_registration: &SuinsRegistration,
         address: address,
         counter_offer_value: u64,
         ctx: &mut TxContext
-    )  
+    )
     {
         assert!(is_valid_offer_version(offer_table), EInvalidOfferTableVersion);
 
@@ -522,7 +528,7 @@ module suins::auction {
     {
         assert!(is_valid_offer_version(offer_table), EInvalidOfferTableVersion);
 
-        let caller = tx_context::sender(ctx); 
+        let caller = tx_context::sender(ctx);
 
         let offer = offer_borrow_mut(offer_table, domain_name,caller);
         assert!(offer.counter_offer != 0, ENoCounterOffer);
@@ -567,7 +573,7 @@ module suins::auction {
     ):  Offer  {
         let offers = domain_offers_borrow_mut(offer_table, domain_name, address);
         let offer = offers.remove(address);
-        
+
         if (offers.length() == 0) {
             let empty_table = offer_table.table.remove(domain_name);
             table::destroy_empty(empty_table);
@@ -605,12 +611,12 @@ module suins::auction {
         init(ctx);
     }
 
-    #[test_only] 
+    #[test_only]
     public fun get_auction_table(auction_table: &AuctionTable): &ObjectTable<vector<u8>, Auction> {
         &auction_table.table
     }
 
-    #[test_only] 
+    #[test_only]
     public fun get_auction(auction_table: &ObjectTable<vector<u8>, Auction>, domain_name: vector<u8>): &Auction {
         auction_table.borrow(domain_name)
     }

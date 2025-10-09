@@ -216,7 +216,7 @@ fun auction_scenario_test() {
     // Increment the clock to auction active
     clock.increment_for_testing(TICK_INCREMENT);
 
-    // First address places a bid
+    // First address places a bid, auction time is extended
     place_bid(scenario, FIRST_ADDRESS, FIRST_DOMAIN_NAME, SUI_FIRST_BID, &clock);
 
     // Tx to check auction state
@@ -229,7 +229,7 @@ fun auction_scenario_test() {
         let auction = auction::get_auction(table, FIRST_DOMAIN_NAME);
         assert!(auction::get_owner(auction) == DOMAIN_OWNER, 0);
         assert!(auction::get_start_time(auction) == START_TIME, 0);
-        assert!(auction::get_end_time(auction) == END_TIME, 0);
+        assert!(auction::get_end_time(auction) == END_TIME + 300, 0); // auction extended by 5 minutes
         assert!(auction::get_min_bid(auction) == SUI_MIN_BID * mist_per_sui(), 0);
         assert!(auction::get_highest_bidder(auction) == FIRST_ADDRESS, 0);
         assert!(auction::get_highest_bid_balance(auction).value() == SUI_FIRST_BID * mist_per_sui(), 0);
@@ -237,7 +237,7 @@ fun auction_scenario_test() {
         test_scenario::return_shared(auction_table);
     };
 
-    // Second address places a bid
+    // Second address places a bid, auction time is not extended since clock was not incremented
     place_bid(scenario, SECOND_ADDRESS, FIRST_DOMAIN_NAME, SUI_SECOND_BID, &clock);
 
     // Tx to check auction and accounts state
@@ -250,7 +250,7 @@ fun auction_scenario_test() {
         let auction = auction::get_auction(table, FIRST_DOMAIN_NAME);
         assert!(auction::get_owner(auction) == DOMAIN_OWNER, 0);
         assert!(auction::get_start_time(auction) == START_TIME, 0);
-        assert!(auction::get_end_time(auction) == END_TIME, 0);
+        assert!(auction::get_end_time(auction) == END_TIME + 300, 0);
         assert!(auction::get_min_bid(auction) == SUI_MIN_BID * mist_per_sui(), 0);
         assert!(auction::get_highest_bidder(auction) == SECOND_ADDRESS, 0);
         assert!(auction::get_highest_bid_balance(auction).value() == SUI_SECOND_BID * mist_per_sui(), 0);
@@ -263,7 +263,7 @@ fun auction_scenario_test() {
     };
 
     // Increment the clock to over end auction time
-    clock.increment_for_testing(AUCTION_ACTIVE_TIME * MS);
+    clock.increment_for_testing((AUCTION_ACTIVE_TIME + 300) * MS);
 
     // Finalize the auction
     finalize_auction(scenario, FIRST_DOMAIN_NAME, &clock);
