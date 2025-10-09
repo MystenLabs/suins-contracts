@@ -155,7 +155,7 @@ fun place_bid(
         let payment = coin::mint_for_testing<SUI>(amount * mist_per_sui(), ctx);
         
         // Place the bid
-        auction::place_bid(
+        auction::place_bid<SUI>(
             &mut auction_table,
             domain_name,
             payment,
