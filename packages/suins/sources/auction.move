@@ -31,6 +31,19 @@ module suins::auction {
     const ECounterOfferTooLow: u64 = 11;
     const EWrongCoinValue: u64 = 12;
     const ENoCounterOffer: u64 = 13;
+    const ENotAdmin: u64 = 14;
+    const ENotUpgrade: u64 = 15;
+    const EDifferentVersions: u64 = 16;
+    const EInvalidAuctionTableVersion: u64 = 17;
+    const EInvalidOfferTableVersion: u64 = 18;
+
+    // Constants
+    const VERSION: u64 = 1;
+    
+    /// Admin Cap
+    public struct AdminCap has key {
+        id: UID,
+    }
     
     /// Core Auction struct
     public struct Auction has key, store {
@@ -47,12 +60,16 @@ module suins::auction {
     /// Table mapping domain to Auction
     public struct AuctionTable has key, store {
         id: UID,
+        version: u64,
+        admin: ID,
         table: ObjectTable<vector<u8>, Auction>,
     }
 
     /// Table mapping domain to Offers and addresses that have made Offers
     public struct OfferTable has key, store {
         id: UID,
+        version: u64,
+        admin: ID,
         table: Table<vector<u8>, Table<address, Offer>>,
     }
 
@@ -138,16 +155,49 @@ module suins::auction {
         value: u64,
     }
 
+    public struct MigrateEvent has copy, drop, store {
+        old_version: u64,
+        new_version: u64,
+    }
+
 
     fun init (ctx: &mut TxContext) {
+        let admin_cap = AdminCap {
+            id: object::new(ctx),
+        };
+        let admin_cap_id = object::id(&admin_cap);
+
         transfer::share_object(AuctionTable {
             id: object::new(ctx),
+            version: VERSION,
+            admin: admin_cap_id,
             table: object_table::new(ctx),
         });
         transfer::share_object(OfferTable {
             id: object::new(ctx),
+            version: VERSION,
+            admin: admin_cap_id,
             table: table::new(ctx),
         });
+        transfer::transfer(admin_cap, ctx.sender());
+
+    }
+
+    entry fun migrate(admin_cap: &AdminCap, auction_table: &mut AuctionTable, offer_table: &mut OfferTable) {
+        assert!(auction_table.version == offer_table.version, EDifferentVersions);     
+        let admin_cap_id = object::id(admin_cap);
+        assert!(auction_table.admin == admin_cap_id, ENotAdmin);
+        assert!(auction_table.version < VERSION, ENotUpgrade);
+        assert!(offer_table.admin == admin_cap_id, ENotAdmin);
+        assert!(offer_table.version < VERSION, ENotUpgrade);   
+        let old_version = auction_table.version;
+        auction_table.version = VERSION;
+        offer_table.version = VERSION;
+
+        MigrateEvent{
+            old_version,
+            new_version: VERSION,
+        };
     }
 
     /// Create a new auction for a domain
@@ -159,6 +209,7 @@ module suins::auction {
         suins_registration: SuinsRegistration, 
         ctx: &mut TxContext
     ) {
+        assert!(is_valid_auction_version(auction_table), EInvalidAuctionTableVersion);
         assert!(end_time > start_time, EWrongTime);
         let domain = suins_registration.domain();
         let domain_name = domain.to_string().into_bytes();
@@ -197,6 +248,7 @@ module suins::auction {
         clock: &Clock,
         ctx: &mut TxContext
     ) {
+        assert!(is_valid_auction_version(auction_table), EInvalidAuctionTableVersion);
         assert!(auction_table.table.contains(domain_name), ENotAuctioned);
 
         let auction = auction_table.table.borrow_mut(domain_name);
@@ -232,6 +284,7 @@ module suins::auction {
         clock: &Clock,
         ctx: &mut TxContext
     ) {
+        assert!(is_valid_auction_version(auction_table), EInvalidAuctionTableVersion);
         assert!(auction_table.table.contains(domain_name), ENotAuctioned);
 
         let auction = auction_table.table.remove(domain_name);
@@ -277,6 +330,7 @@ module suins::auction {
         clock: &Clock,
         ctx: &mut TxContext
     ):  SuinsRegistration {
+        assert!(is_valid_auction_version(auction_table), EInvalidAuctionTableVersion);
         assert!(auction_table.table.contains(domain_name), ENotAuctioned);
 
         let auction = auction_table.table.remove(domain_name);
@@ -323,6 +377,7 @@ module suins::auction {
         ctx: &mut TxContext
     ) 
     {
+        assert!(is_valid_offer_version(offer_table), EInvalidOfferTableVersion);
         let coin_value = coin.value();
         let caller = tx_context::sender(ctx);
         let offer = Offer {
@@ -353,6 +408,8 @@ module suins::auction {
         ctx: &mut TxContext
     ) : Coin<SUI>
     {
+        assert!(is_valid_offer_version(offer_table), EInvalidOfferTableVersion);
+
         let caller = tx_context::sender(ctx); 
 
         let Offer {
@@ -377,6 +434,8 @@ module suins::auction {
         ctx: &mut TxContext
     ) : Coin<SUI>
     {
+        assert!(is_valid_offer_version(offer_table), EInvalidOfferTableVersion);
+
         let domain = suins_registration.domain();
         let domain_name = domain.to_string().into_bytes();
         let Offer {
@@ -404,6 +463,8 @@ module suins::auction {
         ctx: &mut TxContext
     ) 
     {
+        assert!(is_valid_offer_version(offer_table), EInvalidOfferTableVersion);
+
         let domain = suins_registration.domain();
         let domain_name = domain.to_string().into_bytes();
         let Offer {
@@ -431,6 +492,8 @@ module suins::auction {
         ctx: &mut TxContext
     )  
     {
+        assert!(is_valid_offer_version(offer_table), EInvalidOfferTableVersion);
+
         let domain = suins_registration.domain();
         let domain_name = domain.to_string().into_bytes();
         let offer = offer_borrow_mut(offer_table, domain_name, address);
@@ -453,6 +516,8 @@ module suins::auction {
         ctx: &mut TxContext
     )
     {
+        assert!(is_valid_offer_version(offer_table), EInvalidOfferTableVersion);
+
         let caller = tx_context::sender(ctx); 
 
         let offer = offer_borrow_mut(offer_table, domain_name,caller);
@@ -511,6 +576,16 @@ module suins::auction {
 
         offers
     }
+
+    // Verify version
+    fun is_valid_auction_version(auction_table: &AuctionTable): bool {
+        auction_table.version == VERSION
+    }
+
+    fun is_valid_offer_version(offer_table: &OfferTable): bool {
+        offer_table.version == VERSION
+    }
+
 
     // Testing functions 
 
