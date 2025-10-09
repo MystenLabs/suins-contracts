@@ -5,7 +5,8 @@
 module suins::auction_tests 
 {
 use sui::{clock::{Self, Clock}, coin::{Self, Coin}, sui::SUI, test_scenario::{Self, Scenario}};
-use suins::{
+    use suins::suins;
+    use suins::{
     auction::{
         Self,
         AuctionTable,
@@ -16,6 +17,11 @@ use suins::{
     domain,
     suins_registration::{Self, SuinsRegistration},
 };
+use suins::register::Register;
+use suins::registry;
+use suins::controller::ControllerV2;
+use suins::suins::{AdminCap as AdminCapSuiNs, SuiNS};
+use suins::register_utils::register_util;
 
 const DOMAIN_OWNER: address = @0xA001;
 const FIRST_ADDRESS: address = @0xB001;
@@ -46,6 +52,26 @@ fun setup_test(): (Scenario, Clock) {
         auction::init_for_testing(ctx);
     };
 
+    test_scenario::next_tx(scenario, DOMAIN_OWNER);
+    {
+        let mut suins = suins::init_for_testing(scenario.ctx());
+        suins.authorize_app_for_testing<Register>();
+        suins.authorize_app_for_testing<ControllerV2>();
+        suins.share_for_testing();
+        let clock = clock::create_for_testing(scenario.ctx());
+        clock.share_for_testing();
+    };
+    test_scenario::next_tx(scenario, DOMAIN_OWNER);
+    {
+        let admin_cap = scenario.take_from_sender<AdminCapSuiNs>();
+        let mut suins = scenario.take_shared<SuiNS>();
+
+        registry::init_for_testing(&admin_cap, &mut suins, scenario.ctx());
+
+        test_scenario::return_shared(suins);
+        scenario.return_to_sender(admin_cap);
+    };
+
     (scenario_val, clock)
 }
 
@@ -56,21 +82,29 @@ fun generate_domain(
     domain_name: vector<u8>,
     clock: &Clock,
 ){
-    test_scenario::next_tx(scenario, owner);
-    {
-        let ctx = test_scenario::ctx(scenario);
-        
-        // Create the SuinsRegistration object
-        let registration = suins_registration::new_for_testing(
-            domain::new(domain_name.to_string()),
-            1, // 1 year registration
-            clock,
-            ctx
-        );
+    let nft = register_util<SUI>(
+        scenario,
+        domain_name.to_string(),
+        1,
+        50 * mist_per_sui(),
+        0,
+    );
+    transfer::public_transfer(nft, owner);
 
-        // Transfer to owner
-        transfer::public_transfer(registration, owner);
-    };
+    // {
+    //     let ctx = test_scenario::ctx(scenario);
+    //
+    //     // Create the SuinsRegistration object
+    //     let registration = suins_registration::new_for_testing(
+    //         domain::new(domain_name.to_string()),
+    //         1, // 1 year registration
+    //         clock,
+    //         ctx
+    //     );
+    //
+    //     // Transfer to owner
+    //     transfer::public_transfer(registration, owner);
+    // };
 }
 
 /// Helper function to create a new auction
@@ -143,9 +177,11 @@ fun finalize_auction(
     test_scenario::next_tx(scenario, DOMAIN_OWNER);
     {
         let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
+        let mut suins = test_scenario::take_shared<SuiNS>(scenario);
         let ctx = test_scenario::ctx(scenario);
         
         auction::finalize_auction(
+            &mut suins,
             &mut auction_table,
             domain_name,
             clock,
@@ -153,6 +189,7 @@ fun finalize_auction(
         );
 
         test_scenario::return_shared(auction_table);
+        test_scenario::return_shared(suins);
     };
 }
 
@@ -691,14 +728,17 @@ fun place_offer_counteroffer_and_accept_scenario_test()  {
     test_scenario::next_tx(scenario, DOMAIN_OWNER);
     {
         let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+        let mut suins = scenario.take_shared<SuiNS>();
         let registration = test_scenario::take_from_sender<SuinsRegistration>(scenario);
         let ctx = test_scenario::ctx(scenario);
-        
+
         // Accept the offer
         let payment = auction::accept_offer(
+            &mut suins,
             &mut offer_table,
             registration,
             FIRST_ADDRESS,
+            &clock,
             ctx
         );
 
@@ -708,6 +748,7 @@ fun place_offer_counteroffer_and_accept_scenario_test()  {
 
         // Clean up
         test_scenario::return_shared(offer_table);
+        test_scenario::return_shared(suins);
     };
 
     // Tx to check offers and accounts state

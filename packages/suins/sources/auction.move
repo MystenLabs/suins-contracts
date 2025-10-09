@@ -38,11 +38,14 @@ module suins::auction {
     const EInvalidAuctionTableVersion: u64 = 17;
     const EInvalidOfferTableVersion: u64 = 18;
 
-    // Constants
+    /// Constants
     const VERSION: u64 = 1;
-    
+
+    /// Authorization witness to call protected functions of suins.
+    public struct AuctionWitness has drop {}
+
     /// Admin Cap
-    public struct AdminCap has key {
+    public struct AdminCap has key, store {
         id: UID,
     }
     
@@ -59,18 +62,16 @@ module suins::auction {
     }
 
     /// Table mapping domain to Auction
-    public struct AuctionTable has key, store {
+    public struct AuctionTable has key {
         id: UID,
         version: u64,
-        admin: ID,
         table: ObjectTable<vector<u8>, Auction>,
     }
 
     /// Table mapping domain to Offers and addresses that have made Offers
-    public struct OfferTable has key, store {
+    public struct OfferTable has key {
         id: UID,
         version: u64,
-        admin: ID,
         table: Table<vector<u8>, Table<address, Offer>>,
     }
 
@@ -80,7 +81,7 @@ module suins::auction {
     }
 
     /// Event for auction creation
-    public struct AuctionCreatedEvent has copy, drop, store {
+    public struct AuctionCreatedEvent has copy, drop {
         auction_id: ID,
         domain_name: vector<u8>,
         owner: address,
@@ -90,7 +91,7 @@ module suins::auction {
     }
 
     /// Event for new bid
-    public struct BidPlacedEvent has copy, drop, store {
+    public struct BidPlacedEvent has copy, drop {
         auction_id: ID,
         domain_name: vector<u8>,
         bidder: address,
@@ -98,7 +99,7 @@ module suins::auction {
     }
 
     /// Event for auction finalization
-    public struct AuctionFinalizedEvent has copy, drop, store {
+    public struct AuctionFinalizedEvent has copy, drop {
         auction_id: ID,
         domain_name: vector<u8>,
         winner: address,
@@ -106,28 +107,28 @@ module suins::auction {
     }
 
     /// Event for auction cancellation
-    public struct AuctionCancelledEvent has copy, drop, store {
+    public struct AuctionCancelledEvent has copy, drop {
         auction_id: ID,
         domain_name: vector<u8>,
         owner: address,
     }
 
     /// Event for offer placement
-    public struct OfferPlacedEvent has copy, drop, store {
+    public struct OfferPlacedEvent has copy, drop {
         domain_name: vector<u8>,
         address: address,
         value: u64,
     }
 
     /// Event for offer cancellation
-    public struct OfferCancelledEvent has copy, drop, store {
+    public struct OfferCancelledEvent has copy, drop {
         domain_name: vector<u8>,
         address: address,
         value: u64,
     }
 
     /// Event for offer acceptance
-    public struct OfferAcceptedEvent has copy, drop, store {
+    public struct OfferAcceptedEvent has copy, drop {
         domain_name: vector<u8>,
         owner: address,
         buyer: address,
@@ -135,32 +136,33 @@ module suins::auction {
     }
 
     /// Event for offer declined
-    public struct OfferDeclinedEvent has copy, drop, store {
+    public struct OfferDeclinedEvent has copy, drop {
         domain_name: vector<u8>,
         owner: address,
         buyer: address,
         value: u64,
     }
 
-    /// Event for counter offer
-    public struct MakeCounterOfferEvent has copy, drop, store {
+    /// Event for make counter offer
+    public struct MakeCounterOfferEvent has copy, drop {
         domain_name: vector<u8>,
         owner: address,
         buyer: address,
         value: u64,
     }
 
-    public struct AcceptCounterOfferEvent has copy, drop, store {
+    /// Event for accept counter offer
+    public struct AcceptCounterOfferEvent has copy, drop {
         domain_name: vector<u8>,
         buyer: address,
         value: u64,
     }
 
-    public struct MigrateEvent has copy, drop, store {
+    /// Event for migrating contract
+    public struct MigrateEvent has copy, drop {
         old_version: u64,
         new_version: u64,
     }
-
 
     fun init (ctx: &mut TxContext) {
         let admin_cap = AdminCap {
@@ -171,26 +173,22 @@ module suins::auction {
         transfer::share_object(AuctionTable {
             id: object::new(ctx),
             version: VERSION,
-            admin: admin_cap_id,
             table: object_table::new(ctx),
         });
         transfer::share_object(OfferTable {
             id: object::new(ctx),
             version: VERSION,
-            admin: admin_cap_id,
             table: table::new(ctx),
         });
         transfer::transfer(admin_cap, ctx.sender());
 
     }
 
-    entry fun migrate(admin_cap: &AdminCap, auction_table: &mut AuctionTable, offer_table: &mut OfferTable) {
-        assert!(auction_table.version == offer_table.version, EDifferentVersions);     
-        let admin_cap_id = object::id(admin_cap);
-        assert!(auction_table.admin == admin_cap_id, ENotAdmin);
+    entry fun migrate(_: &AdminCap, auction_table: &mut AuctionTable, offer_table: &mut OfferTable) {
         assert!(auction_table.version < VERSION, ENotUpgrade);
-        assert!(offer_table.admin == admin_cap_id, ENotAdmin);
-        assert!(offer_table.version < VERSION, ENotUpgrade);   
+        assert!(offer_table.version < VERSION, ENotUpgrade);
+        assert!(auction_table.version == offer_table.version, EDifferentVersions);
+
         let old_version = auction_table.version;
         auction_table.version = VERSION;
         offer_table.version = VERSION;
@@ -540,6 +538,14 @@ module suins::auction {
         });
     }
 
+    // Can be used by the owner to get a mutate reference for the SuinsRegistration in case it expires so it can update it directly
+    public fun get_suins_registration_from_auction(auction: &mut Auction, ctx: &mut TxContext): &mut SuinsRegistration {
+        let caller = tx_context::sender(ctx);
+        assert!(auction.owner == caller, ENotOwner);
+
+        &mut auction.suins_registration
+    }
+
     // Private functions 
 
     // Get mutable reference to offer from storage
@@ -591,7 +597,6 @@ module suins::auction {
     fun is_valid_offer_version(offer_table: &OfferTable): bool {
         offer_table.version == VERSION
     }
-
 
     // Testing functions 
 
