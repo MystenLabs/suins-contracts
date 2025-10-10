@@ -332,6 +332,7 @@ impl OfferEventsHandlerPipeline {
                     value: offer_event.value.to_string(),
                     created_at,
                     tx_digest: tx_digest.to_string(),
+                    token: offer_event.token.to_string(),
                 };
 
                 return Ok(Some(OfferEventModel::Placed(offer)));
@@ -344,6 +345,7 @@ impl OfferEventsHandlerPipeline {
                     value: cancel_event.value.to_string(),
                     created_at,
                     tx_digest: tx_digest.to_string(),
+                    token: cancel_event.token.to_string(),
                 };
 
                 return Ok(Some(OfferEventModel::Cancelled(cancellation)));
@@ -357,6 +359,7 @@ impl OfferEventsHandlerPipeline {
                     value: accepted_event.value.to_string(),
                     created_at,
                     tx_digest: tx_digest.to_string(),
+                    token: accepted_event.token.to_string(),
                 };
 
                 return Ok(Some(OfferEventModel::Accepted(accepted)));
@@ -370,6 +373,7 @@ impl OfferEventsHandlerPipeline {
                     value: declined_event.value.to_string(),
                     created_at,
                     tx_digest: tx_digest.to_string(),
+                    token: declined_event.token.to_string(),
                 };
 
                 return Ok(Some(OfferEventModel::Declined(decline)));
@@ -384,6 +388,7 @@ impl OfferEventsHandlerPipeline {
                     value: make_counter_offer_event.value.to_string(),
                     created_at,
                     tx_digest: tx_digest.to_string(),
+                    token: make_counter_offer_event.token.to_string(),
                 };
 
                 return Ok(Some(OfferEventModel::MakeCounterOffer(make_counter_offer)));
@@ -397,6 +402,7 @@ impl OfferEventsHandlerPipeline {
                     value: accept_counter_offer_event.value.to_string(),
                     created_at,
                     tx_digest: tx_digest.to_string(),
+                    token: accept_counter_offer_event.token.to_string(),
                 };
 
                 return Ok(Some(OfferEventModel::AcceptCounterOffer(accept_counter_offer)));

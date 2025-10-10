@@ -11,9 +11,9 @@ use diesel::{ExpressionMethods, QueryDsl};
 use diesel_async::RunQueryDsl;
 use log::{error, info};
 use std::sync::Arc;
-use sui_indexer_alt_framework::postgres::{Connection, Db};
 use sui_indexer_alt_framework::pipeline::sequential::Handler;
 use sui_indexer_alt_framework::pipeline::Processor;
+use sui_indexer_alt_framework::postgres::{Connection, Db};
 use sui_indexer_alt_framework::types::full_checkpoint_content::CheckpointData;
 use sui_indexer_alt_framework::FieldCount;
 use sui_indexer_alt_framework::Result;
@@ -130,6 +130,7 @@ impl Handler for AuctionsHandlerPipeline {
                             updated_at: value.created_at,
                             created_at: value.created_at,
                             last_tx_digest: value.tx_digest.clone(),
+                            token: created_event.token.to_string(),
                         }])
                         .execute(conn)
                         .await
@@ -144,8 +145,9 @@ impl Handler for AuctionsHandlerPipeline {
                     );
 
                     diesel::update(
-                        auctions::table
-                            .filter(auctions::auction_id.eq(auction_cancelled.auction_id.to_string())),
+                        auctions::table.filter(
+                            auctions::auction_id.eq(auction_cancelled.auction_id.to_string()),
+                        ),
                     )
                     .set(UpdateAuction {
                         winner: None,
@@ -166,8 +168,9 @@ impl Handler for AuctionsHandlerPipeline {
                     );
 
                     diesel::update(
-                        auctions::table
-                            .filter(auctions::auction_id.eq(auction_finalized.auction_id.to_string())),
+                        auctions::table.filter(
+                            auctions::auction_id.eq(auction_finalized.auction_id.to_string()),
+                        ),
                     )
                     .set(UpdateAuction {
                         winner: Some(auction_finalized.winner.to_string()),
@@ -195,6 +198,7 @@ impl Handler for AuctionsHandlerPipeline {
                             amount: bid_event.amount.to_string(),
                             created_at: value.created_at,
                             tx_digest: value.tx_digest.clone(),
+                            token: bid_event.token.to_string(),
                         }])
                         .execute(conn)
                         .await
@@ -220,26 +224,37 @@ impl AuctionsHandlerPipeline {
             if event_type.ends_with("::AuctionCreatedEvent") {
                 info!("Found Auction event: {} ", event_type);
 
-                let created_event: AuctionCreatedEvent = try_deserialize_event(&event.contents)?;
+                let created_event: AuctionCreatedEvent = try_deserialize_event(&event.contents)
+                    .inspect_err(|error| {
+                        error!("Could not deserialize AuctionCreatedEvent: {}", error)
+                    })?;
 
                 return Ok(Some(AuctionEvent::Created(created_event)));
             } else if event_type.ends_with("::AuctionCancelledEvent") {
                 info!("Found Auction event: {} ", event_type);
 
-                let cancel_event: AuctionCancelledEvent = try_deserialize_event(&event.contents)?;
+                let cancel_event: AuctionCancelledEvent = try_deserialize_event(&event.contents)
+                    .inspect_err(|error| {
+                        error!("Could not deserialize AuctionCancelledEvent: {}", error)
+                    })?;
 
                 return Ok(Some(AuctionEvent::Cancelled(cancel_event)));
             } else if event_type.ends_with("::AuctionFinalizedEvent ") {
                 info!("Found Auction event: {} ", event_type);
 
-                let finalized_event: AuctionFinalizedEvent =
-                    try_deserialize_event(&event.contents)?;
+                let finalized_event: AuctionFinalizedEvent = try_deserialize_event(&event.contents)
+                    .inspect_err(|error| {
+                        error!("Could not deserialize AuctionFinalizedEvent: {}", error)
+                    })?;
 
                 return Ok(Some(AuctionEvent::Finalized(finalized_event)));
             } else if event_type.ends_with("::BidPlacedEvent ") {
                 info!("Found Bid event: {} ", event_type);
 
-                let bid_event: BidPlacedEvent = try_deserialize_event(&event.contents)?;
+                let bid_event: BidPlacedEvent = try_deserialize_event(&event.contents)
+                    .inspect_err(|error| {
+                        error!("Could not deserialize BidPlacedEvent: {}", error)
+                    })?;
 
                 return Ok(Some(AuctionEvent::Bid(bid_event)));
             }

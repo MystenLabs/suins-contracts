@@ -1,21 +1,4 @@
-// Copyright (c) Mysten Labs, Inc.
-// SPDX-License-Identifier: Apache-2.0
-
 // @generated automatically by Diesel CLI.
-
-diesel::table! {
-    domains (name) {
-        name -> Varchar,
-        parent -> Varchar,
-        expiration_timestamp_ms -> Int8,
-        nft_id -> Varchar,
-        field_id -> Varchar,
-        target_address -> Nullable<Varchar>,
-        data -> Json,
-        last_checkpoint_updated -> Int8,
-        subdomain_wrapper_id -> Nullable<Varchar>,
-    }
-}
 
 pub mod sql_types {
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
@@ -35,6 +18,7 @@ diesel::table! {
         value -> Varchar,
         created_at -> Timestamptz,
         tx_digest -> Varchar,
+        token -> Varchar,
     }
 }
 
@@ -55,6 +39,7 @@ diesel::table! {
         updated_at -> Timestamptz,
         created_at -> Timestamptz,
         last_tx_digest -> Varchar,
+        token -> Varchar,
     }
 }
 
@@ -67,6 +52,21 @@ diesel::table! {
         amount -> Varchar,
         created_at -> Timestamptz,
         tx_digest -> Varchar,
+        token -> Varchar,
+    }
+}
+
+diesel::table! {
+    domains (name) {
+        name -> Varchar,
+        parent -> Varchar,
+        expiration_timestamp_ms -> Int8,
+        nft_id -> Varchar,
+        field_id -> Varchar,
+        target_address -> Nullable<Varchar>,
+        data -> Json,
+        last_checkpoint_updated -> Int8,
+        subdomain_wrapper_id -> Nullable<Varchar>,
     }
 }
 
@@ -79,6 +79,7 @@ diesel::table! {
         value -> Varchar,
         created_at -> Timestamptz,
         tx_digest -> Varchar,
+        token -> Varchar,
     }
 }
 
@@ -91,6 +92,7 @@ diesel::table! {
         value -> Varchar,
         created_at -> Timestamptz,
         tx_digest -> Varchar,
+        token -> Varchar,
     }
 }
 
@@ -102,6 +104,7 @@ diesel::table! {
         value -> Varchar,
         created_at -> Timestamptz,
         tx_digest -> Varchar,
+        token -> Varchar,
     }
 }
 
@@ -114,6 +117,7 @@ diesel::table! {
         value -> Varchar,
         created_at -> Timestamptz,
         tx_digest -> Varchar,
+        token -> Varchar,
     }
 }
 
@@ -125,6 +129,7 @@ diesel::table! {
         value -> Varchar,
         created_at -> Timestamptz,
         tx_digest -> Varchar,
+        token -> Varchar,
     }
 }
 
@@ -143,6 +148,7 @@ diesel::table! {
         updated_at -> Timestamptz,
         created_at -> Timestamptz,
         last_tx_digest -> Varchar,
+        token -> Varchar,
     }
 }
 
@@ -165,6 +171,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     accept_counter_offer,
     auctions,
     bids,
+    domains,
     make_counter_offer,
     offer_accepted,
     offer_cancelled,

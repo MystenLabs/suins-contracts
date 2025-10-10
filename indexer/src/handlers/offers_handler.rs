@@ -130,6 +130,7 @@ impl Handler for OffersHandlerPipeline {
                             updated_at: value.created_at,
                             created_at: value.created_at,
                             last_tx_digest: value.tx_digest.clone(),
+                            token: placed_event.token.to_string(),
                         }])
                         .execute(conn)
                         .await

@@ -113,6 +113,7 @@ pub struct OfferPlaced {
     pub value: String,
     pub created_at: DateTime<Utc>,
     pub tx_digest: String,
+    pub token: String,
 }
 
 #[derive(Insertable, Debug, FieldCount, Clone)]
@@ -124,6 +125,7 @@ pub struct OfferCancelled {
     pub value: String,
     pub created_at: DateTime<Utc>,
     pub tx_digest: String,
+    pub token: String,
 }
 
 #[derive(Insertable, Debug, FieldCount, Clone)]
@@ -136,6 +138,7 @@ pub struct OfferAccepted {
     pub value: String,
     pub created_at: DateTime<Utc>,
     pub tx_digest: String,
+    pub token: String,
 }
 
 #[derive(Insertable, Debug, FieldCount, Clone)]
@@ -148,6 +151,7 @@ pub struct OfferDeclined {
     pub value: String,
     pub created_at: DateTime<Utc>,
     pub tx_digest: String,
+    pub token: String,
 }
 
 #[derive(Insertable, Debug, FieldCount, Clone)]
@@ -160,6 +164,7 @@ pub struct MakeCounterOffer {
     pub value: String,
     pub created_at: DateTime<Utc>,
     pub tx_digest: String,
+    pub token: String,
 }
 
 #[derive(Insertable, Debug, FieldCount, Clone)]
@@ -171,6 +176,7 @@ pub struct AcceptCounterOffer {
     pub value: String,
     pub created_at: DateTime<Utc>,
     pub tx_digest: String,
+    pub token: String,
 }
 
 #[derive(Debug, Clone, Queryable, Selectable, Insertable, Serialize, Deserialize)]
@@ -185,6 +191,7 @@ pub struct Offer {
     pub updated_at: DateTime<Utc>,
     pub created_at: DateTime<Utc>,
     pub last_tx_digest: String,
+    pub token: String,
 }
 
 #[derive(Debug, Clone, AsChangeset, Serialize, Deserialize)]
@@ -225,6 +232,7 @@ pub struct Auction {
     pub updated_at: DateTime<Utc>,
     pub created_at: DateTime<Utc>,
     pub last_tx_digest: String,
+    pub token: String,
 }
 
 #[derive(Debug, Clone, AsChangeset, Serialize, Deserialize)]
@@ -246,6 +254,7 @@ pub struct Bid {
     pub amount: String,
     pub created_at: DateTime<Utc>,
     pub tx_digest: String,
+    pub token: String,
 }
 
 #[derive(
