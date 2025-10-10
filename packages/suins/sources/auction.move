@@ -700,12 +700,12 @@ module suins::auction {
     }
 
     #[test_only]
-    public fun get_auction_table<T>(auction_table: &AuctionTable): &ObjectTable<vector<u8>, Auction<T>> {
+    public fun get_auction_table(auction_table: &AuctionTable): &ObjectBag {
         &auction_table.bag
     }
 
     #[test_only]
-    public fun get_auction<T>(auction_table: &ObjectTable<vector<u8>, Auction<T>>, domain_name: vector<u8>): &Auction<T> {
+    public fun get_auction<T>(auction_table: &ObjectBag, domain_name: vector<u8>): &Auction<T> {
         auction_table.borrow(domain_name)
     }
 
