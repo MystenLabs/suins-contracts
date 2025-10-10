@@ -216,7 +216,8 @@ fun auction_scenario_sui_test() {
         let auction = auction::get_auction<SUI>(table, FIRST_DOMAIN_NAME);
         assert!(auction::get_owner(auction) == DOMAIN_OWNER, 0);
         assert!(auction::get_start_time(auction) == START_TIME, 0);
-        assert!(auction::get_end_time(auction) == END_TIME + 300, 0); // auction extended by 5 minutes
+        std::debug::print(&auction::get_end_time(auction));
+        assert!(auction::get_end_time(auction) == 410, 0); // auction extended by 5 minutes from now
         assert!(auction::get_min_bid(auction) == SUI_MIN_BID * mist_per_sui(), 0);
         assert!(auction::get_highest_bidder(auction) == FIRST_ADDRESS, 0);
         assert!(auction::get_highest_bid_balance(auction).value() == SUI_FIRST_BID * mist_per_sui(), 0);
@@ -237,7 +238,7 @@ fun auction_scenario_sui_test() {
         let auction = auction::get_auction<SUI>(table, FIRST_DOMAIN_NAME);
         assert!(auction::get_owner(auction) == DOMAIN_OWNER, 0);
         assert!(auction::get_start_time(auction) == START_TIME, 0);
-        assert!(auction::get_end_time(auction) == END_TIME + 300, 0);
+        assert!(auction::get_end_time(auction) == 410, 0);
         assert!(auction::get_min_bid(auction) == SUI_MIN_BID * mist_per_sui(), 0);
         assert!(auction::get_highest_bidder(auction) == SECOND_ADDRESS, 0);
         assert!(auction::get_highest_bid_balance(auction).value() == SUI_SECOND_BID * mist_per_sui(), 0);

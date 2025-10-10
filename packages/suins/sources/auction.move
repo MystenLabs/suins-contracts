@@ -335,8 +335,8 @@ module suins::auction {
         assert!(bid_amount >= auction.min_bid && bid_amount > highest_bid_value, EBidTooLow);
 
         // If bid in last minutes, extend auction by minutes
-        if (auction.end_time - now <= BID_EXTEND_TIME) {
-            auction.end_time = auction.end_time + BID_EXTEND_TIME;
+        if (auction.end_time - now < BID_EXTEND_TIME) {
+            auction.end_time = now + BID_EXTEND_TIME;
         };
 
         if (highest_bid_value > 0) {
