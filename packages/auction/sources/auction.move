@@ -2,10 +2,10 @@
 
 /*
 This file defines the core data structures for the SuiNS 1st Party Auction module.
-It is intended to be placed in suins-contracts/packages/suins/sources/auction.move.
+It is intended to be placed in suins-contracts/packages/auction/sources/auction.move.
 */
 
-module suins::auction {
+module suins_auction::auction {
     use sui::table::{Self, Table};
     use sui::bag::{Self, Bag};
     use sui::object_bag::{Self, ObjectBag};

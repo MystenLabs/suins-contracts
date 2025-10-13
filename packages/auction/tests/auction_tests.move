@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 #[allow(deprecated_usage)]
 #[test_only]
-module suins::auction_tests 
+module suins_auction::auction_tests
 {
 use sui::{clock::{Self, Clock}, coin::{Self, Coin}, sui::SUI, test_scenario::{Self, Scenario}};
-    use suins::suins;
-    use suins::{
+use suins::suins;
+use suins_auction::{
     auction::{
         Self,
         AuctionTable,
@@ -15,7 +15,7 @@ use sui::{clock::{Self, Clock}, coin::{Self, Coin}, sui::SUI, test_scenario::{Se
     },
     constants::mist_per_sui,
     domain,
-    suins_registration::{Self, SuinsRegistration},
+    suins_registration::SuinsRegistration,
 };
 use suins::register::Register;
 use suins::registry;
@@ -82,7 +82,6 @@ fun generate_domain(
     scenario: &mut Scenario,
     owner: address,
     domain_name: vector<u8>,
-    clock: &Clock,
 ){
     let nft = register_util<SUI>(
         scenario,
@@ -186,7 +185,7 @@ fun auction_scenario_sui_test() {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Increment the clock to the start time
     clock.increment_for_testing(START_TIME * MS);
@@ -216,7 +215,6 @@ fun auction_scenario_sui_test() {
         let auction = auction::get_auction<SUI>(table, FIRST_DOMAIN_NAME);
         assert!(auction::get_owner(auction) == DOMAIN_OWNER, 0);
         assert!(auction::get_start_time(auction) == START_TIME, 0);
-        std::debug::print(&auction::get_end_time(auction));
         assert!(auction::get_end_time(auction) == 410, 0); // auction extended by 5 minutes from now
         assert!(auction::get_min_bid(auction) == SUI_MIN_BID * mist_per_sui(), 0);
         assert!(auction::get_highest_bidder(auction) == FIRST_ADDRESS, 0);
@@ -288,7 +286,7 @@ fun auction_scenario_other_test() {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Increment the clock to the start time
     clock.increment_for_testing(START_TIME * MS);
@@ -388,7 +386,7 @@ fun try_create_auction_not_allowed_token() {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Increment the clock to the start time
     clock.increment_for_testing(START_TIME * MS);
@@ -413,7 +411,7 @@ fun try_cancel_auction_not_owner() {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Increment the clock to the start time
     clock.increment_for_testing(START_TIME * MS);
@@ -451,7 +449,7 @@ fun try_place_bid_too_early() {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Create an auction
     create_auction<SUI>(
@@ -479,7 +477,7 @@ fun try_place_bid_too_late() {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Create an auction
     create_auction<SUI>(
@@ -507,7 +505,7 @@ fun try_create_auction_wrong_time() {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Create an auction
     create_auction<SUI>(
@@ -529,7 +527,7 @@ fun try_place_bid_lower_than_minimum() {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Increment the clock to the start time
     clock.increment_for_testing(START_TIME * MS);
@@ -560,7 +558,7 @@ fun try_place_bid_lower_than_previous() {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Increment the clock to the start time
     clock.increment_for_testing(START_TIME * MS);
@@ -594,7 +592,7 @@ fun try_finalize_auction_not_ended() {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Increment the clock to the start time
     clock.increment_for_testing(START_TIME * MS);
@@ -625,7 +623,7 @@ fun try_cancel_ended_auction() {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Increment the clock to the start time
     clock.increment_for_testing(START_TIME * MS);
@@ -666,7 +664,7 @@ fun try_place_bid_not_auctioned_domain() {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Increment the clock to the start time
     clock.increment_for_testing(START_TIME * MS);
@@ -697,7 +695,7 @@ fun place_offer_and_accept_scenario_sui_test() {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Place an offer
     test_scenario::next_tx(scenario, FIRST_ADDRESS);
@@ -744,7 +742,7 @@ fun place_offer_and_accept_scenario_other_test() {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Allow token
     test_scenario::next_tx(scenario, DOMAIN_OWNER);
@@ -819,7 +817,7 @@ fun try_place_offer_not_allowed_token() {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Place an offer
     test_scenario::next_tx(scenario, FIRST_ADDRESS);
@@ -853,7 +851,7 @@ fun place_offer_counteroffer_and_accept_scenario_test()  {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Place an offer
     test_scenario::next_tx(scenario, FIRST_ADDRESS);
@@ -1107,7 +1105,7 @@ fun place_offer_and_decline_scenario_test() {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Place an offer
     test_scenario::next_tx(scenario, FIRST_ADDRESS);
@@ -1274,7 +1272,7 @@ fun try_make_too_low_counteroffer()  {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Place an offer
     test_scenario::next_tx(scenario, FIRST_ADDRESS);
@@ -1384,7 +1382,7 @@ fun try_accept_counteroffer_wrong_payment()  {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Place an offer
     test_scenario::next_tx(scenario, FIRST_ADDRESS);
@@ -1463,7 +1461,7 @@ fun try_make_counteroffer_on_non_existent_offer()  {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Make a counter offer
     test_scenario::next_tx(scenario, DOMAIN_OWNER);
@@ -1497,7 +1495,7 @@ fun try_accept_counteroffer_wrong_caller()  {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Place an offer
     test_scenario::next_tx(scenario, FIRST_ADDRESS);
@@ -1576,7 +1574,7 @@ fun try_call_with_wrong_auction_table_version()  {
     let scenario = &mut scenario_val;
 
     // Generate a new domain
-    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME, &clock);
+    generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
     // Migrate
     test_scenario::next_tx(scenario, DOMAIN_OWNER);
