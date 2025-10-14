@@ -12,7 +12,7 @@ import { queryRegistryTable } from './queries';
 import { PackageInfo } from './types';
 
 export const setup = async (packageInfo: PackageInfo, network: Network) => {
-	const packages = Packages(network);
+	const packages = Packages(network) as any;
 
 	const txb = new Transaction();
 
@@ -23,7 +23,7 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 				txb,
 				adminCap: packageInfo.SuiNS.adminCap,
 				suins: packageInfo.SuiNS.suins,
-				type: data.authorizationType(pkg.packageId),
+				type: (data as any).authorizationType(pkg.packageId),
 				suinsPackageIdV1: packageInfo.SuiNS.packageId,
 			});
 		}
@@ -55,13 +55,16 @@ export const setup = async (packageInfo: PackageInfo, network: Network) => {
 		suins: packageInfo.SuiNS.suins,
 		packageId: packageInfo.Coupons.packageId,
 	});
-	packages.Payments.setupFunction({
-		txb,
-		packageId: packageInfo.Payments.packageId,
-		adminCap: packageInfo.SuiNS.adminCap,
-		suins: packageInfo.SuiNS.suins,
-		suinsPackageIdV1: packageInfo.SuiNS.packageId,
-	});
+	// Payments package is optional (only on mainnet/testnet)
+	if (packageInfo.Payments && packages.Payments) {
+		packages.Payments.setupFunction({
+			txb,
+			packageId: packageInfo.Payments.packageId,
+			adminCap: packageInfo.SuiNS.adminCap,
+			suins: packageInfo.SuiNS.suins,
+			suinsPackageIdV1: packageInfo.SuiNS.packageId,
+		});
+	}
 	let retries = 0;
 
 	try {

@@ -47,9 +47,16 @@ const parseMutatedObject = (data: SuiTransactionBlockResponse, objectType: strin
 
 export const Packages = (network: Network) => {
 	const rev = network === 'localnet' ? 'main' : `framework/${network}`;
-	const subdomainExtraDependencies = `denylist = { local = "../denylist" }`;
+	const subdomainExtraDependencies = `suins_denylist = { local = "../denylist" }`;
+	const isLocalnet = network === 'localnet';
+	// BBB package requires external dependencies that are only available on mainnet/testnet
+	const paymentsExtraDependencies = isLocalnet ? '' : `suins_bbb = { local = "../bbb" }`;
+	const bbbExtraDependencies = `Pyth = { git = "https://github.com/pyth-network/pyth-crosschain.git", subdir = "target_chains/sui/contracts", rev = "sui-contract-mainnet" }
+AftermathAmm = { git = "https://github.com/AftermathFinance/move-interfaces.git", subdir = "packages/amm/amm", rev = "82ec985" }
+CetusClmm = { git = "https://github.com/CetusProtocol/cetus-clmm-interface.git", subdir = "sui/cetus_clmm", rev = "mainnet-v1.49.2" }
+`;
 
-	return {
+	const packages: any = {
 		SuiNS: {
 			order: 1,
 			folder: 'suins',
@@ -148,24 +155,10 @@ export const Packages = (network: Network) => {
 			},
 			authorizationType: (packageId: string) => `${packageId}::controller::Controller`, // Authorize the suins controller
 		},
-		Utils: {
-			order: 2,
-			folder: 'utils',
-			manifest: SuiNSDependentPackages(rev, 'utils'),
-			processPublish: (data: SuiTransactionBlockResponse) => {
-				const { packageId, upgradeCap } = parseCorePackageObjects(data);
-
-				return {
-					packageId,
-					upgradeCap,
-				};
-			},
-			authorizationType: (packageId: string) => `${packageId}::direct_setup::DirectSetup`,
-		},
 		DenyList: {
 			order: 2,
 			folder: 'denylist',
-			manifest: SuiNSDependentPackages(rev, 'denylist'),
+			manifest: SuiNSDependentPackages(rev, 'suins_denylist'),
 			processPublish: (data: SuiTransactionBlockResponse) => {
 				const { packageId, upgradeCap } = parseCorePackageObjects(data);
 
@@ -196,7 +189,7 @@ export const Packages = (network: Network) => {
 		Coupons: {
 			order: 2,
 			folder: 'coupons',
-			manifest: SuiNSDependentPackages(rev, 'coupons'),
+			manifest: SuiNSDependentPackages(rev, 'suins_coupons'),
 			processPublish: (data: SuiTransactionBlockResponse) => {
 				const { packageId, upgradeCap } = parseCorePackageObjects(data);
 
@@ -220,10 +213,92 @@ export const Packages = (network: Network) => {
 				setupApp({ txb, adminCap, suins, target: `${packageId}::coupon_house` });
 			},
 		},
-		Payments: {
+		Subdomains: {
+			order: 3,
+			folder: 'subdomains',
+			manifest: SuiNSDependentPackages(rev, 'suins_subdomains', subdomainExtraDependencies),
+			processPublish: (data: SuiTransactionBlockResponse) => {
+				const { packageId, upgradeCap } = parseCorePackageObjects(data);
+
+				return {
+					packageId,
+					upgradeCap,
+				};
+			},
+			setupFunction: (
+				txb: Transaction,
+				packageId: string,
+				adminCap: string,
+				suins: string,
+				suinsPackageIdV1: string,
+			) => {
+				addConfig({
+					txb,
+					adminCap,
+					suins,
+					suinsPackageIdV1,
+					config: txb.moveCall({
+						target: `${packageId}::config::default`,
+					}),
+					type: `${packageId}::config::SubDomainConfig`,
+				});
+			},
+			authorizationType: (packageId: string) => `${packageId}::subdomains::SubDomains`,
+		},
+		Discounts: {
+			order: 3,
+			folder: 'discounts',
+			manifest: SuiNSDependentPackages(
+				rev,
+				'suins_discounts',
+				'day_one = { local = "../day_one" }',
+			),
+			processPublish: (data: SuiTransactionBlockResponse) => {
+				const { packageId, upgradeCap } = parseCorePackageObjects(data);
+				const discountHouse = parseCreatedObject(data, `${packageId}::house::DiscountHouse`);
+
+				return {
+					packageId,
+					upgradeCap,
+					discountHouse,
+				};
+			},
+			authorizationType: (packageId: string) => `${packageId}::discounts::RegularDiscountsApp`,
+		},
+		TempSubdomainProxy: {
+			order: 4,
+			folder: 'temp_subdomain_proxy',
+			manifest: TempSubdomainProxy(rev),
+			processPublish: (data: SuiTransactionBlockResponse) => {
+				const { packageId, upgradeCap } = parseCorePackageObjects(data);
+				return {
+					packageId,
+					upgradeCap,
+				};
+			},
+		},
+	};
+
+	// Add BBB and Payments packages only for mainnet/testnet (require external dependencies)
+	if (!isLocalnet) {
+		packages.BBB = {
 			order: 2,
+			folder: 'bbb',
+			manifest: SuiNSDependentPackages(rev, 'suins_bbb', bbbExtraDependencies),
+			processPublish: (data: SuiTransactionBlockResponse) => {
+				const { packageId, upgradeCap } = parseCorePackageObjects(data);
+
+				return {
+					packageId,
+					upgradeCap,
+				};
+			},
+		};
+
+		packages.Payments = {
+			order: 3,
 			folder: 'payments',
-			manifest: SuiNSDependentPackages(rev, 'payments'),
+			manifest: SuiNSDependentPackages(rev, 'suins_payments', paymentsExtraDependencies),
 			processPublish: (data: SuiTransactionBlockResponse) => {
 				const { packageId, upgradeCap } = parseCorePackageObjects(data);
 
@@ -257,6 +332,7 @@ export const Packages = (network: Network) => {
 					],
 					baseCurrencyType: config.coins.USDC.type,
 					maxAge: MAX_AGE,
+					bps: 8000, // 80% burned
 				});
 				addConfig({
 					txb,
@@ -267,66 +343,8 @@ export const Packages = (network: Network) => {
 					type: `${packageId}::payments::PaymentsConfig`,
 				});
 			},
-		},
-		Subdomains: {
-			order: 3,
-			folder: 'subdomains',
-			manifest: SuiNSDependentPackages(rev, 'subdomains', subdomainExtraDependencies),
-			processPublish: (data: SuiTransactionBlockResponse) => {
-				const { packageId, upgradeCap } = parseCorePackageObjects(data);
+		};
+	}
 
-				return {
-					packageId,
-					upgradeCap,
-				};
-			},
-			setupFunction: (
-				txb: Transaction,
-				packageId: string,
-				adminCap: string,
-				suins: string,
-				suinsPackageIdV1: string,
-			) => {
-				addConfig({
-					txb,
-					adminCap,
-					suins,
-					suinsPackageIdV1,
-					config: txb.moveCall({
-						target: `${packageId}::config::default`,
-					}),
-					type: `${packageId}::config::SubDomainConfig`,
-				});
-			},
-			authorizationType: (packageId: string) => `${packageId}::subdomains::SubDomains`,
-		},
-		Discounts: {
-			order: 3,
-			folder: 'discounts',
-			manifest: SuiNSDependentPackages(rev, 'discounts', 'day_one = { local = "../day_one" }'),
-			processPublish: (data: SuiTransactionBlockResponse) => {
-				const { packageId, upgradeCap } = parseCorePackageObjects(data);
-				const discountHouse = parseCreatedObject(data, `${packageId}::house::DiscountHouse`);
-
-				return {
-					packageId,
-					upgradeCap,
-					discountHouse,
-				};
-			},
-			authorizationType: (packageId: string) => `${packageId}::discounts::RegularDiscountsApp`,
-		},
-		TempSubdomainProxy: {
-			order: 3,
-			folder: 'temp_subdomain_proxy',
-			manifest: TempSubdomainProxy(rev),
-			processPublish: (data: SuiTransactionBlockResponse) => {
-				const { packageId, upgradeCap } = parseCorePackageObjects(data);
-				return {
-					packageId,
-					upgradeCap,
-				};
-			},
-		},
-	};
+	return packages;
 };
