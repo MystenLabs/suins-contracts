@@ -4,6 +4,7 @@ pub mod handlers;
 
 pub mod models;
 mod schema;
+pub mod events;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 

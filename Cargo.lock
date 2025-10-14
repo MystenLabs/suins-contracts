@@ -8692,6 +8692,7 @@ dependencies = [
  "fastcrypto 0.1.9 (git+https://github.com/MystenLabs/fastcrypto)",
  "futures",
  "insta",
+ "log",
  "move-binding-derive",
  "move-core-types 0.0.4 (git+https://github.com/MystenLabs/sui.git?rev=83e72a664e8853ecc316efd70a62762a07d04177)",
  "move-types",
