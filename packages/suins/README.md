@@ -17,8 +17,6 @@ Developers can integrate the core package into their Move-based projects by addi
 
 admin: Provides reserved functions for managing domain registrations and configurations via the authorized AdminCap. Intended to be used by SuiNS administrators or deployers.
 
-auction: 1st party Auction module contain logic for listing SuiNS domains, bidding and placing offers.
-
 constants: Centralized module defining system-wide constants (e.g. domain length bounds, TLDs, grace periods) and helper getters.
 
 controller: Exposes user-facing functionality such as reverse lookup setup, metadata editing, and burning expired records. Requires app-level authorization (ControllerV2).

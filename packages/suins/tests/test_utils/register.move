@@ -51,9 +51,6 @@ public fun register<T>(
 
     let label = domain.sld();
     let price = config.calculate_base_price(label.length()) * (no_years as u64);
-
-    std::debug::print(&price);
-
     assert!(payment.value() == price, EIncorrectAmount);
 
     suins.app_add_custom_balance<_, T>(Register {}, payment.into_balance());
