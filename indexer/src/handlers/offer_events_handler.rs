@@ -1,13 +1,14 @@
 use crate::events::{
     convert_domain_name, try_deserialize_event, AcceptCounterOfferEvent, MakeCounterOfferEvent,
-    OfferAcceptedEvent, OfferCancelledEvent, OfferDeclinedEvent, OfferPlacedEvent,
+    OfferAcceptedEvent, OfferCancelledEvent, OfferDeclinedEvent, OfferPlacedEvent, SetSealConfig,
 };
 use crate::models::{
-    AcceptCounterOffer, MakeCounterOffer, OfferAccepted, OfferCancelled, OfferDeclined, OfferPlaced,
+    AcceptCounterOffer, MakeCounterOffer, OfferAccepted, OfferCancelled, OfferDeclined,
+    OfferPlaced, SetSealConfigModel,
 };
 use crate::schema::{
     accept_counter_offer, make_counter_offer, offer_accepted, offer_cancelled, offer_declined,
-    offer_placed,
+    offer_placed, set_seal_config,
 };
 use anyhow::Context;
 use async_trait::async_trait;
@@ -15,9 +16,9 @@ use diesel::internal::derives::multiconnection::chrono::{DateTime, Utc};
 use diesel_async::RunQueryDsl;
 use log::{error, info};
 use std::sync::Arc;
-use sui_indexer_alt_framework::postgres::{Connection, Db};
 use sui_indexer_alt_framework::pipeline::concurrent::Handler;
 use sui_indexer_alt_framework::pipeline::Processor;
+use sui_indexer_alt_framework::postgres::{Connection, Db};
 use sui_indexer_alt_framework::types::full_checkpoint_content::CheckpointData;
 use sui_indexer_alt_framework::FieldCount;
 use sui_indexer_alt_framework::Result;
@@ -31,6 +32,7 @@ pub enum OfferEventModel {
     Declined(OfferDeclined),
     MakeCounterOffer(MakeCounterOffer),
     AcceptCounterOffer(AcceptCounterOffer),
+    SetSealConfig(SetSealConfigModel),
 }
 
 #[derive(FieldCount)]
@@ -41,6 +43,7 @@ pub struct OfferHandlerValue {
     pub declined: Vec<OfferDeclined>,
     pub make_counter_offer: Vec<MakeCounterOffer>,
     pub accept_counter_offer: Vec<AcceptCounterOffer>,
+    pub set_seal_config: Vec<SetSealConfigModel>,
     pub checkpoint: u64,
 }
 
@@ -66,6 +69,7 @@ impl Processor for OfferEventsHandlerPipeline {
         let mut declined = Vec::new();
         let mut make_counter_offer = Vec::new();
         let mut accept_counter_offer = Vec::new();
+        let mut set_seal_config = Vec::new();
 
         for tx in &checkpoint.transactions {
             let tx_digest = tx.transaction.digest().to_string();
@@ -111,6 +115,10 @@ impl Processor for OfferEventsHandlerPipeline {
                             );
                             accept_counter_offer.push(offer);
                         }
+                        Ok(Some(OfferEventModel::SetSealConfig(config))) => {
+                            info!("Processing SetSealConfig event");
+                            set_seal_config.push(config);
+                        }
                         Ok(None) => {
                             // No event to process
                         }
@@ -130,6 +138,7 @@ impl Processor for OfferEventsHandlerPipeline {
             declined,
             make_counter_offer,
             accept_counter_offer,
+            set_seal_config,
             checkpoint: checkpoint.checkpoint_summary.sequence_number,
         }];
 
@@ -302,6 +311,32 @@ impl Handler for OfferEventsHandlerPipeline {
                     }
                 }
             }
+
+            if !value.set_seal_config.is_empty() {
+                info!("Inserting {} set seal config", value.set_seal_config.len());
+                for (j, config) in value.set_seal_config.iter().enumerate() {
+                    info!(
+                        "SetSealConfig {}: key_servers count={}, threshold={}",
+                        j,
+                        config.key_servers.len(),
+                        config.threshold
+                    );
+                }
+                match diesel::insert_into(set_seal_config::table)
+                    .values(&value.set_seal_config)
+                    .execute(conn)
+                    .await
+                {
+                    Ok(count) => {
+                        info!("Successfully inserted {} set seal config", count);
+                        changes += count;
+                    }
+                    Err(e) => {
+                        error!("Failed to insert set seal config: {}", e);
+                        return Err(e.into());
+                    }
+                }
+            }
         }
 
         Ok(changes)
@@ -405,7 +440,25 @@ impl OfferEventsHandlerPipeline {
                     token: accept_counter_offer_event.token.to_string(),
                 };
 
-                return Ok(Some(OfferEventModel::AcceptCounterOffer(accept_counter_offer)));
+                return Ok(Some(OfferEventModel::AcceptCounterOffer(
+                    accept_counter_offer,
+                )));
+            } else if event_type.ends_with("::SetSealConfig") {
+                let seal_config_event: SetSealConfig = try_deserialize_event(&event.contents)?;
+
+                let seal_config = SetSealConfigModel {
+                    key_servers: seal_config_event
+                        .key_servers
+                        .iter()
+                        .map(|addr| addr.to_string())
+                        .collect(),
+                    public_keys: seal_config_event.public_keys,
+                    threshold: seal_config_event.threshold as i16,
+                    created_at,
+                    tx_digest: tx_digest.to_string(),
+                };
+
+                return Ok(Some(OfferEventModel::SetSealConfig(seal_config)));
             }
         }
 

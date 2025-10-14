@@ -62,6 +62,7 @@ pub struct AuctionCreatedEvent {
     pub start_time: u64,
     pub end_time: u64,
     pub min_bid: u64,
+    pub reserve_price: Option<Vec<u8>>,
     pub token: move_types::TypeTag, // TODO: Test if this works correctly
 }
 
@@ -80,6 +81,7 @@ pub struct AuctionFinalizedEvent {
     pub domain_name: Vec<u8>,
     pub winner: sui_types::base_types::SuiAddress,
     pub amount: u64,
+    pub reserve_price: u64,
     pub token: move_types::TypeTag, // TODO: Test if this works correctly
 }
 
@@ -91,6 +93,13 @@ pub struct AuctionCancelledEvent {
     pub token: move_types::TypeTag, // TODO: Test if this works correctly
 }
 
+#[derive(serde::Deserialize, Debug, Clone)]
+pub struct SetSealConfig {
+    pub key_servers: Vec<sui_types::base_types::SuiAddress>,
+    pub public_keys: Vec<Vec<u8>>,
+    pub threshold: u8,
+}
+
 pub fn try_deserialize_event<T: for<'a> Deserialize<'a>>(
     contents: &[u8],
 ) -> anyhow::Result<T, anyhow::Error> {
@@ -98,9 +107,9 @@ pub fn try_deserialize_event<T: for<'a> Deserialize<'a>>(
         Ok(event) => Ok(event),
         Err(e) => {
             error!(
-                    "Failed to deserialize: {}. Event contents: {:?}",
-                    e, contents
-                );
+                "Failed to deserialize: {}. Event contents: {:?}",
+                e, contents
+            );
             Err(e.into())
         }
     }

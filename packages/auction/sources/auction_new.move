@@ -5,7 +5,7 @@ This file defines the core data structures for the SuiNS 1st Party Auction modul
 It is intended to be placed in suins-contracts/packages/auction/sources/auction.move.
 */
 
-module suins_auction::auction {
+module suins_auction::auction_new {
     use sui::table::{Self, Table};
     use sui::bag::{Self, Bag};
     use sui::object_bag::{Self, ObjectBag};
@@ -118,6 +118,7 @@ module suins_auction::auction {
         start_time: u64,
         end_time: u64,
         min_bid: u64,
+        reserve_price: Option<vector<u8>>,
         token: TypeName,
     }
 
@@ -329,7 +330,7 @@ module suins_auction::auction {
         start_time: u64,
         end_time: u64,
         min_bid: u64,
-        mut encrypted_reserve_price: Option<vector<u8>>,
+        encrypted_reserve_price: Option<vector<u8>>,
         suins_registration: SuinsRegistration,
         ctx: &mut TxContext
     ) {
@@ -345,7 +346,8 @@ module suins_auction::auction {
 
         let mut reserve_price = option::none();
         if (encrypted_reserve_price.is_some()) {
-            let encrypted_reserve_price = parse_encrypted_object(encrypted_reserve_price.extract());
+            let mut encrypted_reserve_price_new = copy encrypted_reserve_price;
+            let encrypted_reserve_price = parse_encrypted_object(encrypted_reserve_price_new.extract());
 
             // The same address as the sender needs to encrypt the data
             assert!(encrypted_reserve_price.aad().borrow() == ctx.sender().to_bytes(), EInvalidEncryptionSender);
@@ -386,6 +388,7 @@ module suins_auction::auction {
             start_time,
             end_time,
             min_bid,
+            reserve_price: encrypted_reserve_price,
             token,
         });
     }
@@ -756,13 +759,18 @@ module suins_auction::auction {
     // Private functions
 
     // Allow decryption if auction for the domain exists, if reserve price exists and if end time has passed
-    fun check_policy<T>(domain_name: vector<u8>, auction_table: &AuctionTable, clock: &Clock) {
+    fun check_policy<T>(id: vector<u8>, auction_table: &AuctionTable, clock: &Clock) {
         assert!(is_valid_auction_version(auction_table), EInvalidAuctionTableVersion);
+
+        let mut bcs = sui::bcs::new(id);
+        let start_time = bcs.peel_u64();
+        let domain_name = bcs.into_remainder_bytes();
 
         assert!(auction_table.bag.contains(domain_name), EEncryptionNoAccess);
 
         let auction = auction_table.bag.borrow<vector<u8>, Auction<T>>(domain_name);
 
+        assert!(auction.start_time == start_time, EEncryptionNoAccess);
         assert!(auction.reserve_price.is_some(), EEncryptionNoAccess);
 
         let now = clock.timestamp_ms() / 1000;

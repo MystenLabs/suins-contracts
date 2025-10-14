@@ -2,7 +2,7 @@
 
 [move]
 version = 3
-manifest_digest = "FD0BF17255A03A4B2FED0BA54DB77E2CD620089DB0021A0419FF54D4F146B562"
+manifest_digest = "4885B1ACB20E28D41268FE152DF06E3E9066CFA33459AF6ACEC4377B2E77AC3B"
 deps_digest = "52B406A7A21811BEF51751CF88DA0E76DAEFFEAC888D4F4060B1A72BBE7D8D35"
 dependencies = [
   { id = "Bridge", name = "Bridge" },
@@ -46,7 +46,7 @@ dependencies = [
 
 [[move.package]]
 id = "seal"
-source = { git = "git@github.com:MystenLabs/seal.git", rev = "seal-v0.5.12", subdir = "move/seal" }
+source = { git = "git@github.com:buidly/seal.git", rev = "main", subdir = "move/seal" }
 
 dependencies = [
   { id = "Sui", name = "Sui" },

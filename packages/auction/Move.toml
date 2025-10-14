@@ -4,7 +4,8 @@ edition = "2024.beta"
 
 [dependencies]
 suins = { local = "../suins" }
-seal = { git = "git@github.com:MystenLabs/seal.git", subdir = "move/seal", rev = "seal-v0.5.12" }
+#seal = { git = "git@github.com:MystenLabs/seal.git", subdir = "move/seal", rev = "seal-v0.5.12" }
+seal = { git = "git@github.com:buidly/seal.git", subdir = "move/seal", rev = "main" } # TODO: Update to official version after Move.lock file exists there
 
 # To resolve a version conflict and force a specific version for dependency
 # override use `override = true`

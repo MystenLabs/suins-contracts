@@ -40,6 +40,8 @@ diesel::table! {
         created_at -> Timestamptz,
         last_tx_digest -> Varchar,
         token -> Varchar,
+        reserve_price_encrypted -> Nullable<Bytea>,
+        reserve_price -> Nullable<Int8>,
     }
 }
 
@@ -153,6 +155,17 @@ diesel::table! {
 }
 
 diesel::table! {
+    set_seal_config (id) {
+        id -> Int4,
+        key_servers -> Array<Nullable<Text>>,
+        public_keys -> Array<Nullable<Bytea>>,
+        threshold -> Int2,
+        created_at -> Timestamptz,
+        tx_digest -> Varchar,
+    }
+}
+
+diesel::table! {
     watermarks (pipeline) {
         pipeline -> Text,
         epoch_hi_inclusive -> Int8,
@@ -178,5 +191,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     offer_declined,
     offer_placed,
     offers,
+    set_seal_config,
     watermarks,
 );

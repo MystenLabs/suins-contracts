@@ -7,7 +7,7 @@ module suins_auction::auction_tests
     use sui::{clock::{Self, Clock}, coin::{Self, Coin}, sui::SUI, test_scenario::{Self, Scenario}};
     use suins::suins;
     use suins_auction::{
-        auction::{
+        auction_new::{
             Self,
             AuctionTable,
             OfferTable,
@@ -16,6 +16,7 @@ module suins_auction::auction_tests
         constants::mist_per_sui,
         domain,
         suins_registration::SuinsRegistration,
+        decryption,
     };
     use suins::register::Register;
     use suins::registry;
@@ -52,7 +53,7 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, DOMAIN_OWNER);
         {
             let ctx = test_scenario::ctx(scenario);
-            auction::init_for_testing(ctx);
+            auction_new::init_for_testing(ctx);
         };
 
         test_scenario::next_tx(scenario, DOMAIN_OWNER);
@@ -110,7 +111,7 @@ module suins_auction::auction_tests
             let ctx = test_scenario::ctx(scenario);
 
             // Create the auction
-            auction::create_auction<T>(
+            auction_new::create_auction<T>(
                 &mut auction_table,
                 start_time,
                 end_time,
@@ -143,7 +144,7 @@ module suins_auction::auction_tests
             let payment = coin::mint_for_testing<T>(amount * mist_per_sui(), ctx);
 
             // Place the bid
-            auction::place_bid<T>(
+            auction_new::place_bid<T>(
                 &mut auction_table,
                 domain_name,
                 payment,
@@ -168,7 +169,7 @@ module suins_auction::auction_tests
             let mut suins = test_scenario::take_shared<SuiNS>(scenario);
             let ctx = test_scenario::ctx(scenario);
 
-            auction::finalize_auction<T>(
+            auction_new::finalize_auction<T>(
                 &mut suins,
                 &mut auction_table,
                 domain_name,
@@ -213,17 +214,17 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, DOMAIN_OWNER);
         {
             let auction_table = test_scenario::take_shared<AuctionTable>(scenario);
-            let table = auction::get_auction_table_bag(&auction_table);
+            let table = auction_new::get_auction_table_bag(&auction_table);
             assert!(table.contains(FIRST_DOMAIN_NAME), 0);
             assert!(table.length() == 1, 0);
-            let auction = auction::get_auction<SUI>(table, FIRST_DOMAIN_NAME);
-            assert!(auction::get_owner(auction) == DOMAIN_OWNER, 0);
-            assert!(auction::get_start_time(auction) == START_TIME, 0);
-            assert!(auction::get_end_time(auction) == 410, 0); // auction extended by 5 minutes from now
-            assert!(auction::get_min_bid(auction) == SUI_MIN_BID * mist_per_sui(), 0);
-            assert!(auction::get_highest_bidder(auction) == FIRST_ADDRESS, 0);
-            assert!(auction::get_highest_bid_balance(auction).value() == SUI_FIRST_BID * mist_per_sui(), 0);
-            assert!(auction::get_suins_registration(auction).domain() == domain::new(FIRST_DOMAIN_NAME.to_string()), 0);
+            let auction = auction_new::get_auction<SUI>(table, FIRST_DOMAIN_NAME);
+            assert!(auction_new::get_owner(auction) == DOMAIN_OWNER, 0);
+            assert!(auction_new::get_start_time(auction) == START_TIME, 0);
+            assert!(auction_new::get_end_time(auction) == 410, 0); // auction extended by 5 minutes from now
+            assert!(auction_new::get_min_bid(auction) == SUI_MIN_BID * mist_per_sui(), 0);
+            assert!(auction_new::get_highest_bidder(auction) == FIRST_ADDRESS, 0);
+            assert!(auction_new::get_highest_bid_balance(auction).value() == SUI_FIRST_BID * mist_per_sui(), 0);
+            assert!(auction_new::get_suins_registration(auction).domain() == domain::new(FIRST_DOMAIN_NAME.to_string()), 0);
             test_scenario::return_shared(auction_table);
         };
 
@@ -234,17 +235,17 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, DOMAIN_OWNER);
         {
             let auction_table = test_scenario::take_shared<AuctionTable>(scenario);
-            let table = auction::get_auction_table_bag(&auction_table);
+            let table = auction_new::get_auction_table_bag(&auction_table);
             assert!(table.contains(FIRST_DOMAIN_NAME), 0);
             assert!(table.length() == 1, 0);
-            let auction = auction::get_auction<SUI>(table, FIRST_DOMAIN_NAME);
-            assert!(auction::get_owner(auction) == DOMAIN_OWNER, 0);
-            assert!(auction::get_start_time(auction) == START_TIME, 0);
-            assert!(auction::get_end_time(auction) == 410, 0);
-            assert!(auction::get_min_bid(auction) == SUI_MIN_BID * mist_per_sui(), 0);
-            assert!(auction::get_highest_bidder(auction) == SECOND_ADDRESS, 0);
-            assert!(auction::get_highest_bid_balance(auction).value() == SUI_SECOND_BID * mist_per_sui(), 0);
-            assert!(auction::get_suins_registration(auction).domain() == domain::new(FIRST_DOMAIN_NAME.to_string()), 0);
+            let auction = auction_new::get_auction<SUI>(table, FIRST_DOMAIN_NAME);
+            assert!(auction_new::get_owner(auction) == DOMAIN_OWNER, 0);
+            assert!(auction_new::get_start_time(auction) == START_TIME, 0);
+            assert!(auction_new::get_end_time(auction) == 410, 0);
+            assert!(auction_new::get_min_bid(auction) == SUI_MIN_BID * mist_per_sui(), 0);
+            assert!(auction_new::get_highest_bidder(auction) == SECOND_ADDRESS, 0);
+            assert!(auction_new::get_highest_bid_balance(auction).value() == SUI_SECOND_BID * mist_per_sui(), 0);
+            assert!(auction_new::get_suins_registration(auction).domain() == domain::new(FIRST_DOMAIN_NAME.to_string()), 0);
             test_scenario::return_shared(auction_table);
 
             let first_bid = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_ADDRESS);
@@ -262,7 +263,7 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, DOMAIN_OWNER);
         {
             let auction_table = test_scenario::take_shared<AuctionTable>(scenario);
-            let table = auction::get_auction_table_bag(&auction_table);
+            let table = auction_new::get_auction_table_bag(&auction_table);
             assert!(table.length() == 0, 0);
             test_scenario::return_shared(auction_table);
 
@@ -302,7 +303,7 @@ module suins_auction::auction_tests
             let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
 
-            auction::add_allowed_token<TestCoin>(&admin_cap, &mut auction_table, &mut offer_table);
+            auction_new::add_allowed_token<TestCoin>(&admin_cap, &mut auction_table, &mut offer_table);
 
             transfer::public_transfer(admin_cap, DOMAIN_OWNER);
             test_scenario::return_shared(auction_table);
@@ -325,7 +326,7 @@ module suins_auction::auction_tests
             let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
 
-            auction::remove_allowed_token<TestCoin>(&admin_cap, &mut auction_table, &mut offer_table);
+            auction_new::remove_allowed_token<TestCoin>(&admin_cap, &mut auction_table, &mut offer_table);
 
             transfer::public_transfer(admin_cap, DOMAIN_OWNER);
             test_scenario::return_shared(auction_table);
@@ -342,17 +343,17 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, DOMAIN_OWNER);
         {
             let auction_table = test_scenario::take_shared<AuctionTable>(scenario);
-            let table = auction::get_auction_table_bag(&auction_table);
+            let table = auction_new::get_auction_table_bag(&auction_table);
             assert!(table.contains(FIRST_DOMAIN_NAME), 0);
             assert!(table.length() == 1, 0);
-            let auction = auction::get_auction<TestCoin>(table, FIRST_DOMAIN_NAME);
-            assert!(auction::get_owner(auction) == DOMAIN_OWNER, 0);
-            assert!(auction::get_start_time(auction) == START_TIME, 0);
-            assert!(auction::get_end_time(auction) == END_TIME + 300, 0); // auction extended by 5 minutes
-            assert!(auction::get_min_bid(auction) == SUI_MIN_BID * mist_per_sui(), 0);
-            assert!(auction::get_highest_bidder(auction) == FIRST_ADDRESS, 0);
-            assert!(auction::get_highest_bid_balance(auction).value() == SUI_FIRST_BID * mist_per_sui(), 0);
-            assert!(auction::get_suins_registration(auction).domain() == domain::new(FIRST_DOMAIN_NAME.to_string()), 0);
+            let auction = auction_new::get_auction<TestCoin>(table, FIRST_DOMAIN_NAME);
+            assert!(auction_new::get_owner(auction) == DOMAIN_OWNER, 0);
+            assert!(auction_new::get_start_time(auction) == START_TIME, 0);
+            assert!(auction_new::get_end_time(auction) == END_TIME + 300, 0); // auction extended by 5 minutes
+            assert!(auction_new::get_min_bid(auction) == SUI_MIN_BID * mist_per_sui(), 0);
+            assert!(auction_new::get_highest_bidder(auction) == FIRST_ADDRESS, 0);
+            assert!(auction_new::get_highest_bid_balance(auction).value() == SUI_FIRST_BID * mist_per_sui(), 0);
+            assert!(auction_new::get_suins_registration(auction).domain() == domain::new(FIRST_DOMAIN_NAME.to_string()), 0);
             test_scenario::return_shared(auction_table);
         };
 
@@ -366,7 +367,7 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, DOMAIN_OWNER);
         {
             let auction_table = test_scenario::take_shared<AuctionTable>(scenario);
-            let table = auction::get_auction_table_bag(&auction_table);
+            let table = auction_new::get_auction_table_bag(&auction_table);
             assert!(table.length() == 0, 0);
             test_scenario::return_shared(auction_table);
 
@@ -440,7 +441,7 @@ module suins_auction::auction_tests
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
 
-            auction::set_seal_config(
+            auction_new::set_seal_config(
                 &admin_cap,
                 &mut auction_table,
                 vector[s0.id(), s1.id(), s2.id()],
@@ -457,7 +458,7 @@ module suins_auction::auction_tests
         // let reserve_price = 2 * SUI_MIN_BID * mist_per_sui();
         // let encoded_reserve_price = sui::bcs::to_bytes(&reserve_price);
         // id = x"64000000000000007465732d74322e737569";
-        // let id = suins_auction::decryption::get_encryption_id(START_TIME, FIRST_DOMAIN_NAME);
+        let id = decryption::get_encryption_id(START_TIME, FIRST_DOMAIN_NAME);
         // cargo run --bin seal-cli encrypt-hmac --message 0x00c817a804000000 --aad 0x000000000000000000000000000000000000000000000000000000000000a001 --package-id 0x0 --id 0x64000000000000007465732d74322e737569 --threshold 2 a58bfa576a8efe2e2730bc664b3dbe70257d8e35106e4af7353d007dba092d722314a0aeb6bca5eed735466bbf471aef01e4da8d2efac13112c51d1411f6992b8604656ea2cf6a33ec10ce8468de20e1d7ecbfed8688a281d462f72a41602161 a9ce55cfa7009c3116ea29341151f3c40809b816f4ad29baa4f95c1bb23085ef02a46cf1ae5bd570d99b0c6e9faf525306224609300b09e422ae2722a17d2a969777d53db7b52092e4d12014da84bffb1e845c2510e26b3c259ede9e42603cd6 93b3220f4f3a46fb33074b590cda666c0ebc75c7157d2e6492c62b4aebc452c29f581361a836d1abcbe1386268a5685103d12dec04aadccaebfa46d4c92e2f2c0381b52d6f2474490d02280a9e9d8c889a3fce2753055e06033f39af86676651 -- 0xbfd1d3ac3d6c37f03afe4d7c244e677f9b01fcbff79dae3394640a7944e5f5ab 0x8fac4aefdc1ae21c00f745605297041e0f39667844068e3757d587c8039d1e3f 0x9a0e57f118b817d7f60599157cad12d788a8562ee5dd1b098b7c25b25bd83f56
         // cargo run --bin seal-cli symmetric-decrypt --key 0xff39846fabaaf439611c5bf6fab9824fb7c76ac6ac2bb7f1f2177e89ec9b9755 0000000000000000000000000000000000000000000000000000000000000000001264000000000000007465732d74322e73756903bfd1d3ac3d6c37f03afe4d7c244e677f9b01fcbff79dae3394640a7944e5f5ab018fac4aefdc1ae21c00f745605297041e0f39667844068e3757d587c8039d1e3f029a0e57f118b817d7f60599157cad12d788a8562ee5dd1b098b7c25b25bd83f560302008cf9d21e3012ef64fc4834ed37eb835fcb3b91889ee13b50f8e3a6ab5ed602fb6f0ad3a86e0246f2b9cbb78034963293021fc9df0cc086a9485ca59f2a19e3234eb7d603b4eca6541086965bdf858028e521d7e744cf6db435465f8929f0636a033b120e73ee469e9d09166778a2420e456b02fa755de2dfbc176e08469d52baa3069892d4f775449b755197f4e904756466d41c4107f8393f1a8a524853aef68d0ff4676f06b1dac62457e762ca4cf59e4df38e3365c14ec0c11fc3c2cd90d06f387c84acabdef7752c9d9dc4d9acf083b3e180daca491ac5d734c804c7781a120108c9e23076205b9a7a0120000000000000000000000000000000000000000000000000000000000000a001d5d0e42fb937d1916a6598c4a301fd959fa020558e5dc3506661f33a00541d8a
         let encrypted_object =
@@ -472,7 +473,7 @@ module suins_auction::auction_tests
             let ctx = test_scenario::ctx(scenario);
 
             // Create the auction
-            auction::create_auction<SUI>(
+            auction_new::create_auction<SUI>(
                 &mut auction_table,
                 START_TIME,
                 END_TIME,
@@ -510,7 +511,10 @@ module suins_auction::auction_tests
             let mut suins = test_scenario::take_shared<SuiNS>(scenario);
             let ctx = test_scenario::ctx(scenario);
 
-            auction::finalize_auction<SUI>(
+            // seal_approve should not error
+            auction_new::seal_approve<SUI>(id, &auction_table, &clock);
+
+            auction_new::finalize_auction<SUI>(
                 &mut suins,
                 &mut auction_table,
                 FIRST_DOMAIN_NAME,
@@ -528,7 +532,7 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, DOMAIN_OWNER);
         {
             let auction_table = test_scenario::take_shared<AuctionTable>(scenario);
-            let table = auction::get_auction_table_bag(&auction_table);
+            let table = auction_new::get_auction_table_bag(&auction_table);
             assert!(table.length() == 0, 0);
             test_scenario::return_shared(auction_table);
 
@@ -605,7 +609,7 @@ module suins_auction::auction_tests
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
 
-            auction::set_seal_config(
+            auction_new::set_seal_config(
                 &admin_cap,
                 &mut auction_table,
                 vector[s0.id(), s1.id(), s2.id()],
@@ -622,7 +626,7 @@ module suins_auction::auction_tests
         // let reserve_price = 2 * SUI_MIN_BID * mist_per_sui();
         // let encoded_reserve_price = sui::bcs::to_bytes(&reserve_price);
         // id = x"64000000000000007465732d74322e737569";
-        // let id = suins_auction::decryption::get_encryption_id(START_TIME, FIRST_DOMAIN_NAME);
+        // let id = suins_auction_new::decryption::get_encryption_id(START_TIME, FIRST_DOMAIN_NAME);
         // cargo run --bin seal-cli encrypt-hmac --message 0x00c817a804000000 --aad 0x000000000000000000000000000000000000000000000000000000000000a001 --package-id 0x0 --id 0x64000000000000007465732d74322e737569 --threshold 2 a58bfa576a8efe2e2730bc664b3dbe70257d8e35106e4af7353d007dba092d722314a0aeb6bca5eed735466bbf471aef01e4da8d2efac13112c51d1411f6992b8604656ea2cf6a33ec10ce8468de20e1d7ecbfed8688a281d462f72a41602161 a9ce55cfa7009c3116ea29341151f3c40809b816f4ad29baa4f95c1bb23085ef02a46cf1ae5bd570d99b0c6e9faf525306224609300b09e422ae2722a17d2a969777d53db7b52092e4d12014da84bffb1e845c2510e26b3c259ede9e42603cd6 93b3220f4f3a46fb33074b590cda666c0ebc75c7157d2e6492c62b4aebc452c29f581361a836d1abcbe1386268a5685103d12dec04aadccaebfa46d4c92e2f2c0381b52d6f2474490d02280a9e9d8c889a3fce2753055e06033f39af86676651 -- 0xbfd1d3ac3d6c37f03afe4d7c244e677f9b01fcbff79dae3394640a7944e5f5ab 0x8fac4aefdc1ae21c00f745605297041e0f39667844068e3757d587c8039d1e3f 0x9a0e57f118b817d7f60599157cad12d788a8562ee5dd1b098b7c25b25bd83f56
         // cargo run --bin seal-cli symmetric-decrypt --key 0xff39846fabaaf439611c5bf6fab9824fb7c76ac6ac2bb7f1f2177e89ec9b9755 0000000000000000000000000000000000000000000000000000000000000000001264000000000000007465732d74322e73756903bfd1d3ac3d6c37f03afe4d7c244e677f9b01fcbff79dae3394640a7944e5f5ab018fac4aefdc1ae21c00f745605297041e0f39667844068e3757d587c8039d1e3f029a0e57f118b817d7f60599157cad12d788a8562ee5dd1b098b7c25b25bd83f560302008cf9d21e3012ef64fc4834ed37eb835fcb3b91889ee13b50f8e3a6ab5ed602fb6f0ad3a86e0246f2b9cbb78034963293021fc9df0cc086a9485ca59f2a19e3234eb7d603b4eca6541086965bdf858028e521d7e744cf6db435465f8929f0636a033b120e73ee469e9d09166778a2420e456b02fa755de2dfbc176e08469d52baa3069892d4f775449b755197f4e904756466d41c4107f8393f1a8a524853aef68d0ff4676f06b1dac62457e762ca4cf59e4df38e3365c14ec0c11fc3c2cd90d06f387c84acabdef7752c9d9dc4d9acf083b3e180daca491ac5d734c804c7781a120108c9e23076205b9a7a0120000000000000000000000000000000000000000000000000000000000000a001d5d0e42fb937d1916a6598c4a301fd959fa020558e5dc3506661f33a00541d8a
         let encrypted_object =
@@ -637,7 +641,7 @@ module suins_auction::auction_tests
             let ctx = test_scenario::ctx(scenario);
 
             // Create the auction
-            auction::create_auction<SUI>(
+            auction_new::create_auction<SUI>(
                 &mut auction_table,
                 START_TIME,
                 END_TIME,
@@ -675,7 +679,7 @@ module suins_auction::auction_tests
             let mut suins = test_scenario::take_shared<SuiNS>(scenario);
             let ctx = test_scenario::ctx(scenario);
 
-            auction::finalize_auction<SUI>(
+            auction_new::finalize_auction<SUI>(
                 &mut suins,
                 &mut auction_table,
                 FIRST_DOMAIN_NAME,
@@ -693,7 +697,7 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, DOMAIN_OWNER);
         {
             let auction_table = test_scenario::take_shared<AuctionTable>(scenario);
-            let table = auction::get_auction_table_bag(&auction_table);
+            let table = auction_new::get_auction_table_bag(&auction_table);
             assert!(table.length() == 0, 0);
             test_scenario::return_shared(auction_table);
 
@@ -714,7 +718,127 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::ETokenNotAllowed)]
+    #[test, expected_failure(abort_code = auction_new::EEncryptionNoAccess)]
+    fun try_auction_scenario_reserve_price_policy_error() {
+        use seal::key_server::{create_and_transfer_v1, KeyServer, destroy_for_testing as ks_destroy};
+
+        let (mut scenario_val, mut clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        // Generate a new domain
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        // Increment the clock to the start time
+        clock.increment_for_testing(START_TIME * MS);
+
+        // Setup key servers.
+        let pk0 =
+            x"a58bfa576a8efe2e2730bc664b3dbe70257d8e35106e4af7353d007dba092d722314a0aeb6bca5eed735466bbf471aef01e4da8d2efac13112c51d1411f6992b8604656ea2cf6a33ec10ce8468de20e1d7ecbfed8688a281d462f72a41602161";
+        create_and_transfer_v1(
+            b"mysten0".to_string(),
+            b"https://mysten-labs.com".to_string(),
+            0,
+            pk0,
+            scenario.ctx(),
+        );
+        scenario.next_tx(DOMAIN_OWNER);
+        let s0: KeyServer = scenario.take_from_sender();
+
+        let pk1 =
+            x"a9ce55cfa7009c3116ea29341151f3c40809b816f4ad29baa4f95c1bb23085ef02a46cf1ae5bd570d99b0c6e9faf525306224609300b09e422ae2722a17d2a969777d53db7b52092e4d12014da84bffb1e845c2510e26b3c259ede9e42603cd6";
+        create_and_transfer_v1(
+            b"mysten1".to_string(),
+            b"https://mysten-labs.com".to_string(),
+            0,
+            pk1,
+            scenario.ctx(),
+        );
+        scenario.next_tx(DOMAIN_OWNER);
+        let s1: KeyServer = scenario.take_from_sender();
+
+        let pk2 =
+            x"93b3220f4f3a46fb33074b590cda666c0ebc75c7157d2e6492c62b4aebc452c29f581361a836d1abcbe1386268a5685103d12dec04aadccaebfa46d4c92e2f2c0381b52d6f2474490d02280a9e9d8c889a3fce2753055e06033f39af86676651";
+        create_and_transfer_v1(
+            b"mysten2".to_string(),
+            b"https://mysten-labs.com".to_string(),
+            0,
+            pk2,
+            scenario.ctx(),
+        );
+        scenario.next_tx(DOMAIN_OWNER);
+        let s2: KeyServer = scenario.take_from_sender();
+
+        // Set Seal config
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
+            let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
+
+            auction_new::set_seal_config(
+                &admin_cap,
+                &mut auction_table,
+                vector[s0.id(), s1.id(), s2.id()],
+                vector[pk0, pk1, pk2],
+                2
+            );
+
+            transfer::public_transfer(admin_cap, DOMAIN_OWNER);
+            test_scenario::return_shared(auction_table);
+        };
+
+        // Encrypted data
+        // encoded_reserve_price = x"00c817a804000000";
+        // let reserve_price = 2 * SUI_MIN_BID * mist_per_sui();
+        // let encoded_reserve_price = sui::bcs::to_bytes(&reserve_price);
+        // id = x"64000000000000007465732d74322e737569";
+        let id = decryption::get_encryption_id(START_TIME, FIRST_DOMAIN_NAME);
+        // cargo run --bin seal-cli encrypt-hmac --message 0x00c817a804000000 --aad 0x000000000000000000000000000000000000000000000000000000000000a001 --package-id 0x0 --id 0x64000000000000007465732d74322e737569 --threshold 2 a58bfa576a8efe2e2730bc664b3dbe70257d8e35106e4af7353d007dba092d722314a0aeb6bca5eed735466bbf471aef01e4da8d2efac13112c51d1411f6992b8604656ea2cf6a33ec10ce8468de20e1d7ecbfed8688a281d462f72a41602161 a9ce55cfa7009c3116ea29341151f3c40809b816f4ad29baa4f95c1bb23085ef02a46cf1ae5bd570d99b0c6e9faf525306224609300b09e422ae2722a17d2a969777d53db7b52092e4d12014da84bffb1e845c2510e26b3c259ede9e42603cd6 93b3220f4f3a46fb33074b590cda666c0ebc75c7157d2e6492c62b4aebc452c29f581361a836d1abcbe1386268a5685103d12dec04aadccaebfa46d4c92e2f2c0381b52d6f2474490d02280a9e9d8c889a3fce2753055e06033f39af86676651 -- 0xbfd1d3ac3d6c37f03afe4d7c244e677f9b01fcbff79dae3394640a7944e5f5ab 0x8fac4aefdc1ae21c00f745605297041e0f39667844068e3757d587c8039d1e3f 0x9a0e57f118b817d7f60599157cad12d788a8562ee5dd1b098b7c25b25bd83f56
+        // cargo run --bin seal-cli symmetric-decrypt --key 0xff39846fabaaf439611c5bf6fab9824fb7c76ac6ac2bb7f1f2177e89ec9b9755 0000000000000000000000000000000000000000000000000000000000000000001264000000000000007465732d74322e73756903bfd1d3ac3d6c37f03afe4d7c244e677f9b01fcbff79dae3394640a7944e5f5ab018fac4aefdc1ae21c00f745605297041e0f39667844068e3757d587c8039d1e3f029a0e57f118b817d7f60599157cad12d788a8562ee5dd1b098b7c25b25bd83f560302008cf9d21e3012ef64fc4834ed37eb835fcb3b91889ee13b50f8e3a6ab5ed602fb6f0ad3a86e0246f2b9cbb78034963293021fc9df0cc086a9485ca59f2a19e3234eb7d603b4eca6541086965bdf858028e521d7e744cf6db435465f8929f0636a033b120e73ee469e9d09166778a2420e456b02fa755de2dfbc176e08469d52baa3069892d4f775449b755197f4e904756466d41c4107f8393f1a8a524853aef68d0ff4676f06b1dac62457e762ca4cf59e4df38e3365c14ec0c11fc3c2cd90d06f387c84acabdef7752c9d9dc4d9acf083b3e180daca491ac5d734c804c7781a120108c9e23076205b9a7a0120000000000000000000000000000000000000000000000000000000000000a001d5d0e42fb937d1916a6598c4a301fd959fa020558e5dc3506661f33a00541d8a
+        let encrypted_object =
+            x"0000000000000000000000000000000000000000000000000000000000000000001264000000000000007465732d74322e73756903bfd1d3ac3d6c37f03afe4d7c244e677f9b01fcbff79dae3394640a7944e5f5ab018fac4aefdc1ae21c00f745605297041e0f39667844068e3757d587c8039d1e3f029a0e57f118b817d7f60599157cad12d788a8562ee5dd1b098b7c25b25bd83f560302008cf9d21e3012ef64fc4834ed37eb835fcb3b91889ee13b50f8e3a6ab5ed602fb6f0ad3a86e0246f2b9cbb78034963293021fc9df0cc086a9485ca59f2a19e3234eb7d603b4eca6541086965bdf858028e521d7e744cf6db435465f8929f0636a033b120e73ee469e9d09166778a2420e456b02fa755de2dfbc176e08469d52baa3069892d4f775449b755197f4e904756466d41c4107f8393f1a8a524853aef68d0ff4676f06b1dac62457e762ca4cf59e4df38e3365c14ec0c11fc3c2cd90d06f387c84acabdef7752c9d9dc4d9acf083b3e180daca491ac5d734c804c7781a120108c9e23076205b9a7a0120000000000000000000000000000000000000000000000000000000000000a001d5d0e42fb937d1916a6598c4a301fd959fa020558e5dc3506661f33a00541d8a";
+
+        // Create an auction
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            // Take the objects
+            let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
+            let registration = test_scenario::take_from_sender<SuinsRegistration>(scenario);
+            let ctx = test_scenario::ctx(scenario);
+
+            // Create the auction
+            auction_new::create_auction<SUI>(
+                &mut auction_table,
+                START_TIME,
+                END_TIME,
+                SUI_MIN_BID * mist_per_sui(),
+                option::some(encrypted_object),
+                registration,
+                ctx
+            );
+
+            // Clean up
+            test_scenario::return_shared(auction_table);
+        };
+
+        // seal_approve will error since auction has not ended yet
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let auction_table = test_scenario::take_shared<AuctionTable>(scenario);
+
+            auction_new::seal_approve<SUI>(id, &auction_table, &clock);
+
+            test_scenario::return_shared(auction_table);
+        };
+
+        // Final cleanup
+        ks_destroy(s0);
+        ks_destroy(s1);
+        ks_destroy(s2);
+        clock::destroy_for_testing(clock);
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = auction_new::ETokenNotAllowed)]
     fun try_create_auction_not_allowed_token() {
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -739,7 +863,7 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::ENotOwner)]
+    #[test, expected_failure(abort_code = auction_new::ENotOwner)]
     fun try_cancel_auction_not_owner() {
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -764,7 +888,7 @@ module suins_auction::auction_tests
         {
             let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
             let ctx = test_scenario::ctx(scenario);
-            let registration = auction::cancel_auction<SUI>(&mut auction_table,
+            let registration = auction_new::cancel_auction<SUI>(&mut auction_table,
                 FIRST_DOMAIN_NAME,
                 &clock,
                 ctx);
@@ -777,7 +901,7 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::ETooEarly)]
+    #[test, expected_failure(abort_code = auction_new::ETooEarly)]
     fun try_place_bid_too_early() {
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -805,7 +929,7 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::ETooLate)]
+    #[test, expected_failure(abort_code = auction_new::ETooLate)]
     fun try_place_bid_too_late() {
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -833,7 +957,7 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::EWrongTime)]
+    #[test, expected_failure(abort_code = auction_new::EWrongTime)]
     fun try_create_auction_wrong_time() {
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -855,7 +979,7 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::EBidTooLow)]
+    #[test, expected_failure(abort_code = auction_new::EBidTooLow)]
     fun try_place_bid_lower_than_minimum() {
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -886,7 +1010,7 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::EBidTooLow)]
+    #[test, expected_failure(abort_code = auction_new::EBidTooLow)]
     fun try_place_bid_lower_than_previous() {
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -920,7 +1044,7 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::ENotEnded)]
+    #[test, expected_failure(abort_code = auction_new::ENotEnded)]
     fun try_finalize_auction_not_ended() {
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -951,7 +1075,7 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::EEnded)]
+    #[test, expected_failure(abort_code = auction_new::EEnded)]
     fun try_cancel_ended_auction() {
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -979,7 +1103,7 @@ module suins_auction::auction_tests
         {
             let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
             let ctx = test_scenario::ctx(scenario);
-            let registration = auction::cancel_auction<SUI>(&mut auction_table,
+            let registration = auction_new::cancel_auction<SUI>(&mut auction_table,
                 FIRST_DOMAIN_NAME,
                 &clock,
                 ctx);
@@ -992,7 +1116,7 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::ENotAuctioned)]
+    #[test, expected_failure(abort_code = auction_new::ENotAuctioned)]
     fun try_place_bid_not_auctioned_domain() {
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -1041,7 +1165,7 @@ module suins_auction::auction_tests
             let payment = coin::mint_for_testing<SUI>(SUI_FIRST_BID * mist_per_sui(), ctx);
 
             // Place the offer
-            auction::place_offer(
+            auction_new::place_offer(
                 &mut offer_table,
                 FIRST_DOMAIN_NAME,
                 payment,
@@ -1056,12 +1180,12 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, DOMAIN_OWNER);
         {
             let offer_table = test_scenario::take_shared<OfferTable>(scenario);
-            let table = auction::get_offer_table(&offer_table);
+            let table = auction_new::get_offer_table(&offer_table);
             let offers = table.borrow(FIRST_DOMAIN_NAME);
             assert!(offers.contains(FIRST_ADDRESS), 0);
             let offer = offers.borrow(FIRST_ADDRESS);
-            assert!(auction::get_offer_balance(offer).value() == SUI_FIRST_BID * mist_per_sui(), 0);
-            assert!(auction::get_offer_counter_offer<SUI>(offer) == 0, 0);
+            assert!(auction_new::get_offer_balance(offer).value() == SUI_FIRST_BID * mist_per_sui(), 0);
+            assert!(auction_new::get_offer_counter_offer<SUI>(offer) == 0, 0);
             test_scenario::return_shared(offer_table);
         };
 
@@ -1085,7 +1209,7 @@ module suins_auction::auction_tests
             let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
 
-            auction::add_allowed_token<TestCoin>(&admin_cap, &mut auction_table, &mut offer_table);
+            auction_new::add_allowed_token<TestCoin>(&admin_cap, &mut auction_table, &mut offer_table);
 
             transfer::public_transfer(admin_cap, DOMAIN_OWNER);
             test_scenario::return_shared(auction_table);
@@ -1102,7 +1226,7 @@ module suins_auction::auction_tests
             let payment = coin::mint_for_testing<TestCoin>(SUI_FIRST_BID * mist_per_sui(), ctx);
 
             // Place the offer
-            auction::place_offer(
+            auction_new::place_offer(
                 &mut offer_table,
                 FIRST_DOMAIN_NAME,
                 payment,
@@ -1120,7 +1244,7 @@ module suins_auction::auction_tests
             let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
 
-            auction::remove_allowed_token<TestCoin>(&admin_cap, &mut auction_table, &mut offer_table);
+            auction_new::remove_allowed_token<TestCoin>(&admin_cap, &mut auction_table, &mut offer_table);
 
             transfer::public_transfer(admin_cap, DOMAIN_OWNER);
             test_scenario::return_shared(auction_table);
@@ -1131,12 +1255,12 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, DOMAIN_OWNER);
         {
             let offer_table = test_scenario::take_shared<OfferTable>(scenario);
-            let table = auction::get_offer_table(&offer_table);
+            let table = auction_new::get_offer_table(&offer_table);
             let offers = table.borrow(FIRST_DOMAIN_NAME);
             assert!(offers.contains(FIRST_ADDRESS), 0);
             let offer = offers.borrow(FIRST_ADDRESS);
-            assert!(auction::get_offer_balance(offer).value() == SUI_FIRST_BID * mist_per_sui(), 0);
-            assert!(auction::get_offer_counter_offer<TestCoin>(offer) == 0, 0);
+            assert!(auction_new::get_offer_balance(offer).value() == SUI_FIRST_BID * mist_per_sui(), 0);
+            assert!(auction_new::get_offer_counter_offer<TestCoin>(offer) == 0, 0);
             test_scenario::return_shared(offer_table);
         };
 
@@ -1145,7 +1269,7 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::ETokenNotAllowed)]
+    #[test, expected_failure(abort_code = auction_new::ETokenNotAllowed)]
     fun try_place_offer_not_allowed_token() {
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -1163,7 +1287,7 @@ module suins_auction::auction_tests
             let payment = coin::mint_for_testing<TestCoin>(SUI_FIRST_BID * mist_per_sui(), ctx);
 
             // Place the offer
-            auction::place_offer(
+            auction_new::place_offer(
                 &mut offer_table,
                 FIRST_DOMAIN_NAME,
                 payment,
@@ -1197,7 +1321,7 @@ module suins_auction::auction_tests
             let payment = coin::mint_for_testing<SUI>(SUI_FIRST_BID * mist_per_sui(), ctx);
 
             // Place the offer
-            auction::place_offer(
+            auction_new::place_offer(
                 &mut offer_table,
                 FIRST_DOMAIN_NAME,
                 payment,
@@ -1212,12 +1336,12 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, DOMAIN_OWNER);
         {
             let offer_table = test_scenario::take_shared<OfferTable>(scenario);
-            let table = auction::get_offer_table(&offer_table);
+            let table = auction_new::get_offer_table(&offer_table);
             let offers = table.borrow(FIRST_DOMAIN_NAME);
             assert!(offers.contains(FIRST_ADDRESS), 0);
             let offer = offers.borrow(FIRST_ADDRESS);
-            assert!(auction::get_offer_balance(offer).value() == SUI_FIRST_BID * mist_per_sui(), 0);
-            assert!(auction::get_offer_counter_offer<SUI>(offer) == 0, 0);
+            assert!(auction_new::get_offer_balance(offer).value() == SUI_FIRST_BID * mist_per_sui(), 0);
+            assert!(auction_new::get_offer_counter_offer<SUI>(offer) == 0, 0);
             test_scenario::return_shared(offer_table);
         };
 
@@ -1229,7 +1353,7 @@ module suins_auction::auction_tests
             let ctx = test_scenario::ctx(scenario);
 
             // Make counter offer
-            auction::make_counter_offer<SUI>(
+            auction_new::make_counter_offer<SUI>(
                 &mut offer_table,
                 &registration,
                 FIRST_ADDRESS,
@@ -1246,11 +1370,11 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, DOMAIN_OWNER);
         {
             let offer_table = test_scenario::take_shared<OfferTable>(scenario);
-            let table = auction::get_offer_table(&offer_table);
+            let table = auction_new::get_offer_table(&offer_table);
             assert!(table.length() == 1);
             let offers = table.borrow(FIRST_DOMAIN_NAME);
             let offer = offers.borrow(FIRST_ADDRESS);
-            assert!(auction::get_offer_counter_offer<SUI>(offer) == SUI_SECOND_BID * mist_per_sui(), 0);
+            assert!(auction_new::get_offer_counter_offer<SUI>(offer) == SUI_SECOND_BID * mist_per_sui(), 0);
             test_scenario::return_shared(offer_table);
         };
 
@@ -1267,7 +1391,7 @@ module suins_auction::auction_tests
             );
 
             // Accept counter offer
-            auction::accept_counter_offer(
+            auction_new::accept_counter_offer(
                 &mut offer_table,
                 FIRST_DOMAIN_NAME,
                 additional_payment,
@@ -1287,7 +1411,7 @@ module suins_auction::auction_tests
             let ctx = test_scenario::ctx(scenario);
 
             // Accept the offer
-            let payment = auction::accept_offer<SUI>(
+            let payment = auction_new::accept_offer<SUI>(
                 &mut suins,
                 &mut offer_table,
                 registration,
@@ -1309,7 +1433,7 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, DOMAIN_OWNER);
         {
             let offer_table = test_scenario::take_shared<OfferTable>(scenario);
-            let table = auction::get_offer_table(&offer_table);
+            let table = auction_new::get_offer_table(&offer_table);
             assert!(table.length() == 0, 0);
             test_scenario::return_shared(offer_table);
         };
@@ -1342,7 +1466,7 @@ module suins_auction::auction_tests
             let payment = coin::mint_for_testing<SUI>(SUI_FIRST_BID * mist_per_sui(), ctx);
 
             // Place the offer
-            auction::place_offer(
+            auction_new::place_offer(
                 &mut offer_table,
                 FIRST_DOMAIN_NAME,
                 payment,
@@ -1363,7 +1487,7 @@ module suins_auction::auction_tests
             let payment = coin::mint_for_testing<SUI>(SUI_SECOND_BID * mist_per_sui(), ctx);
 
             // Place the offer
-            auction::place_offer(
+            auction_new::place_offer(
                 &mut offer_table,
                 SECOND_DOMAIN_NAME,
                 payment,
@@ -1378,18 +1502,18 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, DOMAIN_OWNER);
         {
             let offer_table = test_scenario::take_shared<OfferTable>(scenario);
-            let table = auction::get_offer_table(&offer_table);
+            let table = auction_new::get_offer_table(&offer_table);
             assert!(table.length() == 2);
             let offers = table.borrow(FIRST_DOMAIN_NAME);
             assert!(offers.contains(FIRST_ADDRESS), 0);
             let offer = offers.borrow(FIRST_ADDRESS);
-            assert!(auction::get_offer_balance(offer).value() == SUI_FIRST_BID * mist_per_sui(), 0);
-            assert!(auction::get_offer_counter_offer<SUI>(offer) == 0, 0);
+            assert!(auction_new::get_offer_balance(offer).value() == SUI_FIRST_BID * mist_per_sui(), 0);
+            assert!(auction_new::get_offer_counter_offer<SUI>(offer) == 0, 0);
             let offers = table.borrow(SECOND_DOMAIN_NAME);
             assert!(offers.contains(SECOND_ADDRESS), 0);
             let offer = offers.borrow(SECOND_ADDRESS);
-            assert!(auction::get_offer_balance(offer).value() == SUI_SECOND_BID * mist_per_sui(), 0);
-            assert!(auction::get_offer_counter_offer<SUI>(offer) == 0, 0);
+            assert!(auction_new::get_offer_balance(offer).value() == SUI_SECOND_BID * mist_per_sui(), 0);
+            assert!(auction_new::get_offer_counter_offer<SUI>(offer) == 0, 0);
             test_scenario::return_shared(offer_table);
         };
 
@@ -1400,7 +1524,7 @@ module suins_auction::auction_tests
             let ctx = test_scenario::ctx(scenario);
 
             // Cancel the offer
-            let payment = auction::cancel_offer<SUI>(
+            let payment = auction_new::cancel_offer<SUI>(
                 &mut offer_table,
                 FIRST_DOMAIN_NAME,
                 ctx
@@ -1418,13 +1542,13 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, DOMAIN_OWNER);
         {
             let offer_table = test_scenario::take_shared<OfferTable>(scenario);
-            let table = auction::get_offer_table(&offer_table);
+            let table = auction_new::get_offer_table(&offer_table);
             assert!(table.length() == 1, 0);
             let offers = table.borrow(SECOND_DOMAIN_NAME);
             assert!(offers.contains(SECOND_ADDRESS), 0);
             let offer = offers.borrow(SECOND_ADDRESS);
-            assert!(auction::get_offer_balance(offer).value() == SUI_SECOND_BID * mist_per_sui(), 0);
-            assert!(auction::get_offer_counter_offer<SUI>(offer) == 0, 0);
+            assert!(auction_new::get_offer_balance(offer).value() == SUI_SECOND_BID * mist_per_sui(), 0);
+            assert!(auction_new::get_offer_counter_offer<SUI>(offer) == 0, 0);
             test_scenario::return_shared(offer_table);
         };
 
@@ -1451,7 +1575,7 @@ module suins_auction::auction_tests
             let payment = coin::mint_for_testing<SUI>(SUI_FIRST_BID * mist_per_sui(), ctx);
 
             // Place the offer
-            auction::place_offer(
+            auction_new::place_offer(
                 &mut offer_table,
                 FIRST_DOMAIN_NAME,
                 payment,
@@ -1472,7 +1596,7 @@ module suins_auction::auction_tests
             let payment = coin::mint_for_testing<SUI>(SUI_SECOND_BID * mist_per_sui(), ctx);
 
             // Place the offer
-            auction::place_offer(
+            auction_new::place_offer(
                 &mut offer_table,
                 FIRST_DOMAIN_NAME,
                 payment,
@@ -1487,17 +1611,17 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, DOMAIN_OWNER);
         {
             let offer_table = test_scenario::take_shared<OfferTable>(scenario);
-            let table = auction::get_offer_table(&offer_table);
+            let table = auction_new::get_offer_table(&offer_table);
             assert!(table.length() == 1);
             let offers = table.borrow(FIRST_DOMAIN_NAME);
             assert!(offers.contains(FIRST_ADDRESS), 0);
             let offer = offers.borrow(FIRST_ADDRESS);
-            assert!(auction::get_offer_balance(offer).value() == SUI_FIRST_BID * mist_per_sui(), 0);
-            assert!(auction::get_offer_counter_offer<SUI>(offer) == 0, 0);
+            assert!(auction_new::get_offer_balance(offer).value() == SUI_FIRST_BID * mist_per_sui(), 0);
+            assert!(auction_new::get_offer_counter_offer<SUI>(offer) == 0, 0);
             assert!(offers.contains(SECOND_ADDRESS), 0);
             let offer = offers.borrow(SECOND_ADDRESS);
-            assert!(auction::get_offer_balance(offer).value() == SUI_SECOND_BID * mist_per_sui(), 0);
-            assert!(auction::get_offer_counter_offer<SUI>(offer) == 0, 0);
+            assert!(auction_new::get_offer_balance(offer).value() == SUI_SECOND_BID * mist_per_sui(), 0);
+            assert!(auction_new::get_offer_counter_offer<SUI>(offer) == 0, 0);
             test_scenario::return_shared(offer_table);
         };
 
@@ -1509,7 +1633,7 @@ module suins_auction::auction_tests
             let ctx = test_scenario::ctx(scenario);
 
             // Decline the offer
-            auction::decline_offer<SUI>(
+            auction_new::decline_offer<SUI>(
                 &mut offer_table,
                 &registration,
                 SECOND_ADDRESS,
@@ -1525,13 +1649,13 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, DOMAIN_OWNER);
         {
             let offer_table = test_scenario::take_shared<OfferTable>(scenario);
-            let table = auction::get_offer_table(&offer_table);
+            let table = auction_new::get_offer_table(&offer_table);
             assert!(table.length() == 1, 0);
             let offers = table.borrow(FIRST_DOMAIN_NAME);
             assert!(offers.contains(FIRST_ADDRESS), 0);
             let offer = offers.borrow(FIRST_ADDRESS);
-            assert!(auction::get_offer_balance(offer).value() == SUI_FIRST_BID * mist_per_sui(), 0);
-            assert!(auction::get_offer_counter_offer<SUI>(offer) == 0, 0);
+            assert!(auction_new::get_offer_balance(offer).value() == SUI_FIRST_BID * mist_per_sui(), 0);
+            assert!(auction_new::get_offer_counter_offer<SUI>(offer) == 0, 0);
             test_scenario::return_shared(offer_table);
         };
 
@@ -1548,7 +1672,7 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::EAlreadyOffered)]
+    #[test, expected_failure(abort_code = auction_new::EAlreadyOffered)]
     fun try_place_offer_aleady_offered() {
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -1563,7 +1687,7 @@ module suins_auction::auction_tests
             let payment = coin::mint_for_testing<SUI>(SUI_FIRST_BID * mist_per_sui(), ctx);
 
             // Place the offer
-            auction::place_offer(
+            auction_new::place_offer(
                 &mut offer_table,
                 FIRST_DOMAIN_NAME,
                 payment,
@@ -1584,7 +1708,7 @@ module suins_auction::auction_tests
             let payment = coin::mint_for_testing<SUI>(SUI_SECOND_BID * mist_per_sui(), ctx);
 
             // Place the offer
-            auction::place_offer(
+            auction_new::place_offer(
                 &mut offer_table,
                 FIRST_DOMAIN_NAME,
                 payment,
@@ -1600,7 +1724,7 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::ECounterOfferTooLow)]
+    #[test, expected_failure(abort_code = auction_new::ECounterOfferTooLow)]
     fun try_make_too_low_counteroffer() {
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -1618,7 +1742,7 @@ module suins_auction::auction_tests
             let payment = coin::mint_for_testing<SUI>(SUI_FIRST_BID * mist_per_sui(), ctx);
 
             // Place the offer
-            auction::place_offer(
+            auction_new::place_offer(
                 &mut offer_table,
                 FIRST_DOMAIN_NAME,
                 payment,
@@ -1637,7 +1761,7 @@ module suins_auction::auction_tests
             let ctx = test_scenario::ctx(scenario);
 
             // Make counter offer
-            auction::make_counter_offer<SUI>(
+            auction_new::make_counter_offer<SUI>(
                 &mut offer_table,
                 &registration,
                 FIRST_ADDRESS,
@@ -1655,7 +1779,7 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::ENoCounterOffer)]
+    #[test, expected_failure(abort_code = auction_new::ENoCounterOffer)]
     fun try_accept_non_existent_counteroffer() {
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -1670,7 +1794,7 @@ module suins_auction::auction_tests
             let payment = coin::mint_for_testing<SUI>(SUI_FIRST_BID * mist_per_sui(), ctx);
 
             // Place the offer
-            auction::place_offer(
+            auction_new::place_offer(
                 &mut offer_table,
                 FIRST_DOMAIN_NAME,
                 payment,
@@ -1694,7 +1818,7 @@ module suins_auction::auction_tests
             );
 
             // Accept counter offer
-            auction::accept_counter_offer(
+            auction_new::accept_counter_offer(
                 &mut offer_table,
                 FIRST_DOMAIN_NAME,
                 additional_payment,
@@ -1710,7 +1834,7 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::EWrongCoinValue)]
+    #[test, expected_failure(abort_code = auction_new::EWrongCoinValue)]
     fun try_accept_counteroffer_wrong_payment() {
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -1728,7 +1852,7 @@ module suins_auction::auction_tests
             let payment = coin::mint_for_testing<SUI>(SUI_FIRST_BID * mist_per_sui(), ctx);
 
             // Place the offer
-            auction::place_offer(
+            auction_new::place_offer(
                 &mut offer_table,
                 FIRST_DOMAIN_NAME,
                 payment,
@@ -1747,7 +1871,7 @@ module suins_auction::auction_tests
             let ctx = test_scenario::ctx(scenario);
 
             // Make counter offer
-            auction::make_counter_offer<SUI>(
+            auction_new::make_counter_offer<SUI>(
                 &mut offer_table,
                 &registration,
                 FIRST_ADDRESS,
@@ -1773,7 +1897,7 @@ module suins_auction::auction_tests
             );
 
             // Accept counter offer
-            auction::accept_counter_offer(
+            auction_new::accept_counter_offer(
                 &mut offer_table,
                 FIRST_DOMAIN_NAME,
                 additional_payment,
@@ -1789,7 +1913,7 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::EDomainNotOffered)]
+    #[test, expected_failure(abort_code = auction_new::EDomainNotOffered)]
     fun try_make_counteroffer_on_non_existent_offer() {
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -1805,7 +1929,7 @@ module suins_auction::auction_tests
             let ctx = test_scenario::ctx(scenario);
 
             // Make counter offer
-            auction::make_counter_offer<SUI>(
+            auction_new::make_counter_offer<SUI>(
                 &mut offer_table,
                 &registration,
                 FIRST_ADDRESS,
@@ -1823,7 +1947,7 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::EAddressNotOffered)]
+    #[test, expected_failure(abort_code = auction_new::EAddressNotOffered)]
     fun try_accept_counteroffer_wrong_caller() {
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -1841,7 +1965,7 @@ module suins_auction::auction_tests
             let payment = coin::mint_for_testing<SUI>(SUI_FIRST_BID * mist_per_sui(), ctx);
 
             // Place the offer
-            auction::place_offer(
+            auction_new::place_offer(
                 &mut offer_table,
                 FIRST_DOMAIN_NAME,
                 payment,
@@ -1860,7 +1984,7 @@ module suins_auction::auction_tests
             let ctx = test_scenario::ctx(scenario);
 
             // Make counter offer
-            auction::make_counter_offer<SUI>(
+            auction_new::make_counter_offer<SUI>(
                 &mut offer_table,
                 &registration,
                 FIRST_ADDRESS,
@@ -1886,7 +2010,7 @@ module suins_auction::auction_tests
             );
 
             // Accept counter offer
-            auction::accept_counter_offer(
+            auction_new::accept_counter_offer(
                 &mut offer_table,
                 FIRST_DOMAIN_NAME,
                 additional_payment,
@@ -1902,7 +2026,7 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::ENotUpgrade)]
+    #[test, expected_failure(abort_code = auction_new::ENotUpgrade)]
     fun try_call_with_wrong_auction_table_version() {
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -1917,7 +2041,7 @@ module suins_auction::auction_tests
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
             let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
 
-            auction::migrate(&admin_cap, &mut auction_table, &mut offer_table);
+            auction_new::migrate(&admin_cap, &mut auction_table, &mut offer_table);
 
             // Clean up
             test_scenario::return_shared(auction_table);
@@ -1941,7 +2065,7 @@ module suins_auction::auction_tests
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
 
-            auction::set_seal_config(&admin_cap, &mut auction_table, vector[@0xa], vector[vector[0, 1]], 1);
+            auction_new::set_seal_config(&admin_cap, &mut auction_table, vector[@0xa], vector[vector[0, 1]], 1);
 
             let key_servers = auction_table.get_auction_table_key_servers();
             assert!(key_servers == &vector[@0xa], 0);
@@ -1962,7 +2086,7 @@ module suins_auction::auction_tests
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
 
-            auction::set_seal_config(
+            auction_new::set_seal_config(
                 &admin_cap,
                 &mut auction_table,
                 vector[@0xb, @0xc],
@@ -1988,7 +2112,7 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::EInvalidThreshold)]
+    #[test, expected_failure(abort_code = auction_new::EInvalidThreshold)]
     fun try_set_seal_config_invalid_threshold() {
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -1999,7 +2123,7 @@ module suins_auction::auction_tests
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
 
-            auction::set_seal_config(&admin_cap, &mut auction_table, vector[@0xa], vector[vector[0, 1]], 2);
+            auction_new::set_seal_config(&admin_cap, &mut auction_table, vector[@0xa], vector[vector[0, 1]], 2);
 
             transfer::public_transfer(admin_cap, DOMAIN_OWNER);
             test_scenario::return_shared(auction_table);
@@ -2010,7 +2134,7 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = auction::EInvalidKeyLengths)]
+    #[test, expected_failure(abort_code = auction_new::EInvalidKeyLengths)]
     fun try_set_seal_config_invalid_key_lengths() {
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -2021,7 +2145,7 @@ module suins_auction::auction_tests
             let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
             let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
 
-            auction::set_seal_config(&admin_cap, &mut auction_table, vector[@0xa, @0xb], vector[vector[0, 1]], 1);
+            auction_new::set_seal_config(&admin_cap, &mut auction_table, vector[@0xa, @0xb], vector[vector[0, 1]], 1);
 
             transfer::public_transfer(admin_cap, DOMAIN_OWNER);
             test_scenario::return_shared(auction_table);
@@ -2044,7 +2168,7 @@ module suins_auction::auction_tests
             let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
 
-            auction::add_allowed_token<TestCoin>(&admin_cap, &mut auction_table, &mut offer_table);
+            auction_new::add_allowed_token<TestCoin>(&admin_cap, &mut auction_table, &mut offer_table);
 
             let allowed_tokens = auction_table.get_auction_table_allowed_tokens();
             let test_coin_type_name = type_name::with_defining_ids<TestCoin>();
@@ -2064,7 +2188,7 @@ module suins_auction::auction_tests
             let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
 
-            auction::remove_allowed_token<TestCoin>(&admin_cap, &mut auction_table, &mut offer_table);
+            auction_new::remove_allowed_token<TestCoin>(&admin_cap, &mut auction_table, &mut offer_table);
 
             let allowed_tokens = auction_table.get_auction_table_allowed_tokens();
             let test_coin_type_name = type_name::with_defining_ids<TestCoin>();
