@@ -2,26 +2,21 @@
 // SPDX-License-Identifier: Apache-2.0
 export type PackageInfo = {
 	SuiNS: SuiNS;
-	Utils: Package;
 	DenyList: Package;
-	Registration: Package;
-	Renewal: Package;
 	DayOne: Package;
-	Coupons: Coupons;
+	Coupons: Package;
 	Subdomains: Package;
 	Discounts: Package & {
 		discountHouse: string;
 	};
-	Payments: Package;
 	TempSubdomainProxy: Package;
+	BBB?: Package; // Optional - only on mainnet/testnet
+	Payments?: Package; // Optional - only on mainnet/testnet (requires BBB and Pyth)
 };
 
 export type Package = {
 	packageId: string;
 	upgradeCap: string;
-};
-export type Coupons = Package & {
-	couponHouse: string;
 };
 
 export type SuiNS = {

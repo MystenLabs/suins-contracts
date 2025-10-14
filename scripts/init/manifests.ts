@@ -7,7 +7,6 @@ edition = "2024.beta"
 ${packageId ? `published-at = "${packageId}"` : ''}
 
 [dependencies]
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "${rev}" }
 
 [addresses]
 suins = "${packageId || '0x0'}"`;
@@ -20,7 +19,6 @@ edition = "2024.beta"
 ${packageId ? `published-at = "${packageId}"` : ''}
 
 [dependencies]
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "${rev}", override=true }
 suins = { local = "../suins" }
 ${extraDependencies || ''}
 
@@ -34,10 +32,10 @@ edition = "2024.beta"
 ${packageId ? `published-at = "${packageId}"` : ''}
 
 [dependencies]
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "${rev}", override=true }
-subdomains = { local = "../subdomains" }
-utils = { local = "../utils" }
+suins_subdomains = { local = "../subdomains" }
+suins = { local = "../suins" }
 
 [addresses]
 temp_subdomain_proxy = "${packageId || '0x0'}"
+suins_temp_subdomain_proxy = "${packageId || '0x0'}"
 `;
