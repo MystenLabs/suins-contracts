@@ -46,10 +46,10 @@ console.log(priceList);
 
 ## Query active renewals pricing
 
-Call the `getRenewalPricelist` method on the `SuinsClient` instance to query the active renewals price list.
+Call the `getRenewalPriceList` method on the `SuinsClient` instance to query the active renewals price list.
 
 ```js
-const renewalPriceList = await suinsClient.getRenewalPricelist();
+const renewalPriceList = await suinsClient.getRenewalPriceList();
 console.log(renewalPriceList);
 
 // ([domain_length_from, domain_length_to]: price. Prices are in USDC MIST; 1 USDC = 1_000_000 MIST)
