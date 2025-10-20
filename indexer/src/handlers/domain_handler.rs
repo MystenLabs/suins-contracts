@@ -10,14 +10,14 @@ use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use futures::future::try_join_all;
 use move_core_types::language_storage::StructTag;
-use sui_name_service::{Domain, NameRecord, SubDomainRegistration};
-use sui_types::dynamic_field::Field;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use sui_indexer_alt_framework::pipeline::concurrent::Handler;
 use sui_indexer_alt_framework::pipeline::Processor;
+use sui_name_service::{Domain, NameRecord, SubDomainRegistration};
 use sui_pg_db::{Connection, Db};
 use sui_types::base_types::SuiAddress;
+use sui_types::dynamic_field::Field;
 use sui_types::full_checkpoint_content::{CheckpointData, CheckpointTransaction};
 use sui_types::object::Object;
 
@@ -110,9 +110,10 @@ impl DomainHandler {
                         object
                     )
                 })?;
-                results
-                    .subdomain_wrappers
-                    .insert(sub_domain.nft.domain_name, sub_domain.id.id.bytes.to_hex_uncompressed());
+                results.subdomain_wrappers.insert(
+                    sub_domain.nft.domain_name,
+                    sub_domain.id.id.bytes.to_hex_uncompressed(),
+                );
             };
         }
         Ok(())

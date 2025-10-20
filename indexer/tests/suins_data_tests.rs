@@ -129,11 +129,18 @@ where
 
 /// Read the entire table from database as json value.
 /// note: bytea values will be hashed to reduce output size.
-async fn read_table(table_name: &str, db_url: &str, order_statement: Option<&str>) -> Result<Vec<Value>, anyhow::Error> {
+async fn read_table(
+    table_name: &str,
+    db_url: &str,
+    order_statement: Option<&str>,
+) -> Result<Vec<Value>, anyhow::Error> {
     let pool = PgPool::connect(db_url).await?;
-    let rows = sqlx::query(&format!("SELECT * FROM {table_name} {}", order_statement.unwrap_or("")))
-        .fetch_all(&pool)
-        .await?;
+    let rows = sqlx::query(&format!(
+        "SELECT * FROM {table_name} {}",
+        order_statement.unwrap_or("")
+    ))
+    .fetch_all(&pool)
+    .await?;
 
     // To json
     Ok(rows

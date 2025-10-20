@@ -63,7 +63,7 @@ impl SuinsIndexerCheckpoint {
         for (field_id, name_record_change) in self.name_records.iter() {
             let name_record = &name_record_change.0;
 
-            let name = to_ns_domain(&name_record.name);
+            let name = name_record.name.clone();
             let parent = name.parent().to_string();
             let nft_id = name_record.value.nft_id.bytes.to_hex_uncompressed();
 
@@ -83,12 +83,6 @@ impl SuinsIndexerCheckpoint {
 
         updates
     }
-}
-
-fn to_ns_domain(domain: &Domain) -> Domain {
-    // both structs models the same move struct, safe to unwrap.
-    // Todo: better ways to handle this? Maybe add support for type override in move_binding.
-    bcs::from_bytes(&bcs::to_bytes(&domain).unwrap()).unwrap()
 }
 
 pub struct NameRecordChange(pub Field<Domain, NameRecord>);
