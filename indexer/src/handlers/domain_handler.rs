@@ -1,7 +1,3 @@
-use crate::models::sui::dynamic_field::Field;
-use crate::models::suins::domain::Domain;
-use crate::models::suins::name_record::NameRecord;
-use crate::models::suins::subdomain_registration::SubDomainRegistration;
 use crate::models::{
     NameRecordChange, SuinsCheckpointData, SuinsIndexerCheckpoint, VerifiedDomain,
 };
@@ -14,6 +10,8 @@ use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use futures::future::try_join_all;
 use move_core_types::language_storage::StructTag;
+use sui_name_service::{Domain, NameRecord, SubDomainRegistration};
+use sui_types::dynamic_field::Field;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use sui_indexer_alt_framework::pipeline::concurrent::Handler;
@@ -114,7 +112,7 @@ impl DomainHandler {
                 })?;
                 results
                     .subdomain_wrappers
-                    .insert(sub_domain.nft.domain_name, sub_domain.id.to_string());
+                    .insert(sub_domain.nft.domain_name, sub_domain.id.id.bytes.to_hex_uncompressed());
             };
         }
         Ok(())

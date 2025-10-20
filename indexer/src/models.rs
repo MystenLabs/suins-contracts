@@ -1,19 +1,12 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::models::sui::dynamic_field::Field;
-use crate::models::suins::domain::Domain;
-use crate::models::suins::name_record::NameRecord;
 use crate::schema::domains;
 use diesel::prelude::*;
-use move_binding_derive::move_contract;
 use std::collections::{HashMap, HashSet};
 use sui_indexer_alt_framework::FieldCount;
-use sui_name_service::Domain as NsDomain;
-use sui_types::base_types::ObjectID;
-
-move_contract! {alias = "sui", package = "0x2", base_path = crate::models}
-move_contract! {alias = "suins", package = "@suins/core", base_path = crate::models}
+use sui_name_service::{Domain, NameRecord};
+use sui_types::{base_types::ObjectID, dynamic_field::Field};
 
 #[derive(Queryable, Selectable, Insertable, AsChangeset, Debug, FieldCount, Clone)]
 #[diesel(table_name = domains)]
@@ -72,7 +65,7 @@ impl SuinsIndexerCheckpoint {
 
             let name = to_ns_domain(&name_record.name);
             let parent = name.parent().to_string();
-            let nft_id = name_record.value.nft_id.to_string();
+            let nft_id = name_record.value.nft_id.bytes.to_hex_uncompressed();
 
             updates.push(VerifiedDomain {
                 field_id: field_id.to_string(),
@@ -92,7 +85,7 @@ impl SuinsIndexerCheckpoint {
     }
 }
 
-fn to_ns_domain(domain: &Domain) -> NsDomain {
+fn to_ns_domain(domain: &Domain) -> Domain {
     // both structs models the same move struct, safe to unwrap.
     // Todo: better ways to handle this? Maybe add support for type override in move_binding.
     bcs::from_bytes(&bcs::to_bytes(&domain).unwrap()).unwrap()
