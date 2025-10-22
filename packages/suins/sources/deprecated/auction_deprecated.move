@@ -4,7 +4,7 @@
 /// Implementation of auction module.
 /// More information in: ../../../docs
 #[deprecated(note = b"There is no usable auction module anymore after the initial auction.")]
-module suins::auction;
+module suins::auction_deprecated;
 
 use std::{option::{none, some, is_some}, string::String};
 use sui::{
