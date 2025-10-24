@@ -131,6 +131,8 @@ impl Handler for AuctionsHandlerPipeline {
                             created_at: value.created_at,
                             last_tx_digest: value.tx_digest.clone(),
                             token: created_event.token.to_string(),
+                            reserve_price_encrypted: created_event.reserve_price.clone(),
+                            reserve_price: None,
                         }])
                         .execute(conn)
                         .await
@@ -150,8 +152,9 @@ impl Handler for AuctionsHandlerPipeline {
                         ),
                     )
                     .set(UpdateAuction {
-                        winner: None,
-                        amount: None,
+                        reserve_price: None, // Don't update reserve_price on cancel
+                        winner: None,        // Don't update winner on cancel
+                        amount: None,        // Don't update amount on cancel
                         status: AuctionStatus::Cancelled,
                         updated_at: value.created_at,
                         last_tx_digest: value.tx_digest.clone(),
@@ -173,8 +176,9 @@ impl Handler for AuctionsHandlerPipeline {
                         ),
                     )
                     .set(UpdateAuction {
-                        winner: Some(auction_finalized.winner.to_string()),
-                        amount: Some(auction_finalized.amount.to_string()),
+                        reserve_price: Some(Some(auction_finalized.reserve_price as i64)),
+                        winner: Some(Some(auction_finalized.winner.to_string())),
+                        amount: Some(Some(auction_finalized.amount.to_string())),
                         status: AuctionStatus::Finalized,
                         updated_at: value.created_at,
                         last_tx_digest: value.tx_digest.clone(),

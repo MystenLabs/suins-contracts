@@ -179,6 +179,17 @@ pub struct AcceptCounterOffer {
     pub token: String,
 }
 
+#[derive(Insertable, Debug, FieldCount, Clone)]
+#[diesel(table_name = set_seal_config)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+pub struct SetSealConfigModel {
+    pub key_servers: Vec<String>,
+    pub public_keys: Vec<Vec<u8>>,
+    pub threshold: i16,
+    pub created_at: DateTime<Utc>,
+    pub tx_digest: String,
+}
+
 #[derive(Debug, Clone, Queryable, Selectable, Insertable, Serialize, Deserialize)]
 #[diesel(table_name = offers)]
 pub struct Offer {
@@ -233,13 +244,16 @@ pub struct Auction {
     pub created_at: DateTime<Utc>,
     pub last_tx_digest: String,
     pub token: String,
+    pub reserve_price_encrypted: Option<Vec<u8>>,
+    pub reserve_price: Option<i64>,
 }
 
 #[derive(Debug, Clone, AsChangeset, Serialize, Deserialize)]
 #[diesel(table_name = auctions)]
 pub struct UpdateAuction {
-    pub winner: Option<String>,
-    pub amount: Option<String>,
+    pub reserve_price: Option<Option<i64>>,
+    pub winner: Option<Option<String>>,
+    pub amount: Option<Option<String>>,
     pub status: AuctionStatus,
     pub updated_at: DateTime<Utc>,
     pub last_tx_digest: String,

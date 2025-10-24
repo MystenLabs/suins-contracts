@@ -2,14 +2,14 @@
 
 /*
 This file defines the core data structures for the SuiNS 1st Party Auction module.
-It is intended to be placed in suins-contracts/packages/suins/sources/auction.move.
+It is intended to be placed in suins-contracts/packages/auction/sources/auction.move.
 */
 
-module suins::auction {
+module suins_auction::auction_new {
     use sui::table::{Self, Table};
     use sui::bag::{Self, Bag};
     use sui::object_bag::{Self, ObjectBag};
-    use sui::coin::{Self,Coin};
+    use sui::coin::{Self, Coin};
     use sui::sui::SUI;
     use sui::clock::Clock;
     use sui::balance::{Self, Balance};
@@ -18,6 +18,11 @@ module suins::auction {
     use suins::controller::set_target_address;
     use suins::suins::SuiNS;
     use std::type_name::{Self, TypeName};
+    use seal::bf_hmac_encryption::{
+        EncryptedObject,
+        parse_encrypted_object
+    };
+    use suins_auction::decryption::{decrypt_reserve_time, get_encryption_id};
 
     /// Error codes
     const ENotOwner: u64 = 0;
@@ -40,6 +45,16 @@ module suins::auction {
     const EInvalidOfferTableVersion: u64 = 17;
     const ECannotRemoveSui: u64 = 18;
     const ETokenNotAllowed: u64 = 19;
+    const EInvalidEncryptionSender: u64 = 20;
+    const EInvalidEncryptionServers: u64 = 21;
+    const EInvalidEncryptionThreshold: u64 = 22;
+    const EInvalidEncryptionId: u64 = 23;
+    const EInvalidEncryptionPackageId: u64 = 24;
+    const EEncryptionNoAccess: u64 = 25;
+    const EEncryptionNoKeys: u64 = 26;
+    // const ENotEnoughKeys: u64 = 27; Defined in decryption module
+    const EInvalidThreshold: u64 = 28;
+    const EInvalidKeyLengths: u64 = 29;
 
     /// Constants
     const VERSION: u64 = 1;
@@ -60,6 +75,7 @@ module suins::auction {
         start_time: u64,
         end_time: u64,
         min_bid: u64,
+        reserve_price: Option<EncryptedObject>,
         highest_bidder: address,
         highest_bid_balance: Balance<T>,
         suins_registration: SuinsRegistration,
@@ -69,15 +85,23 @@ module suins::auction {
     public struct AuctionTable has key {
         id: UID,
         version: u64,
-        bag: ObjectBag, // vector<u8> -> Auction<T>
+        bag: ObjectBag,
+        // vector<u8> -> Auction<T>
         allowed_tokens: Table<TypeName, bool>,
+        /// The key servers that must be used for seal encryption.
+        key_servers: vector<address>,
+        /// The public keys for the key servers in the same order as `key_servers`.
+        public_keys: vector<vector<u8>>,
+        /// The threshold for the vote.
+        threshold: u8,
     }
 
     /// Table mapping domain to Offers and addresses that have made Offers
     public struct OfferTable has key {
         id: UID,
         version: u64,
-        table: Table<vector<u8>, Bag>, // Bag: address -> Offer<T>
+        table: Table<vector<u8>, Bag>,
+        // Bag: address -> Offer<T>
         allowed_tokens: Table<TypeName, bool>,
     }
 
@@ -94,6 +118,7 @@ module suins::auction {
         start_time: u64,
         end_time: u64,
         min_bid: u64,
+        reserve_price: Option<vector<u8>>,
         token: TypeName,
     }
 
@@ -112,6 +137,7 @@ module suins::auction {
         domain_name: vector<u8>,
         winner: address,
         amount: u64,
+        reserve_price: u64,
         token: TypeName,
     }
 
@@ -180,6 +206,12 @@ module suins::auction {
         new_version: u64,
     }
 
+    public struct SetSealConfig has copy, drop {
+        key_servers: vector<address>,
+        public_keys: vector<vector<u8>>,
+        threshold: u8,
+    }
+
     public struct AddAllowedToken has copy, drop {
         token: TypeName,
     }
@@ -188,7 +220,7 @@ module suins::auction {
         token: TypeName,
     }
 
-    fun init (ctx: &mut TxContext) {
+    fun init(ctx: &mut TxContext) {
         let admin_cap = AdminCap {
             id: object::new(ctx),
         };
@@ -198,6 +230,9 @@ module suins::auction {
             version: VERSION,
             bag: object_bag::new(ctx),
             allowed_tokens: table::new<TypeName, bool>(ctx),
+            key_servers: vector[],
+            public_keys: vector[],
+            threshold: 0,
         };
         let mut offer_table = OfferTable {
             id: object::new(ctx),
@@ -212,7 +247,6 @@ module suins::auction {
         transfer::share_object(auction_table);
         transfer::share_object(offer_table);
         transfer::transfer(admin_cap, ctx.sender());
-
     }
 
     entry fun migrate(_: &AdminCap, auction_table: &mut AuctionTable, offer_table: &mut OfferTable) {
@@ -224,10 +258,32 @@ module suins::auction {
         auction_table.version = VERSION;
         offer_table.version = VERSION;
 
-        MigrateEvent{
+        MigrateEvent {
             old_version,
             new_version: VERSION,
         };
+    }
+
+    public fun set_seal_config(
+        _: &AdminCap,
+        auction_table: &mut AuctionTable,
+        key_servers: vector<address>,
+        public_keys: vector<vector<u8>>,
+        threshold: u8,
+    ) {
+        assert!(is_valid_auction_version(auction_table), EInvalidAuctionTableVersion);
+        assert!(threshold <= key_servers.length() as u8, EInvalidThreshold);
+        assert!(key_servers.length() == public_keys.length(), EInvalidKeyLengths);
+
+        auction_table.key_servers = key_servers;
+        auction_table.public_keys = public_keys;
+        auction_table.threshold = threshold;
+
+        event::emit(SetSealConfig {
+            key_servers,
+            public_keys,
+            threshold,
+        });
     }
 
     public fun add_allowed_token<T>(
@@ -274,6 +330,7 @@ module suins::auction {
         start_time: u64,
         end_time: u64,
         min_bid: u64,
+        encrypted_reserve_price: Option<vector<u8>>,
         suins_registration: SuinsRegistration,
         ctx: &mut TxContext
     ) {
@@ -286,6 +343,26 @@ module suins::auction {
 
         let domain = suins_registration.domain();
         let domain_name = domain.to_string().into_bytes();
+
+        let mut reserve_price = option::none();
+        if (encrypted_reserve_price.is_some()) {
+            let mut encrypted_reserve_price_new = copy encrypted_reserve_price;
+            let encrypted_reserve_price = parse_encrypted_object(encrypted_reserve_price_new.extract());
+
+            // The same address as the sender needs to encrypt the data
+            assert!(encrypted_reserve_price.aad().borrow() == ctx.sender().to_bytes(), EInvalidEncryptionSender);
+
+            // All encrypted data must have been encrypted using the same key servers and the same threshold.
+            assert!(encrypted_reserve_price.services() == auction_table.key_servers, EInvalidEncryptionServers);
+            assert!(encrypted_reserve_price.threshold() == auction_table.threshold, EInvalidEncryptionThreshold);
+
+            // Check that the encryption was created for this domain name
+            assert!(encrypted_reserve_price.id() == get_encryption_id(start_time, domain_name), EInvalidEncryptionId);
+            assert!(encrypted_reserve_price.package_id() == @suins_auction, EInvalidEncryptionPackageId);
+
+            reserve_price = option::some(encrypted_reserve_price);
+        };
+
         let owner = tx_context::sender(ctx);
         let auction = Auction {
             id: object::new(ctx),
@@ -293,6 +370,7 @@ module suins::auction {
             start_time,
             end_time,
             min_bid,
+            reserve_price,
             highest_bidder: @0x0,
             highest_bid_balance: balance::zero<T>(),
             suins_registration,
@@ -310,6 +388,7 @@ module suins::auction {
             start_time,
             end_time,
             min_bid,
+            reserve_price: encrypted_reserve_price,
             token,
         });
     }
@@ -362,6 +441,8 @@ module suins::auction {
         suins: &mut SuiNS,
         auction_table: &mut AuctionTable,
         domain_name: vector<u8>,
+        mut derived_keys: Option<vector<vector<u8>>>, // Needed if auction has reserve price
+        mut key_servers: Option<vector<address>>,
         clock: &Clock,
         ctx: &mut TxContext
     ) {
@@ -373,9 +454,10 @@ module suins::auction {
         let Auction<T> {
             id,
             owner,
-            start_time: _,
+            start_time,
             end_time,
             min_bid: _,
+            mut reserve_price,
             highest_bidder,
             highest_bid_balance,
             suins_registration,
@@ -384,12 +466,36 @@ module suins::auction {
         let now = clock.timestamp_ms() / 1000;
         assert!(now > end_time, ENotEnded);
 
-        let highest_bid_value = balance::value(&highest_bid_balance);
+        let mut actual_reserve_price = 0;
+        if (reserve_price.is_some()) {
+            assert!(derived_keys.is_some() && key_servers.is_some(), EEncryptionNoKeys);
+            let derived_keys = derived_keys.extract();
+            let key_servers = key_servers.extract();
 
-        if (highest_bid_balance.value() > 0) {
-            set_target_address(suins, &suins_registration, option::some(highest_bidder), clock);
-            transfer::public_transfer(coin::from_balance(highest_bid_balance, ctx), owner);
-            transfer::public_transfer(suins_registration, highest_bidder);
+            actual_reserve_price = decrypt_reserve_time(
+                auction_table.key_servers,
+                auction_table.public_keys,
+                auction_table.threshold,
+                start_time,
+                domain_name,
+                reserve_price.extract(),
+                &derived_keys,
+                &key_servers
+            );
+        };
+
+        let highest_bid_value = highest_bid_balance.value();
+
+        if (highest_bid_value > 0) {
+            // Highest big only wins if higher than the reserve price
+            if (highest_bid_value >= actual_reserve_price) {
+                set_target_address(suins, &suins_registration, option::some(highest_bidder), clock);
+                transfer::public_transfer(coin::from_balance(highest_bid_balance, ctx), owner);
+                transfer::public_transfer(suins_registration, highest_bidder);
+            } else {
+                transfer::public_transfer(coin::from_balance(highest_bid_balance, ctx), highest_bidder);
+                transfer::public_transfer(suins_registration, owner);
+            };
         } else {
             highest_bid_balance.destroy_zero();
             transfer::public_transfer(suins_registration, owner);
@@ -400,6 +506,7 @@ module suins::auction {
             domain_name,
             winner: highest_bidder,
             amount: highest_bid_value,
+            reserve_price: actual_reserve_price,
             token: type_name::with_defining_ids<T>(),
         });
 
@@ -412,7 +519,7 @@ module suins::auction {
         domain_name: vector<u8>,
         clock: &Clock,
         ctx: &mut TxContext
-    ):  SuinsRegistration {
+    ): SuinsRegistration {
         assert!(is_valid_auction_version(auction_table), EInvalidAuctionTableVersion);
         assert!(auction_table.bag.contains(domain_name), ENotAuctioned);
 
@@ -422,12 +529,13 @@ module suins::auction {
             id,
             owner,
             start_time: _,
-            end_time ,
+            end_time,
             min_bid: _,
+            reserve_price: _,
             highest_bidder,
             highest_bid_balance,
             suins_registration,
-        } =  auction;
+        } = auction;
 
         let caller = tx_context::sender(ctx);
         assert!(owner == caller, ENotOwner);
@@ -496,7 +604,7 @@ module suins::auction {
         offer_table: &mut OfferTable,
         domain_name: vector<u8>,
         ctx: &mut TxContext
-    ) : Coin<T>
+    ): Coin<T>
     {
         assert!(is_valid_offer_version(offer_table), EInvalidOfferTableVersion);
 
@@ -505,7 +613,7 @@ module suins::auction {
         let Offer {
             balance,
             counter_offer: _,
-        } =  offer_remove<T>(offer_table, domain_name,caller);
+        } = offer_remove<T>(offer_table, domain_name, caller);
 
         event::emit(OfferCancelledEvent {
             domain_name,
@@ -525,7 +633,7 @@ module suins::auction {
         address: address,
         clock: &Clock,
         ctx: &mut TxContext
-    ) : Coin<T>
+    ): Coin<T>
     {
         assert!(is_valid_offer_version(offer_table), EInvalidOfferTableVersion);
 
@@ -534,7 +642,7 @@ module suins::auction {
         let Offer {
             balance,
             counter_offer: _,
-        } =  offer_remove<T>(offer_table, domain_name, address);
+        } = offer_remove<T>(offer_table, domain_name, address);
 
         set_target_address(suins, &suins_registration, option::some(address), clock);
         transfer::public_transfer(suins_registration, address);
@@ -565,7 +673,7 @@ module suins::auction {
         let Offer {
             balance,
             counter_offer: _,
-        } =  offer_remove<T>(offer_table, domain_name, address);
+        } = offer_remove<T>(offer_table, domain_name, address);
 
         let value = balance::value<T>(&balance);
         transfer::public_transfer(coin::from_balance(balance, ctx), address);
@@ -617,7 +725,7 @@ module suins::auction {
 
         let caller = tx_context::sender(ctx);
 
-        let offer = offer_borrow_mut<T>(offer_table, domain_name,caller);
+        let offer = offer_borrow_mut<T>(offer_table, domain_name, caller);
         assert!(offer.counter_offer != 0, ENoCounterOffer);
         let coin_value = coin::value(&coin);
         let balance_value = offer.balance.value();
@@ -633,21 +741,48 @@ module suins::auction {
     }
 
     // Can be used by the owner to get a mutate reference for the SuinsRegistration in case it expires so it can update it directly
-    public fun get_suins_registration_from_auction<T>(auction: &mut Auction<T>, ctx: &mut TxContext): &mut SuinsRegistration {
+    public fun get_suins_registration_from_auction<T>(
+        auction: &mut Auction<T>,
+        ctx: &mut TxContext
+    ): &mut SuinsRegistration {
         let caller = tx_context::sender(ctx);
         assert!(auction.owner == caller, ENotOwner);
 
         &mut auction.suins_registration
     }
 
-    // Private functions 
+    // The id is the domain name auctioned
+    entry fun seal_approve<T>(id: vector<u8>, auction_table: &AuctionTable, clock: &Clock) {
+        check_policy<T>(id, auction_table, clock);
+    }
+
+    // Private functions
+
+    // Allow decryption if auction for the domain exists, if reserve price exists and if end time has passed
+    fun check_policy<T>(id: vector<u8>, auction_table: &AuctionTable, clock: &Clock) {
+        assert!(is_valid_auction_version(auction_table), EInvalidAuctionTableVersion);
+
+        let mut bcs = sui::bcs::new(id);
+        let start_time = bcs.peel_u64();
+        let domain_name = bcs.into_remainder_bytes();
+
+        assert!(auction_table.bag.contains(domain_name), EEncryptionNoAccess);
+
+        let auction = auction_table.bag.borrow<vector<u8>, Auction<T>>(domain_name);
+
+        assert!(auction.start_time == start_time, EEncryptionNoAccess);
+        assert!(auction.reserve_price.is_some(), EEncryptionNoAccess);
+
+        let now = clock.timestamp_ms() / 1000;
+        assert!(now > auction.end_time, EEncryptionNoAccess);
+    }
 
     // Get mutable reference to offer from storage
     fun offer_borrow_mut<T>(
         offer_table: &mut OfferTable,
         domain_name: vector<u8>,
         address: address,
-    ):  &mut Offer<T>  {
+    ): &mut Offer<T> {
         let offers = domain_offers_borrow_mut(offer_table, domain_name, address);
 
         offers.borrow_mut(address)
@@ -658,7 +793,7 @@ module suins::auction {
         offer_table: &mut OfferTable,
         domain_name: vector<u8>,
         address: address,
-    ):  Offer<T>  {
+    ): Offer<T> {
         let offers = domain_offers_borrow_mut(offer_table, domain_name, address);
         let offer = offers.remove<address, Offer<T>>(address);
 
@@ -700,8 +835,28 @@ module suins::auction {
     }
 
     #[test_only]
-    public fun get_auction_table(auction_table: &AuctionTable): &ObjectBag {
+    public fun get_auction_table_bag(auction_table: &AuctionTable): &ObjectBag {
         &auction_table.bag
+    }
+
+    #[test_only]
+    public fun get_auction_table_allowed_tokens(auction_table: &AuctionTable): &Table<TypeName, bool> {
+        &auction_table.allowed_tokens
+    }
+
+    #[test_only]
+    public fun get_auction_table_key_servers(auction_table: &AuctionTable): &vector<address> {
+        &auction_table.key_servers
+    }
+
+    #[test_only]
+    public fun get_auction_table_public_keys(auction_table: &AuctionTable): &vector<vector<u8>> {
+        &auction_table.public_keys
+    }
+
+    #[test_only]
+    public fun get_auction_table_threshold(auction_table: &AuctionTable): &u8 {
+        &auction_table.threshold
     }
 
     #[test_only]
