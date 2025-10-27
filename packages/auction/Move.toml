@@ -12,4 +12,4 @@ seal = { git = "git@github.com:buidly/seal.git", subdir = "move/seal", rev = "ma
 # Override = { local = "../conflicting/version", override = true }
 
 [addresses]
-suins_auction = "0x0"
+suins_auction = "0x1" # For tests to not conflict with 0x0 address of suins.

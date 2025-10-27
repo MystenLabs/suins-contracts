@@ -101,7 +101,6 @@ impl Handler for AuctionsHandlerPipeline {
         batch.extend(values);
     }
 
-    // Execute everything inside a transaction for efficiency and for the fact that if something errors, the whole batch will be reverted to not wind up with invalid data in the database
     async fn commit<'a>(batch: &Self::Batch, conn: &mut Connection<'a>) -> Result<usize> {
         if batch.is_empty() {
             return Ok(0);
