@@ -6,7 +6,7 @@ pub struct OfferPlacedEvent {
     pub domain_name: Vec<u8>,
     pub address: sui_types::base_types::SuiAddress,
     pub value: u64,
-    pub token: move_types::TypeTag, // TODO: Test if this works correctly
+    pub token: String,
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]
@@ -14,7 +14,7 @@ pub struct OfferCancelledEvent {
     pub domain_name: Vec<u8>,
     pub address: sui_types::base_types::SuiAddress,
     pub value: u64,
-    pub token: move_types::TypeTag, // TODO: Test if this works correctly
+    pub token: String,
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]
@@ -23,7 +23,7 @@ pub struct OfferAcceptedEvent {
     pub owner: sui_types::base_types::SuiAddress,
     pub buyer: sui_types::base_types::SuiAddress,
     pub value: u64,
-    pub token: move_types::TypeTag, // TODO: Test if this works correctly
+    pub token: String,
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]
@@ -32,7 +32,7 @@ pub struct OfferDeclinedEvent {
     pub owner: sui_types::base_types::SuiAddress,
     pub buyer: sui_types::base_types::SuiAddress,
     pub value: u64,
-    pub token: move_types::TypeTag, // TODO: Test if this works correctly
+    pub token: String,
 }
 
 // owner can create a counter offer
@@ -42,7 +42,7 @@ pub struct MakeCounterOfferEvent {
     pub owner: sui_types::base_types::SuiAddress,
     pub buyer: sui_types::base_types::SuiAddress,
     pub value: u64,
-    pub token: move_types::TypeTag, // TODO: Test if this works correctly
+    pub token: String,
 }
 
 // buyer can accept counter offer
@@ -51,7 +51,7 @@ pub struct AcceptCounterOfferEvent {
     pub domain_name: Vec<u8>,
     pub buyer: sui_types::base_types::SuiAddress,
     pub value: u64,
-    pub token: move_types::TypeTag, // TODO: Test if this works correctly
+    pub token: String,
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]
@@ -63,7 +63,7 @@ pub struct AuctionCreatedEvent {
     pub end_time: u64,
     pub min_bid: u64,
     pub reserve_price: Option<Vec<u8>>,
-    pub token: move_types::TypeTag, // TODO: Test if this works correctly
+    pub token: String,
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]
@@ -72,7 +72,7 @@ pub struct BidPlacedEvent {
     pub domain_name: Vec<u8>,
     pub bidder: sui_types::base_types::SuiAddress,
     pub amount: u64,
-    pub token: move_types::TypeTag, // TODO: Test if this works correctly
+    pub token: String,
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]
@@ -82,7 +82,7 @@ pub struct AuctionFinalizedEvent {
     pub winner: sui_types::base_types::SuiAddress,
     pub amount: u64,
     pub reserve_price: u64,
-    pub token: move_types::TypeTag, // TODO: Test if this works correctly
+    pub token: String,
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]
@@ -90,7 +90,7 @@ pub struct AuctionCancelledEvent {
     pub auction_id: sui_types::base_types::ObjectID,
     pub domain_name: Vec<u8>,
     pub owner: sui_types::base_types::SuiAddress,
-    pub token: move_types::TypeTag, // TODO: Test if this works correctly
+    pub token: String,
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]
