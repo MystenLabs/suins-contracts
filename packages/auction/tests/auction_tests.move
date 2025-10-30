@@ -148,7 +148,7 @@ module suins_auction::auction_tests
             // Place the bid
             auction::place_bid<T>(
                 &mut auction_table,
-                domain_name,
+                domain_name.to_string(),
                 payment,
                 clock,
                 ctx
@@ -174,7 +174,7 @@ module suins_auction::auction_tests
             auction::finalize_auction<T>(
                 &mut suins,
                 &mut auction_table,
-                domain_name,
+                domain_name.to_string(),
                 option::none(),
                 option::none(),
                 clock,
@@ -519,7 +519,7 @@ module suins_auction::auction_tests
             auction::finalize_auction<SUI>(
                 &mut suins,
                 &mut auction_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 option::some(vector[dk0, dk1]),
                 option::some(vector[s0.id(), s1.id()]),
                 &clock,
@@ -684,7 +684,7 @@ module suins_auction::auction_tests
             auction::finalize_auction<SUI>(
                 &mut suins,
                 &mut auction_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 option::some(vector[dk0, dk1]),
                 option::some(vector[s0.id(), s1.id()]),
                 &clock,
@@ -891,7 +891,7 @@ module suins_auction::auction_tests
             let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
             let ctx = test_scenario::ctx(scenario);
             let registration = auction::cancel_auction<SUI>(&mut auction_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 &clock,
                 ctx);
             test_scenario::return_to_address(FIRST_ADDRESS, registration);
@@ -1106,7 +1106,7 @@ module suins_auction::auction_tests
             let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
             let ctx = test_scenario::ctx(scenario);
             let registration = auction::cancel_auction<SUI>(&mut auction_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 &clock,
                 ctx);
             test_scenario::return_to_address(FIRST_ADDRESS, registration);
@@ -1169,7 +1169,7 @@ module suins_auction::auction_tests
             // Place the offer
             auction::place_offer(
                 &mut offer_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 payment,
                 ctx
             );
@@ -1230,7 +1230,7 @@ module suins_auction::auction_tests
             // Place the offer
             auction::place_offer(
                 &mut offer_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 payment,
                 ctx
             );
@@ -1291,7 +1291,7 @@ module suins_auction::auction_tests
             // Place the offer
             auction::place_offer(
                 &mut offer_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 payment,
                 ctx
             );
@@ -1325,7 +1325,7 @@ module suins_auction::auction_tests
             // Place the offer
             auction::place_offer(
                 &mut offer_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 payment,
                 ctx
             );
@@ -1395,7 +1395,7 @@ module suins_auction::auction_tests
             // Accept counter offer
             auction::accept_counter_offer(
                 &mut offer_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 additional_payment,
                 ctx
             );
@@ -1470,7 +1470,7 @@ module suins_auction::auction_tests
             // Place the offer
             auction::place_offer(
                 &mut offer_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 payment,
                 ctx
             );
@@ -1491,7 +1491,7 @@ module suins_auction::auction_tests
             // Place the offer
             auction::place_offer(
                 &mut offer_table,
-                SECOND_DOMAIN_NAME,
+                SECOND_DOMAIN_NAME.to_string(),
                 payment,
                 ctx
             );
@@ -1528,7 +1528,7 @@ module suins_auction::auction_tests
             // Cancel the offer
             let payment = auction::cancel_offer<SUI>(
                 &mut offer_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 ctx
             );
 
@@ -1579,7 +1579,7 @@ module suins_auction::auction_tests
             // Place the offer
             auction::place_offer(
                 &mut offer_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 payment,
                 ctx
             );
@@ -1600,7 +1600,7 @@ module suins_auction::auction_tests
             // Place the offer
             auction::place_offer(
                 &mut offer_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 payment,
                 ctx
             );
@@ -1691,7 +1691,7 @@ module suins_auction::auction_tests
             // Place the offer
             auction::place_offer(
                 &mut offer_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 payment,
                 ctx
             );
@@ -1712,7 +1712,7 @@ module suins_auction::auction_tests
             // Place the offer
             auction::place_offer(
                 &mut offer_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 payment,
                 ctx
             );
@@ -1746,7 +1746,7 @@ module suins_auction::auction_tests
             // Place the offer
             auction::place_offer(
                 &mut offer_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 payment,
                 ctx
             );
@@ -1798,7 +1798,7 @@ module suins_auction::auction_tests
             // Place the offer
             auction::place_offer(
                 &mut offer_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 payment,
                 ctx
             );
@@ -1822,7 +1822,7 @@ module suins_auction::auction_tests
             // Accept counter offer
             auction::accept_counter_offer(
                 &mut offer_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 additional_payment,
                 ctx
             );
@@ -1856,7 +1856,7 @@ module suins_auction::auction_tests
             // Place the offer
             auction::place_offer(
                 &mut offer_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 payment,
                 ctx
             );
@@ -1901,7 +1901,7 @@ module suins_auction::auction_tests
             // Accept counter offer
             auction::accept_counter_offer(
                 &mut offer_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 additional_payment,
                 ctx
             );
@@ -1969,7 +1969,7 @@ module suins_auction::auction_tests
             // Place the offer
             auction::place_offer(
                 &mut offer_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 payment,
                 ctx
             );
@@ -2014,7 +2014,7 @@ module suins_auction::auction_tests
             // Accept counter offer
             auction::accept_counter_offer(
                 &mut offer_table,
-                FIRST_DOMAIN_NAME,
+                FIRST_DOMAIN_NAME.to_string(),
                 additional_payment,
                 ctx
             );
