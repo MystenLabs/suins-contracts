@@ -1,15 +1,17 @@
 module suins_auction::decryption;
 
 use seal::bf_hmac_encryption::{
-    EncryptedObject,
-    VerifiedDerivedKey,
-    PublicKey,
     decrypt,
+    EncryptedObject,
     new_public_key,
+    PublicKey,
+    VerifiedDerivedKey,
     verify_derived_keys,
 };
-use sui::bls12381::g1_from_bytes;
-use sui::bcs;
+use sui::{
+    bcs,
+    bls12381::g1_from_bytes
+};
 
 const EIncorrectKeys: u64 = 27;
 const ENotEnoughKeys: u64 = 28;

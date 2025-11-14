@@ -6,23 +6,19 @@ This file defines the core data structures for the SuiNS 1st Party Auction modul
 
 module suins_auction::auction;
 
-use std::string::String;
-use sui::table::{Self, Table};
-use sui::bag::{Self, Bag};
-use sui::object_bag::{Self, ObjectBag};
-use sui::coin::{Self, Coin};
-use sui::sui::SUI;
-use sui::clock::Clock;
-use sui::balance::{Self, Balance};
-use sui::event;
-use suins::suins_registration::SuinsRegistration;
-use suins::controller::set_target_address;
-use suins::suins::SuiNS;
-use std::type_name::{Self, TypeName};
-use seal::bf_hmac_encryption::{
-    EncryptedObject,
-    parse_encrypted_object
+use seal::bf_hmac_encryption::{EncryptedObject, parse_encrypted_object};
+use std::{string::String, type_name::{Self, TypeName}};
+use sui::{
+    bag::{Self, Bag},
+    balance::{Self, Balance},
+    clock::Clock,
+    coin::{Self, Coin},
+    event,
+    object_bag::{Self, ObjectBag},
+    sui::SUI,
+    table::{Self, Table}
 };
+use suins::{controller::set_target_address, suins::SuiNS, suins_registration::SuinsRegistration};
 use suins_auction::decryption::{decrypt_reserve_time, get_encryption_id};
 
 /// Error codes
@@ -53,9 +49,6 @@ const EInvalidEncryptionId: u64 = 23;
 const EInvalidEncryptionPackageId: u64 = 24;
 const EEncryptionNoAccess: u64 = 25;
 const EEncryptionNoKeys: u64 = 26;
-// const EIncorrectKeys: u64 = 27; Defined in decryption module
-// const ENotEnoughKeys: u64 = 28; Defined in decryption module
-// const EKeyNotFound: u64 = 29; Defined in decryption module
 const EInvalidThreshold: u64 = 30;
 const EInvalidKeyLengths: u64 = 31;
 
