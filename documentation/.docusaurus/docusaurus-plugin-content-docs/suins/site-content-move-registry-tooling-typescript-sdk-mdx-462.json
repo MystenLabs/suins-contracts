@@ -1,0 +1,25 @@
+{
+  "id": "move-registry/tooling/typescript-sdk",
+  "title": "Transaction Plugin for Sui TypeScript SDK",
+  "description": "The Move Registry (MVR, pronounced \"mover\") Sui TypeScript SDK plugin offers builders a seamless experience when constructing programmable transaction blocks (PTBs) using MVR names.",
+  "source": "@site/content/move-registry/tooling/typescript-sdk.mdx",
+  "sourceDirName": "move-registry/tooling",
+  "slug": "/move-registry/tooling/typescript-sdk",
+  "permalink": "/move-registry/tooling/typescript-sdk",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Transaction Plugin for Sui TypeScript SDK"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "Tooling",
+    "permalink": "/move-registry/tooling"
+  },
+  "next": {
+    "title": "MVR CLI",
+    "permalink": "/move-registry/tooling/mvr-cli"
+  }
+}

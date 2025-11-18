@@ -1,0 +1,25 @@
+{
+  "id": "move-registry/design",
+  "title": "Design",
+  "description": "The Move Registry (MVR, pronounced \"mover\") consists of two independent components:",
+  "source": "@site/content/move-registry/design.mdx",
+  "sourceDirName": "move-registry",
+  "slug": "/move-registry/design",
+  "permalink": "/move-registry/design",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Design"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "Move Registry",
+    "permalink": "/move-registry"
+  },
+  "next": {
+    "title": "Managing Package Metadata",
+    "permalink": "/move-registry/managing-package-info"
+  }
+}

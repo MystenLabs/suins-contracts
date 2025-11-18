@@ -1,0 +1,25 @@
+{
+  "id": "developer/indexing",
+  "title": "Indexing",
+  "description": "The indexer enables more expressive queries about the active domain state, as the on-chain resolution wasn't enough to power the interface.",
+  "source": "@site/content/developer/indexing.mdx",
+  "sourceDirName": "developer",
+  "slug": "/developer/indexing",
+  "permalink": "/developer/indexing",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Indexing"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "Subnames",
+    "permalink": "/developer/subnames"
+  },
+  "next": {
+    "title": "SuiNS SDK",
+    "permalink": "/developer/sdk"
+  }
+}

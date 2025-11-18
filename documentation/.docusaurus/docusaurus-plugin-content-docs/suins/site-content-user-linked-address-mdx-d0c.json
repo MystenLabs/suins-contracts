@@ -1,0 +1,25 @@
+{
+  "id": "user/linked-address",
+  "title": "Linked Address",
+  "description": "You can change the address that your SuiNS name resolves to. The original address that registered the SuiNS name retains control over its configuration, but the name points to the address you provide.",
+  "source": "@site/content/user/linked-address.mdx",
+  "sourceDirName": "user",
+  "slug": "/user/linked-address",
+  "permalink": "/user/linked-address",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Linked Address"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "Update Avatars",
+    "permalink": "/user/avatar"
+  },
+  "next": {
+    "title": "sui.id",
+    "permalink": "/user/sui-id"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "user/registration",
+  "title": "Register Names",
+  "description": "To enjoy the benefits of SuiNS, you must first register names. When you register available names, you purchase the rights to those names for one year. After registration, you can renew your names for multiple years.",
+  "source": "@site/content/user/registration.mdx",
+  "sourceDirName": "user",
+  "slug": "/user/registration",
+  "permalink": "/user/registration",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Register Names"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "Sui Name Service User Documentation",
+    "permalink": "/user"
+  },
+  "next": {
+    "title": "Renew Names",
+    "permalink": "/user/renew"
+  }
+}

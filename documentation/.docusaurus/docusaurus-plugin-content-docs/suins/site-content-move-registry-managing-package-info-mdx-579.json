@@ -1,0 +1,25 @@
+{
+  "id": "move-registry/managing-package-info",
+  "title": "Managing Package Metadata",
+  "description": "The TypeScript examples assume that you use the MVR plugin for the Sui TypeScript SDK.",
+  "source": "@site/content/move-registry/managing-package-info.mdx",
+  "sourceDirName": "move-registry",
+  "slug": "/move-registry/managing-package-info",
+  "permalink": "/move-registry/managing-package-info",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Managing Package Metadata"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "Design",
+    "permalink": "/move-registry/design"
+  },
+  "next": {
+    "title": "Managing MVR Names",
+    "permalink": "/move-registry/mvr-names"
+  }
+}

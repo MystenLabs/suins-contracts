@@ -1,0 +1,279 @@
+@layer theme, utilities;
+@custom-variant dark (:where(.dark, [data-theme="dark"]) &);
+
+@theme {
+  --color-suins-black: hsl(229, 42%, 8%);
+  --color-suins-white: hsl(0, 0%, 97%);
+  /* Base channel for wal white; use alpha to derive shades */
+  --suins-white-100-hsl: 0 0% 97%;
+
+  /* Alpha-derived whites: white-100 is opaque (100%), white-30 is 30% alpha */
+  --color-suins-white-100: hsl(var(--suins-white-100-hsl) / 100%);
+  --color-suins-white-90:  hsl(var(--suins-white-100-hsl) / 90%);
+  --color-suins-white-80:  hsl(var(--suins-white-100-hsl) / 80%);
+  --color-suins-white-70:  hsl(var(--suins-white-100-hsl) / 70%);
+  --color-suins-white-60:  hsl(var(--suins-white-100-hsl) / 60%);
+  --color-suins-white-50:  hsl(var(--suins-white-100-hsl) / 50%);
+  --color-suins-white-40:  hsl(var(--suins-white-100-hsl) / 40%);
+  --color-suins-white-30:  hsl(var(--suins-white-100-hsl) / 30%);
+  --color-suins-white-20:  hsl(var(--suins-white-100-hsl) / 20%);
+  --color-suins-white-10:  hsl(var(--suins-white-100-hsl) / 10%);
+  --color-suins-white-5:  hsl(var(--suins-white-100-hsl) / 5%);
+  --color-suins-orange: hsl(15, 100%, 65%);
+  --color-suins-purple-light: hsl(275, 94%, 86%);
+  --color-suins-purple: hsl(285, 100%, 65%);
+  --color-suins-purple-darker: hsl(253, 36%, 18%);
+  --color-suins-purple-dark: hsl(254, 32%, 47%);
+  --color-suins-link: hsl(211, 100%, 65%);
+  --color-suins-link-hover: hsl(211, 96%, 56%);
+  --color-suins-purple-link-dark: var(--color-suins-purple);
+  --color-suins-green-light: hsl(172, 83%, 89%);
+  --color-suins-green: hsl(150, 100%, 65%);
+  --color-suins-green-dark: hsl(178, 30%, 25%);
+  --color-suins-success: hsl(152, 93%, 35%);
+
+  /* Base channel for wal gray; use alpha to derive shades */
+  --suins-gray-100-hsl: 231 40% 8%;
+
+  /* Alpha-derived grays: gray-100 is opaque (100%), gray-30 is 30% alpha */
+  --color-suins-gray-100: hsl(var(--suins-gray-100-hsl) / 100%);
+  --color-suins-gray-90:  hsl(var(--suins-gray-100-hsl) / 90%);
+  --color-suins-gray-80:  hsl(var(--suins-gray-100-hsl) / 80%);
+  --color-suins-gray-70:  hsl(var(--suins-gray-100-hsl) / 70%);
+  --color-suins-gray-60:  hsl(var(--suins-gray-100-hsl) / 60%);
+  --color-suins-gray-50:  hsl(var(--suins-gray-100-hsl) / 50%);
+  --color-suins-gray-40:  hsl(var(--suins-gray-100-hsl) / 40%);
+  --color-suins-gray-30:  hsl(var(--suins-gray-100-hsl) / 30%);
+  --color-suins-gray-20:  hsl(var(--suins-gray-100-hsl) / 20%);
+  --color-suins-gray-10:  hsl(var(--suins-gray-100-hsl) / 10%);
+  --color-suins-gray-5:  hsl(var(--suins-gray-100-hsl) / 5%);
+  --color-suins-gray-2:  hsl(var(--suins-gray-100-hsl) / 2%);
+  --color-suins-gray-1:  hsl(var(--suins-gray-100-hsl) / 1%);
+
+  /* grey-* synonyms */
+  --color-suins-grey-100: var(--color-suins-gray-100);
+  --color-suins-grey-90:  var(--color-suins-gray-90);
+  --color-suins-grey-80:  var(--color-suins-gray-80);
+  --color-suins-grey-70:  var(--color-suins-gray-70);
+  --color-suins-grey-60:  var(--color-suins-gray-60);
+  --color-suins-grey-50:  var(--color-suins-gray-50);
+  --color-suins-grey-40:  var(--color-suins-gray-40);
+  --color-suins-grey-30:  var(--color-suins-gray-30);
+  --color-suins-grey-20:  var(--color-suins-gray-20);
+  --color-suins-grey-10:  var(--color-suins-gray-10);
+  --color-suins-grey-5:  var(--color-suins-gray-5);
+  --color-suins-grey-2:  var(--color-suins-gray-2);
+  --color-suins-grey-1:  var(--color-suins-gray-1);
+
+  --color-docu-dark: hsl(240, 4%, 11%);
+  
+  /* Dark surface gradient: solid on edges, translucent middle */
+  --suins-surface-gradient-dark: linear-gradient(
+    to bottom,
+    var(--color-suins-white-10) 0%,
+    var(--color-suins-white-5) 15%,
+    var(--color-suins-white-5) 75%,
+    var(--color-suins-white-10) 100%
+  );
+
+  --suins-surface-gradient-light: linear-gradient(
+    to bottom,
+    var(--color-suins-grey-5) 0%,
+    var(--color-suins-grey-2) 15%,
+    var(--color-suins-grey-2) 75%,
+    var(--color-suins-grey-5) 100%
+  );
+}
+
+@import "./fonts.css";
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@source "../src/**/*.{js,jsx,ts,tsx,mdx}";
+@source "../../../content/**/*.{md,mdx}";
+
+:root {
+  --ifm-font-family-base: var(--font-sans);
+  --ifm-font-family-monospace: var(--font-mono);
+  --ifm-navbar-background-color: var(--color-suins-white-100);
+  --ifm-link-color: var(--color-suins-link);
+  --ifm-link-hover-color: var(--color-suins-link-hover);
+  --ifm-pagination-nav-color-hover: var(--color-suins-orange);
+  --ifm-color-primary: var(--color-suins-link);
+  --ifm-navbar-link-hover-color: var(--color-suins-link-hover);
+}
+
+body {
+  @apply font-sans text-sm font-normal not-italic tracking-normal;
+}
+
+.markdown header > h1 {
+  @apply text-suins-orange font-light text-[2.5rem];
+}
+
+.markdown h2 {
+  @apply font-semibold text-[1.75rem];
+}
+
+/** navbar **/
+
+html[data-theme='dark'] .navbar {
+  @apply bg-suins-gray-100;
+}
+
+/** navbar search field **/
+
+.DocSearch-Button-Container {
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.DocSearch-Button {
+  width: 12.5rem;
+  height: 2.625rem !important;
+  font-family: var(--headerFont);
+  border: solid 1px rgba(247, 247, 248, 0.1) !important;
+  border-radius: 2.25rem !important;
+  padding: 1rem 1.1rem 1rem 1.25rem !important;
+  color: var(--color-suins-gray-80) !important;
+  font-family: var(--primaryFont);
+  letter-spacing: -0.01em;
+  margin: 0;
+  transition: all var(--ifm-transition-fast)
+    var(--ifm-transition-timing-default);
+}
+
+[data-theme='dark'] .DocSearch-Button {
+  color: var(--color-suins-white-100) !important;
+  background-image: var(--suins-surface-gradient-dark);
+  /* fallback if the variable isn't available for some reason */
+  background-color: var(--color-suins-gray-90);
+}
+
+.DocSearch-Button {
+  color: var(--color-suins-gray-70) !important;
+  background-image: var(--suins-surface-gradient-light);
+  /* fallback if the variable isn't available for some reason */
+  background-color: var(--color-suins-gray-5);
+}
+
+.DocSearch-Button:hover, .DocSearch-Button:focus, .DocSearch-Button:active {
+  box-shadow: inset 0 0 0 2px var(--color-suins-green);
+  outline: 0;
+}
+
+
+@media screen and (max-width: 599px) {
+  .DocSearch-Button {
+    width: initial;
+  }
+}
+
+.DocSearch-Search-Icon {
+  order: 2;
+  margin-left: auto;
+  stroke-width: 1.6;
+}
+
+html[data-theme='dark'] .DocSearch-Search-Icon path {
+  stroke: var(--color-suins-green);
+}
+
+.DocSearch-Search-Icon path {
+  stroke: var(--color-suins-green-dark);
+}
+
+.DocSearch-Button-Placeholder {
+  @apply font-thin text-lg pl-3 pr-[6px];
+}
+
+.DocSearch-Button-Keys {
+  display: none !important;
+}
+
+.grid-card {
+  row-gap: 1rem;
+  column-gap: 1rem;
+}
+
+.markdown h1:first-child {
+  margin-top: 1rem;
+}
+
+/*Targeting the search container so that the "start here" button displays alongside the search bar*/
+[class^="navbarSearchContainer"] {
+  @apply min-[997px]:flex min-[997px]:gap-4
+}
+
+/*Full search page*/
+
+.search-page-wrapper main p {
+  @apply !not-italic;
+}
+
+.search-page-wrapper main em {
+  @apply font-bold;
+}
+
+.tooltip-delay {
+  @apply opacity-0 transition-opacity duration-200;
+  transition-delay: 0ms;
+}
+
+.group:hover .tooltip-delay {
+  @apply opacity-100;
+  transition-delay: 700ms; 
+}
+
+.sui-search mark {
+  @apply bg-suins-green/40;
+}
+
+.modal-result mark {
+  @apply bg-suins-green-light;
+}
+
+.ais-Pagination-list {
+  @apply pl-0 list-none flex justify-center;
+}
+
+.ais-Pagination-item {
+  @apply border border-solid border-suins-gray-50 dark:border-suins-gray-80 p-1 mx-2 w-12 flex items-center justify-center;
+}
+
+.ais-SearchBox-submitIcon {
+  @apply !w-[20px];
+}
+
+.ais-Pagination-item--disabled {
+  @apply cursor-default;
+}
+
+.ais-Pagination-item--selected {
+  @apply cursor-default;
+}
+
+.ais-Pagination-item--selected a {
+  @apply text-suins-white-100 cursor-default no-underline;
+}
+
+/* Rounded corners for all images matching Video component */
+img {
+  border-radius: 0.5rem; /* Same as Tailwind's rounded-lg */
+}
+
+.header-github-link {
+  display: inline-flex;
+  align-items: center;
+}
+.header-github-link::before {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background: currentColor;
+  -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23000"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.42c.58.11.8-.25.8-.56v-2.01c-3.26.71-3.95-1.57-3.95-1.57-.53-1.35-1.29-1.7-1.29-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.78 2.73 1.26 3.4.96.11-.76.41-1.26.74-1.55-2.6-.3-5.34-1.31-5.34-5.84 0-1.29.46-2.35 1.2-3.18-.12-.29-.52-1.47.11-3.06 0 0 .98-.31 3.2 1.21a11.12 11.12 0 0 1 5.82 0c2.22-1.52 3.2-1.21 3.2-1.21.63 1.59.23 2.77.11 3.06.75.83 1.2 1.89 1.2 3.18 0 4.54-2.74 5.53-5.36 5.82.42.36.8 1.07.8 2.15v3.19c0 .31.21.68.81.56A11.5 11.5 0 0 0 12 .5Z"/></svg>') no-repeat center / contain;
+          mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23000"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.42c.58.11.8-.25.8-.56v-2.01c-3.26.71-3.95-1.57-3.95-1.57-.53-1.35-1.29-1.7-1.29-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.78 2.73 1.26 3.4.96.11-.76.41-1.26.74-1.55-2.6-.3-5.34-1.31-5.34-5.84 0-1.29.46-2.35 1.2-3.18-.12-.29-.52-1.47.11-3.06 0 0 .98-.31 3.2 1.21a11.12 11.12 0 0 1 5.82 0c2.22-1.52 3.2-1.21 3.2-1.21.63 1.59.23 2.77.11 3.06.75.83 1.2 1.89 1.2 3.18 0 4.54-2.74 5.53-5.36 5.82.42.36.8 1.07.8 2.15v3.19c0 .31.21.68.81.56A11.5 11.5 0 0 0 12 .5Z"/></svg>') no-repeat center / contain;
+}

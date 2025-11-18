@@ -1,0 +1,21 @@
+{
+  "id": "move-registry/tooling/mvr-cli",
+  "title": "MVR CLI",
+  "description": "Use the MVR CLI to manage your package dependencies and to interact with the Move Registry (MVR). The MVR CLI is a command line tool that enables:",
+  "source": "@site/content/move-registry/tooling/mvr-cli.mdx",
+  "sourceDirName": "move-registry/tooling",
+  "slug": "/move-registry/tooling/mvr-cli",
+  "permalink": "/move-registry/tooling/mvr-cli",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "MVR CLI"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "Transaction Plugin for Sui TypeScript SDK",
+    "permalink": "/move-registry/tooling/typescript-sdk"
+  }
+}

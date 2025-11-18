@@ -1,0 +1,46 @@
+---
+title: Examples
+---
+
+The following code sample is an initial example of how to integrate with SuiNS on chain. This page will host more examples in the future.
+
+## Transferring any object to a SuiNS name fully on-chain
+
+The following `demo` module demonstrates how to transfer an object of any type to a SuiNS name. This is a basic example of how to interact with SuiNS on chain.
+
+```rust
+module demo::demo {
+    use std::string::String;
+    use sui::clock::Clock;
+
+    /// Import the SuiNS dependency.
+    use suins::{ 
+        suins::SuiNS,
+        registry::Registry,
+        domain
+    };
+
+    /// Different custom error messages.
+    const ENameNotFound: u64 = 0;
+    const ENameNotPointingToAddress: u64 = 1;
+    const ENameExpired: u64 = 2;
+
+    /// A function to transfer an object of any type T to a name (for instance `example.sui`)
+    public fun send_to_name<T: key + store>(suins: &SuiNS, obj: T, name: String, clock: &Clock) {
+        // Look up the name on the registry.
+        let mut optional = suins.registry<Registry>().lookup(domain::new(name));
+        // Check that the name indeed exists.
+        assert!(optional.is_some(), ENameNotFound);
+
+        let name_record = optional.extract();
+        // Check that name has not expired. 
+        // This check is optional, but it's recommended you perform the verification.
+        assert!(!name_record.has_expired(clock), ENameExpired);
+        // Check that the name has a target address set.
+        assert!(name_record.target_address().is_some(), ENameNotPointingToAddress);
+
+        // Transfer the object to that name.
+        transfer::public_transfer(obj, name_record.target_address().extract())
+    }
+}
+```

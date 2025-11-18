@@ -1,0 +1,25 @@
+{
+  "id": "developer/sdk/transactions",
+  "title": "Building Transactions",
+  "description": "SuinsTransaction is the client used similar to Transaction, and helps in building a transaction.",
+  "source": "@site/content/developer/sdk/transactions.mdx",
+  "sourceDirName": "developer/sdk",
+  "slug": "/developer/sdk/transactions",
+  "permalink": "/developer/sdk/transactions",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Building Transactions"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "Querying",
+    "permalink": "/developer/sdk/querying"
+  },
+  "next": {
+    "title": "Examples",
+    "permalink": "/developer/examples"
+  }
+}
