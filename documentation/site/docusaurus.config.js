@@ -155,7 +155,7 @@ const config = {
       },
     }),
   customFields: {
-    pushFeedbackId: 'j035k7w3r9',
+    pushFeedbackId: '48uewzh5x0',
   },
 };
 
