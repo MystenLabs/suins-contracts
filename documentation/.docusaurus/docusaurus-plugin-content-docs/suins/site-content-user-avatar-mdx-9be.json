@@ -1,0 +1,25 @@
+{
+  "id": "user/avatar",
+  "title": "Update Avatars",
+  "description": "Have a special NFT that you want to represent your identity on chain? After you register a name, you can set the avatar to associate with that name.",
+  "source": "@site/content/user/avatar.mdx",
+  "sourceDirName": "user",
+  "slug": "/user/avatar",
+  "permalink": "/user/avatar",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Update Avatars"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "Renew Names",
+    "permalink": "/user/renew"
+  },
+  "next": {
+    "title": "Linked Address",
+    "permalink": "/user/linked-address"
+  }
+}

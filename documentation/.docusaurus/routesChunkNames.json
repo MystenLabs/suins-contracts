@@ -1,0 +1,158 @@
+{
+  "/__docusaurus/debug-5ff": {
+    "__comp": "__comp---theme-debug-config-23-a-2ff",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/config-5ba": {
+    "__comp": "__comp---theme-debug-config-23-a-2ff",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/content-a2b": {
+    "__comp": "__comp---theme-debug-contentba-8-ce7",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    },
+    "__props": "__props---docusaurus-debug-content-3-c-0-be2"
+  },
+  "/__docusaurus/debug/globalData-c3c": {
+    "__comp": "__comp---theme-debug-global-dataede-0fa",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/metadata-156": {
+    "__comp": "__comp---theme-debug-site-metadata-68-e-3d4",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/registry-88c": {
+    "__comp": "__comp---theme-debug-registry-679-501",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/routes-000": {
+    "__comp": "__comp---theme-debug-routes-946-699",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/-351": {
+    "__comp": "__comp---theme-docs-root-5-e-9-0b6",
+    "__context": {
+      "plugin": "plugin---0-d-1-f8e"
+    }
+  },
+  "/-8cc": {
+    "__comp": "__comp---theme-doc-version-roota-7-b-5de",
+    "__props": "__props---55-d-c59"
+  },
+  "/-02b": {
+    "__comp": "__comp---theme-doc-roota-94-67a"
+  },
+  "/dao-f5b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---daoef-9-f57"
+  },
+  "/developer-732": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---developer-96-e-c9d"
+  },
+  "/developer/examples-261": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---developer-examplesa-05-4c9"
+  },
+  "/developer/indexing-5db": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---developer-indexingf-56-dec"
+  },
+  "/developer/integration-992": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---developer-integrationcc-1-ff1"
+  },
+  "/developer/sdk-9d4": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---developer-sdk-97-c-b92"
+  },
+  "/developer/sdk/querying-ae2": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---developer-sdk-queryinga-64-aca"
+  },
+  "/developer/sdk/transactions-a4e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---developer-sdk-transactions-70-a-0af"
+  },
+  "/developer/subnames-335": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---developer-subnames-602-fe0"
+  },
+  "/move-registry-f5f": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---move-registry-5-fb-981"
+  },
+  "/move-registry/design-029": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---move-registry-designa-6-e-a46"
+  },
+  "/move-registry/maintainer-practices-f95": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---move-registry-maintainer-practices-638-2e4"
+  },
+  "/move-registry/managing-package-info-2c1": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---move-registry-managing-package-info-579-ff6"
+  },
+  "/move-registry/mvr-names-5e0": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---move-registry-mvr-names-3-c-8-444"
+  },
+  "/move-registry/tooling-1a8": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---move-registry-tooling-2-c-3-d6c"
+  },
+  "/move-registry/tooling/mvr-cli-c60": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---move-registry-tooling-mvr-cli-234-dcb"
+  },
+  "/move-registry/tooling/typescript-sdk-c1e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---move-registry-tooling-typescript-sdk-462-c62"
+  },
+  "/node-operator-a80": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---node-operatoraa-7-89b"
+  },
+  "/user-c0d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---userf-7-b-983"
+  },
+  "/user/avatar-27d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---user-avatar-9-be-f07"
+  },
+  "/user/linked-address-97a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---user-linked-addressd-0-c-78e"
+  },
+  "/user/registration-975": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---user-registrationc-7-f-2db"
+  },
+  "/user/renew-630": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---user-renew-75-c-4f1"
+  },
+  "/user/sui-id-fae": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---user-sui-idc-9-d-6e4"
+  },
+  "/-109": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---c-07-215"
+  }
+}

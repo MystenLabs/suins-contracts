@@ -1,0 +1,25 @@
+{
+  "id": "developer/examples",
+  "title": "Examples",
+  "description": "The following code sample is an initial example of how to integrate with SuiNS on chain. This page will host more examples in the future.",
+  "source": "@site/content/developer/examples.mdx",
+  "sourceDirName": "developer",
+  "slug": "/developer/examples",
+  "permalink": "/developer/examples",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Examples"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "Building Transactions",
+    "permalink": "/developer/sdk/transactions"
+  },
+  "next": {
+    "title": "Sui Name Service User Documentation",
+    "permalink": "/user"
+  }
+}

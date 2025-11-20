@@ -1,0 +1,25 @@
+{
+  "id": "developer/integration",
+  "title": "Integration",
+  "description": "Integration with SuiNS works in multiple ways. For dApps, you typically integrate SuiNS through off-chain resolution using remote procedural calls (RPCs). The calls enable you to interact with the Sui network or display names instead of addresses. For example, your RPCs might create transactions that send assets to names, or show names instead of addresses on a leaderboard.",
+  "source": "@site/content/developer/integration.mdx",
+  "sourceDirName": "developer",
+  "slug": "/developer/integration",
+  "permalink": "/developer/integration",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Integration"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "Sui Name Service Developer Documentation",
+    "permalink": "/developer"
+  },
+  "next": {
+    "title": "Subnames",
+    "permalink": "/developer/subnames"
+  }
+}

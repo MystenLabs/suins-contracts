@@ -1,0 +1,14 @@
+{
+  "redirects": [
+      { "source": "/user/registration", "destination": "/user#register-names", "permanent": true },
+      { "source": "/user/renew", "destination": "/user#renew-names", "permanent": true },
+      { "source": "/user/avatar", "destination": "/user#update-avatars", "permanent": true },
+      { "source": "/user/linked-address", "destination": "/user#linked-address", "permanent": true },
+      { "source": "/user/sui-id", "destination": "/user#sui-id", "permanent": true },
+      { "source": "/developer/examples", "destination": "/developer", "permanent": true },
+      { "source": "/developer/indexing", "destination": "/developer", "permanent": true },
+      { "source": "/developer/integration", "destination": "/developer", "permanent": true },
+      { "source": "/developer/subnames", "destination": "/developer", "permanent": true },
+      { "source": "/move-registry/design", "destination": "/move-registry", "permanent": true }
+  ]
+}

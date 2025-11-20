@@ -1,0 +1,25 @@
+{
+  "id": "move-registry/tooling",
+  "title": "Tooling",
+  "description": "Two main tools are available for use with the Move Registry (MVR):",
+  "source": "@site/content/move-registry/tooling.mdx",
+  "sourceDirName": "move-registry",
+  "slug": "/move-registry/tooling",
+  "permalink": "/move-registry/tooling",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Tooling"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "Package Maintainer Best Practices",
+    "permalink": "/move-registry/maintainer-practices"
+  },
+  "next": {
+    "title": "Transaction Plugin for Sui TypeScript SDK",
+    "permalink": "/move-registry/tooling/typescript-sdk"
+  }
+}

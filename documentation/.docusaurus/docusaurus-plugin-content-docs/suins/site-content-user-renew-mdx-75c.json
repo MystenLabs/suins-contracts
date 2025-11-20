@@ -1,0 +1,25 @@
+{
+  "id": "user/renew",
+  "title": "Renew Names",
+  "description": "You can renew, or extend the expiration date, for any of your registered names for up to five years.",
+  "source": "@site/content/user/renew.mdx",
+  "sourceDirName": "user",
+  "slug": "/user/renew",
+  "permalink": "/user/renew",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Renew Names"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "Register Names",
+    "permalink": "/user/registration"
+  },
+  "next": {
+    "title": "Update Avatars",
+    "permalink": "/user/avatar"
+  }
+}

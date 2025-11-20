@@ -1,0 +1,25 @@
+{
+  "id": "node-operator",
+  "title": "Node Operators",
+  "description": "Full nodes for the Mainnet environment process SuiNS names without additional configuration. The Mysten Labs public nodes for Testnet also resolve SuiNS names.",
+  "source": "@site/content/node-operator.mdx",
+  "sourceDirName": ".",
+  "slug": "/node-operator",
+  "permalink": "/node-operator",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Node Operators"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "sui.id",
+    "permalink": "/user/sui-id"
+  },
+  "next": {
+    "title": "Move Registry",
+    "permalink": "/move-registry"
+  }
+}

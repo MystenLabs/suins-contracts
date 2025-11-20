@@ -1,0 +1,25 @@
+{
+  "id": "user",
+  "title": "Sui Name Service User Documentation",
+  "description": "Build your on-chain identity in web3 with Sui Name Service (SuiNS). Using SuiNS, you can register a name (any name that isn't already registered) and use it for on-chain transactions.",
+  "source": "@site/content/user.mdx",
+  "sourceDirName": ".",
+  "slug": "/user",
+  "permalink": "/user",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Sui Name Service User Documentation"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "Examples",
+    "permalink": "/developer/examples"
+  },
+  "next": {
+    "title": "Register Names",
+    "permalink": "/user/registration"
+  }
+}
