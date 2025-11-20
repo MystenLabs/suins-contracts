@@ -3,7 +3,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useHistory } from "@docusaurus/router";
-import { usePluginData } from "@docusaurus/useGlobalData";
 import styles from "./styles.module.css";
 
 export function Card(props) {
@@ -16,17 +15,6 @@ export function Card(props) {
     }
     return;
   }, [href]);
-
-  const { descriptions } = usePluginData("sui-description-plugin");
-  let h = props.href;
-  if (!h.match(/^\//)) {
-    h = `/${h}`;
-  }
-  const d = descriptions.find((desc) => desc["id"] === h);
-  let description = "";
-  if (typeof d !== "undefined") {
-    description = d.description;
-  }
 
   const handleClick = (loc) => {
     if (loc.match(/^https?/)) {
@@ -43,7 +31,7 @@ export function Card(props) {
       </div>
 
       <div className={styles.card__copy}>
-        {props.children ? props.children : description}
+        {props.children}
       </div>
     </div>
   );

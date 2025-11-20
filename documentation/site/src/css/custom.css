@@ -259,6 +259,18 @@ html[data-theme='dark'] .DocSearch-Search-Icon path {
   @apply text-suins-white-100 cursor-default no-underline;
 }
 
+/* Copy button */
+
+html[data-theme='dark'] #copy-page-button-container button span,
+html[data-theme='dark'] #copy-page-button-container button svg {
+  @apply text-suins-grey-60;
+}
+
+html[data-theme='dark'] #copy-page-button-container button:hover span,
+html[data-theme='dark'] #copy-page-button-container button:hover svg {
+  @apply text-suins-white-80;
+}
+
 /* Rounded corners for all images matching Video component */
 img {
   border-radius: 0.5rem; /* Same as Tailwind's rounded-lg */

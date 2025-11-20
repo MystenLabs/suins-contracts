@@ -1,0 +1,9 @@
+{
+  "redirects": [
+      { "source": "/user/registration", "destination": "/user#register-names", "permanent": true },
+      { "source": "/user/renew", "destination": "/user#renew-names", "permanent": true },
+      { "source": "/user/avatar", "destination": "/user#update-avatars", "permanent": true },
+      { "source": "/user/linked-address", "destination": "/user#linked-address", "permanent": true },
+      { "source": "/user/sui-id", "destination": "/user#sui-id", "permanent": true }
+  ]
+}
