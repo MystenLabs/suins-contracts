@@ -8,7 +8,7 @@ import Beta from '@site/src/components/beta'
 
 For package authors and maintainers, the following best practices are recommended for working with the Move Registry. Following these tips ensures that other builders can use your package as intended.
 
-## Automated Address Management
+## Automated Address Management {#automated-address-management}
 
 - Whenever you publish or upgrade a package, use the Sui Automated Address Management feature.
 - After properly configuring your Automated Address Management, commit and [tag](#tagging) your changes to your git repository.
@@ -21,7 +21,7 @@ Switch your `Sui` dependency to the correct network you're publishing or upgradi
 
 > Starting from Sui v1.45, you should remove the Sui framework and all other system dependencies from your Move.toml file, as they are now automatically added and managed when used.
 
-## Tagging
+## Tagging {#tagging}
 
 Proper use of tags or commit SHAs helps code maintenance.
 
