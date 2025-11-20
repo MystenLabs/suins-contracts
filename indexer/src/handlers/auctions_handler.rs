@@ -242,7 +242,7 @@ impl AuctionsHandlerPipeline {
                     })?;
 
                 return Ok(Some(AuctionEvent::Cancelled(cancel_event)));
-            } else if event_type.ends_with("::AuctionFinalizedEvent ") {
+            } else if event_type.ends_with("::AuctionFinalizedEvent") {
                 info!("Found Auction event: {} ", event_type);
 
                 let finalized_event: AuctionFinalizedEvent = try_deserialize_event(&event.contents)
@@ -251,7 +251,7 @@ impl AuctionsHandlerPipeline {
                     })?;
 
                 return Ok(Some(AuctionEvent::Finalized(finalized_event)));
-            } else if event_type.ends_with("::BidPlacedEvent ") {
+            } else if event_type.ends_with("::BidPlacedEvent") {
                 info!("Found Bid event: {} ", event_type);
 
                 let bid_event: BidPlacedEvent = try_deserialize_event(&event.contents)
