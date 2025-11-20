@@ -103,15 +103,6 @@ export default function NavbarContent() {
   const [leftItems, rightItems] = splitNavbarItems(items);
   const searchBarItem = items.find((item) => item.type === "search");
 
-  React.useEffect(() => {
-    try {
-      window.initCookbook?.();
-    } catch (e) {
-      // Gracefully ignore errors if something goes wrong
-      console.error("Error initializing Ask Cookbook", e);
-    }
-  }, []);
-
   return (
     <NavbarContentLayout
       left={

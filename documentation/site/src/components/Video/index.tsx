@@ -41,7 +41,7 @@ export default function Video({
   const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
 
   return (
-    <div className="w-1/2 mx-auto pb-8 pt-4">
+    <div className="w-1/2 pb-8 pt-4">
       <div 
         className="relative w-full overflow-hidden rounded-lg bg-black" 
         style={{ aspectRatio }}
