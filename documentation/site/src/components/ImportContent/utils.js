@@ -456,7 +456,7 @@ exports.returnEnums = (source, enumVal) => {
   for (const e of enums) {
     // Match optional keywords: export / declare / const (TS) OR pub (Rust)
     const re = new RegExp(
-      `^(\\s*)(?:export\\s+)?(?:declare\\s+)?(?:const\\s+)?(?:pub(?:lic)?(?:\$begin:math:text$package\\$end:math:text$)?\\s+)?enum\\s+${escapeRegex(e)}\\b(?:\\s*<[^>]*>)?(?:\\s+has\\s+[^{]+)?\\s*\\{`,
+      `^(\\s*)(?:export\\s+)?(?:declare\\s+)?(?:const\\s+)?(?:pub(?:lic)?(?:$begin:math:text$package$end:math:text$)?\\s+)?enum\\s+${escapeRegex(e)}\\b(?:\\s*<[^>]*>)?(?:\\s+has\\s+[^{]+)?\\s*\\{`,
       "m",
     );
     const m = re.exec(source);
