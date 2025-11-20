@@ -1,15 +1,17 @@
 ---
 title: Building Transactions
+description: Build programmable transaction blocks using SuinsTransaction to register names, manage subnames, and configure SuiNS records.
+keywords: [ SuiNS, transactions, PTB, programmable transaction blocks, SuinsTransaction, register, renew, subnames ]
 ---
 
-`SuinsTransaction` is the client used similar to `Transaction`, and helps in building a transaction.
-You need to instantiate it once in every programmable transaction block (PTB) that you're building.
+`SuinsTransaction` is the client you use similar to `Transaction`, and helps in building a transaction.
+You need to instantiate it once in every programmable transaction block (PTB) that you are building.
 
 ## Available functions
 
-Here's a list of all the available PTB commands supported through the SDK.
+This is a list of all the available PTB commands supported through the SDK.
 
-### Registering a name
+### Register a name
 
 ```js
 
@@ -40,7 +42,7 @@ const register = async (name: string, years: number) => {
 }
 ```
 
-### Renewing a name
+### Renew a name
 
 ```js
 const renew = async (nftId: string, name: string, years: number) => {
@@ -67,7 +69,7 @@ const renew = async (nftId: string, name: string, years: number) => {
 }
 ```
 
-### Setting a name's target address
+### Set a name's target address
 
 This works the same for names and subnames.
 
@@ -89,7 +91,7 @@ const setTargetAddress = async (nftId: string, address: string) => {
 }
 ```
 
-### Setting a name as default
+### Set a name as default
 
 This works the same for names and subnames.
 
@@ -109,7 +111,7 @@ const setDefault = async (name: string) => {
 }
 ```
 
-### Creating a Subname
+### Create a subname
 
 ```js
 const createSubname = async (subName: string, parentNftId: string, expirationMs: number) => {
@@ -140,7 +142,7 @@ const createSubname = async (subName: string, parentNftId: string, expirationMs:
 }
 ```
 
-### Editing Subname's setup
+### Edit subname setup
 
 Allows the parent holder to edit the setup (allow child creation and allow time extension) for a subname.
 
@@ -163,7 +165,7 @@ const editSetup = async (name: stringify, parentNftId: string, allowChildCreatio
 }
 ```
 
-### Extending a Subname's expiration
+### Extend a subname's expiration
 
 This functionality is available only if the parent allows time extension for the subname.
 
@@ -184,7 +186,7 @@ const extendExpiration = async (nftId: string, expirationMs: number) => {
 }
 ```
 
-### Creating a leaf subname
+### Create a leaf subname
 
 Read more about the differences between a [subname and a leaf subname](../subnames.mdx#subname-types).
 
@@ -210,7 +212,7 @@ const createLeafSubname = async (name: stringify, parentNftId: string, targetAdd
 }
 ```
 
-### Removing a leaf subname
+### Remove a leaf subname
 
 ```js
 const removeLeafSubname = async (name: string, parentNftId: string) => {
@@ -231,7 +233,7 @@ const removeLeafSubname = async (name: string, parentNftId: string) => {
 }
 ```
 
-### Setting a name's metadata
+### Set a name's metadata
 
 Currently supports AVATAR and IPFS hash.
 
@@ -269,7 +271,7 @@ const setUserData = async (nft: string, avatar: string, contentHash: string) => 
 }
 ```
 
-### Burning an expired name
+### Burn an expired name
 
 Allows burning an expired name to get back storage rebates.
 

@@ -1,5 +1,7 @@
 ---
 title: Managing MVR Names
+description: Create applications, set metadata, and attach packages to MVR names across Mainnet and other networks using the Move Registry.
+keywords: [ MVR, Move Registry, applications, metadata, packages, SuiNS, Mainnet, Testnet, AppCap ]
 ---
 
 import Beta from '@site/src/components/beta'
@@ -8,15 +10,15 @@ import TabItem from '@theme/TabItem';
 
 <Beta/>
 
-:::warning
-The TypeScript examples assume that you use the [MVR plugin](/move-registry/tooling/typescript-sdk) for the Sui TypeScript SDK.
-The Sui CLI examples do not use the MVR plugin.
+:::caution
+
+The TypeScript examples assume that you use the [MVR plugin](/move-registry/tooling/typescript-sdk) for the Sui TypeScript SDK. The Sui CLI examples do not use the MVR plugin.
+
 :::
 
-## Creating a new application
+## Create a new application
 
-To create a new application, you must provide a SuiNS name and a package name, as long as it is not
-already registered.
+To create a new application, you must provide a SuiNS name and a package name, as long as it is not already registered.
 
 <Tabs groupId='packageobject'>
   <TabItem label="Packages" value='packages'>
@@ -48,10 +50,9 @@ already registered.
   </TabItem>
 </Tabs>
 
-## Setting application metadata
+## Set application metadata
 
-Metadata is strongly recommended for any application. Provide the `appCap` along with a key-value pair.
-Key can be `description`, `icon_url`, `documentation_url`, `homepage_url`, or `contact`.
+Metadata is strongly recommended for any application. Provide the `appCap` along with a key-value pair. Key can be `description`, `icon_url`, `documentation_url`, `homepage_url`, or `contact`.
 
 <Tabs groupId='language'>
   <TabItem label="TypeScript" value='typescript'>
@@ -79,11 +80,9 @@ sui client ptb --move-call @mvr/core::move_registry::set_metadata \
   </TabItem>
 </Tabs>
 
-## Attaching a Mainnet package to an application
+## Attach a Mainnet package to an application
 
-When attaching a Mainnet package to an application, you must provide the `PackageInfo` object.
-This call is permanent, so after a `PackageInfo` object is attached to an application, it cannot be
-detached in the future. Consequently, an app is always linked to a specific package.
+When attaching a Mainnet package to an application, you must provide the `PackageInfo` object. This call is permanent, so after a `PackageInfo` object is attached to an application, it cannot be detached in the future. Consequently, an app is always linked to a specific package.
 
 <Tabs groupId='language'>
   <TabItem label="TypeScript" value='typescript'>
@@ -113,12 +112,14 @@ sui client ptb --move-call @mvr/core::move_registry::assign_package \
   </TabItem>
 </Tabs>
 
-## Attaching a non-Mainnet package to an application
+## Attach a non-Mainnet package to an application
 
-For non-Mainnet networks, you only attach a "pointer" to the package, instead of strict binding (which wouldn't be possible).
+For non-Mainnet networks, you only attach a pointer to the package, instead of strict binding (which would not be possible).
 
 :::info
+
 You can always update an external network by first calling `@mvr/core::move_registry::unset_network`, and then calling `@mvr/core::move_registry::set_network` again.
+
 :::
 
 <Tabs groupId='packageobject'>
@@ -164,5 +165,3 @@ sui client ptb \
 ```
   </TabItem>
 </Tabs>
-
-

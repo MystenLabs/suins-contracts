@@ -20,65 +20,32 @@ const sidebars = {
 
 	// But you can create a sidebar manually
 	nsSidebar: [
-		{
-			type: 'category',
-			label: 'Developer',
-			link: {
-				type: 'doc',
-				id: 'developer',
-			},
-			items: [
-				'developer/integration',
-				'developer/subnames',
-				'developer/indexing',
-				{
-					type: 'category',
-					label: 'SuiNS SDK',
-					link: {
-						type: 'doc',
-						id: 'developer/sdk',
-					},
-					items: ['developer/sdk/querying', 'developer/sdk/transactions'],
-				},
-				'developer/examples',
-			],
-		},
+		'developer',
 		'user',
 		'node-operator',
+		'dao',
+		{
+			type: 'category',
+			label: 'SuiNS SDK',
+			link: {
+				type: 'doc',
+				id: 'developer/sdk',
+			},
+			items: ['developer/sdk/querying', 'developer/sdk/transactions'],
+		},
 	],
 	communitySidebar: ['communities'],
 	mvrSidebar: [
+		'move-registry',
+		'move-registry/managing-package-info',
+		'move-registry/mvr-names',
+		'move-registry/maintainer-practices',
 		{
 			type: 'category',
-			label: 'Move Registry',
-			link: {
-				type: 'doc',
-				id: 'move-registry',
-			},
-			items: [
-				'move-registry/design',
-				'move-registry/managing-package-info',
-				'move-registry/mvr-names',
-				'move-registry/maintainer-practices',
-				{
-					type: 'category',
-					label: 'Tooling',
-					link: {
-						type: 'doc',
-						id: 'move-registry/tooling',
-					},
-					items: ['move-registry/tooling/typescript-sdk', 'move-registry/tooling/mvr-cli'],
-				},
-			],
+			label: 'Tooling',
+			items: ['move-registry/tooling/typescript-sdk', 'move-registry/tooling/mvr-cli'],
 		},
 	],
-	daoSidebar: [
-		{
-			type: 'doc',
-			label: 'DAO',
-			id: 'dao',
-		},
-	],
-};
+}
 
 export default sidebars;

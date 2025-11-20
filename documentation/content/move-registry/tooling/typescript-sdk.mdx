@@ -1,5 +1,7 @@
 ---
 title: Transaction Plugin for Sui TypeScript SDK 
+description: Use the MVR Sui TypeScript SDK plugin to construct programmable transaction blocks with MVR names that resolve to package addresses and types.
+keywords: [ MVR, Move Registry, TypeScript SDK, PTB, programmable transaction blocks, plugin, named packages ]
 ---
 
 import Beta from '@site/src/components/beta'
@@ -10,7 +12,7 @@ import TabItem from '@theme/TabItem';
 
 <Beta/>
 
-The Move Registry (MVR, pronounced "mover") Sui TypeScript SDK plugin offers builders a seamless experience when constructing programmable transaction blocks (PTBs) using MVR names. 
+The Move Registry (MVR, pronounced mover) Sui TypeScript SDK plugin offers builders a seamless experience when constructing programmable transaction blocks (PTBs) using MVR names. 
 
 The plugin resolves MVR names to their respective addresses before constructing the PTB, caching the results during each runtime.
 
@@ -20,8 +22,7 @@ This also applies to type names, especially across package upgrades.
 
 The MVR plugin uses a runtime API to resolve named packages and types. While this is beneficial to the user experience, it naturally comes with considerations around performance, availability, and security.
 
-For this reason, consider using the `@mysten/mvr-static` plugin, which statically resolves all the package addresses and types during the build. The plugin caches your MVR references  
-and exports them to a resolution file.
+For this reason, consider using the `@mysten/mvr-static` plugin, which statically resolves all the package addresses and types during the build. The plugin caches your MVR references and exports them to a resolution file.
 
 This approach offers a couple of benefits:
 
@@ -33,7 +34,9 @@ Check the NPM page for the [`@mysten/mvr-static` plugin](https://www.npmjs.com/p
 ## How to use
 
 :::info
-The plugin is functional starting from `@mysten/sui` v1.25.0
+
+The plugin is functional starting from `@mysten/sui` v1.25.0.
+
 :::
 
 The MVR plugin is exported directly from the `@mysten/sui` package. To enable the plugin, register it either globally or per PTB in your dApp.
@@ -77,10 +80,9 @@ function createTransaction(network: 'mainnet' | 'testnet') {
 }
 ```
 
-### Defining overrides
+### Define overrides
 
-If you want to use the plugin locally (for CI), or you want to cache results yourself (without the `@mysten/mvr-static` generator),
-you can define overrides for the package addresses and types.
+If you want to use the plugin locally (for CI), or you want to cache results yourself (without the `@mysten/mvr-static` generator), you can define overrides for the package addresses and types.
 
 ```typescript
 const overrides = {
@@ -96,10 +98,12 @@ const overrides = {
 const plugin = namedPackagesPlugin({ url: '<endpoint based on network>', overrides });
 ```
 
-## Before / after example
+## Before and after example
 
-:::warning
-    The examples in the tabs are simplified for clarity. Actual addresses or names might differ. 
+:::caution
+
+The examples in the tabs are simplified for clarity. Actual addresses or names might differ.
+
 :::
 
 <Tabs groupId='packageobject'>

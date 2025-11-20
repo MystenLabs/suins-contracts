@@ -139,12 +139,6 @@ const config = {
             label: "MVR",
           },
           {
-            type: "docSidebar",
-            sidebarId: "daoSidebar",
-            position: "right",
-            label: "DAO",
-          },
-          {
             label: "SuiNS Dashboard",
             href: "https://suins.io",   // ← external link
             position: "right",

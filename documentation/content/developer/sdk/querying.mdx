@@ -1,10 +1,12 @@
 ---
 title: Querying
+description: Query on-chain data using SuinsClient to retrieve name records, pricing information, and renewal costs.
+keywords: [ SuiNS, querying, name record, pricing, renewals, SuinsClient ]
 ---
 
-Use the `SuinsClient` that was previously created to query on-chain data.
+Use the `SuinsClient` that you previously created to query on-chain data.
 
-## Querying a NameRecord
+## Query a name record
 
 You can query a name record's latest state by calling the `getNameRecord` method on the `SuinsClient` instance.
 
@@ -31,7 +33,7 @@ console.log(nameRecord);
 
 ## Query active pricing
 
-Call the `getPricelist` method on the `SuinsClient` instance to query the active names price list.
+Call the `getPriceList` method on the `SuinsClient` instance to query the active names price list.
 
 ```js
 const priceList = await suinsClient.getPriceList();
@@ -46,9 +48,9 @@ console.log(priceList);
 // }
 ```
 
-## Query active renewals pricing
+## Query active renewal pricing
 
-Call the `getRenewalPricelist` method on the `SuinsClient` instance to query the active renewals price list.
+Call the `getRenewalPricelist` method on the `SuinsClient` instance to query the active renewal price list.
 
 ```js
 const renewalPriceList = await suinsClient.getRenewalPricelist();

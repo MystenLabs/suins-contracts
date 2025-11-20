@@ -1,5 +1,7 @@
 ---
 title: SuiNS SDK
+description: Use the SuiNS SDK to query name service data and build transactions that interact with Sui Name Service.
+keywords: [ SuiNS, SDK, TypeScript, installation, SuinsClient, mainnet, testnet ]
 ---
 
 import Tabs from '@theme/Tabs';
@@ -11,13 +13,13 @@ Use the SuiNS SDK to interact with the Sui Name Service. Query SuiNS data in a u
 
 <Tabs>
     <TabItem label="Using @mysten/sui" value="sui">
-    To use with the latest version of the Typescript SDK, install using:
+    To use with the latest version of the TypeScript SDK, install using:
     ```bash npm2yarn
     $ npm i @mysten/suins
     ```
     </TabItem>
     <TabItem label="Using @mysten/sui.js" value="suijs">
-    To use with the older version (prior to 1.x) of the Typescript SDK (0.54.1), install using:
+    To use with the older version (prior to 1.x) of the TypeScript SDK (0.54.1), install using:
     ```bash npm2yarn
     $ npm i @mysten/suins@0.0.3
     ```
@@ -29,16 +31,20 @@ Use the SuiNS SDK to interact with the Sui Name Service. Query SuiNS data in a u
 `SuinsClient` is the base for all SuiNS functionality.
 
 :::info
-    You should keep only one instance of `SuinsClient` throughout your dApp, API, or script. For example, in React, you should use a context to provide the client.
+
+You should keep only one instance of `SuinsClient` throughout your dApp, API, or script. For example, in React, you should use a context to provide the client.
+
 :::
 
-## Initializing a `SuinsClient`
+## Initialize a `SuinsClient`
 
-:::warning
-    Always keep the dependency updated so you get the latest constants. If you don't, some of your transactions might fail to build.
+:::caution
+
+Always keep the dependency updated so you get the latest constants. If you do not, some of your transactions might fail to build.
+
 :::
 
-You can initialize a `SuinsClient` by either providing the active network (`mainnet`/`testnet`),
+You can initialize a `SuinsClient` by either providing the active network (`mainnet` or `testnet`),
 or by passing in the constants (usable for any network).
 
 <Tabs groupId='initializer'>

@@ -1,5 +1,7 @@
 ---
 title: Package Maintainer Best Practices
+description: Follow best practices for working with the Move Registry to ensure your packages are maintainable and usable by other builders.
+keywords: [ MVR, Move Registry, best practices, package maintainer, automated address management, tagging, naming conventions ]
 ---
 
 import Beta from '@site/src/components/beta'
@@ -17,7 +19,7 @@ For more information, see [Automated Address Management](https://docs.sui.io/con
 
 ## Sui dependency
 
-Switch your `Sui` dependency to the correct network you're publishing or upgrading against (for example, `framework/testnet` for Testnet, `framework/mainnet` for Mainnet).
+Switch your `Sui` dependency to the correct network you are publishing or upgrading against (for example, `framework/testnet` for Testnet, `framework/mainnet` for Mainnet).
 
 > Starting from Sui v1.45, you should remove the Sui framework and all other system dependencies from your Move.toml file, as they are now automatically added and managed when used.
 
@@ -28,11 +30,11 @@ Proper use of tags or commit SHAs helps code maintenance.
 - Tag your releases with `<network>/<version>` (for example, `mainnet/v1`). Make sure the commit you push after configuring [Automated Address Management](#automated-address-management) is also tagged, or is part of your `main` branch.
 - After applying a release tag, use the commit SHA or the tag to update the source code origin in the `PackageInfo` object.
 
-## Naming your package
+## Name your package
 
-In a multi-package repository, it's common to use generic names for packages, such as `utils` or `math`. However, this can cause confusion when others try to use your packages or when your packages depend on similarly named ones.
+In a multi-package repository, it is common to use generic names for packages, such as `utils` or `math`. However, this can cause confusion when others try to use your packages or when your packages depend on similarly named ones.
 
-To avoid this, it's best to prefix your package names with the project name. For example, instead of running:
+To avoid this, prefix your package names with the project name. For example, instead of running:
 
 ```
 sui move new utils

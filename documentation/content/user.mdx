@@ -1,8 +1,10 @@
 ---
-title: User
+title: Users
+description: Register and manage your SuiNS names, update avatars, link addresses, and create sui.id websites using the Sui Name Service.
+keywords: [ SuiNS, users, register names, renew names, avatars, linked address, sui.id, IPFS ]
 ---
 
-Build your on-chain identity in web3 with Sui Name Service (SuiNS). Using SuiNS, you can register a name (any name that isn't already registered) and use it for on-chain transactions. 
+Build your on-chain identity in Web3 with Sui Name Service (SuiNS). Using SuiNS, you can register a name (any name that is not already registered) and use it for on-chain transactions. 
 
 You can use the **SuiNS Dashboard** link in the top nav bar to jump over to SuiNS and register some names, or configure the ones you already own.
 
@@ -18,17 +20,17 @@ To register a name:
     <div className="w-[600px]">
     ![Name search](/img/ui/name-search.png)
     </div>
-1. Type a name of interest in the search field between 3 and 63 characters, inclusive. Press <kbd>Enter</kbd> or tap/click the magnifying glass icon to initiate the search. Search results show whether the name is available and the price in SUI for one year of registration. 
+1. Type a name of interest in the search field between 3 and 63 characters, inclusive. Press <kbd>Enter</kbd> or tap or click the magnifying glass icon to initiate the search. Search results show whether the name is available and the price in SUI for one year of registration. 
 1. Tap or click a name to open the **Register Name** dialog.
     <div className="w-[600px]">
     ![Register name](/img/ui/register-name.png)
     </div>
 1. Tap or click the **Set as Default** toggle to identify whether the name should be default for the address, apply a coupon code if you have one, then tap or click **Register name**. 
-1. Approve the transaction using your connected wallet. If registration is successful, SuiNS opens the **Names** page of the dashboard. The new name appears in the list. If there's an error, fix the issue SuiNS raises and try again.
+1. Approve the transaction using your connected wallet. If registration is successful, SuiNS opens the **Names** page of the dashboard. The new name appears in the list. If there is an error, fix the issue SuiNS raises and try again.
 
 ## Renew names {#renew-names}
 
-You can renew, or extend the expiration date, for any of your registered names for up to five years.
+You can renew, or extend the expiration date, for any of your registered names for up to 5 years.
 
 import Player from '@site/src/components/player';
 
@@ -49,7 +51,7 @@ To renew registered names:
 1. Tap or click the **View names you own** button in the dialog. The **Names** view opens with a list of names associated with the connected account. 
 1. Hover your cursor over or tap the icon for the name you want to change and click the ellipses (...) that appears in the upper-right corner to open the context menu for the name.
 1. Select **Renew name** from the menu to open the dialog.
-1. Use the **Registration Period** field to set the number of years to retain the rights to the name. The maximum value is five years minus the current registration period. So, if you just registered the name, the maximum number of years you can renew is four. As you increase or decrease the value, SuiNS updates the amount in SUI and the registration expiration date based on the value.
+1. Use the **Registration Period** field to set the number of years to retain the rights to the name. The maximum value is 5 years minus the current registration period. So, if you just registered the name, the maximum number of years you can renew is 4. As you increase or decrease the value, SuiNS updates the amount in SUI and the registration expiration date based on the value.
     <div className="w-[600px]">
     ![Extend](/img/ui/renew.png)
     </div>
@@ -58,7 +60,7 @@ To renew registered names:
 
 ### Renewal grace period
 
-When the current date surpasses the last day of your registration period, the SuiNS name expires. You have a thirty-day grace period within which you can renew the registration. After that, you must [register](#register-names) the name again, if it's available.
+When the current date surpasses the last day of your registration period, the SuiNS name expires. You have a 30-day grace period within which you can renew the registration. After that, you must [register](#register-names) the name again, if it is available.
 
 ![Grace](/img/ui/expired.png)
 
@@ -153,4 +155,4 @@ You need a content identifier (CID) to map your SuiNS name to your IPFS asset. T
     ![IPFS link site](/img/ui/ipfs-link.png)
     </div>
 1. Paste the CID copied from the earlier step into the field and tap or click **Apply**. Alternatively, tap or click **Cancel** to close the dialog without making any changes.
-1. Navigate your browser to `https://<YOUR-NAME>.sui.id` to see your asset, being sure to change `<YOUR-NAME>` to your actual SuiNS name. 
+1. Navigate your browser to `https://<YOUR-NAME>.sui.id` to see your asset, being sure to change `<YOUR-NAME>` to your actual SuiNS name.
