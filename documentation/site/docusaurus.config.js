@@ -156,6 +156,9 @@ const config = {
     }),
   customFields: {
     pushFeedbackId: '48uewzh5x0',
+    github: 'MystenLabs/suins-contracts',
+    twitterX: 'suinsdapp',
+    discord: '69te6EwCxN',
   },
 };
 

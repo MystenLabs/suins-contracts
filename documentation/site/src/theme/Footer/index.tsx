@@ -1,6 +1,7 @@
 import {useThemeConfig} from '@docusaurus/theme-common';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGithub, faDiscord, faXTwitter } from '@fortawesome/free-brands-svg-icons';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 export default function Footer(): JSX.Element | null {
   const {footer} = useThemeConfig();
@@ -8,6 +9,10 @@ export default function Footer(): JSX.Element | null {
     return null;
   }
   const {copyright} = footer;
+    const { siteConfig } = useDocusaurusContext();
+  const github = `https://github.com/${(siteConfig.customFields as any)?.github}`;
+  const twitter = `https://x.com/${(siteConfig.customFields as any)?.twitterX}`;
+  const discord = `http://discord.gg/${(siteConfig.customFields as any)?.discord}`;
 
   return (
     <footer className="bg-suins-purple-darker py-6 border-t border-suins-green-dark">
@@ -20,7 +25,7 @@ export default function Footer(): JSX.Element | null {
           )}
           <div className="flex gap-4">
           <a 
-            href="https://discord.gg/69te6EwCxN"
+            href={`https://discord.gg/${discord}`}
             target="_blank"
             rel="noopener noreferrer"
             className="!text-suins-white-70 hover:!text-suins-white-100 transition-colors duration-200 flex items-center mr-1"
@@ -30,7 +35,7 @@ export default function Footer(): JSX.Element | null {
           </a>
 
           <a 
-            href="https://twitter.com/suinsdapp"
+            href={`https://twitter.com/${twitter}`}
             target="_blank"
             rel="noopener noreferrer"
             className="!text-suins-white-70 hover:!text-suins-white-100 transition-colors duration-200 flex items-center mr-1"
@@ -40,7 +45,7 @@ export default function Footer(): JSX.Element | null {
           </a>
 
           <a 
-            href="https://github.com/MystenLabs/suins-contracts"
+            href={`https://github.com/${github}`}
             target="_blank"
             rel="noopener noreferrer"
             className="!text-suins-white-70 hover:!text-suins-white-100 transition-colors duration-200 flex items-center"
