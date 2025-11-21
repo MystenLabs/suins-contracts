@@ -50,6 +50,7 @@ const config = {
       },
     },
   ],
+  clientModules: [require.resolve("./src/client/pushfeedback-toc.js")],
   plugins: [
     "docusaurus-plugin-copy-page-button",
     function docsAliasPlugin() {
@@ -156,6 +157,9 @@ const config = {
     }),
   customFields: {
     pushFeedbackId: '48uewzh5x0',
+    github: 'MystenLabs/suins-contracts',
+    twitterX: 'suinsdapp',
+    discord: '69te6EwCxN',
   },
 };
 
