@@ -50,7 +50,6 @@ const config = {
       },
     },
   ],
-  clientModules: [require.resolve("./src/client/pushfeedback-toc.js")],
   plugins: [
     "docusaurus-plugin-copy-page-button",
     function docsAliasPlugin() {
