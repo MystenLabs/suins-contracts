@@ -1,0 +1,14 @@
+[package]
+name = "suins_auction"
+edition = "2024.beta"
+
+[dependencies]
+suins = { local = "../suins" }
+seal = { git = "git@github.com:MystenLabs/seal.git", subdir = "move/seal", rev = "main" }
+
+# To resolve a version conflict and force a specific version for dependency
+# override use `override = true`
+# Override = { local = "../conflicting/version", override = true }
+
+[addresses]
+suins_auction = "0x1" # For tests to not conflict with 0x0 address of suins.
