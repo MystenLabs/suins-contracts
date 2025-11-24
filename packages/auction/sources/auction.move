@@ -51,10 +51,13 @@ const EEncryptionNoAccess: u64 = 25;
 const EEncryptionNoKeys: u64 = 26;
 const EInvalidThreshold: u64 = 30;
 const EInvalidKeyLengths: u64 = 31;
+const EInvalidServiceFee: u64 = 32;
 
 /// Constants
 const VERSION: u64 = 1;
 const BID_EXTEND_TIME: u64 = 5 * 60; // 5 minutes
+const MAX_PERCENTAGE: u64 = 100_000; // 100%
+const DEFAULT_FEE_PERCENTAGE: u64 = 2_500; // 2.5%
 
 /// Authorization witness to call protected functions of suins.
 public struct AuctionWitness has drop {}
@@ -89,6 +92,9 @@ public struct AuctionTable has key {
     public_keys: vector<vector<u8>>,
     /// The threshold for the vote.
     threshold: u8,
+    service_fee: u64,
+    /// Accumulated service fees for each token type
+    fees: Bag, // TypeName -> Balance<T>
 }
 
 /// Table mapping domain to Offers and addresses that have made Offers
@@ -98,6 +104,9 @@ public struct OfferTable has key {
     table: Table<vector<u8>, Bag>,
     // Bag: address -> Offer<T>
     allowed_tokens: Table<TypeName, bool>,
+    service_fee: u64,
+    /// Accumulated service fees for each token type
+    fees: Bag, // TypeName -> Balance<T>
 }
 
 public struct Offer<phantom T> has store {
@@ -207,12 +216,22 @@ public struct SetSealConfig has copy, drop {
     threshold: u8,
 }
 
+public struct SetServiceFee has copy, drop {
+    service_fee: u64,
+}
+
 public struct AddAllowedToken has copy, drop {
     token: TypeName,
 }
 
 public struct RemoveAllowedToken has copy, drop {
     token: TypeName,
+}
+
+public struct WithdrawFeesEvent has copy, drop {
+    token: TypeName,
+    amount: u64,
+    recipient: address,
 }
 
 fun init(ctx: &mut TxContext) {
@@ -228,12 +247,16 @@ fun init(ctx: &mut TxContext) {
         key_servers: vector[],
         public_keys: vector[],
         threshold: 0,
+        service_fee: DEFAULT_FEE_PERCENTAGE,
+        fees: bag::new(ctx),
     };
     let mut offer_table = OfferTable {
         id: object::new(ctx),
         version: VERSION,
         table: table::new(ctx),
         allowed_tokens: table::new<TypeName, bool>(ctx),
+        service_fee: DEFAULT_FEE_PERCENTAGE,
+        fees: bag::new(ctx),
     };
 
     // Add SUI as allowed token
@@ -281,6 +304,24 @@ public fun set_seal_config(
     });
 }
 
+public fun set_service_fee(
+    _: &AdminCap,
+    auction_table: &mut AuctionTable,
+    offer_table: &mut OfferTable,
+    service_fee: u64,
+) {
+    assert!(auction_table.is_valid_auction_version(), EInvalidAuctionTableVersion);
+    assert!(offer_table.is_valid_offer_version(), EInvalidAuctionTableVersion);
+    assert!(service_fee < MAX_PERCENTAGE, EInvalidServiceFee);
+
+    auction_table.service_fee = service_fee;
+    offer_table.service_fee = service_fee;
+
+    event::emit(SetServiceFee {
+        service_fee,
+    });
+}
+
 public fun add_allowed_token<T>(
     _: &AdminCap,
     auction_table: &mut AuctionTable,
@@ -317,6 +358,42 @@ public fun remove_allowed_token<T>(
     event::emit(RemoveAllowedToken {
         token,
     });
+}
+
+/// Withdraw accumulated fees from both auction and offer tables
+public fun withdraw_fees<T>(
+    _: &AdminCap,
+    auction_table: &mut AuctionTable,
+    offer_table: &mut OfferTable,
+    ctx: &mut TxContext
+): Coin<T> {
+    assert!(auction_table.is_valid_auction_version(), EInvalidAuctionTableVersion);
+    assert!(offer_table.is_valid_offer_version(), EInvalidOfferTableVersion);
+
+    let token = type_name::with_defining_ids<T>();
+    let mut total_balance = balance::zero<T>();
+
+    // Withdraw from auction table if exists
+    if (auction_table.fees.contains(token)) {
+        let auction_fee_balance = auction_table.fees.remove<TypeName, Balance<T>>(token);
+        total_balance.join(auction_fee_balance);
+    };
+
+    // Withdraw from offer table if exists
+    if (offer_table.fees.contains(token)) {
+        let offer_fee_balance = offer_table.fees.remove<TypeName, Balance<T>>(token);
+        total_balance.join(offer_fee_balance);
+    };
+
+    let amount = total_balance.value();
+
+    event::emit(WithdrawFeesEvent {
+        token,
+        amount,
+        recipient: ctx.sender(),
+    });
+
+    total_balance.into_coin(ctx)
 }
 
 /// Create a new auction for a domain with a specific token required
@@ -454,7 +531,7 @@ public fun finalize_auction<T>(
         min_bid: _,
         mut reserve_price,
         highest_bidder,
-        highest_bid_balance,
+        mut highest_bid_balance,
         suins_registration,
     } = auction;
 
@@ -484,6 +561,9 @@ public fun finalize_auction<T>(
     if (highest_bid_value > 0) {
         // Highest big only wins if higher than the reserve price
         if (highest_bid_value >= actual_reserve_price) {
+            // Deduct service fee
+            subtract_fee<T>(&mut auction_table.fees, &mut highest_bid_balance, auction_table.service_fee);
+
             set_target_address(suins, &suins_registration, option::some(highest_bidder), clock);
             transfer::public_transfer(highest_bid_balance.into_coin(ctx), owner);
             transfer::public_transfer(suins_registration, highest_bidder);
@@ -638,9 +718,13 @@ public fun accept_offer<T>(
     let domain = suins_registration.domain();
     let domain_name = domain.to_string();
     let Offer {
-        balance,
+        mut balance,
         counter_offer: _,
     } = offer_remove<T>(offer_table, domain_name, address);
+
+    // Deduct service fee
+    let balance_value = balance.value();
+    subtract_fee<T>(&mut offer_table.fees, &mut balance, offer_table.service_fee);
 
     set_target_address(suins, &suins_registration, option::some(address), clock);
     transfer::public_transfer(suins_registration, address);
@@ -649,7 +733,7 @@ public fun accept_offer<T>(
         domain_name,
         owner: ctx.sender(),
         buyer: address,
-        value: balance.value(),
+        value: balance_value,
         token: type_name::with_defining_ids<T>(),
     });
 
@@ -756,6 +840,26 @@ entry fun seal_approve<T>(id: vector<u8>, auction_table: &AuctionTable, clock: &
 
 // Private functions
 
+// Subtract service fee from balance and store it in the fees bag
+fun subtract_fee<T>(fees: &mut Bag, balance: &mut Balance<T>, service_fee: u64): u64 {
+    let balance_value = balance.value();
+    let fee_amount = (balance_value * service_fee) / MAX_PERCENTAGE;
+
+    if (fee_amount > 0) {
+        let fee_balance = balance.split(fee_amount);
+        let token = type_name::with_defining_ids<T>();
+
+        if (fees.contains(token)) {
+            let existing_fee = fees.borrow_mut<TypeName, Balance<T>>(token);
+            existing_fee.join(fee_balance);
+        } else {
+            fees.add(token, fee_balance);
+        };
+    };
+
+    fee_amount
+}
+
 // Allow decryption if auction for the domain exists, if reserve price exists and if end time has passed
 fun check_policy<T>(id: vector<u8>, auction_table: &AuctionTable, clock: &Clock) {
     assert!(auction_table.is_valid_auction_version(), EInvalidAuctionTableVersion);
@@ -858,6 +962,16 @@ public fun get_auction_table_threshold(auction_table: &AuctionTable): &u8 {
 }
 
 #[test_only]
+public fun get_auction_table_fees(auction_table: &AuctionTable): &Bag {
+    &auction_table.fees
+}
+
+#[test_only]
+public fun get_auction_table_service_fee(auction_table: &AuctionTable): u64 {
+    auction_table.service_fee
+}
+
+#[test_only]
 public fun get_auction<T>(auction_table: &ObjectBag, domain_name: vector<u8>): &Auction<T> {
     auction_table.borrow(domain_name)
 }
@@ -900,6 +1014,16 @@ public fun get_suins_registration<T>(auction: &Auction<T>): &SuinsRegistration {
 #[test_only]
 public fun get_offer_table(offer_table: &OfferTable): &Table<vector<u8>, Bag> {
     &offer_table.table
+}
+
+#[test_only]
+public fun get_offer_table_fees(offer_table: &OfferTable): &Bag {
+    &offer_table.fees
+}
+
+#[test_only]
+public fun get_offer_table_service_fee(offer_table: &OfferTable): u64 {
+    offer_table.service_fee
 }
 
 #[test_only]
