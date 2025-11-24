@@ -24,6 +24,8 @@ const ECounterOfferTooLow: u64 = 11;
 const EWrongCoinValue: u64 = 12;
 const ENoCounterOffer: u64 = 13;
 const EInvalidOfferTableVersion: u64 = 17;
+const EInvalidExpiresAt: u64 = 33;
+const EOfferExpired: u64 = 34;
 
 /// Table mapping domain to Offers and addresses that have made Offers
 public struct OfferTable has key {
@@ -40,6 +42,7 @@ public struct OfferTable has key {
 public struct Offer<phantom T> has store {
     balance: Balance<T>,
     counter_offer: u64,
+    expires_at: Option<u64>,
 }
 
 /// Event for offer placement
@@ -48,6 +51,7 @@ public struct OfferPlacedEvent has copy, drop {
     address: address,
     value: u64,
     token: TypeName,
+    expires_at: Option<u64>,
 }
 
 /// Event for offer cancellation
@@ -98,6 +102,8 @@ public fun place_offer<T>(
     offer_table: &mut OfferTable,
     domain_name: String,
     coin: Coin<T>,
+    expires_at: Option<u64>,
+    clock: &Clock,
     ctx: &mut TxContext
 )
 {
@@ -107,11 +113,17 @@ public fun place_offer<T>(
 
     assert!(offer_table.allowed_tokens.contains(token), error_token_not_allowed());
 
+    if (expires_at.is_some()) {
+        let now = clock.timestamp_ms() / 1000;
+        assert!(*expires_at.borrow() > now, EInvalidExpiresAt);
+    };
+
     let coin_value = coin.value();
     let caller = ctx.sender();
     let offer = Offer {
         balance: coin.into_balance(),
         counter_offer: 0,
+        expires_at,
     };
 
     let domain_name_bytes = domain_name.into_bytes();
@@ -131,6 +143,7 @@ public fun place_offer<T>(
         address: ctx.sender(),
         value: coin_value,
         token,
+        expires_at,
     });
 }
 
@@ -148,6 +161,7 @@ public fun cancel_offer<T>(
     let Offer {
         balance,
         counter_offer: _,
+        expires_at: _,
     } = offer_remove<T>(offer_table, domain_name, caller);
 
     event::emit(OfferCancelledEvent {
@@ -177,7 +191,13 @@ public fun accept_offer<T>(
     let Offer {
         mut balance,
         counter_offer: _,
+        expires_at,
     } = offer_remove<T>(offer_table, domain_name, address);
+
+    if (expires_at.is_some()) {
+        let now = clock.timestamp_ms() / 1000;
+        assert!(*expires_at.borrow() >= now, EOfferExpired);
+    };
 
     // Deduct service fee
     let balance_value = balance.value();
@@ -212,6 +232,7 @@ public fun decline_offer<T>(
     let Offer {
         balance,
         counter_offer: _,
+        expires_at: _,
     } = offer_remove<T>(offer_table, domain_name, address);
 
     let value = balance.value<T>();
@@ -410,4 +431,9 @@ public fun get_offer_balance<T>(offer: &Offer<T>): &Balance<T> {
 #[test_only]
 public fun get_offer_counter_offer<T>(offer: &Offer<T>): u64 {
     offer.counter_offer
+}
+
+#[test_only]
+public fun get_offer_expires_at<T>(offer: &Offer<T>): &Option<u64> {
+    &offer.expires_at
 }
