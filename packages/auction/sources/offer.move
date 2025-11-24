@@ -7,6 +7,7 @@ use sui::{
     clock::Clock,
     coin::{Self, Coin},
     event,
+    object_bag::{Self, ObjectBag},
     table::{Self, Table}
 };
 use suins::{controller::set_target_address, suins::SuiNS, suins_registration::SuinsRegistration};
@@ -26,13 +27,16 @@ const ENoCounterOffer: u64 = 13;
 const EInvalidOfferTableVersion: u64 = 17;
 const EInvalidExpiresAt: u64 = 33;
 const EOfferExpired: u64 = 34;
+const ENotListed: u64 = 35;
+const EListingExpired: u64 = 36;
+const ENotListingOwner: u64 = 37;
 
 /// Table mapping domain to Offers and addresses that have made Offers
 public struct OfferTable has key {
     id: UID,
     version: u64,
-    table: Table<vector<u8>, Bag>,
-    // Bag: address -> Offer<T>
+    table: Table<vector<u8>, Bag>, // Bag: address -> Offer<T>
+    listings: ObjectBag, // vector<u8> -> Listing<T>
     allowed_tokens: Table<TypeName, bool>,
     service_fee: u64,
     /// Accumulated service fees for each token type
@@ -43,6 +47,14 @@ public struct Offer<phantom T> has store {
     balance: Balance<T>,
     counter_offer: u64,
     expires_at: Option<u64>,
+}
+
+public struct Listing<phantom T> has key, store {
+    id: UID,
+    owner: address,
+    price: u64,
+    expires_at: Option<u64>,
+    suins_registration: SuinsRegistration,
 }
 
 /// Event for offer placement
@@ -94,6 +106,33 @@ public struct AcceptCounterOfferEvent has copy, drop {
     domain_name: String,
     buyer: address,
     value: u64,
+    token: TypeName,
+}
+
+/// Event for listing creation
+public struct ListingCreatedEvent has copy, drop {
+    listing_id: ID,
+    domain_name: String,
+    owner: address,
+    price: u64,
+    expires_at: Option<u64>,
+    token: TypeName,
+}
+
+/// Event for listing buy
+public struct ListingBoughtEvent has copy, drop {
+    listing_id: ID,
+    domain_name: String,
+    buyer: address,
+    amount: u64,
+    token: TypeName,
+}
+
+/// Event for listing cancellation
+public struct ListingCancelledEvent has copy, drop {
+    listing_id: ID,
+    domain_name: String,
+    owner: address,
     token: TypeName,
 }
 
@@ -300,6 +339,141 @@ public fun accept_counter_offer<T>(
     });
 }
 
+/// Create a listing for a domain with a fixed price
+public fun create_listing<T>(
+    offer_table: &mut OfferTable,
+    price: u64,
+    expires_at: Option<u64>,
+    suins_registration: SuinsRegistration,
+    clock: &Clock,
+    ctx: &mut TxContext
+) {
+    offer_table.check_offer_table_version();
+
+    let token = type_name::with_defining_ids<T>();
+    assert!(offer_table.allowed_tokens.contains(token), error_token_not_allowed());
+
+    if (expires_at.is_some()) {
+        let now = clock.timestamp_ms() / 1000;
+        assert!(*expires_at.borrow() > now, EInvalidExpiresAt);
+    };
+
+    let domain = suins_registration.domain();
+    let domain_name = domain.to_string();
+    let owner = ctx.sender();
+
+    let listing = Listing<T> {
+        id: object::new(ctx),
+        owner,
+        price,
+        expires_at,
+        suins_registration,
+    };
+
+    let listing_id = object::id(&listing);
+
+    offer_table.listings.add(domain_name.into_bytes(), listing);
+
+    event::emit(ListingCreatedEvent {
+        listing_id,
+        domain_name,
+        owner,
+        price,
+        expires_at,
+        token,
+    });
+}
+
+/// Buy a listing
+public fun buy_listing<T>(
+    suins: &mut SuiNS,
+    offer_table: &mut OfferTable,
+    domain_name: String,
+    payment: Coin<T>,
+    clock: &Clock,
+    ctx: &mut TxContext
+): SuinsRegistration  {
+    offer_table.check_offer_table_version();
+    assert!(offer_table.listings.contains(domain_name.into_bytes()), ENotListed);
+
+    let listing = offer_table.listings.remove<vector<u8>, Listing<T>>(domain_name.into_bytes());
+    let listing_id = object::id(&listing);
+    let Listing {
+        id,
+        owner,
+        price,
+        expires_at,
+        suins_registration,
+    } = listing;
+
+    if (expires_at.is_some()) {
+        let now = clock.timestamp_ms() / 1000;
+        assert!(now <= *expires_at.borrow(), EListingExpired);
+    };
+
+    let payment_value = payment.value();
+    assert!(payment_value == price, EWrongCoinValue);
+
+    // Deduct service fee
+    let mut payment_balance = payment.into_balance();
+    subtract_fee<T>(&mut offer_table.fees, &mut payment_balance, offer_table.service_fee);
+
+    // Transfer remaining payment to owner
+    transfer::public_transfer(payment_balance.into_coin(ctx), owner);
+
+    let buyer = ctx.sender();
+
+    // Transfer domain to buyer
+    set_target_address(suins, &suins_registration, option::some(buyer), clock);
+
+    event::emit(ListingBoughtEvent {
+        listing_id,
+        domain_name,
+        buyer,
+        amount: payment_value,
+        token: type_name::with_defining_ids<T>(),
+    });
+
+    object::delete(id);
+
+    suins_registration
+}
+
+/// Cancel a listing
+public fun cancel_listing<T>(
+    offer_table: &mut OfferTable,
+    domain_name: String,
+    ctx: &mut TxContext
+): SuinsRegistration {
+    offer_table.check_offer_table_version();
+    assert!(offer_table.listings.contains(domain_name.into_bytes()), ENotListed);
+
+    let listing = offer_table.listings.remove<vector<u8>, Listing<T>>(domain_name.into_bytes());
+    let listing_id = object::id(&listing);
+
+    let Listing {
+        id,
+        owner,
+        price: _,
+        expires_at: _,
+        suins_registration,
+    } = listing;
+
+    let caller = ctx.sender();
+    assert!(owner == caller, ENotListingOwner);
+
+    object::delete(id);
+
+    event::emit(ListingCancelledEvent {
+        listing_id,
+        domain_name,
+        owner: caller,
+        token: type_name::with_defining_ids<T>(),
+    });
+
+    suins_registration
+}
+
 // Public package function
 
 public(package) fun create(ctx: &mut TxContext): OfferTable {
@@ -307,6 +481,7 @@ public(package) fun create(ctx: &mut TxContext): OfferTable {
         id: object::new(ctx),
         version: package_version(),
         table: table::new(ctx),
+        listings: object_bag::new(ctx),
         allowed_tokens: table::new<TypeName, bool>(ctx),
         service_fee: default_fee_percentage(),
         fees: bag::new(ctx),

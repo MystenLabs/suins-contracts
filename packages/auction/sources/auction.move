@@ -140,25 +140,30 @@ public struct MigrateEvent has copy, drop {
     new_version: u64,
 }
 
+/// Event for set seal config
 public struct SetSealConfig has copy, drop {
     key_servers: vector<address>,
     public_keys: vector<vector<u8>>,
     threshold: u8,
 }
 
+/// Event for set service fee
 public struct SetServiceFee has copy, drop {
     service_fee: u64,
 }
 
+/// Event for add allowed token
 public struct AddAllowedToken has copy, drop {
     token: TypeName,
 }
 
+/// Event for remove allowed token
 public struct RemoveAllowedToken has copy, drop {
     token: TypeName,
 }
 
-public struct WithdrawFeesEvent has copy, drop {
+/// Event for withdraw fees
+public struct WithdrawFees has copy, drop {
     token: TypeName,
     amount: u64,
     recipient: address,
@@ -310,7 +315,7 @@ public fun withdraw_fees<T>(
 
     let amount = total_balance.value();
 
-    event::emit(WithdrawFeesEvent {
+    event::emit(WithdrawFees {
         token,
         amount,
         recipient: ctx.sender(),
