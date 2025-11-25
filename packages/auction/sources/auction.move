@@ -28,7 +28,6 @@ use suins_auction::offer::{
 use suins_auction::constants::{
     bid_extend_time,
     default_fee_percentage,
-    error_token_not_allowed,
     max_percentage,
     version,
 };
@@ -46,6 +45,7 @@ const ENotUpgrade: u64 = 14;
 const EDifferentVersions: u64 = 15;
 const EInvalidAuctionTableVersion: u64 = 16;
 const ECannotRemoveSui: u64 = 18;
+const ETokenNotAllowed: u64 = 19;
 const EInvalidEncryptionSender: u64 = 20;
 const EInvalidEncryptionServers: u64 = 21;
 const EInvalidEncryptionThreshold: u64 = 22;
@@ -339,7 +339,7 @@ public fun create_auction<T>(
 
     let token = type_name::with_defining_ids<T>();
 
-    assert!(auction_table.allowed_tokens.contains(token), error_token_not_allowed());
+    assert!(auction_table.allowed_tokens.contains(token), ETokenNotAllowed);
 
     let domain = suins_registration.domain();
     let domain_name = domain.to_string();

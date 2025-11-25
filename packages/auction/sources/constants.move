@@ -1,8 +1,5 @@
 module suins_auction::constants;
 
-// Common Errors
-const ETokenNotAllowed: u64 = 19;
-
 // Constants
 
 const VERSION: u64 = 1;
@@ -11,8 +8,6 @@ const MAX_PERCENTAGE: u64 = 100_000; // 100%
 const DEFAULT_FEE_PERCENTAGE: u64 = 2_500; // 2.5%
 
 // === Public functions ===
-
-public fun error_token_not_allowed(): u64 { ETokenNotAllowed }
 
 /// Returns the current version of the auction contract
 public fun version(): u64 { VERSION }

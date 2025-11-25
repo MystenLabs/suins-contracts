@@ -13,7 +13,6 @@ use sui::{
 use suins::{controller::set_target_address, suins::SuiNS, suins_registration::SuinsRegistration};
 use suins_auction::constants::{
     default_fee_percentage,
-    error_token_not_allowed,
     max_percentage,
     version as package_version,
 };
@@ -25,6 +24,7 @@ const ECounterOfferTooLow: u64 = 11;
 const EWrongCoinValue: u64 = 12;
 const ENoCounterOffer: u64 = 13;
 const EInvalidOfferTableVersion: u64 = 17;
+const ETokenNotAllowed: u64 = 19;
 const EInvalidExpiresAt: u64 = 33;
 const EOfferExpired: u64 = 34;
 const ENotListed: u64 = 35;
@@ -150,7 +150,7 @@ public fun place_offer<T>(
 
     let token = type_name::with_defining_ids<T>();
 
-    assert!(offer_table.allowed_tokens.contains(token), error_token_not_allowed());
+    assert!(offer_table.allowed_tokens.contains(token), ETokenNotAllowed);
 
     if (expires_at.is_some()) {
         let now = clock.timestamp_ms() / 1000;
@@ -351,7 +351,7 @@ public fun create_listing<T>(
     offer_table.check_offer_table_version();
 
     let token = type_name::with_defining_ids<T>();
-    assert!(offer_table.allowed_tokens.contains(token), error_token_not_allowed());
+    assert!(offer_table.allowed_tokens.contains(token), ETokenNotAllowed);
 
     if (expires_at.is_some()) {
         let now = clock.timestamp_ms() / 1000;
@@ -586,6 +586,11 @@ fun domain_offers_borrow_mut(
 #[test_only]
 public fun get_offer_table(offer_table: &OfferTable): &Table<vector<u8>, Bag> {
     &offer_table.table
+}
+
+#[test_only]
+public fun get_offer_table_listings(offer_table: &OfferTable): &ObjectBag {
+    &offer_table.listings
 }
 
 #[test_only]

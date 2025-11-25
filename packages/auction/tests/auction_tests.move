@@ -865,7 +865,7 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = 19)]
+    #[test, expected_failure(abort_code = auction::ETokenNotAllowed)]
     fun try_create_auction_not_allowed_token() {
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -910,7 +910,6 @@ module suins_auction::auction_tests
             SUI_MIN_BID,
         );
 
-        // Tx to check auction and accounts state
         test_scenario::next_tx(scenario, FIRST_ADDRESS);
         {
             let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
@@ -1449,7 +1448,7 @@ module suins_auction::auction_tests
     }
 
     #[test, expected_failure(abort_code = offer::EInvalidExpiresAt)]
-    fun try_place_offer_after_expires_a() {
+    fun try_place_offer_after_expires_at() {
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
 
@@ -1559,7 +1558,7 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = 19)]
+    #[test, expected_failure(abort_code = offer::ETokenNotAllowed)]
     fun try_place_offer_not_allowed_token() {
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
@@ -2662,6 +2661,621 @@ module suins_auction::auction_tests
             transfer::public_transfer(admin_cap, DOMAIN_OWNER);
             test_scenario::return_shared(auction_table);
             test_scenario::return_shared(offer_table);
+        };
+
+        // Final cleanup
+        clock::destroy_for_testing(clock);
+        test_scenario::end(scenario_val);
+    }
+
+    #[test]
+    fun listing_scenario_sui_test() {
+        let (mut scenario_val, clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        // Generate a new domain
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        // Create a listing with a fixed price
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let registration = test_scenario::take_from_sender<SuinsRegistration>(scenario);
+            let ctx = test_scenario::ctx(scenario);
+
+            offer::create_listing<SUI>(
+                &mut offer_table,
+                SUI_FIRST_BID * mist_per_sui(),
+                option::none(),
+                registration,
+                &clock,
+                ctx
+            );
+
+            test_scenario::return_shared(offer_table);
+        };
+
+        // Verify listing was created
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let listings = offer::get_offer_table_listings(&offer_table);
+            assert!(listings.contains(FIRST_DOMAIN_NAME), 0);
+            assert!(listings.length() == 1, 0);
+            test_scenario::return_shared(offer_table);
+        };
+
+        // Buy the listing
+        test_scenario::next_tx(scenario, FIRST_ADDRESS);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
+            let ctx = test_scenario::ctx(scenario);
+            let payment = coin::mint_for_testing<SUI>(SUI_FIRST_BID * mist_per_sui(), ctx);
+
+            let registration = offer::buy_listing<SUI>(
+                &mut suins,
+                &mut offer_table,
+                FIRST_DOMAIN_NAME.to_string(),
+                payment,
+                &clock,
+                ctx
+            );
+
+            transfer::public_transfer(registration, FIRST_ADDRESS);
+            test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
+        };
+
+        // Verify listing was purchased
+        test_scenario::next_tx(scenario, FIRST_ADDRESS);
+        {
+            let offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let listings = offer::get_offer_table_listings(&offer_table);
+            assert!(listings.length() == 0, 0);
+
+            // Verify domain owner received payment minus service fee
+            let payment_received = test_scenario::take_from_address<Coin<SUI>>(scenario, DOMAIN_OWNER);
+            assert!(coin::value(&payment_received) == SUI_FIRST_BID * mist_per_sui() * 97_500 / 100_000, 0);
+            test_scenario::return_to_address(DOMAIN_OWNER, payment_received);
+
+            // Verify service fee was collected
+            let fees = offer::get_offer_table_fees(&offer_table);
+            let sui_type_name = type_name::with_defining_ids<SUI>();
+            let fee_balance = fees.borrow<TypeName, Balance<SUI>>(sui_type_name);
+            assert!(fee_balance.value() == SUI_FIRST_BID * mist_per_sui() * 2_500 / 100_000, 0);
+
+            test_scenario::return_shared(offer_table);
+
+            // Verify buyer received the domain
+            let registration = test_scenario::take_from_address<SuinsRegistration>(scenario, FIRST_ADDRESS);
+            assert!(registration.domain() == domain::new(FIRST_DOMAIN_NAME.to_string()), 0);
+            test_scenario::return_to_address(FIRST_ADDRESS, registration);
+        };
+
+        // Final cleanup
+        clock::destroy_for_testing(clock);
+        test_scenario::end(scenario_val);
+    }
+
+    #[test]
+    fun listing_scenario_other_test() {
+        let (mut scenario_val, clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        // Generate a new domain
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        // Allow token
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
+            let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+
+            auction::add_allowed_token<TestCoin>(&admin_cap, &mut auction_table, &mut offer_table);
+
+            transfer::public_transfer(admin_cap, DOMAIN_OWNER);
+            test_scenario::return_shared(auction_table);
+            test_scenario::return_shared(offer_table);
+        };
+
+        // Create a listing with TestCoin
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let registration = test_scenario::take_from_sender<SuinsRegistration>(scenario);
+            let ctx = test_scenario::ctx(scenario);
+
+            offer::create_listing<TestCoin>(
+                &mut offer_table,
+                SUI_FIRST_BID * mist_per_sui(),
+                option::none(),
+                registration,
+                &clock,
+                ctx
+            );
+
+            test_scenario::return_shared(offer_table);
+        };
+
+        // Disallow the token, existing listing still works
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let admin_cap = test_scenario::take_from_sender<AdminCap>(scenario);
+            let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+
+            auction::remove_allowed_token<TestCoin>(&admin_cap, &mut auction_table, &mut offer_table);
+
+            transfer::public_transfer(admin_cap, DOMAIN_OWNER);
+            test_scenario::return_shared(auction_table);
+            test_scenario::return_shared(offer_table);
+        };
+
+        // Verify listing was created
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let listings = offer::get_offer_table_listings(&offer_table);
+            assert!(listings.contains(FIRST_DOMAIN_NAME), 0);
+            assert!(listings.length() == 1, 0);
+            test_scenario::return_shared(offer_table);
+        };
+
+        // Buy the listing with TestCoin
+        test_scenario::next_tx(scenario, FIRST_ADDRESS);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
+            let ctx = test_scenario::ctx(scenario);
+            let payment = coin::mint_for_testing<TestCoin>(SUI_FIRST_BID * mist_per_sui(), ctx);
+
+            let registration = offer::buy_listing<TestCoin>(
+                &mut suins,
+                &mut offer_table,
+                FIRST_DOMAIN_NAME.to_string(),
+                payment,
+                &clock,
+                ctx
+            );
+
+            transfer::public_transfer(registration, FIRST_ADDRESS);
+            test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
+        };
+
+        // Verify listing was purchased
+        test_scenario::next_tx(scenario, FIRST_ADDRESS);
+        {
+            let offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let listings = offer::get_offer_table_listings(&offer_table);
+            assert!(listings.length() == 0, 0);
+
+            // Verify domain owner received payment minus service fee
+            let payment_received = test_scenario::take_from_address<Coin<TestCoin>>(scenario, DOMAIN_OWNER);
+            assert!(coin::value(&payment_received) == SUI_FIRST_BID * mist_per_sui() * 97_500 / 100_000, 0);
+            test_scenario::return_to_address(DOMAIN_OWNER, payment_received);
+
+            // Verify service fee was collected in TestCoin
+            let fees = offer::get_offer_table_fees(&offer_table);
+            let test_coin_type_name = type_name::with_defining_ids<TestCoin>();
+            let fee_balance = fees.borrow<TypeName, Balance<TestCoin>>(test_coin_type_name);
+            assert!(fee_balance.value() == SUI_FIRST_BID * mist_per_sui() * 2_500 / 100_000, 0);
+
+            test_scenario::return_shared(offer_table);
+
+            // Verify buyer received the domain
+            let registration = test_scenario::take_from_address<SuinsRegistration>(scenario, FIRST_ADDRESS);
+            assert!(registration.domain() == domain::new(FIRST_DOMAIN_NAME.to_string()), 0);
+            test_scenario::return_to_address(FIRST_ADDRESS, registration);
+        };
+
+        // Final cleanup
+        clock::destroy_for_testing(clock);
+        test_scenario::end(scenario_val);
+    }
+
+    #[test]
+    fun create_listing_and_buy_before_expires_at() {
+        let (mut scenario_val, mut clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        clock.increment_for_testing(1 * MS);
+
+        // Generate a new domain
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        // Create a listing with expiration
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let registration = test_scenario::take_from_sender<SuinsRegistration>(scenario);
+            let ctx = test_scenario::ctx(scenario);
+
+            offer::create_listing<SUI>(
+                &mut offer_table,
+                SUI_FIRST_BID * mist_per_sui(),
+                option::some(123),
+                registration,
+                &clock,
+                ctx
+            );
+
+            test_scenario::return_shared(offer_table);
+        };
+
+        // Buy the listing before it expires
+        test_scenario::next_tx(scenario, FIRST_ADDRESS);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
+            let ctx = test_scenario::ctx(scenario);
+            let payment = coin::mint_for_testing<SUI>(SUI_FIRST_BID * mist_per_sui(), ctx);
+
+            let registration = offer::buy_listing<SUI>(
+                &mut suins,
+                &mut offer_table,
+                FIRST_DOMAIN_NAME.to_string(),
+                payment,
+                &clock,
+                ctx
+            );
+
+            transfer::public_transfer(registration, FIRST_ADDRESS);
+            test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
+        };
+
+        // Verify listing was purchased
+        test_scenario::next_tx(scenario, FIRST_ADDRESS);
+        {
+            let offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let listings = offer::get_offer_table_listings(&offer_table);
+            assert!(listings.length() == 0, 0);
+            test_scenario::return_shared(offer_table);
+
+            // Verify buyer received the domain
+            let registration = test_scenario::take_from_address<SuinsRegistration>(scenario, FIRST_ADDRESS);
+            assert!(registration.domain() == domain::new(FIRST_DOMAIN_NAME.to_string()), 0);
+            test_scenario::return_to_address(FIRST_ADDRESS, registration);
+        };
+
+        // Final cleanup
+        clock::destroy_for_testing(clock);
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = offer::EInvalidExpiresAt)]
+    fun try_create_listing_after_expires_at() {
+        let (mut scenario_val, mut clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        clock.increment_for_testing(1 * MS);
+
+        // Generate a new domain
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        // Try to create a listing with expires_at in the past
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let registration = test_scenario::take_from_sender<SuinsRegistration>(scenario);
+            let ctx = test_scenario::ctx(scenario);
+
+            offer::create_listing<SUI>(
+                &mut offer_table,
+                SUI_FIRST_BID * mist_per_sui(),
+                option::some(1),
+                registration,
+                &clock,
+                ctx
+            );
+
+            test_scenario::return_shared(offer_table);
+        };
+
+        // Final cleanup
+        clock::destroy_for_testing(clock);
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = offer::EListingExpired)]
+    fun try_buy_listing_after_expires_at() {
+        let (mut scenario_val, mut clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        clock.increment_for_testing(1 * MS);
+
+        // Generate a new domain
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        // Create a listing with expiration
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let registration = test_scenario::take_from_sender<SuinsRegistration>(scenario);
+            let ctx = test_scenario::ctx(scenario);
+
+            offer::create_listing<SUI>(
+                &mut offer_table,
+                SUI_FIRST_BID * mist_per_sui(),
+                option::some(123),
+                registration,
+                &clock,
+                ctx
+            );
+
+            test_scenario::return_shared(offer_table);
+        };
+
+        // Advance clock past expiration
+        clock.increment_for_testing(124 * MS);
+
+        // Try to buy the listing after it expired
+        test_scenario::next_tx(scenario, FIRST_ADDRESS);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
+            let ctx = test_scenario::ctx(scenario);
+            let payment = coin::mint_for_testing<SUI>(SUI_FIRST_BID * mist_per_sui(), ctx);
+
+            let registration = offer::buy_listing<SUI>(
+                &mut suins,
+                &mut offer_table,
+                FIRST_DOMAIN_NAME.to_string(),
+                payment,
+                &clock,
+                ctx
+            );
+
+            transfer::public_transfer(registration, FIRST_ADDRESS);
+            test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
+        };
+
+        // Final cleanup
+        clock::destroy_for_testing(clock);
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = offer::ETokenNotAllowed)]
+    fun try_create_listing_not_allowed_token() {
+        let (mut scenario_val, clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        // Generate a new domain
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        // Try to create a listing with TestCoin (not allowed)
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let registration = test_scenario::take_from_sender<SuinsRegistration>(scenario);
+            let ctx = test_scenario::ctx(scenario);
+
+            // Try to create listing with TestCoin (not allowed)
+            offer::create_listing<TestCoin>(
+                &mut offer_table,
+                SUI_FIRST_BID * mist_per_sui(),
+                option::none(),
+                registration,
+                &clock,
+                ctx
+            );
+
+            // Clean up
+            test_scenario::return_shared(offer_table);
+        };
+
+        // Final cleanup
+        clock::destroy_for_testing(clock);
+        test_scenario::end(scenario_val);
+    }
+
+    #[test]
+    fun create_listing_and_cancel_scenario_test() {
+        let (mut scenario_val, clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        // Create listing
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let registration = test_scenario::take_from_sender<SuinsRegistration>(scenario);
+            let ctx = test_scenario::ctx(scenario);
+
+            offer::create_listing<SUI>(
+                &mut offer_table,
+                SUI_FIRST_BID * mist_per_sui(),
+                option::none(),
+                registration,
+                &clock,
+                ctx
+            );
+
+            test_scenario::return_shared(offer_table);
+        };
+
+        // Verify listing exists
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let listings = offer::get_offer_table_listings(&offer_table);
+            assert!(listings.length() == 1, 0);
+            assert!(listings.contains(FIRST_DOMAIN_NAME), 0);
+            test_scenario::return_shared(offer_table);
+        };
+
+        // Cancel the listing
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let ctx = test_scenario::ctx(scenario);
+
+            let registration = offer::cancel_listing<SUI>(
+                &mut offer_table,
+                FIRST_DOMAIN_NAME.to_string(),
+                ctx
+            );
+
+            // Verify we got the domain back
+            let domain = registration.domain();
+            assert!(domain.to_string() == FIRST_DOMAIN_NAME.to_string(), 0);
+
+            // Return the registration
+            test_scenario::return_to_sender(scenario, registration);
+            test_scenario::return_shared(offer_table);
+        };
+
+        // Verify no listing remains
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let listings = offer::get_offer_table_listings(&offer_table);
+            assert!(listings.length() == 0, 0);
+            assert!(!listings.contains(FIRST_DOMAIN_NAME), 0);
+            test_scenario::return_shared(offer_table);
+        };
+
+        // Final cleanup
+        clock::destroy_for_testing(clock);
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = offer::ENotListingOwner)]
+    fun try_cancel_listing_not_owner() {
+        let (mut scenario_val, clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        // Generate a new domain for DOMAIN_OWNER
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        // Create a listing as DOMAIN_OWNER
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let registration = test_scenario::take_from_sender<SuinsRegistration>(scenario);
+            let ctx = test_scenario::ctx(scenario);
+
+            offer::create_listing<SUI>(
+                &mut offer_table,
+                SUI_FIRST_BID * mist_per_sui(),
+                option::none(),
+                registration,
+                &clock,
+                ctx
+            );
+
+            test_scenario::return_shared(offer_table);
+        };
+
+        // Try to cancel as FIRST_ADDRESS
+        test_scenario::next_tx(scenario, FIRST_ADDRESS);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let ctx = test_scenario::ctx(scenario);
+
+            let registration = offer::cancel_listing<SUI>(
+                &mut offer_table,
+                FIRST_DOMAIN_NAME.to_string(),
+                ctx
+            );
+
+            test_scenario::return_to_address(FIRST_ADDRESS, registration);
+            test_scenario::return_shared(offer_table);
+        };
+
+        // Final cleanup
+        clock::destroy_for_testing(clock);
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = offer::EWrongCoinValue)]
+    fun try_buy_listing_wrong_payment() {
+        let (mut scenario_val, clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        // Generate a new domain for DOMAIN_OWNER
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        // Create a listing as DOMAIN_OWNER
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let registration = test_scenario::take_from_sender<SuinsRegistration>(scenario);
+            let ctx = test_scenario::ctx(scenario);
+
+            offer::create_listing<SUI>(
+                &mut offer_table,
+                SUI_FIRST_BID * mist_per_sui(),
+                option::none(),
+                registration,
+                &clock,
+                ctx
+            );
+
+            test_scenario::return_shared(offer_table);
+        };
+
+        // Try to buy with wrong payment amount (too low) - should fail
+        test_scenario::next_tx(scenario, FIRST_ADDRESS);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+            let ctx = test_scenario::ctx(scenario);
+
+            // Create payment with wrong amount (too low)
+            let payment = coin::mint_for_testing<SUI>(SUI_LOW_BID * mist_per_sui(), ctx);
+
+            let registration = offer::buy_listing<SUI>(
+                &mut suins,
+                &mut offer_table,
+                FIRST_DOMAIN_NAME.to_string(),
+                payment,
+                &clock,
+                ctx
+            );
+
+            test_scenario::return_to_sender(scenario, registration);
+            test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
+        };
+
+        // Final cleanup
+        clock::destroy_for_testing(clock);
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = offer::ENotListed)]
+    fun try_buy_listing_not_listed() {
+        let (mut scenario_val, clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        // Try to buy a listing that doesn't exist - should fail
+        test_scenario::next_tx(scenario, FIRST_ADDRESS);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = test_scenario::take_shared<SuiNS>(scenario);
+            let ctx = test_scenario::ctx(scenario);
+
+            // Create payment
+            let payment = coin::mint_for_testing<SUI>(SUI_FIRST_BID * mist_per_sui(), ctx);
+
+            let registration = offer::buy_listing<SUI>(
+                &mut suins,
+                &mut offer_table,
+                FIRST_DOMAIN_NAME.to_string(),
+                payment,
+                &clock,
+                ctx
+            );
+
+            test_scenario::return_to_sender(scenario, registration);
+            test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
         };
 
         // Final cleanup
