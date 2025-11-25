@@ -239,8 +239,10 @@ public fun accept_offer<T>(
     };
 
     // Deduct service fee
-    let balance_value = balance.value();
-    subtract_fee<T>(&mut offer_table.fees, &mut balance, offer_table.service_fee);
+    let mut balance_value = balance.value();
+    let fee_amount = subtract_fee<T>(&mut offer_table.fees, &mut balance, offer_table.service_fee);
+
+    balance_value = balance_value - fee_amount;
 
     set_target_address(suins, &suins_registration, option::some(address), clock);
     transfer::public_transfer(suins_registration, address);
@@ -411,12 +413,14 @@ public fun buy_listing<T>(
         assert!(now <= *expires_at.borrow(), EListingExpired);
     };
 
-    let payment_value = payment.value();
+    let mut payment_value = payment.value();
     assert!(payment_value == price, EWrongCoinValue);
 
     // Deduct service fee
     let mut payment_balance = payment.into_balance();
-    subtract_fee<T>(&mut offer_table.fees, &mut payment_balance, offer_table.service_fee);
+    let fee_amount = subtract_fee<T>(&mut offer_table.fees, &mut payment_balance, offer_table.service_fee);
+
+    payment_value = payment_value - fee_amount;
 
     // Transfer remaining payment to owner
     transfer::public_transfer(payment_balance.into_coin(ctx), owner);

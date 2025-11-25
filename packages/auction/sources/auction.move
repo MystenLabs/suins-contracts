@@ -484,13 +484,15 @@ public fun finalize_auction<T>(
         );
     };
 
-    let highest_bid_value = highest_bid_balance.value();
+    let mut highest_bid_value = highest_bid_balance.value();
 
     if (highest_bid_value > 0) {
         // Highest big only wins if higher than the reserve price
         if (highest_bid_value >= actual_reserve_price) {
             // Deduct service fee
-            subtract_fee<T>(&mut auction_table.fees, &mut highest_bid_balance, auction_table.service_fee);
+            let fee_amount = subtract_fee<T>(&mut auction_table.fees, &mut highest_bid_balance, auction_table.service_fee);
+
+            highest_bid_value = highest_bid_value - fee_amount;
 
             set_target_address(suins, &suins_registration, option::some(highest_bidder), clock);
             transfer::public_transfer(highest_bid_balance.into_coin(ctx), owner);
