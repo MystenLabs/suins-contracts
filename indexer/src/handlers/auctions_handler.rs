@@ -97,6 +97,8 @@ impl Handler for AuctionsHandlerPipeline {
     type Store = Db;
     type Batch = Vec<Self::Value>;
 
+    const MAX_BATCH_CHECKPOINTS: usize = 5 * 10;
+
     fn batch(batch: &mut Self::Batch, values: Vec<Self::Value>) {
         batch.extend(values);
     }

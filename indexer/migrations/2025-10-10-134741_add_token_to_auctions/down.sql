@@ -1,9 +1,0 @@
-ALTER TABLE auctions DROP COLUMN token;
-ALTER TABLE bids DROP COLUMN token;
-ALTER TABLE offer_placed DROP COLUMN token;
-ALTER TABLE offer_cancelled DROP COLUMN token;
-ALTER TABLE offer_accepted DROP COLUMN token;
-ALTER TABLE offer_declined DROP COLUMN token;
-ALTER TABLE make_counter_offer DROP COLUMN token;
-ALTER TABLE accept_counter_offer DROP COLUMN token;
-ALTER TABLE offers DROP COLUMN token;
