@@ -12,7 +12,7 @@ use sui::{
     bag::{Self, Bag},
     balance::{Self, Balance},
     clock::Clock,
-    coin::{Self, Coin},
+    coin::Coin,
     event,
     object_bag::{Self, ObjectBag},
     sui::SUI,
@@ -20,6 +20,17 @@ use sui::{
 };
 use suins::{controller::set_target_address, suins::SuiNS, suins_registration::SuinsRegistration};
 use suins_auction::decryption::{decrypt_reserve_time, get_encryption_id};
+use suins_auction::offer::{
+    Self,
+    OfferTable,
+    subtract_fee,
+};
+use suins_auction::constants::{
+    bid_extend_time,
+    default_fee_percentage,
+    max_percentage,
+    version,
+};
 
 /// Error codes
 const ENotOwner: u64 = 0;
@@ -30,16 +41,9 @@ const EBidTooLow: u64 = 4;
 const ENotEnded: u64 = 5;
 const EEnded: u64 = 6;
 const ENotAuctioned: u64 = 7;
-const EAlreadyOffered: u64 = 8;
-const EDomainNotOffered: u64 = 9;
-const EAddressNotOffered: u64 = 10;
-const ECounterOfferTooLow: u64 = 11;
-const EWrongCoinValue: u64 = 12;
-const ENoCounterOffer: u64 = 13;
 const ENotUpgrade: u64 = 14;
 const EDifferentVersions: u64 = 15;
 const EInvalidAuctionTableVersion: u64 = 16;
-const EInvalidOfferTableVersion: u64 = 17;
 const ECannotRemoveSui: u64 = 18;
 const ETokenNotAllowed: u64 = 19;
 const EInvalidEncryptionSender: u64 = 20;
@@ -51,10 +55,7 @@ const EEncryptionNoAccess: u64 = 25;
 const EEncryptionNoKeys: u64 = 26;
 const EInvalidThreshold: u64 = 30;
 const EInvalidKeyLengths: u64 = 31;
-
-/// Constants
-const VERSION: u64 = 1;
-const BID_EXTEND_TIME: u64 = 5 * 60; // 5 minutes
+const EInvalidServiceFee: u64 = 32;
 
 /// Authorization witness to call protected functions of suins.
 public struct AuctionWitness has drop {}
@@ -89,20 +90,9 @@ public struct AuctionTable has key {
     public_keys: vector<vector<u8>>,
     /// The threshold for the vote.
     threshold: u8,
-}
-
-/// Table mapping domain to Offers and addresses that have made Offers
-public struct OfferTable has key {
-    id: UID,
-    version: u64,
-    table: Table<vector<u8>, Bag>,
-    // Bag: address -> Offer<T>
-    allowed_tokens: Table<TypeName, bool>,
-}
-
-public struct Offer<phantom T> has store {
-    balance: Balance<T>,
-    counter_offer: u64,
+    service_fee: u64,
+    /// Accumulated service fees for each token type
+    fees: Bag, // TypeName -> Balance<T>
 }
 
 /// Event for auction creation
@@ -144,75 +134,39 @@ public struct AuctionCancelledEvent has copy, drop {
     token: TypeName,
 }
 
-/// Event for offer placement
-public struct OfferPlacedEvent has copy, drop {
-    domain_name: String,
-    address: address,
-    value: u64,
-    token: TypeName,
-}
-
-/// Event for offer cancellation
-public struct OfferCancelledEvent has copy, drop {
-    domain_name: String,
-    address: address,
-    value: u64,
-    token: TypeName,
-}
-
-/// Event for offer acceptance
-public struct OfferAcceptedEvent has copy, drop {
-    domain_name: String,
-    owner: address,
-    buyer: address,
-    value: u64,
-    token: TypeName,
-}
-
-/// Event for offer declined
-public struct OfferDeclinedEvent has copy, drop {
-    domain_name: String,
-    owner: address,
-    buyer: address,
-    value: u64,
-    token: TypeName,
-}
-
-/// Event for make counter offer
-public struct MakeCounterOfferEvent has copy, drop {
-    domain_name: String,
-    owner: address,
-    buyer: address,
-    value: u64,
-    token: TypeName,
-}
-
-/// Event for accept counter offer
-public struct AcceptCounterOfferEvent has copy, drop {
-    domain_name: String,
-    buyer: address,
-    value: u64,
-    token: TypeName,
-}
-
 /// Event for migrating contract
 public struct MigrateEvent has copy, drop {
     old_version: u64,
     new_version: u64,
 }
 
+/// Event for set seal config
 public struct SetSealConfig has copy, drop {
     key_servers: vector<address>,
     public_keys: vector<vector<u8>>,
     threshold: u8,
 }
 
+/// Event for set service fee
+public struct SetServiceFee has copy, drop {
+    service_fee: u64,
+}
+
+/// Event for add allowed token
 public struct AddAllowedToken has copy, drop {
     token: TypeName,
 }
 
+/// Event for remove allowed token
 public struct RemoveAllowedToken has copy, drop {
     token: TypeName,
+}
+
+/// Event for withdraw fees
+public struct WithdrawFees has copy, drop {
+    token: TypeName,
+    amount: u64,
+    recipient: address,
 }
 
 fun init(ctx: &mut TxContext) {
@@ -222,40 +176,37 @@ fun init(ctx: &mut TxContext) {
 
     let mut auction_table = AuctionTable {
         id: object::new(ctx),
-        version: VERSION,
+        version: version(),
         bag: object_bag::new(ctx),
         allowed_tokens: table::new<TypeName, bool>(ctx),
         key_servers: vector[],
         public_keys: vector[],
         threshold: 0,
+        service_fee: default_fee_percentage(),
+        fees: bag::new(ctx),
     };
-    let mut offer_table = OfferTable {
-        id: object::new(ctx),
-        version: VERSION,
-        table: table::new(ctx),
-        allowed_tokens: table::new<TypeName, bool>(ctx),
-    };
+    let mut offer_table = offer::create(ctx);
 
     // Add SUI as allowed token
     add_allowed_token<SUI>(&admin_cap, &mut auction_table, &mut offer_table);
 
     transfer::share_object(auction_table);
-    transfer::share_object(offer_table);
+    offer_table.share();
     transfer::transfer(admin_cap, ctx.sender());
 }
 
 entry fun migrate(_: &AdminCap, auction_table: &mut AuctionTable, offer_table: &mut OfferTable) {
-    assert!(auction_table.version < VERSION, ENotUpgrade);
-    assert!(offer_table.version < VERSION, ENotUpgrade);
-    assert!(auction_table.version == offer_table.version, EDifferentVersions);
+    assert!(auction_table.version < version(), ENotUpgrade);
+    assert!(offer_table.version() < version(), ENotUpgrade);
+    assert!(auction_table.version == offer_table.version(), EDifferentVersions);
 
     let old_version = auction_table.version;
-    auction_table.version = VERSION;
-    offer_table.version = VERSION;
+    auction_table.version = version();
+    offer_table.set_version(version());
 
     MigrateEvent {
         old_version,
-        new_version: VERSION,
+        new_version: version(),
     };
 }
 
@@ -281,18 +232,36 @@ public fun set_seal_config(
     });
 }
 
+public fun set_service_fee(
+    _: &AdminCap,
+    auction_table: &mut AuctionTable,
+    offer_table: &mut OfferTable,
+    service_fee: u64,
+) {
+    assert!(auction_table.is_valid_auction_version(), EInvalidAuctionTableVersion);
+    offer_table.check_offer_table_version();
+    assert!(service_fee < max_percentage(), EInvalidServiceFee);
+
+    auction_table.service_fee = service_fee;
+    offer_table.set_service_fee(service_fee);
+
+    event::emit(SetServiceFee {
+        service_fee,
+    });
+}
+
 public fun add_allowed_token<T>(
     _: &AdminCap,
     auction_table: &mut AuctionTable,
     offer_table: &mut OfferTable
 ) {
     assert!(auction_table.is_valid_auction_version(), EInvalidAuctionTableVersion);
-    assert!(offer_table.is_valid_offer_version(), EInvalidOfferTableVersion);
+    offer_table.check_offer_table_version();
 
     let token = type_name::with_defining_ids<T>();
 
     auction_table.allowed_tokens.add(token, true);
-    offer_table.allowed_tokens.add(token, true);
+    offer_table.add_allowed_token(token);
 
     event::emit(AddAllowedToken {
         token,
@@ -305,18 +274,54 @@ public fun remove_allowed_token<T>(
     offer_table: &mut OfferTable
 ) {
     assert!(auction_table.is_valid_auction_version(), EInvalidAuctionTableVersion);
-    assert!(offer_table.is_valid_offer_version(), EInvalidOfferTableVersion);
+    offer_table.check_offer_table_version();
 
     let token = type_name::with_defining_ids<T>();
 
     assert!(token != type_name::with_defining_ids<SUI>(), ECannotRemoveSui);
 
     auction_table.allowed_tokens.remove(token);
-    offer_table.allowed_tokens.remove(token);
+    offer_table.remove_allowed_token(token);
 
     event::emit(RemoveAllowedToken {
         token,
     });
+}
+
+/// Withdraw accumulated fees from both auction and offer tables
+public fun withdraw_fees<T>(
+    _: &AdminCap,
+    auction_table: &mut AuctionTable,
+    offer_table: &mut OfferTable,
+    ctx: &mut TxContext
+): Coin<T> {
+    assert!(auction_table.is_valid_auction_version(), EInvalidAuctionTableVersion);
+    offer_table.check_offer_table_version();
+
+    let token = type_name::with_defining_ids<T>();
+    let mut total_balance = balance::zero<T>();
+
+    // Withdraw from auction table if exists
+    if (auction_table.fees.contains(token)) {
+        let auction_fee_balance = auction_table.fees.remove<TypeName, Balance<T>>(token);
+        total_balance.join(auction_fee_balance);
+    };
+
+    // Withdraw from offer table if exists
+    if (offer_table.fees().contains(token)) {
+        let offer_fee_balance = offer_table.fees().remove<TypeName, Balance<T>>(token);
+        total_balance.join(offer_fee_balance);
+    };
+
+    let amount = total_balance.value();
+
+    event::emit(WithdrawFees {
+        token,
+        amount,
+        recipient: ctx.sender(),
+    });
+
+    total_balance.into_coin(ctx)
 }
 
 /// Create a new auction for a domain with a specific token required
@@ -409,8 +414,8 @@ public fun place_bid<T>(
     assert!(bid_amount >= auction.min_bid && bid_amount > highest_bid_value, EBidTooLow);
 
     // If bid in last minutes, extend auction by minutes
-    if (auction.end_time - now < BID_EXTEND_TIME) {
-        auction.end_time = now + BID_EXTEND_TIME;
+    if (auction.end_time - now < bid_extend_time()) {
+        auction.end_time = now + bid_extend_time();
     };
 
     if (highest_bid_value > 0) {
@@ -454,7 +459,7 @@ public fun finalize_auction<T>(
         min_bid: _,
         mut reserve_price,
         highest_bidder,
-        highest_bid_balance,
+        mut highest_bid_balance,
         suins_registration,
     } = auction;
 
@@ -479,11 +484,16 @@ public fun finalize_auction<T>(
         );
     };
 
-    let highest_bid_value = highest_bid_balance.value();
+    let mut highest_bid_value = highest_bid_balance.value();
 
     if (highest_bid_value > 0) {
         // Highest big only wins if higher than the reserve price
         if (highest_bid_value >= actual_reserve_price) {
+            // Deduct service fee
+            let fee_amount = subtract_fee<T>(&mut auction_table.fees, &mut highest_bid_balance, auction_table.service_fee);
+
+            highest_bid_value = highest_bid_value - fee_amount;
+
             set_target_address(suins, &suins_registration, option::some(highest_bidder), clock);
             transfer::public_transfer(highest_bid_balance.into_coin(ctx), owner);
             transfer::public_transfer(suins_registration, highest_bidder);
@@ -556,188 +566,6 @@ public fun cancel_auction<T>(
     suins_registration
 }
 
-/// Place an offer on a domain
-public fun place_offer<T>(
-    offer_table: &mut OfferTable,
-    domain_name: String,
-    coin: Coin<T>,
-    ctx: &mut TxContext
-)
-{
-    assert!(offer_table.is_valid_offer_version(), EInvalidOfferTableVersion);
-
-    let token = type_name::with_defining_ids<T>();
-
-    assert!(offer_table.allowed_tokens.contains(token), ETokenNotAllowed);
-
-    let coin_value = coin.value();
-    let caller = ctx.sender();
-    let offer = Offer {
-        balance: coin.into_balance(),
-        counter_offer: 0,
-    };
-
-    let domain_name_bytes = domain_name.into_bytes();
-
-    if (offer_table.table.contains(domain_name_bytes)) {
-        let offers = offer_table.table.borrow_mut(domain_name_bytes);
-        assert!(!offers.contains(caller), EAlreadyOffered);
-        offers.add(caller, offer);
-    } else {
-        let mut offers = bag::new(ctx);
-        offers.add(caller, offer);
-        offer_table.table.add(domain_name_bytes, offers);
-    };
-
-    event::emit(OfferPlacedEvent {
-        domain_name,
-        address: ctx.sender(),
-        value: coin_value,
-        token,
-    });
-}
-
-/// Cancel an offer on a domain
-public fun cancel_offer<T>(
-    offer_table: &mut OfferTable,
-    domain_name: String,
-    ctx: &mut TxContext
-): Coin<T>
-{
-    assert!(offer_table.is_valid_offer_version(), EInvalidOfferTableVersion);
-
-    let caller = ctx.sender();
-
-    let Offer {
-        balance,
-        counter_offer: _,
-    } = offer_remove<T>(offer_table, domain_name, caller);
-
-    event::emit(OfferCancelledEvent {
-        domain_name,
-        address: caller,
-        value: balance.value(),
-        token: type_name::with_defining_ids<T>(),
-    });
-
-    balance.into_coin(ctx)
-}
-
-/// Accept an offer
-public fun accept_offer<T>(
-    suins: &mut SuiNS,
-    offer_table: &mut OfferTable,
-    suins_registration: SuinsRegistration,
-    address: address,
-    clock: &Clock,
-    ctx: &mut TxContext
-): Coin<T>
-{
-    assert!(offer_table.is_valid_offer_version(), EInvalidOfferTableVersion);
-
-    let domain = suins_registration.domain();
-    let domain_name = domain.to_string();
-    let Offer {
-        balance,
-        counter_offer: _,
-    } = offer_remove<T>(offer_table, domain_name, address);
-
-    set_target_address(suins, &suins_registration, option::some(address), clock);
-    transfer::public_transfer(suins_registration, address);
-
-    event::emit(OfferAcceptedEvent {
-        domain_name,
-        owner: ctx.sender(),
-        buyer: address,
-        value: balance.value(),
-        token: type_name::with_defining_ids<T>(),
-    });
-
-    balance.into_coin(ctx)
-}
-
-/// Decline an offer
-public fun decline_offer<T>(
-    offer_table: &mut OfferTable,
-    suins_registration: &SuinsRegistration,
-    address: address,
-    ctx: &mut TxContext
-)
-{
-    assert!(offer_table.is_valid_offer_version(), EInvalidOfferTableVersion);
-
-    let domain = suins_registration.domain();
-    let domain_name = domain.to_string();
-    let Offer {
-        balance,
-        counter_offer: _,
-    } = offer_remove<T>(offer_table, domain_name, address);
-
-    let value = balance.value<T>();
-    transfer::public_transfer(balance.into_coin(ctx), address);
-
-    event::emit(OfferDeclinedEvent {
-        domain_name,
-        owner: ctx.sender(),
-        buyer: address,
-        value,
-        token: type_name::with_defining_ids<T>(),
-    });
-}
-
-/// Make a counter offer
-public fun make_counter_offer<T>(
-    offer_table: &mut OfferTable,
-    suins_registration: &SuinsRegistration,
-    address: address,
-    counter_offer_value: u64,
-    ctx: &mut TxContext
-)
-{
-    assert!(offer_table.is_valid_offer_version(), EInvalidOfferTableVersion);
-
-    let domain = suins_registration.domain();
-    let domain_name = domain.to_string();
-    let offer = offer_borrow_mut<T>(offer_table, domain_name, address);
-    assert!(counter_offer_value > offer.balance.value(), ECounterOfferTooLow);
-    offer.counter_offer = counter_offer_value;
-
-    event::emit(MakeCounterOfferEvent {
-        domain_name,
-        owner: ctx.sender(),
-        buyer: address,
-        value: counter_offer_value,
-        token: type_name::with_defining_ids<T>(),
-    });
-}
-
-/// Accept a counter offer
-public fun accept_counter_offer<T>(
-    offer_table: &mut OfferTable,
-    domain_name: String,
-    coin: Coin<T>,
-    ctx: &mut TxContext
-)
-{
-    assert!(offer_table.is_valid_offer_version(), EInvalidOfferTableVersion);
-
-    let caller = ctx.sender();
-
-    let offer = offer_borrow_mut<T>(offer_table, domain_name, caller);
-    assert!(offer.counter_offer != 0, ENoCounterOffer);
-    let coin_value = coin::value(&coin);
-    let balance_value = offer.balance.value();
-    assert!(coin_value + balance_value == offer.counter_offer, EWrongCoinValue);
-    offer.balance.join(coin::into_balance(coin));
-
-    event::emit(AcceptCounterOfferEvent {
-        domain_name,
-        buyer: caller,
-        value: offer.balance.value(),
-        token: type_name::with_defining_ids<T>(),
-    });
-}
-
 // Can be used by the owner to get a mutate reference for the SuinsRegistration in case it expires so it can update it directly
 public fun get_suins_registration_from_auction<T>(
     auction: &mut Auction<T>,
@@ -775,54 +603,9 @@ fun check_policy<T>(id: vector<u8>, auction_table: &AuctionTable, clock: &Clock)
     assert!(now > auction.end_time, EEncryptionNoAccess);
 }
 
-// Get mutable reference to offer from storage
-fun offer_borrow_mut<T>(
-    offer_table: &mut OfferTable,
-    domain_name: String,
-    address: address,
-): &mut Offer<T> {
-    let offers = domain_offers_borrow_mut(offer_table, domain_name.into_bytes(), address);
-
-    offers.borrow_mut(address)
-}
-
-// Remove offer from storage
-fun offer_remove<T>(
-    offer_table: &mut OfferTable,
-    domain_name: String,
-    address: address,
-): Offer<T> {
-    let offers = domain_offers_borrow_mut(offer_table, domain_name.into_bytes(), address);
-    let offer = offers.remove<address, Offer<T>>(address);
-
-    if (offers.length() == 0) {
-        let empty_table = offer_table.table.remove(domain_name.into_bytes());
-        bag::destroy_empty(empty_table);
-    };
-
-    offer
-}
-
-// Get mutable reference to offers
-fun domain_offers_borrow_mut(
-    offer_table: &mut OfferTable,
-    domain_name: vector<u8>,
-    address: address,
-): &mut Bag {
-    assert!(offer_table.table.contains(domain_name), EDomainNotOffered);
-    let offers = offer_table.table.borrow_mut(domain_name);
-    assert!(offers.contains(address), EAddressNotOffered);
-
-    offers
-}
-
 // Verify version
 fun is_valid_auction_version(auction_table: &AuctionTable): bool {
-    auction_table.version == VERSION
-}
-
-fun is_valid_offer_version(offer_table: &OfferTable): bool {
-    offer_table.version == VERSION
+    auction_table.version == version()
 }
 
 // Testing functions
@@ -855,6 +638,16 @@ public fun get_auction_table_public_keys(auction_table: &AuctionTable): &vector<
 #[test_only]
 public fun get_auction_table_threshold(auction_table: &AuctionTable): &u8 {
     &auction_table.threshold
+}
+
+#[test_only]
+public fun get_auction_table_fees(auction_table: &AuctionTable): &Bag {
+    &auction_table.fees
+}
+
+#[test_only]
+public fun get_auction_table_service_fee(auction_table: &AuctionTable): u64 {
+    auction_table.service_fee
 }
 
 #[test_only]
@@ -895,19 +688,4 @@ public fun get_highest_bid_balance<T>(auction: &Auction<T>): &Balance<T> {
 #[test_only]
 public fun get_suins_registration<T>(auction: &Auction<T>): &SuinsRegistration {
     &auction.suins_registration
-}
-
-#[test_only]
-public fun get_offer_table(offer_table: &OfferTable): &Table<vector<u8>, Bag> {
-    &offer_table.table
-}
-
-#[test_only]
-public fun get_offer_balance<T>(offer: &Offer<T>): &Balance<T> {
-    &offer.balance
-}
-
-#[test_only]
-public fun get_offer_counter_offer<T>(offer: &Offer<T>): u64 {
-    offer.counter_offer
 }

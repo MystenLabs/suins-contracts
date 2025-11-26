@@ -1,14 +1,15 @@
 use crate::events::{
     convert_domain_name, try_deserialize_event, AcceptCounterOfferEvent, MakeCounterOfferEvent,
     OfferAcceptedEvent, OfferCancelledEvent, OfferDeclinedEvent, OfferPlacedEvent, SetSealConfig,
+    SetServiceFee,
 };
 use crate::models::{
     AcceptCounterOffer, MakeCounterOffer, OfferAccepted, OfferCancelled, OfferDeclined,
-    OfferPlaced, SetSealConfigModel,
+    OfferPlaced, SetSealConfigModel, SetServiceFeeModel,
 };
 use crate::schema::{
     accept_counter_offer, make_counter_offer, offer_accepted, offer_cancelled, offer_declined,
-    offer_placed, set_seal_config,
+    offer_placed, set_seal_config, set_service_fee,
 };
 use anyhow::Context;
 use async_trait::async_trait;
@@ -33,6 +34,7 @@ pub enum OfferEventModel {
     MakeCounterOffer(MakeCounterOffer),
     AcceptCounterOffer(AcceptCounterOffer),
     SetSealConfig(SetSealConfigModel),
+    SetServiceFee(SetServiceFeeModel),
 }
 
 #[derive(FieldCount)]
@@ -44,6 +46,7 @@ pub struct OfferHandlerValue {
     pub make_counter_offer: Vec<MakeCounterOffer>,
     pub accept_counter_offer: Vec<AcceptCounterOffer>,
     pub set_seal_config: Vec<SetSealConfigModel>,
+    pub set_service_fee: Vec<SetServiceFeeModel>,
     pub checkpoint: u64,
 }
 
@@ -70,6 +73,7 @@ impl Processor for OfferEventsHandlerPipeline {
         let mut make_counter_offer = Vec::new();
         let mut accept_counter_offer = Vec::new();
         let mut set_seal_config = Vec::new();
+        let mut set_service_fee = Vec::new();
 
         for tx in &checkpoint.transactions {
             let tx_digest = tx.transaction.digest().to_string();
@@ -119,6 +123,10 @@ impl Processor for OfferEventsHandlerPipeline {
                             info!("Processing SetSealConfig event");
                             set_seal_config.push(config);
                         }
+                        Ok(Some(OfferEventModel::SetServiceFee(fee))) => {
+                            info!("Processing SetServiceFee event");
+                            set_service_fee.push(fee);
+                        }
                         Ok(None) => {
                             // No event to process
                         }
@@ -139,6 +147,7 @@ impl Processor for OfferEventsHandlerPipeline {
             make_counter_offer,
             accept_counter_offer,
             set_seal_config,
+            set_service_fee,
             checkpoint: checkpoint.checkpoint_summary.sequence_number,
         }];
 
@@ -337,6 +346,31 @@ impl Handler for OfferEventsHandlerPipeline {
                     }
                 }
             }
+
+            if !value.set_service_fee.is_empty() {
+                info!("Inserting {} set service fee", value.set_service_fee.len());
+                for (j, fee) in value.set_service_fee.iter().enumerate() {
+                    info!(
+                        "SetServiceFee {}: service_fee={}",
+                        j,
+                        fee.service_fee
+                    );
+                }
+                match diesel::insert_into(set_service_fee::table)
+                    .values(&value.set_service_fee)
+                    .execute(conn)
+                    .await
+                {
+                    Ok(count) => {
+                        info!("Successfully inserted {} set service fee", count);
+                        changes += count;
+                    }
+                    Err(e) => {
+                        error!("Failed to insert set service fee: {}", e);
+                        return Err(e.into());
+                    }
+                }
+            }
         }
 
         Ok(changes)
@@ -459,6 +493,16 @@ impl OfferEventsHandlerPipeline {
                 };
 
                 return Ok(Some(OfferEventModel::SetSealConfig(seal_config)));
+            } else if event_type.ends_with("::SetServiceFee") {
+                let service_fee_event: SetServiceFee = try_deserialize_event(&event.contents)?;
+
+                let service_fee = SetServiceFeeModel {
+                    service_fee: service_fee_event.service_fee.to_string(),
+                    created_at,
+                    tx_digest: tx_digest.to_string(),
+                };
+
+                return Ok(Some(OfferEventModel::SetServiceFee(service_fee)));
             }
         }
 

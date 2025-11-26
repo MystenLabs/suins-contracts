@@ -100,6 +100,8 @@ impl Handler for OffersHandlerPipeline {
     type Store = Db;
     type Batch = Vec<Self::Value>;
 
+    const MAX_BATCH_CHECKPOINTS: usize = 5 * 10;
+
     fn batch(batch: &mut Self::Batch, values: Vec<Self::Value>) {
         batch.extend(values);
     }
@@ -130,6 +132,7 @@ impl Handler for OffersHandlerPipeline {
                             created_at: value.created_at,
                             last_tx_digest: value.tx_digest.clone(),
                             token: placed_event.token.to_string(),
+                            expires_at: placed_event.expires_at.map(|e| e as i64),
                         }])
                         .execute(conn)
                         .await

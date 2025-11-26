@@ -7,6 +7,7 @@ pub struct OfferPlacedEvent {
     pub address: sui_types::base_types::SuiAddress,
     pub value: u64,
     pub token: String,
+    pub expires_at: Option<u64>,
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]
@@ -98,6 +99,38 @@ pub struct SetSealConfig {
     pub key_servers: Vec<sui_types::base_types::SuiAddress>,
     pub public_keys: Vec<Vec<u8>>,
     pub threshold: u8,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+pub struct SetServiceFee {
+    pub service_fee: u64,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+pub struct ListingCreatedEvent {
+    pub listing_id: sui_types::base_types::ObjectID,
+    pub domain_name: Vec<u8>,
+    pub owner: sui_types::base_types::SuiAddress,
+    pub price: u64,
+    pub expires_at: Option<u64>,
+    pub token: String,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+pub struct ListingBoughtEvent {
+    pub listing_id: sui_types::base_types::ObjectID,
+    pub domain_name: Vec<u8>,
+    pub buyer: sui_types::base_types::SuiAddress,
+    pub amount: u64,
+    pub token: String,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+pub struct ListingCancelledEvent {
+    pub listing_id: sui_types::base_types::ObjectID,
+    pub domain_name: Vec<u8>,
+    pub owner: sui_types::base_types::SuiAddress,
+    pub token: String,
 }
 
 pub fn try_deserialize_event<T: for<'a> Deserialize<'a>>(

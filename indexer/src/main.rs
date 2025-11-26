@@ -24,6 +24,7 @@ use suins_indexer::MIGRATIONS;
 use tokio_util::sync::CancellationToken;
 use url::Url;
 use suins_indexer::handlers::auctions_handler::AuctionsHandlerPipeline;
+use suins_indexer::handlers::listings_handler::ListingsHandlerPipeline;
 use suins_indexer::handlers::offer_events_handler::OfferEventsHandlerPipeline;
 use suins_indexer::handlers::offers_handler::OffersHandlerPipeline;
 
@@ -147,6 +148,14 @@ async fn main() -> Result<(), anyhow::Error> {
     indexer
         .sequential_pipeline(
             AuctionsHandlerPipeline::new(auction_contract_id),
+            SequentialConfig::default(),
+        )
+        .await?;
+
+    // Process all listing events in order and save up to date listing information in database
+    indexer
+        .sequential_pipeline(
+            ListingsHandlerPipeline::new(auction_contract_id),
             SequentialConfig::default(),
         )
         .await?;

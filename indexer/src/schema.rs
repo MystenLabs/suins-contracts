@@ -6,6 +6,10 @@ pub mod sql_types {
     pub struct Auctionstatus;
 
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "listingstatus"))]
+    pub struct Listingstatus;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "offerstatus"))]
     pub struct Offerstatus;
 }
@@ -69,6 +73,25 @@ diesel::table! {
         data -> Json,
         last_checkpoint_updated -> Int8,
         subdomain_wrapper_id -> Nullable<Varchar>,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::Listingstatus;
+
+    listings (listing_id) {
+        listing_id -> Varchar,
+        domain_name -> Varchar,
+        owner -> Varchar,
+        price -> Varchar,
+        buyer -> Nullable<Varchar>,
+        status -> Listingstatus,
+        updated_at -> Timestamptz,
+        created_at -> Timestamptz,
+        last_tx_digest -> Varchar,
+        token -> Varchar,
+        expires_at -> Nullable<Int8>,
     }
 }
 
@@ -151,6 +174,7 @@ diesel::table! {
         created_at -> Timestamptz,
         last_tx_digest -> Varchar,
         token -> Varchar,
+        expires_at -> Nullable<Int8>,
     }
 }
 
@@ -160,6 +184,15 @@ diesel::table! {
         key_servers -> Array<Nullable<Text>>,
         public_keys -> Array<Nullable<Bytea>>,
         threshold -> Int2,
+        created_at -> Timestamptz,
+        tx_digest -> Varchar,
+    }
+}
+
+diesel::table! {
+    set_service_fee (id) {
+        id -> Int4,
+        service_fee -> Varchar,
         created_at -> Timestamptz,
         tx_digest -> Varchar,
     }
@@ -185,6 +218,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     auctions,
     bids,
     domains,
+    listings,
     make_counter_offer,
     offer_accepted,
     offer_cancelled,
@@ -192,5 +226,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     offer_placed,
     offers,
     set_seal_config,
+    set_service_fee,
     watermarks,
 );
