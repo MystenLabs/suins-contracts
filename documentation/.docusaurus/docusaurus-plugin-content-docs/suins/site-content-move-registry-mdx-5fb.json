@@ -1,0 +1,25 @@
+{
+  "id": "move-registry",
+  "title": "Move Registry",
+  "description": "Move Registry (MVR, pronounced \"mover\") provides a uniform naming service for interacting and building with packages from the Sui ecosystem. This means that you can reference packages by their names, and MVR resolves the package address for you, despite the network.",
+  "source": "@site/content/move-registry.mdx",
+  "sourceDirName": ".",
+  "slug": "/move-registry",
+  "permalink": "/move-registry",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Move Registry"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "Node Operators",
+    "permalink": "/node-operator"
+  },
+  "next": {
+    "title": "Design",
+    "permalink": "/move-registry/design"
+  }
+}

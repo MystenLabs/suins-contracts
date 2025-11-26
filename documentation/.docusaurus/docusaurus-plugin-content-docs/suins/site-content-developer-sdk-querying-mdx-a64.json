@@ -1,0 +1,25 @@
+{
+  "id": "developer/sdk/querying",
+  "title": "Querying",
+  "description": "Use the SuinsClient that was previously created to query on-chain data.",
+  "source": "@site/content/developer/sdk/querying.mdx",
+  "sourceDirName": "developer/sdk",
+  "slug": "/developer/sdk/querying",
+  "permalink": "/developer/sdk/querying",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Querying"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "SuiNS SDK",
+    "permalink": "/developer/sdk"
+  },
+  "next": {
+    "title": "Building Transactions",
+    "permalink": "/developer/sdk/transactions"
+  }
+}

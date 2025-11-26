@@ -1,0 +1,25 @@
+{
+  "id": "move-registry/maintainer-practices",
+  "title": "Package Maintainer Best Practices",
+  "description": "For package authors and maintainers, the following best practices are recommended for working with the Move Registry. Following these tips ensures that other builders can use your package as intended.",
+  "source": "@site/content/move-registry/maintainer-practices.mdx",
+  "sourceDirName": "move-registry",
+  "slug": "/move-registry/maintainer-practices",
+  "permalink": "/move-registry/maintainer-practices",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Package Maintainer Best Practices"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "Managing MVR Names",
+    "permalink": "/move-registry/mvr-names"
+  },
+  "next": {
+    "title": "Tooling",
+    "permalink": "/move-registry/tooling"
+  }
+}

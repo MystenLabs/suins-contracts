@@ -1,0 +1,153 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "suins": {
+      "path": "/",
+      "versions": [
+        {
+          "name": "current",
+          "label": "Next",
+          "isLast": true,
+          "path": "/",
+          "mainDocId": "index",
+          "docs": [
+            {
+              "id": "dao",
+              "path": "/dao",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "developer",
+              "path": "/developer",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "developer/examples",
+              "path": "/developer/examples",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "developer/indexing",
+              "path": "/developer/indexing",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "developer/integration",
+              "path": "/developer/integration",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "developer/sdk",
+              "path": "/developer/sdk",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "developer/sdk/querying",
+              "path": "/developer/sdk/querying",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "developer/sdk/transactions",
+              "path": "/developer/sdk/transactions",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "developer/subnames",
+              "path": "/developer/subnames",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "index",
+              "path": "/",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "move-registry",
+              "path": "/move-registry",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "move-registry/design",
+              "path": "/move-registry/design",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "move-registry/maintainer-practices",
+              "path": "/move-registry/maintainer-practices",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "move-registry/managing-package-info",
+              "path": "/move-registry/managing-package-info",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "move-registry/mvr-names",
+              "path": "/move-registry/mvr-names",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "move-registry/tooling",
+              "path": "/move-registry/tooling",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "move-registry/tooling/mvr-cli",
+              "path": "/move-registry/tooling/mvr-cli",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "move-registry/tooling/typescript-sdk",
+              "path": "/move-registry/tooling/typescript-sdk",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "node-operator",
+              "path": "/node-operator",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "user",
+              "path": "/user",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "user/avatar",
+              "path": "/user/avatar",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "user/linked-address",
+              "path": "/user/linked-address",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "user/registration",
+              "path": "/user/registration",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "user/renew",
+              "path": "/user/renew",
+              "sidebar": "suinsSidebar"
+            },
+            {
+              "id": "user/sui-id",
+              "path": "/user/sui-id",
+              "sidebar": "suinsSidebar"
+            }
+          ],
+          "draftIds": [],
+          "sidebars": {
+            "suinsSidebar": {
+              "link": {
+                "path": "/",
+                "label": "index"
+              }
+            }
+          }
+        }
+      ],
+      "breadcrumbs": true
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "developer/subnames",
+  "title": "Subnames",
+  "description": "Subnames are nested names under a parent name. Unlike regular names, there is not a cost associated with creating subnames.",
+  "source": "@site/content/developer/subnames.mdx",
+  "sourceDirName": "developer",
+  "slug": "/developer/subnames",
+  "permalink": "/developer/subnames",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Subnames"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "Integration",
+    "permalink": "/developer/integration"
+  },
+  "next": {
+    "title": "Indexing",
+    "permalink": "/developer/indexing"
+  }
+}

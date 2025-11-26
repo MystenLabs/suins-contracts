@@ -1,0 +1,25 @@
+{
+  "id": "developer",
+  "title": "Sui Name Service Developer Documentation",
+  "description": "Integrate Sui Name Service (SuiNS) with your projects using either on-chain or off-chain resolutions, depending on your particular use case.",
+  "source": "@site/content/developer.mdx",
+  "sourceDirName": ".",
+  "slug": "/developer",
+  "permalink": "/developer",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Sui Name Service Developer Documentation"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "DAO",
+    "permalink": "/dao"
+  },
+  "next": {
+    "title": "Integration",
+    "permalink": "/developer/integration"
+  }
+}

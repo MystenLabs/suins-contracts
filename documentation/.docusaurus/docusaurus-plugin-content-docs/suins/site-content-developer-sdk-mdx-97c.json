@@ -1,0 +1,25 @@
+{
+  "id": "developer/sdk",
+  "title": "SuiNS SDK",
+  "description": "Use the SuiNS SDK to interact with the Sui Name Service. Query SuiNS data in a usable way and build transactions that interact with service names.",
+  "source": "@site/content/developer/sdk.mdx",
+  "sourceDirName": "developer",
+  "slug": "/developer/sdk",
+  "permalink": "/developer/sdk",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "SuiNS SDK"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "Indexing",
+    "permalink": "/developer/indexing"
+  },
+  "next": {
+    "title": "Querying",
+    "permalink": "/developer/sdk/querying"
+  }
+}

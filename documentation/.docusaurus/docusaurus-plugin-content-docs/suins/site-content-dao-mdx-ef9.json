@@ -1,0 +1,25 @@
+{
+  "id": "dao",
+  "title": "SuiNS DAO Proposals and Voting Procedure",
+  "description": "The Sui Name Service DAO (SuiNS DAO) aims to provide a fair, transparent, and effective governance structure. The following process governs the rules and procedures by which members of the DAO may propose, vote and implement improvement proposals.  These proposals usually go through cycles of refinement and consensus, with the purpose of facilitating increasing community engagement in connection with each iteration. Thus, this process is designed to ensure that all decisions reflect the collective will of the community, maintain the integrity of the protocol, and foster sustainable development.",
+  "source": "@site/content/dao.mdx",
+  "sourceDirName": ".",
+  "slug": "/dao",
+  "permalink": "/dao",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "SuiNS DAO Proposals and Voting Procedure"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "Sui Name Service Documentation",
+    "permalink": "/"
+  },
+  "next": {
+    "title": "Sui Name Service Developer Documentation",
+    "permalink": "/developer"
+  }
+}

@@ -1,23 +1,16 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::models::sui::dynamic_field::Field;
-use crate::models::suins::domain::Domain;
-use crate::models::suins::name_record::NameRecord;
 use crate::schema::domains;
 use crate::schema::*;
 use diesel::internal::derives::multiconnection::chrono::{DateTime, Utc};
 use diesel::prelude::*;
 use diesel::{AsExpression, FromSqlRow};
-use move_binding_derive::move_contract;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use sui_indexer_alt_framework::FieldCount;
-use sui_name_service::Domain as NsDomain;
-use sui_types::base_types::ObjectID;
-
-move_contract! {alias = "sui", package = "0x2", base_path = crate::models}
-move_contract! {alias = "suins", package = "@suins/core", base_path = crate::models}
+use sui_name_service::{Domain, NameRecord};
+use sui_types::{base_types::ObjectID, dynamic_field::Field};
 
 #[derive(Queryable, Selectable, Insertable, AsChangeset, Debug, FieldCount, Clone)]
 #[diesel(table_name = domains)]
@@ -74,9 +67,9 @@ impl SuinsIndexerCheckpoint {
         for (field_id, name_record_change) in self.name_records.iter() {
             let name_record = &name_record_change.0;
 
-            let name = to_ns_domain(&name_record.name);
+            let name = name_record.name.clone();
             let parent = name.parent().to_string();
-            let nft_id = name_record.value.nft_id.to_string();
+            let nft_id = name_record.value.nft_id.bytes.to_hex_uncompressed();
 
             updates.push(VerifiedDomain {
                 field_id: field_id.to_string(),
@@ -94,12 +87,6 @@ impl SuinsIndexerCheckpoint {
 
         updates
     }
-}
-
-fn to_ns_domain(domain: &Domain) -> NsDomain {
-    // both structs models the same move struct, safe to unwrap.
-    // Todo: better ways to handle this? Maybe add support for type override in move_binding.
-    bcs::from_bytes(&bcs::to_bytes(&domain).unwrap()).unwrap()
 }
 
 pub struct NameRecordChange(pub Field<Domain, NameRecord>);

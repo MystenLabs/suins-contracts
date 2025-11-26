@@ -1,0 +1,25 @@
+{
+  "id": "user/sui-id",
+  "title": "sui.id",
+  "description": "Using IPFS, you can create a sui.id address connected to your SuiNS name to claim a spot on the decentralized web. The IPFS protocol enables hosting peer-to-peer static sites or media that you can associate with your SuiNS name.",
+  "source": "@site/content/user/sui-id.mdx",
+  "sourceDirName": "user",
+  "slug": "/user/sui-id",
+  "permalink": "/user/sui-id",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "sui.id"
+  },
+  "sidebar": "suinsSidebar",
+  "previous": {
+    "title": "Linked Address",
+    "permalink": "/user/linked-address"
+  },
+  "next": {
+    "title": "Node Operators",
+    "permalink": "/node-operator"
+  }
+}

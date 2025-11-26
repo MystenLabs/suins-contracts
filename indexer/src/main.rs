@@ -1,7 +1,6 @@
 use anyhow::Context;
 use clap::Parser;
 use move_core_types::language_storage::StructTag;
-use move_types::MoveStruct;
 use prometheus::Registry;
 use std::net::SocketAddr;
 use sui_indexer_alt_framework::ingestion::ClientArgs;
@@ -12,12 +11,8 @@ use sui_indexer_alt_metrics::db::DbConnectionStatsCollector;
 use sui_indexer_alt_metrics::{MetricsArgs, MetricsService};
 use sui_pg_db::{Db, DbArgs};
 use sui_types::base_types::SuiAddress;
-use suins_indexer::handlers::convert_struct_tag;
 use suins_indexer::handlers::domain_handler::DomainHandler;
-use suins_indexer::models::sui::dynamic_field::Field;
-use suins_indexer::models::suins::domain::Domain;
-use suins_indexer::models::suins::name_record::NameRecord;
-use suins_indexer::models::suins::subdomain_registration::SubDomainRegistration;
+
 use suins_indexer::MAINNET_REGISTRY_ID;
 use suins_indexer::MAINNET_REMOTE_STORE_URL;
 use suins_indexer::MIGRATIONS;
@@ -55,11 +50,11 @@ struct Args {
     auction_contract_id: SuiAddress,
 
     /// Optional subdomain wrapper type override, defaulted to Sui mainnet subdomain wrapper type.
-    #[clap(env, long, default_value_t = convert_struct_tag(SubDomainRegistration::struct_type()))]
+    #[clap(env, long)]
     subdomain_wrapper_type: StructTag,
 
     /// Optional name record type override, defaulted to Sui mainnet name record type.
-    #[clap(env, long, default_value_t = convert_struct_tag(Field::<Domain, NameRecord>::struct_type()))]
+    #[clap(env, long)]
     name_record_type: StructTag,
 }
 
