@@ -11,4 +11,4 @@ seal = { git = "git@github.com:MystenLabs/seal.git", subdir = "move/seal", rev =
 # Override = { local = "../conflicting/version", override = true }
 
 [addresses]
-suins_auction = "0x0" # For tests to not conflict with 0x0 address of suins.
+suins_auction = "0x1" # For tests to not conflict with 0x0 address of suins.
