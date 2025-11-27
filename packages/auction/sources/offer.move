@@ -17,19 +17,19 @@ use suins_auction::constants::{
     version as package_version,
 };
 
-const EAlreadyOffered: u64 = 8;
-const EDomainNotOffered: u64 = 9;
-const EAddressNotOffered: u64 = 10;
-const ECounterOfferTooLow: u64 = 11;
-const EWrongCoinValue: u64 = 12;
-const ENoCounterOffer: u64 = 13;
-const EInvalidOfferTableVersion: u64 = 17;
-const ETokenNotAllowed: u64 = 19;
-const EInvalidExpiresAt: u64 = 33;
-const EOfferExpired: u64 = 34;
-const ENotListed: u64 = 35;
-const EListingExpired: u64 = 36;
-const ENotListingOwner: u64 = 37;
+const EAlreadyOffered: u64 = 0;
+const EDomainNotOffered: u64 = 1;
+const EAddressNotOffered: u64 = 2;
+const ECounterOfferTooLow: u64 = 3;
+const EWrongCoinValue: u64 = 4;
+const ENoCounterOffer: u64 = 5;
+const EInvalidOfferTableVersion: u64 = 6;
+const ETokenNotAllowed: u64 = 7;
+const EInvalidExpiresAt: u64 = 8;
+const EOfferExpired: u64 = 9;
+const ENotListed: u64 = 10;
+const EListingExpired: u64 = 11;
+const ENotListingOwner: u64 = 12;
 
 /// Table mapping domain to Offers and addresses that have made Offers
 public struct OfferTable has key {

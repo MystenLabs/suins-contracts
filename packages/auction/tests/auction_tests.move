@@ -857,12 +857,7 @@ module suins_auction::auction_tests
             test_scenario::return_shared(auction_table);
         };
 
-        // Final cleanup
-        ks_destroy(s0);
-        ks_destroy(s1);
-        ks_destroy(s2);
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = auction::ETokenNotAllowed)]
@@ -885,9 +880,7 @@ module suins_auction::auction_tests
             SUI_MIN_BID,
         );
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = auction::ENotOwner)]
@@ -922,9 +915,7 @@ module suins_auction::auction_tests
             test_scenario::return_shared(auction_table);
         };
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = auction::ETooEarly)]
@@ -950,9 +941,7 @@ module suins_auction::auction_tests
         // First address places a bid
         place_bid<SUI>(scenario, FIRST_ADDRESS, FIRST_DOMAIN_NAME, SUI_FIRST_BID, &clock);
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = auction::ETooLate)]
@@ -978,9 +967,7 @@ module suins_auction::auction_tests
         // First address places a bid
         place_bid<SUI>(scenario, FIRST_ADDRESS, FIRST_DOMAIN_NAME, SUI_FIRST_BID, &clock);
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = auction::EWrongTime)]
@@ -1000,9 +987,7 @@ module suins_auction::auction_tests
             SUI_MIN_BID,
         );
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = auction::EBidTooLow)]
@@ -1031,9 +1016,7 @@ module suins_auction::auction_tests
         // First address places a bid
         place_bid<SUI>(scenario, FIRST_ADDRESS, FIRST_DOMAIN_NAME, SUI_LOW_BID, &clock);
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = auction::EBidTooLow)]
@@ -1065,9 +1048,7 @@ module suins_auction::auction_tests
         // Second address places a bid
         place_bid<SUI>(scenario, SECOND_ADDRESS, FIRST_DOMAIN_NAME, SUI_FIRST_BID, &clock);
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = auction::ENotEnded)]
@@ -1096,9 +1077,7 @@ module suins_auction::auction_tests
         // Finalize the auction
         finalize_auction<SUI>(scenario, FIRST_DOMAIN_NAME, &clock);
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = auction::EEnded)]
@@ -1137,9 +1116,7 @@ module suins_auction::auction_tests
             test_scenario::return_shared(auction_table);
         };
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = auction::ENotAuctioned)]
@@ -1168,9 +1145,7 @@ module suins_auction::auction_tests
         // First address places a bid
         place_bid<SUI>(scenario, FIRST_ADDRESS, SECOND_DOMAIN_NAME, SUI_SECOND_BID, &clock);
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test]
@@ -1480,9 +1455,7 @@ module suins_auction::auction_tests
             test_scenario::return_shared(offer_table);
         };
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = offer::EOfferExpired)]
@@ -1553,9 +1526,7 @@ module suins_auction::auction_tests
             test_scenario::return_shared(suins);
         };
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = offer::ETokenNotAllowed)]
@@ -1587,9 +1558,7 @@ module suins_auction::auction_tests
             test_scenario::return_shared(offer_table);
         };
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test]
@@ -2014,9 +1983,7 @@ module suins_auction::auction_tests
             test_scenario::return_shared(offer_table);
         };
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = offer::ECounterOfferTooLow)]
@@ -2069,9 +2036,7 @@ module suins_auction::auction_tests
             test_scenario::return_shared(offer_table);
         };
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = offer::ENoCounterOffer)]
@@ -2124,9 +2089,7 @@ module suins_auction::auction_tests
             test_scenario::return_shared(offer_table);
         };
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = offer::EWrongCoinValue)]
@@ -2203,9 +2166,7 @@ module suins_auction::auction_tests
             test_scenario::return_shared(offer_table);
         };
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = offer::EDomainNotOffered)]
@@ -2237,9 +2198,7 @@ module suins_auction::auction_tests
             test_scenario::return_shared(offer_table);
         };
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = offer::EAddressNotOffered)]
@@ -2316,9 +2275,7 @@ module suins_auction::auction_tests
             test_scenario::return_shared(offer_table);
         };
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = auction::ENotUpgrade)]
@@ -2344,9 +2301,7 @@ module suins_auction::auction_tests
             test_scenario::return_to_sender(scenario, admin_cap);
         };
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test]
@@ -2424,9 +2379,7 @@ module suins_auction::auction_tests
             test_scenario::return_shared(auction_table);
         };
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = auction::EInvalidKeyLengths)]
@@ -2446,9 +2399,7 @@ module suins_auction::auction_tests
             test_scenario::return_shared(auction_table);
         };
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test]
@@ -2520,9 +2471,7 @@ module suins_auction::auction_tests
             test_scenario::return_shared(offer_table);
         };
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test]
@@ -2975,9 +2924,7 @@ module suins_auction::auction_tests
             test_scenario::return_shared(offer_table);
         };
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = offer::EListingExpired)]
@@ -3034,9 +2981,7 @@ module suins_auction::auction_tests
             test_scenario::return_shared(suins);
         };
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = offer::ETokenNotAllowed)]
@@ -3068,9 +3013,7 @@ module suins_auction::auction_tests
             test_scenario::return_shared(offer_table);
         };
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test]
@@ -3188,9 +3131,7 @@ module suins_auction::auction_tests
             test_scenario::return_shared(offer_table);
         };
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = offer::EWrongCoinValue)]
@@ -3244,9 +3185,7 @@ module suins_auction::auction_tests
             test_scenario::return_shared(suins);
         };
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 
     #[test, expected_failure(abort_code = offer::ENotListed)]
@@ -3278,8 +3217,6 @@ module suins_auction::auction_tests
             test_scenario::return_shared(suins);
         };
 
-        // Final cleanup
-        clock::destroy_for_testing(clock);
-        test_scenario::end(scenario_val);
+        abort
     }
 }

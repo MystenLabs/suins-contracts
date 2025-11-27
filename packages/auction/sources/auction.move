@@ -19,7 +19,7 @@ use sui::{
     table::{Self, Table}
 };
 use suins::{controller::set_target_address, suins::SuiNS, suins_registration::SuinsRegistration};
-use suins_auction::decryption::{decrypt_reserve_time, get_encryption_id};
+use suins_auction::decryption::{decrypt_reserve_price, get_encryption_id};
 use suins_auction::offer::{
     Self,
     OfferTable,
@@ -41,21 +41,21 @@ const EBidTooLow: u64 = 4;
 const ENotEnded: u64 = 5;
 const EEnded: u64 = 6;
 const ENotAuctioned: u64 = 7;
-const ENotUpgrade: u64 = 14;
-const EDifferentVersions: u64 = 15;
-const EInvalidAuctionTableVersion: u64 = 16;
-const ECannotRemoveSui: u64 = 18;
-const ETokenNotAllowed: u64 = 19;
-const EInvalidEncryptionSender: u64 = 20;
-const EInvalidEncryptionServers: u64 = 21;
-const EInvalidEncryptionThreshold: u64 = 22;
-const EInvalidEncryptionId: u64 = 23;
-const EInvalidEncryptionPackageId: u64 = 24;
-const EEncryptionNoAccess: u64 = 25;
-const EEncryptionNoKeys: u64 = 26;
-const EInvalidThreshold: u64 = 30;
-const EInvalidKeyLengths: u64 = 31;
-const EInvalidServiceFee: u64 = 32;
+const ENotUpgrade: u64 = 8;
+const EDifferentVersions: u64 = 9;
+const EInvalidAuctionTableVersion: u64 = 10;
+const ECannotRemoveSui: u64 = 11;
+const ETokenNotAllowed: u64 = 12;
+const EInvalidEncryptionSender: u64 = 13;
+const EInvalidEncryptionServers: u64 = 14;
+const EInvalidEncryptionThreshold: u64 = 15;
+const EInvalidEncryptionId: u64 = 16;
+const EInvalidEncryptionPackageId: u64 = 17;
+const EEncryptionNoAccess: u64 = 18;
+const EEncryptionNoKeys: u64 = 19;
+const EInvalidThreshold: u64 = 20;
+const EInvalidKeyLengths: u64 = 21;
+const EInvalidServiceFee: u64 = 22;
 
 /// Authorization witness to call protected functions of suins.
 public struct AuctionWitness has drop {}
@@ -472,7 +472,7 @@ public fun finalize_auction<T>(
         let derived_keys = derived_keys.extract();
         let key_servers = key_servers.extract();
 
-        actual_reserve_price = decrypt_reserve_time(
+        actual_reserve_price = decrypt_reserve_price(
             auction_table.key_servers,
             auction_table.public_keys,
             auction_table.threshold,

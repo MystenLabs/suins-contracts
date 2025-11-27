@@ -13,9 +13,9 @@ use sui::{
     bls12381::g1_from_bytes
 };
 
-const EIncorrectKeys: u64 = 27;
-const ENotEnoughKeys: u64 = 28;
-const EKeyNotFound: u64 = 29;
+const EIncorrectKeys: u64 = 0;
+const ENotEnoughKeys: u64 = 1;
+const EKeyNotFound: u64 = 2;
 
 // The id has start_date to prevent older encrypted data to be used in place of new one for the same domain
 public fun get_encryption_id(start_time: u64, domain_name: vector<u8>): vector<u8> {
@@ -25,7 +25,7 @@ public fun get_encryption_id(start_time: u64, domain_name: vector<u8>): vector<u
     full_id
 }
 
-public(package) fun decrypt_reserve_time(
+public(package) fun decrypt_reserve_price(
     config_key_servers: vector<address>,
     config_public_keys: vector<vector<u8>>,
     threshold: u8,
