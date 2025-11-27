@@ -1,9 +1,11 @@
 use crate::events::{
     convert_domain_name, try_deserialize_event, AuctionCancelledEvent, AuctionCreatedEvent,
-    AuctionFinalizedEvent, BidPlacedEvent,
+    AuctionFinalizedEvent, BidPlacedEvent, SetSealConfig, SetServiceFee,
 };
-use crate::models::{Auction, AuctionStatus, Bid, UpdateAuction};
-use crate::schema::{auctions, bids};
+use crate::models::{
+    Auction, AuctionStatus, Bid, SetSealConfigModel, SetServiceFeeModel, UpdateAuction,
+};
+use crate::schema::{auctions, bids, set_seal_config, set_service_fee};
 use anyhow::{Context, Error};
 use async_trait::async_trait;
 use diesel::internal::derives::multiconnection::chrono::{DateTime, Utc};
@@ -26,6 +28,8 @@ pub enum AuctionEvent {
     Cancelled(AuctionCancelledEvent),
     Finalized(AuctionFinalizedEvent),
     Bid(BidPlacedEvent),
+    SetSealConfig(SetSealConfig),
+    SetServiceFee(SetServiceFee),
 }
 
 #[derive(FieldCount, Clone)]
@@ -209,6 +213,45 @@ impl Handler for AuctionsHandlerPipeline {
                         .await
                         .map_err(Into::<Error>::into)?;
                 }
+                AuctionEvent::SetSealConfig(seal_config_event) => {
+                    info!(
+                        "SetSealConfig: key_servers count={}, threshold={}",
+                        seal_config_event.key_servers.len(),
+                        seal_config_event.threshold
+                    );
+
+                    diesel::insert_into(set_seal_config::table)
+                        .values(vec![SetSealConfigModel {
+                            key_servers: seal_config_event
+                                .key_servers
+                                .iter()
+                                .map(|addr| addr.to_string())
+                                .collect(),
+                            public_keys: seal_config_event.public_keys.clone(),
+                            threshold: seal_config_event.threshold as i16,
+                            created_at: value.created_at,
+                            tx_digest: value.tx_digest.clone(),
+                        }])
+                        .execute(conn)
+                        .await
+                        .map_err(Into::<Error>::into)?;
+                }
+                AuctionEvent::SetServiceFee(service_fee_event) => {
+                    info!(
+                        "SetServiceFee: service_fee={}",
+                        service_fee_event.service_fee
+                    );
+
+                    diesel::insert_into(set_service_fee::table)
+                        .values(vec![SetServiceFeeModel {
+                            service_fee: service_fee_event.service_fee.to_string(),
+                            created_at: value.created_at,
+                            tx_digest: value.tx_digest.clone(),
+                        }])
+                        .execute(conn)
+                        .await
+                        .map_err(Into::<Error>::into)?;
+                }
             }
         }
 
@@ -262,6 +305,20 @@ impl AuctionsHandlerPipeline {
                     })?;
 
                 return Ok(Some(AuctionEvent::Bid(bid_event)));
+            } else if event_type.ends_with("::SetSealConfig") {
+                let seal_config_event: SetSealConfig = try_deserialize_event(&event.contents)
+                    .inspect_err(|error| {
+                        error!("Could not deserialize SetSealConfig: {}", error)
+                    })?;
+
+                return Ok(Some(AuctionEvent::SetSealConfig(seal_config_event)));
+            } else if event_type.ends_with("::SetServiceFee") {
+                let service_fee_event: SetServiceFee = try_deserialize_event(&event.contents)
+                    .inspect_err(|error| {
+                        error!("Could not deserialize SetServiceFee: {}", error)
+                    })?;
+
+                return Ok(Some(AuctionEvent::SetServiceFee(service_fee_event)));
             }
         }
 

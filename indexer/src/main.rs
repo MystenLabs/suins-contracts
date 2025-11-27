@@ -5,7 +5,6 @@ use prometheus::Registry;
 use std::net::SocketAddr;
 use sui_indexer_alt_framework::ingestion::ClientArgs;
 use sui_indexer_alt_framework::{Indexer, IndexerArgs};
-use sui_indexer_alt_framework::pipeline::concurrent::ConcurrentConfig;
 use sui_indexer_alt_framework::pipeline::sequential::SequentialConfig;
 use sui_indexer_alt_metrics::db::DbConnectionStatsCollector;
 use sui_indexer_alt_metrics::{MetricsArgs, MetricsService};
@@ -20,7 +19,6 @@ use tokio_util::sync::CancellationToken;
 use url::Url;
 use suins_indexer::handlers::auctions_handler::AuctionsHandlerPipeline;
 use suins_indexer::handlers::listings_handler::ListingsHandlerPipeline;
-use suins_indexer::handlers::offer_events_handler::OfferEventsHandlerPipeline;
 use suins_indexer::handlers::offers_handler::OffersHandlerPipeline;
 
 #[derive(Parser)]
@@ -123,14 +121,6 @@ async fn main() -> Result<(), anyhow::Error> {
         .concurrent_pipeline(handler, Default::default())
         .await?;
 
-    // Process all offer events, in any order, and save them to database to separate tables
-    indexer
-        .concurrent_pipeline(
-            OfferEventsHandlerPipeline::new(auction_contract_id.clone()),
-            ConcurrentConfig::default(),
-        )
-        .await?;
-
     // Process all offer events in order and save up to date offer information in database
     indexer
         .sequential_pipeline(
@@ -139,7 +129,7 @@ async fn main() -> Result<(), anyhow::Error> {
         )
         .await?;
 
-    // Process all auction & bid events in order and save up to date offer information in database
+    // Process all auction, bid and configuration events in order and save up to date offer information in database
     indexer
         .sequential_pipeline(
             AuctionsHandlerPipeline::new(auction_contract_id),

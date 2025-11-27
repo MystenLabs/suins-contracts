@@ -15,18 +15,6 @@ pub mod sql_types {
 }
 
 diesel::table! {
-    accept_counter_offer (id) {
-        id -> Int4,
-        domain_name -> Varchar,
-        address -> Varchar,
-        value -> Varchar,
-        created_at -> Timestamptz,
-        tx_digest -> Varchar,
-        token -> Varchar,
-    }
-}
-
-diesel::table! {
     use diesel::sql_types::*;
     use super::sql_types::Auctionstatus;
 
@@ -96,69 +84,6 @@ diesel::table! {
 }
 
 diesel::table! {
-    make_counter_offer (id) {
-        id -> Int4,
-        domain_name -> Varchar,
-        address -> Varchar,
-        owner -> Varchar,
-        value -> Varchar,
-        created_at -> Timestamptz,
-        tx_digest -> Varchar,
-        token -> Varchar,
-    }
-}
-
-diesel::table! {
-    offer_accepted (id) {
-        id -> Int4,
-        domain_name -> Varchar,
-        address -> Varchar,
-        owner -> Varchar,
-        value -> Varchar,
-        created_at -> Timestamptz,
-        tx_digest -> Varchar,
-        token -> Varchar,
-    }
-}
-
-diesel::table! {
-    offer_cancelled (id) {
-        id -> Int4,
-        domain_name -> Varchar,
-        address -> Varchar,
-        value -> Varchar,
-        created_at -> Timestamptz,
-        tx_digest -> Varchar,
-        token -> Varchar,
-    }
-}
-
-diesel::table! {
-    offer_declined (id) {
-        id -> Int4,
-        domain_name -> Varchar,
-        address -> Varchar,
-        owner -> Varchar,
-        value -> Varchar,
-        created_at -> Timestamptz,
-        tx_digest -> Varchar,
-        token -> Varchar,
-    }
-}
-
-diesel::table! {
-    offer_placed (id) {
-        id -> Int4,
-        domain_name -> Varchar,
-        address -> Varchar,
-        value -> Varchar,
-        created_at -> Timestamptz,
-        tx_digest -> Varchar,
-        token -> Varchar,
-    }
-}
-
-diesel::table! {
     use diesel::sql_types::*;
     use super::sql_types::Offerstatus;
 
@@ -214,16 +139,10 @@ diesel::table! {
 diesel::joinable!(bids -> auctions (auction_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
-    accept_counter_offer,
     auctions,
     bids,
     domains,
     listings,
-    make_counter_offer,
-    offer_accepted,
-    offer_cancelled,
-    offer_declined,
-    offer_placed,
     offers,
     set_seal_config,
     set_service_fee,
