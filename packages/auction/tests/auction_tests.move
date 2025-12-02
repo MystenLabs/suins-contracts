@@ -40,7 +40,7 @@ module suins_auction::auction_tests
     const FIRST_DOMAIN_NAME: vector<u8> = b"tes-t2.sui";
     const SECOND_DOMAIN_NAME: vector<u8> = b"tesq.sui";
     const START_TIME: u64 = 100;
-    const AUCTION_ACTIVE_TIME: u64 = 100;
+    const AUCTION_ACTIVE_TIME: u64 = 3700;
     const END_TIME: u64 = START_TIME + AUCTION_ACTIVE_TIME;
     const SUI_LOW_BID: u64 = 5;
     const SUI_MIN_BID: u64 = 10;
@@ -111,6 +111,7 @@ module suins_auction::auction_tests
         start_time: u64,
         end_time: u64,
         min_bid: u64,
+        clock: &Clock,
     ) {
         test_scenario::next_tx(scenario, owner);
         {
@@ -127,6 +128,7 @@ module suins_auction::auction_tests
                 min_bid * mist_per_sui(),
                 option::none(),
                 registration,
+                clock,
                 ctx
             );
 
@@ -198,23 +200,23 @@ module suins_auction::auction_tests
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Increment the clock to the start time
         clock.increment_for_testing(START_TIME * MS);
 
-        // Create an auction
         create_auction<SUI>(
             scenario,
             DOMAIN_OWNER,
             START_TIME,
             END_TIME,
             SUI_MIN_BID,
+            &clock,
         );
 
-        // Increment the clock to auction active
-        clock.increment_for_testing(TICK_INCREMENT);
+        // Increment the clock to near the end of auction (within bid extension window)
+        // We want to be within 300 seconds of end_time to trigger extension
+        clock.increment_for_testing((AUCTION_ACTIVE_TIME - 50) * MS);
 
         // First address places a bid, auction time is extended
         place_bid<SUI>(scenario, FIRST_ADDRESS, FIRST_DOMAIN_NAME, SUI_FIRST_BID, &clock);
@@ -229,7 +231,7 @@ module suins_auction::auction_tests
             let auction = auction::get_auction<SUI>(table, FIRST_DOMAIN_NAME);
             assert!(auction::get_owner(auction) == DOMAIN_OWNER, 0);
             assert!(auction::get_start_time(auction) == START_TIME, 0);
-            assert!(auction::get_end_time(auction) == 410, 0); // auction extended by 5 minutes from now
+            assert!(auction::get_end_time(auction) == END_TIME + 250, 0); // auction extended by 5 minutes from (END_TIME - 50)
             assert!(auction::get_min_bid(auction) == SUI_MIN_BID * mist_per_sui(), 0);
             assert!(auction::get_highest_bidder(auction) == FIRST_ADDRESS, 0);
             assert!(auction::get_highest_bid_balance(auction).value() == SUI_FIRST_BID * mist_per_sui(), 0);
@@ -250,7 +252,7 @@ module suins_auction::auction_tests
             let auction = auction::get_auction<SUI>(table, FIRST_DOMAIN_NAME);
             assert!(auction::get_owner(auction) == DOMAIN_OWNER, 0);
             assert!(auction::get_start_time(auction) == START_TIME, 0);
-            assert!(auction::get_end_time(auction) == 410, 0);
+            assert!(auction::get_end_time(auction) == END_TIME + 250, 0);
             assert!(auction::get_min_bid(auction) == SUI_MIN_BID * mist_per_sui(), 0);
             assert!(auction::get_highest_bidder(auction) == SECOND_ADDRESS, 0);
             assert!(auction::get_highest_bid_balance(auction).value() == SUI_SECOND_BID * mist_per_sui(), 0);
@@ -305,7 +307,6 @@ module suins_auction::auction_tests
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Increment the clock to the start time
@@ -325,13 +326,13 @@ module suins_auction::auction_tests
             test_scenario::return_shared(offer_table);
         };
 
-        // Create an auction
         create_auction<TestCoin>(
             scenario,
             DOMAIN_OWNER,
             START_TIME,
             END_TIME + 300,
             SUI_MIN_BID,
+            &clock,
         );
 
         // Disallow the token, other operations still work
@@ -413,7 +414,6 @@ module suins_auction::auction_tests
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Increment the clock to the start time
@@ -485,7 +485,6 @@ module suins_auction::auction_tests
         let encrypted_object =
             x"0000000000000000000000000000000000000000000000000000000000000000011264000000000000007465732d74322e73756903bfd1d3ac3d6c37f03afe4d7c244e677f9b01fcbff79dae3394640a7944e5f5ab018fac4aefdc1ae21c00f745605297041e0f39667844068e3757d587c8039d1e3f029a0e57f118b817d7f60599157cad12d788a8562ee5dd1b098b7c25b25bd83f56030200a31c3d160d925b7ae42df403a9a9e15b303dae12ff0a44645ab9cca1343adf18a8bb8fdefa39856ddec304a14f061a720e76b9c41241308095a354b939b51cffcac0589a293260dc028fb4fb12a6c63ee3c8e8bdf74be725420cfa8404a6895703c85ccd9c91e704a87bd2e112bdfa71f428bc9622558d4baace8ccc5ce34de88299ffb7d83b5e7f1bb0e2bf5c0018fd2463066e0ac85b0667b8f6b8d886e681cfda6d6d06921e087b314c016a5475d801a008a83816770c767aeadc529ca007c6dee061fb65cadaca7cfbf0f29408682f2c9e1e8a0a874ebf1521f787cdea80be0108082c5c130d22f1cf0120000000000000000000000000000000000000000000000000000000000000a0015da95c0d4eee207717e0e54e5719cd8174254facd5590716c7037e544018e48d";
 
-        // Create an auction
         test_scenario::next_tx(scenario, DOMAIN_OWNER);
         {
             // Take the objects
@@ -501,6 +500,7 @@ module suins_auction::auction_tests
                 SUI_MIN_BID * mist_per_sui(),
                 option::some(encrypted_object),
                 registration,
+                &clock,
                 ctx
             );
 
@@ -587,7 +587,6 @@ module suins_auction::auction_tests
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Increment the clock to the start time
@@ -659,7 +658,6 @@ module suins_auction::auction_tests
         let encrypted_object =
             x"0000000000000000000000000000000000000000000000000000000000000000011264000000000000007465732d74322e73756903bfd1d3ac3d6c37f03afe4d7c244e677f9b01fcbff79dae3394640a7944e5f5ab018fac4aefdc1ae21c00f745605297041e0f39667844068e3757d587c8039d1e3f029a0e57f118b817d7f60599157cad12d788a8562ee5dd1b098b7c25b25bd83f56030200abef5d30709b490025bd3f62a91a248c95b285750e6a2fed204daeafa732e5e1eea2eae0dc5ba7d33b953a6c4ae617440ddbe9fc8218fc506bce611e2eef7b911707017ab21f95ff17b158acc057aa764892ae864415ca961cdc00e7119ae54603a467ae9212e40c753073344042ddec55b6c86dbaa485ea020c29aa67979e5b2e70b7e2d962ca783a44780ddd60e9965c2596bb3a23eb0b06dbbb263331140c8297d273e999496aa94875bba2e6a987171e1a87ba6a9ed68a97d24ebf0c60fdfb05ade79391c611bccc47313f79996ee8713d39413fd8e7435610effc43a89a860108d95573e5f13042f30120000000000000000000000000000000000000000000000000000000000000a0018e7c1898d73d195bde76ff7e6910d12979ed23702f83ac6bbc67679c76772b83";
 
-        // Create an auction
         test_scenario::next_tx(scenario, DOMAIN_OWNER);
         {
             // Take the objects
@@ -675,6 +673,7 @@ module suins_auction::auction_tests
                 SUI_MIN_BID * mist_per_sui(),
                 option::some(encrypted_object),
                 registration,
+                &clock,
                 ctx
             );
 
@@ -745,14 +744,69 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
+    #[test]
+    fun finalize_auction_with_expired_domain() {
+        let (mut scenario_val, mut clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        clock.increment_for_testing(START_TIME * MS);
+
+        // Create an auction
+        create_auction<SUI>(
+            scenario,
+            DOMAIN_OWNER,
+            START_TIME,
+            END_TIME,
+            SUI_MIN_BID,
+            &clock,
+        );
+
+        // Increment the clock to auction active
+        clock.increment_for_testing(TICK_INCREMENT);
+
+        // First address places a bid
+        place_bid<SUI>(scenario, FIRST_ADDRESS, FIRST_DOMAIN_NAME, SUI_FIRST_BID, &clock);
+      
+        let one_year_seconds = 365 * 24 * 60 * 60;
+        clock.increment_for_testing(one_year_seconds * MS);
+
+        // Finalize the auction
+        finalize_auction<SUI>(scenario, FIRST_DOMAIN_NAME, &clock);
+
+        // Verify the domain went back to owner (not the bidder) because it expired
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let auction_table = test_scenario::take_shared<AuctionTable>(scenario);
+            let table = auction::get_auction_table_bag(&auction_table);
+            assert!(table.length() == 0, 0);
+
+            // The bidder should get their money back
+            let refunded_bid = test_scenario::take_from_address<Coin<SUI>>(scenario, FIRST_ADDRESS);
+            assert!(coin::value(&refunded_bid) == SUI_FIRST_BID * mist_per_sui(), 0);
+            test_scenario::return_to_address(FIRST_ADDRESS, refunded_bid);
+
+            // The domain owner should have the domain back (not get payment)
+            let registration = test_scenario::take_from_address<SuinsRegistration>(scenario, DOMAIN_OWNER);
+            assert!(registration.domain() == domain::new(FIRST_DOMAIN_NAME.to_string()), 0);
+            test_scenario::return_to_address(DOMAIN_OWNER, registration);
+
+            test_scenario::return_shared(auction_table);
+        };
+
+        // Final cleanup
+        clock::destroy_for_testing(clock);
+        test_scenario::end(scenario_val);
+    }
+
     #[test, expected_failure(abort_code = auction::EEncryptionNoAccess)]
     fun try_auction_scenario_reserve_price_policy_error() {
-        use seal::key_server::{create_and_transfer_v1, KeyServer, destroy_for_testing as ks_destroy};
+        use seal::key_server::{create_and_transfer_v1, KeyServer};
 
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Increment the clock to the start time
@@ -824,7 +878,6 @@ module suins_auction::auction_tests
         let encrypted_object =
             x"0000000000000000000000000000000000000000000000000000000000000000011264000000000000007465732d74322e73756903bfd1d3ac3d6c37f03afe4d7c244e677f9b01fcbff79dae3394640a7944e5f5ab018fac4aefdc1ae21c00f745605297041e0f39667844068e3757d587c8039d1e3f029a0e57f118b817d7f60599157cad12d788a8562ee5dd1b098b7c25b25bd83f560302008443118fda35d1dc632e8335296c5e2d0303c0a0d4468320ecde888c7fabe46e397a1531533c189c81c9cba8ceb2d44b014bb71945db95cdcd4967e9ead2930913e1539a4e4e32fb438a8104b7bb2537e039c383693b8ac191d16efeea1489330362fd617641ed5dcbd3e75b1b5bb25d39864f003dfe632456e9c708151391552f306981724d6c84482cbb984771b5c586317ed854bfd503b36bfe47c7a69df58a66dfb3c383879fe2120da465676ce6eb60aa999490ed85e1cd1c9f2f87caf56cd846cd7be8e706dbaed6311dd560af50b5f512ff467dffd1925e6bb0a8779a2a0108a1917ddb046241710120000000000000000000000000000000000000000000000000000000000000a0019a70443ac3861ccf68debf267d3ab279267141c61e09f78af61fa34e479f7d65";
 
-        // Create an auction
         test_scenario::next_tx(scenario, DOMAIN_OWNER);
         {
             // Take the objects
@@ -840,6 +893,7 @@ module suins_auction::auction_tests
                 SUI_MIN_BID * mist_per_sui(),
                 option::some(encrypted_object),
                 registration,
+                &clock,
                 ctx
             );
 
@@ -865,19 +919,18 @@ module suins_auction::auction_tests
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Increment the clock to the start time
         clock.increment_for_testing(START_TIME * MS);
 
-        // Create an auction
         create_auction<TestCoin>(
             scenario,
             DOMAIN_OWNER,
             START_TIME,
             END_TIME + 300,
             SUI_MIN_BID,
+            &clock,
         );
 
         abort
@@ -888,19 +941,18 @@ module suins_auction::auction_tests
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Increment the clock to the start time
         clock.increment_for_testing(START_TIME * MS);
 
-        // Create an auction
         create_auction<SUI>(
             scenario,
             DOMAIN_OWNER,
             START_TIME,
             END_TIME,
             SUI_MIN_BID,
+            &clock,
         );
 
         test_scenario::next_tx(scenario, FIRST_ADDRESS);
@@ -923,16 +975,15 @@ module suins_auction::auction_tests
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
-        // Create an auction
         create_auction<SUI>(
             scenario,
             DOMAIN_OWNER,
             START_TIME,
             END_TIME,
             SUI_MIN_BID,
+            &clock,
         );
 
         // Increment the clock to auction active
@@ -949,16 +1000,15 @@ module suins_auction::auction_tests
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
-        // Create an auction
         create_auction<SUI>(
             scenario,
             DOMAIN_OWNER,
             START_TIME,
             END_TIME,
             SUI_MIN_BID,
+            &clock,
         );
 
         // Increment the clock to auction ended
@@ -975,16 +1025,120 @@ module suins_auction::auction_tests
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
-        // Create an auction
         create_auction<SUI>(
             scenario,
             DOMAIN_OWNER,
             END_TIME,
             START_TIME,
             SUI_MIN_BID,
+            &clock,
+        );
+
+        abort
+    }
+
+    #[test, expected_failure(abort_code = auction::ETooEarly)]
+    fun try_create_auction_end_time_in_past() {
+        let (mut scenario_val, mut clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        // Increment the clock to a point where end_time will be in the past
+        clock.increment_for_testing(START_TIME * MS);
+
+        create_auction<SUI>(
+            scenario,
+            DOMAIN_OWNER,
+            START_TIME - 1,
+            START_TIME, // end_time equals now
+            SUI_MIN_BID,
+            &clock,
+        );
+
+        abort
+    }
+
+    #[test, expected_failure(abort_code = auction::ETimeTooShort)]
+    fun try_create_auction_duration_too_short() {
+        let (mut scenario_val, clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        create_auction<SUI>(
+            scenario,
+            DOMAIN_OWNER,
+            START_TIME,
+            START_TIME + 3599, // Duration just under the 3600 minimum
+            SUI_MIN_BID,
+            &clock,
+        );
+
+        abort
+    }
+
+    #[test, expected_failure(abort_code = auction::ETimeTooLong)]
+    fun try_create_auction_duration_too_long() {
+        let (mut scenario_val, clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        create_auction<SUI>(
+            scenario,
+            DOMAIN_OWNER,
+            START_TIME,
+            START_TIME + 30 * 24 * 60 * 60  + 1, // Duration just over the 30 day maximum
+            SUI_MIN_BID,
+            &clock,
+        );
+
+        abort
+    }
+
+    #[test, expected_failure(abort_code = auction::EStartTooLate)]
+    fun try_create_auction_start_too_late() {
+        let (mut scenario_val, clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        create_auction<SUI>(
+            scenario,
+            DOMAIN_OWNER,
+            30 * 24 * 60 * 60 + 1, // start_time is just over the 30 day maximum
+            30 * 24 * 60 * 60 + 1 + 3600,
+            SUI_MIN_BID,
+            &clock,
+        );
+
+        abort
+    }
+
+    #[test, expected_failure(abort_code = auction::EDomainWillExpire)]
+    fun try_create_auction_domain_will_expire() {
+        let (mut scenario_val, mut clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        // Advance clock to near the domain expiration (1 year - 10000 seconds)
+        // This leaves 10,000 seconds until domain expires
+        let one_year_seconds = 365 * 24 * 60 * 60;
+        let time_advance = one_year_seconds - 10000;
+        clock.increment_for_testing(time_advance * MS);
+
+
+        create_auction<SUI>(
+            scenario,
+            DOMAIN_OWNER,
+            time_advance,
+            time_advance + 7200, // domain expires with less than 1 hour time after auction ends
+            SUI_MIN_BID,
+            &clock,
         );
 
         abort
@@ -995,19 +1149,18 @@ module suins_auction::auction_tests
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Increment the clock to the start time
         clock.increment_for_testing(START_TIME * MS);
 
-        // Create an auction
         create_auction<SUI>(
             scenario,
             DOMAIN_OWNER,
             START_TIME,
             END_TIME,
             SUI_MIN_BID,
+            &clock,
         );
 
         // Increment the clock to auction active
@@ -1024,19 +1177,18 @@ module suins_auction::auction_tests
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Increment the clock to the start time
         clock.increment_for_testing(START_TIME * MS);
 
-        // Create an auction
         create_auction<SUI>(
             scenario,
             DOMAIN_OWNER,
             START_TIME,
             END_TIME,
             SUI_MIN_BID,
+            &clock,
         );
 
         // Increment the clock to auction active
@@ -1056,19 +1208,18 @@ module suins_auction::auction_tests
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Increment the clock to the start time
         clock.increment_for_testing(START_TIME * MS);
 
-        // Create an auction
         create_auction<SUI>(
             scenario,
             DOMAIN_OWNER,
             START_TIME,
             END_TIME,
             SUI_MIN_BID,
+            &clock,
         );
 
         // Increment the clock to auction active
@@ -1080,24 +1231,75 @@ module suins_auction::auction_tests
         abort
     }
 
-    #[test, expected_failure(abort_code = auction::EEnded)]
-    fun try_cancel_ended_auction() {
+    #[test]
+    fun cancel_auction_successfully() {
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Increment the clock to the start time
         clock.increment_for_testing(START_TIME * MS);
 
-        // Create an auction
         create_auction<SUI>(
             scenario,
             DOMAIN_OWNER,
             START_TIME,
             END_TIME,
             SUI_MIN_BID,
+            &clock,
+        );
+
+        // Cancel the auction (no bids have been placed)
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
+            let ctx = test_scenario::ctx(scenario);
+            let registration = auction::cancel_auction<SUI>(
+                &mut auction_table,
+                FIRST_DOMAIN_NAME.to_string(),
+                &clock,
+                ctx
+            );
+            transfer::public_transfer(registration, DOMAIN_OWNER);
+            test_scenario::return_shared(auction_table);
+        };
+
+        // Verify auction is removed and owner has the domain back
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let auction_table = test_scenario::take_shared<AuctionTable>(scenario);
+            let table = auction::get_auction_table_bag(&auction_table);
+            assert!(table.length() == 0, 0);
+            test_scenario::return_shared(auction_table);
+
+            let registration = test_scenario::take_from_address<SuinsRegistration>(scenario, DOMAIN_OWNER);
+            assert!(registration.domain() == domain::new(FIRST_DOMAIN_NAME.to_string()), 0);
+            test_scenario::return_to_address(DOMAIN_OWNER, registration);
+        };
+
+        // Final cleanup
+        clock::destroy_for_testing(clock);
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = auction::EEnded)]
+    fun try_cancel_ended_auction() {
+        let (mut scenario_val, mut clock) = setup_test();
+        let scenario = &mut scenario_val;
+        
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        // Increment the clock to the start time
+        clock.increment_for_testing(START_TIME * MS);
+
+        create_auction<SUI>(
+            scenario,
+            DOMAIN_OWNER,
+            START_TIME,
+            END_TIME,
+            SUI_MIN_BID,
+            &clock,
         );
 
         // Increment the clock to auction ended
@@ -1119,24 +1321,67 @@ module suins_auction::auction_tests
         abort
     }
 
-    #[test, expected_failure(abort_code = auction::ENotAuctioned)]
-    fun try_place_bid_not_auctioned_domain() {
+    #[test, expected_failure(abort_code = auction::EAlreadyHasBid)]
+    fun try_cancel_auction_with_bid() {
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Increment the clock to the start time
         clock.increment_for_testing(START_TIME * MS);
 
-        // Create an auction
         create_auction<SUI>(
             scenario,
             DOMAIN_OWNER,
             START_TIME,
             END_TIME,
             SUI_MIN_BID,
+            &clock,
+        );
+
+        // Increment the clock to auction active
+        clock.increment_for_testing(TICK_INCREMENT);
+
+        // First address places a bid
+        place_bid<SUI>(scenario, FIRST_ADDRESS, FIRST_DOMAIN_NAME, SUI_FIRST_BID, &clock);
+
+        // Try to cancel the auction (should fail because there's a bid)
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let mut auction_table = test_scenario::take_shared<AuctionTable>(scenario);
+            let ctx = test_scenario::ctx(scenario);
+            let registration = auction::cancel_auction<SUI>(
+                &mut auction_table,
+                FIRST_DOMAIN_NAME.to_string(),
+                &clock,
+                ctx
+            );
+            transfer::public_transfer(registration, DOMAIN_OWNER);
+            test_scenario::return_shared(auction_table);
+        };
+
+        abort
+    }
+
+    #[test, expected_failure(abort_code = auction::ENotAuctioned)]
+    fun try_place_bid_not_auctioned_domain() {
+        let (mut scenario_val, mut clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        // Increment the clock to the start time
+        clock.increment_for_testing(START_TIME * MS);
+
+        create_auction<SUI>(
+            scenario,
+            DOMAIN_OWNER,
+            START_TIME,
+            END_TIME,
+            SUI_MIN_BID,
+            &clock,
         );
 
         // Increment the clock to auction active
@@ -1153,7 +1398,6 @@ module suins_auction::auction_tests
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Place an offer
@@ -1233,7 +1477,6 @@ module suins_auction::auction_tests
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Allow token
@@ -1344,7 +1587,6 @@ module suins_auction::auction_tests
 
         clock.increment_for_testing(1 * MS);
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Place an offer
@@ -1429,7 +1671,6 @@ module suins_auction::auction_tests
 
         clock.increment_for_testing(1 * MS);
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Place an offer
@@ -1465,7 +1706,6 @@ module suins_auction::auction_tests
 
         clock.increment_for_testing(1 * MS);
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Place an offer
@@ -1534,7 +1774,6 @@ module suins_auction::auction_tests
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Place an offer
@@ -1566,7 +1805,6 @@ module suins_auction::auction_tests
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Place an offer
@@ -1826,7 +2064,6 @@ module suins_auction::auction_tests
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Place an offer
@@ -1991,7 +2228,6 @@ module suins_auction::auction_tests
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Place an offer
@@ -2097,7 +2333,6 @@ module suins_auction::auction_tests
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Place an offer
@@ -2171,10 +2406,9 @@ module suins_auction::auction_tests
 
     #[test, expected_failure(abort_code = offer::EDomainNotOffered)]
     fun try_make_counteroffer_on_non_existent_offer() {
-        let (mut scenario_val, clock) = setup_test();
+        let (mut scenario_val, _clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Make a counter offer
@@ -2206,7 +2440,6 @@ module suins_auction::auction_tests
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Place an offer
@@ -2280,10 +2513,9 @@ module suins_auction::auction_tests
 
     #[test, expected_failure(abort_code = auction::ENotUpgrade)]
     fun try_call_with_wrong_auction_table_version() {
-        let (mut scenario_val, clock) = setup_test();
+        let (mut scenario_val, _clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Migrate
@@ -2364,7 +2596,7 @@ module suins_auction::auction_tests
 
     #[test, expected_failure(abort_code = auction::EInvalidThreshold)]
     fun try_set_seal_config_invalid_threshold() {
-        let (mut scenario_val, clock) = setup_test();
+        let (mut scenario_val, _clock) = setup_test();
         let scenario = &mut scenario_val;
 
         // Set first config
@@ -2384,7 +2616,7 @@ module suins_auction::auction_tests
 
     #[test, expected_failure(abort_code = auction::EInvalidKeyLengths)]
     fun try_set_seal_config_invalid_key_lengths() {
-        let (mut scenario_val, clock) = setup_test();
+        let (mut scenario_val, _clock) = setup_test();
         let scenario = &mut scenario_val;
 
         // Set first config
@@ -2454,7 +2686,7 @@ module suins_auction::auction_tests
 
     #[test, expected_failure(abort_code = auction::EInvalidServiceFee)]
     fun try_set_service_fee_invalid() {
-        let (mut scenario_val, clock) = setup_test();
+        let (mut scenario_val, _clock) = setup_test();
         let scenario = &mut scenario_val;
 
         // Try to set service fee >= 100%
@@ -2482,7 +2714,7 @@ module suins_auction::auction_tests
         // Create auction for first domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
         clock.increment_for_testing(START_TIME * MS);
-        create_auction<SUI>(scenario, DOMAIN_OWNER, START_TIME, END_TIME, SUI_MIN_BID);
+        create_auction<SUI>(scenario, DOMAIN_OWNER, START_TIME, END_TIME, SUI_MIN_BID, &clock);
         clock.increment_for_testing(TICK_INCREMENT);
         place_bid<SUI>(scenario, SECOND_ADDRESS, FIRST_DOMAIN_NAME, SUI_SECOND_BID, &clock);
         clock.increment_for_testing((AUCTION_ACTIVE_TIME + 300) * MS);
@@ -2622,7 +2854,6 @@ module suins_auction::auction_tests
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Create a listing with a fixed price
@@ -2712,7 +2943,6 @@ module suins_auction::auction_tests
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Allow token
@@ -2832,7 +3062,6 @@ module suins_auction::auction_tests
 
         clock.increment_for_testing(1 * MS);
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Create a listing with expiration
@@ -2902,7 +3131,6 @@ module suins_auction::auction_tests
 
         clock.increment_for_testing(1 * MS);
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Try to create a listing with expires_at in the past
@@ -2934,7 +3162,6 @@ module suins_auction::auction_tests
 
         clock.increment_for_testing(1 * MS);
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Create a listing with expiration
@@ -2989,7 +3216,6 @@ module suins_auction::auction_tests
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Try to create a listing with TestCoin (not allowed)
@@ -3093,7 +3319,6 @@ module suins_auction::auction_tests
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain for DOMAIN_OWNER
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Create a listing as DOMAIN_OWNER
@@ -3139,7 +3364,6 @@ module suins_auction::auction_tests
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        // Generate a new domain for DOMAIN_OWNER
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Create a listing as DOMAIN_OWNER

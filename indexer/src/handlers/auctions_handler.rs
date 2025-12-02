@@ -172,7 +172,7 @@ impl Handler for AuctionsHandlerPipeline {
 
                     info!(
                         "Finalized auction {} for domain {}, winner {}",
-                        auction_finalized.auction_id, domain_name, auction_finalized.winner
+                        auction_finalized.auction_id, domain_name, auction_finalized.highest_bidder
                     );
 
                     diesel::update(
@@ -182,7 +182,7 @@ impl Handler for AuctionsHandlerPipeline {
                     )
                     .set(UpdateAuction {
                         reserve_price: Some(Some(auction_finalized.reserve_price as i64)),
-                        winner: Some(Some(auction_finalized.winner.to_string())),
+                        winner: Some(Some(auction_finalized.highest_bidder.to_string())),
                         amount: Some(Some(auction_finalized.amount.to_string())),
                         status: AuctionStatus::Finalized,
                         updated_at: value.created_at,
