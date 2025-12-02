@@ -28,7 +28,9 @@ use suins_auction::offer::{
 use suins_auction::constants::{
     bid_extend_time,
     default_fee_percentage,
+    max_auction_time,
     max_percentage,
+    min_auction_time,
     version,
 };
 
@@ -37,25 +39,30 @@ const ENotOwner: u64 = 0;
 const ETooEarly: u64 = 1;
 const ETooLate: u64 = 2;
 const EWrongTime: u64 = 3;
-const EBidTooLow: u64 = 4;
-const ENotEnded: u64 = 5;
-const EEnded: u64 = 6;
-const ENotAuctioned: u64 = 7;
-const ENotUpgrade: u64 = 8;
-const EDifferentVersions: u64 = 9;
-const EInvalidAuctionTableVersion: u64 = 10;
-const ECannotRemoveSui: u64 = 11;
-const ETokenNotAllowed: u64 = 12;
-const EInvalidEncryptionSender: u64 = 13;
-const EInvalidEncryptionServers: u64 = 14;
-const EInvalidEncryptionThreshold: u64 = 15;
-const EInvalidEncryptionId: u64 = 16;
-const EInvalidEncryptionPackageId: u64 = 17;
-const EEncryptionNoAccess: u64 = 18;
-const EEncryptionNoKeys: u64 = 19;
-const EInvalidThreshold: u64 = 20;
-const EInvalidKeyLengths: u64 = 21;
-const EInvalidServiceFee: u64 = 22;
+const ETimeTooShort: u64 = 4;
+const ETimeTooLong: u64 = 5;
+const EStartTooLate: u64 = 6;
+const EDomainWillExpire: u64 = 7;
+const EBidTooLow: u64 = 8;
+const ENotEnded: u64 = 9;
+const EEnded: u64 = 10;
+const EAlreadyHasBid: u64 = 11;
+const ENotAuctioned: u64 = 12;
+const ENotUpgrade: u64 = 13;
+const EDifferentVersions: u64 = 14;
+const EInvalidAuctionTableVersion: u64 = 15;
+const ECannotRemoveSui: u64 = 16;
+const ETokenNotAllowed: u64 = 17;
+const EInvalidEncryptionSender: u64 = 18;
+const EInvalidEncryptionServers: u64 = 19;
+const EInvalidEncryptionThreshold: u64 = 20;
+const EInvalidEncryptionId: u64 = 21;
+const EInvalidEncryptionPackageId: u64 = 22;
+const EEncryptionNoAccess: u64 = 23;
+const EEncryptionNoKeys: u64 = 24;
+const EInvalidThreshold: u64 = 25;
+const EInvalidKeyLengths: u64 = 26;
+const EInvalidServiceFee: u64 = 27;
 
 /// Authorization witness to call protected functions of suins.
 public struct AuctionWitness has drop {}
@@ -120,7 +127,7 @@ public struct BidPlacedEvent has copy, drop {
 public struct AuctionFinalizedEvent has copy, drop {
     auction_id: ID,
     domain_name: String,
-    winner: address,
+    highest_bidder: address,
     amount: u64,
     reserve_price: u64,
     token: TypeName,
@@ -332,10 +339,18 @@ public fun create_auction<T>(
     min_bid: u64,
     encrypted_reserve_price: Option<vector<u8>>,
     suins_registration: SuinsRegistration,
+    clock: &Clock,
     ctx: &mut TxContext
 ) {
+    let now = clock.timestamp_ms() / 1000;
+
     assert!(auction_table.is_valid_auction_version(), EInvalidAuctionTableVersion);
     assert!(end_time > start_time, EWrongTime);
+    assert!(end_time > now, ETooEarly);
+    assert!(end_time - start_time >= min_auction_time(), ETimeTooShort);
+    assert!(end_time - start_time <= max_auction_time(), ETimeTooLong);
+    assert!(start_time <= now + max_auction_time(), EStartTooLate);
+    assert!(suins_registration.expiration_timestamp_ms() / 1000 > end_time + min_auction_time(), EDomainWillExpire);
 
     let token = type_name::with_defining_ids<T>();
 
@@ -484,15 +499,15 @@ public fun finalize_auction<T>(
         );
     };
 
-    let mut highest_bid_value = highest_bid_balance.value();
+    let mut highest_bid = highest_bid_balance.value();
 
-    if (highest_bid_value > 0) {
-        // Highest big only wins if higher than the reserve price
-        if (highest_bid_value >= actual_reserve_price) {
+    if (highest_bid > 0) {
+        // Highest big only wins if higher than the reserve price and registration is not expired
+        if (highest_bid >= actual_reserve_price && !suins_registration.has_expired(clock)) {
             // Deduct service fee
             let fee_amount = subtract_fee<T>(&mut auction_table.fees, &mut highest_bid_balance, auction_table.service_fee);
 
-            highest_bid_value = highest_bid_value - fee_amount;
+            highest_bid = highest_bid - fee_amount;
 
             set_target_address(suins, &suins_registration, option::some(highest_bidder), clock);
             transfer::public_transfer(highest_bid_balance.into_coin(ctx), owner);
@@ -509,8 +524,8 @@ public fun finalize_auction<T>(
     event::emit(AuctionFinalizedEvent {
         auction_id,
         domain_name,
-        winner: highest_bidder,
-        amount: highest_bid_value,
+        highest_bidder,
+        amount: highest_bid,
         reserve_price: actual_reserve_price,
         token: type_name::with_defining_ids<T>(),
     });
@@ -548,11 +563,9 @@ public fun cancel_auction<T>(
     let now = clock.timestamp_ms() / 1000;
     assert!(now < end_time, EEnded);
 
-    if (highest_bid_balance.value() > 0) {
-        transfer::public_transfer(highest_bid_balance.into_coin(ctx), highest_bidder);
-    } else {
-        highest_bid_balance.destroy_zero();
-    };
+    assert!(highest_bid_balance.value() == 0, EAlreadyHasBid);
+
+    highest_bid_balance.destroy_zero();
 
     object::delete(id);
 

@@ -80,7 +80,7 @@ pub struct BidPlacedEvent {
 pub struct AuctionFinalizedEvent {
     pub auction_id: sui_types::base_types::ObjectID,
     pub domain_name: Vec<u8>,
-    pub winner: sui_types::base_types::SuiAddress,
+    pub highest_bidder: sui_types::base_types::SuiAddress,
     pub amount: u64,
     pub reserve_price: u64,
     pub token: String,
