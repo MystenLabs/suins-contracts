@@ -1,12 +1,36 @@
 ---
 title: SuiNS Communities
+description: SuiNS Communities is a social identity layer on Sui that enables you to join ecosystem-specific communities, claim subnames, and access community features with real-time analytics and social tooling.
+keywords:
+  - SuiNS Communities
+  - Sui blockchain
+  - subnames
+  - community membership
+  - social identity
+  - NFT requirements
+  - token requirements
+  - wallet age
+  - community creation
+  - subname faucet
+  - WHO requirements
+  - FEE requirements
 ---
 
-SuiNS Communities is a social identity layer on Sui. You can join ecosystem-specific communities by claiming subnames and unlock access to community-specific features, analytics, and subname distribution mechanics. Each community owns a dynamic community page, with real-time stats, token and NFT insights, as well as social layer tooling.
+SuiNS Communities is a social identity layer on Sui. You can join ecosystem-specific communities by claiming subnames to unlock access to community-specific features, analytics, and subname distribution mechanics. Each community owns a dynamic community page, with real-time stats, token and NFT insights, as well as social layer tooling.
+
+The SuiNS Communities home page displays community-wide data, analytics, and social update widgets:
+
+- **Community Showcase:** Displays the avatars for the top projects as voted on by the SuiNS community.
+- **Community Growth:** Displays a hyperlinked, ordered list of the top communities based on number of subnames.
+- **Top Communities:** Displays a bubble chart of top communities. A larger circle equals more subnames.
+- **Trending Community updates:** Displays related social feed activity across SuiNS Communities.
+- Additional widgets provide overviews on community status, health, and activity.
 
 ## Community pages
 
-The entry point to every community is through a dedicated landing page. This is where SuiNS Communities gathers community information and social feeds of community interest. 
+The entry point to every community is through a dedicated landing page. This is where SuiNS Communities gathers community information and social feeds of community interest.
+
+**TODO: Is there a search that I'm missing?**
 
 ## WHO requirements {#who}
 
@@ -45,7 +69,7 @@ To join:
 1. Approve the transaction from your wallet to pay for gas and possible FEE requirement.
 1. If successful, the dialog closes and you should now see your avatar in the **Community Members** section.
 </div>
-<div class="w-[600px] pl-8">
+<div className="w-[600px] pl-8">
 ![Join dialog](./images/join-dialog.png)
 </div>
 </div>
@@ -80,7 +104,7 @@ Include a description for your community. The description is important to help p
 
 **Community Intro** provides an initial overview of your community. The introduction is short but should be descriptive enough to entice potential members to learn more.
 
-**Community Description** provides a more detailed description of the community. The description informs potential members about the community so that they can decide if interests align with their own.
+**Community Description** provides a more detailed description of the community. The description informs potential members about the community so that they can decide if the community's interests align with their own.
 
 Both fields are limited to a finite number of characters. It's more effective and makes better use of the limited space if you do not repeat the introduction in the description. The goal is to provide an overview of the community so those interested can make an informed decision if they want to join.
 
@@ -100,9 +124,9 @@ You can also add **Top X Followers** to include links to their X profile and upd
 
 ### Enable subname faucet
 
-Decide if you want to enable the community's subname faucet. The subname faucet allows joining members to mint a subname to the community name. If allowed, members create a name when joining the community. The name appears in the form `{member_name}@{community_name}`. 
+Decide if you want to enable the community's subname faucet. The subname faucet allows joining members to mint a subname that is attached to the community. If allowed, members create a name when joining the community. The name appears in the form `{member_name}@{community_name}`. 
 
-There is a one-time fee for turning this feature on. If you decide to enable it, switch the toggle. When enabled, the toggle turns green and the **Acceptance Criteria** section appears. Use the relevant fields to require certain assets that a potential member must possess to join the community. You can use the buttons under each field to add additional requirements of that type. If the wallet owns any one of these requirements, then they meet the [WHO requirement](#who).
+There is a one-time fee for turning this feature on. If you decide to enable it, switch the toggle. When enabled, the toggle turns green and the **Acceptance Criteria** section appears. Use the relevant fields to require certain assets that a potential member must possess to join the community. You can use the buttons under each field to add additional requirements of that type. If the wallet owns any one of the required assets, then it meets the [WHO requirement](#who).
 
 If you want to charge a fee to create a subname, enable the **Fee for Subname Creation** toggle. The address to receive the proceeds is automatically set to the owner's address and cannot be changed. Set the fee amount in the final field.
 
