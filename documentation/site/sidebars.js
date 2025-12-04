@@ -34,7 +34,6 @@ const sidebars = {
 			items: ['developer/sdk/querying', 'developer/sdk/transactions'],
 		},
 	],
-	communitySidebar: ['communities'],
 	mvrSidebar: [
 		'move-registry',
 		'move-registry/managing-package-info',

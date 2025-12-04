@@ -126,12 +126,6 @@ const config = {
             position: "right",
             label: "SuiNS",
           },
-          /*{
-            type: "docSidebar",
-            sidebarId: "communitySidebar",
-            position: "right",
-            label: "Communities",
-          },*/
           {
             type: "docSidebar",
             sidebarId: "mvrSidebar",
