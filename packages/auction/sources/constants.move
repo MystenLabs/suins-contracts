@@ -5,6 +5,7 @@ module suins_auction::constants;
 const VERSION: u64 = 1;
 const BID_EXTEND_TIME: u64 = 5 * 60; // 5 minutes
 const MAX_PERCENTAGE: u64 = 100_000; // 100%
+const MIN_BID_INCREASE_PERCENTAGE: u64 = 1_000; // 1%
 const DEFAULT_FEE_PERCENTAGE: u64 = 2_500; // 2.5%
 const MIN_AUCTION_TIME: u64 = 60 * 60; // 1 hour
 const MAX_AUCTION_TIME: u64 = 30 * 24 * 60 * 60; // 30 days
@@ -19,6 +20,9 @@ public fun bid_extend_time(): u64 { BID_EXTEND_TIME }
 
 /// Returns the maximum percentage value
 public fun max_percentage(): u64 { MAX_PERCENTAGE }
+
+/// Returns the minimum bid increase percentage
+public fun min_bid_increase_percentage(): u64 { MIN_BID_INCREASE_PERCENTAGE }
 
 /// Returns the default service fee percentage
 public fun default_fee_percentage(): u64 { DEFAULT_FEE_PERCENTAGE }
