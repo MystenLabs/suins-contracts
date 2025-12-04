@@ -1203,6 +1203,37 @@ module suins_auction::auction_tests
         abort
     }
 
+    #[test, expected_failure(abort_code = auction::EBidTooLow)]
+    fun try_place_bid_lower_than_min_bid_increase_percentage() {
+        let (mut scenario_val, mut clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        // Increment the clock to the start time
+        clock.increment_for_testing(START_TIME * MS);
+
+        create_auction<SUI>(
+            scenario,
+            DOMAIN_OWNER,
+            START_TIME,
+            END_TIME,
+            SUI_MIN_BID,
+            &clock,
+        );
+
+        // Increment the clock to auction active
+        clock.increment_for_testing(TICK_INCREMENT);
+
+        // First address places a bid
+        place_bid<SUI>(scenario, FIRST_ADDRESS, FIRST_DOMAIN_NAME, 200, &clock);
+
+        // Second address places a bid that is not large enough (0.5% larger not 1% larger)
+        place_bid<SUI>(scenario, SECOND_ADDRESS, FIRST_DOMAIN_NAME, 201, &clock);
+
+        abort
+    }
+
     #[test, expected_failure(abort_code = auction::ENotEnded)]
     fun try_finalize_auction_not_ended() {
         let (mut scenario_val, mut clock) = setup_test();

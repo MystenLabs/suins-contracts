@@ -31,6 +31,7 @@ use suins_auction::constants::{
     max_auction_time,
     max_percentage,
     min_auction_time,
+    min_bid_increase_percentage,
     version,
 };
 
@@ -426,7 +427,14 @@ public fun place_bid<T>(
 
     let bid_amount = coin.value();
     let highest_bid_value = auction.highest_bid_balance.value();
-    assert!(bid_amount >= auction.min_bid && bid_amount > highest_bid_value, EBidTooLow);
+
+    assert!(bid_amount >= auction.min_bid, EBidTooLow);
+
+    if (highest_bid_value > 0) {
+        let min_increase = (highest_bid_value * min_bid_increase_percentage()) / max_percentage();
+        let min_required_bid = highest_bid_value + min_increase;
+        assert!(bid_amount >= min_required_bid, EBidTooLow);
+    };
 
     // If bid in last minutes, extend auction by minutes
     if (auction.end_time - now < bid_extend_time()) {
@@ -552,7 +560,7 @@ public fun cancel_auction<T>(
         end_time,
         min_bid: _,
         reserve_price: _,
-        highest_bidder,
+        highest_bidder: _,
         highest_bid_balance,
         suins_registration,
     } = auction;

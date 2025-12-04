@@ -4,7 +4,7 @@ edition = "2024.beta"
 
 [dependencies]
 suins = { local = "../suins" }
-seal = { git = "git@github.com:MystenLabs/seal.git", subdir = "move/seal", rev = "main" }
+seal = { git = "git@github.com:MystenLabs/seal.git", subdir = "move/seal", rev = "3eae7967484e631d07dfced2b541330949bf21dc" }
 
 # To resolve a version conflict and force a specific version for dependency
 # override use `override = true`
