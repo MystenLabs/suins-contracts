@@ -55,7 +55,7 @@ const config = {
     [
       require.resolve("./src/plugins/plausible"),
       {
-        domain: "docs.sui.io",
+        domain: "docs.suins.io",
         enableInDev: false,
         trackOutboundLinks: true,
         hashMode: false,
