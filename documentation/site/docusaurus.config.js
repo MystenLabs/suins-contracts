@@ -52,6 +52,16 @@ const config = {
   ],
   plugins: [
     "docusaurus-plugin-copy-page-button",
+    [
+      require.resolve("./src/plugins/plausible"),
+      {
+        domain: "docs.sui.io",
+        enableInDev: false,
+        trackOutboundLinks: true,
+        hashMode: false,
+        trackLocalhost: false,
+      },
+    ],
     function docsAliasPlugin() {
       return {
         name: "docs-alias-plugin",
