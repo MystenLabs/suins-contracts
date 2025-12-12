@@ -10,10 +10,11 @@ use sui::{
     object_bag::{Self, ObjectBag},
     table::{Self, Table}
 };
-use suins::{controller::set_target_address, suins::SuiNS, suins_registration::SuinsRegistration};
+use suins::{controller::set_target_address, domain, registry::Registry, suins::SuiNS, suins_registration::SuinsRegistration};
 use suins_auction::constants::{
     default_fee_percentage,
     max_percentage,
+    min_auction_time,
     version as package_version,
 };
 
@@ -30,6 +31,9 @@ const EOfferExpired: u64 = 9;
 const ENotListed: u64 = 10;
 const EListingExpired: u64 = 11;
 const ENotListingOwner: u64 = 12;
+const ENameNotFound: u64 = 13;
+const ENameExpired: u64 = 14;
+const EDomainWillExpire: u64 = 15;
 
 /// Table mapping domain to Offers and addresses that have made Offers
 public struct OfferTable has key {
@@ -138,6 +142,7 @@ public struct ListingCancelledEvent has copy, drop {
 
 /// Place an offer on a domain
 public fun place_offer<T>(
+    suins: &mut SuiNS,
     offer_table: &mut OfferTable,
     domain_name: String,
     coin: Coin<T>,
@@ -152,9 +157,16 @@ public fun place_offer<T>(
 
     assert!(offer_table.allowed_tokens.contains(token), ETokenNotAllowed);
 
+    let mut name_record = suins.registry<Registry>().lookup(domain::new(domain_name));
+    assert!(name_record.is_some(), ENameNotFound);
+
+    let name_record = name_record.extract();
+    assert!(!name_record.has_expired(clock), ENameExpired);
+
     if (expires_at.is_some()) {
         let now = clock.timestamp_ms() / 1000;
         assert!(*expires_at.borrow() > now, EInvalidExpiresAt);
+        assert!(name_record.expiration_timestamp_ms() / 1000 > *expires_at.borrow() + min_auction_time(), EDomainWillExpire);
     };
 
     let coin_value = coin.value();
@@ -244,7 +256,9 @@ public fun accept_offer<T>(
 
     balance_value = balance_value - fee_amount;
 
-    set_target_address(suins, &suins_registration, option::some(address), clock);
+    if (!suins_registration.has_expired(clock)) {
+      set_target_address(suins, &suins_registration, option::some(address), clock);
+    };
     transfer::public_transfer(suins_registration, address);
 
     event::emit(OfferAcceptedEvent {
@@ -355,9 +369,12 @@ public fun create_listing<T>(
     let token = type_name::with_defining_ids<T>();
     assert!(offer_table.allowed_tokens.contains(token), ETokenNotAllowed);
 
+    assert!(!suins_registration.has_expired(clock), ENameExpired);
+
     if (expires_at.is_some()) {
         let now = clock.timestamp_ms() / 1000;
         assert!(*expires_at.borrow() > now, EInvalidExpiresAt);
+        assert!(suins_registration.expiration_timestamp_ms() / 1000 > *expires_at.borrow() + min_auction_time(), EDomainWillExpire);
     };
 
     let domain = suins_registration.domain();
@@ -427,8 +444,9 @@ public fun buy_listing<T>(
 
     let buyer = ctx.sender();
 
-    // Transfer domain to buyer
-    set_target_address(suins, &suins_registration, option::some(buyer), clock);
+    if (!suins_registration.has_expired(clock)) {
+        set_target_address(suins, &suins_registration, option::some(buyer), clock);
+    };
 
     event::emit(ListingBoughtEvent {
         listing_id,

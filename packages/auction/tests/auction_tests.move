@@ -38,7 +38,7 @@ module suins_auction::auction_tests
     const FIRST_ADDRESS: address = @0xB001;
     const SECOND_ADDRESS: address = @0xB002;
     const FIRST_DOMAIN_NAME: vector<u8> = b"tes-t2.sui";
-    const SECOND_DOMAIN_NAME: vector<u8> = b"tesq.sui";
+    const SECOND_DOMAIN_NAME: vector<u8> = b"tes-t3.sui";
     const START_TIME: u64 = 100;
     const AUCTION_ACTIVE_TIME: u64 = 3700;
     const END_TIME: u64 = START_TIME + AUCTION_ACTIVE_TIME;
@@ -1400,7 +1400,6 @@ module suins_auction::auction_tests
         let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
 
-        
         generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Increment the clock to the start time
@@ -1435,6 +1434,7 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, FIRST_ADDRESS);
         {
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
             let ctx = test_scenario::ctx(scenario);
 
             // Create test SUI coins for the offer
@@ -1442,6 +1442,7 @@ module suins_auction::auction_tests
 
             // Place the offer
             offer::place_offer(
+                &mut suins,
                 &mut offer_table,
                 FIRST_DOMAIN_NAME.to_string(),
                 payment,
@@ -1450,6 +1451,7 @@ module suins_auction::auction_tests
 
             // Clean up
             test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
         };
 
         // Verify the offer was placed correctly
@@ -1528,6 +1530,7 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, FIRST_ADDRESS);
         {
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
             let ctx = test_scenario::ctx(scenario);
 
             // Create test SUI coins for the offer
@@ -1535,6 +1538,7 @@ module suins_auction::auction_tests
 
             // Place the offer
             offer::place_offer(
+                &mut suins,
                 &mut offer_table,
                 FIRST_DOMAIN_NAME.to_string(),
                 payment,
@@ -1543,6 +1547,7 @@ module suins_auction::auction_tests
 
             // Clean up
             test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
         };
 
         // Disallow the token, other operations still work
@@ -1624,6 +1629,7 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, FIRST_ADDRESS);
         {
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
             let ctx = test_scenario::ctx(scenario);
 
             // Create test SUI coins for the offer
@@ -1631,6 +1637,7 @@ module suins_auction::auction_tests
 
             // Place the offer
             offer::place_offer(
+                &mut suins,
                 &mut offer_table,
                 FIRST_DOMAIN_NAME.to_string(),
                 payment,
@@ -1641,6 +1648,7 @@ module suins_auction::auction_tests
 
             // Clean up
             test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
         };
 
         // Verify the offer was placed correctly
@@ -1708,6 +1716,7 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, FIRST_ADDRESS);
         {
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
             let ctx = test_scenario::ctx(scenario);
 
             // Create test SUI coins for the offer
@@ -1715,6 +1724,7 @@ module suins_auction::auction_tests
 
             // Place the offer
             offer::place_offer(
+                &mut suins,
                 &mut offer_table,
                 FIRST_DOMAIN_NAME.to_string(),
                 payment,
@@ -1725,6 +1735,7 @@ module suins_auction::auction_tests
 
             // Clean up
             test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
         };
 
         abort
@@ -1743,6 +1754,7 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, FIRST_ADDRESS);
         {
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
             let ctx = test_scenario::ctx(scenario);
 
             // Create test SUI coins for the offer
@@ -1750,6 +1762,7 @@ module suins_auction::auction_tests
 
             // Place the offer
             offer::place_offer(
+                &mut suins,
                 &mut offer_table,
                 FIRST_DOMAIN_NAME.to_string(),
                 payment,
@@ -1760,6 +1773,7 @@ module suins_auction::auction_tests
 
             // Clean up
             test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
         };
 
         clock.increment_for_testing(124 * MS);
@@ -1811,6 +1825,7 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, FIRST_ADDRESS);
         {
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
             let ctx = test_scenario::ctx(scenario);
 
             // Create test SUI coins for the offer
@@ -1818,6 +1833,7 @@ module suins_auction::auction_tests
 
             // Place the offer
             offer::place_offer(
+                &mut suins,
                 &mut offer_table,
                 FIRST_DOMAIN_NAME.to_string(),
                 payment,
@@ -1826,6 +1842,7 @@ module suins_auction::auction_tests
 
             // Clean up
             test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
         };
 
         abort
@@ -1842,6 +1859,7 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, FIRST_ADDRESS);
         {
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
             let ctx = test_scenario::ctx(scenario);
 
             // Create test SUI coins for the offer
@@ -1849,6 +1867,7 @@ module suins_auction::auction_tests
 
             // Place the offer
             offer::place_offer(
+                &mut suins,
                 &mut offer_table,
                 FIRST_DOMAIN_NAME.to_string(),
                 payment,
@@ -1857,6 +1876,7 @@ module suins_auction::auction_tests
 
             // Clean up
             test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
         };
 
         // Verify the offer was placed correctly
@@ -1989,10 +2009,14 @@ module suins_auction::auction_tests
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
 
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+        generate_domain(scenario, DOMAIN_OWNER, SECOND_DOMAIN_NAME);
+
         // Place an offer
         test_scenario::next_tx(scenario, FIRST_ADDRESS);
         {
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
             let ctx = test_scenario::ctx(scenario);
 
             // Create test SUI coins for the offer
@@ -2000,6 +2024,7 @@ module suins_auction::auction_tests
 
             // Place the offer
             offer::place_offer(
+                &mut suins,
                 &mut offer_table,
                 FIRST_DOMAIN_NAME.to_string(),
                 payment,
@@ -2008,12 +2033,14 @@ module suins_auction::auction_tests
 
             // Clean up
             test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
         };
 
         // Place another offer
         test_scenario::next_tx(scenario, SECOND_ADDRESS);
         {
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
             let ctx = test_scenario::ctx(scenario);
 
             // Create test SUI coins for the offer
@@ -2021,6 +2048,7 @@ module suins_auction::auction_tests
 
             // Place the offer
             offer::place_offer(
+                &mut suins,
                 &mut offer_table,
                 SECOND_DOMAIN_NAME.to_string(),
                 payment,
@@ -2029,6 +2057,7 @@ module suins_auction::auction_tests
 
             // Clean up
             test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
         };
 
         // Verify the offers were placed correctly
@@ -2101,6 +2130,7 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, FIRST_ADDRESS);
         {
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
             let ctx = test_scenario::ctx(scenario);
 
             // Create test SUI coins for the offer
@@ -2108,6 +2138,7 @@ module suins_auction::auction_tests
 
             // Place the offer
             offer::place_offer(
+                &mut suins,
                 &mut offer_table,
                 FIRST_DOMAIN_NAME.to_string(),
                 payment,
@@ -2116,12 +2147,14 @@ module suins_auction::auction_tests
 
             // Clean up
             test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
         };
 
         // Place another offer on same domain
         test_scenario::next_tx(scenario, SECOND_ADDRESS);
         {
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
             let ctx = test_scenario::ctx(scenario);
 
             // Create test SUI coins for the offer
@@ -2129,6 +2162,7 @@ module suins_auction::auction_tests
 
             // Place the offer
             offer::place_offer(
+                &mut suins,
                 &mut offer_table,
                 FIRST_DOMAIN_NAME.to_string(),
                 payment,
@@ -2137,6 +2171,7 @@ module suins_auction::auction_tests
 
             // Clean up
             test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
         };
 
         // Verify the offers were placed correctly
@@ -2204,15 +2239,18 @@ module suins_auction::auction_tests
         test_scenario::end(scenario_val);
     }
 
-    #[test, expected_failure(abort_code = offer::EAlreadyOffered)]
-    fun try_place_offer_aleady_offered() {
-        let (mut scenario_val, clock) = setup_test();
+    #[test]
+    fun accept_offer_with_expired_registration_test() {
+        let (mut scenario_val, mut clock) = setup_test();
         let scenario = &mut scenario_val;
+
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
 
         // Place an offer
         test_scenario::next_tx(scenario, FIRST_ADDRESS);
         {
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
             let ctx = test_scenario::ctx(scenario);
 
             // Create test SUI coins for the offer
@@ -2220,6 +2258,7 @@ module suins_auction::auction_tests
 
             // Place the offer
             offer::place_offer(
+                &mut suins,
                 &mut offer_table,
                 FIRST_DOMAIN_NAME.to_string(),
                 payment,
@@ -2228,12 +2267,204 @@ module suins_auction::auction_tests
 
             // Clean up
             test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
+        };
+
+        // Advance clock to expire the domain (1 year + buffer)
+        let one_year_seconds = 365 * 24 * 60 * 60;
+        clock.increment_for_testing((one_year_seconds + 100) * MS);
+
+        // Accept the offer even though domain is expired
+        // This should succeed but NOT set the target address
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
+            let registration = test_scenario::take_from_sender<SuinsRegistration>(scenario);
+            let ctx = test_scenario::ctx(scenario);
+
+            // Verify the domain has expired before accepting
+            assert!(registration.has_expired(&clock), 0);
+
+            // Accept the offer
+            let payment = offer::accept_offer<SUI>(
+                &mut suins,
+                &mut offer_table,
+                registration,
+                FIRST_ADDRESS,
+                &clock,
+                ctx
+            );
+
+            // Verify payment amount (minus service fee)
+            assert!(coin::value(&payment) == SUI_FIRST_BID * mist_per_sui() * 97_500 / 100_000, 0);
+            transfer::public_transfer(payment, DOMAIN_OWNER);
+
+            // Clean up
+            test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
+        };
+
+        // Verify the offer was removed and domain transferred
+        test_scenario::next_tx(scenario, FIRST_ADDRESS);
+        {
+            let offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let table = offer::get_offer_table(&offer_table);
+            assert!(table.length() == 0, 0);
+
+            // Verify buyer received the domain (even though expired)
+            let registration = test_scenario::take_from_sender<SuinsRegistration>(scenario);
+            assert!(registration.domain() == domain::new(FIRST_DOMAIN_NAME.to_string()), 0);
+            test_scenario::return_to_sender(scenario, registration);
+
+            test_scenario::return_shared(offer_table);
+        };
+
+        // Final cleanup
+        clock::destroy_for_testing(clock);
+        test_scenario::end(scenario_val);
+    }
+
+    #[test, expected_failure(abort_code = offer::ENameNotFound)]
+    fun try_place_offer_name_not_found() {
+        let (mut scenario_val, clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        // Place an offer
+        test_scenario::next_tx(scenario, FIRST_ADDRESS);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
+            let ctx = test_scenario::ctx(scenario);
+
+            // Create test SUI coins for the offer
+            let payment = coin::mint_for_testing<SUI>(SUI_FIRST_BID * mist_per_sui(), ctx);
+
+            // Place the offer
+            offer::place_offer(
+                &mut suins,
+                &mut offer_table,
+                FIRST_DOMAIN_NAME.to_string(),
+                payment,
+                option::none(), &clock, ctx
+            );
+        };
+
+        abort
+    }
+
+    #[test, expected_failure(abort_code = offer::ENameExpired)]
+    fun try_place_offer_name_expired() {
+        let (mut scenario_val, mut clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        // Increment clock by one year + buffer to expire the domain
+        let one_year_seconds = 365 * 24 * 60 * 60;
+        clock.increment_for_testing((one_year_seconds + 100) * MS);
+
+        // Try to place an offer on expired domain
+        test_scenario::next_tx(scenario, FIRST_ADDRESS);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
+            let ctx = test_scenario::ctx(scenario);
+
+            // Create test SUI coins for the offer
+            let payment = coin::mint_for_testing<SUI>(SUI_FIRST_BID * mist_per_sui(), ctx);
+
+            // Place the offer - should fail with ENameExpired
+            offer::place_offer(
+                &mut suins,
+                &mut offer_table,
+                FIRST_DOMAIN_NAME.to_string(),
+                payment,
+                option::none(), &clock, ctx
+            );
+        };
+
+        abort
+    }
+
+    #[test, expected_failure(abort_code = offer::EDomainWillExpire)]
+    fun try_place_offer_domain_will_expire() {
+        let (mut scenario_val, mut clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        // Advance clock to near the domain expiration (1 year - 1800 seconds)
+        // This leaves 1800 seconds (30 minutes) until domain expires
+        let one_year_seconds = 365 * 24 * 60 * 60;
+        let time_advance = one_year_seconds - 1800;
+        clock.increment_for_testing(time_advance * MS);
+
+        // Try to place an offer with expiration time that's too close to domain expiration
+        test_scenario::next_tx(scenario, FIRST_ADDRESS);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
+            let ctx = test_scenario::ctx(scenario);
+
+            // Create test SUI coins for the offer
+            let payment = coin::mint_for_testing<SUI>(SUI_FIRST_BID * mist_per_sui(), ctx);
+
+            // Try to place an offer that expires in 1000 seconds
+            // Domain expires in 1800 seconds, but min_auction_time is 3600 seconds (1 hour)
+            // So offer expiration (1000s) + min_auction_time (3600s) = 4600s > domain expiration (1800s)
+            // This should fail with EDomainWillExpire
+            let current_time = clock.timestamp_ms() / 1000;
+            let offer_expiration = current_time + 1000;
+
+            offer::place_offer(
+                &mut suins,
+                &mut offer_table,
+                FIRST_DOMAIN_NAME.to_string(),
+                payment,
+                option::some(offer_expiration), &clock, ctx
+            );
+        };
+
+        abort
+    }
+
+    #[test, expected_failure(abort_code = offer::EAlreadyOffered)]
+    fun try_place_offer_already_offered() {
+        let (mut scenario_val, clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        // Place an offer
+        test_scenario::next_tx(scenario, FIRST_ADDRESS);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
+            let ctx = test_scenario::ctx(scenario);
+
+            // Create test SUI coins for the offer
+            let payment = coin::mint_for_testing<SUI>(SUI_FIRST_BID * mist_per_sui(), ctx);
+
+            // Place the offer
+            offer::place_offer(
+                &mut suins,
+                &mut offer_table,
+                FIRST_DOMAIN_NAME.to_string(),
+                payment,
+                option::none(), &clock, ctx
+            );
+
+            // Clean up
+            test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
         };
 
         // Try to place an offer
         test_scenario::next_tx(scenario, FIRST_ADDRESS);
         {
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
             let ctx = test_scenario::ctx(scenario);
 
             // Create test SUI coins for the offer
@@ -2241,6 +2472,7 @@ module suins_auction::auction_tests
 
             // Place the offer
             offer::place_offer(
+                &mut suins,
                 &mut offer_table,
                 FIRST_DOMAIN_NAME.to_string(),
                 payment,
@@ -2249,6 +2481,7 @@ module suins_auction::auction_tests
 
             // Clean up
             test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
         };
 
         abort
@@ -2265,6 +2498,7 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, FIRST_ADDRESS);
         {
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
             let ctx = test_scenario::ctx(scenario);
 
             // Create test SUI coins for the offer
@@ -2272,6 +2506,7 @@ module suins_auction::auction_tests
 
             // Place the offer
             offer::place_offer(
+                &mut suins,
                 &mut offer_table,
                 FIRST_DOMAIN_NAME.to_string(),
                 payment,
@@ -2280,6 +2515,7 @@ module suins_auction::auction_tests
 
             // Clean up
             test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
         };
 
         // Make a counter offer
@@ -2311,10 +2547,13 @@ module suins_auction::auction_tests
         let (mut scenario_val, clock) = setup_test();
         let scenario = &mut scenario_val;
 
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
         // Place an offer
         test_scenario::next_tx(scenario, FIRST_ADDRESS);
         {
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
             let ctx = test_scenario::ctx(scenario);
 
             // Create test SUI coins for the offer
@@ -2322,6 +2561,7 @@ module suins_auction::auction_tests
 
             // Place the offer
             offer::place_offer(
+                &mut suins,
                 &mut offer_table,
                 FIRST_DOMAIN_NAME.to_string(),
                 payment,
@@ -2330,6 +2570,7 @@ module suins_auction::auction_tests
 
             // Clean up
             test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
         };
 
         // Accept non existent counter offer
@@ -2370,6 +2611,7 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, FIRST_ADDRESS);
         {
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
             let ctx = test_scenario::ctx(scenario);
 
             // Create test SUI coins for the offer
@@ -2377,6 +2619,7 @@ module suins_auction::auction_tests
 
             // Place the offer
             offer::place_offer(
+                &mut suins,
                 &mut offer_table,
                 FIRST_DOMAIN_NAME.to_string(),
                 payment,
@@ -2385,6 +2628,7 @@ module suins_auction::auction_tests
 
             // Clean up
             test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
         };
 
         // Make a counter offer
@@ -2477,6 +2721,7 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, FIRST_ADDRESS);
         {
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
             let ctx = test_scenario::ctx(scenario);
 
             // Create test SUI coins for the offer
@@ -2484,6 +2729,7 @@ module suins_auction::auction_tests
 
             // Place the offer
             offer::place_offer(
+                &mut suins,
                 &mut offer_table,
                 FIRST_DOMAIN_NAME.to_string(),
                 payment,
@@ -2492,6 +2738,7 @@ module suins_auction::auction_tests
 
             // Clean up
             test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
         };
 
         // Make a counter offer
@@ -2755,17 +3002,22 @@ module suins_auction::auction_tests
         test_scenario::next_tx(scenario, FIRST_ADDRESS);
         {
             let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
             let ctx = test_scenario::ctx(scenario);
             let offer_coin = coin::mint_for_testing<SUI>(SUI_FIRST_BID * mist_per_sui(), ctx);
 
             offer::place_offer<SUI>(
+                &mut suins,
                 &mut offer_table,
                 FIRST_DOMAIN_NAME.to_string(),
                 offer_coin,
-                option::none(), &clock, ctx
+                option::none(),
+                &clock,
+                ctx
             );
 
             test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
         };
 
         // Accept offer on same domain
@@ -3186,6 +3438,81 @@ module suins_auction::auction_tests
         abort
     }
 
+    #[test, expected_failure(abort_code = offer::ENameExpired)]
+    fun try_create_listing_name_expired() {
+        let (mut scenario_val, mut clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        // Increment clock by one year + buffer to expire the domain
+        let one_year_seconds = 365 * 24 * 60 * 60;
+        clock.increment_for_testing((one_year_seconds + 100) * MS);
+
+        // Try to create a listing with an expired domain
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let registration = test_scenario::take_from_sender<SuinsRegistration>(scenario);
+            let ctx = test_scenario::ctx(scenario);
+
+            offer::create_listing<SUI>(
+                &mut offer_table,
+                SUI_FIRST_BID * mist_per_sui(),
+                option::none(),
+                registration,
+                &clock,
+                ctx
+            );
+
+            test_scenario::return_shared(offer_table);
+        };
+
+        abort
+    }
+
+    #[test, expected_failure(abort_code = offer::EDomainWillExpire)]
+    fun try_create_listing_domain_will_expire() {
+        let (mut scenario_val, mut clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        // Advance clock to near the domain expiration (1 year - 1800 seconds)
+        // This leaves 1800 seconds (30 minutes) until domain expires
+        let one_year_seconds = 365 * 24 * 60 * 60;
+        let time_advance = one_year_seconds - 1800;
+        clock.increment_for_testing(time_advance * MS);
+
+        // Try to create a listing with expiration time that's too close to domain expiration
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let registration = test_scenario::take_from_sender<SuinsRegistration>(scenario);
+            let ctx = test_scenario::ctx(scenario);
+
+            // Try to create a listing that expires in 1000 seconds
+            // Domain expires in 1800 seconds, but min_auction_time is 3600 seconds (1 hour)
+            // So listing expiration (1000s) + min_auction_time (3600s) = 4600s > domain expiration (1800s)
+            // This should fail with EDomainWillExpire
+            let current_time = clock.timestamp_ms() / 1000;
+            let listing_expiration = current_time + 1000;
+
+            offer::create_listing<SUI>(
+                &mut offer_table,
+                SUI_FIRST_BID * mist_per_sui(),
+                option::some(listing_expiration),
+                registration,
+                &clock,
+                ctx
+            );
+
+            test_scenario::return_shared(offer_table);
+        };
+
+        abort
+    }
+
     #[test, expected_failure(abort_code = offer::EListingExpired)]
     fun try_buy_listing_after_expires_at() {
         let (mut scenario_val, mut clock) = setup_test();
@@ -3473,5 +3800,86 @@ module suins_auction::auction_tests
         };
 
         abort
+    }
+
+    #[test]
+    fun buy_listing_with_expired_registration_test() {
+        let (mut scenario_val, mut clock) = setup_test();
+        let scenario = &mut scenario_val;
+
+        generate_domain(scenario, DOMAIN_OWNER, FIRST_DOMAIN_NAME);
+
+        // Create a listing with a fixed price
+        test_scenario::next_tx(scenario, DOMAIN_OWNER);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let registration = test_scenario::take_from_sender<SuinsRegistration>(scenario);
+            let ctx = test_scenario::ctx(scenario);
+
+            offer::create_listing<SUI>(
+                &mut offer_table,
+                SUI_FIRST_BID * mist_per_sui(),
+                option::none(),
+                registration,
+                &clock,
+                ctx
+            );
+
+            test_scenario::return_shared(offer_table);
+        };
+
+        // Advance clock to expire the domain (1 year + buffer)
+        let one_year_seconds = 365 * 24 * 60 * 60;
+        clock.increment_for_testing((one_year_seconds + 100) * MS);
+
+        // Buy the listing even though domain is expired
+        // This should succeed but NOT set the target address
+        test_scenario::next_tx(scenario, FIRST_ADDRESS);
+        {
+            let mut offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let mut suins = scenario.take_shared<SuiNS>();
+            let ctx = test_scenario::ctx(scenario);
+            let payment = coin::mint_for_testing<SUI>(SUI_FIRST_BID * mist_per_sui(), ctx);
+
+            let registration = offer::buy_listing<SUI>(
+                &mut suins,
+                &mut offer_table,
+                FIRST_DOMAIN_NAME.to_string(),
+                payment,
+                &clock,
+                ctx
+            );
+
+            // Verify the domain has expired
+            assert!(registration.has_expired(&clock), 0);
+
+            transfer::public_transfer(registration, FIRST_ADDRESS);
+            test_scenario::return_shared(offer_table);
+            test_scenario::return_shared(suins);
+        };
+
+        // Verify the listing was removed and payment was made
+        test_scenario::next_tx(scenario, FIRST_ADDRESS);
+        {
+            let offer_table = test_scenario::take_shared<OfferTable>(scenario);
+            let listings = offer::get_offer_table_listings(&offer_table);
+            assert!(listings.length() == 0, 0);
+
+            // Verify domain owner received payment minus service fee
+            let payment_received = test_scenario::take_from_address<Coin<SUI>>(scenario, DOMAIN_OWNER);
+            assert!(coin::value(&payment_received) == SUI_FIRST_BID * mist_per_sui() * 97_500 / 100_000, 0);
+            test_scenario::return_to_address(DOMAIN_OWNER, payment_received);
+
+            // Verify buyer received the domain (even though expired)
+            let registration = test_scenario::take_from_address<SuinsRegistration>(scenario, FIRST_ADDRESS);
+            assert!(registration.domain() == domain::new(FIRST_DOMAIN_NAME.to_string()), 0);
+            test_scenario::return_to_address(FIRST_ADDRESS, registration);
+
+            test_scenario::return_shared(offer_table);
+        };
+
+        // Final cleanup
+        clock::destroy_for_testing(clock);
+        test_scenario::end(scenario_val);
     }
 }

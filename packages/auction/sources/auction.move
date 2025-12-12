@@ -212,10 +212,10 @@ entry fun migrate(_: &AdminCap, auction_table: &mut AuctionTable, offer_table: &
     auction_table.version = version();
     offer_table.set_version(version());
 
-    MigrateEvent {
+    event::emit(MigrateEvent {
         old_version,
         new_version: version(),
-    };
+    });
 }
 
 public fun set_seal_config(
