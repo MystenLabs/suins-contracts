@@ -125,6 +125,38 @@ public fun burn_subdomain_object(self: &mut Registry, nft: SubDomainRegistration
     self.burn_registration_object(nft, clock);
 }
 
+/// Prunes an expired subdomain record from the registry by domain name.
+/// This removes only the registry record - it does NOT burn the SubDomainRegistration object.
+/// After calling this, the subdomain name becomes available for re-registration,
+/// while any existing SubDomainRegistration object becomes orphaned and useless.
+///
+/// This is useful when the parent domain holder wants to reclaim an expired subdomain
+/// but doesn't possess the SubDomainRegistration object.
+///
+/// Aborts if:
+/// - The record doesn't exist (ERecordNotFound)
+/// - The record hasn't expired (ERecordNotExpired)
+/// - The domain is not a subdomain (checked by caller)
+public fun prune_expired_subdomain_record(self: &mut Registry, domain: Domain, clock: &Clock) {
+    assert!(self.registry.contains(domain), ERecordNotFound);
+
+    let record = &self.registry[domain];
+
+    // Only allow pruning expired records.
+    // For subdomains, we don't use grace period - they expire immediately.
+    assert!(record.has_expired(clock), ERecordNotExpired);
+
+    // Remove the record from the registry.
+    let record = self.registry.remove(domain);
+
+    // Invalidate any reverse lookup records pointing to this domain.
+    self.handle_invalidate_reverse_record(
+        &domain,
+        record.target_address(),
+        none(),
+    );
+}
+
 /// Adds a `leaf` record to the registry.
 /// A `leaf` record is a record that is a subdomain and doesn't have
 /// an equivalent `SuinsRegistration` object.
