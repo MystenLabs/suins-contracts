@@ -130,24 +130,8 @@ public fun burn_expired_subname(suins: &mut SuiNS, nft: SubDomainRegistration, c
 /// for re-registration. The orphaned SubDomainRegistration object (if it still exists) becomes useless.
 ///
 /// Use this when you control the parent domain but someone else holds the expired subdomain NFT.
-/// Entry function variant - see `prune_expired_subname` for the non-entry version.
 #[allow(lint(public_entry))]
-public entry fun prune_expired_subname_by_parent(
-    suins: &mut SuiNS,
-    parent: &SuinsRegistration,
-    subdomain_name: String,
-    clock: &Clock,
-) {
-    prune_expired_subname(suins, parent, subdomain_name, clock);
-}
-
-/// Prunes an expired subdomain record from the registry by name, gated by ownership of the parent.
-/// This allows the parent holder to clean up expired subdomain records even when they don't
-/// possess the SubDomainRegistration object. After pruning, the subdomain name becomes available
-/// for re-registration. The orphaned SubDomainRegistration object (if it still exists) becomes useless.
-///
-/// Use this when you control the parent domain but someone else holds the expired subdomain NFT.
-public fun prune_expired_subname(
+public entry fun prune_expired_subname(
     suins: &mut SuiNS,
     parent: &SuinsRegistration,
     subdomain_name: String,

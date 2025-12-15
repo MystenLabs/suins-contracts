@@ -727,7 +727,7 @@ fun create_expiring_subdomain(
 }
 
 #[test]
-fun test_prune_expired_subname_by_parent_allows_reregistration() {
+fun test_prune_expired_subname_allows_reregistration() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
     scenario.next_tx(SUINS_ADDRESS);
@@ -746,7 +746,7 @@ fun test_prune_expired_subname_by_parent_allows_reregistration() {
     };
 
     clock.increment_for_testing(2);
-    controller::prune_expired_subname_by_parent(
+    controller::prune_expired_subname(
         &mut suins,
         &parent_nft,
         b"child.test.sui".to_string(),
@@ -777,7 +777,7 @@ fun test_prune_expired_subname_by_parent_allows_reregistration() {
 }
 
 #[test, expected_failure(abort_code = registry::ERecordNotExpired)]
-fun test_prune_expired_subname_by_parent_aborts_if_not_expired() {
+fun test_prune_expired_subname_aborts_if_not_expired() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
     scenario.next_tx(SUINS_ADDRESS);
@@ -802,7 +802,7 @@ fun test_prune_expired_subname_by_parent_aborts_if_not_expired() {
     };
 
     // Attempt to prune non-expired subdomain - should fail.
-    controller::prune_expired_subname_by_parent(
+    controller::prune_expired_subname(
         &mut suins,
         &parent_nft,
         b"child.test.sui".to_string(),
@@ -817,7 +817,7 @@ fun test_prune_expired_subname_by_parent_aborts_if_not_expired() {
 }
 
 #[test, expected_failure(abort_code = controller::EParentMismatch)]
-fun test_prune_expired_subname_by_parent_aborts_if_wrong_parent() {
+fun test_prune_expired_subname_aborts_if_wrong_parent() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
     scenario.next_tx(SUINS_ADDRESS);
@@ -839,7 +839,7 @@ fun test_prune_expired_subname_by_parent_aborts_if_wrong_parent() {
     clock.increment_for_testing(2);
 
     // Attempt to prune subdomain with wrong parent - should fail.
-    controller::prune_expired_subname_by_parent(
+    controller::prune_expired_subname(
         &mut suins,
         &parent_nft,
         b"child.other.sui".to_string(),
@@ -854,7 +854,7 @@ fun test_prune_expired_subname_by_parent_aborts_if_wrong_parent() {
 }
 
 #[test, expected_failure(abort_code = registry::ERecordNotFound)]
-fun test_prune_expired_subname_by_parent_aborts_if_record_missing() {
+fun test_prune_expired_subname_aborts_if_record_missing() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
     scenario.next_tx(SUINS_ADDRESS);
@@ -871,7 +871,7 @@ fun test_prune_expired_subname_by_parent_aborts_if_record_missing() {
     };
 
     // Attempt to prune non-existent subdomain - should fail.
-    controller::prune_expired_subname_by_parent(
+    controller::prune_expired_subname(
         &mut suins,
         &parent_nft,
         b"missing.test.sui".to_string(),
@@ -885,7 +885,7 @@ fun test_prune_expired_subname_by_parent_aborts_if_record_missing() {
 }
 
 #[test, expected_failure(abort_code = registry::ERecordExpired)]
-fun test_prune_expired_subname_by_parent_aborts_if_parent_expired() {
+fun test_prune_expired_subname_aborts_if_parent_expired() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
     scenario.next_tx(SUINS_ADDRESS);
@@ -918,7 +918,7 @@ fun test_prune_expired_subname_by_parent_aborts_if_parent_expired() {
     clock.increment_for_testing(2);
 
     // Attempt to prune with expired parent - should fail.
-    controller::prune_expired_subname_by_parent(
+    controller::prune_expired_subname(
         &mut suins,
         &parent_nft,
         b"child.test.sui".to_string(),
@@ -933,7 +933,7 @@ fun test_prune_expired_subname_by_parent_aborts_if_parent_expired() {
 }
 
 #[test, expected_failure(abort_code = controller::ENotSubdomain)]
-fun test_prune_expired_subname_by_parent_aborts_if_not_subdomain() {
+fun test_prune_expired_subname_aborts_if_not_subdomain() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
     scenario.next_tx(SUINS_ADDRESS);
@@ -950,7 +950,7 @@ fun test_prune_expired_subname_by_parent_aborts_if_not_subdomain() {
     };
 
     // Attempt to prune a TLD (not a subdomain) - should fail.
-    controller::prune_expired_subname_by_parent(
+    controller::prune_expired_subname(
         &mut suins,
         &parent_nft,
         b"test.sui".to_string(),
