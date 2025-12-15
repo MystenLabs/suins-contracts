@@ -6,7 +6,7 @@ module suins::controller;
 use std::string::String;
 use sui::{clock::Clock, event::emit, tx_context::sender};
 use suins::{
-    domain,
+    domain::{Self, Domain},
     registry::Registry,
     subdomain_registration::SubDomainRegistration,
     suins::{Self, SuiNS},
@@ -30,8 +30,8 @@ const ENotSubdomain: u64 = 2;
 /// Emitted when an expired subdomain record is pruned from the registry.
 /// The SubDomainRegistration object may still exist but is now orphaned.
 public struct SubnamePrunedEvent has copy, drop {
-    domain_name: String,
-    parent_domain: String,
+    subdomain: Domain,
+    parent_domain: Domain,
 }
 
 /// Authorization token for the controller (v2) which
@@ -156,8 +156,8 @@ public entry fun prune_expired_subname(
     registry.prune_expired_subdomain_record(subdomain, clock);
 
     emit(SubnamePrunedEvent {
-        domain_name: subdomain_name,
-        parent_domain: parent_domain.to_string(),
+        subdomain,
+        parent_domain,
     });
 }
 
