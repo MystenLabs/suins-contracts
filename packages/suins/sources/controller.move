@@ -131,8 +131,7 @@ public fun burn_expired_subname(suins: &mut SuiNS, nft: SubDomainRegistration, c
 /// for re-registration. The orphaned SubDomainRegistration object (if it still exists) becomes useless.
 ///
 /// Use this when you control the parent domain but someone else holds the expired subdomain NFT.
-#[allow(lint(public_entry))]
-public entry fun prune_expired_subname(
+public fun prune_expired_subname(
     suins: &mut SuiNS,
     parent: &SuinsRegistration,
     subdomain_name: String,
@@ -147,10 +146,10 @@ public entry fun prune_expired_subname(
     let subdomain = domain::new(subdomain_name);
 
     // Verify this is actually a subdomain (depth > 2).
-    assert!(domain::is_subdomain(&subdomain), ENotSubdomain);
+    assert!(subdomain.is_subdomain(), ENotSubdomain);
 
     // Ensure the subdomain is a direct child of the parent domain.
-    assert!(domain::is_parent_of(&parent_domain, &subdomain), EParentMismatch);
+    assert!(parent_domain.is_parent_of(&subdomain), EParentMismatch);
 
     // Prune the expired subdomain record from the registry.
     // This will abort if the record doesn't exist or isn't expired.
@@ -160,6 +159,48 @@ public entry fun prune_expired_subname(
         subdomain,
         parent_domain,
     });
+}
+
+/// Best-effort pruning of multiple expired subdomain records for a given parent.
+///
+/// This function does **not** abort if individual entries are:
+/// - not subdomains,
+/// - not direct children of the parent,
+/// - missing from the registry,
+/// - not expired,
+/// - leaf records.
+///
+/// It prunes what it can, emitting `SubnamePrunedEvent` for each successfully
+/// pruned record, and returns the total count of pruned entries.
+public fun prune_expired_subnames(
+    suins: &mut SuiNS,
+    parent: &SuinsRegistration,
+    subdomain_names: vector<String>,
+    clock: &Clock,
+): u64 {
+    let registry = suins.registry_mut();
+
+    // Parent must be valid and authorized (non-expired, matches registry record).
+    registry.assert_nft_is_authorized(parent, clock);
+
+    let parent_domain = parent.domain();
+    let mut pruned_count = 0;
+
+    subdomain_names.do!(|subdomain_name| {
+        let subdomain = domain::new(subdomain_name);
+
+        // Skip anything that is not a direct child subdomain.
+        if (!subdomain.is_subdomain() || !parent_domain.is_parent_of(&subdomain)) {
+            return
+        };
+
+        if (registry.try_prune_expired_subdomain_record(subdomain, clock)) {
+            pruned_count = pruned_count + 1;
+            emit(SubnamePrunedEvent { subdomain, parent_domain });
+        };
+    });
+
+    pruned_count
 }
 
 /// Get a mutable reference to the registry, if the app is authorized.

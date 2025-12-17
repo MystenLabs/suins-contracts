@@ -964,6 +964,267 @@ fun test_prune_expired_subname_aborts_if_not_subdomain() {
 }
 
 #[test]
+fun test_prune_expired_subnames_prunes_only_expired() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+    scenario.next_tx(SUINS_ADDRESS);
+
+    let mut clock = scenario.take_shared<Clock>();
+    let mut suins = scenario.take_shared<SuiNS>();
+
+    let parent_nft = {
+        let registry = suins::app_registry_mut<ControllerV2, Registry>(
+            controller::auth_for_testing(),
+            &mut suins,
+        );
+        create_parent_domain(registry, b"test.sui", &clock, scenario.ctx())
+    };
+
+    let not_expired_domain = domain::new(b"active.test.sui".to_string());
+    let expired_domain_1 = domain::new(b"expired1.test.sui".to_string());
+    let expired_domain_2 = domain::new(b"expired2.test.sui".to_string());
+
+    let (active_nft, expired_nft_1, expired_nft_2) = {
+        let registry = suins::app_registry_mut<ControllerV2, Registry>(
+            controller::auth_for_testing(),
+            &mut suins,
+        );
+
+        // Create one long-lived subdomain (not expired).
+        let active_nft = registry.add_record_ignoring_grace_period(
+            not_expired_domain,
+            1,
+            &clock,
+            scenario.ctx(),
+        );
+
+        // Create two short-lived subdomains (expired after 1ms).
+        let mut nft1 = registry.add_record_ignoring_grace_period(
+            expired_domain_1,
+            1,
+            &clock,
+            scenario.ctx(),
+        );
+        registry.set_expiration_timestamp_ms(
+            &mut nft1,
+            expired_domain_1,
+            clock::timestamp_ms(&clock) + 1,
+        );
+
+        let mut nft2 = registry.add_record_ignoring_grace_period(
+            expired_domain_2,
+            1,
+            &clock,
+            scenario.ctx(),
+        );
+        registry.set_expiration_timestamp_ms(
+            &mut nft2,
+            expired_domain_2,
+            clock::timestamp_ms(&clock) + 1,
+        );
+        (active_nft, nft1, nft2)
+    };
+
+    clock.increment_for_testing(2);
+
+    let mut subdomain_names = vector[];
+    // Include a missing name (best-effort should not abort).
+    vector::push_back(&mut subdomain_names, b"missing.test.sui".to_string());
+    // Include an expired, a non-expired, and another expired.
+    vector::push_back(&mut subdomain_names, b"expired1.test.sui".to_string());
+    vector::push_back(&mut subdomain_names, b"active.test.sui".to_string());
+    vector::push_back(&mut subdomain_names, b"expired2.test.sui".to_string());
+    // Include a non-child name (best-effort should not abort).
+    vector::push_back(&mut subdomain_names, b"otherparent.sui".to_string());
+
+    let pruned_count = controller::prune_expired_subnames(
+        &mut suins,
+        &parent_nft,
+        subdomain_names,
+        &clock,
+    );
+    assert!(pruned_count == 2, 0);
+
+    // Verify only expired ones were removed from the registry.
+    {
+        let registry = suins.registry<Registry>();
+        assert!(!registry.has_record(expired_domain_1), 0);
+        assert!(!registry.has_record(expired_domain_2), 0);
+        assert!(registry.has_record(not_expired_domain), 0);
+    };
+
+    // Verify the pruned names can be re-registered.
+    let (expired_nft_1_new, expired_nft_2_new) = {
+        let registry = suins::app_registry_mut<ControllerV2, Registry>(
+            controller::auth_for_testing(),
+            &mut suins,
+        );
+        let nft1 = registry.add_record_ignoring_grace_period(
+            expired_domain_1,
+            1,
+            &clock,
+            scenario.ctx(),
+        );
+        let nft2 = registry.add_record_ignoring_grace_period(
+            expired_domain_2,
+            1,
+            &clock,
+            scenario.ctx(),
+        );
+        (nft1, nft2)
+    };
+
+    transfer::public_transfer(parent_nft, SUINS_ADDRESS);
+    transfer::public_transfer(active_nft, SUINS_ADDRESS);
+    transfer::public_transfer(expired_nft_1, SUINS_ADDRESS);
+    transfer::public_transfer(expired_nft_2, SUINS_ADDRESS);
+    transfer::public_transfer(expired_nft_1_new, SUINS_ADDRESS);
+    transfer::public_transfer(expired_nft_2_new, SUINS_ADDRESS);
+    test_scenario::return_shared(clock);
+    test_scenario::return_shared(suins);
+    scenario_val.end();
+}
+
+#[test]
+fun test_prune_expired_subnames_skips_leaf_records() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+    scenario.next_tx(SUINS_ADDRESS);
+
+    let mut clock = scenario.take_shared<Clock>();
+    let mut suins = scenario.take_shared<SuiNS>();
+
+    let parent_nft = {
+        let registry = suins::app_registry_mut<ControllerV2, Registry>(
+            controller::auth_for_testing(),
+            &mut suins,
+        );
+        create_parent_domain(registry, b"test.sui", &clock, scenario.ctx())
+    };
+
+    let leaf_domain = domain::new(b"leaf.test.sui".to_string());
+    let expired_domain = domain::new(b"expired.test.sui".to_string());
+
+    {
+        let registry = suins::app_registry_mut<ControllerV2, Registry>(
+            controller::auth_for_testing(),
+            &mut suins,
+        );
+
+        // Add a leaf record.
+        registry.add_leaf_record(leaf_domain, &clock, @0x1, scenario.ctx());
+
+        // Add an expired subdomain.
+        let mut expired_nft = registry.add_record_ignoring_grace_period(
+            expired_domain,
+            1,
+            &clock,
+            scenario.ctx(),
+        );
+        registry.set_expiration_timestamp_ms(
+            &mut expired_nft,
+            expired_domain,
+            clock::timestamp_ms(&clock) + 1,
+        );
+        transfer::public_transfer(expired_nft, SUINS_ADDRESS);
+    };
+
+    clock.increment_for_testing(2);
+
+    let mut subdomain_names = vector[];
+    vector::push_back(&mut subdomain_names, b"leaf.test.sui".to_string());
+    vector::push_back(&mut subdomain_names, b"expired.test.sui".to_string());
+
+    let pruned_count = controller::prune_expired_subnames(
+        &mut suins,
+        &parent_nft,
+        subdomain_names,
+        &clock,
+    );
+    
+    // Should only prune the expired one, not the leaf record.
+    assert!(pruned_count == 1, 0);
+
+    {
+        let registry = suins.registry<Registry>();
+        assert!(registry.has_record(leaf_domain), 0);
+        assert!(!registry.has_record(expired_domain), 0);
+    };
+
+    transfer::public_transfer(parent_nft, SUINS_ADDRESS);
+    test_scenario::return_shared(clock);
+    test_scenario::return_shared(suins);
+    scenario_val.end();
+}
+
+/// Verifies that a SubDomainRegistration object can still be burned after
+/// its corresponding registry record has been pruned.
+#[test]
+fun test_subdomain_registration_burnable_after_prune() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+    scenario.next_tx(SUINS_ADDRESS);
+
+    let mut clock = scenario.take_shared<Clock>();
+    let mut suins = scenario.take_shared<SuiNS>();
+
+    let subdomain = domain::new(b"child.test.sui".to_string());
+
+    // Create parent and subdomain, wrap subdomain into SubDomainRegistration.
+    let (parent_nft, subdomain_obj) = {
+        let registry = suins::app_registry_mut<ControllerV2, Registry>(
+            controller::auth_for_testing(),
+            &mut suins,
+        );
+
+        let parent_nft = create_parent_domain(registry, b"test.sui", &clock, scenario.ctx());
+
+        let mut subdomain_nft = registry.add_record_ignoring_grace_period(
+            subdomain,
+            1,
+            &clock,
+            scenario.ctx(),
+        );
+        // Set short expiration.
+        registry.set_expiration_timestamp_ms(
+            &mut subdomain_nft,
+            subdomain,
+            clock::timestamp_ms(&clock) + 1,
+        );
+
+        // Wrap into SubDomainRegistration.
+        let subdomain_obj = registry.wrap_subdomain(subdomain_nft, &clock, scenario.ctx());
+        (parent_nft, subdomain_obj)
+    };
+
+    // Expire the subdomain.
+    clock.increment_for_testing(2);
+
+    // Prune the registry record (someone else holds the SubDomainRegistration).
+    controller::prune_expired_subname(
+        &mut suins,
+        &parent_nft,
+        b"child.test.sui".to_string(),
+        &clock,
+    );
+
+    // Verify record was removed from registry.
+    {
+        let registry = suins.registry<Registry>();
+        assert!(!registry.has_record(subdomain), 0);
+    };
+
+    // The SubDomainRegistration should still be burnable even though
+    // its registry record was pruned.
+    controller::burn_expired_subname(&mut suins, subdomain_obj, &clock);
+
+    transfer::public_transfer(parent_nft, SUINS_ADDRESS);
+    test_scenario::return_shared(clock);
+    test_scenario::return_shared(suins);
+    scenario_val.end();
+}
+
+#[test]
 fun test_object_reverse_lookup() {
     let mut scenario_val = test_init();
     let scenario = &mut scenario_val;
