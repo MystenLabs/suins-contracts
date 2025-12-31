@@ -808,12 +808,6 @@ fun test_prune_expired_subname_aborts_if_not_expired() {
         b"child.test.sui".to_string(),
         &clock,
     );
-
-    transfer::public_transfer(parent_nft, SUINS_ADDRESS);
-    transfer::public_transfer(subdomain_nft, SUINS_ADDRESS);
-    test_scenario::return_shared(clock);
-    test_scenario::return_shared(suins);
-    scenario_val.end();
 }
 
 #[test, expected_failure(abort_code = controller::EParentMismatch)]
@@ -845,12 +839,6 @@ fun test_prune_expired_subname_aborts_if_wrong_parent() {
         b"child.other.sui".to_string(),
         &clock,
     );
-
-    transfer::public_transfer(parent_nft, SUINS_ADDRESS);
-    transfer::public_transfer(other_subdomain_nft, SUINS_ADDRESS);
-    test_scenario::return_shared(clock);
-    test_scenario::return_shared(suins);
-    scenario_val.end();
 }
 
 #[test, expected_failure(abort_code = registry::ERecordNotFound)]
@@ -877,11 +865,6 @@ fun test_prune_expired_subname_aborts_if_record_missing() {
         b"missing.test.sui".to_string(),
         &clock,
     );
-
-    transfer::public_transfer(parent_nft, SUINS_ADDRESS);
-    test_scenario::return_shared(clock);
-    test_scenario::return_shared(suins);
-    scenario_val.end();
 }
 
 #[test, expected_failure(abort_code = registry::ERecordExpired)]
@@ -924,12 +907,6 @@ fun test_prune_expired_subname_aborts_if_parent_expired() {
         b"child.test.sui".to_string(),
         &clock,
     );
-
-    transfer::public_transfer(parent_nft, SUINS_ADDRESS);
-    transfer::public_transfer(subdomain_nft, SUINS_ADDRESS);
-    test_scenario::return_shared(clock);
-    test_scenario::return_shared(suins);
-    scenario_val.end();
 }
 
 #[test, expected_failure(abort_code = controller::ENotSubdomain)]
@@ -956,11 +933,6 @@ fun test_prune_expired_subname_aborts_if_not_subdomain() {
         b"test.sui".to_string(),
         &clock,
     );
-
-    transfer::public_transfer(parent_nft, SUINS_ADDRESS);
-    test_scenario::return_shared(clock);
-    test_scenario::return_shared(suins);
-    scenario_val.end();
 }
 
 #[test]
