@@ -9,6 +9,8 @@
       { "source": "/developer/indexing", "destination": "/developer", "permanent": true },
       { "source": "/developer/integration", "destination": "/developer", "permanent": true },
       { "source": "/developer/subnames", "destination": "/developer", "permanent": true },
-      { "source": "/move-registry/design", "destination": "/move-registry", "permanent": true }
+      { "source": "/move-registry/design", "destination": "/move-registry", "permanent": true },
+      { "source": "/sdk", "destination": "/developer/sdk", "permanent": true }
+
   ]
 }
