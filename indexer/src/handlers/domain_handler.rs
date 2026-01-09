@@ -12,13 +12,15 @@ use futures::future::try_join_all;
 use move_core_types::language_storage::StructTag;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
-use sui_indexer_alt_framework::pipeline::concurrent::Handler;
 use sui_indexer_alt_framework::pipeline::Processor;
+use sui_indexer_alt_framework::postgres::handler::Handler;
+use sui_indexer_alt_framework::postgres::Connection;
+use sui_indexer_alt_framework::types::full_checkpoint_content::{
+    Checkpoint, ExecutedTransaction, ObjectSet,
+};
 use sui_name_service::{Domain, NameRecord, SubDomainRegistration};
-use sui_pg_db::{Connection, Db};
 use sui_types::base_types::SuiAddress;
 use sui_types::dynamic_field::Field;
-use sui_types::full_checkpoint_content::{CheckpointData, CheckpointTransaction};
 use sui_types::object::Object;
 
 #[macro_export]
@@ -76,10 +78,10 @@ impl DomainHandler {
     /// and pushes them into the supplied vector + hashmap.
     ///
     /// It is implemented in a way to do just a single iteration over the objects.
-    pub fn parse_record_changes(
+    pub fn parse_record_changes<'a>(
         &self,
         results: &mut SuinsIndexerCheckpoint,
-        objects: &[Object],
+        objects: impl Iterator<Item = &'a Object>,
     ) -> anyhow::Result<()> {
         for object in objects {
             // Parse all the changes to a `NameRecord`
@@ -124,7 +126,8 @@ impl DomainHandler {
     pub fn parse_record_deletions(
         &self,
         results: &mut SuinsIndexerCheckpoint,
-        transaction: &CheckpointTransaction,
+        transaction: &ExecutedTransaction,
+        object_set: &ObjectSet,
     ) {
         // a list of all the deleted objects in the transaction.
         let deleted_objects: HashSet<_> = transaction
@@ -134,7 +137,7 @@ impl DomainHandler {
             .map(|(id, _)| id)
             .collect();
 
-        for input in transaction.input_objects.iter() {
+        for input in transaction.input_objects(object_set) {
             if self.is_name_record(input) && deleted_objects.contains(&input.id()) {
                 // since this record was deleted, we need to remove it from the name_records hashmap.
                 // that catches a case where a name record was edited on a previous transaction in the checkpoint
@@ -150,8 +153,6 @@ impl DomainHandler {
 
 #[async_trait]
 impl Handler for DomainHandler {
-    type Store = Db;
-
     async fn commit<'a>(
         values: &[Self::Value],
         conn: &mut Connection<'a>,
@@ -235,11 +236,12 @@ impl Handler for DomainHandler {
     }
 }
 
+#[async_trait]
 impl Processor for DomainHandler {
     const NAME: &'static str = "Domain";
     type Value = SuinsCheckpointData;
 
-    fn process(&self, checkpoint: &Arc<CheckpointData>) -> anyhow::Result<Vec<Self::Value>> {
+    async fn process(&self, checkpoint: &Arc<Checkpoint>) -> anyhow::Result<Vec<Self::Value>> {
         let data = checkpoint.transactions.iter().try_fold(
             SuinsIndexerCheckpoint::default(),
             |mut results, tx| {
@@ -248,24 +250,24 @@ impl Processor for DomainHandler {
                 // that we have the latest data for each name record in the end of the loop.
                 // Add all name record changes to the name_records HashMap.
                 // Remove any removals that got re-created.
-                self.parse_record_changes(&mut results, &tx.output_objects)?;
+                self.parse_record_changes(&mut results, tx.output_objects(&checkpoint.object_set))?;
 
                 // Gather all removals from the transaction,
                 // and delete any name records from the name_records if it got deleted.
-                self.parse_record_deletions(&mut results, tx);
+                self.parse_record_deletions(&mut results, tx, &checkpoint.object_set);
                 Ok::<_, anyhow::Error>(results)
             },
         )?;
 
         // Convert our name_records & wrappers into a list of updates for the DB.
         Ok(vec![SuinsCheckpointData {
-            updates: data.prepare_db_updates(checkpoint.checkpoint_summary.sequence_number),
+            updates: data.prepare_db_updates(checkpoint.summary.sequence_number),
             removals: data
                 .removals
                 .into_iter()
                 .map(|id| id.to_hex_uncompressed())
                 .collect(),
-            checkpoint: checkpoint.checkpoint_summary.sequence_number,
+            checkpoint: checkpoint.summary.sequence_number,
         }])
     }
 }
