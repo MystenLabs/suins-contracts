@@ -12,3 +12,4 @@ seal = { git = "git@github.com:MystenLabs/seal.git", subdir = "move/seal", rev =
 
 [addresses]
 suins_auction = "0x1" # For tests to not conflict with 0x0 address of suins.
+package_id_check = "0x1" # Used for seal package id check. After deploying the initial contract this should be updated with the correct package id and a new version needs to be published

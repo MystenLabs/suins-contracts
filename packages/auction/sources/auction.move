@@ -374,7 +374,7 @@ public fun create_auction<T>(
 
         // Check that the encryption was created for this domain name
         assert!(encrypted_reserve_price.id() == get_encryption_id(start_time, domain_name.into_bytes()), EInvalidEncryptionId);
-        assert!(encrypted_reserve_price.package_id() == @suins_auction, EInvalidEncryptionPackageId);
+        assert!(encrypted_reserve_price.package_id() == @package_id_check, EInvalidEncryptionPackageId);
 
         reserve_price = option::some(encrypted_reserve_price);
     };

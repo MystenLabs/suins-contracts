@@ -42,7 +42,7 @@ public(package) fun decrypt_reserve_price(
     // Verify the derived keys
     let verified_derived_keys: vector<VerifiedDerivedKey> = verify_derived_keys(
         &derived_keys.map_ref!(|k| g1_from_bytes(k)),
-        @suins_auction,
+        @package_id_check,
         get_encryption_id(start_time, domain_name),
         &key_servers
             .map_ref!(|ks1| config_key_servers.find_index!(|ks2| ks1 == ks2).destroy_or!(abort EKeyNotFound))
