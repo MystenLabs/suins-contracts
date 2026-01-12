@@ -741,7 +741,12 @@ fun test_prune_expired_subname_allows_reregistration() {
             &mut suins,
         );
         let parent_nft = create_parent_domain(registry, b"test.sui", &clock, scenario.ctx());
-        let subdomain_nft = create_expiring_subdomain(registry, b"child.test.sui", &clock, scenario.ctx());
+        let subdomain_nft = create_expiring_subdomain(
+            registry,
+            b"child.test.sui",
+            &clock,
+            scenario.ctx(),
+        );
         (parent_nft, subdomain_nft)
     };
 
@@ -808,6 +813,7 @@ fun test_prune_expired_subname_aborts_if_not_expired() {
         b"child.test.sui".to_string(),
         &clock,
     );
+    abort
 }
 
 #[test, expected_failure(abort_code = controller::EParentMismatch)]
@@ -826,7 +832,12 @@ fun test_prune_expired_subname_aborts_if_wrong_parent() {
         );
         let parent_nft = create_parent_domain(registry, b"test.sui", &clock, scenario.ctx());
         // Create subdomain under a different parent (other.sui, not test.sui).
-        let other_subdomain_nft = create_expiring_subdomain(registry, b"child.other.sui", &clock, scenario.ctx());
+        let other_subdomain_nft = create_expiring_subdomain(
+            registry,
+            b"child.other.sui",
+            &clock,
+            scenario.ctx(),
+        );
         (parent_nft, other_subdomain_nft)
     };
 
@@ -839,6 +850,7 @@ fun test_prune_expired_subname_aborts_if_wrong_parent() {
         b"child.other.sui".to_string(),
         &clock,
     );
+    abort
 }
 
 #[test, expected_failure(abort_code = registry::ERecordNotFound)]
@@ -865,6 +877,7 @@ fun test_prune_expired_subname_aborts_if_record_missing() {
         b"missing.test.sui".to_string(),
         &clock,
     );
+    abort
 }
 
 #[test, expected_failure(abort_code = registry::ERecordExpired)]
@@ -894,7 +907,12 @@ fun test_prune_expired_subname_aborts_if_parent_expired() {
             parent_domain,
             clock::timestamp_ms(&clock) + 1,
         );
-        let subdomain_nft = create_expiring_subdomain(registry, b"child.test.sui", &clock, scenario.ctx());
+        let subdomain_nft = create_expiring_subdomain(
+            registry,
+            b"child.test.sui",
+            &clock,
+            scenario.ctx(),
+        );
         (parent_nft, subdomain_nft)
     };
 
@@ -907,6 +925,7 @@ fun test_prune_expired_subname_aborts_if_parent_expired() {
         b"child.test.sui".to_string(),
         &clock,
     );
+    abort
 }
 
 #[test, expected_failure(abort_code = controller::ENotSubdomain)]
@@ -933,6 +952,7 @@ fun test_prune_expired_subname_aborts_if_not_subdomain() {
         b"test.sui".to_string(),
         &clock,
     );
+    abort
 }
 
 #[test]
@@ -1113,7 +1133,7 @@ fun test_prune_expired_subnames_skips_leaf_records() {
         subdomain_names,
         &clock,
     );
-    
+
     // Should only prune the expired one, not the leaf record.
     assert!(pruned_count == 1, 0);
 

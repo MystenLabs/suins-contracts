@@ -6,8 +6,7 @@ module suins::controller;
 use std::string::String;
 use sui::{clock::Clock, event::emit, tx_context::sender};
 use suins::{
-    domain,
-    domain::Domain,
+    domain::{Self, Domain},
     registry::Registry,
     subdomain_registration::SubDomainRegistration,
     suins::{Self, SuiNS},
