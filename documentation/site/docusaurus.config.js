@@ -52,6 +52,16 @@ const config = {
   ],
   plugins: [
     "docusaurus-plugin-copy-page-button",
+    [
+      require.resolve("./src/plugins/plausible"),
+      {
+        domain: "docs.suins.io",
+        enableInDev: false,
+        trackOutboundLinks: true,
+        hashMode: false,
+        trackLocalhost: false,
+      },
+    ],
     function docsAliasPlugin() {
       return {
         name: "docs-alias-plugin",
@@ -126,12 +136,6 @@ const config = {
             position: "right",
             label: "SuiNS",
           },
-          /*{
-            type: "docSidebar",
-            sidebarId: "communitySidebar",
-            position: "right",
-            label: "Communities",
-          },*/
           {
             type: "docSidebar",
             sidebarId: "mvrSidebar",
