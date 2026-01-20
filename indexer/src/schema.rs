@@ -124,6 +124,14 @@ diesel::table! {
 }
 
 diesel::table! {
+    user_domain_subscriptions (user_address, domain_name) {
+        user_address -> Varchar,
+        domain_name -> Varchar,
+        created_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     watermarks (pipeline) {
         pipeline -> Text,
         epoch_hi_inclusive -> Int8,
@@ -137,6 +145,7 @@ diesel::table! {
 }
 
 diesel::joinable!(bids -> auctions (auction_id));
+diesel::joinable!(user_domain_subscriptions -> domains (domain_name));
 
 diesel::allow_tables_to_appear_in_same_query!(
     auctions,
@@ -146,5 +155,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     offers,
     set_seal_config,
     set_service_fee,
+    user_domain_subscriptions,
     watermarks,
 );
