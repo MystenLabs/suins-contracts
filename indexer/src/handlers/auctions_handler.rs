@@ -16,9 +16,8 @@ use std::sync::Arc;
 use sui_indexer_alt_framework::pipeline::sequential::Handler;
 use sui_indexer_alt_framework::pipeline::Processor;
 use sui_indexer_alt_framework::postgres::{Connection, Db};
-use sui_indexer_alt_framework::types::full_checkpoint_content::CheckpointData;
+use sui_indexer_alt_framework::types::full_checkpoint_content::Checkpoint;
 use sui_indexer_alt_framework::FieldCount;
-use sui_indexer_alt_framework::Result;
 use sui_types::base_types::SuiAddress;
 use sui_types::event::Event;
 
@@ -43,13 +42,14 @@ pub struct AuctionsHandlerPipeline {
     contract_package_id: String,
 }
 
+#[async_trait]
 impl Processor for AuctionsHandlerPipeline {
     const NAME: &'static str = "auctions";
 
     type Value = AuctionValue;
 
-    fn process(&self, checkpoint: &Arc<CheckpointData>) -> Result<Vec<Self::Value>> {
-        let timestamp_ms: u64 = checkpoint.checkpoint_summary.timestamp_ms.into();
+    async fn process(&self, checkpoint: &Arc<Checkpoint>) -> anyhow::Result<Vec<Self::Value>> {
+        let timestamp_ms: u64 = checkpoint.summary.timestamp_ms.into();
         let timestamp_i64 =
             i64::try_from(timestamp_ms).context("Timestamp too large to convert to i64")?;
         let created_at: DateTime<Utc> =
@@ -101,13 +101,15 @@ impl Handler for AuctionsHandlerPipeline {
     type Store = Db;
     type Batch = Vec<Self::Value>;
 
-    const MAX_BATCH_CHECKPOINTS: usize = 5 * 10;
-
-    fn batch(batch: &mut Self::Batch, values: Vec<Self::Value>) {
+    fn batch(&self, batch: &mut Self::Batch, values: std::vec::IntoIter<Self::Value>) {
         batch.extend(values);
     }
 
-    async fn commit<'a>(batch: &Self::Batch, conn: &mut Connection<'a>) -> Result<usize> {
+    async fn commit<'a>(
+        &self,
+        batch: &Self::Batch,
+        conn: &mut Connection<'a>,
+    ) -> anyhow::Result<usize> {
         if batch.is_empty() {
             return Ok(0);
         }
@@ -122,7 +124,7 @@ impl Handler for AuctionsHandlerPipeline {
                     let domain_name = convert_domain_name(&created_event.domain_name);
 
                     diesel::insert_into(auctions::table)
-                        .values(vec![Auction {
+                        .values(Auction {
                             auction_id: created_event.auction_id.to_string(),
                             domain_name,
                             owner: created_event.owner.to_string(),
@@ -138,7 +140,7 @@ impl Handler for AuctionsHandlerPipeline {
                             token: created_event.token.to_string(),
                             reserve_price_encrypted: created_event.reserve_price.clone(),
                             reserve_price: None,
-                        }])
+                        })
                         .execute(conn)
                         .await
                         .map_err(Into::<Error>::into)?;
@@ -200,7 +202,7 @@ impl Handler for AuctionsHandlerPipeline {
                     );
 
                     diesel::insert_into(bids::table)
-                        .values(vec![Bid {
+                        .values(Bid {
                             auction_id: bid_event.auction_id.to_string(),
                             domain_name,
                             bidder: bid_event.bidder.to_string(),
@@ -208,7 +210,7 @@ impl Handler for AuctionsHandlerPipeline {
                             created_at: value.created_at,
                             tx_digest: value.tx_digest.clone(),
                             token: bid_event.token.to_string(),
-                        }])
+                        })
                         .execute(conn)
                         .await
                         .map_err(Into::<Error>::into)?;
@@ -221,7 +223,7 @@ impl Handler for AuctionsHandlerPipeline {
                     );
 
                     diesel::insert_into(set_seal_config::table)
-                        .values(vec![SetSealConfigModel {
+                        .values(SetSealConfigModel {
                             key_servers: seal_config_event
                                 .key_servers
                                 .iter()
@@ -231,7 +233,7 @@ impl Handler for AuctionsHandlerPipeline {
                             threshold: seal_config_event.threshold as i16,
                             created_at: value.created_at,
                             tx_digest: value.tx_digest.clone(),
-                        }])
+                        })
                         .execute(conn)
                         .await
                         .map_err(Into::<Error>::into)?;
@@ -243,11 +245,11 @@ impl Handler for AuctionsHandlerPipeline {
                     );
 
                     diesel::insert_into(set_service_fee::table)
-                        .values(vec![SetServiceFeeModel {
+                        .values(SetServiceFeeModel {
                             service_fee: service_fee_event.service_fee.to_string(),
                             created_at: value.created_at,
                             tx_digest: value.tx_digest.clone(),
-                        }])
+                        })
                         .execute(conn)
                         .await
                         .map_err(Into::<Error>::into)?;
@@ -266,7 +268,7 @@ impl AuctionsHandlerPipeline {
         }
     }
 
-    fn process_event(&self, event: &Event) -> Result<Option<AuctionEvent>> {
+    fn process_event(&self, event: &Event) -> anyhow::Result<Option<AuctionEvent>> {
         let event_type = event.type_.to_string();
         if event_type.starts_with(&self.contract_package_id) {
             if event_type.ends_with("::AuctionCreatedEvent") {

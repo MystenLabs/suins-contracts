@@ -1,0 +1,20 @@
+---
+source: indexer/tests/auction_events_tests.rs
+expression: rows
+---
+[
+  {
+    "id": "1",
+    "key_servers": [
+      "0x73d05d62c18d9374e3ea529e8e0ed6161da1a141a94d3f76ae3fe4e99356db75",
+      "0xf5d14a81a982144ae441cd7d64b09027f116a468bd36e7eca494f750591623c8"
+    ],
+    "public_keys": [
+      "vPRVUl1yAespcxOhzBLp3UZHg/KUbzVut1uW2LDl+CY=",
+      "Lm1wIM46rj0y7QHHCponQFgtXZXHE5cpF+UBySFu1jA="
+    ],
+    "threshold": "1",
+    "created_at": "2026-01-09 09:39:46.369+00",
+    "tx_digest": "2UjcCY2xbATxH2zdfEAdZ1mSGV3Lu3XCGMzoQUG6k2Qv"
+  }
+]

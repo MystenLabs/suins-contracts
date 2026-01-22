@@ -1,0 +1,23 @@
+---
+source: indexer/tests/auction_events_tests.rs
+expression: rows
+---
+[
+  {
+    "auction_id": "0x580d9b179c4169741734a6728c828037ff8351806cb126c9f6144709717991df",
+    "domain_name": "nopass01.sui",
+    "owner": "0x2cdf86193c8b9a710c408622c61216bd9385a030c0733058527ec2a1fecf4f88",
+    "start_time": "1767955603",
+    "end_time": "1767959203",
+    "min_bid": "100000000",
+    "winner": null,
+    "amount": null,
+    "status": "created",
+    "updated_at": "2026-01-09 10:46:45.243+00",
+    "created_at": "2026-01-09 10:46:45.243+00",
+    "last_tx_digest": "6M2YY9bNyDWirLFG1kFivQHQScHfaHELBCUKkGHiNfdE",
+    "token": "0000000000000000000000000000000000000000000000000000000000000002::sui::SUI",
+    "reserve_price_encrypted": "gxXvzpyqStHjvXA1O8cj9V81Lpz4IZ7C9tEav4AW1Mg=",
+    "reserve_price": null
+  }
+]

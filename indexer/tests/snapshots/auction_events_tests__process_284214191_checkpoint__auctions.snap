@@ -1,0 +1,23 @@
+---
+source: indexer/tests/auction_events_tests.rs
+expression: rows
+---
+[
+  {
+    "auction_id": "0xdbba3e41fa0509f1b62157b4427ec04c49a9bea5a40ba27d70ce71fd23005220",
+    "domain_name": "0777def.sui",
+    "owner": "0x2cdf86193c8b9a710c408622c61216bd9385a030c0733058527ec2a1fecf4f88",
+    "start_time": "1767953845",
+    "end_time": "1768040245",
+    "min_bid": "200000000",
+    "winner": null,
+    "amount": null,
+    "status": "created",
+    "updated_at": "2026-01-09 10:17:27.526+00",
+    "created_at": "2026-01-09 10:17:27.526+00",
+    "last_tx_digest": "6dYb7owVKTVeBwhgBJm5VBfXS2SGmnYmu4SFAjCUJGXn",
+    "token": "0000000000000000000000000000000000000000000000000000000000000002::sui::SUI",
+    "reserve_price_encrypted": "sVgFxc092GYOmPuKlndBlSrURDvOazn7w9LD06+fdQU=",
+    "reserve_price": null
+  }
+]

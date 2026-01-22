@@ -1,0 +1,16 @@
+---
+source: indexer/tests/auction_events_tests.rs
+expression: rows
+---
+[
+  {
+    "id": "1",
+    "auction_id": "0x580d9b179c4169741734a6728c828037ff8351806cb126c9f6144709717991df",
+    "domain_name": "nopass01.sui",
+    "bidder": "0x12dab9b1fafeac1cfca7582ab5320b1689d8a54cda577a80b4cab68c071f293d",
+    "amount": "300000000",
+    "created_at": "2026-01-09 10:47:57.282+00",
+    "tx_digest": "HocTTPQbVWiSHsBc3obg9zygEmNUCua3o9ptUE8iQhNM",
+    "token": "0000000000000000000000000000000000000000000000000000000000000002::sui::SUI"
+  }
+]

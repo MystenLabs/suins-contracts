@@ -1,0 +1,19 @@
+---
+source: indexer/tests/auction_events_tests.rs
+expression: rows
+---
+[
+  {
+    "listing_id": "0x95fdb9794a536fe89aaee9973eb4610b6ada12b9edac20c3bd53f380c59f5e9b",
+    "domain_name": "0555def.sui",
+    "owner": "0x2cdf86193c8b9a710c408622c61216bd9385a030c0733058527ec2a1fecf4f88",
+    "price": "300000000",
+    "buyer": null,
+    "status": "created",
+    "updated_at": "2026-01-12 08:10:35.911+00",
+    "created_at": "2026-01-12 08:10:35.911+00",
+    "last_tx_digest": "5FmZV1R2XLb9C1KXva4uHFAvVh71pNJCUCUxuh1WKrBw",
+    "token": "0000000000000000000000000000000000000000000000000000000000000002::sui::SUI",
+    "expires_at": null
+  }
+]

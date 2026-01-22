@@ -11,12 +11,11 @@ use diesel::{ExpressionMethods, QueryDsl};
 use diesel_async::RunQueryDsl;
 use log::{error, info};
 use std::sync::Arc;
-use sui_indexer_alt_framework::postgres::{Connection, Db};
 use sui_indexer_alt_framework::pipeline::sequential::Handler;
 use sui_indexer_alt_framework::pipeline::Processor;
-use sui_indexer_alt_framework::types::full_checkpoint_content::CheckpointData;
+use sui_indexer_alt_framework::postgres::{Connection, Db};
+use sui_indexer_alt_framework::types::full_checkpoint_content::Checkpoint;
 use sui_indexer_alt_framework::FieldCount;
-use sui_indexer_alt_framework::Result;
 use sui_types::base_types::SuiAddress;
 use sui_types::event::Event;
 
@@ -38,13 +37,14 @@ pub struct ListingsHandlerPipeline {
     contract_package_id: String,
 }
 
+#[async_trait]
 impl Processor for ListingsHandlerPipeline {
     const NAME: &'static str = "listings";
 
     type Value = ListingValue;
 
-    fn process(&self, checkpoint: &Arc<CheckpointData>) -> Result<Vec<Self::Value>> {
-        let timestamp_ms: u64 = checkpoint.checkpoint_summary.timestamp_ms.into();
+    async fn process(&self, checkpoint: &Arc<Checkpoint>) -> anyhow::Result<Vec<Self::Value>> {
+        let timestamp_ms: u64 = checkpoint.summary.timestamp_ms.into();
         let timestamp_i64 =
             i64::try_from(timestamp_ms).context("Timestamp too large to convert to i64")?;
         let created_at: DateTime<Utc> =
@@ -96,13 +96,15 @@ impl Handler for ListingsHandlerPipeline {
     type Store = Db;
     type Batch = Vec<Self::Value>;
 
-    const MAX_BATCH_CHECKPOINTS: usize = 5 * 10;
-
-    fn batch(batch: &mut Self::Batch, values: Vec<Self::Value>) {
+    fn batch(&self, batch: &mut Self::Batch, values: std::vec::IntoIter<Self::Value>) {
         batch.extend(values);
     }
 
-    async fn commit<'a>(batch: &Self::Batch, conn: &mut Connection<'a>) -> Result<usize> {
+    async fn commit<'a>(
+        &self,
+        batch: &Self::Batch,
+        conn: &mut Connection<'a>,
+    ) -> anyhow::Result<usize> {
         if batch.is_empty() {
             return Ok(0);
         }
@@ -117,7 +119,7 @@ impl Handler for ListingsHandlerPipeline {
                     let domain_name = convert_domain_name(&created_event.domain_name);
 
                     diesel::insert_into(listings::table)
-                        .values(vec![Listing {
+                        .values(Listing {
                             listing_id: created_event.listing_id.to_string(),
                             domain_name,
                             owner: created_event.owner.to_string(),
@@ -129,7 +131,7 @@ impl Handler for ListingsHandlerPipeline {
                             last_tx_digest: value.tx_digest.clone(),
                             token: created_event.token.to_string(),
                             expires_at: created_event.expires_at.map(|e| e as i64),
-                        }])
+                        })
                         .execute(conn)
                         .await
                         .map_err(Into::<Error>::into)?;
@@ -192,7 +194,7 @@ impl ListingsHandlerPipeline {
         }
     }
 
-    fn process_event(&self, event: &Event) -> Result<Option<ListingEvent>> {
+    fn process_event(&self, event: &Event) -> anyhow::Result<Option<ListingEvent>> {
         let event_type = event.type_.to_string();
         if event_type.starts_with(&self.contract_package_id) {
             if event_type.ends_with("::ListingCreatedEvent") {

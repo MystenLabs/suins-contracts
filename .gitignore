@@ -2,6 +2,7 @@
 /release
 
 .idea/
+*.iml
 
 sui.log.*
 .trace
