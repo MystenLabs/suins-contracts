@@ -212,6 +212,22 @@ public(package) fun pkg_registry_mut<R: store>(self: &mut SuiNS): &mut R {
     self.id.borrow_mut(RegistryKey<R> {})
 }
 
+// === UID Access for Dynamic Fields (Authorized Apps Only) ===
+
+/// Get read-only access to the SuiNS UID for dynamic field operations.
+/// Only authorized apps can call this function.
+public fun app_uid<App: drop>(_: App, self: &SuiNS): &UID {
+    self.assert_app_is_authorized<App>();
+    &self.id
+}
+
+/// Get mutable access to the SuiNS UID for dynamic field operations.
+/// Only authorized apps can call this function.
+public fun app_uid_mut<App: drop>(_: App, self: &mut SuiNS): &mut UID {
+    self.assert_app_is_authorized<App>();
+    &mut self.id
+}
+
 // === Testing ===
 
 #[test_only]
