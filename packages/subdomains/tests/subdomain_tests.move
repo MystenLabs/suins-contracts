@@ -596,11 +596,11 @@ public fun create_subname_cap_with_limits(
     scenario: &mut Scenario,
 ): SubnameCap {
     ts::next_tx(scenario, USER_ADDRESS);
-    let suins = ts::take_shared<SuiNS>(scenario);
+    let mut suins = ts::take_shared<SuiNS>(scenario);
     let clock = ts::take_shared<Clock>(scenario);
 
     let cap = subdomains::create_subname_cap(
-        &suins,
+        &mut suins,
         parent,
         &clock,
         allow_leaf,
@@ -753,7 +753,7 @@ fun test_subname_cap_revocation() {
     ts::end(scenario_val);
 }
 
-#[test, expected_failure(abort_code = ::suins_subdomains::subdomains::ECapRevoked)]
+#[test, expected_failure(abort_code = ::suins_subdomains::subdomains::ECapNotActive)]
 /// Test that a revoked cap cannot be used
 fun test_revoked_cap_cannot_be_used() {
     let mut scenario_val = test_init();
@@ -1552,4 +1552,376 @@ fun test_cap_limit_getters() {
     sui::transfer::public_transfer(cap, USER_ADDRESS);
     burn_nfts(vector[parent]);
     ts::end(scenario_val);
+}
+
+// == Surrender SubnameCap Tests ==
+
+/// Helper to surrender a SubnameCap
+public fun surrender_cap(
+    cap: SubnameCap,
+    scenario: &mut Scenario,
+) {
+    ts::next_tx(scenario, USER_ADDRESS);
+    let mut suins = ts::take_shared<SuiNS>(scenario);
+
+    subdomains::surrender_subname_cap(&mut suins, cap);
+
+    ts::return_shared(suins);
+}
+
+#[test]
+/// Test surrendering a SubnameCap removes it from active list and destroys it
+fun test_surrender_cap() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+
+    let parent = create_sld_name(utf8(b"test.sui"), scenario);
+
+    // Create a cap
+    let cap = create_subname_cap(&parent, true, false, false, false, scenario);
+
+    // Verify cap is active
+    ts::next_tx(scenario, USER_ADDRESS);
+    {
+        let suins = ts::take_shared<SuiNS>(scenario);
+        assert!(subdomains::is_cap_active(&suins, &cap), 0);
+        assert!(!subdomains::is_cap_revoked(&suins, &cap), 1);
+        assert!(subdomains::get_active_caps_count(&suins, parent.domain()) == 1, 2);
+        ts::return_shared(suins);
+    };
+
+    // Surrender the cap
+    surrender_cap(cap, scenario);
+
+    // Verify cap is no longer in active list
+    ts::next_tx(scenario, USER_ADDRESS);
+    {
+        let suins = ts::take_shared<SuiNS>(scenario);
+        // Note: cap object is destroyed, so we can't check is_cap_active on it
+        // Instead, check the count
+        assert!(subdomains::get_active_caps_count(&suins, parent.domain()) == 0, 3);
+        ts::return_shared(suins);
+    };
+
+    // Clean up
+    burn_nfts(vector[parent]);
+    ts::end(scenario_val);
+}
+
+#[test]
+/// Test surrendering a cap that was already revoked still works (no panic)
+fun test_surrender_already_revoked_cap() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+
+    let parent = create_sld_name(utf8(b"test.sui"), scenario);
+
+    // Create a cap
+    let cap = create_subname_cap(&parent, true, false, false, false, scenario);
+    let cap_id = sui::object::id(&cap);
+
+    // Revoke the cap first
+    revoke_cap(&parent, cap_id, scenario);
+
+    // Verify cap is revoked
+    ts::next_tx(scenario, USER_ADDRESS);
+    {
+        let suins = ts::take_shared<SuiNS>(scenario);
+        assert!(!subdomains::is_cap_active(&suins, &cap), 0);
+        assert!(subdomains::is_cap_revoked(&suins, &cap), 1);
+        ts::return_shared(suins);
+    };
+
+    // Surrender the cap - should still work even though it was revoked
+    surrender_cap(cap, scenario);
+
+    // Clean up
+    burn_nfts(vector[parent]);
+    ts::end(scenario_val);
+}
+
+#[test, expected_failure(abort_code = ::suins_subdomains::subdomains::ECapNotActive)]
+/// Test that a surrendered cap cannot be used (even if object somehow still existed)
+fun test_surrendered_cap_cannot_be_used() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+
+    let parent = create_sld_name(utf8(b"test.sui"), scenario);
+
+    // Create two caps
+    let mut cap1 = create_subname_cap(&parent, true, false, false, false, scenario);
+    let cap1_id = sui::object::id(&cap1);
+
+    // Revoke cap1 (simulates what happens after surrender removes from active list)
+    revoke_cap(&parent, cap1_id, scenario);
+
+    // Try to use cap1 (should fail since it's not in active list)
+    create_leaf_with_cap(&mut cap1, utf8(b"leaf.test.sui"), TEST_ADDRESS, scenario);
+
+    abort
+}
+
+// == Active Caps Enumeration Tests ==
+
+#[test]
+/// Test get_active_caps returns all active caps for a domain
+fun test_get_active_caps() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+
+    let parent = create_sld_name(utf8(b"test.sui"), scenario);
+
+    // Initially no caps
+    ts::next_tx(scenario, USER_ADDRESS);
+    {
+        let suins = ts::take_shared<SuiNS>(scenario);
+        let caps = subdomains::get_active_caps(&suins, parent.domain());
+        assert!(caps.length() == 0, 0);
+        assert!(subdomains::get_active_caps_count(&suins, parent.domain()) == 0, 1);
+        ts::return_shared(suins);
+    };
+
+    // Create first cap
+    let cap1 = create_subname_cap(&parent, true, false, false, false, scenario);
+    let cap1_id = sui::object::id(&cap1);
+
+    ts::next_tx(scenario, USER_ADDRESS);
+    {
+        let suins = ts::take_shared<SuiNS>(scenario);
+        let caps = subdomains::get_active_caps(&suins, parent.domain());
+        assert!(caps.length() == 1, 2);
+        assert!(subdomains::cap_entry_id(&caps[0]) == cap1_id, 3);
+        ts::return_shared(suins);
+    };
+
+    // Create second cap
+    let cap2 = create_subname_cap(&parent, false, true, true, true, scenario);
+    let cap2_id = sui::object::id(&cap2);
+
+    ts::next_tx(scenario, USER_ADDRESS);
+    {
+        let suins = ts::take_shared<SuiNS>(scenario);
+        let caps = subdomains::get_active_caps(&suins, parent.domain());
+        assert!(caps.length() == 2, 4);
+        assert!(subdomains::get_active_caps_count(&suins, parent.domain()) == 2, 5);
+        ts::return_shared(suins);
+    };
+
+    // Revoke first cap
+    revoke_cap(&parent, cap1_id, scenario);
+
+    ts::next_tx(scenario, USER_ADDRESS);
+    {
+        let suins = ts::take_shared<SuiNS>(scenario);
+        let caps = subdomains::get_active_caps(&suins, parent.domain());
+        assert!(caps.length() == 1, 6);
+        assert!(subdomains::cap_entry_id(&caps[0]) == cap2_id, 7);
+        ts::return_shared(suins);
+    };
+
+    // Clean up
+    sui::transfer::public_transfer(cap1, USER_ADDRESS);
+    sui::transfer::public_transfer(cap2, USER_ADDRESS);
+    burn_nfts(vector[parent]);
+    ts::end(scenario_val);
+}
+
+#[test]
+/// Test CapEntry getters
+fun test_cap_entry_getters() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+
+    let parent = create_sld_name(utf8(b"test.sui"), scenario);
+
+    // Create cap with specific limits
+    let cap = create_subname_cap_with_limits(
+        &parent,
+        true,  // allow_leaf
+        false, // allow_node
+        false,
+        false,
+        option::some(5),     // max_uses
+        option::some(1000),  // max_duration_ms
+        option::some(2000),  // cap_expiration_ms
+        scenario,
+    );
+
+    ts::next_tx(scenario, USER_ADDRESS);
+    {
+        let suins = ts::take_shared<SuiNS>(scenario);
+        let caps = subdomains::get_active_caps(&suins, parent.domain());
+        assert!(caps.length() == 1, 0);
+
+        let entry = &caps[0];
+        assert!(subdomains::cap_entry_id(entry) == sui::object::id(&cap), 1);
+        assert!(subdomains::cap_entry_allow_leaf(entry) == true, 2);
+        assert!(subdomains::cap_entry_allow_node(entry) == false, 3);
+        assert!(subdomains::cap_entry_max_uses(entry) == option::some(5), 4);
+        assert!(subdomains::cap_entry_max_duration_ms(entry) == option::some(1000), 5);
+        assert!(subdomains::cap_entry_expiration_ms(entry) == option::some(2000), 6);
+        // created_at_ms should be >= 0 (it's the clock timestamp at creation)
+        assert!(subdomains::cap_entry_created_at_ms(entry) >= 0, 7);
+
+        ts::return_shared(suins);
+    };
+
+    // Clean up
+    sui::transfer::public_transfer(cap, USER_ADDRESS);
+    burn_nfts(vector[parent]);
+    ts::end(scenario_val);
+}
+
+#[test]
+/// Test is_cap_active function
+fun test_is_cap_active() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+
+    let parent = create_sld_name(utf8(b"test.sui"), scenario);
+    let cap = create_subname_cap(&parent, true, false, false, false, scenario);
+    let cap_id = sui::object::id(&cap);
+
+    // Cap should be active initially
+    ts::next_tx(scenario, USER_ADDRESS);
+    {
+        let suins = ts::take_shared<SuiNS>(scenario);
+        assert!(subdomains::is_cap_active(&suins, &cap), 0);
+        assert!(!subdomains::is_cap_revoked(&suins, &cap), 1);
+        ts::return_shared(suins);
+    };
+
+    // Revoke the cap
+    revoke_cap(&parent, cap_id, scenario);
+
+    // Cap should no longer be active
+    ts::next_tx(scenario, USER_ADDRESS);
+    {
+        let suins = ts::take_shared<SuiNS>(scenario);
+        assert!(!subdomains::is_cap_active(&suins, &cap), 2);
+        assert!(subdomains::is_cap_revoked(&suins, &cap), 3);
+        ts::return_shared(suins);
+    };
+
+    // Clean up
+    sui::transfer::public_transfer(cap, USER_ADDRESS);
+    burn_nfts(vector[parent]);
+    ts::end(scenario_val);
+}
+
+// == Clear Active Caps Tests ==
+
+/// Helper to clear all active caps for a domain
+public fun clear_caps(
+    parent: &SuinsRegistration,
+    scenario: &mut Scenario,
+) {
+    ts::next_tx(scenario, USER_ADDRESS);
+    let mut suins = ts::take_shared<SuiNS>(scenario);
+    let clock = ts::take_shared<Clock>(scenario);
+
+    subdomains::clear_active_caps(&mut suins, parent, &clock);
+
+    ts::return_shared(suins);
+    ts::return_shared(clock);
+}
+
+#[test]
+/// Test clearing all active caps at once
+fun test_clear_active_caps() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+
+    let parent = create_sld_name(utf8(b"test.sui"), scenario);
+
+    // Create multiple caps
+    let cap1 = create_subname_cap(&parent, true, false, false, false, scenario);
+    let cap2 = create_subname_cap(&parent, false, true, true, true, scenario);
+    let cap3 = create_subname_cap(&parent, true, true, false, false, scenario);
+
+    // Verify all caps are active
+    ts::next_tx(scenario, USER_ADDRESS);
+    {
+        let suins = ts::take_shared<SuiNS>(scenario);
+        assert!(subdomains::get_active_caps_count(&suins, parent.domain()) == 3, 0);
+        assert!(subdomains::is_cap_active(&suins, &cap1), 1);
+        assert!(subdomains::is_cap_active(&suins, &cap2), 2);
+        assert!(subdomains::is_cap_active(&suins, &cap3), 3);
+        ts::return_shared(suins);
+    };
+
+    // Clear all caps
+    clear_caps(&parent, scenario);
+
+    // Verify all caps are now inactive
+    ts::next_tx(scenario, USER_ADDRESS);
+    {
+        let suins = ts::take_shared<SuiNS>(scenario);
+        assert!(subdomains::get_active_caps_count(&suins, parent.domain()) == 0, 4);
+        assert!(!subdomains::is_cap_active(&suins, &cap1), 5);
+        assert!(!subdomains::is_cap_active(&suins, &cap2), 6);
+        assert!(!subdomains::is_cap_active(&suins, &cap3), 7);
+        ts::return_shared(suins);
+    };
+
+    // Clean up
+    sui::transfer::public_transfer(cap1, USER_ADDRESS);
+    sui::transfer::public_transfer(cap2, USER_ADDRESS);
+    sui::transfer::public_transfer(cap3, USER_ADDRESS);
+    burn_nfts(vector[parent]);
+    ts::end(scenario_val);
+}
+
+#[test]
+/// Test clearing caps is idempotent (calling on empty list is fine)
+fun test_clear_active_caps_idempotent() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+
+    let parent = create_sld_name(utf8(b"test.sui"), scenario);
+
+    // Clear caps when none exist (should not fail)
+    clear_caps(&parent, scenario);
+
+    // Create a cap
+    let cap = create_subname_cap(&parent, true, false, false, false, scenario);
+
+    // Clear caps
+    clear_caps(&parent, scenario);
+
+    // Clear again (should not fail)
+    clear_caps(&parent, scenario);
+
+    // Verify cap is inactive
+    ts::next_tx(scenario, USER_ADDRESS);
+    {
+        let suins = ts::take_shared<SuiNS>(scenario);
+        assert!(subdomains::get_active_caps_count(&suins, parent.domain()) == 0, 0);
+        ts::return_shared(suins);
+    };
+
+    // Clean up
+    sui::transfer::public_transfer(cap, USER_ADDRESS);
+    burn_nfts(vector[parent]);
+    ts::end(scenario_val);
+}
+
+#[test, expected_failure(abort_code = ::suins_subdomains::subdomains::ECapNotActive)]
+/// Test that cleared caps cannot be used
+fun test_cleared_cap_cannot_be_used() {
+    let mut scenario_val = test_init();
+    let scenario = &mut scenario_val;
+
+    let parent = create_sld_name(utf8(b"test.sui"), scenario);
+
+    // Create a cap
+    let mut cap = create_subname_cap(&parent, true, false, false, false, scenario);
+
+    // Clear all caps
+    clear_caps(&parent, scenario);
+
+    // Try to use the cap (should fail)
+    create_leaf_with_cap(&mut cap, utf8(b"leaf.test.sui"), TEST_ADDRESS, scenario);
+
+    abort
 }
