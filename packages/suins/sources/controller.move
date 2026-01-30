@@ -4,9 +4,9 @@
 module suins::controller;
 
 use std::string::String;
-use sui::{clock::Clock, tx_context::sender};
+use sui::{clock::Clock, event::emit, tx_context::sender};
 use suins::{
-    domain,
+    domain::{Self, Domain},
     registry::Registry,
     subdomain_registration::SubDomainRegistration,
     suins::{Self, SuiNS},
@@ -20,6 +20,19 @@ const WALRUS_SITE_ID: vector<u8> = b"walrus_site_id";
 use fun registry_mut as SuiNS.registry_mut;
 
 const EUnsupportedKey: u64 = 0;
+/// The subdomain name is not a direct child of the parent domain.
+const EParentMismatch: u64 = 1;
+/// The domain is not a subdomain (must have depth > 2).
+const ENotSubdomain: u64 = 2;
+
+// === Events ===
+
+/// Emitted when an expired subdomain record is pruned from the registry.
+/// The SubDomainRegistration object may still exist but is now orphaned.
+public struct SubnamePrunedEvent has copy, drop {
+    subdomain: Domain,
+    parent_domain: Domain,
+}
 
 /// Authorization token for the controller (v2) which
 /// is used to call protected functions.
@@ -111,9 +124,92 @@ public fun burn_expired_subname(suins: &mut SuiNS, nft: SubDomainRegistration, c
     suins.registry_mut().burn_subdomain_object(nft, clock);
 }
 
+/// Prunes an expired subdomain record from the registry by name, gated by ownership of the parent.
+/// This allows the parent holder to clean up expired subdomain records even when they don't
+/// possess the SubDomainRegistration object. After pruning, the subdomain name becomes available
+/// for re-registration. The orphaned SubDomainRegistration object (if it still exists) becomes useless.
+///
+/// Use this when you control the parent domain but someone else holds the expired subdomain NFT.
+public fun prune_expired_subname(
+    suins: &mut SuiNS,
+    parent: &SuinsRegistration,
+    subdomain_name: String,
+    clock: &Clock,
+) {
+    let registry = suins.registry_mut();
+
+    // Parent must be valid and authorized (non-expired, matches registry record).
+    registry.assert_nft_is_authorized(parent, clock);
+
+    let parent_domain = parent.domain();
+    let subdomain = domain::new(subdomain_name);
+
+    // Verify this is actually a subdomain (depth > 2).
+    assert!(subdomain.is_subdomain(), ENotSubdomain);
+
+    // Ensure the subdomain is a direct child of the parent domain.
+    assert!(parent_domain.is_parent_of(&subdomain), EParentMismatch);
+
+    // Prune the expired subdomain record from the registry.
+    // This will abort if the record doesn't exist or isn't expired.
+    registry.prune_expired_subdomain_record(subdomain, clock);
+
+    emit(SubnamePrunedEvent {
+        subdomain,
+        parent_domain,
+    });
+}
+
+/// Best-effort pruning of multiple expired subdomain records for a given parent.
+///
+/// This function does **not** abort if individual entries are:
+/// - not subdomains,
+/// - not direct children of the parent,
+/// - missing from the registry,
+/// - not expired,
+/// - leaf records.
+///
+/// It prunes what it can, emitting `SubnamePrunedEvent` for each successfully
+/// pruned record, and returns the total count of pruned entries.
+public fun prune_expired_subnames(
+    suins: &mut SuiNS,
+    parent: &SuinsRegistration,
+    subdomain_names: vector<String>,
+    clock: &Clock,
+): u64 {
+    let registry = suins.registry_mut();
+
+    // Parent must be valid and authorized (non-expired, matches registry record).
+    registry.assert_nft_is_authorized(parent, clock);
+
+    let parent_domain = parent.domain();
+    let mut pruned_count = 0;
+
+    subdomain_names.do!(|subdomain_name| {
+        let subdomain = domain::new(subdomain_name);
+
+        // Skip anything that is not a direct child subdomain.
+        if (!subdomain.is_subdomain() || !parent_domain.is_parent_of(&subdomain)) {
+            return
+        };
+
+        if (registry.try_prune_expired_subdomain_record(subdomain, clock)) {
+            pruned_count = pruned_count + 1;
+            emit(SubnamePrunedEvent { subdomain, parent_domain });
+        };
+    });
+
+    pruned_count
+}
+
 /// Get a mutable reference to the registry, if the app is authorized.
 fun registry_mut(suins: &mut SuiNS): &mut Registry {
     suins::app_registry_mut<_, Registry>(ControllerV2(), suins)
+}
+
+#[test_only]
+public fun auth_for_testing(): ControllerV2 {
+    ControllerV2()
 }
 
 /// Authorization token for the controller.
