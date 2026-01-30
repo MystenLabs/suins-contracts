@@ -137,7 +137,11 @@ public fun burn_subdomain_object(self: &mut Registry, nft: SubDomainRegistration
 /// - The record doesn't exist (ERecordNotFound)
 /// - The record is a leaf record (ENotLeafRecord)
 /// - The record hasn't expired (ERecordNotExpired)
-public(package) fun prune_expired_subdomain_record(self: &mut Registry, domain: Domain, clock: &Clock) {
+public(package) fun prune_expired_subdomain_record(
+    self: &mut Registry,
+    domain: Domain,
+    clock: &Clock,
+) {
     assert!(self.registry.contains(domain), ERecordNotFound);
 
     let record = &self.registry[domain];
