@@ -9,7 +9,9 @@ use crate::schema::{auctions, bids, set_seal_config, set_service_fee};
 use anyhow::{Context, Error};
 use async_trait::async_trait;
 use diesel::internal::derives::multiconnection::chrono::{DateTime, Utc};
-use diesel::{ExpressionMethods, QueryDsl};
+use diesel::query_dsl::methods::FilterDsl;
+use diesel::upsert::excluded;
+use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl};
 use diesel_async::RunQueryDsl;
 use log::{error, info};
 use std::sync::Arc;
@@ -141,6 +143,23 @@ impl Handler for AuctionsHandlerPipeline {
                             reserve_price_encrypted: created_event.reserve_price.clone(),
                             reserve_price: None,
                         })
+                        .on_conflict(auctions::auction_id)
+                        .do_update()
+                        .set((
+                            auctions::domain_name.eq(excluded(auctions::domain_name)),
+                            auctions::owner.eq(excluded(auctions::owner)),
+                            auctions::start_time.eq(excluded(auctions::start_time)),
+                            auctions::end_time.eq(excluded(auctions::end_time)),
+                            auctions::min_bid.eq(excluded(auctions::min_bid)),
+                            auctions::status.eq(excluded(auctions::status)),
+                            auctions::updated_at.eq(excluded(auctions::updated_at)),
+                            auctions::created_at.eq(excluded(auctions::created_at)),
+                            auctions::last_tx_digest.eq(excluded(auctions::last_tx_digest)),
+                            auctions::token.eq(excluded(auctions::token)),
+                            auctions::reserve_price_encrypted
+                                .eq(excluded(auctions::reserve_price_encrypted)),
+                        ))
+                        .filter(auctions::updated_at.le(excluded(auctions::updated_at)))
                         .execute(conn)
                         .await
                         .map_err(Into::<Error>::into)?;
@@ -153,11 +172,12 @@ impl Handler for AuctionsHandlerPipeline {
                         auction_cancelled.auction_id, domain_name, auction_cancelled.owner
                     );
 
-                    diesel::update(
-                        auctions::table.filter(
-                            auctions::auction_id.eq(auction_cancelled.auction_id.to_string()),
-                        ),
-                    )
+                    diesel::update(QueryDsl::filter(
+                        auctions::table,
+                        auctions::auction_id
+                            .eq(auction_cancelled.auction_id.to_string())
+                            .and(auctions::updated_at.le(value.created_at)),
+                    ))
                     .set(UpdateAuction {
                         reserve_price: None, // Don't update reserve_price on cancel
                         winner: None,        // Don't update winner on cancel
@@ -177,11 +197,12 @@ impl Handler for AuctionsHandlerPipeline {
                         auction_finalized.auction_id, domain_name, auction_finalized.highest_bidder
                     );
 
-                    diesel::update(
-                        auctions::table.filter(
-                            auctions::auction_id.eq(auction_finalized.auction_id.to_string()),
-                        ),
-                    )
+                    diesel::update(QueryDsl::filter(
+                        auctions::table,
+                        auctions::auction_id
+                            .eq(auction_finalized.auction_id.to_string())
+                            .and(auctions::updated_at.le(value.created_at)),
+                    ))
                     .set(UpdateAuction {
                         reserve_price: Some(Some(auction_finalized.reserve_price as i64)),
                         winner: Some(Some(auction_finalized.highest_bidder.to_string())),

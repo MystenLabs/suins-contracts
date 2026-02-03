@@ -8,7 +8,7 @@ use anyhow::{Context, Error};
 use async_trait::async_trait;
 use diesel::internal::derives::multiconnection::chrono::{DateTime, Utc};
 use diesel::prelude::*;
-use diesel::{ExpressionMethods, QueryDsl};
+use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl};
 use diesel_async::RunQueryDsl;
 use log::{error, info, warn};
 use std::sync::Arc;
@@ -154,16 +154,21 @@ impl Handler for OffersHandlerPipeline {
                             domain_name, offer_cancelled.address
                         );
 
-                        diesel::update(offers::table.filter(offers::id.eq(id)))
-                            .set(UpdateOffer {
-                                value: offer_cancelled.value.to_string(),
-                                owner: None, // won't be updated
-                                status: OfferStatus::Cancelled,
-                                updated_at: value.created_at,
-                                last_tx_digest: value.tx_digest.clone(),
-                            })
-                            .execute(conn)
-                            .await?;
+                        diesel::update(QueryDsl::filter(
+                            offers::table,
+                            offers::id
+                                .eq(id)
+                                .and(offers::updated_at.le(value.created_at)),
+                        ))
+                        .set(UpdateOffer {
+                            value: offer_cancelled.value.to_string(),
+                            owner: None, // won't be updated
+                            status: OfferStatus::Cancelled,
+                            updated_at: value.created_at,
+                            last_tx_digest: value.tx_digest.clone(),
+                        })
+                        .execute(conn)
+                        .await?;
                     }
                 }
                 OfferEvent::Accepted(offer_accepted) => {
@@ -179,16 +184,21 @@ impl Handler for OffersHandlerPipeline {
                             domain_name, offer_accepted.buyer, offer_accepted.owner
                         );
 
-                        diesel::update(offers::table.filter(offers::id.eq(id)))
-                            .set(UpdateOffer {
-                                value: offer_accepted.value.to_string(),
-                                owner: Some(Some(offer_accepted.owner.to_string())),
-                                status: OfferStatus::Accepted,
-                                updated_at: value.created_at,
-                                last_tx_digest: value.tx_digest.clone(),
-                            })
-                            .execute(conn)
-                            .await?;
+                        diesel::update(QueryDsl::filter(
+                            offers::table,
+                            offers::id
+                                .eq(id)
+                                .and(offers::updated_at.le(value.created_at)),
+                        ))
+                        .set(UpdateOffer {
+                            value: offer_accepted.value.to_string(),
+                            owner: Some(Some(offer_accepted.owner.to_string())),
+                            status: OfferStatus::Accepted,
+                            updated_at: value.created_at,
+                            last_tx_digest: value.tx_digest.clone(),
+                        })
+                        .execute(conn)
+                        .await?;
                     }
                 }
                 OfferEvent::Declined(offer_declined) => {
@@ -204,16 +214,21 @@ impl Handler for OffersHandlerPipeline {
                             domain_name, offer_declined.buyer, offer_declined.owner
                         );
 
-                        diesel::update(offers::table.filter(offers::id.eq(id)))
-                            .set(UpdateOffer {
-                                value: offer_declined.value.to_string(),
-                                owner: Some(Some(offer_declined.owner.to_string())),
-                                status: OfferStatus::Declined,
-                                updated_at: value.created_at,
-                                last_tx_digest: value.tx_digest.clone(),
-                            })
-                            .execute(conn)
-                            .await?;
+                        diesel::update(QueryDsl::filter(
+                            offers::table,
+                            offers::id
+                                .eq(id)
+                                .and(offers::updated_at.le(value.created_at)),
+                        ))
+                        .set(UpdateOffer {
+                            value: offer_declined.value.to_string(),
+                            owner: Some(Some(offer_declined.owner.to_string())),
+                            status: OfferStatus::Declined,
+                            updated_at: value.created_at,
+                            last_tx_digest: value.tx_digest.clone(),
+                        })
+                        .execute(conn)
+                        .await?;
                     }
                 }
                 OfferEvent::MakeCounterOffer(make_counter_offer) => {
@@ -229,16 +244,21 @@ impl Handler for OffersHandlerPipeline {
                             domain_name, make_counter_offer.buyer, make_counter_offer.owner
                         );
 
-                        diesel::update(offers::table.filter(offers::id.eq(id)))
-                            .set(UpdateOffer {
-                                value: make_counter_offer.value.to_string(),
-                                owner: Some(Some(make_counter_offer.owner.to_string())),
-                                status: OfferStatus::Countered,
-                                updated_at: value.created_at,
-                                last_tx_digest: value.tx_digest.clone(),
-                            })
-                            .execute(conn)
-                            .await?;
+                        diesel::update(QueryDsl::filter(
+                            offers::table,
+                            offers::id
+                                .eq(id)
+                                .and(offers::updated_at.le(value.created_at)),
+                        ))
+                        .set(UpdateOffer {
+                            value: make_counter_offer.value.to_string(),
+                            owner: Some(Some(make_counter_offer.owner.to_string())),
+                            status: OfferStatus::Countered,
+                            updated_at: value.created_at,
+                            last_tx_digest: value.tx_digest.clone(),
+                        })
+                        .execute(conn)
+                        .await?;
                     }
                 }
                 OfferEvent::AcceptCounterOffer(accept_counter_offer) => {
@@ -254,16 +274,21 @@ impl Handler for OffersHandlerPipeline {
                             domain_name, accept_counter_offer.buyer
                         );
 
-                        diesel::update(offers::table.filter(offers::id.eq(id)))
-                            .set(UpdateOffer {
-                                value: accept_counter_offer.value.to_string(),
-                                owner: None,
-                                status: OfferStatus::AcceptedCountered,
-                                updated_at: value.created_at,
-                                last_tx_digest: value.tx_digest.clone(),
-                            })
-                            .execute(conn)
-                            .await?;
+                        diesel::update(QueryDsl::filter(
+                            offers::table,
+                            offers::id
+                                .eq(id)
+                                .and(offers::updated_at.le(value.created_at)),
+                        ))
+                        .set(UpdateOffer {
+                            value: accept_counter_offer.value.to_string(),
+                            owner: None,
+                            status: OfferStatus::AcceptedCountered,
+                            updated_at: value.created_at,
+                            last_tx_digest: value.tx_digest.clone(),
+                        })
+                        .execute(conn)
+                        .await?;
                     }
                 }
             }
@@ -339,6 +364,7 @@ impl OffersHandlerPipeline {
             .filter(offers::domain_name.eq(&domain_name))
             .filter(offers::buyer.eq(&buyer.to_string()))
             .order(offers::updated_at.desc())
+            .then_order_by(offers::id.desc())
             .first(conn)
             .await
             .optional()?;

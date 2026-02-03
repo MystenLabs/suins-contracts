@@ -7,7 +7,9 @@ use crate::schema::listings;
 use anyhow::{Context, Error};
 use async_trait::async_trait;
 use diesel::internal::derives::multiconnection::chrono::{DateTime, Utc};
-use diesel::{ExpressionMethods, QueryDsl};
+use diesel::query_dsl::methods::FilterDsl;
+use diesel::upsert::excluded;
+use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl};
 use diesel_async::RunQueryDsl;
 use log::{error, info};
 use std::sync::Arc;
@@ -132,6 +134,20 @@ impl Handler for ListingsHandlerPipeline {
                             token: created_event.token.to_string(),
                             expires_at: created_event.expires_at.map(|e| e as i64),
                         })
+                        .on_conflict(listings::listing_id)
+                        .do_update()
+                        .set((
+                            listings::domain_name.eq(excluded(listings::domain_name)),
+                            listings::owner.eq(excluded(listings::owner)),
+                            listings::price.eq(excluded(listings::price)),
+                            listings::status.eq(excluded(listings::status)),
+                            listings::updated_at.eq(excluded(listings::updated_at)),
+                            listings::created_at.eq(excluded(listings::created_at)),
+                            listings::last_tx_digest.eq(excluded(listings::last_tx_digest)),
+                            listings::token.eq(excluded(listings::token)),
+                            listings::expires_at.eq(excluded(listings::expires_at)),
+                        ))
+                        .filter(listings::updated_at.le(excluded(listings::updated_at)))
                         .execute(conn)
                         .await
                         .map_err(Into::<Error>::into)?;
@@ -144,11 +160,12 @@ impl Handler for ListingsHandlerPipeline {
                         bought_event.listing_id, domain_name, bought_event.buyer
                     );
 
-                    diesel::update(
-                        listings::table.filter(
-                            listings::listing_id.eq(bought_event.listing_id.to_string()),
-                        ),
-                    )
+                    diesel::update(QueryDsl::filter(
+                        listings::table,
+                        listings::listing_id
+                            .eq(bought_event.listing_id.to_string())
+                            .and(listings::updated_at.le(value.created_at)),
+                    ))
                     .set(UpdateListing {
                         buyer: Some(Some(bought_event.buyer.to_string())),
                         status: ListingStatus::Bought,
@@ -166,11 +183,12 @@ impl Handler for ListingsHandlerPipeline {
                         cancelled_event.listing_id, domain_name, cancelled_event.owner
                     );
 
-                    diesel::update(
-                        listings::table.filter(
-                            listings::listing_id.eq(cancelled_event.listing_id.to_string()),
-                        ),
-                    )
+                    diesel::update(QueryDsl::filter(
+                        listings::table,
+                        listings::listing_id
+                            .eq(cancelled_event.listing_id.to_string())
+                            .and(listings::updated_at.le(value.created_at)),
+                    ))
                     .set(UpdateListing {
                         buyer: None,
                         status: ListingStatus::Cancelled,
