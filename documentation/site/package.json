@@ -7,7 +7,7 @@
     "prestart": "node src/scripts/generate-import-context.js && node src/scripts/copy-yaml-files.js",
     "start": "docusaurus start",
     "prebuild": "node src/scripts/generate-import-context.js && node src/scripts/copy-yaml-files.js",
-    "build": "docusaurus build",
+    "build": "node src/shared/js/copy-markdown-files.js; docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
