@@ -69,12 +69,6 @@ const EParentExpired: u64 = 13;
 const ECapNotActive: u64 = 14;
 /// The SubnameCap's parent NFT ID doesn't match the registry (domain was re-registered).
 const ECapInvalidated: u64 = 15;
-/// The SubnameCap has reached its maximum usage limit.
-const ECapUsageLimitReached: u64 = 16;
-/// The requested subdomain duration exceeds the cap's maximum allowed duration.
-const ECapDurationLimitExceeded: u64 = 17;
-/// The SubnameCap has expired.
-const ECapExpired: u64 = 18;
 
 /// Enabled metadata value.
 const ACTIVE_METADATA_VALUE: vector<u8> = b"1";
@@ -84,6 +78,11 @@ public struct SubDomains has drop {}
 
 /// The key to store the parent's ID in the subdomain object.
 public struct ParentKey has copy, drop, store {}
+
+// SubnameCap: Minimal Revocable Delegation Primitive
+//
+// Custom constraints (limits, fees, allowlists) are intentionally omitted.
+// Implement via external wrapper/policy modules that hold the SubnameCap.
 
 /// A capability that allows the holder to create subnames under a specific parent domain.
 /// This enables delegation without transferring the parent SuinsRegistration NFT.
@@ -98,22 +97,6 @@ public struct SubnameCap has key, store {
     allow_leaf_creation: bool,
     /// Whether this cap can create node subdomains
     allow_node_creation: bool,
-    /// Default permissions for created node subdomains (allow_creation)
-    default_node_allow_creation: bool,
-    /// Default permissions for created node subdomains (allow_time_extension)
-    default_node_allow_extension: bool,
-    // === Programmable Limits ===
-    /// Maximum number of subdomains this cap can create. None = unlimited.
-    max_uses: Option<u64>,
-    /// Current count of subdomains created with this cap.
-    uses_count: u64,
-    /// Maximum duration (in ms) for subdomains created with this cap.
-    /// This is a duration, not a timestamp. None = up to parent expiration.
-    max_duration_ms: Option<u64>,
-    /// Absolute timestamp (in ms since epoch) when this cap expires.
-    /// Consistent with SuinsRegistration.expiration_timestamp_ms.
-    /// None = valid as long as parent is valid.
-    cap_expiration_ms: Option<u64>,
 }
 
 /// Key for storing active SubnameCaps as a dynamic field on the SuiNS object, keyed by domain.
@@ -131,12 +114,6 @@ public struct CapEntry has copy, drop, store {
     allow_leaf: bool,
     /// Whether this cap can create node subdomains
     allow_node: bool,
-    /// Maximum uses allowed (None = unlimited)
-    max_uses: Option<u64>,
-    /// Maximum duration in ms for created subdomains (None = up to parent)
-    max_duration_ms: Option<u64>,
-    /// Absolute timestamp when this cap expires (None = no expiration)
-    cap_expiration_ms: Option<u64>,
 }
 
 /// Container for active SubnameCaps, stored as a dynamic field on the parent domain's NameRecord.
@@ -158,12 +135,6 @@ public struct SubnameCapCreated has copy, drop {
     allow_leaf_creation: bool,
     /// Whether this cap allows node subdomain creation
     allow_node_creation: bool,
-    /// Maximum uses allowed (None = unlimited)
-    max_uses: Option<u64>,
-    /// Maximum duration in ms for created subdomains (None = up to parent)
-    max_duration_ms: Option<u64>,
-    /// Absolute timestamp (ms since epoch) when this cap expires (None = no expiration)
-    cap_expiration_ms: Option<u64>,
 }
 
 /// Emitted when a SubnameCap is revoked.
@@ -186,10 +157,6 @@ public struct SubnameCapUsed has copy, drop {
     subdomain_name: String,
     /// Whether a leaf (true) or node (false) was created
     is_leaf: bool,
-    /// The current usage count after this use
-    uses_count: u64,
-    /// Remaining uses (None = unlimited)
-    remaining_uses: Option<u64>,
 }
 
 /// Emitted when a SubnameCap is surrendered by its holder.
@@ -569,22 +536,12 @@ fun app_config(suins: &SuiNS): &SubDomainConfig {
 /// Parameters:
 /// - `allow_leaf_creation`: Whether this cap can create leaf subdomains.
 /// - `allow_node_creation`: Whether this cap can create node subdomains.
-/// - `default_node_allow_creation`: Default permission for node subdomains to create children.
-/// - `default_node_allow_extension`: Default permission for node subdomains to extend expiration.
-/// - `max_uses`: Maximum number of subdomains this cap can create. None = unlimited.
-/// - `max_duration_ms`: Maximum duration for created subdomains. None = up to parent expiration.
-/// - `cap_expiration_ms`: When this cap expires. None = valid as long as parent is valid.
 public fun create_subname_cap(
     suins: &mut SuiNS,
     parent: &SuinsRegistration,
     clock: &Clock,
     allow_leaf_creation: bool,
     allow_node_creation: bool,
-    default_node_allow_creation: bool,
-    default_node_allow_extension: bool,
-    max_uses: Option<u64>,
-    max_duration_ms: Option<u64>,
-    cap_expiration_ms: Option<u64>,
     ctx: &mut TxContext,
 ): SubnameCap {
     // Validate parent NFT is authorized (not expired, matches registry)
@@ -596,12 +553,6 @@ public fun create_subname_cap(
         parent_nft_id: object::id(parent),
         allow_leaf_creation,
         allow_node_creation,
-        default_node_allow_creation,
-        default_node_allow_extension,
-        max_uses,
-        uses_count: 0,
-        max_duration_ms,
-        cap_expiration_ms,
     };
 
     // Add cap to active list
@@ -612,9 +563,6 @@ public fun create_subname_cap(
         clock.timestamp_ms(),
         allow_leaf_creation,
         allow_node_creation,
-        max_uses,
-        max_duration_ms,
-        cap_expiration_ms,
     );
 
     // Emit creation event
@@ -624,9 +572,6 @@ public fun create_subname_cap(
         parent_nft_id: object::id(parent),
         allow_leaf_creation,
         allow_node_creation,
-        max_uses,
-        max_duration_ms,
-        cap_expiration_ms,
     });
 
     cap
@@ -662,10 +607,7 @@ public fun revoke_subname_cap(
 /// Can be called by anyone who holds the cap (doesn't require parent NFT).
 /// This provides a clean way for cap holders to remove their caps from the active list
 /// before destroying the cap object.
-public fun surrender_subname_cap(
-    suins: &mut SuiNS,
-    cap: SubnameCap,
-) {
+public fun surrender_subname_cap(suins: &mut SuiNS, cap: SubnameCap) {
     let cap_id = object::id(&cap);
     let parent_domain = cap.parent_domain;
     let parent_nft_id = cap.parent_nft_id;
@@ -687,12 +629,6 @@ public fun surrender_subname_cap(
         parent_nft_id: _,
         allow_leaf_creation: _,
         allow_node_creation: _,
-        default_node_allow_creation: _,
-        default_node_allow_extension: _,
-        max_uses: _,
-        uses_count: _,
-        max_duration_ms: _,
-        cap_expiration_ms: _,
     } = cap;
     object::delete(id);
 }
@@ -700,11 +636,7 @@ public fun surrender_subname_cap(
 /// Clears all active SubnameCaps for a domain, effectively revoking all delegated caps at once.
 /// Can only be called by the current owner of the parent SuinsRegistration NFT.
 /// Useful when transferring a domain or resetting all delegated permissions.
-public fun clear_active_caps(
-    suins: &mut SuiNS,
-    parent: &SuinsRegistration,
-    clock: &Clock,
-) {
+public fun clear_active_caps(suins: &mut SuiNS, parent: &SuinsRegistration, clock: &Clock) {
     // Validate parent NFT is authorized (not expired, matches registry)
     registry(suins).assert_nft_is_authorized(parent, clock);
 
@@ -727,10 +659,9 @@ public fun clear_active_caps(
 }
 
 /// Creates a leaf subdomain using a SubnameCap instead of the parent NFT.
-/// Note: max_duration_ms doesn't apply to leaf subdomains (they inherit parent's expiration).
 public fun new_leaf_with_cap(
     suins: &mut SuiNS,
-    cap: &mut SubnameCap,
+    cap: &SubnameCap,
     clock: &Clock,
     subdomain_name: String,
     target: address,
@@ -740,9 +671,6 @@ public fun new_leaf_with_cap(
 
     // Validate cap is still valid (includes revocation, parent validity, NFT ID match)
     internal_validate_cap(suins, cap, clock);
-
-    // Check cap-specific limits
-    internal_check_cap_limits(cap, clock);
 
     assert!(!denylist::is_blocked_name(suins, subdomain_name), ENotAllowedName);
 
@@ -757,41 +685,30 @@ public fun new_leaf_with_cap(
     // Create the leaf record
     registry_mut(suins).add_leaf_record(subdomain, clock, target, ctx);
 
-    // Increment usage count
-    cap.uses_count = cap.uses_count + 1;
-
     // Emit usage event
     event::emit(SubnameCapUsed {
         cap_id: object::id(cap),
         parent_domain: cap.parent_domain.to_string(),
         subdomain_name,
         is_leaf: true,
-        uses_count: cap.uses_count,
-        remaining_uses: if (cap.max_uses.is_some()) {
-            let max = *cap.max_uses.borrow();
-            if (cap.uses_count >= max) { option::some(0) } else { option::some(max - cap.uses_count) }
-        } else {
-            option::none()
-        },
     });
 }
 
 /// Creates a node subdomain using a SubnameCap instead of the parent NFT.
 public fun new_with_cap(
     suins: &mut SuiNS,
-    cap: &mut SubnameCap,
+    cap: &SubnameCap,
     clock: &Clock,
     subdomain_name: String,
     expiration_timestamp_ms: u64,
+    allow_creation: bool,
+    allow_time_extension: bool,
     ctx: &mut TxContext,
 ): SubDomainRegistration {
     assert!(cap.allow_node_creation, ENodeCreationNotAllowed);
 
     // Validate cap is still valid (includes revocation, parent validity, NFT ID match)
     internal_validate_cap(suins, cap, clock);
-
-    // Check cap-specific limits (max_uses, cap_expiration_ms)
-    internal_check_cap_limits(cap, clock);
 
     assert!(!denylist::is_blocked_name(suins, subdomain_name), ENotAllowedName);
 
@@ -807,15 +724,6 @@ public fun new_with_cap(
     let parent_record = registry(suins).lookup(cap.parent_domain);
     assert!(parent_record.is_some(), EParentNotFound);
     let parent_expiration = parent_record.borrow().expiration_timestamp_ms();
-
-    // Calculate the requested duration
-    let requested_duration = expiration_timestamp_ms - clock.timestamp_ms();
-
-    // Check max_duration_ms limit if set
-    if (cap.max_duration_ms.is_some()) {
-        let max_duration = *cap.max_duration_ms.borrow();
-        assert!(requested_duration <= max_duration, ECapDurationLimitExceeded);
-    };
 
     // Validate that the duration is at least the minimum duration.
     assert!(
@@ -835,16 +743,13 @@ public fun new_with_cap(
         ctx,
     );
 
-    // Set up permissions using cap's defaults
-    if (cap.default_node_allow_creation) {
+    // Set up permissions using caller-provided values
+    if (allow_creation) {
         internal_set_flag(suins, subdomain, subdomain_allow_creation_key(), true);
     };
-    if (cap.default_node_allow_extension) {
+    if (allow_time_extension) {
         internal_set_flag(suins, subdomain, subdomain_allow_extension_key(), true);
     };
-
-    // Increment usage count
-    cap.uses_count = cap.uses_count + 1;
 
     // Emit usage event
     event::emit(SubnameCapUsed {
@@ -852,13 +757,6 @@ public fun new_with_cap(
         parent_domain: cap.parent_domain.to_string(),
         subdomain_name,
         is_leaf: false,
-        uses_count: cap.uses_count,
-        remaining_uses: if (cap.max_uses.is_some()) {
-            let max = *cap.max_uses.borrow();
-            if (cap.uses_count >= max) { option::some(0) } else { option::some(max - cap.uses_count) }
-        } else {
-            option::none()
-        },
     });
 
     nft
@@ -881,22 +779,6 @@ fun internal_validate_cap(suins: &SuiNS, cap: &SubnameCap, clock: &Clock) {
 
     // Check if cap is in the active list
     assert!(is_cap_in_active_list(suins, cap.parent_domain, object::id(cap)), ECapNotActive);
-}
-
-/// Checks the cap's programmable limits (max_uses, cap_expiration_ms).
-/// Called before creating a subdomain with a cap.
-fun internal_check_cap_limits(cap: &SubnameCap, clock: &Clock) {
-    // Check if cap has expired
-    if (cap.cap_expiration_ms.is_some()) {
-        let expiration = *cap.cap_expiration_ms.borrow();
-        assert!(clock.timestamp_ms() < expiration, ECapExpired);
-    };
-
-    // Check if cap has reached max uses
-    if (cap.max_uses.is_some()) {
-        let max = *cap.max_uses.borrow();
-        assert!(cap.uses_count < max, ECapUsageLimitReached);
-    };
 }
 
 // == Active Caps List Management ==
@@ -942,20 +824,16 @@ fun add_to_active_caps(
     created_at_ms: u64,
     allow_leaf: bool,
     allow_node: bool,
-    max_uses: Option<u64>,
-    max_duration_ms: Option<u64>,
-    cap_expiration_ms: Option<u64>,
 ) {
     let active_caps = get_or_create_active_caps(suins, domain);
-    active_caps.caps.push_back(CapEntry {
-        cap_id,
-        created_at_ms,
-        allow_leaf,
-        allow_node,
-        max_uses,
-        max_duration_ms,
-        cap_expiration_ms,
-    });
+    active_caps
+        .caps
+        .push_back(CapEntry {
+            cap_id,
+            created_at_ms,
+            allow_leaf,
+            allow_node,
+        });
 }
 
 /// Removes a cap from the active caps list. Returns true if found and removed.
@@ -1000,60 +878,6 @@ public fun cap_allow_leaf_creation(cap: &SubnameCap): bool {
 /// Check if this SubnameCap allows node subdomain creation.
 public fun cap_allow_node_creation(cap: &SubnameCap): bool {
     cap.allow_node_creation
-}
-
-/// Get the maximum uses allowed for this cap. None = unlimited.
-public fun cap_max_uses(cap: &SubnameCap): Option<u64> {
-    cap.max_uses
-}
-
-/// Get the current usage count for this cap.
-public fun cap_uses_count(cap: &SubnameCap): u64 {
-    cap.uses_count
-}
-
-/// Get the remaining uses for this cap. None = unlimited.
-public fun cap_remaining_uses(cap: &SubnameCap): Option<u64> {
-    if (cap.max_uses.is_some()) {
-        let max = *cap.max_uses.borrow();
-        if (cap.uses_count >= max) {
-            option::some(0)
-        } else {
-            option::some(max - cap.uses_count)
-        }
-    } else {
-        option::none()
-    }
-}
-
-/// Get the maximum duration (in ms) for subdomains created with this cap. None = up to parent expiration.
-public fun cap_max_duration_ms(cap: &SubnameCap): Option<u64> {
-    cap.max_duration_ms
-}
-
-/// Get the expiration timestamp for this cap. None = valid as long as parent is valid.
-public fun cap_expiration_ms(cap: &SubnameCap): Option<u64> {
-    cap.cap_expiration_ms
-}
-
-/// Check if this cap has expired (based on cap_expiration_ms, NOT parent expiration).
-public fun is_cap_expired(cap: &SubnameCap, clock: &Clock): bool {
-    if (cap.cap_expiration_ms.is_some()) {
-        let expiration = *cap.cap_expiration_ms.borrow();
-        clock.timestamp_ms() >= expiration
-    } else {
-        false
-    }
-}
-
-/// Check if this cap has reached its usage limit.
-public fun is_cap_usage_exhausted(cap: &SubnameCap): bool {
-    if (cap.max_uses.is_some()) {
-        let max = *cap.max_uses.borrow();
-        cap.uses_count >= max
-    } else {
-        false
-    }
 }
 
 /// Check if a SubnameCap is active (in the active list for its parent domain).
@@ -1116,21 +940,6 @@ public fun cap_entry_allow_leaf(entry: &CapEntry): bool {
 /// Check if a CapEntry allows node creation.
 public fun cap_entry_allow_node(entry: &CapEntry): bool {
     entry.allow_node
-}
-
-/// Get the max_uses from a CapEntry.
-public fun cap_entry_max_uses(entry: &CapEntry): Option<u64> {
-    entry.max_uses
-}
-
-/// Get the max_duration_ms from a CapEntry.
-public fun cap_entry_max_duration_ms(entry: &CapEntry): Option<u64> {
-    entry.max_duration_ms
-}
-
-/// Get the cap_expiration_ms from a CapEntry.
-public fun cap_entry_expiration_ms(entry: &CapEntry): Option<u64> {
-    entry.cap_expiration_ms
 }
 
 #[test_only]

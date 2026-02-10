@@ -33,3 +33,33 @@ source = { root = true }
 use_environment = "mainnet"
 manifest_digest = "CCF1199880EDDC27DD5AB413C49045F2B2C01F864566CC906FFA2C1A922B9E76"
 deps = { Sui = "Sui", suins = "suins", suins_denylist = "suins_denylist" }
+
+[pinned.testnet.MoveStdlib]
+source = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "5484a7e2b67cfc116cd235fa0b8e2b858058823b" }
+use_environment = "testnet"
+manifest_digest = "C4FE4C91DE74CBF223B2E380AE40F592177D21870DC2D7EB6227D2D694E05363"
+deps = {}
+
+[pinned.testnet.Sui]
+source = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "5484a7e2b67cfc116cd235fa0b8e2b858058823b" }
+use_environment = "testnet"
+manifest_digest = "7AFB66695545775FBFBB2D3078ADFD084244D5002392E837FDE21D9EA1C6D01C"
+deps = { MoveStdlib = "MoveStdlib" }
+
+[pinned.testnet.suins]
+source = { local = "../suins" }
+use_environment = "testnet"
+manifest_digest = "0532D72C4F42A4472D331C54E2F8FB1595A305815D58568D26C6F8A4AC9BBFCE"
+deps = { Sui = "Sui" }
+
+[pinned.testnet.suins_denylist]
+source = { local = "../denylist" }
+use_environment = "testnet"
+manifest_digest = "5CB419F4D1A63DFD320557CD0AB872ED9F2A5D6D0A35D89D20E718E6B8329411"
+deps = { Sui = "Sui", suins = "suins" }
+
+[pinned.testnet.suins_subdomains]
+source = { root = true }
+use_environment = "testnet"
+manifest_digest = "CD0EFF095401AB079339EF5D139B665A63D2319D746B9C14D3334D9F012C79FD"
+deps = { Sui = "Sui", suins = "suins", suins_denylist = "suins_denylist" }
