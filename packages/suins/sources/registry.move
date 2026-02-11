@@ -125,6 +125,74 @@ public fun burn_subdomain_object(self: &mut Registry, nft: SubDomainRegistration
     self.burn_registration_object(nft, clock);
 }
 
+/// Prunes an expired subdomain record from the registry by domain name.
+/// This removes only the registry record - it does NOT burn the SubDomainRegistration object.
+/// After calling this, the subdomain name becomes available for re-registration,
+/// while any existing SubDomainRegistration object becomes orphaned and useless.
+///
+/// This is useful when the parent domain holder wants to reclaim an expired subdomain
+/// but doesn't possess the SubDomainRegistration object.
+///
+/// Aborts if:
+/// - The record doesn't exist (ERecordNotFound)
+/// - The record is a leaf record (ENotLeafRecord)
+/// - The record hasn't expired (ERecordNotExpired)
+public(package) fun prune_expired_subdomain_record(
+    self: &mut Registry,
+    domain: Domain,
+    clock: &Clock,
+) {
+    assert!(self.registry.contains(domain), ERecordNotFound);
+
+    let record = &self.registry[domain];
+
+    // Leaf records should be managed via remove_leaf_record, not pruned.
+    assert!(!record.is_leaf_record(), ENotLeafRecord);
+
+    // Only allow pruning expired records.
+    // For subdomains, we don't use grace period - they expire immediately.
+    assert!(record.has_expired(clock), ERecordNotExpired);
+
+    self.remove_record_and_invalidate_reverse(domain);
+}
+
+/// Best-effort pruning of an expired **node** subdomain record.
+///
+/// Returns `true` if a registry record was removed, `false` otherwise.
+///
+/// This is intended for batched "cleanup" flows where callers may provide a
+/// list that includes already-pruned / missing / non-expired names and want to
+/// avoid aborting the whole transaction.
+///
+/// Notes:
+/// - Leaf records are not considered expirable and are never pruned here.
+/// - This function never aborts.
+public(package) fun try_prune_expired_subdomain_record(
+    self: &mut Registry,
+    domain: Domain,
+    clock: &Clock,
+): bool {
+    if (!domain.is_subdomain()) {
+        return false
+    };
+
+    if (!self.registry.contains(domain)) {
+        return false
+    };
+
+    let record_ref = &self.registry[domain];
+    if (record_ref.is_leaf_record()) {
+        return false
+    };
+
+    if (!record_ref.has_expired(clock)) {
+        return false
+    };
+
+    self.remove_record_and_invalidate_reverse(domain);
+    true
+}
+
 /// Adds a `leaf` record to the registry.
 /// A `leaf` record is a record that is a subdomain and doesn't have
 /// an equivalent `SuinsRegistration` object.
@@ -166,7 +234,7 @@ public fun add_leaf_record(
     assert!(!parent_name_record.has_expired(clock), ERecordExpired);
 
     // Removes an existing record if it exists and is expired.
-    self.remove_existing_record_if_exists_and_expired(domain, clock, false);
+    self.remove_existing_record_if_expired(domain, clock, false);
 
     // adds the `leaf` record to the registry.
     self
@@ -324,7 +392,7 @@ fun internal_add_record(
     with_grace_period: bool,
     ctx: &mut TxContext,
 ): SuinsRegistration {
-    self.remove_existing_record_if_exists_and_expired(
+    self.remove_existing_record_if_expired(
         domain,
         clock,
         with_grace_period,
@@ -341,7 +409,7 @@ fun internal_add_record(
     nft
 }
 
-fun remove_existing_record_if_exists_and_expired(
+fun remove_existing_record_if_expired(
     self: &mut Registry,
     domain: Domain,
     clock: &Clock,
@@ -383,8 +451,14 @@ fun remove_existing_record_if_exists_and_expired(
         assert!(record.has_expired(clock), ERecordNotExpired);
     };
 
-    let old_target_address = record.target_address();
-    self.handle_invalidate_reverse_record(&domain, old_target_address, none());
+    self.handle_invalidate_reverse_record(&domain, record.target_address(), none());
+}
+
+/// Removes a record from the registry and invalidates any reverse lookup.
+/// Caller is responsible for all validation before calling this.
+fun remove_record_and_invalidate_reverse(self: &mut Registry, domain: Domain) {
+    let record = self.registry.remove(domain);
+    self.handle_invalidate_reverse_record(&domain, record.target_address(), none());
 }
 
 fun handle_invalidate_reverse_record(
