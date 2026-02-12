@@ -9,6 +9,32 @@
       { "source": "/developer/indexing", "destination": "/developer", "permanent": true },
       { "source": "/developer/integration", "destination": "/developer", "permanent": true },
       { "source": "/developer/subnames", "destination": "/developer", "permanent": true },
-      { "source": "/move-registry/design", "destination": "/move-registry", "permanent": true }
-  ]
+      { "source": "/move-registry/design", "destination": "/move-registry", "permanent": true },
+      { "source": "/sdk", "destination": "/developer/sdk", "permanent": true }
+  ],
+  "rewrites": [
+      {
+        "source": "/(.+)\\.md",
+        "destination": "/markdown/$1.md"
+      }
+    ],
+    "headers": [
+      {
+        "source": "/markdown/(.*).md",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "text/markdown; charset=utf-8"
+          },
+          {
+            "key": "Content-Disposition",
+            "value": "inline"
+          },
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=3600, s-maxage=3600"
+          }
+        ]
+      }
+    ]
 }

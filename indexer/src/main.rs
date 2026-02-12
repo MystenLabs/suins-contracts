@@ -3,23 +3,23 @@ use clap::Parser;
 use move_core_types::language_storage::StructTag;
 use prometheus::Registry;
 use std::net::SocketAddr;
-use sui_indexer_alt_framework::ingestion::ClientArgs;
-use sui_indexer_alt_framework::{Indexer, IndexerArgs};
+use sui_indexer_alt_framework::ingestion::ingestion_client::IngestionClientArgs;
+use sui_indexer_alt_framework::ingestion::{ClientArgs, IngestionConfig};
 use sui_indexer_alt_framework::pipeline::sequential::SequentialConfig;
+use sui_indexer_alt_framework::{Indexer, IndexerArgs};
 use sui_indexer_alt_metrics::db::DbConnectionStatsCollector;
 use sui_indexer_alt_metrics::{MetricsArgs, MetricsService};
 use sui_pg_db::{Db, DbArgs};
 use sui_types::base_types::SuiAddress;
 use suins_indexer::handlers::domain_handler::DomainHandler;
 
-use suins_indexer::MAINNET_REGISTRY_ID;
-use suins_indexer::MAINNET_REMOTE_STORE_URL;
-use suins_indexer::MIGRATIONS;
-use tokio_util::sync::CancellationToken;
-use url::Url;
 use suins_indexer::handlers::auctions_handler::AuctionsHandlerPipeline;
 use suins_indexer::handlers::listings_handler::ListingsHandlerPipeline;
 use suins_indexer::handlers::offers_handler::OffersHandlerPipeline;
+use suins_indexer::MAINNET_REGISTRY_ID;
+use suins_indexer::MAINNET_REMOTE_STORE_URL;
+use suins_indexer::MIGRATIONS;
+use url::Url;
 
 #[derive(Parser)]
 #[clap(rename_all = "kebab-case", author, version)]
@@ -74,14 +74,9 @@ async fn main() -> Result<(), anyhow::Error> {
         name_record_type,
     } = Args::parse();
 
-    let cancel = CancellationToken::new();
     let registry = Registry::new_custom(Some("suins".into()), None)
         .context("Failed to create Prometheus registry.")?;
-    let metrics = MetricsService::new(
-        MetricsArgs { metrics_address },
-        registry.clone(),
-        cancel.child_token(),
-    );
+    let metrics = MetricsService::new(MetricsArgs { metrics_address }, registry.clone());
 
     // Prepare the store for the indexer
     let store = Db::for_write(database_url, db_args)
@@ -102,16 +97,18 @@ async fn main() -> Result<(), anyhow::Error> {
         store,
         indexer_args,
         ClientArgs {
-            remote_store_url: Some(remote_store_url),
-            local_ingestion_path: None,
-            rpc_api_url: None,
-            rpc_username: None,
-            rpc_password: None,
+            ingestion: IngestionClientArgs {
+                remote_store_url: Some(remote_store_url),
+                local_ingestion_path: None,
+                rpc_api_url: None,
+                rpc_username: None,
+                rpc_password: None,
+            },
+            streaming: Default::default(),
         },
-        Default::default(),
+        IngestionConfig::default(),
         None,
         metrics.registry(),
-        cancel.clone(),
     )
     .await?;
 
@@ -145,12 +142,9 @@ async fn main() -> Result<(), anyhow::Error> {
         )
         .await?;
 
-    let h_indexer = indexer.run().await?;
-    let h_metrics = metrics.run().await?;
+    let s_indexer = indexer.run().await?;
+    let s_metrics = metrics.run().await?;
 
-    let _ = h_indexer.await;
-    cancel.cancel();
-    let _ = h_metrics.await;
-
+    s_indexer.attach(s_metrics).main().await?;
     Ok(())
 }

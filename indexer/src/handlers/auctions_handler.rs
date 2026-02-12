@@ -18,11 +18,11 @@ use std::sync::Arc;
 use sui_indexer_alt_framework::pipeline::sequential::Handler;
 use sui_indexer_alt_framework::pipeline::Processor;
 use sui_indexer_alt_framework::postgres::{Connection, Db};
-use sui_indexer_alt_framework::types::full_checkpoint_content::CheckpointData;
 use sui_indexer_alt_framework::FieldCount;
 use sui_indexer_alt_framework::Result;
 use sui_types::base_types::SuiAddress;
 use sui_types::event::Event;
+use sui_types::full_checkpoint_content::Checkpoint;
 
 #[derive(Clone)]
 pub enum AuctionEvent {
@@ -45,13 +45,14 @@ pub struct AuctionsHandlerPipeline {
     contract_package_id: String,
 }
 
+#[async_trait]
 impl Processor for AuctionsHandlerPipeline {
     const NAME: &'static str = "auctions";
 
     type Value = AuctionValue;
 
-    fn process(&self, checkpoint: &Arc<CheckpointData>) -> Result<Vec<Self::Value>> {
-        let timestamp_ms: u64 = checkpoint.checkpoint_summary.timestamp_ms.into();
+    async fn process(&self, checkpoint: &Arc<Checkpoint>) -> Result<Vec<Self::Value>> {
+        let timestamp_ms: u64 = checkpoint.summary.timestamp_ms.into();
         let timestamp_i64 =
             i64::try_from(timestamp_ms).context("Timestamp too large to convert to i64")?;
         let created_at: DateTime<Utc> =
@@ -105,11 +106,11 @@ impl Handler for AuctionsHandlerPipeline {
 
     const MAX_BATCH_CHECKPOINTS: usize = 5 * 10;
 
-    fn batch(batch: &mut Self::Batch, values: Vec<Self::Value>) {
+    fn batch(&self, batch: &mut Self::Batch, values: std::vec::IntoIter<Self::Value>) {
         batch.extend(values);
     }
 
-    async fn commit<'a>(batch: &Self::Batch, conn: &mut Connection<'a>) -> Result<usize> {
+    async fn commit<'a>(&self, batch: &Self::Batch, conn: &mut Connection<'a>) -> Result<usize> {
         if batch.is_empty() {
             return Ok(0);
         }
