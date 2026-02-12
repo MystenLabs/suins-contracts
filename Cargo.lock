@@ -8471,6 +8471,7 @@ dependencies = [
  "fastcrypto",
  "futures",
  "insta",
+ "log",
  "move-core-types",
  "prometheus",
  "serde",

@@ -1,7 +1,54 @@
-// Copyright (c) Mysten Labs, Inc.
-// SPDX-License-Identifier: Apache-2.0
-
 // @generated automatically by Diesel CLI.
+
+pub mod sql_types {
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "auctionstatus"))]
+    pub struct Auctionstatus;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "listingstatus"))]
+    pub struct Listingstatus;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "offerstatus"))]
+    pub struct Offerstatus;
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::Auctionstatus;
+
+    auctions (auction_id) {
+        auction_id -> Varchar,
+        domain_name -> Varchar,
+        owner -> Varchar,
+        start_time -> Int8,
+        end_time -> Int8,
+        min_bid -> Varchar,
+        winner -> Nullable<Varchar>,
+        amount -> Nullable<Varchar>,
+        status -> Auctionstatus,
+        updated_at -> Timestamptz,
+        created_at -> Timestamptz,
+        last_tx_digest -> Varchar,
+        token -> Varchar,
+        reserve_price_encrypted -> Nullable<Bytea>,
+        reserve_price -> Nullable<Int8>,
+    }
+}
+
+diesel::table! {
+    bids (id) {
+        id -> Int4,
+        auction_id -> Varchar,
+        domain_name -> Varchar,
+        bidder -> Varchar,
+        amount -> Varchar,
+        created_at -> Timestamptz,
+        tx_digest -> Varchar,
+        token -> Varchar,
+    }
+}
 
 diesel::table! {
     domains (name) {
@@ -16,3 +63,98 @@ diesel::table! {
         subdomain_wrapper_id -> Nullable<Varchar>,
     }
 }
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::Listingstatus;
+
+    listings (listing_id) {
+        listing_id -> Varchar,
+        domain_name -> Varchar,
+        owner -> Varchar,
+        price -> Varchar,
+        buyer -> Nullable<Varchar>,
+        status -> Listingstatus,
+        updated_at -> Timestamptz,
+        created_at -> Timestamptz,
+        last_tx_digest -> Varchar,
+        token -> Varchar,
+        expires_at -> Nullable<Int8>,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::Offerstatus;
+
+    offers (id) {
+        id -> Int4,
+        domain_name -> Varchar,
+        buyer -> Varchar,
+        initial_value -> Varchar,
+        value -> Varchar,
+        owner -> Nullable<Varchar>,
+        status -> Offerstatus,
+        updated_at -> Timestamptz,
+        created_at -> Timestamptz,
+        last_tx_digest -> Varchar,
+        token -> Varchar,
+        expires_at -> Nullable<Int8>,
+    }
+}
+
+diesel::table! {
+    set_seal_config (id) {
+        id -> Int4,
+        key_servers -> Array<Nullable<Text>>,
+        public_keys -> Array<Nullable<Bytea>>,
+        threshold -> Int2,
+        created_at -> Timestamptz,
+        tx_digest -> Varchar,
+    }
+}
+
+diesel::table! {
+    set_service_fee (id) {
+        id -> Int4,
+        service_fee -> Varchar,
+        created_at -> Timestamptz,
+        tx_digest -> Varchar,
+    }
+}
+
+diesel::table! {
+    user_domain_subscriptions (user_address, domain_name) {
+        user_address -> Varchar,
+        domain_name -> Varchar,
+        created_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
+    watermarks (pipeline) {
+        pipeline -> Text,
+        epoch_hi_inclusive -> Int8,
+        checkpoint_hi_inclusive -> Int8,
+        tx_hi -> Int8,
+        timestamp_ms_hi_inclusive -> Int8,
+        reader_lo -> Int8,
+        pruner_timestamp -> Timestamp,
+        pruner_hi -> Int8,
+    }
+}
+
+diesel::joinable!(bids -> auctions (auction_id));
+diesel::joinable!(user_domain_subscriptions -> domains (domain_name));
+
+diesel::allow_tables_to_appear_in_same_query!(
+    auctions,
+    bids,
+    domains,
+    listings,
+    offers,
+    set_seal_config,
+    set_service_fee,
+    user_domain_subscriptions,
+    watermarks,
+);

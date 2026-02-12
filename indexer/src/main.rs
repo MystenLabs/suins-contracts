@@ -5,6 +5,7 @@ use prometheus::Registry;
 use std::net::SocketAddr;
 use sui_indexer_alt_framework::ingestion::ingestion_client::IngestionClientArgs;
 use sui_indexer_alt_framework::ingestion::{ClientArgs, IngestionConfig};
+use sui_indexer_alt_framework::pipeline::sequential::SequentialConfig;
 use sui_indexer_alt_framework::{Indexer, IndexerArgs};
 use sui_indexer_alt_metrics::db::DbConnectionStatsCollector;
 use sui_indexer_alt_metrics::{MetricsArgs, MetricsService};
@@ -12,6 +13,9 @@ use sui_pg_db::{Db, DbArgs};
 use sui_types::base_types::SuiAddress;
 use suins_indexer::handlers::domain_handler::DomainHandler;
 
+use suins_indexer::handlers::auctions_handler::AuctionsHandlerPipeline;
+use suins_indexer::handlers::listings_handler::ListingsHandlerPipeline;
+use suins_indexer::handlers::offers_handler::OffersHandlerPipeline;
 use suins_indexer::MAINNET_REGISTRY_ID;
 use suins_indexer::MAINNET_REMOTE_STORE_URL;
 use suins_indexer::MIGRATIONS;
@@ -40,6 +44,9 @@ struct Args {
     #[clap(env, long, default_value = MAINNET_REGISTRY_ID)]
     registry_id: SuiAddress,
 
+    #[clap(env, long)]
+    auction_contract_id: SuiAddress,
+
     /// Optional subdomain wrapper type override, defaulted to Sui mainnet subdomain wrapper type.
     #[clap(env, long)]
     subdomain_wrapper_type: StructTag,
@@ -62,6 +69,7 @@ async fn main() -> Result<(), anyhow::Error> {
         remote_store_url,
         database_url,
         registry_id,
+        auction_contract_id,
         subdomain_wrapper_type,
         name_record_type,
     } = Args::parse();
@@ -108,6 +116,30 @@ async fn main() -> Result<(), anyhow::Error> {
 
     indexer
         .concurrent_pipeline(handler, Default::default())
+        .await?;
+
+    // Process all offer events in order and save up to date offer information in database
+    indexer
+        .sequential_pipeline(
+            OffersHandlerPipeline::new(auction_contract_id.clone()),
+            SequentialConfig::default(),
+        )
+        .await?;
+
+    // Process all auction, bid and configuration events in order and save up to date offer information in database
+    indexer
+        .sequential_pipeline(
+            AuctionsHandlerPipeline::new(auction_contract_id),
+            SequentialConfig::default(),
+        )
+        .await?;
+
+    // Process all listing events in order and save up to date listing information in database
+    indexer
+        .sequential_pipeline(
+            ListingsHandlerPipeline::new(auction_contract_id),
+            SequentialConfig::default(),
+        )
         .await?;
 
     let s_indexer = indexer.run().await?;
