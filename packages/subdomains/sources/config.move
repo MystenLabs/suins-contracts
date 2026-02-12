@@ -7,7 +7,7 @@ use std::string::String;
 use suins::{constants::sui_tld, domain::{Domain, is_parent_of}};
 
 /// the minimum size a subdomain label can have.
-const MIN_LABEL_SIZE: u8 = 3;
+const MIN_LABEL_SIZE: u8 = 1;
 /// the maximum depth a subdomain can have -> 8 (+ 2 for TLD, SLD)
 const MAX_SUBDOMAIN_DEPTH: u8 = 10;
 /// Minimum duration for a subdomain in milliseconds. (1 day)
@@ -17,7 +17,7 @@ const MINIMUM_SUBDOMAIN_DURATION: u64 = 24 * 60 * 60 * 1000;
 const EDepthOutOfLimit: u64 = 1;
 /// tries to register a subdomain with the wrong parent (based on name)
 const EInvalidParent: u64 = 2;
-/// tries to register a label of size less than 3.
+/// tries to register a label of size less than the minimum.
 const EInvalidLabelSize: u64 = 3;
 /// tries to register a domain with an unsupported tld.
 const ENotSupportedTLD: u64 = 4;
