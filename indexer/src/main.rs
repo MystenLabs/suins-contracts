@@ -33,8 +33,14 @@ struct Args {
     )]
     database_url: Url,
     /// Checkpoint remote store URL, defaulted to Sui mainnet remote store.
+    /// Mutually exclusive with remote_store_gcs.
     #[clap(env, long, default_value = MAINNET_REMOTE_STORE_URL)]
-    remote_store_url: Url,
+    remote_store_url: Option<Url>,
+
+    /// GCS bucket name for checkpoint access (preferred over remote_store_url for lower latency).
+    /// Requires GKE Workload Identity for authentication.
+    #[clap(env, long)]
+    remote_store_gcs: Option<String>,
 
     /// Optional registry table id override, defaulted to Sui mainnet name service registry table id.
     #[clap(env, long, default_value = MAINNET_REGISTRY_ID)]
@@ -60,6 +66,7 @@ async fn main() -> Result<(), anyhow::Error> {
         indexer_args,
         metrics_address,
         remote_store_url,
+        remote_store_gcs,
         database_url,
         registry_id,
         subdomain_wrapper_type,
@@ -90,11 +97,13 @@ async fn main() -> Result<(), anyhow::Error> {
         indexer_args,
         ClientArgs {
             ingestion: IngestionClientArgs {
-                remote_store_url: Some(remote_store_url),
+                remote_store_url,
+                remote_store_gcs,
                 local_ingestion_path: None,
                 rpc_api_url: None,
                 rpc_username: None,
                 rpc_password: None,
+                ..Default::default()
             },
             streaming: Default::default(),
         },
