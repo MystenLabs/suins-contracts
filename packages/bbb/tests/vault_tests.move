@@ -2,15 +2,8 @@
 module suins_bbb::bbb_vault_tests;
 
 use std::type_name::{Self, TypeName};
-use sui::{
-    balance::Balance,
-    coin,
-    test_utils::destroy,
-};
-use suins_bbb::{
-    bbb_vault::{Self, BBBVault},
-    fakecoin::FAKECOIN,
-};
+use sui::{balance::Balance, coin, test_utils::destroy};
+use suins_bbb::{bbb_vault::{Self, BBBVault}, fakecoin::FAKECOIN};
 
 // A second coin type for multi-coin tests
 public struct OTHERCOIN has drop {}
@@ -29,7 +22,10 @@ fun withdraw_partial_less_than_balance() {
     assert!(withdrawn.value() == 400);
 
     // remaining balance should be 600
-    let remaining = vault.balances().borrow<TypeName, Balance<FAKECOIN>>(type_name::get<FAKECOIN>()).value();
+    let remaining = vault
+        .balances()
+        .borrow<TypeName, Balance<FAKECOIN>>(type_name::get<FAKECOIN>())
+        .value();
     assert!(remaining == 600);
 
     destroy(withdrawn);
@@ -48,7 +44,10 @@ fun withdraw_partial_equal_to_balance() {
     assert!(withdrawn.value() == 500);
 
     // remaining balance should be 0
-    let remaining = vault.balances().borrow<TypeName, Balance<FAKECOIN>>(type_name::get<FAKECOIN>()).value();
+    let remaining = vault
+        .balances()
+        .borrow<TypeName, Balance<FAKECOIN>>(type_name::get<FAKECOIN>())
+        .value();
     assert!(remaining == 0);
 
     destroy(withdrawn);
@@ -67,7 +66,10 @@ fun withdraw_partial_more_than_balance() {
     assert!(withdrawn.value() == 300);
 
     // remaining balance should be 0
-    let remaining = vault.balances().borrow<TypeName, Balance<FAKECOIN>>(type_name::get<FAKECOIN>()).value();
+    let remaining = vault
+        .balances()
+        .borrow<TypeName, Balance<FAKECOIN>>(type_name::get<FAKECOIN>())
+        .value();
     assert!(remaining == 0);
 
     destroy(withdrawn);
@@ -99,7 +101,10 @@ fun withdraw_partial_zero_amount() {
     assert!(withdrawn.value() == 0);
 
     // original balance untouched
-    let remaining = vault.balances().borrow<TypeName, Balance<FAKECOIN>>(type_name::get<FAKECOIN>()).value();
+    let remaining = vault
+        .balances()
+        .borrow<TypeName, Balance<FAKECOIN>>(type_name::get<FAKECOIN>())
+        .value();
     assert!(remaining == 1000);
 
     withdrawn.destroy_zero();
@@ -152,11 +157,17 @@ fun withdraw_partial_does_not_affect_other_coins() {
     assert!(withdrawn.value() == 400);
 
     // FAKECOIN reduced
-    let remaining_fake = vault.balances().borrow<TypeName, Balance<FAKECOIN>>(type_name::get<FAKECOIN>()).value();
+    let remaining_fake = vault
+        .balances()
+        .borrow<TypeName, Balance<FAKECOIN>>(type_name::get<FAKECOIN>())
+        .value();
     assert!(remaining_fake == 600);
 
     // OTHERCOIN untouched
-    let remaining_other = vault.balances().borrow<TypeName, Balance<OTHERCOIN>>(type_name::get<OTHERCOIN>()).value();
+    let remaining_other = vault
+        .balances()
+        .borrow<TypeName, Balance<OTHERCOIN>>(type_name::get<OTHERCOIN>())
+        .value();
     assert!(remaining_other == 500);
 
     destroy(withdrawn);
@@ -174,7 +185,10 @@ fun withdraw_full_drains_all() {
     let withdrawn = vault.withdraw<FAKECOIN>();
     assert!(withdrawn.value() == 1000);
 
-    let remaining = vault.balances().borrow<TypeName, Balance<FAKECOIN>>(type_name::get<FAKECOIN>()).value();
+    let remaining = vault
+        .balances()
+        .borrow<TypeName, Balance<FAKECOIN>>(type_name::get<FAKECOIN>())
+        .value();
     assert!(remaining == 0);
 
     destroy(withdrawn);
