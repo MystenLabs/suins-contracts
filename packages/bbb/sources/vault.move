@@ -63,6 +63,25 @@ public(package) fun withdraw<C>(self: &mut BBBVault): Balance<C> {
     }
 }
 
+/// Withdraw up to `max_amount` of `Balance<C>` from the vault.
+/// If the vault holds less than `max_amount`, withdraws whatever is available.
+/// Returns zero balance if the coin type is not in the vault.
+public(package) fun withdraw_partial<C>(self: &mut BBBVault, max_amount: u64): Balance<C> {
+    let balances = &mut self.balances;
+    let coin_type = type_name::with_defining_ids<C>();
+    if (!balances.contains(coin_type)) {
+        balance::zero()
+    } else {
+        let balance = balances.borrow_mut<TypeName, Balance<C>>(coin_type);
+        let available = balance.value();
+        if (available <= max_amount) {
+            balance.withdraw_all()
+        } else {
+            balance.split(max_amount)
+        }
+    }
+}
+
 // === test functions ===
 
 #[test_only]

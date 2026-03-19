@@ -159,6 +159,63 @@ public fun swap<CoinA, CoinB>(
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
+    swap_internal<CoinA, CoinB>(
+        promise,
+        vault,
+        0,
+        info_a,
+        info_b,
+        cetus_registry,
+        pool,
+        clock,
+        ctx,
+    )
+}
+
+/// Like `swap`, but swaps at most `max_amount` of the input coin,
+/// leaving the rest in the vault.
+/// The caller passes the raw amount (e.g. 1_000_000_000 for 1 SUI).
+public fun swap_partial<CoinA, CoinB>(
+    // ours
+    promise: CetusSwapPromise,
+    vault: &mut BBBVault,
+    max_amount: u64,
+    // pyth
+    info_a: &PriceInfoObject,
+    info_b: &PriceInfoObject,
+    // cetus
+    cetus_registry: &GlobalConfig,
+    pool: &mut Pool<CoinA, CoinB>,
+    // sui
+    clock: &Clock,
+    ctx: &mut TxContext,
+) {
+    swap_internal<CoinA, CoinB>(
+        promise,
+        vault,
+        max_amount,
+        info_a,
+        info_b,
+        cetus_registry,
+        pool,
+        clock,
+        ctx,
+    )
+}
+
+// === private functions ===
+
+fun swap_internal<CoinA, CoinB>(
+    promise: CetusSwapPromise,
+    vault: &mut BBBVault,
+    max_amount: u64,
+    info_a: &PriceInfoObject,
+    info_b: &PriceInfoObject,
+    cetus_registry: &GlobalConfig,
+    pool: &mut Pool<CoinA, CoinB>,
+    clock: &Clock,
+    ctx: &mut TxContext,
+) {
     let CetusSwapPromise { swap: self } = promise;
 
     // check that Pyth price feeds match the config
@@ -177,8 +234,12 @@ public fun swap<CoinA, CoinB>(
     assert!(type_b == self.type_b, EInvalidCoinBType);
 
     if (self.a2b) {
-        // withdraw all CoinA from vault
-        let coin_in_a = vault.withdraw<CoinA>().into_coin(ctx);
+        // withdraw CoinA from vault (partial or full)
+        let coin_in_a = if (max_amount > 0) {
+            vault.withdraw_partial<CoinA>(max_amount).into_coin(ctx)
+        } else {
+            vault.withdraw<CoinA>().into_coin(ctx)
+        };
         let amount_in_a = coin_in_a.value();
 
         // return early if zero
@@ -217,8 +278,12 @@ public fun swap<CoinA, CoinB>(
             expected_out: expected_b,
         });
     } else {
-        // withdraw all CoinB from vault
-        let coin_in_b = vault.withdraw<CoinB>().into_coin(ctx);
+        // withdraw CoinB from vault (partial or full)
+        let coin_in_b = if (max_amount > 0) {
+            vault.withdraw_partial<CoinB>(max_amount).into_coin(ctx)
+        } else {
+            vault.withdraw<CoinB>().into_coin(ctx)
+        };
         let amount_in_b = coin_in_b.value();
 
         // return early if zero
@@ -258,8 +323,6 @@ public fun swap<CoinA, CoinB>(
         });
     }
 }
-
-// === private functions ===
 
 fun swap_a2b<CoinA, CoinB>(
     cetus_registry: &GlobalConfig,
