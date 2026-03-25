@@ -4,6 +4,7 @@ use move_core_types::language_storage::StructTag;
 use prometheus::Registry;
 use std::net::SocketAddr;
 use sui_indexer_alt_framework::ingestion::ingestion_client::IngestionClientArgs;
+use sui_indexer_alt_framework::ingestion::streaming_client::StreamingClientArgs;
 use sui_indexer_alt_framework::ingestion::{ClientArgs, IngestionConfig};
 use sui_indexer_alt_framework::{Indexer, IndexerArgs};
 use sui_indexer_alt_metrics::db::DbConnectionStatsCollector;
@@ -53,6 +54,9 @@ struct Args {
     /// Optional name record type override, defaulted to Sui mainnet name record type.
     #[clap(env, long)]
     name_record_type: StructTag,
+
+    #[command(flatten)]
+    streaming: StreamingClientArgs,
 }
 
 #[tokio::main]
@@ -71,6 +75,7 @@ async fn main() -> Result<(), anyhow::Error> {
         registry_id,
         subdomain_wrapper_type,
         name_record_type,
+        streaming,
     } = Args::parse();
 
     let registry = Registry::new_custom(Some("suins".into()), None)
@@ -105,7 +110,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 rpc_password: None,
                 ..Default::default()
             },
-            streaming: Default::default(),
+            streaming,
         },
         IngestionConfig::default(),
         None,
