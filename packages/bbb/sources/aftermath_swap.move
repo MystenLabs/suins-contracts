@@ -151,6 +151,77 @@ public fun swap<L, CoinIn, CoinOut>(
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
+    swap_internal<L, CoinIn, CoinOut>(
+        promise,
+        vault,
+        0,
+        info_in,
+        info_out,
+        pool,
+        pool_registry,
+        protocol_fee_vault,
+        treasury,
+        insurance_fund,
+        referral_vault,
+        clock,
+        ctx,
+    )
+}
+
+/// Like `swap`, but swaps at most `max_amount` of the input coin,
+/// leaving the rest in the vault.
+/// The caller passes the raw amount (e.g. 1_000_000_000 for 1 SUI).
+public fun swap_partial<L, CoinIn, CoinOut>(
+    // ours
+    promise: AftermathSwapPromise,
+    vault: &mut BBBVault,
+    max_amount: u64,
+    // pyth
+    info_in: &PriceInfoObject,
+    info_out: &PriceInfoObject,
+    // aftermath
+    pool: &mut Pool<L>,
+    pool_registry: &PoolRegistry,
+    protocol_fee_vault: &ProtocolFeeVault,
+    treasury: &mut Treasury,
+    insurance_fund: &mut InsuranceFund,
+    referral_vault: &ReferralVault,
+    // sui
+    clock: &Clock,
+    ctx: &mut TxContext,
+) {
+    swap_internal<L, CoinIn, CoinOut>(
+        promise,
+        vault,
+        max_amount,
+        info_in,
+        info_out,
+        pool,
+        pool_registry,
+        protocol_fee_vault,
+        treasury,
+        insurance_fund,
+        referral_vault,
+        clock,
+        ctx,
+    )
+}
+
+fun swap_internal<L, CoinIn, CoinOut>(
+    promise: AftermathSwapPromise,
+    vault: &mut BBBVault,
+    max_amount: u64,
+    info_in: &PriceInfoObject,
+    info_out: &PriceInfoObject,
+    pool: &mut Pool<L>,
+    pool_registry: &PoolRegistry,
+    protocol_fee_vault: &ProtocolFeeVault,
+    treasury: &mut Treasury,
+    insurance_fund: &mut InsuranceFund,
+    referral_vault: &ReferralVault,
+    clock: &Clock,
+    ctx: &mut TxContext,
+) {
     let AftermathSwapPromise { swap: self } = promise;
 
     // check that Pyth price feeds match the config
@@ -168,8 +239,12 @@ public fun swap<L, CoinIn, CoinOut>(
     assert!(type_in == self.type_in, EInvalidCoinInType);
     assert!(type_out == self.type_out, EInvalidCoinOutType);
 
-    // withdraw all CoinIn from vault
-    let coin_in = vault.withdraw<CoinIn>().into_coin(ctx);
+    // withdraw CoinIn from vault (partial or full)
+    let coin_in = if (max_amount > 0) {
+        vault.withdraw_partial<CoinIn>(max_amount).into_coin(ctx)
+    } else {
+        vault.withdraw<CoinIn>().into_coin(ctx)
+    };
     let amount_in = coin_in.value();
 
     // return early if zero

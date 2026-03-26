@@ -37,6 +37,10 @@ jobs:
             dir_name=$(basename "$dir")
             if [[ ! " ${excluded_dirs[*]} " =~ (^|[[:space:]])${dir_name}($|[[:space:]]) ]] && [ -d "$dir" ]; then
               echo "Running sui move test in $dir"
-              sui move test --path "$dir"
+              extra_args=""
+              if [ "$dir_name" = "voting" ]; then
+                extra_args="--gas-limit 2000000000"
+              fi
+              sui move test --path "$dir" $extra_args
             fi
           done
