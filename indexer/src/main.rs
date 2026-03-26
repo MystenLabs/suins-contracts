@@ -4,6 +4,7 @@ use move_core_types::language_storage::StructTag;
 use prometheus::Registry;
 use std::net::SocketAddr;
 use sui_indexer_alt_framework::ingestion::ingestion_client::IngestionClientArgs;
+use sui_indexer_alt_framework::ingestion::streaming_client::StreamingClientArgs;
 use sui_indexer_alt_framework::ingestion::{ClientArgs, IngestionConfig};
 use sui_indexer_alt_framework::{Indexer, IndexerArgs};
 use sui_indexer_alt_metrics::db::DbConnectionStatsCollector;
@@ -33,8 +34,14 @@ struct Args {
     )]
     database_url: Url,
     /// Checkpoint remote store URL, defaulted to Sui mainnet remote store.
+    /// Mutually exclusive with remote_store_gcs.
     #[clap(env, long, default_value = MAINNET_REMOTE_STORE_URL)]
-    remote_store_url: Url,
+    remote_store_url: Option<Url>,
+
+    /// GCS bucket name for checkpoint access (preferred over remote_store_url for lower latency).
+    /// Requires GKE Workload Identity for authentication.
+    #[clap(env, long)]
+    remote_store_gcs: Option<String>,
 
     /// Optional registry table id override, defaulted to Sui mainnet name service registry table id.
     #[clap(env, long, default_value = MAINNET_REGISTRY_ID)]
@@ -47,6 +54,9 @@ struct Args {
     /// Optional name record type override, defaulted to Sui mainnet name record type.
     #[clap(env, long)]
     name_record_type: StructTag,
+
+    #[command(flatten)]
+    streaming: StreamingClientArgs,
 }
 
 #[tokio::main]
@@ -60,10 +70,12 @@ async fn main() -> Result<(), anyhow::Error> {
         indexer_args,
         metrics_address,
         remote_store_url,
+        remote_store_gcs,
         database_url,
         registry_id,
         subdomain_wrapper_type,
         name_record_type,
+        streaming,
     } = Args::parse();
 
     let registry = Registry::new_custom(Some("suins".into()), None)
@@ -90,13 +102,15 @@ async fn main() -> Result<(), anyhow::Error> {
         indexer_args,
         ClientArgs {
             ingestion: IngestionClientArgs {
-                remote_store_url: Some(remote_store_url),
+                remote_store_url,
+                remote_store_gcs,
                 local_ingestion_path: None,
                 rpc_api_url: None,
                 rpc_username: None,
                 rpc_password: None,
+                ..Default::default()
             },
-            streaming: Default::default(),
+            streaming,
         },
         IngestionConfig::default(),
         None,
