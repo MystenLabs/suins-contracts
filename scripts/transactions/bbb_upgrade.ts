@@ -4,7 +4,7 @@
 import { execSync } from 'child_process';
 import { writeFileSync } from 'fs';
 
-const BBB_UPGRADE_CAP = '0x3d046d10bd8c3f4bee7679086c094efa73662e02708a67903836dbc9d0fd1c15';
+const BBB_UPGRADE_CAP = '0x7be6340da3af6cf40f2d77f289e178631f8c3e479167099b93769c5f1b82e6f9';
 
 const bbbUpgrade = async () => {
 	const gasObjectId = process.env.GAS_OBJECT;
