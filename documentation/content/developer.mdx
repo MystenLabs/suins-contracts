@@ -1,14 +1,14 @@
 ---
 title: Developer Guide
 sidebar_label: Developers
-description: Integrate Sui Name Service (SuiNS) into your applications using on-chain or off-chain resolution to enable human-readable names for wallet addresses.
-keywords: [ SuiNS, Sui Name Service, name resolution, domain names, NFT, subnames, indexer, on-chain resolution, off-chain resolution ]
+description: Integrate Sui Name Service (SuiNS) into your applications using onchain or off-chain resolution to enable human-readable names for wallet addresses.
+keywords: [ SuiNS, Sui Name Service, name resolution, domain names, NFT, subnames, indexer, onchain resolution, off-chain resolution ]
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-Sui Name Service (SuiNS) is a decentralized naming service on the Sui blockchain that enables users to replace complex wallet addresses with human-readable names. You can integrate SuiNS into your application using either on-chain or off-chain resolution.
+Sui Name Service (SuiNS) is a decentralized naming service on the Sui blockchain that enables users to replace complex wallet addresses with human-readable names. You can integrate SuiNS into your application using either onchain or off-chain resolution.
 
 ## Active constants
 
@@ -108,9 +108,9 @@ For GraphQL's default name resolution, use the [`defaultSuinsName` field](https:
 
 :::
 
-### On-chain resolution
+### Onchain resolution
 
-Use the SuiNS core package for on-chain resolution. Add the following dependency in your `Move.toml` file depending on which network you are targeting:
+Use the SuiNS core package for onchain resolution. Add the following dependency in your `Move.toml` file depending on which network you are targeting:
 
 <Tabs groupId='network'>
   <TabItem label="Mainnet" value='mainnet'>
@@ -176,7 +176,7 @@ You should integrate SuiNS on chain using the core package only. The utility pac
 
 ## Indexing 
 
-The indexer enables more expressive queries about the active domain state when on-chain resolution is not sufficient to power your interface.
+The indexer enables more expressive queries about the active domain state when onchain resolution is not sufficient to power your interface.
 
 This allows for complex queries such as:
 
