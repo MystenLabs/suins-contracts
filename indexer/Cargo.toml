@@ -16,14 +16,15 @@ serde_json = "1.0.140"
 fastcrypto = { git = "https://github.com/MystenLabs/fastcrypto", rev = "4db0e90c732bbf7420ca20de808b698883148d9c" }
 bcs = "0.1.6"
 tempfile = "3.20.0"
+log = "0.4"
 
-sui-indexer-alt-framework = { git = "https://github.com/MystenLabs/sui.git", rev = "a14d9e8ddadfcea837de46b43d0b72a289320afb" }
-sui-name-service = { git = "https://github.com/MystenLabs/sui.git", rev = "a14d9e8ddadfcea837de46b43d0b72a289320afb" }
-sui-indexer-alt-metrics = { git = "https://github.com/MystenLabs/sui.git", rev = "a14d9e8ddadfcea837de46b43d0b72a289320afb" }
-telemetry-subscribers = { git = "https://github.com/MystenLabs/sui.git", rev = "a14d9e8ddadfcea837de46b43d0b72a289320afb" }
-sui-pg-db = { git = "https://github.com/MystenLabs/sui.git", rev = "a14d9e8ddadfcea837de46b43d0b72a289320afb" }
-move-core-types = { git = "https://github.com/MystenLabs/sui.git", rev = "a14d9e8ddadfcea837de46b43d0b72a289320afb" }
-sui-types = { git = "https://github.com/MystenLabs/sui.git", rev = "a14d9e8ddadfcea837de46b43d0b72a289320afb" }
+sui-indexer-alt-framework = { git = "https://github.com/MystenLabs/sui.git", tag = "mainnet-v1.65.2" }
+sui-name-service = { git = "https://github.com/MystenLabs/sui.git", tag = "mainnet-v1.65.2" }
+sui-indexer-alt-metrics = { git = "https://github.com/MystenLabs/sui.git", tag = "mainnet-v1.65.2" }
+telemetry-subscribers = { git = "https://github.com/MystenLabs/sui.git", tag = "mainnet-v1.65.2" }
+sui-pg-db = { git = "https://github.com/MystenLabs/sui.git", tag = "mainnet-v1.65.2" }
+move-core-types = { git = "https://github.com/MystenLabs/sui.git", tag = "mainnet-v1.65.2" }
+sui-types = { git = "https://github.com/MystenLabs/sui.git", tag = "mainnet-v1.65.2" }
 prometheus = "0.13.4"
 
 clap = { version = "4.5.37", features = ["env"] }
@@ -39,7 +40,7 @@ diesel_migrations = "2.2.0"
 url = "2.5.4"
 
 [dev-dependencies]
-sui-storage = { git = "https://github.com/MystenLabs/sui.git", rev = "a14d9e8ddadfcea837de46b43d0b72a289320afb" }
+sui-storage = { git = "https://github.com/MystenLabs/sui.git", tag = "mainnet-v1.65.2" }
 sqlx = { version = "0.8.3", features = ["runtime-tokio", "postgres", "chrono"] }
 fastcrypto = { git = "https://github.com/MystenLabs/fastcrypto", rev = "4db0e90c732bbf7420ca20de808b698883148d9c" }
 insta = { version = "1.43.1", features = ["json"] }
