@@ -75,7 +75,7 @@ jobs:
 
       - name: Set up working directory
         run: |
-          pnpm install
+          pnpm install --no-frozen-lockfile
 
       - name: Profits to Treasury
         if: ${{ inputs.transaction_type == 'Profits to Treasury' }}
