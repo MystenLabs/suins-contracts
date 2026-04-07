@@ -53,18 +53,17 @@ const config = {
   plugins: [
     function llmsTxtDirectivePlugin() {
       return {
-        name: "llms-txt-directive-plugin",
+        name: 'llms-txt-directive-plugin',
         injectHtmlTags() {
           return {
             preBodyTags: [
               {
-                tagName: "link",
+                tagName: 'a',
                 attributes: {
-                  rel: "alternate",
-                  type: "text/plain",
-                  href: "/llms.txt",
-                  title: "LLMs.txt",
+                  href: '/llms.txt',
+                  hidden: 'hidden',
                 },
+                innerHTML: 'llms.txt',
               },
             ],
           };
