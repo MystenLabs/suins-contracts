@@ -7,6 +7,8 @@ const matter = require('gray-matter');
 
 const contentDir = path.join(__dirname, '../../../../content');
 const outputDir = path.join(__dirname, '../../../static/markdown');
+const baseUrl = 'https://docs.suins.io';
+const llmsTxtDirective = `> For the complete documentation index, see [llms.txt](${baseUrl}/llms.txt)\n\n`;
 
 /**
  * Strips frontmatter and cleans MDX/JSX components from markdown
@@ -45,7 +47,12 @@ function cleanMdxComponents(content) {
 }
 
 /**
- * Recursively copies markdown files from content dir to build output
+ * Recursively copies markdown files from content dir to static dir as .md files,
+ * so they are served alongside the Docusaurus routes.
+ *
+ * content/node-operator.mdx  → static/node-operator.md  → served at /node-operator.md
+ * content/suins/overview.mdx → static/suins/overview.md → served at /suins/overview.md
+ * content/suins/index.mdx    → static/suins/index.md    → served at /suins/index.md
  */
 function copyMarkdownFiles(dir, baseDir = dir) {
   const files = fs.readdirSync(dir);
@@ -55,22 +62,21 @@ function copyMarkdownFiles(dir, baseDir = dir) {
     const stat = fs.statSync(filePath);
 
     if (stat.isDirectory()) {
-      // Recursively process subdirectories
       copyMarkdownFiles(filePath, baseDir);
     } else if (file.endsWith('.md') || file.endsWith('.mdx')) {
-      // Read and process markdown/mdx files
       const content = fs.readFileSync(filePath, 'utf8');
       const cleanContent = stripFrontmatter(content);
 
-      // Preserve directory structure
+      // Insert llms.txt directive at the top of the file
+      const outputContent = llmsTxtDirective + cleanContent;
+
+      // Preserve directory structure, normalize to .md extension
       const relativePath = path.relative(baseDir, filePath);
-      // Normalize all files to .md extension
       const outputPath = path.join(outputDir, relativePath.replace(/\.mdx?$/, '.md'));
 
-      // Create directory structure if it doesn't exist
       fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-      fs.writeFileSync(outputPath, cleanContent, 'utf8');
-      console.log(`✓ Copied: ${relativePath}`);
+      fs.writeFileSync(outputPath, outputContent, 'utf8');
+      console.log(`✓ Copied: ${relativePath} → ${path.relative(outputDir, outputPath)}`);
     }
   });
 }
@@ -78,9 +84,6 @@ function copyMarkdownFiles(dir, baseDir = dir) {
 console.log('📝 Starting markdown export...');
 console.log(`Source: ${contentDir}`);
 console.log(`Output: ${outputDir}\n`);
-
-// Create output directory
-fs.mkdirSync(outputDir, { recursive: true });
 
 // Copy all markdown files
 copyMarkdownFiles(contentDir);
