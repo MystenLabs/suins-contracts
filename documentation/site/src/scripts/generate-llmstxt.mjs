@@ -184,7 +184,7 @@ for (const file of files) {
     title = formatTitle(path.basename(file, path.extname(file)));
   }
 
-  const cleanPath = rel.replace(/\.mdx?$/, ".md").replace(/\/index\.md$/, "/index.md");
+  const cleanPath = rel.replace(/\.mdx?$/, ".md");
   const url = joinUrl(baseUrl, cleanPath);
 
   if (!grouped[section]) grouped[section] = [];
