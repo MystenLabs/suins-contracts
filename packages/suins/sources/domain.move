@@ -84,7 +84,7 @@ public fun tld(self: &Domain): &String {
 
 /// Returns the SLD (Second-Level Domain) of a `Domain`.
 ///
-/// "name.sui" -> "sui"
+/// "name.sui" -> "name"
 public fun sld(self: &Domain): &String {
     label(self, 1)
 }
