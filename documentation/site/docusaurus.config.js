@@ -51,6 +51,25 @@ const config = {
     },
   ],
   plugins: [
+    function llmsTxtDirectivePlugin() {
+      return {
+        name: 'llms-txt-directive-plugin',
+        injectHtmlTags() {
+          return {
+            preBodyTags: [
+              {
+                tagName: 'a',
+                attributes: {
+                  href: '/llms.txt',
+                  hidden: 'hidden',
+                },
+                innerHTML: 'llms.txt',
+              },
+            ],
+          };
+        },
+      };
+    },
     "docusaurus-plugin-copy-page-button",
     [
       require.resolve("./src/plugins/plausible"),

@@ -1,0 +1,33 @@
+# SuiNS and MVR Documentation for LLMs
+
+> Sui Name Service (SuiNS) is a decentralized naming service on the Sui blockchain that enables users to replace complex wallet addresses with human-readable names. You can integrate SuiNS into your application using either onchain or off-chain resolution. Move Registry (MVR) provides a uniform naming service for interacting and building with packages from the Sui ecosystem.
+
+## Developer
+
+- [Developer](https://docs.suins.io/developer.md)
+- [Sdk](https://docs.suins.io/developer/sdk.md)
+- [Querying](https://docs.suins.io/developer/sdk/querying.md)
+- [Transactions](https://docs.suins.io/developer/sdk/transactions.md)
+
+## Move Registry
+
+- [Move Registry](https://docs.suins.io/move-registry.md)
+- [Maintainer Practices](https://docs.suins.io/move-registry/maintainer-practices.md)
+- [Managing Package Info](https://docs.suins.io/move-registry/managing-package-info.md)
+- [Mvr Names](https://docs.suins.io/move-registry/mvr-names.md)
+- [Mvr Cli](https://docs.suins.io/move-registry/tooling/mvr-cli.md)
+- [Typescript Sdk](https://docs.suins.io/move-registry/tooling/typescript-sdk.md)
+
+## Top Level Navigation
+
+- [Dao — Dao](https://docs.suins.io/dao.md)
+- [Node Operator — Node Operator](https://docs.suins.io/node-operator.md)
+- [Suins — Suins](https://docs.suins.io/suins.md)
+- [User — User](https://docs.suins.io/user.md)
+- [Move — Move Language Reference](https://move-book.io/llms.txt)
+    Complete reference for the Move programming language as used on Sui. Covers syntax, types,
+      functions, structs, abilities (copy, drop, store, key), generics, ownership and the Sui
+      object model, entry functions, public functions, module structure, error handling, events,
+      and testing with the Move test framework. Includes best practices for safe and efficient
+      contracts, object creation and transfer, capability patterns, witness patterns, and hot
+      potato patterns. Essential reference for all Move smart contract development on Sui.
