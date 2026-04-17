@@ -233,6 +233,25 @@ const removeLeafSubname = async (name: string, parentNftId: string) => {
 }
 ```
 
+### Prune an expired subname (by parent)
+
+Allows the parent domain holder to remove an expired subdomain record from the registry without needing to possess the `SubDomainRegistration` object. A `SubnamePrunedEvent` is emitted on success.
+
+```js
+const pruneExpiredSubname = async (name: string, parentNftId: string) => {
+    const transaction = new Transaction();
+    const suinsTransaction = new SuinsTransaction(suinsClient, transaction);
+
+    // Prune the expired subname record using the parent NFT.
+    suinsTransaction.pruneExpiredSubName({
+        name,
+        parentNft: parentNftId,
+    });
+
+    // ... sign and execute the transaction
+}
+```
+
 ### Set a name's metadata
 
 Currently supports AVATAR and IPFS hash.
