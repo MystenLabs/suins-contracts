@@ -24,9 +24,14 @@ const mainPackageUpgrade = async () => {
 
 	try {
 		// Execute the command with the specified working directory and capture the output
-		const output = execSync(upgradeCall, { cwd: suinsDir, stdio: 'pipe' }).toString();
+		const output = execSync(upgradeCall, { cwd: suinsDir, stdio: 'pipe' }).toString().trim();
 
-		writeFileSync(txFilePath, output);
+		// Newer sui CLI versions emit base64; older ones emit hex. The downstream
+		// signing tool expects hex, so normalize.
+		const isHex = /^[0-9a-fA-F]+$/.test(output) && output.length % 2 === 0;
+		const hexOutput = isHex ? output : Buffer.from(output, 'base64').toString('hex');
+
+		writeFileSync(txFilePath, hexOutput);
 		console.log('Upgrade transaction successfully created and saved to tx-data.txt');
 	} catch (error: any) {
 		console.error('Error during protocol upgrade:', error.message);
