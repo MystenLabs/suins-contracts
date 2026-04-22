@@ -23,6 +23,7 @@ const sidebars = {
 		'developer',
 		'user',
 		'node-operator',
+		'communities',
 		'dao',
 		{
 			type: 'category',
