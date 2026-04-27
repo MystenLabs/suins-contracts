@@ -21,7 +21,7 @@ const config = {
   favicon: "img/favicon.png",
 
   // Set the production url of your site here
-  url: "https://docs.suins.com",
+  url: "https://docs.suins.io",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often "/<projectName>/"
   baseUrl: "/",
@@ -108,6 +108,10 @@ const config = {
           editUrl:
             "https://github.com/MystenLabs/suins-contracts/tree/main/documentation/",
           remarkPlugins: [[remarkGlossary, { glossaryFile: "static/glossary.json" }]],
+        },
+        sitemap: {
+          changefreq: "weekly",
+          priority: 0.5,
         },
         theme: {
           customCss: path.resolve(__dirname, "./src/css/custom.css"),
