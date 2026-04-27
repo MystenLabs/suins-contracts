@@ -162,4 +162,30 @@ fs.mkdirSync(outputDir, { recursive: true });
 // Copy all markdown files
 copyMarkdownFiles(contentDir);
 
+// Generate markdown for custom pages (src/pages/) that aren't in the content dir
+const pagesDir = path.join(__dirname, '../../../src/pages');
+const customPages = [
+  { src: 'search.mdx', out: 'search.md' },
+];
+for (const { src, out } of customPages) {
+  const srcPath = path.join(pagesDir, src);
+  if (fs.existsSync(srcPath)) {
+    const content = fs.readFileSync(srcPath, 'utf8');
+    const cleanContent = stripFrontmatter(content);
+    if (cleanContent.trim()) {
+      const outputPath = path.join(outputDir, out);
+      fs.writeFileSync(outputPath, llmsTxtDirective + cleanContent, 'utf8');
+      console.log(`  ✔ Page: ${src}`);
+    }
+  }
+}
+
+// Create index.md as a copy of suins.md for the root page
+const suinsMd = path.join(outputDir, 'suins.md');
+const indexMd = path.join(outputDir, 'index.md');
+if (fs.existsSync(suinsMd)) {
+  fs.copyFileSync(suinsMd, indexMd);
+  console.log('  ✔ Created index.md from suins.md');
+}
+
 console.log('\n✅ Markdown files exported successfully');
