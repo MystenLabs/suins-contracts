@@ -14,11 +14,6 @@
   ],
   "rewrites": [
       {
-        "source": "/:path((?!markdown|_next|img|fonts|api|sitemap).*)",
-        "has": [{"type": "header", "key": "accept", "value": "text/markdown(.*)"}],
-        "destination": "/markdown/:path.md"
-      },
-      {
         "source": "/(.+)\\.md",
         "destination": "/markdown/$1.md"
       }
