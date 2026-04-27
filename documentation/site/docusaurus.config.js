@@ -105,6 +105,7 @@ const config = {
           path: "../content",
           routeBasePath: "/",
           sidebarPath: "./sidebars.js",
+          exclude: ["snippets/**"],
           editUrl:
             "https://github.com/MystenLabs/suins-contracts/tree/main/documentation/",
           remarkPlugins: [[remarkGlossary, { glossaryFile: "static/glossary.json" }]],
