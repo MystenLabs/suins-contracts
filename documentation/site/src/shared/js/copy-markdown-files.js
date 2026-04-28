@@ -11,6 +11,17 @@ const baseUrl = 'https://docs.suins.io';
 const llmsTxtDirective = `> For the complete documentation index, see [llms.txt](${baseUrl}/llms.txt)\n\n`;
 
 /**
+ * Checks if a markdown file should be skipped (draft or redirect)
+ */
+function shouldSkip(content) {
+  const { data } = matter(content);
+  if (data.draft === true) return true;
+  if (typeof data.title === 'string' && data.title.startsWith('Redirecting')) return true;
+  if (data.sidebar_class_name === 'hidden') return true;
+  return false;
+}
+
+/**
  * Strips frontmatter and cleans MDX/JSX components from markdown
  */
 function stripFrontmatter(content) {
@@ -19,28 +30,72 @@ function stripFrontmatter(content) {
 }
 
 /**
- * Removes or simplifies MDX/JSX components for cleaner markdown
+ * Removes or simplifies MDX/JSX components for cleaner markdown.
+ * Protects fenced code blocks from being modified.
  */
 function cleanMdxComponents(content) {
   let cleaned = content;
 
-  // Remove import statements
+  // ── Protect code blocks from JSX cleaning ──────────────────────────────
+  const codeBlocks = [];
+  cleaned = cleaned.replace(/```[\s\S]*?```/g, match => {
+    codeBlocks.push(match);
+    return `__CODE_BLOCK_${codeBlocks.length - 1}__`;
+  });
+  cleaned = cleaned.replace(/`[^`\n]+`/g, match => {
+    codeBlocks.push(match);
+    return `__CODE_BLOCK_${codeBlocks.length - 1}__`;
+  });
+
+  // ── Remove import statements ───────────────────────────────────────────
   cleaned = cleaned.replace(/^import\s+.*?from\s+['"].*?['"];?\s*$/gm, '');
 
-  // Convert Card components to markdown links
-  cleaned = cleaned.replace(/<Card[^>]*title="([^"]*)"[^>]*href="([^"]*)"[^>]*\/>/g, '- [$1]($2)');
-
-  // Remove Cards wrapper
+  // ── Convert Card components to markdown links ──────────────────────────
+  cleaned = cleaned.replace(
+    /<Card[^>]*title="([^"]*)"[^>]*href="([^"]*)"[^>]*\/>/g,
+    '- [$1]($2)',
+  );
   cleaned = cleaned.replace(/<Cards[^>]*>/g, '');
   cleaned = cleaned.replace(/<\/Cards>/g, '');
 
-  // Remove other common JSX components but keep their content
-  cleaned = cleaned.replace(/<(\w+)[^>]*>(.*?)<\/\1>/gs, '$2');
+  // ── Convert Docusaurus admonitions to blockquotes ──────────────────────
+  cleaned = cleaned.replace(
+    /^:::(tip|info|warning|danger|note|caution)(?:[ \t]+(.+))?\s*\n([\s\S]*?)^:::\s*$/gm,
+    (_match, type, title, body) => {
+      const label = type.charAt(0).toUpperCase() + type.slice(1);
+      const header = title ? title.trim() : label;
+      const lines = body
+        .trim()
+        .split('\n')
+        .map(l => `> ${l}`)
+        .join('\n');
+      return `> **${header}**\n>\n${lines}`;
+    },
+  );
 
-  // Remove self-closing JSX tags
+  // ── Convert <a> tags to markdown links before generic stripping ────────
+  cleaned = cleaned.replace(
+    /<a\s+href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/g,
+    '[$2]($1)',
+  );
+
+  // ── Remove paired JSX/HTML tags, keep content (loop for nesting) ───────
+  let prev;
+  do {
+    prev = cleaned;
+    cleaned = cleaned.replace(/<(\w+)[^>]*>([\s\S]*?)<\/\1>/g, '$2');
+  } while (cleaned !== prev);
+
+  // ── Remove remaining self-closing JSX/HTML tags ────────────────────────
   cleaned = cleaned.replace(/<\w+[^>]*\/>/g, '');
 
-  // Clean up excessive newlines
+  // ── Remove JSX expression comments ─────────────────────────────────────
+  cleaned = cleaned.replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
+
+  // ── Restore code blocks ────────────────────────────────────────────────
+  cleaned = cleaned.replace(/__CODE_BLOCK_(\d+)__/g, (_match, idx) => codeBlocks[parseInt(idx)]);
+
+  // ── Clean up excessive newlines ────────────────────────────────────────
   cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
 
   return cleaned.trim();
@@ -65,7 +120,20 @@ function copyMarkdownFiles(dir, baseDir = dir) {
       copyMarkdownFiles(filePath, baseDir);
     } else if (file.endsWith('.md') || file.endsWith('.mdx')) {
       const content = fs.readFileSync(filePath, 'utf8');
+
+      if (shouldSkip(content)) {
+        const relativePath = path.relative(baseDir, filePath);
+        console.log(`  ⏭ Skipped: ${relativePath}`);
+        return;
+      }
+
       const cleanContent = stripFrontmatter(content);
+
+      if (!cleanContent.trim()) {
+        const relativePath = path.relative(baseDir, filePath);
+        console.log(`  ⏭ Skipped (empty): ${relativePath}`);
+        return;
+      }
 
       // Insert llms.txt directive at the top of the file
       const outputContent = llmsTxtDirective + cleanContent;
@@ -76,7 +144,7 @@ function copyMarkdownFiles(dir, baseDir = dir) {
 
       fs.mkdirSync(path.dirname(outputPath), { recursive: true });
       fs.writeFileSync(outputPath, outputContent, 'utf8');
-      console.log(`✓ Copied: ${relativePath} → ${path.relative(outputDir, outputPath)}`);
+      console.log(`  ✔ Copied: ${relativePath}`);
     }
   });
 }
@@ -85,7 +153,39 @@ console.log('📝 Starting markdown export...');
 console.log(`Source: ${contentDir}`);
 console.log(`Output: ${outputDir}\n`);
 
+// Clean and recreate output directory
+if (fs.existsSync(outputDir)) {
+  fs.rmSync(outputDir, { recursive: true });
+}
+fs.mkdirSync(outputDir, { recursive: true });
+
 // Copy all markdown files
 copyMarkdownFiles(contentDir);
+
+// Generate markdown for custom pages (src/pages/) that aren't in the content dir
+const pagesDir = path.join(__dirname, '../../../src/pages');
+const customPages = [
+  { src: 'search.mdx', out: 'search.md' },
+];
+for (const { src, out } of customPages) {
+  const srcPath = path.join(pagesDir, src);
+  if (fs.existsSync(srcPath)) {
+    const content = fs.readFileSync(srcPath, 'utf8');
+    const cleanContent = stripFrontmatter(content);
+    if (cleanContent.trim()) {
+      const outputPath = path.join(outputDir, out);
+      fs.writeFileSync(outputPath, llmsTxtDirective + cleanContent, 'utf8');
+      console.log(`  ✔ Page: ${src}`);
+    }
+  }
+}
+
+// Create index.md as a copy of suins.md for the root page
+const suinsMd = path.join(outputDir, 'suins.md');
+const indexMd = path.join(outputDir, 'index.md');
+if (fs.existsSync(suinsMd)) {
+  fs.copyFileSync(suinsMd, indexMd);
+  console.log('  ✔ Created index.md from suins.md');
+}
 
 console.log('\n✅ Markdown files exported successfully');
