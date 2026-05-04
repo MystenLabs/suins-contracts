@@ -227,6 +227,13 @@ for (const section of Object.keys(grouped)) {
   }
 }
 
+// ── Custom pages (src/pages/) not in the content directory ──────────────────
+// These appear in the sitemap so must also appear in llms.txt for coverage.
+topLevel.push(
+  { title: "SuiNS Documentation Home", url: joinUrl(baseUrl, "index.md"), subsection: null },
+  { title: "Search", url: joinUrl(baseUrl, "search.md"), subsection: null },
+);
+
 if (topLevel.length) {
   grouped["Top Level Navigation"] = topLevel;
 }
