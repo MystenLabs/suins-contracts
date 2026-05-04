@@ -31,7 +31,7 @@ const sidebars = {
 				type: 'doc',
 				id: 'developer/sdk',
 			},
-			items: ['developer/sdk/querying', 'developer/sdk/transactions'],
+			items: ['developer/sdk/querying', 'developer/sdk/transactions', 'developer/sdk/subnames'],
 		},
 	],
 	mvrSidebar: [

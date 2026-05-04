@@ -7,6 +7,7 @@
 - [Developer](https://docs.suins.io/developer.md)
 - [Sdk](https://docs.suins.io/developer/sdk.md)
 - [Querying](https://docs.suins.io/developer/sdk/querying.md)
+- [Subnames](https://docs.suins.io/developer/sdk/subnames.md)
 - [Transactions](https://docs.suins.io/developer/sdk/transactions.md)
 
 ## Move Registry
@@ -21,10 +22,12 @@
 ## Top Level Navigation
 
 - [Dao — Dao](https://docs.suins.io/dao.md)
+- [SuiNS Documentation Home](https://docs.suins.io/index.md)
 - [Node Operator — Node Operator](https://docs.suins.io/node-operator.md)
+- [Search](https://docs.suins.io/search.md)
 - [Suins — Suins](https://docs.suins.io/suins.md)
 - [User — User](https://docs.suins.io/user.md)
-- [Move — Move Language Reference](https://move-book.io/llms.txt)
+- [Move — Move Language Reference](https://move-book.com/llms.txt)
     Complete reference for the Move programming language as used on Sui. Covers syntax, types,
       functions, structs, abilities (copy, drop, store, key), generics, ownership and the Sui
       object model, entry functions, public functions, module structure, error handling, events,
