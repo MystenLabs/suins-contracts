@@ -14,39 +14,11 @@
   ],
   "rewrites": [
       {
-        "source": "/",
-        "has": [{ "type": "header", "key": "accept", "value": ".*text/markdown.*" }],
-        "destination": "/markdown/index.md"
-      },
-      {
-        "source": "/:path+",
-        "has": [{ "type": "header", "key": "accept", "value": ".*text/markdown.*" }],
-        "destination": "/markdown/:path+.md"
-      },
-      {
         "source": "/(.+)\\.md",
         "destination": "/markdown/$1.md"
       }
     ],
     "headers": [
-      {
-        "source": "/:path*",
-        "has": [{ "type": "header", "key": "accept", "value": ".*text/markdown.*" }],
-        "headers": [
-          {
-            "key": "Content-Type",
-            "value": "text/markdown; charset=utf-8"
-          },
-          {
-            "key": "Content-Disposition",
-            "value": "inline"
-          },
-          {
-            "key": "Cache-Control",
-            "value": "public, max-age=0, must-revalidate"
-          }
-        ]
-      },
       {
         "source": "/markdown/(.*).md",
         "headers": [
@@ -59,8 +31,21 @@
             "value": "inline"
           },
           {
+            "key": "Vary",
+            "value": "Accept"
+          },
+          {
             "key": "Cache-Control",
             "value": "public, max-age=3600, s-maxage=3600"
+          }
+        ]
+      },
+      {
+        "source": "/((?!_next|api|static|markdown|llms\\.txt).*)",
+        "headers": [
+          {
+            "key": "Vary",
+            "value": "Accept"
           }
         ]
       }
