@@ -4,7 +4,7 @@
 import React from "react";
 import { useHits } from "react-instantsearch";
 import { useHistory } from "@docusaurus/router";
-import { truncateAtWord, getDeepestHierarchyLabel } from "./utils";
+import { truncateAtWord, getDeepestHierarchyLabel, getHierarchyBreadcrumbs, cleanTooltipText } from "./utils";
 
 export default function CustomHitsContent({ name }) {
   const { hits: items } = useHits();
@@ -52,25 +52,31 @@ export default function CustomHitsContent({ name }) {
   return (
     <>
       {Object.entries(grouped).map(([key, group], index) => {
+        const pageCrumbs = getHierarchyBreadcrumbs(group[0].hierarchy);
+        const pageTitle =
+          pageCrumbs.length > 0
+            ? pageCrumbs[Math.min(1, pageCrumbs.length - 1)]
+            : "[no title]";
         return (
           <div
             className="p-6 pb-[40px] mb-6 bg-suins-gray-5 dark:bg-suins-white-10 rounded-[20px]"
             key={index}
           >
             <div className="text-xl text-suins-orange font-semibold mb-4">
-              {group[0].hierarchy?.lvl1 ||
-                group[0].hierarchy?.lvl0 ||
-                "[no title]"}
+              {pageTitle}
             </div>
+            {pageCrumbs.length > 0 && (
+              <div className="text-xs text-suins-gray-50 dark:text-suins-gray-50 mb-4">
+                {pageCrumbs.join(" > ")}
+              </div>
+            )}
             <div className="">
               {group.map((hit, i) => {
-                const level = hit.type;
-                let sectionTitle = hit.lvl0;
-                if (level === "content") {
-                  sectionTitle = getDeepestHierarchyLabel(hit.hierarchy);
-                } else {
-                  sectionTitle = hit.hierarchy?.[level] || level;
-                }
+                const hitCrumbs = getHierarchyBreadcrumbs(hit.hierarchy);
+                const sectionTitle =
+                  hitCrumbs.length > 0
+                    ? hitCrumbs[hitCrumbs.length - 1]
+                    : cleanTooltipText(getDeepestHierarchyLabel(hit.hierarchy));
 
                 const hitHost = new URL(hit.url).host;
                 const isInternal = hitHost === currentHost;
