@@ -232,7 +232,9 @@ html[data-theme='dark'] .DocSearch-Search-Icon path {
 }
 
 .modal-result mark {
-  @apply bg-suins-green-light;
+  background: rgba(41, 141, 255, 0.3);
+  color: inherit;
+  border-radius: 2px;
 }
 
 .ais-Pagination-list {
