@@ -319,3 +319,10 @@ img {
 [data-theme='dark'] .lightToggleIcon_pgEs {
   color: #ffffff;
 }
+
+/* Force code block buttons to always be visible (not just on hover) */
+[class*="buttonGroup_"] button,
+[class*="buttonGroup_"] span {
+  opacity: 1 !important;
+  transition: none !important;
+}
