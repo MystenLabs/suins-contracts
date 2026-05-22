@@ -1,8 +1,6 @@
 FROM rust:1.90.0-bullseye AS builder
 
 ARG PROFILE=release
-ARG GIT_REVISION
-ENV GIT_REVISION=$GIT_REVISION
 
 WORKDIR work
 
@@ -12,6 +10,10 @@ COPY docker/suins-indexer/entry.sh ./
 
 RUN apt-get update && apt-get install -y build-essential libssl-dev pkg-config curl cmake clang ca-certificates
 ENV PATH="/root/.cargo/bin:${PATH}"
+
+# GIT_REVISION declared late so SHA changes don't invalidate the COPY + apt layers above.
+ARG GIT_REVISION
+ENV GIT_REVISION=$GIT_REVISION
 
 RUN cargo build --profile $PROFILE --bin suins-indexer --config net.git-fetch-with-cli=true
 
