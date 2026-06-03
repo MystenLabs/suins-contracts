@@ -7,6 +7,7 @@ import ImportContent from "@site/src/components/ImportContent";
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import Video from "../../components/Video";
+import AgentPrompt from "@site/src/shared/components/AgentPrompt";
 
 export default function MDXContent({ children }) {
   const suiComponents = {
@@ -17,6 +18,7 @@ export default function MDXContent({ children }) {
     Tabs,
     TabItem,
     Video,
+    AgentPrompt,
   };
   return <MDXProvider components={suiComponents}>{children}</MDXProvider>;
 }
