@@ -96,6 +96,28 @@ const config = {
       };
     },
   ],
+  clientModules: [
+    require.resolve("./src/client/kapa-sidebar.js"),
+  ],
+
+  scripts: [
+    {
+      src: "https://widget.kapa.ai/kapa-widget.bundle.js",
+      "data-website-id": "41cc6485-0b9b-41c9-ac5e-c2965afde07c",
+      "data-project-name": "SuiNS Knowledge",
+      "data-project-color": "#298DFF",
+      "data-button-hide": "true",
+      "data-view-mode": "sidebar",
+      "data-modal-title": "Ask SuiNS AI",
+      "data-modal-ask-ai-input-placeholder": "Ask me anything about SuiNS!",
+      "data-modal-example-questions": "How do I register a SuiNS name?,What is MVR?,How do I resolve a name on-chain?,How do I set up a subdomain?",
+      "data-modal-overlay-hidden": "true",
+      "data-modal-lock-scroll": "false",
+      "data-modal-image": "/img/logo.svg",
+      async: true,
+    },
+  ],
+
   presets: [
     [
       "classic",
