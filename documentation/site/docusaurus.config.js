@@ -103,7 +103,7 @@ const config = {
   scripts: [
     {
       src: "https://widget.kapa.ai/kapa-widget.bundle.js",
-      "data-website-id": "41cc6485-0b9b-41c9-ac5e-c2965afde07c",
+      "data-website-id": "c34a7507-f7d9-4db2-bd58-69a670ea2b57",
       "data-project-name": "SuiNS Knowledge",
       "data-project-color": "#298DFF",
       "data-button-hide": "true",
