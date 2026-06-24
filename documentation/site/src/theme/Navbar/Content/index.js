@@ -97,6 +97,25 @@ function SearchLauncher() {
   );
 }
 
+function KapaButton() {
+  const handleClick = () => {
+    if (typeof window !== "undefined" && window.Kapa) {
+      window.Kapa.open();
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      className="kapa-trigger-btn"
+    >
+      <img src="/img/logo.svg" alt="" width="23" height="23" />
+      <span>Ask SuiNS AI</span>
+    </button>
+  );
+}
+
 export default function NavbarContent() {
   const mobileSidebar = useMobileSidebarSafe();
   const items = useNavbarItems();
@@ -116,6 +135,7 @@ export default function NavbarContent() {
         <>
           <NavbarItems items={rightItems} />
           <ThemeToggle />
+          <KapaButton />
           {!searchBarItem && (
             <NavbarSearch>
               <SearchLauncher />
