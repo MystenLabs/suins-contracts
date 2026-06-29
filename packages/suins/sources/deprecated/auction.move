@@ -310,7 +310,7 @@ public fun admin_withdraw_funds(
 /// based on the provided `operation_limit`:
 /// - claim the winning bid and place in `AuctionHouse.balance`
 /// - push the `SuinsRegistration` to the winner
-/// - push loosing bids back to their respective account owners
+/// - push losing bids back to their respective account owners
 ///
 /// Once all of the above has been done the auction is destroyed,
 /// freeing on-chain storage.
