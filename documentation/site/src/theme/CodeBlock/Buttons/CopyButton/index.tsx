@@ -74,19 +74,6 @@ function useCopyButton(buttonRef: React.RefObject<HTMLElement>) {
 
 function OpenInPlayMoveButton({ className }: { className?: string }) {
   const wrapperRef = useRef<HTMLSpanElement | null>(null);
-  const [isMove, setIsMove] = useState(false);
-
-  useEffect(() => {
-    let el: HTMLElement | null = wrapperRef.current;
-    while (el) {
-      const code = el.querySelector?.("pre code[class*='language-move']") as HTMLElement | null;
-      if (code) {
-        setIsMove(true);
-        return;
-      }
-      el = el.parentElement;
-    }
-  }, []);
 
   const handleClick = useCallback(() => {
     const code = getNearestCodeText(wrapperRef.current);
@@ -96,7 +83,7 @@ function OpenInPlayMoveButton({ className }: { className?: string }) {
   }, []);
 
   return (
-    <span ref={wrapperRef} style={{ display: isMove ? "contents" : "none" }}>
+    <span ref={wrapperRef} style={{ display: "contents" }}>
       <Button
         aria-label="Open in Move Playground"
         title="Open in Move Playground"
