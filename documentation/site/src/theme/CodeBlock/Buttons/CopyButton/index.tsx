@@ -72,6 +72,35 @@ function useCopyButton(buttonRef: React.RefObject<HTMLElement>) {
   return { copyCode, isCopied };
 }
 
+function OpenInPlayMoveButton({ className }: { className?: string }) {
+  const wrapperRef = useRef<HTMLSpanElement | null>(null);
+
+  const handleClick = useCallback(() => {
+    const code = getNearestCodeText(wrapperRef.current);
+    if (!code) return;
+    const url = `https://www.playmove.dev/#${encodeURIComponent(code)}`;
+    window.open(url, "_blank", "noopener");
+  }, []);
+
+  return (
+    <span ref={wrapperRef} style={{ display: "contents" }}>
+      <Button
+        aria-label="Open in Move Playground"
+        title="Open in Move Playground"
+        className={clsx(
+          className,
+          "!opacity-50 !hover:opacity-100 text-xs p-0 justify-center",
+        )}
+        onClick={handleClick}
+      >
+        <span className="p-1">
+          <FontAwesomeIcon icon={['fas', 'play']} style={{ fontSize: 9 }} /> Playground
+        </span>
+      </Button>
+    </span>
+  );
+}
+
 export default function CopyButton({ className }: Props): ReactNode {
   const buttonRef = useRef<HTMLSpanElement | null>(null);
   const { copyCode, isCopied } = useCopyButton(buttonRef);
@@ -100,6 +129,7 @@ export default function CopyButton({ className }: Props): ReactNode {
         </span>
       </Button>
       <OpenInAgentButton className={className} />
+      <OpenInPlayMoveButton className={className} />
     </span>
   );
 }
