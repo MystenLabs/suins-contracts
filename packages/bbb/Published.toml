@@ -7,3 +7,13 @@ chain-id = "35834a8a"
 published-at = "0x6268d072063a311f6f0a1db516d06d97c06a3fa6d10e797cad578937a47b3992"
 original-id = "0x6268d072063a311f6f0a1db516d06d97c06a3fa6d10e797cad578937a47b3992"
 version = 1
+
+# NOTE: original testnet source was never committed; reconstructed from the
+# on-chain (decompiled) bytecode of the deployed package on the bbb-testnet branch.
+# Assumes version = 1 (never upgraded). Verify original-id/version against chain
+# before running an upgrade.
+[published.testnet]
+chain-id = "4c78adac"
+published-at = "0xed9b18147ca81c8f3f60192c8d0630574e42387cd200a6e39b3e4e07df1ce6e6"
+original-id = "0xed9b18147ca81c8f3f60192c8d0630574e42387cd200a6e39b3e4e07df1ce6e6"
+version = 1
