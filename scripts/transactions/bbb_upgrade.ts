@@ -4,7 +4,9 @@
 import { execSync } from 'child_process';
 import { writeFileSync } from 'fs';
 
-type Network = 'mainnet' | 'testnet';
+import { Network } from '../config/constants';
+
+const network = (process.env.NETWORK as Network) || 'mainnet';
 
 const BBB_UPGRADE_CAP: Record<Network, string> = {
 	mainnet: '0x7be6340da3af6cf40f2d77f289e178631f8c3e479167099b93769c5f1b82e6f9',
@@ -12,13 +14,9 @@ const BBB_UPGRADE_CAP: Record<Network, string> = {
 };
 
 const bbbUpgrade = async () => {
-	const network = process.argv[2] as Network;
-	if (network !== 'mainnet' && network !== 'testnet')
-		throw new Error('Network must be "mainnet" or "testnet"');
-
 	const gasObjectId = process.env.GAS_OBJECT;
 
-	if (!gasObjectId) throw new Error('No gas object supplied for a mainnet transaction');
+	if (!gasObjectId) throw new Error('No gas object supplied. Export it using GAS_OBJECT');
 
 	const currentDir = process.cwd();
 	const bbbDir = `${currentDir}/../packages/bbb`;
