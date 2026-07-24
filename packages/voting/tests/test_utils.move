@@ -26,6 +26,7 @@ use suins_voting::{
 // === constants ===
 
 public macro fun admin_addr(): address { @0xaa1 }
+
 public macro fun reward_amount(): u64 { 1_000_000 }
 
 const INITIAL_TIME: u64 = 86_400_000; // January 2, 1970
