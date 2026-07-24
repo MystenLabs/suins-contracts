@@ -249,7 +249,7 @@ jobs:
           ORIGIN: gh_action
           RPC_URL: ${{ inputs.rpc }}
         run: |
-          cd scripts && pnpm ts-node transactions/bbb_upgrade.ts
+          cd scripts && pnpm ts-node transactions/bbb_upgrade.ts mainnet
 
       - name: Show Transaction Data (To sign)
         run: |
