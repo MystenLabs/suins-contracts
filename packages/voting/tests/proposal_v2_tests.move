@@ -14,7 +14,7 @@ use suins_voting::{
         assert_owns_ns,
         proposal__new__end_time,
         reward_amount,
-        admin_addr
+        admin_addr,
     },
     voting_option::{Self, threshold_not_reached, tie_rejected}
 };
