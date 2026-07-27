@@ -2,10 +2,13 @@
 name = "suins_bbb"
 edition = "2024.beta"
 
-# testnet build: DEX swap modules (Aftermath/Cetus) are excluded, so their
-# interface dependencies are not needed here — only Pyth (used by bbb_pyth).
-[dependencies]
-Pyth = { git = "https://github.com/pyth-network/pyth-crosschain.git", subdir = "target_chains/sui/contracts", rev = "sui-contract-mainnet" }
+[dependencies.pyth]
+git = "https://github.com/pyth-network/pyth-crosschain.git"
+subdir = "target_chains/sui/contracts"
+rev = "sui-contract-testnet"
 
-[addresses]
-suins_bbb = "0x0"
+[dependencies.pyth_pro_compatible]
+git = "https://github.com/pyth-network/pyth-crosschain.git"
+subdir = "target_chains/sui/contracts"
+rev = "sui-pro-compatible-contract-testnet"
+rename-from = "pyth"

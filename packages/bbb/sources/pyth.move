@@ -1,6 +1,7 @@
 module suins_bbb::bbb_pyth;
 
 use pyth::{price_info::PriceInfoObject, pyth};
+use pyth_pro_compatible::{price_info::PriceInfoObject as ProPriceInfoObject, pyth as pyth_pro};
 use sui::clock::Clock;
 
 const EInvalidPriceIn: u64 = 1000;
@@ -23,6 +24,40 @@ public(package) fun calc_amount_out(
     let price_usd_in = price_in.get_price().get_magnitude_if_positive();
     let price_exp_in = price_in.get_expo().get_magnitude_if_negative() as u8;
     let price_out = pyth::get_price_no_older_than(info_out, clock, max_age_secs);
+    let price_usd_out = price_out.get_price().get_magnitude_if_positive();
+    let price_exp_out = price_out.get_expo().get_magnitude_if_negative() as u8;
+
+    assert!(price_usd_in > 0, EInvalidPriceIn);
+    assert!(price_usd_out > 0, EInvalidPriceOut);
+
+    // do the math
+    calc_amount_out_internal(
+        price_usd_in,
+        price_exp_in,
+        decimals_in,
+        price_usd_out,
+        price_exp_out,
+        decimals_out,
+        amount_in,
+    )
+}
+
+/// `calc_amount_out` variant that reads the Pro-compatible Pyth feed, for use after the
+/// Pyth Core→Pro cutover. Identical math to `calc_amount_out`; only the price source differs.
+public(package) fun calc_amount_out_pro(
+    info_in: &ProPriceInfoObject,
+    info_out: &ProPriceInfoObject,
+    decimals_in: u8,
+    decimals_out: u8,
+    amount_in: u64,
+    max_age_secs: u64,
+    clock: &Clock,
+): u64 {
+    // get the USD price and decimal exponent for both coins
+    let price_in = pyth_pro::get_price_no_older_than(info_in, clock, max_age_secs);
+    let price_usd_in = price_in.get_price().get_magnitude_if_positive();
+    let price_exp_in = price_in.get_expo().get_magnitude_if_negative() as u8;
+    let price_out = pyth_pro::get_price_no_older_than(info_out, clock, max_age_secs);
     let price_usd_out = price_out.get_price().get_magnitude_if_positive();
     let price_exp_out = price_out.get_expo().get_magnitude_if_negative() as u8;
 
