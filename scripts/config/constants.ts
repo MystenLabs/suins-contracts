@@ -38,6 +38,10 @@ export type PackageInfo = {
 	treasuryAddress?: string;
 	payments: {
 		packageId: string;
+		upgradeCap: string;
+	};
+	bbb: {
+		upgradeCap: string;
 	};
 	pyth: {
 		pythStateId: string;
@@ -87,6 +91,10 @@ export const mainPackage: Config = {
 		treasuryAddress: '0x638791b625c4482bc1b917847cdf8aa76fe226c0f3e0a9b1aa595625989e98a1',
 		payments: {
 			packageId: '0xdd0a4a34152a80d7841710e916a407b2a62961eee5b2188dcfdaa24194f66286',
+			upgradeCap: '0x1b81a62cca9db85bacdf213780e6ae71722ad3939f815cdbd6f577aa5d8ff8d2',
+		},
+		bbb: {
+			upgradeCap: '0x7be6340da3af6cf40f2d77f289e178631f8c3e479167099b93769c5f1b82e6f9',
 		},
 		pyth: {
 			pythStateId: '0x1f9310238ee9298fb703c3419030b35b22bb1cc37113e3bb5007c99aec79e5b8',
@@ -138,7 +146,11 @@ export const mainPackage: Config = {
 			packageId: '0x63029aae8abbefae4f4ac6c5e3e0021159ea93a94ba648681fd64caf5b40677a',
 		},
 		payments: {
-			packageId: '0x9e8b85270cf5e7ec0ae44c745abe000b6dd7d8b54ca2d367e044d8baccefc10c',
+			packageId: '0xc391c200188dd1a363ff12dcffe07eaac5cf28ad1cd8dc0fcc18f2f8625f0da2',
+			upgradeCap: '0x06904d75de990102ef09f81e4ca96fcf85698d00768ab3d76179ef6cda07e545',
+		},
+		bbb: {
+			upgradeCap: '0x558d953cfff029f9dff7b42bb0e589b70441230112eb688eb7bd5ed908d4bd3c',
 		},
 		pyth: {
 			pythStateId: '0x243759059f4c3111179da5878c12f68d612c21a8d54d85edc86164bb18be1c7c',

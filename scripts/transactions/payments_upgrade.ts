@@ -8,24 +8,24 @@ import { mainPackage, Network } from '../config/constants';
 
 const network = (process.env.NETWORK as Network) || 'mainnet';
 
-const bbbUpgrade = () => {
+const paymentsUpgrade = () => {
 	const gasObjectId = process.env.GAS_OBJECT;
 
 	if (!gasObjectId) throw new Error('No gas object supplied. Export it using GAS_OBJECT');
 
-	const upgradeCap = mainPackage[network].bbb.upgradeCap;
+	const upgradeCap = mainPackage[network].payments.upgradeCap;
 
 	const currentDir = process.cwd();
-	const bbbDir = `${currentDir}/../packages/bbb`;
+	const paymentsDir = `${currentDir}/../packages/payments`;
 	const txFilePath = `${currentDir}/tx/tx-data.txt`;
 	const upgradeCall = `sui client upgrade --upgrade-capability ${upgradeCap} --gas-budget 2000000000 --gas ${gasObjectId} --skip-dependency-verification --serialize-unsigned-transaction`;
 
 	try {
-		const output = execSync(upgradeCall, { cwd: bbbDir, stdio: 'pipe' }).toString();
+		const output = execSync(upgradeCall, { cwd: paymentsDir, stdio: 'pipe' }).toString();
 		writeFileSync(txFilePath, output);
-		console.log('BBB upgrade transaction successfully created and saved to tx-data.txt');
+		console.log('Payments upgrade transaction successfully created and saved to tx-data.txt');
 	} catch (error: any) {
-		console.error('Error during BBB upgrade:', error.message);
+		console.error('Error during Payments upgrade:', error.message);
 		console.error('stderr:', error.stderr?.toString());
 		console.error('stdout:', error.stdout?.toString());
 		console.error('Command:', error.cmd);
@@ -33,4 +33,4 @@ const bbbUpgrade = () => {
 	}
 };
 
-bbbUpgrade();
+paymentsUpgrade();

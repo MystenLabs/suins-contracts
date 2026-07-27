@@ -23,6 +23,7 @@ on:
           - Transfer Suins Name
           - Authorize Payments
           - Upgrade BBB
+          - Upgrade Payments
       sui_tools_image:
         description: 'image reference of sui_tools'
         default: 'mysten/sui-tools:mainnet'
@@ -250,6 +251,17 @@ jobs:
           RPC_URL: ${{ inputs.rpc }}
         run: |
           cd scripts && pnpm ts-node transactions/bbb_upgrade.ts
+
+      - name: Upgrade Payments
+        if: ${{ inputs.transaction_type == 'Upgrade Payments' }}
+        env:
+          NODE_ENV: production
+          GAS_OBJECT: ${{ inputs.gas_object_id }}
+          NETWORK: mainnet
+          ORIGIN: gh_action
+          RPC_URL: ${{ inputs.rpc }}
+        run: |
+          cd scripts && pnpm ts-node transactions/payments_upgrade.ts
 
       - name: Show Transaction Data (To sign)
         run: |
