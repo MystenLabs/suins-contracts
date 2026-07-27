@@ -19,7 +19,7 @@ use suins_payments::{
         new_coin_type_data,
         handle_base_payment,
         PaymentsApp,
-        PaymentsConfig
+        PaymentsConfig,
     },
     testns::TESTNS,
     testusdc::TESTUSDC
