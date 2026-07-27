@@ -4,6 +4,7 @@
 module suins_payments::payments;
 
 use pyth::{price_info::PriceInfoObject, pyth};
+use pyth_pro_compatible::{price_info::PriceInfoObject as ProPriceInfoObject, pyth as pyth_pro};
 use std::type_name::{Self, TypeName};
 use sui::{clock::Clock, coin::{Coin, CoinMetadata}, vec_map::{Self, VecMap}};
 use suins::{payment::{Receipt, PaymentIntent}, suins::SuiNS};
@@ -125,6 +126,36 @@ public fun handle_payment<T>(
     intent.finalize_payment(suins, PaymentsApp(), payment)
 }
 
+/// `handle_payment` variant that reads the Pro-compatible Pyth feed, for use
+/// after the Pyth Core→Pro cutover. Behaviour matches `handle_payment`; only
+/// the price source differs.
+public fun handle_payment_pro<T>(
+    suins: &mut SuiNS,
+    bbb_vault: &mut BBBVault,
+    mut intent: PaymentIntent,
+    mut payment: Coin<T>,
+    clock: &Clock,
+    price_info_object: &ProPriceInfoObject,
+    user_price_guard: u64,
+    ctx: &mut TxContext,
+): Receipt {
+    let type_config = suins.get_config_for_type<T>();
+    type_config.apply_discount_if_eligible(suins, &mut intent);
+
+    let target_currency_amount = calculate_price_pro<T>(
+        suins,
+        intent.request_data().base_amount(),
+        clock,
+        price_info_object,
+    );
+    assert!(payment.value() == target_currency_amount, EInsufficientPayment);
+    assert!(user_price_guard >= target_currency_amount, ESafeguardViolation); // price guard should be larger than the payment amount
+
+    deposit_into_bbb_vault(suins, bbb_vault, &mut payment, ctx);
+
+    intent.finalize_payment(suins, PaymentsApp(), payment)
+}
+
 /// Calculates the amount that has to be paid in the target currency.
 ///
 /// Can be used to split the payment amount in a single PTB.
@@ -145,6 +176,48 @@ public fun calculate_price<T>(
     assert!(config.base_currency != payment_type, ECannotUseOracleForBaseCurrency);
 
     let price = pyth::get_price_no_older_than(
+        price_info_object,
+        clock,
+        config.max_age,
+    );
+    let price_info = price_info_object.get_price_info_from_price_info_object();
+
+    // verify that the price feed id matches the one we have in our config.
+    assert!(
+        price_info.get_price_identifier().get_bytes() == type_config.price_feed_id,
+        EPriceFeedIdMismatch,
+    );
+
+    let target_decimals = type_config.decimals;
+    let base_decimals = config.currencies.get(&config.base_currency).decimals;
+    let pyth_decimals = price.get_expo().get_magnitude_if_negative() as u8;
+    let pyth_price = price.get_price().get_magnitude_if_positive();
+
+    calculate_target_currency_amount(
+        base_amount,
+        target_decimals,
+        base_decimals,
+        pyth_price,
+        pyth_decimals,
+    )
+}
+
+/// `calculate_price` variant that reads the Pro-compatible Pyth feed, for use
+/// after the Pyth Core→Pro cutover. Behaviour matches `calculate_price`; only
+/// the price source differs.
+public fun calculate_price_pro<T>(
+    suins: &mut SuiNS,
+    base_amount: u64,
+    clock: &Clock,
+    price_info_object: &ProPriceInfoObject,
+): u64 {
+    let config = suins.get_config<PaymentsConfig>();
+    let payment_type = type_name::get<T>();
+    let type_config = suins.get_config_for_type<T>();
+
+    assert!(config.base_currency != payment_type, ECannotUseOracleForBaseCurrency);
+
+    let price = pyth_pro::get_price_no_older_than(
         price_info_object,
         clock,
         config.max_age,
