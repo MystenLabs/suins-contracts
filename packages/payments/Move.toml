@@ -6,8 +6,13 @@ edition = "2024.beta" # edition = "legacy" to use legacy (pre-2024) Move
 suins = { local = "../suins" }
 suins_bbb = { local = "../bbb" }
 
-# Pyth dependency
-Pyth = { git = "https://github.com/pyth-network/pyth-crosschain.git", subdir = "target_chains/sui/contracts", rev = "sui-contract-mainnet" }
+[dependencies.pyth]
+git = "https://github.com/pyth-network/pyth-crosschain.git"
+subdir = "target_chains/sui/contracts"
+rev = "sui-contract-testnet"
 
-[addresses]
-suins_payments = "0x0"
+[dependencies.pyth_pro_compatible]
+git = "https://github.com/pyth-network/pyth-crosschain.git"
+subdir = "target_chains/sui/contracts"
+rev = "sui-pro-compatible-contract-testnet"
+rename-from = "pyth"

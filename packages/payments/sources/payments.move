@@ -3,7 +3,8 @@
 
 module suins_payments::payments;
 
-use pyth::{price_info::PriceInfoObject, pyth};
+use pyth::price_info::PriceInfoObject;
+use pyth_pro_compatible::{price_info::PriceInfoObject as ProPriceInfoObject, pyth as pyth_pro};
 use std::type_name::{Self, TypeName};
 use sui::{clock::Clock, coin::{Coin, CoinMetadata}, vec_map::{Self, VecMap}};
 use suins::{payment::{Receipt, PaymentIntent}, suins::SuiNS};
@@ -30,6 +31,9 @@ const EInvalidPythPrice: vector<u8> = b"Invalid Pyth price.";
 #[error]
 const ESafeguardViolation: vector<u8> =
     b"User price guard violation. The payment amount is higher than the user's expected amount.";
+#[error]
+const ECoreFeedDeprecated: vector<u8> =
+    b"This entrypoint is deprecated after the Pyth Core->Pro cutover. Use the `_pro` variant instead.";
 
 /// A buffer added to the exponent when calculating the target currency amount.
 const BUFFER: u8 = 10;
@@ -86,32 +90,40 @@ public fun handle_base_payment<T>(
     intent.finalize_payment(suins, PaymentsApp(), payment)
 }
 
-/// Handles a payment done for a non-base currency payment.
-/// E.g. SUI, NS.
-///
-/// The payment amount is derived from the base currency price and the Pyth
-/// price feed.
-///
-/// The `user_price_guard` is a value that the user expects to pay. If the
-/// payment amount is higher than this value, the payment will be rejected.
-/// This is to protect the user from paying more than they expected on their
-/// FEs.
-/// Ideally, this number should be calculated on the FE based on the price
-/// that is being displayed to the user (with a buffer determined by the FE).
+/// Deprecated after the Pyth Core to Pro cutover: reads the Core feed, which stops
+/// updating. The signature is retained for upgrade compatibility, but the body is
+/// disabled. Use `handle_payment_pro` instead. Callers needing the Core feed can still
+/// target the pre-upgrade package version.
 public fun handle_payment<T>(
+    _suins: &mut SuiNS,
+    _bbb_vault: &mut BBBVault,
+    _intent: PaymentIntent,
+    _payment: Coin<T>,
+    _clock: &Clock,
+    _price_info_object: &PriceInfoObject,
+    _user_price_guard: u64,
+    _ctx: &mut TxContext,
+): Receipt {
+    abort ECoreFeedDeprecated
+}
+
+/// `handle_payment` variant that reads the Pro-compatible Pyth feed, for use
+/// after the Pyth Core to Pro cutover. Behaviour matches `handle_payment`; only
+/// the price source differs.
+public fun handle_payment_pro<T>(
     suins: &mut SuiNS,
     bbb_vault: &mut BBBVault,
     mut intent: PaymentIntent,
     mut payment: Coin<T>,
     clock: &Clock,
-    price_info_object: &PriceInfoObject,
+    price_info_object: &ProPriceInfoObject,
     user_price_guard: u64,
     ctx: &mut TxContext,
 ): Receipt {
     let type_config = suins.get_config_for_type<T>();
     type_config.apply_discount_if_eligible(suins, &mut intent);
 
-    let target_currency_amount = calculate_price<T>(
+    let target_currency_amount = calculate_price_pro<T>(
         suins,
         intent.request_data().base_amount(),
         clock,
@@ -125,18 +137,27 @@ public fun handle_payment<T>(
     intent.finalize_payment(suins, PaymentsApp(), payment)
 }
 
-/// Calculates the amount that has to be paid in the target currency.
-///
-/// Can be used to split the payment amount in a single PTB.
-/// 1. const intent = function_to_get_intent();
-/// 2. const price = calculate_price<SUI>(suins, intent, ...);
-/// 3. const coin = txb.splitCoins(baseCoin, [price])
-/// 4. handle_payment<SUI>(suins, intent, coin, ...);
+/// Deprecated after the Pyth Core to Pro cutover: reads the Core feed, which stops
+/// updating. The signature is retained for upgrade compatibility, but the body is
+/// disabled. Use `calculate_price_pro` instead. Callers needing the Core feed can still
+/// target the pre-upgrade package version.
 public fun calculate_price<T>(
+    _suins: &mut SuiNS,
+    _base_amount: u64,
+    _clock: &Clock,
+    _price_info_object: &PriceInfoObject,
+): u64 {
+    abort ECoreFeedDeprecated
+}
+
+/// `calculate_price` variant that reads the Pro-compatible Pyth feed, for use
+/// after the Pyth Core to Pro cutover. Behaviour matches `calculate_price`; only
+/// the price source differs.
+public fun calculate_price_pro<T>(
     suins: &mut SuiNS,
     base_amount: u64,
     clock: &Clock,
-    price_info_object: &PriceInfoObject,
+    price_info_object: &ProPriceInfoObject,
 ): u64 {
     let config = suins.get_config<PaymentsConfig>();
     let payment_type = type_name::get<T>();
@@ -144,7 +165,7 @@ public fun calculate_price<T>(
 
     assert!(config.base_currency != payment_type, ECannotUseOracleForBaseCurrency);
 
-    let price = pyth::get_price_no_older_than(
+    let price = pyth_pro::get_price_no_older_than(
         price_info_object,
         clock,
         config.max_age,
