@@ -10,10 +10,8 @@ version = 2
 
 # NOTE: original testnet source was never committed; reconstructed from the
 # on-chain (decompiled) bytecode of the deployed package on the bbb-testnet branch.
-# Assumes version = 1 (never upgraded). Verify original-id/version against chain
-# before running an upgrade.
 [published.testnet]
 chain-id = "4c78adac"
-published-at = "0xed9b18147ca81c8f3f60192c8d0630574e42387cd200a6e39b3e4e07df1ce6e6"
+published-at = "0xab7f8da0f974ae38c205d9351787ae938da65c0a0e81d9788014f5f62a917aa1"
 original-id = "0xed9b18147ca81c8f3f60192c8d0630574e42387cd200a6e39b3e4e07df1ce6e6"
-version = 1
+version = 2
