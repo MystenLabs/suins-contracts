@@ -18,7 +18,7 @@ use suins::{
         admin_finalize_auction,
         admin_try_finalize_auctions,
         admin_withdraw_funds,
-        collect_winning_auction_fund
+        collect_winning_auction_fund,
     },
     constants::{Self, mist_per_sui},
     core_config,
