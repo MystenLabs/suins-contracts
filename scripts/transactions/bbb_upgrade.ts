@@ -8,7 +8,7 @@ import { mainPackage, Network } from '../config/constants';
 
 const network = (process.env.NETWORK as Network) || 'mainnet';
 
-const bbbUpgrade = async () => {
+const bbbUpgrade = () => {
 	const gasObjectId = process.env.GAS_OBJECT;
 
 	if (!gasObjectId) throw new Error('No gas object supplied. Export it using GAS_OBJECT');
