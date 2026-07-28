@@ -1,31 +1,13 @@
 module suins_bbb::bbb_pyth;
 
-use pyth::price_info::PriceInfoObject;
 use pyth_pro_compatible::{price_info::PriceInfoObject as ProPriceInfoObject, pyth as pyth_pro};
 use sui::clock::Clock;
 
 const EInvalidPriceIn: u64 = 1000;
 const EInvalidPriceOut: u64 = 1001;
-const ECoreFeedDeprecated: u64 = 1002;
 
-/// Deprecated after the Pyth Core to Pro cutover: reads the Core feed, which stops
-/// updating. The signature is retained for upgrade compatibility (public swap callers
-/// on mainnet), but the body is disabled. Use `calc_amount_out_pro`. Callers needing the
-/// Core feed can still target the pre-upgrade package version.
-public(package) fun calc_amount_out(
-    _info_in: &PriceInfoObject,
-    _info_out: &PriceInfoObject,
-    _decimals_in: u8,
-    _decimals_out: u8,
-    _amount_in: u64,
-    _max_age_secs: u64,
-    _clock: &Clock,
-): u64 {
-    abort ECoreFeedDeprecated
-}
-
-/// `calc_amount_out` variant that reads the Pro-compatible Pyth feed, for use after the
-/// Pyth Core to Pro cutover. Identical math to `calc_amount_out`; only the price source differs.
+/// Reads the Pro-compatible Pyth feed to compute the output amount, for use after the
+/// Pyth Core to Pro cutover.
 public(package) fun calc_amount_out_pro(
     info_in: &ProPriceInfoObject,
     info_out: &ProPriceInfoObject,
