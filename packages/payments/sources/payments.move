@@ -165,11 +165,10 @@ public fun calculate_price<T>(
 
 /// Calculates the amount that has to be paid in the target currency.
 ///
-/// Can be used to split the payment amount in a single PTB.
-/// 1. const intent = function_to_get_intent();
-/// 2. const price = calculate_price_pro<SUI>(suins, intent, ...);
-/// 3. const coin = txb.splitCoins(baseCoin, [price])
-/// 4. handle_payment_pro<SUI>(suins, intent, coin, ...);
+/// Can be used to split the payment amount in a single PTB, e.g.:
+/// 1. let price = calculate_price_pro<SUI>(suins, base_amount, clock, price_info_object);
+/// 2. let coin = txb.splitCoins(baseCoin, [price]);
+/// 3. handle_payment_pro<SUI>(suins, bbb_vault, intent, coin, clock, price_info_object, user_price_guard);
 ///
 /// `calculate_price` variant that reads the Pro-compatible Pyth feed, for use
 /// after the Pyth Core to Pro cutover. Behaviour matches the pre-cutover
