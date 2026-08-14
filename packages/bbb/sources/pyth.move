@@ -1,17 +1,16 @@
 module suins_bbb::bbb_pyth;
 
-use pyth::{price_info::PriceInfoObject, pyth};
+use pyth_pro_compatible::{price_info::PriceInfoObject as ProPriceInfoObject, pyth as pyth_pro};
 use sui::clock::Clock;
 
 const EInvalidPriceIn: u64 = 1000;
 const EInvalidPriceOut: u64 = 1001;
 
-/// Calculate the expected output amount for a swap using Pyth price feeds.
-/// Converts `amount_in` of the input coin to equivalent value in output coin.
-/// E.g. if 1 SUI is worth $3, then 1e9 SUI (amount_in) -> 3e6 USDC (return value).
-public(package) fun calc_amount_out(
-    info_in: &PriceInfoObject,
-    info_out: &PriceInfoObject,
+/// Reads the Pro-compatible Pyth feed to compute the output amount, for use after the
+/// Pyth Core to Pro cutover.
+public(package) fun calc_amount_out_pro(
+    info_in: &ProPriceInfoObject,
+    info_out: &ProPriceInfoObject,
     decimals_in: u8,
     decimals_out: u8,
     amount_in: u64,
@@ -19,10 +18,10 @@ public(package) fun calc_amount_out(
     clock: &Clock,
 ): u64 {
     // get the USD price and decimal exponent for both coins
-    let price_in = pyth::get_price_no_older_than(info_in, clock, max_age_secs);
+    let price_in = pyth_pro::get_price_no_older_than(info_in, clock, max_age_secs);
     let price_usd_in = price_in.get_price().get_magnitude_if_positive();
     let price_exp_in = price_in.get_expo().get_magnitude_if_negative() as u8;
-    let price_out = pyth::get_price_no_older_than(info_out, clock, max_age_secs);
+    let price_out = pyth_pro::get_price_no_older_than(info_out, clock, max_age_secs);
     let price_usd_out = price_out.get_price().get_magnitude_if_positive();
     let price_exp_out = price_out.get_expo().get_magnitude_if_negative() as u8;
 

@@ -3,9 +3,20 @@ name = "suins_bbb"
 edition = "2024.beta"
 
 [dependencies]
-Pyth = { git = "https://github.com/pyth-network/pyth-crosschain.git", subdir = "target_chains/sui/contracts", rev = "sui-contract-mainnet" }
-AftermathAmm = { git = "https://github.com/AftermathFinance/move-interfaces.git", subdir = "packages/amm/amm", rev = "82ec985" }
-CetusClmm = { git = "https://github.com/CetusProtocol/cetus-clmm-interface.git", subdir = "sui/cetus_clmm", rev = "mainnet-v1.49.2" }
+amm = { git = "https://github.com/AftermathFinance/move-interfaces.git", subdir = "packages/amm/amm", rev = "82ec985" }
+cetusclmm = { git = "https://github.com/CetusProtocol/cetus-clmm-interface.git", subdir = "sui/cetus_clmm", rev = "mainnet-v1.49.2" }
+insurance_fund = { git = "https://github.com/AftermathFinance/move-interfaces.git", subdir = "packages/amm/amm-insurance-fund", rev = "82ec985" }
+treasury = { git = "https://github.com/AftermathFinance/move-interfaces.git", subdir = "packages/amm/amm-treasury", rev = "82ec985" }
+protocol_fee_vault = { git = "https://github.com/AftermathFinance/move-interfaces.git", subdir = "packages/amm/amm-protocol-fee-vault", rev = "82ec985" }
+referral_vault = { git = "https://github.com/AftermathFinance/move-interfaces.git", subdir = "packages/amm/amm-referral-vault", rev = "82ec985" }
 
-[addresses]
-suins_bbb = "0x0"
+[dependencies.pyth]
+git = "https://github.com/pyth-network/pyth-crosschain.git"
+subdir = "target_chains/sui/contracts"
+rev = "sui-contract-mainnet"
+
+[dependencies.pyth_pro_compatible]
+git = "https://github.com/pyth-network/pyth-crosschain.git"
+subdir = "target_chains/sui/contracts"
+rev = "sui-pro-compatible-contract-mainnet"
+rename-from = "pyth"

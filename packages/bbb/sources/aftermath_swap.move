@@ -4,13 +4,14 @@ use amm::{pool::Pool, pool_registry::PoolRegistry, swap::swap_exact_in};
 use insurance_fund::insurance_fund::InsuranceFund;
 use protocol_fee_vault::vault::ProtocolFeeVault;
 use pyth::price_info::PriceInfoObject;
+use pyth_pro_compatible::price_info::PriceInfoObject as ProPriceInfoObject;
 use referral_vault::referral_vault::ReferralVault;
 use std::{ascii::String, type_name::{Self, TypeName}};
 use sui::{clock::Clock, event::emit};
 use suins_bbb::{
     bbb_admin::BBBAdminCap,
     bbb_constants::slippage_scale,
-    bbb_pyth::calc_amount_out,
+    bbb_pyth::calc_amount_out_pro,
     bbb_vault::BBBVault
 };
 use treasury::treasury::Treasury;
@@ -26,6 +27,7 @@ const EAmountOutTooLow: u64 = 1005;
 const ESlippageTooHigh: u64 = 1006;
 const ESlippageTooLow: u64 = 1007;
 const EMaxAgeTooHigh: u64 = 1008;
+const ECoreFeedDeprecated: u64 = 1009;
 
 // === events ===
 
@@ -129,17 +131,62 @@ public(package) fun new_promise(swap: AftermathSwap): AftermathSwapPromise {
 
 // === public functions ===
 
+/// Deprecated after the Pyth Core to Pro cutover: reads the Core feed, which stops
+/// updating. The signature is retained for upgrade compatibility, but the body is
+/// disabled. Use `swap_pro`. Callers needing the Core feed can still target the
+/// pre-upgrade package version.
+public fun swap<L, CoinIn, CoinOut>(
+    _promise: AftermathSwapPromise,
+    _vault: &mut BBBVault,
+    _info_in: &PriceInfoObject,
+    _info_out: &PriceInfoObject,
+    _pool: &mut Pool<L>,
+    _pool_registry: &PoolRegistry,
+    _protocol_fee_vault: &ProtocolFeeVault,
+    _treasury: &mut Treasury,
+    _insurance_fund: &mut InsuranceFund,
+    _referral_vault: &ReferralVault,
+    _clock: &Clock,
+    _ctx: &mut TxContext,
+) {
+    abort ECoreFeedDeprecated
+}
+
+/// Deprecated after the Pyth Core to Pro cutover. Use `swap_partial_pro`.
+/// Signature retained for upgrade compatibility; body disabled.
+public fun swap_partial<L, CoinIn, CoinOut>(
+    _promise: AftermathSwapPromise,
+    _vault: &mut BBBVault,
+    _max_amount: u64,
+    _info_in: &PriceInfoObject,
+    _info_out: &PriceInfoObject,
+    _pool: &mut Pool<L>,
+    _pool_registry: &PoolRegistry,
+    _protocol_fee_vault: &ProtocolFeeVault,
+    _treasury: &mut Treasury,
+    _insurance_fund: &mut InsuranceFund,
+    _referral_vault: &ReferralVault,
+    _clock: &Clock,
+    _ctx: &mut TxContext,
+) {
+    abort ECoreFeedDeprecated
+}
+
 /// Swap the `CoinIn` in the vault for an equal-valued amount of `CoinOut`,
 /// and deposit the resulting `CoinOut` into the vault.
 /// Uses Aftermath's AMM. Protocol fees are charged on the `CoinIn` being swapped.
 /// Anybody can execute the swap.
-public fun swap<L, CoinIn, CoinOut>(
+///
+/// `swap` variant that reads the Pro-compatible Pyth feed, for use after the Pyth
+/// Core to Pro cutover. Behaviour matches the pre-cutover `swap`; only the price
+/// source differs.
+public fun swap_pro<L, CoinIn, CoinOut>(
     // ours
     promise: AftermathSwapPromise,
     vault: &mut BBBVault,
     // pyth
-    info_in: &PriceInfoObject,
-    info_out: &PriceInfoObject,
+    info_in: &ProPriceInfoObject,
+    info_out: &ProPriceInfoObject,
     // aftermath
     pool: &mut Pool<L>,
     pool_registry: &PoolRegistry,
@@ -151,7 +198,7 @@ public fun swap<L, CoinIn, CoinOut>(
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
-    swap_internal<L, CoinIn, CoinOut>(
+    swap_internal_pro<L, CoinIn, CoinOut>(
         promise,
         vault,
         0,
@@ -168,17 +215,17 @@ public fun swap<L, CoinIn, CoinOut>(
     )
 }
 
-/// Like `swap`, but swaps at most `max_amount` of the input coin,
+/// Like `swap_pro`, but swaps at most `max_amount` of the input coin,
 /// leaving the rest in the vault.
 /// The caller passes the raw amount (e.g. 1_000_000_000 for 1 SUI).
-public fun swap_partial<L, CoinIn, CoinOut>(
+public fun swap_partial_pro<L, CoinIn, CoinOut>(
     // ours
     promise: AftermathSwapPromise,
     vault: &mut BBBVault,
     max_amount: u64,
     // pyth
-    info_in: &PriceInfoObject,
-    info_out: &PriceInfoObject,
+    info_in: &ProPriceInfoObject,
+    info_out: &ProPriceInfoObject,
     // aftermath
     pool: &mut Pool<L>,
     pool_registry: &PoolRegistry,
@@ -190,7 +237,7 @@ public fun swap_partial<L, CoinIn, CoinOut>(
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
-    swap_internal<L, CoinIn, CoinOut>(
+    swap_internal_pro<L, CoinIn, CoinOut>(
         promise,
         vault,
         max_amount,
@@ -207,12 +254,12 @@ public fun swap_partial<L, CoinIn, CoinOut>(
     )
 }
 
-fun swap_internal<L, CoinIn, CoinOut>(
+fun swap_internal_pro<L, CoinIn, CoinOut>(
     promise: AftermathSwapPromise,
     vault: &mut BBBVault,
     max_amount: u64,
-    info_in: &PriceInfoObject,
-    info_out: &PriceInfoObject,
+    info_in: &ProPriceInfoObject,
+    info_out: &ProPriceInfoObject,
     pool: &mut Pool<L>,
     pool_registry: &PoolRegistry,
     protocol_fee_vault: &ProtocolFeeVault,
@@ -254,7 +301,7 @@ fun swap_internal<L, CoinIn, CoinOut>(
     };
 
     // calculate expected CoinOut amount
-    let expected_out = calc_amount_out(
+    let expected_out = calc_amount_out_pro(
         info_in,
         info_out,
         self.decimals_in,

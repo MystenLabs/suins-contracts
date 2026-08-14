@@ -6,12 +6,13 @@ use cetusclmm::{
     tick_math::{min_sqrt_price, max_sqrt_price}
 };
 use pyth::price_info::PriceInfoObject;
+use pyth_pro_compatible::price_info::PriceInfoObject as ProPriceInfoObject;
 use std::{ascii::String, type_name::{Self, TypeName}};
 use sui::{balance, clock::Clock, coin::Coin, event::emit};
 use suins_bbb::{
     bbb_admin::BBBAdminCap,
     bbb_constants::slippage_scale,
-    bbb_pyth::calc_amount_out,
+    bbb_pyth::calc_amount_out_pro,
     bbb_vault::BBBVault
 };
 
@@ -27,6 +28,7 @@ const EInvalidOwedAmount: u64 = 1006;
 const ESlippageTooHigh: u64 = 1007;
 const ESlippageTooLow: u64 = 1008;
 const EMaxAgeTooHigh: u64 = 1009;
+const ECoreFeedDeprecated: u64 = 1010;
 
 // === events ===
 
@@ -141,17 +143,54 @@ public fun input_output_types(swap: &CetusSwap): (&TypeName, &TypeName) {
     }
 }
 
+/// Deprecated after the Pyth Core to Pro cutover: reads the Core feed, which stops
+/// updating. The signature is retained for upgrade compatibility, but the body is
+/// disabled. Use `swap_pro`. Callers needing the Core feed can still target the
+/// pre-upgrade package version.
+public fun swap<CoinA, CoinB>(
+    _promise: CetusSwapPromise,
+    _vault: &mut BBBVault,
+    _info_a: &PriceInfoObject,
+    _info_b: &PriceInfoObject,
+    _cetus_registry: &GlobalConfig,
+    _pool: &mut Pool<CoinA, CoinB>,
+    _clock: &Clock,
+    _ctx: &mut TxContext,
+) {
+    abort ECoreFeedDeprecated
+}
+
+/// Deprecated after the Pyth Core to Pro cutover. Use `swap_partial_pro`.
+/// Signature retained for upgrade compatibility; body disabled.
+public fun swap_partial<CoinA, CoinB>(
+    _promise: CetusSwapPromise,
+    _vault: &mut BBBVault,
+    _max_amount: u64,
+    _info_a: &PriceInfoObject,
+    _info_b: &PriceInfoObject,
+    _cetus_registry: &GlobalConfig,
+    _pool: &mut Pool<CoinA, CoinB>,
+    _clock: &Clock,
+    _ctx: &mut TxContext,
+) {
+    abort ECoreFeedDeprecated
+}
+
 /// Swap `CoinA` in the vault for `CoinB` or vice versa, depending on `a2b`,
 /// and deposit the resulting coin into the vault.
 /// Uses Cetus's AMM. Protocol fees are charged on the coin being swapped.
 /// Anybody can execute the swap.
-public fun swap<CoinA, CoinB>(
+///
+/// `swap` variant that reads the Pro-compatible Pyth feed, for use after the Pyth
+/// Core to Pro cutover. Behaviour matches the pre-cutover `swap`; only the price
+/// source differs.
+public fun swap_pro<CoinA, CoinB>(
     // ours
     promise: CetusSwapPromise,
     vault: &mut BBBVault,
     // pyth
-    info_a: &PriceInfoObject,
-    info_b: &PriceInfoObject,
+    info_a: &ProPriceInfoObject,
+    info_b: &ProPriceInfoObject,
     // cetus
     cetus_registry: &GlobalConfig,
     pool: &mut Pool<CoinA, CoinB>,
@@ -159,7 +198,7 @@ public fun swap<CoinA, CoinB>(
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
-    swap_internal<CoinA, CoinB>(
+    swap_internal_pro<CoinA, CoinB>(
         promise,
         vault,
         0,
@@ -172,17 +211,17 @@ public fun swap<CoinA, CoinB>(
     )
 }
 
-/// Like `swap`, but swaps at most `max_amount` of the input coin,
+/// Like `swap_pro`, but swaps at most `max_amount` of the input coin,
 /// leaving the rest in the vault.
 /// The caller passes the raw amount (e.g. 1_000_000_000 for 1 SUI).
-public fun swap_partial<CoinA, CoinB>(
+public fun swap_partial_pro<CoinA, CoinB>(
     // ours
     promise: CetusSwapPromise,
     vault: &mut BBBVault,
     max_amount: u64,
     // pyth
-    info_a: &PriceInfoObject,
-    info_b: &PriceInfoObject,
+    info_a: &ProPriceInfoObject,
+    info_b: &ProPriceInfoObject,
     // cetus
     cetus_registry: &GlobalConfig,
     pool: &mut Pool<CoinA, CoinB>,
@@ -190,7 +229,7 @@ public fun swap_partial<CoinA, CoinB>(
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
-    swap_internal<CoinA, CoinB>(
+    swap_internal_pro<CoinA, CoinB>(
         promise,
         vault,
         max_amount,
@@ -205,12 +244,12 @@ public fun swap_partial<CoinA, CoinB>(
 
 // === private functions ===
 
-fun swap_internal<CoinA, CoinB>(
+fun swap_internal_pro<CoinA, CoinB>(
     promise: CetusSwapPromise,
     vault: &mut BBBVault,
     max_amount: u64,
-    info_a: &PriceInfoObject,
-    info_b: &PriceInfoObject,
+    info_a: &ProPriceInfoObject,
+    info_b: &ProPriceInfoObject,
     cetus_registry: &GlobalConfig,
     pool: &mut Pool<CoinA, CoinB>,
     clock: &Clock,
@@ -249,7 +288,7 @@ fun swap_internal<CoinA, CoinB>(
         };
 
         // calculate expected CoinB amount
-        let expected_b = calc_amount_out(
+        let expected_b = calc_amount_out_pro(
             info_a,
             info_b,
             self.decimals_a,
@@ -293,7 +332,7 @@ fun swap_internal<CoinA, CoinB>(
         };
 
         // calculate expected CoinA amount
-        let expected_a = calc_amount_out(
+        let expected_a = calc_amount_out_pro(
             info_b,
             info_a,
             self.decimals_b,
