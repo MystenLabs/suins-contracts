@@ -41,6 +41,7 @@ export type PackageInfo = {
 		upgradeCap: string;
 	};
 	bbb: {
+		packageId: string;
 		upgradeCap: string;
 	};
 	pyth: {
@@ -90,15 +91,16 @@ export const mainPackage: Config = {
 		},
 		treasuryAddress: '0x638791b625c4482bc1b917847cdf8aa76fe226c0f3e0a9b1aa595625989e98a1',
 		payments: {
-			packageId: '0xdd0a4a34152a80d7841710e916a407b2a62961eee5b2188dcfdaa24194f66286',
+			packageId: '0xdbbf23390d9fb0dc0cf05c701ee61b02ae648268bff8c7ed4fe3e3128ec90b99',
 			upgradeCap: '0x1b81a62cca9db85bacdf213780e6ae71722ad3939f815cdbd6f577aa5d8ff8d2',
 		},
 		bbb: {
+			packageId: '0xed799c2fb6fc64bedc7df4fddb272af8718b2fe53a20b7c60ea927ad36b5b6ae',
 			upgradeCap: '0x7be6340da3af6cf40f2d77f289e178631f8c3e479167099b93769c5f1b82e6f9',
 		},
 		pyth: {
-			pythStateId: '0x1f9310238ee9298fb703c3419030b35b22bb1cc37113e3bb5007c99aec79e5b8',
-			wormholeStateId: '0xaeab97f96cf9877fee2883315d459552b2b921edc16d7ceac6eab944dd88919c',
+			pythStateId: '0x03719fae774ddab3cfcaa53bbc046f0cbe21410019b6280811bf3f9f4b05839d',
+			wormholeStateId: '0xdbca52b9fb4f712e25f61f974586d93ac541bcf8389564f0323bb07215168b5c',
 		},
 		coins: {
 			SUI: {
@@ -146,10 +148,11 @@ export const mainPackage: Config = {
 			packageId: '0x63029aae8abbefae4f4ac6c5e3e0021159ea93a94ba648681fd64caf5b40677a',
 		},
 		payments: {
-			packageId: '0xc391c200188dd1a363ff12dcffe07eaac5cf28ad1cd8dc0fcc18f2f8625f0da2',
+			packageId: '0x4f33a0e1e30530f2aa500a41b9e3d502f8af3ef2c20bd0a1e42374e329da7cb0',
 			upgradeCap: '0x06904d75de990102ef09f81e4ca96fcf85698d00768ab3d76179ef6cda07e545',
 		},
 		bbb: {
+			packageId: '0xab7f8da0f974ae38c205d9351787ae938da65c0a0e81d9788014f5f62a917aa1',
 			upgradeCap: '0x558d953cfff029f9dff7b42bb0e589b70441230112eb688eb7bd5ed908d4bd3c',
 		},
 		pyth: {
