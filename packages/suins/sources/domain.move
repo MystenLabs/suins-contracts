@@ -117,42 +117,33 @@ public fun is_parent_of(parent: &Domain, child: &Domain): bool {
 }
 
 fun validate_labels(labels: &vector<String>) {
+    // labels must not empty
     assert!(!labels.is_empty(), EInvalidDomain);
-
-    let len = labels.length();
-    let mut index = 0;
-
-    while (index < len) {
-        let label = &labels[index];
-        assert!(is_valid_label(label), EInvalidDomain);
-        index = index + 1;
-    }
+    // validate all labels valid 
+    assert!(labels.all!(|label| is_valid_label(label)), EInvalidDomain);
 }
 
 fun is_valid_label(label: &String): bool {
     let len = label.length();
     let label_bytes = label.as_bytes();
-    let mut index = 0;
 
     if (!(len >= MIN_LABEL_LENGTH && len <= MAX_LABEL_LENGTH)) {
         return false
     };
 
-    while (index < len) {
-        let character = label_bytes[index];
-        let is_valid_character =
-            (0x61 <= character && character <= 0x7A)                   // a-z
-                || (0x30 <= character && character <= 0x39)                // 0-9
-                || (character == 0x2D && index != 0 && index != len - 1); // '-' not at beginning or end
-
-        if (!is_valid_character) {
-            return false
-        };
-
-        index = index + 1;
+    // '-' not at beginning or end
+    if (len > 0) {
+            if (label_bytes[0] == 0x2D || label_bytes[len - 1] == 0x2D) {
+                    return false
+                }
     };
-
-    true
+    // return true if all char in lables valid(a-z, 0-9 or '-')
+    // otherwise return false
+    label_bytes.all!(|character| 
+            (0x61 <= *character && *character <= 0x7A)                   // a-z
+                || (0x30 <= *character && *character <= 0x39)                // 0-9
+                || *character == 0x2D                                    // '-' 
+    )
 }
 
 /// Splits a string `s` by the character `.` into a vector of subslices,
@@ -238,9 +229,16 @@ fun expect_valid_label(label: vector<u8>, is_valid: bool) {
 fun test_valid_labels() {
     expect_valid_label(b"", false);
     expect_valid_label(b"-", false);
+    expect_valid_label(b"-----", false);
     expect_valid_label(b"-aaa", false);
     expect_valid_label(b"aaa-", false);
+    expect_valid_label(b"A", false); // not accept uppercase
+    expect_valid_label(b"A-A",false);
+    expect_valid_label(b"Aa", false);
+    expect_valid_label(b"а", false); // this is not "a", this is similar "a"
+    expect_valid_label(b"a", true);
     expect_valid_label(b"a-a", true);
+    expect_valid_label(b"a----b-9", true);
     expect_valid_label(b"abcdefghijklmnopqrstuvxyz-0123456789", true);
 }
 
