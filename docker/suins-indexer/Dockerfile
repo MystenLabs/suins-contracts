@@ -1,4 +1,4 @@
-FROM rust:1.90.0-bullseye AS builder
+FROM rust:1.96.1-bookworm AS builder
 
 ARG PROFILE=release
 
@@ -8,7 +8,9 @@ COPY Cargo.lock Cargo.toml ./
 COPY indexer/ ./indexer/
 COPY docker/suins-indexer/entry.sh ./
 
-RUN apt-get update && apt-get install -y build-essential libssl-dev pkg-config curl cmake clang ca-certificates
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential libssl-dev pkg-config curl cmake clang ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 # GIT_REVISION declared late so SHA changes don't invalidate the COPY + apt layers above.
