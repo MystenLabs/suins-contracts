@@ -19,6 +19,7 @@ use sui_storage::blob::Blob;
 use sui_types::base_types::SuiAddress;
 use sui_types::full_checkpoint_content::Checkpoint;
 use sui_types::full_checkpoint_content::CheckpointData;
+use sui_types::transaction::{Transaction, TransactionDataAPI, TransactionExpiration};
 use suins_indexer::handlers::domain_handler::DomainHandler;
 use suins_indexer::MIGRATIONS;
 
@@ -26,6 +27,19 @@ const TEST_REGISTRY_TABLE_ID: &str =
     "0xb120c0d55432630fce61f7854795a3463deb6e3b443cc4ae72e1282073ff56e4";
 const TEST_NAME_RECORD_TYPE: &str = "0x2::dynamic_field::Field<0x22fa05f21b1ad71442491220bb9338f7b7095fe35000ef88d5400d28523bdd93::domain::Domain,0x22fa05f21b1ad71442491220bb9338f7b7095fe35000ef88d5400d28523bdd93::name_record::NameRecord>";
 const TEST_SUBDOMAIN_REGISTRATION_TYPE: &str = "0x22fa05f21b1ad71442491220bb9338f7b7095fe35000ef88d5400d28523bdd93::subdomain_registration::SubDomainRegistration";
+
+#[tokio::test]
+async fn decodes_transaction_validity_expiration() {
+    let transaction: Transaction = bcs::from_bytes(include_bytes!(
+        "data/mainnet-checkpoint-330185168-transaction-5.bcs"
+    ))
+    .unwrap();
+
+    assert!(matches!(
+        transaction.transaction_data().expiration(),
+        TransactionExpiration::Validity { .. }
+    ));
+}
 
 /// For our test policy, we have a few checkpoints that contain some data additions, deletions, replacements
 ///
@@ -108,7 +122,7 @@ where
 
     // Check results by comparing database tables with snapshots
     for table in tables_to_check {
-        let rows = read_table(&table, &url.to_string(), Some("ORDER BY name ASC")).await?;
+        let rows = read_table(table, url.as_ref(), Some("ORDER BY name ASC")).await?;
         assert_json_snapshot!(format!("{test_name}__{table}"), rows);
     }
     Ok(())

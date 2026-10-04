@@ -6,9 +6,7 @@ use async_trait::async_trait;
 use diesel::dsl::case_when;
 use diesel::upsert::excluded;
 use diesel::{BoolExpressionMethods, ExpressionMethods};
-use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
-use futures::future::try_join_all;
 use move_core_types::language_storage::StructTag;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
@@ -176,61 +174,56 @@ impl Handler for DomainHandler {
         );
 
         Ok(conn
-            .transaction(|conn| {
-                async move {
-                    if updates.is_empty() && removals.is_empty() {
-                        return Ok::<_, anyhow::Error>(0);
-                    }
-                    // commit all Verified Domains
-                    let mut changes = 0usize;
-                    if !updates.is_empty() {
-                        // Bulk insert all updates and override with data.
-                        changes += diesel::insert_into(table)
-                            .values(updates.values().collect::<Vec<_>>())
-                            .on_conflict(name)
-                            .do_update()
-                            .set((
-                                expiration_timestamp_ms
-                                    .eq(update_field_query!(expiration_timestamp_ms)),
-                                nft_id.eq(update_field_query!(nft_id)),
-                                target_address.eq(update_field_query!(target_address)),
-                                data.eq(update_field_query!(data)),
-                                last_checkpoint_updated
-                                    .eq(update_field_query!(last_checkpoint_updated)),
-                                field_id.eq(update_field_query!(field_id)),
-                                // We always want to respect the subdomain_wrapper re-assignment, even if the checkpoint is older.
-                                // That prevents a scenario where we first process a later checkpoint that did an update to the name record (e..g change target address),
-                                // without first executing the checkpoint that created the subdomain wrapper.
-                                // Since wrapper re-assignment can only happen every 2 days, we can't write invalid data here.
-                                subdomain_wrapper_id.eq(case_when(
-                                    excluded(subdomain_wrapper_id).is_not_null(),
-                                    excluded(subdomain_wrapper_id),
-                                )
-                                .otherwise(subdomain_wrapper_id)),
-                            ))
-                            .execute(conn)
-                            .await?;
-                    }
-
-                    // Update removals for each checkpoint
-                    changes += try_join_all(removals.iter().map(|(checkpoint, removals)| {
-                        // We want to remove from the database all name records that were removed in the checkpoint
-                        // but only if the checkpoint is newer than the last time the name record was updated.
-                        diesel::delete(table)
-                            .filter(
-                                field_id
-                                    .eq_any(removals)
-                                    .and(last_checkpoint_updated.le(*checkpoint as i64)),
-                            )
-                            .execute(conn)
-                    }))
-                    .await?
-                    .iter()
-                    .sum::<usize>();
-
-                    Ok(changes)
+            .transaction(async move |conn| {
+                if updates.is_empty() && removals.is_empty() {
+                    return Ok::<_, anyhow::Error>(0);
                 }
-                .scope_boxed()
+                // commit all Verified Domains
+                let mut changes = 0usize;
+                if !updates.is_empty() {
+                    // Bulk insert all updates and override with data.
+                    changes += diesel::insert_into(table)
+                        .values(updates.values().collect::<Vec<_>>())
+                        .on_conflict(name)
+                        .do_update()
+                        .set((
+                            expiration_timestamp_ms
+                                .eq(update_field_query!(expiration_timestamp_ms)),
+                            nft_id.eq(update_field_query!(nft_id)),
+                            target_address.eq(update_field_query!(target_address)),
+                            data.eq(update_field_query!(data)),
+                            last_checkpoint_updated
+                                .eq(update_field_query!(last_checkpoint_updated)),
+                            field_id.eq(update_field_query!(field_id)),
+                            // We always want to respect the subdomain_wrapper re-assignment, even if the checkpoint is older.
+                            // That prevents a scenario where we first process a later checkpoint that did an update to the name record (e..g change target address),
+                            // without first executing the checkpoint that created the subdomain wrapper.
+                            // Since wrapper re-assignment can only happen every 2 days, we can't write invalid data here.
+                            subdomain_wrapper_id.eq(case_when(
+                                excluded(subdomain_wrapper_id).is_not_null(),
+                                excluded(subdomain_wrapper_id),
+                            )
+                            .otherwise(subdomain_wrapper_id)),
+                        ))
+                        .execute(&mut *conn)
+                        .await?;
+                }
+
+                // Update removals for each checkpoint
+                for (checkpoint, removals) in &removals {
+                    // We want to remove from the database all name records that were removed in the checkpoint
+                    // but only if the checkpoint is newer than the last time the name record was updated.
+                    changes += diesel::delete(table)
+                        .filter(
+                            field_id
+                                .eq_any(removals)
+                                .and(last_checkpoint_updated.le(*checkpoint as i64)),
+                        )
+                        .execute(&mut *conn)
+                        .await?;
+                }
+
+                Ok(changes)
             })
             .await?)
     }
