@@ -104,6 +104,30 @@ fun place_bid_util(
     test_scenario::return_shared(auction_house);
 }
 
+/// Places a bid at the auction's end time, the last moment a bid is accepted.
+///
+/// The end time is read from the auction instead of being reached with
+/// `increment_for_testing`: that helper counts from the scenario's clock, which
+/// `next_tx` advances by 1 ms, and not from the timestamp the auction started at.
+fun place_bid_at_auction_end_util(
+    scenario: &mut Scenario,
+    sender: address,
+    domain_name: String,
+    value: u64,
+) {
+    scenario.next_tx(sender);
+    let mut auction_house = scenario.take_shared<AuctionHouse>();
+    let payment = coin::mint_for_testing<SUI>(value, ctx(scenario));
+    let mut clock = scenario.take_shared<Clock>();
+
+    let (_, end_timestamp_ms, _, _) = auction_house.get_auction_metadata(domain_name);
+    clock.set_for_testing(end_timestamp_ms.destroy_some());
+    auction_house.place_bid(domain_name, payment, &clock, ctx(scenario));
+
+    test_scenario::return_shared(clock);
+    test_scenario::return_shared(auction_house);
+}
+
 public fun claim_util(
     scenario: &mut Scenario,
     sender: address,
@@ -689,12 +713,11 @@ fun test_admin_collect_fund() {
         utf8(FIRST_DOMAIN_NAME),
         1200 * mist_per_sui(),
     );
-    place_bid_util(
+    place_bid_at_auction_end_util(
         scenario,
         SECOND_ADDRESS,
         utf8(FIRST_DOMAIN_NAME),
         1210 * mist_per_sui(),
-        AUCTION_BIDDING_PERIOD_MS,
     );
     assert_balance(scenario, 0);
     admin_collect_fund_util(
@@ -874,12 +897,11 @@ fun test_admin_collect_fund_even_if_auction_is_deauthorized() {
         utf8(FIRST_DOMAIN_NAME),
         1200 * mist_per_sui(),
     );
-    place_bid_util(
+    place_bid_at_auction_end_util(
         scenario,
         SECOND_ADDRESS,
         utf8(FIRST_DOMAIN_NAME),
         1210 * mist_per_sui(),
-        AUCTION_BIDDING_PERIOD_MS,
     );
     assert_balance(scenario, 0);
     deauthorize_app_util(scenario);
