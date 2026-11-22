@@ -1,0 +1,18 @@
+# Vendored from https://github.com/AftermathFinance/move-interfaces,
+# packages/amm/amm-math at 82ec9858667343f35528f0e0ea7cd759249b2b18. See ../README.md.
+#
+# Changed from upstream:
+# - `published-at` is AMM math v2 instead of v1, the version AMM v5 links.
+
+[package]
+name = "AmmMath"
+version = "0.0.1"
+published-at = "0xbc7b2c577ad9362fbb0dba397d17f3bcc81bf7aa916559f99a77eaee05d0947c"
+
+[dependencies.Sui]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/sui-framework"
+rev = "framework/mainnet"
+
+[addresses]
+amm_math = "0x712579292f80c11a0c9de4ff553d6e5c4757105e83a8a3129823d2b39e65d062"

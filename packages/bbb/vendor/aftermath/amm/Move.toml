@@ -1,0 +1,27 @@
+# Vendored from https://github.com/AftermathFinance/move-interfaces,
+# packages/amm/amm at 82ec9858667343f35528f0e0ea7cd759249b2b18. See ../README.md.
+#
+# Changed from upstream:
+# - `published-at` is AMM v5 instead of v2.
+# - ProtocolFeeVault comes from the upstream repo instead of a sibling directory.
+
+[package]
+name = "AftermathAmm"
+version = "0.0.1"
+published-at = "0x93056cd889839d7186498c5e86d3087cb79dacb08ae0e18b9b2c42ebe06d7be7"
+
+[dependencies.Sui]
+git = "https://github.com/MystenLabs/sui.git"
+subdir = "crates/sui-framework/packages/sui-framework"
+rev = "framework/mainnet"
+
+[dependencies.ProtocolFeeVault]
+git = "https://github.com/AftermathFinance/move-interfaces.git"
+subdir = "packages/amm/amm-protocol-fee-vault"
+rev = "82ec9858667343f35528f0e0ea7cd759249b2b18"
+
+[dependencies.AmmMath]
+local = "../amm-math/"
+
+[addresses]
+amm = "0xefe170ec0be4d762196bedecd7a065816576198a6527c99282a2551aaa7da38c"
