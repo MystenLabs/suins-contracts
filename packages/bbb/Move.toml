@@ -3,8 +3,10 @@ name = "suins_bbb"
 edition = "2024.beta"
 
 [dependencies]
-amm = { git = "https://github.com/AftermathFinance/move-interfaces.git", subdir = "packages/amm/amm", rev = "82ec985" }
-cetusclmm = { git = "https://github.com/CetusProtocol/cetus-clmm-interface.git", subdir = "sui/cetus_clmm", rev = "mainnet-v1.49.2" }
+# Vendored so that the package links Aftermath AMM v5. Upstream still declares v2, which
+# Aftermath disabled on 2026-11-13. See vendor/aftermath/README.md.
+amm = { local = "vendor/aftermath/amm" }
+cetusclmm = { git = "https://github.com/CetusProtocol/cetus-clmm-interface.git", subdir = "sui/cetus_clmm", rev = "clmm-v15" }
 insurance_fund = { git = "https://github.com/AftermathFinance/move-interfaces.git", subdir = "packages/amm/amm-insurance-fund", rev = "82ec985" }
 treasury = { git = "https://github.com/AftermathFinance/move-interfaces.git", subdir = "packages/amm/amm-treasury", rev = "82ec985" }
 protocol_fee_vault = { git = "https://github.com/AftermathFinance/move-interfaces.git", subdir = "packages/amm/amm-protocol-fee-vault", rev = "82ec985" }
@@ -20,3 +22,8 @@ git = "https://github.com/pyth-network/pyth-crosschain.git"
 subdir = "target_chains/sui/contracts"
 rev = "sui-pro-compatible-contract-mainnet"
 rename-from = "pyth"
+
+# Cetus publishes `clmm-v15` for mainnet only: its MVR dependencies do not resolve on
+# testnet, so testnet builds (including CI's `sui move test`) stay on the previous tag.
+[dep-replacements.testnet]
+cetusclmm = { git = "https://github.com/CetusProtocol/cetus-clmm-interface.git", subdir = "sui/cetus_clmm", rev = "mainnet-v1.49.2" }

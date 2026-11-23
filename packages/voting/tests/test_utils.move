@@ -287,8 +287,14 @@ public fun assert_owns_ns(setup: &mut TestSetup, expected_amount: u64) {
     setup.ts.return_to_sender(last_coin);
 }
 
+/// Advances the setup's clock by `ms`.
+///
+/// Counts from the setup's own clock instead of using `increment_for_testing`:
+/// that helper counts from the scenario's clock, which `next_tx` advances by 1 ms,
+/// so it lands later than `ms` after the setup's clock.
 public fun add_time(setup: &mut TestSetup, ms: u64) {
-    setup.clock.increment_for_testing(ms);
+    let now_ms = setup.clock.timestamp_ms();
+    setup.clock.set_for_testing(now_ms + ms);
 }
 
 public fun set_time(setup: &mut TestSetup, ms: u64) {
