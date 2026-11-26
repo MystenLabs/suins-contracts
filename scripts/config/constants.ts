@@ -95,7 +95,7 @@ export const mainPackage: Config = {
 			upgradeCap: '0x1b81a62cca9db85bacdf213780e6ae71722ad3939f815cdbd6f577aa5d8ff8d2',
 		},
 		bbb: {
-			packageId: '0xed799c2fb6fc64bedc7df4fddb272af8718b2fe53a20b7c60ea927ad36b5b6ae',
+			packageId: '0xe21cf5b96597441b2599f84bf7df141b747b7c46b9427e1eab0488474c77a573',
 			upgradeCap: '0x7be6340da3af6cf40f2d77f289e178631f8c3e479167099b93769c5f1b82e6f9',
 		},
 		pyth: {
