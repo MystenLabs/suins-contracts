@@ -5,8 +5,11 @@
 module suins_subdomains::unit_tests;
 
 use std::string::utf8;
-use suins::domain::{Self, new as new_domain, parent};
-use suins_subdomains::config::{assert_is_valid_subdomain, default};
+use suins::{
+    constants::sui_tld,
+    domain::{Self, new as new_domain, parent},
+};
+use suins_subdomains::config::{assert_is_valid_subdomain, default, new as new_config};
 
 // === Validity of subdomain | parent lengths (based on string) ===
 #[test]
@@ -14,6 +17,16 @@ fun test_parent_relationships() {
     assert_is_valid_subdomain(
         &new_domain(utf8(b"example.sui")),
         &new_domain(utf8(b"sub.example.sui")),
+        &default(),
+    );
+    assert_is_valid_subdomain(
+        &new_domain(utf8(b"example.sui")),
+        &new_domain(utf8(b"a.example.sui")),
+        &default(),
+    );
+    assert_is_valid_subdomain(
+        &new_domain(utf8(b"example.sui")),
+        &new_domain(utf8(b"zk.example.sui")),
         &default(),
     );
     assert_is_valid_subdomain(
@@ -88,10 +101,16 @@ fun test_invalid_parent_sld_failure() {
 
 #[test, expected_failure(abort_code = ::suins_subdomains::config::EInvalidLabelSize)]
 fun test_invalid_child_label_size_failure() {
+    let custom_config = new_config(
+        vector[sui_tld()],
+        10,
+        3,
+        24 * 60 * 60 * 1000,
+    );
     assert_is_valid_subdomain(
-        &new_domain(utf8(b"sub.exampl.sui")),
+        &new_domain(utf8(b"example.sui")),
         &new_domain(utf8(b"ob.example.sui")),
-        &default(),
+        &custom_config,
     );
 }
 
