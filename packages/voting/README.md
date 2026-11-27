@@ -47,7 +47,7 @@ plain NS coins, now voting is done with staked NS.
     - Only staked/locked tokens can participate in a vote
     - Staked/Locked batches become unusable (unable to unstake/lock) when participating in a vote
     - “Cooling Down” or “Cooled Down” batches cannot participate in a vote
-    - Voting Power is not transferrable.
+    - Voting Power is not transferable.
 - Data Tracking
     - Total TVL
     - TVL per user
